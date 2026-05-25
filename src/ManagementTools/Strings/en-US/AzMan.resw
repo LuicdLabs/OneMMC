@@ -1,0 +1,1655 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="CreateStoreDialog_Title" xml:space="preserve">
+    <value>New Authorization Store</value>
+  </data>
+  <data name="CreateStoreDialog_Subtitle" xml:space="preserve">
+    <value>Create a new authorization store for Windows Authorization Manager.</value>
+  </data>
+  <data name="CreateStoreDialog_StoreType_Label" xml:space="preserve">
+    <value>Store type</value>
+  </data>
+  <data name="CreateStoreDialog_StoreType_Xml" xml:space="preserve">
+    <value>XML file</value>
+  </data>
+  <data name="CreateStoreDialog_StoreType_ActiveDirectory" xml:space="preserve">
+    <value>Active Directory</value>
+  </data>
+  <data name="CreateStoreDialog_StoreType_SqlServer" xml:space="preserve">
+    <value>SQL Server</value>
+  </data>
+  <data name="CreateStoreDialog_XmlPath_Label" xml:space="preserve">
+    <value>File path</value>
+  </data>
+  <data name="CreateStoreDialog_XmlPath_Placeholder" xml:space="preserve">
+    <value>C:\MyStore.xml</value>
+  </data>
+  <data name="CreateStoreDialog_Browse_Button" xml:space="preserve">
+    <value>Browse</value>
+  </data>
+  <data name="CreateStoreDialog_AdPath_Label" xml:space="preserve">
+    <value>Active Directory path</value>
+  </data>
+  <data name="CreateStoreDialog_AdPath_Placeholder" xml:space="preserve">
+    <value>CN=MyStore,CN=Program Data,DC=domain,DC=com</value>
+  </data>
+  <data name="CreateStoreDialog_AdPath_Example" xml:space="preserve">
+    <value>Example: CN=MyStore,CN=Program Data,DC=contoso,DC=com</value>
+  </data>
+  <data name="CreateStoreDialog_Sql_Label" xml:space="preserve">
+    <value>SQL Server connection</value>
+  </data>
+  <data name="CreateStoreDialog_Sql_Server_Placeholder" xml:space="preserve">
+    <value>Server name or IP address</value>
+  </data>
+  <data name="CreateStoreDialog_Sql_Database_Placeholder" xml:space="preserve">
+    <value>Database name</value>
+  </data>
+  <data name="CreateStoreDialog_Sql_Store_Placeholder" xml:space="preserve">
+    <value>Policy store name</value>
+  </data>
+  <data name="CreateStoreDialog_Sql_Format" xml:space="preserve">
+    <value>Format: Server/Database/StoreName</value>
+  </data>
+  <data name="CreateStoreDialog_Description_Label" xml:space="preserve">
+    <value>Description (optional)</value>
+  </data>
+  <data name="CreateStoreDialog_Description_Placeholder" xml:space="preserve">
+    <value>Enter a description for this store</value>
+  </data>
+  <data name="CreateStoreDialog_GenerateAudits" xml:space="preserve">
+    <value>Generate audits</value>
+  </data>
+  <data name="CreateStoreDialog_FileDialog_Title" xml:space="preserve">
+    <value>Select Authorization Store Location</value>
+  </data>
+  <data name="CreateStoreDialog_Error_EmptyPath" xml:space="preserve">
+    <value>Please specify a valid store path.</value>
+  </data>
+  <data name="CreateStoreDialog_Error_DirectoryMissing" xml:space="preserve">
+    <value>The directory '{0}' does not exist.</value>
+  </data>
+  <data name="CreateStoreDialog_Error_FileExists" xml:space="preserve">
+    <value>The file '{0}' already exists. Please choose a different name.</value>
+  </data>
+  <data name="AuthorizationManagerPage_SearchPlaceholder" xml:space="preserve">
+    <value>Search auth stores</value>
+  </data>
+  <data name="AuthorizationManagerPage_StoreCount_Default" xml:space="preserve">
+    <value>No authorization stores</value>
+  </data>
+  <data name="AuthorizationManagerPage_NewTooltip" xml:space="preserve">
+    <value>New authorization store</value>
+  </data>
+  <data name="AuthorizationManagerPage_NewButton" xml:space="preserve">
+    <value>New</value>
+  </data>
+  <data name="AuthorizationManagerPage_OpenTooltip" xml:space="preserve">
+    <value>Open authorization store</value>
+  </data>
+  <data name="AuthorizationManagerPage_RefreshAll" xml:space="preserve">
+    <value>Refresh all</value>
+  </data>
+  <data name="AuthorizationManagerPage_Deprecation_Title" xml:space="preserve">
+    <value>Notice</value>
+  </data>
+  <data name="AuthorizationManagerPage_Deprecation_Message" xml:space="preserve">
+    <value>Authorization Manager is being deprecated. Migrate to Entra RBAC.</value>
+  </data>
+  <data name="AuthorizationManagerPage_EmptyTitle" xml:space="preserve">
+    <value>No authorization stores</value>
+  </data>
+  <data name="AuthorizationManagerPage_EmptySubtitle" xml:space="preserve">
+    <value>Create or open a store to get started.</value>
+  </data>
+  <data name="AuthorizationManagerPage_CloseStoreTooltip" xml:space="preserve">
+    <value>Close store</value>
+  </data>
+  <data name="AuthorizationManagerPage_Status_CreateSuccess" xml:space="preserve">
+    <value>Authorization store created.</value>
+  </data>
+  <data name="AuthorizationManagerPage_Status_OpenSuccess" xml:space="preserve">
+    <value>Authorization store opened.</value>
+  </data>
+  <data name="AuthorizationManagerPage_Status_CloseStore" xml:space="preserve">
+    <value>Authorization store closed.</value>
+  </data>
+  <data name="AuthorizationManager_StoreCount_Singular" xml:space="preserve">
+    <value>{0} authorization store</value>
+  </data>
+  <data name="AuthorizationManager_StoreCount_Plural" xml:space="preserve">
+    <value>{0} authorization stores</value>
+  </data>
+  <data name="AuthorizationManager_Status_CreatingStore" xml:space="preserve">
+    <value>Creating authorization store</value>
+  </data>
+  <data name="AuthorizationManager_Status_OpeningStore" xml:space="preserve">
+    <value>Opening authorization store</value>
+  </data>
+  <data name="AuthorizationManager_Status_DeletingStore" xml:space="preserve">
+    <value>Deleting authorization store</value>
+  </data>
+  <data name="AuthorizationManager_Status_Refreshing" xml:space="preserve">
+    <value>Refreshing</value>
+  </data>
+  <data name="AuthorizationManager_Status_RefreshingAll" xml:space="preserve">
+    <value>Refreshing all stores</value>
+  </data>
+  <data name="AuthorizationManager_Status_CreateSuccess" xml:space="preserve">
+    <value>Authorization store created.</value>
+  </data>
+  <data name="AuthorizationManager_Status_OpenSuccess" xml:space="preserve">
+    <value>Authorization store opened.</value>
+  </data>
+  <data name="AuthorizationManager_Status_CloseStore" xml:space="preserve">
+    <value>Authorization store closed.</value>
+  </data>
+  <data name="AuthorizationManager_Status_DeleteSuccess" xml:space="preserve">
+    <value>Authorization store deleted.</value>
+  </data>
+  <data name="AuthorizationManager_Status_RefreshComplete" xml:space="preserve">
+    <value>Refresh complete.</value>
+  </data>
+  <data name="AuthorizationStorePage_StoreNamePlaceholder" xml:space="preserve">
+    <value>Store name</value>
+  </data>
+  <data name="AuthorizationStorePage_StoreType_Default" xml:space="preserve">
+    <value>Store type</value>
+  </data>
+  <data name="AuthorizationStorePage_Properties" xml:space="preserve">
+    <value>Properties</value>
+  </data>
+  <data name="AuthorizationStorePage_DeleteStore" xml:space="preserve">
+    <value>Delete store</value>
+  </data>
+  <data name="AuthorizationStorePage_ApplicationsHeader" xml:space="preserve">
+    <value>Applications</value>
+  </data>
+  <data name="AuthorizationStorePage_GroupsHeader" xml:space="preserve">
+    <value>Groups</value>
+  </data>
+  <data name="AuthorizationStorePage_DeleteApplicationTooltip" xml:space="preserve">
+    <value>Delete application</value>
+  </data>
+  <data name="AuthorizationStorePage_EditGroupTooltip" xml:space="preserve">
+    <value>Edit group</value>
+  </data>
+  <data name="AuthorizationStorePage_DeleteGroupTooltip" xml:space="preserve">
+    <value>Delete group</value>
+  </data>
+  <data name="AuthorizationStorePage_DeleteStore_Title" xml:space="preserve">
+    <value>Delete store</value>
+  </data>
+  <data name="AuthorizationStorePage_DeleteStore_Content" xml:space="preserve">
+    <value>Are you sure you want to delete this store?</value>
+  </data>
+  <data name="AuthorizationStorePage_DeleteApplication_Title" xml:space="preserve">
+    <value>Delete application</value>
+  </data>
+  <data name="AuthorizationStorePage_DeleteApplication_Content" xml:space="preserve">
+    <value>Are you sure you want to delete this application?</value>
+  </data>
+  <data name="AuthorizationStorePage_DeleteGroup_Title" xml:space="preserve">
+    <value>Delete group</value>
+  </data>
+  <data name="AuthorizationStorePage_DeleteGroup_Content" xml:space="preserve">
+    <value>Are you sure you want to delete this group?</value>
+  </data>
+  <data name="AuthorizationStorePage_Status_PropertiesUpdated" xml:space="preserve">
+    <value>Store properties updated.</value>
+  </data>
+  <data name="AuthorizationStorePage_Status_PropertiesUpdateFailed" xml:space="preserve">
+    <value>Failed to update store properties.</value>
+  </data>
+  <data name="AuthorizationStorePage_Status_AppCreated" xml:space="preserve">
+    <value>Application created.</value>
+  </data>
+  <data name="AuthorizationStorePage_Status_AppDeleted" xml:space="preserve">
+    <value>Application deleted.</value>
+  </data>
+  <data name="AuthorizationStorePage_Status_GroupCreated" xml:space="preserve">
+    <value>Group created.</value>
+  </data>
+  <data name="AuthorizationStorePage_Status_GroupUpdated" xml:space="preserve">
+    <value>Group updated.</value>
+  </data>
+  <data name="AuthorizationStorePage_Status_GroupUpdateFailed" xml:space="preserve">
+    <value>Failed to update group.</value>
+  </data>
+  <data name="AuthorizationStorePage_Status_GroupDeleted" xml:space="preserve">
+    <value>Group deleted.</value>
+  </data>
+  <data name="AuthorizationStore_Status_CreatingApplication" xml:space="preserve">
+    <value>Creating application</value>
+  </data>
+  <data name="AuthorizationStore_Status_CreateApplicationSuccess" xml:space="preserve">
+    <value>Application created.</value>
+  </data>
+  <data name="AuthorizationStore_Status_DeletingApplication" xml:space="preserve">
+    <value>Deleting application</value>
+  </data>
+  <data name="AuthorizationStore_Status_DeleteApplicationSuccess" xml:space="preserve">
+    <value>Application deleted.</value>
+  </data>
+  <data name="AuthorizationStore_Status_CreatingGroup" xml:space="preserve">
+    <value>Creating group</value>
+  </data>
+  <data name="AuthorizationStore_Status_CreateGroupSuccess" xml:space="preserve">
+    <value>Group created.</value>
+  </data>
+  <data name="AuthorizationStore_Status_DeletingGroup" xml:space="preserve">
+    <value>Deleting group</value>
+  </data>
+  <data name="AuthorizationStore_Status_DeleteGroupSuccess" xml:space="preserve">
+    <value>Group deleted.</value>
+  </data>
+  <data name="AuthorizationStore_Status_UpdateGroupSuccess" xml:space="preserve">
+    <value>Group updated.</value>
+  </data>
+  <data name="OpenStoreDialog_Title" xml:space="preserve">
+    <value>Open Authorization Store</value>
+  </data>
+  <data name="OpenStoreDialog_StoreType_Label" xml:space="preserve">
+    <value>Store type</value>
+  </data>
+  <data name="OpenStoreDialog_StoreType_Xml" xml:space="preserve">
+    <value>XML file</value>
+  </data>
+  <data name="OpenStoreDialog_StoreType_ActiveDirectory" xml:space="preserve">
+    <value>Active Directory</value>
+  </data>
+  <data name="OpenStoreDialog_StoreType_SqlServer" xml:space="preserve">
+    <value>SQL Server</value>
+  </data>
+  <data name="OpenStoreDialog_XmlPath_Label" xml:space="preserve">
+    <value>File path</value>
+  </data>
+  <data name="OpenStoreDialog_XmlPath_Placeholder" xml:space="preserve">
+    <value>C:\MyStore.xml</value>
+  </data>
+  <data name="OpenStoreDialog_AdPath_Label" xml:space="preserve">
+    <value>Active Directory path</value>
+  </data>
+  <data name="OpenStoreDialog_AdPath_Placeholder" xml:space="preserve">
+    <value>CN=MyStore,CN=Program Data,DC=domain,DC=com</value>
+  </data>
+  <data name="OpenStoreDialog_Sql_Label" xml:space="preserve">
+    <value>SQL Server connection</value>
+  </data>
+  <data name="OpenStoreDialog_Sql_Server_Placeholder" xml:space="preserve">
+    <value>Server name or IP address</value>
+  </data>
+  <data name="OpenStoreDialog_Sql_Database_Placeholder" xml:space="preserve">
+    <value>Database name</value>
+  </data>
+  <data name="OpenStoreDialog_Sql_Store_Placeholder" xml:space="preserve">
+    <value>Policy store name</value>
+  </data>
+  <data name="OpenStoreDialog_OpenMode_Label" xml:space="preserve">
+    <value>Open mode</value>
+  </data>
+  <data name="OpenStoreDialog_OpenMode_Admin" xml:space="preserve">
+    <value>Administrator (read/write)</value>
+  </data>
+  <data name="OpenStoreDialog_OpenMode_Reader" xml:space="preserve">
+    <value>Reader (read-only)</value>
+  </data>
+  <data name="OpenStoreDialog_FileDialog_Title" xml:space="preserve">
+    <value>Select Authorization Store</value>
+  </data>
+  <data name="OpenStoreDialog_Error_InvalidPath" xml:space="preserve">
+    <value>Please specify a valid store path.</value>
+  </data>
+  <data name="OpenStoreDialog_Error_FileNotFound" xml:space="preserve">
+    <value>The file '{0}' was not found.</value>
+  </data>
+  <data name="StorePropertiesDialog_Title" xml:space="preserve">
+    <value>Store Properties</value>
+  </data>
+  <data name="StorePropertiesDialog_Tab_General" xml:space="preserve">
+    <value>General</value>
+  </data>
+  <data name="StorePropertiesDialog_StoreInfo_Header" xml:space="preserve">
+    <value>Store Information</value>
+  </data>
+  <data name="StorePropertiesDialog_StorePath_Header" xml:space="preserve">
+    <value>Store path</value>
+  </data>
+  <data name="StorePropertiesDialog_StoreType_Header" xml:space="preserve">
+    <value>Store type</value>
+  </data>
+  <data name="StorePropertiesDialog_SchemaVersion_Header" xml:space="preserve">
+    <value>Schema version</value>
+  </data>
+  <data name="StorePropertiesDialog_Description_Header" xml:space="preserve">
+    <value>Description</value>
+  </data>
+  <data name="StorePropertiesDialog_Description_Placeholder" xml:space="preserve">
+    <value>Enter a description</value>
+  </data>
+  <data name="StorePropertiesDialog_Settings_Header" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="StorePropertiesDialog_GenerateAudits" xml:space="preserve">
+    <value>Generate audits</value>
+  </data>
+  <data name="StorePropertiesDialog_ApplicationData_Header" xml:space="preserve">
+    <value>Application data</value>
+  </data>
+  <data name="StorePropertiesDialog_ApplicationData_Placeholder" xml:space="preserve">
+    <value>Enter application-specific data</value>
+  </data>
+  <data name="StorePropertiesDialog_Tab_Security" xml:space="preserve">
+    <value>Security</value>
+  </data>
+  <data name="StorePropertiesDialog_PolicyAdmins_Header" xml:space="preserve">
+    <value>Policy Administrators</value>
+  </data>
+  <data name="StorePropertiesDialog_PolicyAdmins_Description" xml:space="preserve">
+    <value>Users and groups with full control over the policy store.</value>
+  </data>
+  <data name="StorePropertiesDialog_PolicyReaders_Header" xml:space="preserve">
+    <value>Policy Readers</value>
+  </data>
+  <data name="StorePropertiesDialog_PolicyReaders_Description" xml:space="preserve">
+    <value>Users and groups with read-only access to the policy store.</value>
+  </data>
+  <data name="StorePropertiesDialog_Tab_Auditing" xml:space="preserve">
+    <value>Auditing</value>
+  </data>
+  <data name="StorePropertiesDialog_Auditing_Info_Title" xml:space="preserve">
+    <value>Audit Configuration</value>
+  </data>
+  <data name="StorePropertiesDialog_Auditing_Info_Message" xml:space="preserve">
+    <value>Configure auditing settings for this authorization store.</value>
+  </data>
+  <data name="StorePropertiesDialog_Auditing_Description" xml:space="preserve">
+    <value>Enable auditing to track authorization decisions and policy changes.</value>
+  </data>
+  <data name="StorePropertiesDialog_StoreType_Xml" xml:space="preserve">
+    <value>XML file</value>
+  </data>
+  <data name="StorePropertiesDialog_StoreType_ActiveDirectory" xml:space="preserve">
+    <value>Active Directory</value>
+  </data>
+  <data name="StorePropertiesDialog_StoreType_SqlServer" xml:space="preserve">
+    <value>SQL Server</value>
+  </data>
+  <data name="StorePropertiesDialog_StoreType_Unknown" xml:space="preserve">
+    <value>Unknown</value>
+  </data>
+  <data name="StoreAdvancedPropertiesDialog_Title" xml:space="preserve">
+    <value>Advanced Store Properties</value>
+  </data>
+  <data name="StoreAdvancedPropertiesDialog_TitleWithName" xml:space="preserve">
+    <value>Advanced Properties - {0}</value>
+  </data>
+  <data name="StoreAdvancedPropertiesDialog_TimeoutSettings_Header" xml:space="preserve">
+    <value>Timeout Settings</value>
+  </data>
+  <data name="StoreAdvancedPropertiesDialog_DomainTimeout_Header" xml:space="preserve">
+    <value>Domain timeout (ms)</value>
+  </data>
+  <data name="StoreAdvancedPropertiesDialog_DomainTimeout_Placeholder" xml:space="preserve">
+    <value>15000</value>
+  </data>
+  <data name="StoreAdvancedPropertiesDialog_DomainTimeout_Description" xml:space="preserve">
+    <value>Maximum time to wait for domain controller responses.</value>
+  </data>
+  <data name="StoreAdvancedPropertiesDialog_ScriptTimeout_Header" xml:space="preserve">
+    <value>Script engine timeout (ms)</value>
+  </data>
+  <data name="StoreAdvancedPropertiesDialog_ScriptTimeout_Placeholder" xml:space="preserve">
+    <value>45000</value>
+  </data>
+  <data name="StoreAdvancedPropertiesDialog_ScriptTimeout_Description" xml:space="preserve">
+    <value>Maximum time for business rule script execution.</value>
+  </data>
+  <data name="StoreAdvancedPropertiesDialog_ScriptEngineSettings_Header" xml:space="preserve">
+    <value>Script Engine Settings</value>
+  </data>
+  <data name="StoreAdvancedPropertiesDialog_MaxScriptEngines_Header" xml:space="preserve">
+    <value>Maximum script engines</value>
+  </data>
+  <data name="StoreAdvancedPropertiesDialog_MaxScriptEngines_Placeholder" xml:space="preserve">
+    <value>120</value>
+  </data>
+  <data name="StoreAdvancedPropertiesDialog_MaxScriptEngines_Description" xml:space="preserve">
+    <value>Maximum number of concurrent script engines.</value>
+  </data>
+  <data name="StoreAdvancedPropertiesDialog_AuditSettings_Header" xml:space="preserve">
+    <value>Audit Settings</value>
+  </data>
+  <data name="StoreAdvancedPropertiesDialog_GenerateAudits_Header" xml:space="preserve">
+    <value>Generate audits</value>
+  </data>
+  <data name="StoreAdvancedPropertiesDialog_GenerateAudits_Description" xml:space="preserve">
+    <value>Enable audit event generation for authorization decisions.</value>
+  </data>
+  <data name="StoreAdvancedPropertiesDialog_TargetMachine_Header" xml:space="preserve">
+    <value>Target Machine</value>
+  </data>
+  <data name="StoreAdvancedPropertiesDialog_TargetMachine_NameHeader" xml:space="preserve">
+    <value>Machine name</value>
+  </data>
+  <data name="StoreAdvancedPropertiesDialog_TargetMachine_Placeholder" xml:space="preserve">
+    <value>Local computer</value>
+  </data>
+  <data name="StoreAdvancedPropertiesDialog_TargetMachine_Local" xml:space="preserve">
+    <value>Local computer</value>
+  </data>
+  <data name="StoreAdvancedPropertiesDialog_ResetButton" xml:space="preserve">
+    <value>Reset to defaults</value>
+  </data>
+  <data name="StoreAdvancedPropertiesDialog_Error_LoadFailed" xml:space="preserve">
+    <value>Failed to load advanced properties: {0}</value>
+  </data>
+  <data name="StoreAdvancedPropertiesDialog_Error_DomainTimeout" xml:space="preserve">
+    <value>Domain timeout must be at least 1000 milliseconds.</value>
+  </data>
+  <data name="StoreAdvancedPropertiesDialog_Error_ScriptTimeout" xml:space="preserve">
+    <value>Script timeout must be at least 1000 milliseconds.</value>
+  </data>
+  <data name="StoreAdvancedPropertiesDialog_Error_MaxScriptEngines" xml:space="preserve">
+    <value>Maximum script engines must be at least 1.</value>
+  </data>
+  <data name="CreateItemDialog_Title_Default" xml:space="preserve">
+    <value>Create New Item</value>
+  </data>
+  <data name="CreateItemDialog_Name_Label" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="CreateItemDialog_Name_Placeholder_Default" xml:space="preserve">
+    <value>Enter item name</value>
+  </data>
+  <data name="CreateItemDialog_GroupType_Label" xml:space="preserve">
+    <value>Group type</value>
+  </data>
+  <data name="CreateItemDialog_GroupType_Basic" xml:space="preserve">
+    <value>Basic</value>
+  </data>
+  <data name="CreateItemDialog_GroupType_LdapQuery" xml:space="preserve">
+    <value>LDAP Query</value>
+  </data>
+  <data name="CreateItemDialog_LdapQuery_Label" xml:space="preserve">
+    <value>LDAP query</value>
+  </data>
+  <data name="CreateItemDialog_LdapQuery_Placeholder" xml:space="preserve">
+    <value>Enter LDAP query string</value>
+  </data>
+  <data name="CreateItemDialog_OperationId_Label" xml:space="preserve">
+    <value>Operation ID</value>
+  </data>
+  <data name="CreateItemDialog_OperationId_Placeholder" xml:space="preserve">
+    <value>-1 (auto-assign)</value>
+  </data>
+  <data name="CreateItemDialog_Description_Label" xml:space="preserve">
+    <value>Description</value>
+  </data>
+  <data name="CreateItemDialog_Description_Placeholder" xml:space="preserve">
+    <value>Enter description</value>
+  </data>
+  <data name="CreateItemDialog_Title_Application" xml:space="preserve">
+    <value>Create New Application</value>
+  </data>
+  <data name="CreateItemDialog_Name_Placeholder_Application" xml:space="preserve">
+    <value>Enter application name</value>
+  </data>
+  <data name="CreateItemDialog_Title_Group" xml:space="preserve">
+    <value>Create New Group</value>
+  </data>
+  <data name="CreateItemDialog_Name_Placeholder_Group" xml:space="preserve">
+    <value>Enter group name</value>
+  </data>
+  <data name="CreateItemDialog_Title_RoleDefinition" xml:space="preserve">
+    <value>Create New Role Definition</value>
+  </data>
+  <data name="CreateItemDialog_Name_Placeholder_RoleDefinition" xml:space="preserve">
+    <value>Enter role definition name</value>
+  </data>
+  <data name="CreateItemDialog_Title_RoleAssignment" xml:space="preserve">
+    <value>Create New Role Assignment</value>
+  </data>
+  <data name="CreateItemDialog_Name_Placeholder_RoleAssignment" xml:space="preserve">
+    <value>Enter role assignment name</value>
+  </data>
+  <data name="CreateItemDialog_Title_Task" xml:space="preserve">
+    <value>Create New Task</value>
+  </data>
+  <data name="CreateItemDialog_Name_Placeholder_Task" xml:space="preserve">
+    <value>Enter task name</value>
+  </data>
+  <data name="CreateItemDialog_Title_Operation" xml:space="preserve">
+    <value>Create New Operation</value>
+  </data>
+  <data name="CreateItemDialog_Name_Placeholder_Operation" xml:space="preserve">
+    <value>Enter operation name</value>
+  </data>
+  <data name="CreateItemDialog_Error_EnterName" xml:space="preserve">
+    <value>Please enter a name.</value>
+  </data>
+  <data name="CreateItemDialog_Error_InvalidNameCharacters" xml:space="preserve">
+    <value>Name cannot contain '/', '\', or ':' characters.</value>
+  </data>
+  <data name="CreateItemDialog_Error_LdapQueryRequired" xml:space="preserve">
+    <value>LDAP query is required for LDAP Query groups.</value>
+  </data>
+  <data name="EditItemDialog_Title_Default" xml:space="preserve">
+    <value>Edit Item</value>
+  </data>
+  <data name="EditItemDialog_General_Header" xml:space="preserve">
+    <value>General</value>
+  </data>
+  <data name="EditItemDialog_Name_Header" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="EditItemDialog_Name_Placeholder" xml:space="preserve">
+    <value>Item name</value>
+  </data>
+  <data name="EditItemDialog_Description_Header" xml:space="preserve">
+    <value>Description</value>
+  </data>
+  <data name="EditItemDialog_Description_Placeholder" xml:space="preserve">
+    <value>Enter description</value>
+  </data>
+  <data name="EditItemDialog_GroupType_Header" xml:space="preserve">
+    <value>Group Type</value>
+  </data>
+  <data name="EditItemDialog_GroupType_Label" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="EditItemDialog_GroupType_Basic" xml:space="preserve">
+    <value>Basic</value>
+  </data>
+  <data name="EditItemDialog_GroupType_LdapQuery" xml:space="preserve">
+    <value>LDAP Query</value>
+  </data>
+  <data name="EditItemDialog_LdapQuery_Header" xml:space="preserve">
+    <value>LDAP Query</value>
+  </data>
+  <data name="EditItemDialog_LdapQuery_Label" xml:space="preserve">
+    <value>Query string</value>
+  </data>
+  <data name="EditItemDialog_LdapQuery_Placeholder" xml:space="preserve">
+    <value>Enter LDAP query</value>
+  </data>
+  <data name="EditItemDialog_Operation_Header" xml:space="preserve">
+    <value>Operation</value>
+  </data>
+  <data name="EditItemDialog_OperationId_Header" xml:space="preserve">
+    <value>Operation ID</value>
+  </data>
+  <data name="EditItemDialog_ApplicationData_Header" xml:space="preserve">
+    <value>Application Data</value>
+  </data>
+  <data name="EditItemDialog_ApplicationData_Label" xml:space="preserve">
+    <value>Data</value>
+  </data>
+  <data name="EditItemDialog_ApplicationData_Placeholder" xml:space="preserve">
+    <value>Enter application-specific data</value>
+  </data>
+  <data name="EditItemDialog_Title_Store" xml:space="preserve">
+    <value>Edit Store</value>
+  </data>
+  <data name="EditItemDialog_Title_Application" xml:space="preserve">
+    <value>Edit Application</value>
+  </data>
+  <data name="EditItemDialog_Title_Group" xml:space="preserve">
+    <value>Edit Group</value>
+  </data>
+  <data name="EditItemDialog_Title_RoleDefinition" xml:space="preserve">
+    <value>Edit Role Definition</value>
+  </data>
+  <data name="EditItemDialog_Title_RoleAssignment" xml:space="preserve">
+    <value>Edit Role Assignment</value>
+  </data>
+  <data name="EditItemDialog_Title_Task" xml:space="preserve">
+    <value>Edit Task</value>
+  </data>
+  <data name="EditItemDialog_Title_Operation" xml:space="preserve">
+    <value>Edit Operation</value>
+  </data>
+  <data name="EditItemDialog_Error_LdapQueryRequired" xml:space="preserve">
+    <value>LDAP query is required for LDAP Query groups.</value>
+  </data>
+  <data name="AssignItemsDialog_Title_Default" xml:space="preserve">
+    <value>Assign Items</value>
+  </data>
+  <data name="AssignItemsDialog_SearchPlaceholder" xml:space="preserve">
+    <value>Search items</value>
+  </data>
+  <data name="AssignItemsDialog_AvailableItems_Header" xml:space="preserve">
+    <value>Available Items</value>
+  </data>
+  <data name="AssignItemsDialog_SelectedItems_Header" xml:space="preserve">
+    <value>Selected Items</value>
+  </data>
+  <data name="AssignItemsDialog_Title_OperationsToTask" xml:space="preserve">
+    <value>Assign Operations to Task - {0}</value>
+  </data>
+  <data name="AssignItemsDialog_Title_TasksToRole" xml:space="preserve">
+    <value>Assign Tasks to Role - {0}</value>
+  </data>
+  <data name="AssignItemsDialog_Title_OperationsToRole" xml:space="preserve">
+    <value>Assign Operations to Role - {0}</value>
+  </data>
+  <data name="AssignItemsDialog_Title_RolesToRole" xml:space="preserve">
+    <value>Assign Roles to Role - {0}</value>
+  </data>
+  <data name="GroupMembersDialog_Title" xml:space="preserve">
+    <value>Group Members</value>
+  </data>
+  <data name="GroupMembersDialog_TitleWithName" xml:space="preserve">
+    <value>Group Members - {0}</value>
+  </data>
+  <data name="GroupMembersDialog_Tab_Members" xml:space="preserve">
+    <value>Members</value>
+  </data>
+  <data name="GroupMembersDialog_Tab_NonMembers" xml:space="preserve">
+    <value>Non-Members</value>
+  </data>
+  <data name="GroupMembersDialog_Tab_AppGroups" xml:space="preserve">
+    <value>Application Groups</value>
+  </data>
+  <data name="GroupMembersDialog_IncludedGroups_Header" xml:space="preserve">
+    <value>Included Groups</value>
+  </data>
+  <data name="GroupMembersDialog_ExcludedGroups_Header" xml:space="preserve">
+    <value>Excluded Groups</value>
+  </data>
+  <data name="PolicyUsersDialog_Title" xml:space="preserve">
+    <value>Policy Users</value>
+  </data>
+  <data name="PolicyUsersDialog_TitleWithName" xml:space="preserve">
+    <value>Policy Users - {0}</value>
+  </data>
+  <data name="PolicyUsersDialog_Tab_Administrators" xml:space="preserve">
+    <value>Administrators</value>
+  </data>
+  <data name="PolicyUsersDialog_Tab_Readers" xml:space="preserve">
+    <value>Readers</value>
+  </data>
+  <data name="PolicyUsersDialog_Tab_Delegated" xml:space="preserve">
+    <value>Delegated</value>
+  </data>
+  <data name="PolicyUsersDialog_EmptyState" xml:space="preserve">
+    <value>No users or groups</value>
+  </data>
+  <data name="PolicyUsersDialog_Message_LoadFailed" xml:space="preserve">
+    <value>Failed to load policy users: {0}</value>
+  </data>
+  <data name="PolicyUsersDialog_Message_UserAdded" xml:space="preserve">
+    <value>User '{0}' added successfully.</value>
+  </data>
+  <data name="PolicyUsersDialog_Title_UserAdded" xml:space="preserve">
+    <value>User Added</value>
+  </data>
+  <data name="PolicyUsersDialog_Message_AddUserFailed" xml:space="preserve">
+    <value>Failed to add user: {0}</value>
+  </data>
+  <data name="PolicyUsersDialog_RemoveUser_Title" xml:space="preserve">
+    <value>Remove User</value>
+  </data>
+  <data name="PolicyUsersDialog_RemoveUser_Content" xml:space="preserve">
+    <value>Are you sure you want to remove '{0}' from {1}?</value>
+  </data>
+  <data name="PolicyUsersDialog_Message_UserRemoved" xml:space="preserve">
+    <value>User '{0}' removed successfully.</value>
+  </data>
+  <data name="PolicyUsersDialog_Title_UserRemoved" xml:space="preserve">
+    <value>User Removed</value>
+  </data>
+  <data name="PolicyUsersDialog_Message_RemoveUserFailed" xml:space="preserve">
+    <value>Failed to remove user: {0}</value>
+  </data>
+  <data name="PolicyUsersDialog_Type_Readers" xml:space="preserve">
+    <value>Readers</value>
+  </data>
+  <data name="PolicyUsersDialog_Type_Delegated" xml:space="preserve">
+    <value>Delegated Users</value>
+  </data>
+  <data name="PolicyUsersDialog_Type_Administrators" xml:space="preserve">
+    <value>Administrators</value>
+  </data>
+  <data name="RoleAssignmentTasksDialog_Title" xml:space="preserve">
+    <value>Role Assignment Tasks</value>
+  </data>
+  <data name="RoleAssignmentTasksDialog_TitleWithName" xml:space="preserve">
+    <value>Role Assignment Tasks - {0}</value>
+  </data>
+  <data name="RoleAssignmentTasksDialog_TitleWithScope" xml:space="preserve">
+    <value>Role Assignment Tasks - {0} (Scope: {1})</value>
+  </data>
+  <data name="RoleAssignmentTasksDialog_AssignedTasks_Header" xml:space="preserve">
+    <value>Assigned Tasks</value>
+  </data>
+  <data name="RoleAssignmentTasksDialog_NoTasks" xml:space="preserve">
+    <value>No tasks assigned</value>
+  </data>
+  <data name="RoleAssignmentTasksDialog_AssignedOperations_Header" xml:space="preserve">
+    <value>Assigned Operations</value>
+  </data>
+  <data name="RoleAssignmentTasksDialog_NoOperations" xml:space="preserve">
+    <value>No operations assigned</value>
+  </data>
+  <data name="RoleAssignmentTasksDialog_Message_NoTasksAvailable" xml:space="preserve">
+    <value>No tasks available to assign.</value>
+  </data>
+  <data name="RoleAssignmentTasksDialog_Message_LoadTasksFailed" xml:space="preserve">
+    <value>Failed to load tasks: {0}</value>
+  </data>
+  <data name="RoleAssignmentTasksDialog_Message_TaskAdded" xml:space="preserve">
+    <value>Task '{0}' added successfully.</value>
+  </data>
+  <data name="RoleAssignmentTasksDialog_Title_TaskAdded" xml:space="preserve">
+    <value>Task Added</value>
+  </data>
+  <data name="RoleAssignmentTasksDialog_Message_AddTaskFailed" xml:space="preserve">
+    <value>Failed to add task: {0}</value>
+  </data>
+  <data name="RoleAssignmentTasksDialog_Message_TaskRemoved" xml:space="preserve">
+    <value>Task '{0}' removed successfully.</value>
+  </data>
+  <data name="RoleAssignmentTasksDialog_Title_TaskRemoved" xml:space="preserve">
+    <value>Task Removed</value>
+  </data>
+  <data name="RoleAssignmentTasksDialog_Message_RemoveTaskFailed" xml:space="preserve">
+    <value>Failed to remove task: {0}</value>
+  </data>
+  <data name="RoleAssignmentTasksDialog_Message_NoOperationsAvailable" xml:space="preserve">
+    <value>No operations available to assign.</value>
+  </data>
+  <data name="RoleAssignmentTasksDialog_Message_LoadOperationsFailed" xml:space="preserve">
+    <value>Failed to load operations: {0}</value>
+  </data>
+  <data name="RoleAssignmentTasksDialog_Message_OperationAdded" xml:space="preserve">
+    <value>Operation '{0}' added successfully.</value>
+  </data>
+  <data name="RoleAssignmentTasksDialog_Title_OperationAdded" xml:space="preserve">
+    <value>Operation Added</value>
+  </data>
+  <data name="RoleAssignmentTasksDialog_Message_AddOperationFailed" xml:space="preserve">
+    <value>Failed to add operation: {0}</value>
+  </data>
+  <data name="RoleAssignmentTasksDialog_Message_OperationRemoved" xml:space="preserve">
+    <value>Operation '{0}' removed successfully.</value>
+  </data>
+  <data name="RoleAssignmentTasksDialog_Title_OperationRemoved" xml:space="preserve">
+    <value>Operation Removed</value>
+  </data>
+  <data name="RoleAssignmentTasksDialog_Message_RemoveOperationFailed" xml:space="preserve">
+    <value>Failed to remove operation: {0}</value>
+  </data>
+  <data name="SelectItemDialog_Title_AddTask" xml:space="preserve">
+    <value>Add Task</value>
+  </data>
+  <data name="SelectItemDialog_Description_AddTask" xml:space="preserve">
+    <value>Select a task to add to this role assignment.</value>
+  </data>
+  <data name="SelectItemDialog_Title_AddOperation" xml:space="preserve">
+    <value>Add Operation</value>
+  </data>
+  <data name="SelectItemDialog_Description_AddOperation" xml:space="preserve">
+    <value>Select an operation to add to this role assignment.</value>
+  </data>
+  <data name="BizRuleEditorDialog_Title" xml:space="preserve">
+    <value>Business Rule Editor</value>
+  </data>
+  <data name="BizRuleEditorDialog_ValidateButton" xml:space="preserve">
+    <value>Validate</value>
+  </data>
+  <data name="BizRuleEditorDialog_Language_Label" xml:space="preserve">
+    <value>Script language</value>
+  </data>
+  <data name="BizRuleEditorDialog_Language_VBScript" xml:space="preserve">
+    <value>VBScript</value>
+  </data>
+  <data name="BizRuleEditorDialog_Language_JScript" xml:space="preserve">
+    <value>JScript</value>
+  </data>
+  <data name="BizRuleEditorDialog_InsertSample" xml:space="preserve">
+    <value>Insert Sample</value>
+  </data>
+  <data name="BizRuleEditorDialog_InsertSample_Tooltip" xml:space="preserve">
+    <value>Insert sample business rule script</value>
+  </data>
+  <data name="BizRuleEditorDialog_Clear_Tooltip" xml:space="preserve">
+    <value>Clear script</value>
+  </data>
+  <data name="BizRuleEditorDialog_ImportButton" xml:space="preserve">
+    <value>Import</value>
+  </data>
+  <data name="BizRuleEditorDialog_Import_Tooltip" xml:space="preserve">
+    <value>Import script from file</value>
+  </data>
+  <data name="BizRuleEditorDialog_ExportButton" xml:space="preserve">
+    <value>Export</value>
+  </data>
+  <data name="BizRuleEditorDialog_Export_Tooltip" xml:space="preserve">
+    <value>Export script to file</value>
+  </data>
+  <data name="BizRuleEditorDialog_Script_Placeholder" xml:space="preserve">
+    <value>Enter business rule script here</value>
+  </data>
+  <data name="BizRuleEditorDialog_ImportedFrom_Prefix" xml:space="preserve">
+    <value>Imported from:</value>
+  </data>
+  <data name="BizRuleEditorDialog_Validation_Header" xml:space="preserve">
+    <value>Validation Results</value>
+  </data>
+  <data name="BizRuleEditorDialog_Validation_SuccessInline" xml:space="preserve">
+    <value>Script is valid</value>
+  </data>
+  <data name="BizRuleEditorDialog_TitleWithName" xml:space="preserve">
+    <value>Business Rule Editor - {0}</value>
+  </data>
+  <data name="BizRuleEditorDialog_ImportedFrom_Format" xml:space="preserve">
+    <value>Imported from: {0}</value>
+  </data>
+  <data name="BizRuleEditorDialog_SampleComment_Format" xml:space="preserve">
+    <value>Sample business rule for {0}</value>
+  </data>
+  <data name="BizRuleEditorDialog_Message_SampleInserted" xml:space="preserve">
+    <value>Sample script inserted.</value>
+  </data>
+  <data name="BizRuleEditorDialog_Title_SampleInserted" xml:space="preserve">
+    <value>Sample Inserted</value>
+  </data>
+  <data name="BizRuleEditorDialog_Message_ImportSuccess" xml:space="preserve">
+    <value>Script imported from '{0}'.</value>
+  </data>
+  <data name="BizRuleEditorDialog_Title_ImportSuccess" xml:space="preserve">
+    <value>Import Successful</value>
+  </data>
+  <data name="BizRuleEditorDialog_Message_ImportFailed" xml:space="preserve">
+    <value>Failed to import script: {0}</value>
+  </data>
+  <data name="BizRuleEditorDialog_Title_ImportFailed" xml:space="preserve">
+    <value>Import Failed</value>
+  </data>
+  <data name="BizRuleEditorDialog_Message_NoScriptToExport" xml:space="preserve">
+    <value>No script to export.</value>
+  </data>
+  <data name="BizRuleEditorDialog_Title_Export" xml:space="preserve">
+    <value>Export Script</value>
+  </data>
+  <data name="BizRuleEditorDialog_Message_ExportSuccess" xml:space="preserve">
+    <value>Script exported to '{0}'.</value>
+  </data>
+  <data name="BizRuleEditorDialog_Title_ExportSuccess" xml:space="preserve">
+    <value>Export Successful</value>
+  </data>
+  <data name="BizRuleEditorDialog_Message_ExportFailed" xml:space="preserve">
+    <value>Failed to export script: {0}</value>
+  </data>
+  <data name="BizRuleEditorDialog_Title_ExportFailed" xml:space="preserve">
+    <value>Export Failed</value>
+  </data>
+  <data name="BizRuleEditorDialog_Message_ValidationSuccess" xml:space="preserve">
+    <value>Script validation successful. No errors found.</value>
+  </data>
+  <data name="BizRuleEditorDialog_Message_ValidationSuccessWithWarnings" xml:space="preserve">
+    <value>Script validation successful with {0} warning(s).</value>
+  </data>
+  <data name="BizRuleEditorDialog_Message_ValidationFailed" xml:space="preserve">
+    <value>Script validation failed with {0} error(s).</value>
+  </data>
+  <data name="BizRuleEditorDialog_Title_Validation" xml:space="preserve">
+    <value>Validation</value>
+  </data>
+  <data name="BizRuleEditorDialog_Message_ValidationFixBeforeSave" xml:space="preserve">
+    <value>Please fix validation errors before saving.</value>
+  </data>
+  <data name="BizRuleEditorDialog_Title_ValidationError" xml:space="preserve">
+    <value>Validation Error</value>
+  </data>
+  <data name="BizRuleEditorDialog_FileType_JScript" xml:space="preserve">
+    <value>JScript Files</value>
+  </data>
+  <data name="BizRuleEditorDialog_FileType_VBScript" xml:space="preserve">
+    <value>VBScript Files</value>
+  </data>
+  <data name="BizRuleEditorDialog_FileType_TextFiles" xml:space="preserve">
+    <value>Text Files</value>
+  </data>
+  <data name="AuthApplicationsPage_AssignItems_RoleDefinitionFormat" xml:space="preserve">
+    <value>Role Definition: {0}</value>
+  </data>
+  <data name="AuthApplicationsPage_AssignItems_TaskFormat" xml:space="preserve">
+    <value>Task: {0}</value>
+  </data>
+  <data name="AuthApplicationsPage_DeleteApplication" xml:space="preserve">
+    <value>Delete Application</value>
+  </data>
+  <data name="AuthApplicationsPage_DeleteApplication_Content" xml:space="preserve">
+    <value>Are you sure you want to delete this application?</value>
+  </data>
+  <data name="AuthApplicationsPage_DeleteApplication_Title" xml:space="preserve">
+    <value>Delete Application</value>
+  </data>
+  <data name="AuthApplicationsPage_DeleteGroup_Content" xml:space="preserve">
+    <value>Are you sure you want to delete this group?</value>
+  </data>
+  <data name="AuthApplicationsPage_DeleteGroup_Title" xml:space="preserve">
+    <value>Delete Group</value>
+  </data>
+  <data name="AuthApplicationsPage_DeleteOperation_Content" xml:space="preserve">
+    <value>Are you sure you want to delete this operation?</value>
+  </data>
+  <data name="AuthApplicationsPage_DeleteOperation_Title" xml:space="preserve">
+    <value>Delete Operation</value>
+  </data>
+  <data name="AuthApplicationsPage_DeleteRole_Content" xml:space="preserve">
+    <value>Are you sure you want to delete this role?</value>
+  </data>
+  <data name="AuthApplicationsPage_DeleteRole_Title" xml:space="preserve">
+    <value>Delete Role</value>
+  </data>
+  <data name="AuthApplicationsPage_DeleteRoleAssignment_Content" xml:space="preserve">
+    <value>Are you sure you want to delete this role assignment?</value>
+  </data>
+  <data name="AuthApplicationsPage_DeleteRoleAssignment_Title" xml:space="preserve">
+    <value>Delete Role Assignment</value>
+  </data>
+  <data name="AuthApplicationsPage_DeleteScope_Content" xml:space="preserve">
+    <value>Are you sure you want to delete this scope?</value>
+  </data>
+  <data name="AuthApplicationsPage_DeleteScope_Title" xml:space="preserve">
+    <value>Delete Scope</value>
+  </data>
+  <data name="AuthApplicationsPage_DeleteTask_Content" xml:space="preserve">
+    <value>Are you sure you want to delete this task?</value>
+  </data>
+  <data name="AuthApplicationsPage_DeleteTask_Title" xml:space="preserve">
+    <value>Delete Task</value>
+  </data>
+  <data name="AuthApplicationsPage_NewScope_Title" xml:space="preserve">
+    <value>New Scope</value>
+  </data>
+  <data name="AuthApplicationsPage_OperationIdLabel" xml:space="preserve">
+    <value>Operation ID</value>
+  </data>
+  <data name="AuthApplicationsPage_Properties" xml:space="preserve">
+    <value>Properties</value>
+  </data>
+  <data name="AuthApplicationsPage_RoleAssignment_AssignMembers" xml:space="preserve">
+    <value>Assign Members</value>
+  </data>
+  <data name="AuthApplicationsPage_RoleAssignment_AssignMembersTitle" xml:space="preserve">
+    <value>Assign Members to Role Assignment</value>
+  </data>
+  <data name="AuthApplicationsPage_RoleAssignment_AssignTasksRoles" xml:space="preserve">
+    <value>Assign Tasks/Roles</value>
+  </data>
+  <data name="AuthApplicationsPage_RoleAssignment_EditPrompt" xml:space="preserve">
+    <value>Edit role assignment</value>
+  </data>
+  <data name="AuthApplicationsPage_RoleAssignment_EditTitle" xml:space="preserve">
+    <value>Edit Role Assignment</value>
+  </data>
+  <data name="AuthApplicationsPage_RoleAssignment_MembersAdded" xml:space="preserve">
+    <value>Members added successfully.</value>
+  </data>
+  <data name="AuthApplicationsPage_RoleAssignment_MembersAddFailed" xml:space="preserve">
+    <value>Failed to add members.</value>
+  </data>
+  <data name="AuthApplicationsPage_RoleAssignment_UpdateFailed" xml:space="preserve">
+    <value>Failed to update role assignment.</value>
+  </data>
+  <data name="AuthApplicationsPage_RoleAssignment_UpdateSuccess" xml:space="preserve">
+    <value>Role assignment updated successfully.</value>
+  </data>
+  <data name="AuthApplicationsPage_RoleAssignmentsHeader" xml:space="preserve">
+    <value>Role Assignments</value>
+  </data>
+  <data name="AuthApplicationsPage_RolesHeader" xml:space="preserve">
+    <value>Roles</value>
+  </data>
+  <data name="AuthApplicationsPage_ScopeProperties_Title" xml:space="preserve">
+    <value>Scope Properties</value>
+  </data>
+  <data name="AuthApplicationsPage_ScopePropertiesTooltip" xml:space="preserve">
+    <value>Edit scope properties</value>
+  </data>
+  <data name="AuthApplicationsPage_ScopesHeader" xml:space="preserve">
+    <value>Scopes</value>
+  </data>
+  <data name="AuthApplicationsPage_Status_ApplicationUpdated" xml:space="preserve">
+    <value>Application updated successfully.</value>
+  </data>
+  <data name="AuthApplicationsPage_Status_ApplicationUpdateFailed" xml:space="preserve">
+    <value>Failed to update application.</value>
+  </data>
+  <data name="AuthApplicationsPage_Status_GroupCreated" xml:space="preserve">
+    <value>Group created successfully.</value>
+  </data>
+  <data name="AuthApplicationsPage_Status_GroupDeleted" xml:space="preserve">
+    <value>Group deleted successfully.</value>
+  </data>
+  <data name="AuthApplicationsPage_Status_GroupUpdated" xml:space="preserve">
+    <value>Group updated successfully.</value>
+  </data>
+  <data name="AuthApplicationsPage_Status_GroupUpdateFailed" xml:space="preserve">
+    <value>Failed to update group.</value>
+  </data>
+  <data name="AuthApplicationsPage_Status_OperationCreated" xml:space="preserve">
+    <value>Operation created successfully.</value>
+  </data>
+  <data name="AuthApplicationsPage_Status_OperationDeleted" xml:space="preserve">
+    <value>Operation deleted successfully.</value>
+  </data>
+  <data name="AuthApplicationsPage_Status_OperationUpdated" xml:space="preserve">
+    <value>Operation updated successfully.</value>
+  </data>
+  <data name="AuthApplicationsPage_Status_OperationUpdateFailed" xml:space="preserve">
+    <value>Failed to update operation.</value>
+  </data>
+  <data name="AuthApplicationsPage_Status_RoleAssignmentCreated" xml:space="preserve">
+    <value>Role assignment created successfully.</value>
+  </data>
+  <data name="AuthApplicationsPage_Status_RoleAssignmentDeleted" xml:space="preserve">
+    <value>Role assignment deleted successfully.</value>
+  </data>
+  <data name="AuthApplicationsPage_Status_RoleAssignmentUpdated" xml:space="preserve">
+    <value>Role assignment updated successfully.</value>
+  </data>
+  <data name="AuthApplicationsPage_Status_RoleAssignmentUpdateFailed" xml:space="preserve">
+    <value>Failed to update role assignment: {0}</value>
+  </data>
+  <data name="AuthApplicationsPage_Status_RoleCreated" xml:space="preserve">
+    <value>Role created successfully.</value>
+  </data>
+  <data name="AuthApplicationsPage_Status_RoleDeleted" xml:space="preserve">
+    <value>Role deleted successfully.</value>
+  </data>
+  <data name="AuthApplicationsPage_Status_RoleUpdated" xml:space="preserve">
+    <value>Role updated successfully.</value>
+  </data>
+  <data name="AuthApplicationsPage_Status_RoleUpdateFailed" xml:space="preserve">
+    <value>Failed to update role.</value>
+  </data>
+  <data name="AuthApplicationsPage_Status_ScopeCreated" xml:space="preserve">
+    <value>Scope created successfully.</value>
+  </data>
+  <data name="AuthApplicationsPage_Status_ScopeDeleted" xml:space="preserve">
+    <value>Scope deleted successfully.</value>
+  </data>
+  <data name="AuthApplicationsPage_Status_ScopeUpdated" xml:space="preserve">
+    <value>Scope updated successfully.</value>
+  </data>
+  <data name="AuthApplicationsPage_Status_ScopeUpdateFailed" xml:space="preserve">
+    <value>Failed to update scope.</value>
+  </data>
+  <data name="AuthApplicationsPage_Status_TaskCreated" xml:space="preserve">
+    <value>Task created successfully.</value>
+  </data>
+  <data name="AuthApplicationsPage_Status_TaskDeleted" xml:space="preserve">
+    <value>Task deleted successfully.</value>
+  </data>
+  <data name="AuthApplicationsPage_Status_TaskUpdated" xml:space="preserve">
+    <value>Task updated successfully.</value>
+  </data>
+  <data name="AuthApplicationsPage_Status_TaskUpdateFailed" xml:space="preserve">
+    <value>Failed to update task.</value>
+  </data>
+  <data name="AuthApplicationsPage_Tab_Definitions" xml:space="preserve">
+    <value>Definitions</value>
+  </data>
+  <data name="AuthApplicationsPage_Tab_GroupsRoles" xml:space="preserve">
+    <value>Groups &amp; Roles</value>
+  </data>
+  <data name="ScopesPage_AssignMembers_Title" xml:space="preserve">
+    <value>Assign Members</value>
+  </data>
+  <data name="ScopesPage_DeleteGroup_Content" xml:space="preserve">
+    <value>Are you sure you want to delete this group?</value>
+  </data>
+  <data name="ScopesPage_DeleteGroup_Title" xml:space="preserve">
+    <value>Delete Group</value>
+  </data>
+  <data name="ScopesPage_DeleteRole_Content" xml:space="preserve">
+    <value>Are you sure you want to delete this role?</value>
+  </data>
+  <data name="ScopesPage_DeleteRole_Title" xml:space="preserve">
+    <value>Delete Role</value>
+  </data>
+  <data name="ScopesPage_DeleteRoleAssignment_Content" xml:space="preserve">
+    <value>Are you sure you want to delete this role assignment?</value>
+  </data>
+  <data name="ScopesPage_DeleteRoleAssignment_Title" xml:space="preserve">
+    <value>Delete Role Assignment</value>
+  </data>
+  <data name="ScopesPage_DeleteScope" xml:space="preserve">
+    <value>Delete Scope</value>
+  </data>
+  <data name="ScopesPage_DeleteScope_Content" xml:space="preserve">
+    <value>Are you sure you want to delete this scope?</value>
+  </data>
+  <data name="ScopesPage_DeleteScope_Title" xml:space="preserve">
+    <value>Delete Scope</value>
+  </data>
+  <data name="ScopesPage_DeleteTask_Content" xml:space="preserve">
+    <value>Are you sure you want to delete this task?</value>
+  </data>
+  <data name="ScopesPage_DeleteTask_Title" xml:space="preserve">
+    <value>Delete Task</value>
+  </data>
+  <data name="ScopesPage_Info_Message" xml:space="preserve">
+    <value>Scopes allow you to define a subset of the application where roles and tasks can be assigned.</value>
+  </data>
+  <data name="ScopesPage_Info_Title" xml:space="preserve">
+    <value>About Scopes</value>
+  </data>
+  <data name="ScopesPage_Properties" xml:space="preserve">
+    <value>Properties</value>
+  </data>
+  <data name="ScopesPage_RoleAssignmentsHeader" xml:space="preserve">
+    <value>Role Assignments</value>
+  </data>
+  <data name="ScopesPage_RoleDefinitionsHeader" xml:space="preserve">
+    <value>Role Definitions</value>
+  </data>
+  <data name="ScopesPage_ScopeProperties_Title" xml:space="preserve">
+    <value>Scope Properties</value>
+  </data>
+  <data name="ScopesPage_Status_GroupCreated" xml:space="preserve">
+    <value>Group created successfully.</value>
+  </data>
+  <data name="ScopesPage_Status_GroupDeleted" xml:space="preserve">
+    <value>Group deleted successfully.</value>
+  </data>
+  <data name="ScopesPage_Status_GroupUpdated" xml:space="preserve">
+    <value>Group updated successfully.</value>
+  </data>
+  <data name="ScopesPage_Status_GroupUpdateFailed" xml:space="preserve">
+    <value>Failed to update group.</value>
+  </data>
+  <data name="ScopesPage_Status_RoleAssignmentCreated" xml:space="preserve">
+    <value>Role assignment created successfully.</value>
+  </data>
+  <data name="ScopesPage_Status_RoleAssignmentDeleted" xml:space="preserve">
+    <value>Role assignment deleted successfully.</value>
+  </data>
+  <data name="ScopesPage_Status_RoleAssignmentUpdated" xml:space="preserve">
+    <value>Role assignment updated successfully.</value>
+  </data>
+  <data name="ScopesPage_Status_RoleAssignmentUpdateFailed" xml:space="preserve">
+    <value>Failed to update role assignment: {0}</value>
+  </data>
+  <data name="ScopesPage_Status_RoleAssignmentMembersAdded" xml:space="preserve">
+    <value>Members added to role assignment successfully.</value>
+  </data>
+  <data name="ScopesPage_Status_RoleAssignmentMembersAddFailed" xml:space="preserve">
+    <value>Failed to add members to role assignment.</value>
+  </data>
+  <data name="ScopesPage_Status_RoleCreated" xml:space="preserve">
+    <value>Role created successfully.</value>
+  </data>
+  <data name="ScopesPage_Status_RoleDeleted" xml:space="preserve">
+    <value>Role deleted successfully.</value>
+  </data>
+  <data name="ScopesPage_Status_RoleUpdated" xml:space="preserve">
+    <value>Role updated successfully.</value>
+  </data>
+  <data name="ScopesPage_Status_RoleUpdateFailed" xml:space="preserve">
+    <value>Failed to update role.</value>
+  </data>
+  <data name="ScopesPage_Status_ScopePropertiesUpdated" xml:space="preserve">
+    <value>Scope properties updated successfully.</value>
+  </data>
+  <data name="ScopesPage_Status_ScopePropertiesUpdateFailed" xml:space="preserve">
+    <value>Failed to update scope properties.</value>
+  </data>
+  <data name="ScopesPage_Status_TaskCreated" xml:space="preserve">
+    <value>Task created successfully.</value>
+  </data>
+  <data name="ScopesPage_Status_TaskDeleted" xml:space="preserve">
+    <value>Task deleted successfully.</value>
+  </data>
+  <data name="ScopesPage_Status_TaskUpdated" xml:space="preserve">
+    <value>Task updated successfully.</value>
+  </data>
+  <data name="ScopesPage_Status_TaskUpdateFailed" xml:space="preserve">
+    <value>Failed to update task.</value>
+  </data>
+  <data name="AzMan_AccessDenied" xml:space="preserve">
+    <value>Access denied. Please ensure you have sufficient permissions.</value>
+  </data>
+  <data name="RoleAssignmentPropertiesDialog_Title" xml:space="preserve">
+    <value>{0} Properties</value>
+  </data>
+  <data name="RoleAssignmentPropertiesDialog_Tab_General" xml:space="preserve">
+    <value>General</value>
+  </data>
+  <data name="RoleAssignmentPropertiesDialog_Tab_AssignedUsers" xml:space="preserve">
+    <value>Assigned Users</value>
+  </data>
+  <data name="RoleAssignmentPropertiesDialog_Name_Header" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="RoleAssignmentPropertiesDialog_Description_Header" xml:space="preserve">
+    <value>Description</value>
+  </data>
+  <data name="RoleAssignmentPropertiesDialog_Description_Placeholder" xml:space="preserve">
+    <value>Enter description...</value>
+  </data>
+  <data name="RoleAssignmentPropertiesDialog_NoMembers_Message" xml:space="preserve">
+    <value>No users or groups are assigned to this role.</value>
+  </data>
+  <data name="RoleAssignmentPropertiesDialog_Error_AddUsersFailed" xml:space="preserve">
+    <value>Failed to add users: {0}</value>
+  </data>
+  <data name="RoleAssignmentPropertiesDialog_Error_RemoveUserFailed" xml:space="preserve">
+    <value>Failed to remove user: {0}</value>
+  </data>
+  <data name="AuthorizationRuleDialog_Title" xml:space="preserve">
+    <value>Authorization Rule</value>
+  </data>
+  <data name="AuthorizationRuleDialog_ScriptFiles_Filter" xml:space="preserve">
+    <value>Script Files</value>
+  </data>
+  <data name="AuthorizationRuleDialog_SelectScriptFile_Title" xml:space="preserve">
+    <value>Select script file</value>
+  </data>
+  <data name="DefinitionAssignItemsDialog_Title_Format" xml:space="preserve">
+    <value>Assign Items - {0}</value>
+  </data>
+  <data name="DefinitionAssignItemsDialog_Header_Task" xml:space="preserve">
+    <value>The tasks and operations that define this task:</value>
+  </data>
+  <data name="DefinitionAssignItemsDialog_Header_Role" xml:space="preserve">
+    <value>The tasks and lower-level roles that define this role:</value>
+  </data>
+  <data name="DefinitionPropertiesDialog_Title_RoleDefinition" xml:space="preserve">
+    <value>Role Definition Properties</value>
+  </data>
+  <data name="DefinitionPropertiesDialog_Title_Task" xml:space="preserve">
+    <value>Task Properties</value>
+  </data>
+  <data name="DefinitionPropertiesDialog_Summary_Format" xml:space="preserve">
+    <value>Roles: {0}, Tasks: {1}, Operations: {2}</value>
+  </data>
+  <data name="DefinitionPropertiesDialog_Action_ClearFromStore" xml:space="preserve">
+    <value>Clear from store</value>
+  </data>
+  <data name="DefinitionPropertiesDialog_Action_ReloadIntoStore" xml:space="preserve">
+    <value>Reload into store</value>
+  </data>
+  <data name="DefinitionPropertiesDialog_Action_NoAction" xml:space="preserve">
+    <value>No action</value>
+  </data>
+  <data name="DefinitionPropertiesDialog_Path_None" xml:space="preserve">
+    <value>(none)</value>
+  </data>
+  <data name="GroupMembersDialog_BusinessRuleScript_Header" xml:space="preserve">
+    <value>Business rule script</value>
+  </data>
+  <data name="GroupMembersDialog_BusinessRuleScript_Title" xml:space="preserve">
+    <value>Business Rule Script</value>
+  </data>
+  <data name="GroupMembersDialog_Language_Header" xml:space="preserve">
+    <value>Language</value>
+  </data>
+  <data name="StorePropertiesDialog_DefaultsSelected" xml:space="preserve">
+    <value>Defaults selected</value>
+  </data>
+  <data name="StorePropertiesDialog_UpgradeSelected" xml:space="preserve">
+    <value>Upgrade selected</value>
+  </data>
+  <data name="StorePropertiesDialog_Error_AuthRuleTimeout" xml:space="preserve">
+    <value>Authorization rule timeout must be greater than 0 when specified timeout mode is selected.</value>
+  </data>
+  <data name="Common_FailedToOpenDialog_Format" xml:space="preserve">
+    <value>Failed to open dialog: {0}</value>
+  </data>
+  <data name="Common_FailedToAddUsers_Format" xml:space="preserve">
+    <value>Failed to add users: {0}</value>
+  </data>
+  <data name="Common_FailedToRemoveUser_Format" xml:space="preserve">
+    <value>Failed to remove user: {0}</value>
+  </data>
+  <!-- Authorization Rule Dialog -->
+  <data name="AuthorizationRuleDialog_ScriptSourceCode_Label" xml:space="preserve">
+    <value>Script source code:</value>
+  </data>
+  <data name="AuthorizationRuleDialog_ScriptPath_Label" xml:space="preserve">
+    <value>Script path:</value>
+  </data>
+  <data name="AuthorizationRuleDialog_Browse_Button" xml:space="preserve">
+    <value>Browse...</value>
+  </data>
+  <data name="AuthorizationRuleDialog_ScriptType_Label" xml:space="preserve">
+    <value>Script type:</value>
+  </data>
+  <data name="AuthorizationRuleDialog_VBScript" xml:space="preserve">
+    <value>VBScript</value>
+  </data>
+  <data name="AuthorizationRuleDialog_JScript" xml:space="preserve">
+    <value>JScript</value>
+  </data>
+  <data name="AuthorizationRuleDialog_ReloadRule_Button" xml:space="preserve">
+    <value>Reload Rule into Store</value>
+  </data>
+  <data name="AuthorizationRuleDialog_ClearRule_Button" xml:space="preserve">
+    <value>Clear Rule from Store</value>
+  </data>
+  <!-- Definition Assign Items Dialog -->
+  <data name="DefinitionAssignItemsDialog_Tab_Roles" xml:space="preserve">
+    <value>Roles</value>
+  </data>
+  <data name="DefinitionAssignItemsDialog_Tab_Tasks" xml:space="preserve">
+    <value>Tasks</value>
+  </data>
+  <data name="DefinitionAssignItemsDialog_Tab_Operations" xml:space="preserve">
+    <value>Operations</value>
+  </data>
+  <!-- Definition Properties Dialog -->
+  <data name="DefinitionPropertiesDialog_Tab_General" xml:space="preserve">
+    <value>General</value>
+  </data>
+  <data name="DefinitionPropertiesDialog_Tab_Definition" xml:space="preserve">
+    <value>Definition</value>
+  </data>
+  <data name="DefinitionPropertiesDialog_Name_Header" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="DefinitionPropertiesDialog_Description_Header" xml:space="preserve">
+    <value>Description</value>
+  </data>
+  <data name="DefinitionPropertiesDialog_AssignItems_Button" xml:space="preserve">
+    <value>Assign items...</value>
+  </data>
+  <data name="DefinitionPropertiesDialog_AuthorizationRule_Button" xml:space="preserve">
+    <value>Authorization Rule...</value>
+  </data>
+  <!-- Edit Item Dialog -->
+  <data name="EditItemDialog_GroupType_Bizrule" xml:space="preserve">
+    <value>Business Rule</value>
+  </data>
+  <!-- Group Members Dialog -->
+  <data name="GroupMembersDialog_Tab_General" xml:space="preserve">
+    <value>General</value>
+  </data>
+  <data name="GroupMembersDialog_Tab_Query" xml:space="preserve">
+    <value>Query</value>
+  </data>
+  <data name="GroupMembersDialog_Tab_Exclusions" xml:space="preserve">
+    <value>Exclusions</value>
+  </data>
+  <data name="GroupMembersDialog_Name_Header" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="GroupMembersDialog_Description_Header" xml:space="preserve">
+    <value>Description</value>
+  </data>
+  <data name="GroupMembersDialog_GroupType_Header" xml:space="preserve">
+    <value>Group type</value>
+  </data>
+  <data name="GroupMembersDialog_LdapQuery_Header" xml:space="preserve">
+    <value>LDAP query</value>
+  </data>
+  <data name="GroupMembersDialog_WindowsMembers_Header" xml:space="preserve">
+    <value>Members (Windows / Active Directory)</value>
+  </data>
+  <data name="GroupMembersDialog_AppGroupMembers_Header" xml:space="preserve">
+    <value>Members (Authorization Manager application groups)</value>
+  </data>
+  <data name="GroupMembersDialog_WindowsExclusions_Header" xml:space="preserve">
+    <value>Exclusions (Windows / Active Directory)</value>
+  </data>
+  <data name="GroupMembersDialog_AppGroupExclusions_Header" xml:space="preserve">
+    <value>Exclusions (Authorization Manager application groups)</value>
+  </data>
+  <!-- Store Properties Dialog -->
+  <data name="StorePropertiesDialog_Tab_Limits" xml:space="preserve">
+    <value>Limits</value>
+  </data>
+  <data name="StorePropertiesDialog_UpgradeSchema_Button" xml:space="preserve">
+    <value>Upgrade schema to version 2.0</value>
+  </data>
+  <data name="StorePropertiesDialog_SchemaUpgrade_Title" xml:space="preserve">
+    <value>Schema upgrade</value>
+  </data>
+  <data name="StorePropertiesDialog_SchemaUpgrade_Message" xml:space="preserve">
+    <value>This authorization store uses schema 1.0. Select this option to upgrade to schema 2.0.</value>
+  </data>
+  <data name="StorePropertiesDialog_AuthorizationRules_Header" xml:space="preserve">
+    <value>Authorization rules</value>
+  </data>
+  <data name="StorePropertiesDialog_AuthRuleTimeout_Header" xml:space="preserve">
+    <value>Authorization rule timeout</value>
+  </data>
+  <data name="StorePropertiesDialog_MaxCachedAuthRules_Header" xml:space="preserve">
+    <value>Maximum number of cached authorization rules</value>
+  </data>
+  <data name="StorePropertiesDialog_LdapQueryTimeout_Header" xml:space="preserve">
+    <value>LDAP query timeout</value>
+  </data>
+  <data name="StorePropertiesDialog_AuthRules_Disable" xml:space="preserve">
+    <value>Disable</value>
+  </data>
+  <data name="StorePropertiesDialog_AuthRules_EnableNoTimeout" xml:space="preserve">
+    <value>Enable with no timeout value</value>
+  </data>
+  <data name="StorePropertiesDialog_AuthRules_EnableSpecifiedTimeout" xml:space="preserve">
+    <value>Enable with specified timeout value</value>
+  </data>
+  <data name="StorePropertiesDialog_UseDefaultValues_Button" xml:space="preserve">
+    <value>Use Default Values</value>
+  </data>
+  <data name="StorePropertiesDialog_RuntimeAppInitAuditing" xml:space="preserve">
+    <value>Runtime application initialization auditing</value>
+  </data>
+  <data name="StorePropertiesDialog_StoreChangeAuditing" xml:space="preserve">
+    <value>Authorization store change auditing</value>
+  </data>
+  <!-- Group Type Display Text -->
+  <data name="GroupType_BusinessRuleAppGroup" xml:space="preserve">
+    <value>Business Rule Application Group</value>
+  </data>
+  <data name="GroupType_AppBasicGroup" xml:space="preserve">
+    <value>Application Basic Group</value>
+  </data>
+  <data name="GroupType_LdapQueryGroup" xml:space="preserve">
+    <value>LDAP Query Group</value>
+  </data>
+  <data name="GroupType_Unknown" xml:space="preserve">
+    <value>Unknown</value>
+  </data>
+  <!-- Error Messages -->
+  <data name="Error_FailedToCloseStore" xml:space="preserve">
+    <value>Failed to close store: {0}</value>
+  </data>
+  <data name="Error_StoreFileNotFound" xml:space="preserve">
+    <value>Store file not found: {0}. The store has been closed.</value>
+  </data>
+  <data name="Error_FileNotFound" xml:space="preserve">
+    <value>The specified file was not found.</value>
+  </data>
+  <data name="Error_PathNotFound" xml:space="preserve">
+    <value>The specified path was not found.</value>
+  </data>
+  <data name="Error_NetworkPathNotFound" xml:space="preserve">
+    <value>Network path not found. Please check that the path is correct and accessible.</value>
+  </data>
+  <data name="Error_FileAlreadyExists" xml:space="preserve">
+    <value>The file already exists.</value>
+  </data>
+  <data name="Error_ElementNotFound" xml:space="preserve">
+    <value>Element not found.</value>
+  </data>
+  <data name="Error_InterfaceNotSupported" xml:space="preserve">
+    <value>Interface not supported. Please ensure AzMan components are properly installed.</value>
+  </data>
+  <data name="Error_InvalidClassString" xml:space="preserve">
+    <value>Invalid class string. AzMan COM component may not be registered.</value>
+  </data>
+  <data name="Error_ClassNotRegistered" xml:space="preserve">
+    <value>Class not registered. Please ensure AzMan components are installed.</value>
+  </data>
+  <!-- BizRule Validator Messages -->
+  <data name="BizRuleValidator_Error_EmptyScript" xml:space="preserve">
+    <value>Script cannot be empty.</value>
+  </data>
+  <data name="BizRuleValidator_Error_InvalidLanguage" xml:space="preserve">
+    <value>Invalid script language: '{0}'. Must be 'VBScript' or 'JScript'.</value>
+  </data>
+  <data name="BizRuleValidator_Warning_NoAzBizRuleContext" xml:space="preserve">
+    <value>Script does not reference 'AzBizRuleContext'. Business rules typically use this object to set the authorization result.</value>
+  </data>
+  <data name="BizRuleValidator_Warning_NoBusinessRuleResult" xml:space="preserve">
+    <value>Script does not set 'BusinessRuleResult'. The rule may not affect authorization decisions.</value>
+  </data>
+  <data name="BizRuleValidator_Error_UnbalancedSubEndSub" xml:space="preserve">
+    <value>Unbalanced Sub/End Sub: {0} Sub(s) but {1} End Sub(s).</value>
+  </data>
+  <data name="BizRuleValidator_Error_UnbalancedFunctionEndFunction" xml:space="preserve">
+    <value>Unbalanced Function/End Function: {0} Function(s) but {1} End Function(s).</value>
+  </data>
+  <data name="BizRuleValidator_Warning_UnbalancedIfEndIf" xml:space="preserve">
+    <value>Possible unbalanced If/End If: {0} If(s) but {1} End If(s).</value>
+  </data>
+  <data name="BizRuleValidator_Error_UnbalancedBraces" xml:space="preserve">
+    <value>Unbalanced braces: {0} opening but {1} closing.</value>
+  </data>
+  <data name="BizRuleValidator_Error_UnbalancedParentheses" xml:space="preserve">
+    <value>Unbalanced parentheses: {0} opening but {1} closing.</value>
+  </data>
+  <data name="BizRuleValidator_Warning_DoubleSemicolons" xml:space="preserve">
+    <value>Double semicolons detected. This may indicate missing code.</value>
+  </data>
+  <data name="BizRuleValidator_SampleDescription" xml:space="preserve">
+    <value>Sample business rule</value>
+  </data>
+  <!-- Common UI Strings -->
+  <data name="Common_OK" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="Common_Cancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Common_Save" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <!-- Additional Error Messages -->
+  <data name="Error_StoreNotOpen" xml:space="preserve">
+    <value>Store '{0}' is not open. Please open the store first.</value>
+  </data>
+</root>

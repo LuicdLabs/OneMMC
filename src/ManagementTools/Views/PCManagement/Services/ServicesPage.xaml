@@ -1,0 +1,124 @@
+﻿<Page
+x:Class="ManagementTools.Views.ServicesPage"
+xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+xmlns:winui="using:Microsoft.UI.Xaml.Controls"
+xmlns:core="using:ManagementTools.Core.Features.PCManagement.Models.Services"
+xmlns:local="using:ManagementTools.Localization"
+xmlns:converters="using:ManagementTools.Converters"
+xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+xmlns:viewmodels="using:ManagementTools.Core.Features.PCManagement.ViewModels.Services"
+mc:Ignorable="d">
+
+<Page.Resources>
+		<converters:NullToVisibilityConverter x:Key="NullToVisibilityConverter" />
+		<converters:NullableBoolToBoolConverter x:Key="NullableBoolToBoolConverter" />
+		<converters:NullToBoolConverter x:Key="NullToBoolConverter" />
+		<converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+		<converters:NegateBoolConverter x:Key="NegateBoolConverter" />
+	</Page.Resources>
+
+	<Grid>
+		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto" />
+			<RowDefinition Height="*" />
+			<RowDefinition Height="Auto" />
+		</Grid.RowDefinitions>
+
+		<!--  Header and Toolbar  -->
+		<StackPanel Grid.Row="0" Padding="24,16">
+			<Grid>
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="*" />
+					<ColumnDefinition Width="Auto" />
+				</Grid.ColumnDefinitions>
+				<StackPanel
+					Width="300"
+					HorizontalAlignment="Left"
+					VerticalAlignment="Center">
+					<AutoSuggestBox
+						Grid.Column="0"
+						PlaceholderText="{x:Bind LocalizedStrings.Services_SearchPlaceholder}"
+						QueryIcon="Find"
+						Text="{x:Bind ViewModel.FilterText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+				</StackPanel>
+				<CommandBar Grid.Column="1" DefaultLabelPosition="Right">
+					<AppBarButton
+						Command="{x:Bind ViewModel.StartServiceCommand}"
+						Icon="Play"
+						IsEnabled="{x:Bind ViewModel.CanStartService, Mode=OneWay}"
+						Label="{x:Bind LocalizedStrings.Services_Start}" />
+					<AppBarButton
+						Command="{x:Bind ViewModel.StopServiceCommand}"
+						Icon="Stop"
+						IsEnabled="{x:Bind ViewModel.CanStopService, Mode=OneWay}"
+						Label="{x:Bind LocalizedStrings.Services_Stop}" />
+					<AppBarButton
+						Command="{x:Bind ViewModel.RestartServiceCommand}"
+						Icon="Refresh"
+						IsEnabled="{x:Bind ViewModel.CanRestartService, Mode=OneWay}"
+						Label="{x:Bind LocalizedStrings.Services_Restart}" />
+					<AppBarSeparator />
+					<AppBarButton
+						Command="{x:Bind ViewModel.LoadServicesCommand}"
+						Icon="Sync"
+						Label="{x:Bind LocalizedStrings.Common_Refresh}" />
+					<AppBarButton
+						Click="PropertiesButton_Click"
+						Icon="Repair"
+						IsEnabled="{x:Bind ViewModel.SelectedService, Converter={StaticResource NullToBoolConverter}, Mode=OneWay}"
+						Label="{x:Bind LocalizedStrings.Services_Properties}" />
+				</CommandBar>
+			</Grid>
+		</StackPanel>
+
+		<!--  Main Content  -->
+		<Grid Grid.Row="1">
+			<!--  Service List  -->
+			<winui:RefreshContainer x:Name="ServicesPullToRefresh" RefreshRequested="ServicesPullToRefresh_RefreshRequested">
+			<ListView
+			DoubleTapped="ServiceList_DoubleTapped"
+			ItemsSource="{x:Bind ViewModel.Services, Mode=OneWay}"
+			SelectedItem="{x:Bind ViewModel.SelectedService, Mode=TwoWay}"
+			SelectionMode="Single">
+				<ListView.ItemTemplate>
+					<DataTemplate x:DataType="core:ServiceInfo">
+						<Grid Padding="12">
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="*" />
+								<ColumnDefinition Width="Auto" />
+							</Grid.ColumnDefinitions>
+							<StackPanel>
+								<TextBlock FontWeight="SemiBold" Text="{x:Bind DisplayName, Mode=OneWay}" />
+								<TextBlock
+									FontSize="12"
+									Opacity="0.7"
+									Text="{x:Bind Name, Mode=OneWay}" />
+							</StackPanel>
+							<TextBlock
+								Grid.Column="1"
+								Margin="12,0,0,0"
+								VerticalAlignment="Center"
+								Text="{x:Bind LocalizedStatus, Mode=OneWay}" />
+						</Grid>
+					</DataTemplate>
+				</ListView.ItemTemplate>
+				</ListView>
+			</winui:RefreshContainer>
+			<ProgressRing
+				Width="50"
+				Height="50"
+				HorizontalAlignment="Center"
+				VerticalAlignment="Center"
+				IsActive="{x:Bind ViewModel.IsLoading, Mode=OneWay}"
+				Visibility="{x:Bind ViewModel.IsLoading, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}" />
+		</Grid>
+
+		<!--  Status Bar  -->
+		<TextBlock
+			Grid.Row="2"
+			Padding="12"
+			Text="{x:Bind ViewModel.StatusMessage, Mode=OneWay}" />
+	</Grid>
+</Page>

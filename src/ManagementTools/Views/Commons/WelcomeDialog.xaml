@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ContentDialog
+    x:Class="ManagementTools.Views.Commons.WelcomeDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:ManagementTools.Localization"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Style="{StaticResource DefaultContentDialogStyle}"
+    Title="{Binding WelcomeDialog_Title, Source={StaticResource LocalizedStrings}}"
+    CloseButtonText=""
+    PrimaryButtonText="{Binding WelcomeDialog_LetsExplore, Source={StaticResource LocalizedStrings}}"
+    PrimaryButtonStyle="{StaticResource AccentButtonStyle}"
+    IsPrimaryButtonEnabled="True">
+
+    <ContentDialog.Resources>
+        <ResourceDictionary>
+            <Style x:Key="BodyStrongTextBlockStyle" TargetType="TextBlock">
+                <Setter Property="FontWeight" Value="SemiBold"/>
+                <Setter Property="FontSize" Value="14"/>
+            </Style>
+        </ResourceDictionary>
+    </ContentDialog.Resources>
+
+    <Grid MaxWidth="520" HorizontalAlignment="Stretch">
+        <Grid.RowDefinitions>
+            <!-- Scrollable content area -->
+            <RowDefinition Height="*"/>
+            <!-- Fixed footer: checkbox + button -->
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Scrollable content -->
+        <ScrollViewer
+            Grid.Row="0"
+            VerticalScrollBarVisibility="Auto"
+            HorizontalScrollBarVisibility="Disabled"
+            MaxHeight="420"
+            Padding="0,0,12,0">
+            <StackPanel>
+
+                <!-- Description -->
+                <TextBlock
+                    TextWrapping="Wrap"
+                    Style="{StaticResource BodyTextBlockStyle}"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    Text="{Binding WelcomeDialog_Description, Source={StaticResource LocalizedStrings}}"
+                    Margin="0,0,0,16"/>
+
+                <!-- Features Header -->
+                <TextBlock
+                    Style="{StaticResource BodyStrongTextBlockStyle}"
+                    Text="{Binding WelcomeDialog_FeaturesHeader, Source={StaticResource LocalizedStrings}}"
+                    Margin="0,0,0,8"/>
+
+                <!-- Feature List -->
+                <ItemsControl
+                    x:Name="FeatureList"
+                    Margin="0,0,0,16">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Grid Margin="0,4,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="&#x2022;" Margin="0,0,8,0" VerticalAlignment="Top"/>
+                                <TextBlock Grid.Column="1" Text="{Binding}" TextWrapping="Wrap"/>
+                            </Grid>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <!-- Warning InfoBar -->
+                <InfoBar
+                    IsOpen="True"
+                    IsClosable="False"
+                    Severity="Warning"
+                    Title="{Binding WelcomeDialog_WarningTitle, Source={StaticResource LocalizedStrings}}"
+                    Message="{Binding WelcomeDialog_WarningMessage, Source={StaticResource LocalizedStrings}}"
+                    Margin="0,0,0,4"/>
+
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Fixed footer: checkbox only; PrimaryButton ("Let's explore") is rendered by ContentDialog -->
+        <CheckBox
+            Grid.Row="1"
+            x:Name="RemindCheckBox"
+            IsChecked="False"
+            Content="{Binding WelcomeDialog_RemindAfter30Days, Source={StaticResource LocalizedStrings}}"
+            Margin="0,12,0,0"
+            VerticalAlignment="Center"/>
+    </Grid>
+</ContentDialog>

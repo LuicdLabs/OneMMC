@@ -1,0 +1,185 @@
+<ContentDialog
+    x:Class="ManagementTools.Views.DeployPrinterDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:converters="using:ManagementTools.Converters"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:models="using:ManagementTools.Core.Features.PrintManagement.Models.PrintManagement"
+    mc:Ignorable="d"
+    MinWidth="720"
+    PrimaryButtonClick="PrimaryButton_Click"
+    SecondaryButtonClick="SecondaryButton_Click"
+    IsPrimaryButtonEnabled="{Binding HasPendingChanges}"
+    IsSecondaryButtonEnabled="{Binding HasPendingChanges}">
+
+    <ContentDialog.Resources>
+        <converters:GpoPrinterConnectionTypeConverter x:Key="GpoPrinterConnectionTypeConverter" />
+    </ContentDialog.Resources>
+
+    <Grid RowSpacing="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0" ColumnSpacing="12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="160" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <TextBlock
+                Grid.Column="0"
+                VerticalAlignment="Center"
+                Text="{x:Bind LocalizedStrings.PrintMgmt_DeployDialogPrinterNameLabel}" />
+            <TextBox
+                Grid.Column="1"
+                IsReadOnly="True"
+                Text="{Binding ConnectionPath}" />
+        </Grid>
+
+        <TextBlock
+            Grid.Row="1"
+            FontWeight="SemiBold"
+            Text="{x:Bind LocalizedStrings.PrintMgmt_DeployDialogGpoSectionHeader}" />
+
+        <Grid Grid.Row="2" ColumnSpacing="12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="160" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <TextBlock
+                Grid.Column="0"
+                VerticalAlignment="Center"
+                Text="{x:Bind LocalizedStrings.PrintMgmt_DeployDialogGpoNameLabel}" />
+            <TextBox
+                Grid.Column="1"
+                IsReadOnly="True"
+                Text="{Binding SelectedGpoName}" />
+            <Button
+                Grid.Column="2"
+                Content="{x:Bind LocalizedStrings.PrintMgmt_DeployDialogBrowseButton}">
+                <Button.Flyout>
+                    <Flyout x:Name="GpoFlyout">
+                        <StackPanel MinWidth="420" Spacing="8">
+                            <InfoBar
+                                IsClosable="True"
+                                IsOpen="{Binding GpoLoadError, Converter={StaticResource StringToBoolConverter}}"
+                                Message="{Binding GpoLoadError}"
+                                Severity="Error" />
+                            <ProgressRing
+                                HorizontalAlignment="Center"
+                                IsActive="{Binding IsGpoLoading}"
+                                Visibility="{Binding IsGpoLoading, Converter={StaticResource BoolToVisibilityConverter}}" />
+                            <ListView
+                                x:Name="GpoListView"
+                                IsItemClickEnabled="True"
+                                ItemClick="GpoListView_ItemClick"
+                                ItemsSource="{Binding AvailableGpos}">
+                                <ListView.ItemTemplate>
+                                    <DataTemplate x:DataType="models:GroupPolicyObjectInfo">
+                                        <StackPanel Margin="0,4">
+                                            <TextBlock Text="{x:Bind DisplayName}" />
+                                            <TextBlock Opacity="0.6" Text="{x:Bind Guid}" />
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+                        </StackPanel>
+                    </Flyout>
+                </Button.Flyout>
+            </Button>
+        </Grid>
+
+        <TextBlock
+            Grid.Row="3"
+            Text="{x:Bind LocalizedStrings.PrintMgmt_DeployDialogDeployToLabel}" />
+
+        <Grid Grid.Row="4" ColumnSpacing="12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <StackPanel Grid.Column="0" Spacing="6">
+                <CheckBox
+                    Content="{x:Bind LocalizedStrings.PrintMgmt_DeployDialogPerUser}"
+                    IsChecked="{Binding ApplyToUsers, Mode=TwoWay}" />
+                <CheckBox
+                    Content="{x:Bind LocalizedStrings.PrintMgmt_DeployDialogPerMachine}"
+                    IsChecked="{Binding ApplyToComputers, Mode=TwoWay}" />
+            </StackPanel>
+            <Button
+                Grid.Column="1"
+                VerticalAlignment="Top"
+                IsEnabled="{Binding CanAdd}"
+                Click="AddDeployment_Click"
+                Content="{x:Bind LocalizedStrings.PrintMgmt_DeployDialogAddButton}" />
+        </Grid>
+
+        <Grid Grid.Row="5" ColumnSpacing="12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <ListView
+                Grid.Column="0"
+                ItemsSource="{Binding Deployments}"
+                SelectedItem="{Binding SelectedDeployment, Mode=TwoWay}">
+                <ListView.Header>
+                    <Grid ColumnSpacing="12" Padding="0,0,0,6">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="2*" />
+                            <ColumnDefinition Width="2*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock
+                            Grid.Column="0"
+                            FontWeight="SemiBold"
+                            Text="{x:Bind LocalizedStrings.PrintMgmt_DeployDialogListPrinterNameHeader}" />
+                        <TextBlock
+                            Grid.Column="1"
+                            FontWeight="SemiBold"
+                            Text="{x:Bind LocalizedStrings.PrintMgmt_DeployDialogListGpoHeader}" />
+                        <TextBlock
+                            Grid.Column="2"
+                            FontWeight="SemiBold"
+                            Text="{x:Bind LocalizedStrings.PrintMgmt_DeployDialogListConnectionTypeHeader}" />
+                    </Grid>
+                </ListView.Header>
+                <ListView.ItemTemplate>
+                    <DataTemplate x:DataType="models:GpoPrinterDeploymentEntry">
+                        <Grid ColumnSpacing="12" Padding="0,4">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="2*" />
+                                <ColumnDefinition Width="2*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="{x:Bind PrinterName}" />
+                            <TextBlock Grid.Column="1" Text="{x:Bind GpoName}" />
+                            <TextBlock
+                                Grid.Column="2"
+                                Text="{x:Bind ConnectionType, Converter={StaticResource GpoPrinterConnectionTypeConverter}}" />
+                        </Grid>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+
+            <StackPanel Grid.Column="1" Spacing="8">
+                <Button
+                    IsEnabled="{Binding CanRemove}"
+                    Click="RemoveDeployment_Click"
+                    Content="{x:Bind LocalizedStrings.PrintMgmt_DeployDialogRemoveButton}" />
+                <Button
+                    IsEnabled="{Binding CanRemoveAll}"
+                    Click="RemoveAllDeployments_Click"
+                    Content="{x:Bind LocalizedStrings.PrintMgmt_DeployDialogRemoveAllButton}" />
+            </StackPanel>
+        </Grid>
+    </Grid>
+</ContentDialog>

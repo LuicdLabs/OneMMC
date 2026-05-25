@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Page
+	x:Class="ManagementTools.Views.TPMManagerPage"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:converters="using:ManagementTools.Converters"
+	xmlns:cwuc="using:CommunityToolkit.WinUI.Controls"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:local="using:ManagementTools.Views"
+	xmlns:localization="using:ManagementTools.Localization"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	mc:Ignorable="d">
+
+	<Page.Resources>
+		<localization:LocalizedStrings x:Key="LocalizedStrings" />
+		<converters:HexToSolidColorBrushConverter x:Key="HexToBrush" />
+		<converters:TpmSeverityToInfoBarSeverityConverter x:Key="SeverityConverter" />
+	</Page.Resources>
+
+	<ScrollViewer>
+        <StackPanel Padding="24,20,24,24" Spacing="20">
+            <!--  Status Message  -->
+			<InfoBar
+				x:Name="StatusInfoBar"
+				Title="{x:Bind ViewModel.StatusTitle, Mode=OneWay}"
+				IsClosable="True"
+				IsOpen="{x:Bind ViewModel.ShowStatusMessage, Mode=OneWay}"
+				Message="{x:Bind ViewModel.StatusMessage, Mode=OneWay}"
+				Severity="{x:Bind ViewModel.StatusSeverity, Mode=OneWay, Converter={StaticResource SeverityConverter}}" />
+
+			<!--  TPM Status Card  -->
+			<cwuc:SettingsExpander
+				Description="{x:Bind LocalizedStrings.TPM_StatusDescription}"
+				Header="{x:Bind LocalizedStrings.TPM_StatusHeader}"
+				IsExpanded="True">
+				<cwuc:SettingsExpander.HeaderIcon>
+					<FontIcon Glyph="&#xEC19;" />
+				</cwuc:SettingsExpander.HeaderIcon>
+				<cwuc:SettingsExpander.Items>
+					<cwuc:SettingsCard Header="{x:Bind LocalizedStrings.TPM_ManufacturerNameHeader}">
+						<TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="{x:Bind ViewModel.TpmManufacturerName, Mode=OneWay}" />
+					</cwuc:SettingsCard>
+					<cwuc:SettingsCard Header="{x:Bind LocalizedStrings.TPM_ManufacturerVersionHeader}">
+						<TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="{x:Bind ViewModel.TpmManufacturerVersion, Mode=OneWay}" />
+					</cwuc:SettingsCard>
+					<cwuc:SettingsCard Header="{x:Bind LocalizedStrings.TPM_SpecificationVersionHeader}">
+						<TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="{x:Bind ViewModel.TpmSpecificationVersion, Mode=OneWay}" />
+					</cwuc:SettingsCard>
+					<cwuc:SettingsCard Header="{x:Bind LocalizedStrings.TPM_ReadyHeader}">
+						<FontIcon Foreground="{x:Bind HexToBrush(ViewModel.TpmStatusColorHex), Mode=OneWay}" Glyph="{x:Bind ViewModel.TpmReadyGlyph, Mode=OneWay}" />
+					</cwuc:SettingsCard>
+					<cwuc:SettingsCard Header="{x:Bind LocalizedStrings.TPM_EnabledHeader}">
+						<FontIcon Foreground="{x:Bind HexToBrush(ViewModel.TpmStatusColorHex), Mode=OneWay}" Glyph="{x:Bind ViewModel.TpmEnabledGlyph, Mode=OneWay}" />
+					</cwuc:SettingsCard>
+					<cwuc:SettingsCard Header="{x:Bind LocalizedStrings.TPM_ActivatedHeader}">
+						<FontIcon Foreground="{x:Bind HexToBrush(ViewModel.TpmStatusColorHex), Mode=OneWay}" Glyph="{x:Bind ViewModel.TpmActivatedGlyph, Mode=OneWay}" />
+					</cwuc:SettingsCard>
+					<cwuc:SettingsCard Header="{x:Bind LocalizedStrings.TPM_OwnedHeader}">
+						<FontIcon Foreground="{x:Bind HexToBrush(ViewModel.TpmStatusColorHex), Mode=OneWay}" Glyph="{x:Bind ViewModel.TpmOwnedGlyph, Mode=OneWay}" />
+					</cwuc:SettingsCard>
+				</cwuc:SettingsExpander.Items>
+			</cwuc:SettingsExpander>
+
+			<!--  TPM Actions  -->
+			<StackPanel Spacing="4">
+				<TextBlock
+					Margin="0,8,0,8"
+					FontSize="14"
+					FontWeight="SemiBold"
+					Text="{x:Bind LocalizedStrings.TPM_ActionsHeader}" />
+
+				<cwuc:SettingsCard
+					Command="{x:Bind ViewModel.OpenTPMConsoleCommand}"
+					Description="{x:Bind LocalizedStrings.TPM_OpenConsoleDescription}"
+					Header="{x:Bind LocalizedStrings.TPM_OpenConsoleHeader}"
+					IsClickEnabled="True">
+					<cwuc:SettingsCard.HeaderIcon>
+						<FontIcon Glyph="&#xE8A7;" />
+					</cwuc:SettingsCard.HeaderIcon>
+					<cwuc:SettingsCard.ActionIcon>
+						<FontIcon Glyph="&#xE8A7;" />
+					</cwuc:SettingsCard.ActionIcon>
+				</cwuc:SettingsCard>
+
+				<cwuc:SettingsCard
+					Command="{x:Bind ViewModel.RefreshTPMStatusCommand}"
+					Description="{x:Bind LocalizedStrings.TPM_RefreshStatusDescription}"
+					Header="{x:Bind LocalizedStrings.TPM_RefreshStatusHeader}"
+					IsClickEnabled="True">
+					<cwuc:SettingsCard.HeaderIcon>
+						<FontIcon Glyph="&#xE72C;" />
+					</cwuc:SettingsCard.HeaderIcon>
+					<cwuc:SettingsCard.ActionIcon>
+						<FontIcon Glyph="&#xE72C;" />
+					</cwuc:SettingsCard.ActionIcon>
+				</cwuc:SettingsCard>
+
+				<cwuc:SettingsCard
+					Click="ClearTPM_Click"
+					Description="{x:Bind LocalizedStrings.TPM_ClearTPMDescription}"
+					Header="{x:Bind LocalizedStrings.TPM_ClearTPMHeader}"
+					IsClickEnabled="True">
+					<cwuc:SettingsCard.HeaderIcon>
+						<FontIcon Foreground="{ThemeResource SystemFillColorCriticalBrush}" Glyph="&#xE74D;" />
+					</cwuc:SettingsCard.HeaderIcon>
+					<cwuc:SettingsCard.ActionIcon>
+						<FontIcon Glyph="&#xE74D;" />
+					</cwuc:SettingsCard.ActionIcon>
+				</cwuc:SettingsCard>
+			</StackPanel>
+
+			<!--  TPM Information  -->
+			<StackPanel Spacing="4">
+				<TextBlock
+					Margin="0,8,0,8"
+					FontSize="14"
+					FontWeight="SemiBold"
+					Text="{x:Bind LocalizedStrings.TPM_AboutHeader}" />
+
+				<cwuc:SettingsExpander Header="{x:Bind LocalizedStrings.TPM_WhatIsTPMHeader}">
+					<cwuc:SettingsExpander.HeaderIcon>
+						<FontIcon Glyph="&#xE946;" />
+					</cwuc:SettingsExpander.HeaderIcon>
+					<cwuc:SettingsExpander.Items>
+						<cwuc:SettingsCard>
+							<cwuc:SettingsCard.Description>
+								<TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="{x:Bind LocalizedStrings.TPM_WhatIsTPMDescription}" />
+							</cwuc:SettingsCard.Description>
+						</cwuc:SettingsCard>
+					</cwuc:SettingsExpander.Items>
+				</cwuc:SettingsExpander>
+			</StackPanel>
+		</StackPanel>
+	</ScrollViewer>
+</Page>

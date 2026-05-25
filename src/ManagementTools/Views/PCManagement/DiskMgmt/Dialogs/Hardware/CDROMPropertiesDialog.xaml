@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ContentDialog
+    x:Class="ManagementTools.Views.DiskMgmt.CDROMPropertiesDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:converters="using:ManagementTools.Converters"
+    xmlns:core="using:ManagementTools.Core.Features.PCManagement.Models.DiskMgmt"
+    xmlns:localization="using:ManagementTools.Localization"
+    mc:Ignorable="d"
+    Title="{x:Bind LocalizedStrings.DiskMgmt_CDROMPropertiesTitle}"
+    CloseButtonText="{x:Bind LocalizedStrings.Common_CloseButton}"
+    DefaultButton="Close"
+    Style="{StaticResource DefaultContentDialogStyle}">
+
+    <ContentDialog.Resources>
+        <localization:LocalizedStrings x:Key="LocalizedStrings" />
+        <converters:NullToDashStringConverter x:Key="NullToDashStringConverter"/>
+        <converters:BoolToYesNoConverter x:Key="BoolToYesNoConverter"/>
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+
+        <Style x:Key="PropertyHeaderStyle" TargetType="TextBlock">
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Margin" Value="0,12,0,8"/>
+        </Style>
+
+        <Style x:Key="FirstPropertyHeaderStyle" TargetType="TextBlock" BasedOn="{StaticResource PropertyHeaderStyle}">
+            <Setter Property="Margin" Value="0,0,0,8"/>
+        </Style>
+
+        <Style x:Key="PropertyLabelStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{ThemeResource TextFillColorSecondaryBrush}"/>
+            <Setter Property="Margin" Value="0,0,8,4"/>
+            <Setter Property="VerticalAlignment" Value="Top"/>
+        </Style>
+
+        <Style x:Key="PropertyValueStyle" TargetType="TextBlock">
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="IsTextSelectionEnabled" Value="True"/>
+            <Setter Property="Margin" Value="0,0,0,4"/>
+            <Setter Property="VerticalAlignment" Value="Top"/>
+        </Style>
+    </ContentDialog.Resources>
+
+    <ScrollViewer MaxHeight="500" MaxWidth="500">
+        <StackPanel Spacing="0" MinWidth="400">
+            <!-- General -->
+            <TextBlock Text="{x:Bind LocalizedStrings.DiskMgmt_General}" Style="{StaticResource FirstPropertyHeaderStyle}"/>
+            
+            <Grid ColumnDefinitions="140,*">
+                <TextBlock Text="{x:Bind LocalizedStrings.DiskMgmt_Name}" Style="{StaticResource PropertyLabelStyle}" Grid.Column="0"/>
+                <TextBlock Text="{x:Bind CdromInfo.Name, Converter={StaticResource NullToDashStringConverter}}" Style="{StaticResource PropertyValueStyle}" Grid.Column="1"/>
+            </Grid>
+            
+            <Grid ColumnDefinitions="140,*">
+                <TextBlock Text="{x:Bind LocalizedStrings.DiskMgmt_Drive}" Style="{StaticResource PropertyLabelStyle}" Grid.Column="0"/>
+                <TextBlock Text="{x:Bind CdromInfo.Drive, Converter={StaticResource NullToDashStringConverter}}" Style="{StaticResource PropertyValueStyle}" Grid.Column="1"/>
+            </Grid>
+
+            <Grid ColumnDefinitions="140,*">
+                <TextBlock Text="{x:Bind LocalizedStrings.DiskMgmt_Manufacturer}" Style="{StaticResource PropertyLabelStyle}" Grid.Column="0"/>
+                <TextBlock Text="{x:Bind CdromInfo.Manufacturer, Converter={StaticResource NullToDashStringConverter}}" Style="{StaticResource PropertyValueStyle}" Grid.Column="1"/>
+            </Grid>
+            
+            <Grid ColumnDefinitions="140,*">
+                <TextBlock Text="{x:Bind LocalizedStrings.DiskMgmt_Status}" Style="{StaticResource PropertyLabelStyle}" Grid.Column="0"/>
+                <TextBlock Text="{x:Bind CdromInfo.DisplayStatus, Converter={StaticResource NullToDashStringConverter}}" Style="{StaticResource PropertyValueStyle}" Grid.Column="1"/>
+            </Grid>
+
+            <!-- Media -->
+            <TextBlock Text="{x:Bind LocalizedStrings.DiskMgmt_Media}" Style="{StaticResource PropertyHeaderStyle}"/>
+
+            <Grid ColumnDefinitions="140,*">
+                <TextBlock Text="{x:Bind LocalizedStrings.DiskMgmt_MediaLoaded}" Style="{StaticResource PropertyLabelStyle}" Grid.Column="0"/>
+                <TextBlock Text="{x:Bind CdromInfo.MediaLoaded, Converter={StaticResource BoolToYesNoConverter}}" Style="{StaticResource PropertyValueStyle}" Grid.Column="1"/>
+            </Grid>
+            
+            <StackPanel Visibility="{x:Bind CdromInfo.MediaLoaded, Converter={StaticResource BoolToVisibilityConverter}}">
+                <Grid ColumnDefinitions="140,*">
+                    <TextBlock Text="{x:Bind LocalizedStrings.DiskMgmt_VolumeName}" Style="{StaticResource PropertyLabelStyle}" Grid.Column="0"/>
+                    <TextBlock Text="{x:Bind CdromInfo.VolumeName, Converter={StaticResource NullToDashStringConverter}}" Style="{StaticResource PropertyValueStyle}" Grid.Column="1"/>
+                </Grid>
+
+                <Grid ColumnDefinitions="140,*">
+                    <TextBlock Text="{x:Bind LocalizedStrings.DiskMgmt_MediaType}" Style="{StaticResource PropertyLabelStyle}" Grid.Column="0"/>
+                    <TextBlock Text="{x:Bind CdromInfo.MediaType, Converter={StaticResource NullToDashStringConverter}}" Style="{StaticResource PropertyValueStyle}" Grid.Column="1"/>
+                </Grid>
+
+                <Grid ColumnDefinitions="140,*">
+                    <TextBlock Text="{x:Bind LocalizedStrings.DiskMgmt_Size}" Style="{StaticResource PropertyLabelStyle}" Grid.Column="0"/>
+                    <TextBlock Text="{x:Bind CdromInfo.FormattedSize, Converter={StaticResource NullToDashStringConverter}}" Style="{StaticResource PropertyValueStyle}" Grid.Column="1"/>
+                </Grid>
+            </StackPanel>
+
+            <!-- Hardware -->
+            <TextBlock Text="{x:Bind LocalizedStrings.DiskMgmt_Hardware}" Style="{StaticResource PropertyHeaderStyle}"/>
+
+            <Grid ColumnDefinitions="140,*">
+                <TextBlock Text="{x:Bind LocalizedStrings.DiskMgmt_SCSIBus}" Style="{StaticResource PropertyLabelStyle}" Grid.Column="0"/>
+                <TextBlock Text="{x:Bind CdromInfo.SCSIBus}" Style="{StaticResource PropertyValueStyle}" Grid.Column="1"/>
+            </Grid>
+            
+            <Grid ColumnDefinitions="140,*">
+                <TextBlock Text="{x:Bind LocalizedStrings.DiskMgmt_SCSIPort}" Style="{StaticResource PropertyLabelStyle}" Grid.Column="0"/>
+                <TextBlock Text="{x:Bind CdromInfo.SCSIPort}" Style="{StaticResource PropertyValueStyle}" Grid.Column="1"/>
+            </Grid>
+            
+            <Grid ColumnDefinitions="140,*">
+                <TextBlock Text="{x:Bind LocalizedStrings.DiskMgmt_SCSITarget}" Style="{StaticResource PropertyLabelStyle}" Grid.Column="0"/>
+                <TextBlock Text="{x:Bind CdromInfo.SCSITargetId}" Style="{StaticResource PropertyValueStyle}" Grid.Column="1"/>
+            </Grid>
+            
+            <Grid ColumnDefinitions="140,*">
+                <TextBlock Text="{x:Bind LocalizedStrings.DiskMgmt_SCSILUN}" Style="{StaticResource PropertyLabelStyle}" Grid.Column="0"/>
+                <TextBlock Text="{x:Bind CdromInfo.SCSILogicalUnit}" Style="{StaticResource PropertyValueStyle}" Grid.Column="1"/>
+            </Grid>
+        </StackPanel>
+    </ScrollViewer>
+</ContentDialog>

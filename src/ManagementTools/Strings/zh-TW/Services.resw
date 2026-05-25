@@ -1,0 +1,273 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Services_SearchPlaceholder" xml:space="preserve">
+    <value>搜尋服務</value>
+  </data>
+  <data name="Service_General" xml:space="preserve">
+    <value>一般</value>
+  </data>
+  <data name="Service_LogOn" xml:space="preserve">
+    <value>登入</value>
+  </data>
+  <data name="Service_Recovery" xml:space="preserve">
+    <value>修復</value>
+  </data>
+  <data name="Service_Dependencies" xml:space="preserve">
+    <value>相依性</value>
+  </data>
+  <data name="Services_Start" xml:space="preserve">
+    <value>啟動</value>
+  </data>
+  <data name="Services_Stop" xml:space="preserve">
+    <value>停止</value>
+  </data>
+  <data name="Services_Restart" xml:space="preserve">
+    <value>重新啟動</value>
+  </data>
+  <data name="Services_Properties" xml:space="preserve">
+    <value>內容</value>
+  </data>
+  <data name="Service_AccountName_Header" xml:space="preserve">
+    <value>帳戶名稱</value>
+  </data>
+  <data name="Service_Password_Header" xml:space="preserve">
+    <value>密碼</value>
+  </data>
+  <data name="Service_Account_Placeholder" xml:space="preserve">
+    <value>網域\使用者名稱</value>
+  </data>
+  <data name="Service_Password_Placeholder" xml:space="preserve">
+    <value>輸入密碼</value>
+  </data>
+  <data name="Service_SaveStartupType" xml:space="preserve">
+    <value>儲存啟動類型</value>
+  </data>
+  <data name="Service_ApplyLogOn" xml:space="preserve">
+    <value>套用登入設定</value>
+  </data>
+  <data name="Service_ApplyRecovery" xml:space="preserve">
+    <value>套用復原選項</value>
+  </data>
+  <data name="Service_Startup_Auto" xml:space="preserve">
+    <value>自動</value>
+  </data>
+  <data name="Service_Startup_AutoDelayed" xml:space="preserve">
+    <value>自動（延遲啟動）</value>
+  </data>
+  <data name="Service_Startup_Manual" xml:space="preserve">
+    <value>手動</value>
+  </data>
+  <data name="Service_Recovery_SelectResponse" xml:space="preserve">
+    <value>選擇此服務失敗時電腦的回應</value>
+  </data>
+  <data name="Service_Recovery_FirstFailure" xml:space="preserve">
+    <value>第一次失敗</value>
+  </data>
+  <data name="Service_Recovery_SecondFailure" xml:space="preserve">
+    <value>第二次失敗</value>
+  </data>
+  <data name="Service_Recovery_SubsequentFailure" xml:space="preserve">
+    <value>後續失敗</value>
+  </data>
+  <data name="Service_Recovery_TakeNoAction" xml:space="preserve">
+    <value>不採取任何動作</value>
+  </data>
+  <data name="Service_Recovery_RestartService" xml:space="preserve">
+    <value>重新啟動服務</value>
+  </data>
+  <data name="Service_Recovery_RunProgram" xml:space="preserve">
+    <value>執行程式</value>
+  </data>
+  <data name="Service_Recovery_RestartComputer" xml:space="preserve">
+    <value>重新啟動電腦</value>
+  </data>
+  <data name="Service_Recovery_ResetFailCountHeader" xml:space="preserve">
+    <value>重設失敗計數（天）</value>
+  </data>
+  <data name="Service_Dependencies_DependsOn" xml:space="preserve">
+    <value>此服務依賴下列元件</value>
+  </data>
+  <data name="Service_Dependencies_FollowingCannotRunText" xml:space="preserve">
+    <value>如果這些元件中的任何一項停止，則此服務無法執行。</value>
+  </data>
+  <data name="Service_Dependents_DependsOn" xml:space="preserve">
+    <value>下列元件相依於此服務</value>
+  </data>
+  <data name="Service_Dependents_FollowingCannotRunText" xml:space="preserve">
+    <value>若此服務停止，這些元件將無法執行。</value>
+  </data>
+  <data name="Service_LogOn_Account" xml:space="preserve">
+    <value>登入為</value>
+  </data>
+  <data name="Service_LogOn_LocalSystem" xml:space="preserve">
+    <value>本機系統帳戶</value>
+  </data>
+  <data name="Service_Name" xml:space="preserve">
+    <value>名稱</value>
+  </data>
+  <data name="Service_DisplayName" xml:space="preserve">
+    <value>顯示名稱</value>
+  </data>
+  <data name="Service_Description" xml:space="preserve">
+    <value>說明</value>
+  </data>
+  <data name="Service_Status" xml:space="preserve">
+    <value>狀態</value>
+  </data>
+  <data name="Service_StartupType" xml:space="preserve">
+    <value>啟動類型</value>
+  </data>
+  <data name="Service_Recovery_Options" xml:space="preserve">
+    <value>修復選項</value>
+  </data>
+  <data name="Service_LogOn_ThisAccount" xml:space="preserve">
+    <value>此帳戶：</value>
+  </data>
+  <data name="Service_Info_LogonChangeMessage" xml:space="preserve">
+    <value>變更登入帳戶可能會影響服務存取資源的能力。</value>
+  </data>
+  <data name="Service_NoDescription" xml:space="preserve">
+    <value>無可用描述</value>
+  </data>
+  <data name="Service_Status_Unknown" xml:space="preserve">
+    <value>未知</value>
+  </data>
+  <data name="Service_Status_Running" xml:space="preserve">
+    <value>執行中</value>
+  </data>
+  <data name="Service_Status_Stopped" xml:space="preserve">
+    <value>已停止</value>
+  </data>
+  <data name="Service_Status_Paused" xml:space="preserve">
+    <value>已暫停</value>
+  </data>
+  <data name="Service_Status_StartPending" xml:space="preserve">
+    <value>啟動中</value>
+  </data>
+  <data name="Service_Status_StopPending" xml:space="preserve">
+    <value>停止中</value>
+  </data>
+  <data name="Service_Status_ContinuePending" xml:space="preserve">
+    <value>繼續中</value>
+  </data>
+  <data name="Service_Status_PausePending" xml:space="preserve">
+    <value>暫停中</value>
+  </data>
+</root>

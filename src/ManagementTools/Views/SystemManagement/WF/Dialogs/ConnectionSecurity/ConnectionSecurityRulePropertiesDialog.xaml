@@ -1,0 +1,405 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentDialog
+    x:Class="ManagementTools.Views.Dialogs.ConnectionSecurity.ConnectionSecurityRulePropertiesDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:ManagementTools.Localization"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    PrimaryButtonText="{Binding Common_OKButton, Source={StaticResource LocalizedStrings}}"
+    Style="{StaticResource DefaultContentDialogStyle}"
+    mc:Ignorable="d">
+
+    <ContentDialog.Resources>
+        <local:LocalizedStrings x:Key="LocalizedStrings" />
+    </ContentDialog.Resources>
+
+    <ScrollViewer
+        MaxHeight="560"
+        HorizontalScrollBarVisibility="Disabled"
+        VerticalScrollBarVisibility="Auto"
+        VerticalScrollMode="Enabled">
+    <Grid MinWidth="480" MinHeight="420">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!--  Rule name header  -->
+        <StackPanel
+            Grid.Row="0"
+            Margin="0,0,0,4"
+            Orientation="Horizontal"
+            Spacing="12">
+            <FontIcon
+                VerticalAlignment="Center"
+                FontSize="28"
+                Glyph="&#xE839;" />
+            <TextBlock
+                x:Name="RuleNameHeader"
+                VerticalAlignment="Center"
+                Style="{StaticResource SubtitleTextBlockStyle}"
+                Text="{Binding WF_ConnectionSecurityRuleProperties_DefaultRuleName, Source={StaticResource LocalizedStrings}}"
+                TextWrapping="Wrap" />
+        </StackPanel>
+
+        <!--  SelectorBar tabs  -->
+        <SelectorBar
+            x:Name="TabBar"
+            Grid.Row="1"
+            Margin="0,8,0,12"
+            SelectionChanged="TabBar_SelectionChanged">
+            <SelectorBarItem x:Name="GeneralTab" Text="{Binding WF_Tab_General, Source={StaticResource LocalizedStrings}}" />
+            <SelectorBarItem x:Name="AuthenticationTab" Text="{Binding WF_Section_Authentication, Source={StaticResource LocalizedStrings}}" />
+            <SelectorBarItem x:Name="AdvancedTab" Text="{Binding WF_Tab_Advanced, Source={StaticResource LocalizedStrings}}" />
+        </SelectorBar>
+
+        <!--  Tab content  -->
+        <Grid Grid.Row="2">
+
+            <!--  ═══ General ═══  -->
+            <ScrollViewer
+                x:Name="GeneralPanel"
+                HorizontalScrollBarVisibility="Disabled"
+                VerticalScrollBarVisibility="Auto"
+                VerticalScrollMode="Enabled">
+                <StackPanel Padding="0,0,4,0" Spacing="4">
+
+                    <!--  Endpoint / Protocol  -->
+                    <Grid ColumnSpacing="16" RowSpacing="8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" MinWidth="170" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <TextBlock
+                            Grid.Row="0"
+                            Grid.Column="0"
+                            FontWeight="SemiBold"
+                            Text="{Binding WF_ConnectionSecurityRuleProperties_Endpoint1IPAddress, Source={StaticResource LocalizedStrings}}" />
+                        <TextBlock
+                            x:Name="Ep1IpValue"
+                            Grid.Row="0"
+                            Grid.Column="1"
+                            IsTextSelectionEnabled="True"
+                            Text="{Binding WF_Common_Any, Source={StaticResource LocalizedStrings}}" />
+
+                        <TextBlock
+                            Grid.Row="1"
+                            Grid.Column="0"
+                            FontWeight="SemiBold"
+                            Text="{Binding WF_ConnectionSecurityRuleProperties_Endpoint1Port, Source={StaticResource LocalizedStrings}}" />
+                        <TextBlock
+                            x:Name="Ep1PortValue"
+                            Grid.Row="1"
+                            Grid.Column="1"
+                            IsTextSelectionEnabled="True"
+                            Text="{Binding WF_Common_Any, Source={StaticResource LocalizedStrings}}" />
+
+                        <TextBlock
+                            Grid.Row="2"
+                            Grid.Column="0"
+                            FontWeight="SemiBold"
+                            Text="{Binding WF_ConnectionSecurityRuleProperties_Endpoint2IPAddress, Source={StaticResource LocalizedStrings}}" />
+                        <TextBlock
+                            x:Name="Ep2IpValue"
+                            Grid.Row="2"
+                            Grid.Column="1"
+                            IsTextSelectionEnabled="True"
+                            Text="{Binding WF_Common_Any, Source={StaticResource LocalizedStrings}}" />
+
+                        <TextBlock
+                            Grid.Row="3"
+                            Grid.Column="0"
+                            FontWeight="SemiBold"
+                            Text="{Binding WF_ConnectionSecurityRuleProperties_Endpoint2Port, Source={StaticResource LocalizedStrings}}" />
+                        <TextBlock
+                            x:Name="Ep2PortValue"
+                            Grid.Row="3"
+                            Grid.Column="1"
+                            IsTextSelectionEnabled="True"
+                            Text="{Binding WF_Common_Any, Source={StaticResource LocalizedStrings}}" />
+
+                        <TextBlock
+                            Grid.Row="4"
+                            Grid.Column="0"
+                            FontWeight="SemiBold"
+                            Text="{Binding WF_ConnectionSecurityRuleProperties_Protocol, Source={StaticResource LocalizedStrings}}" />
+                        <TextBlock
+                            x:Name="ProtocolValue"
+                            Grid.Row="4"
+                            Grid.Column="1"
+                            IsTextSelectionEnabled="True"
+                            Text="{Binding WF_Common_Any, Source={StaticResource LocalizedStrings}}" />
+                    </Grid>
+
+                    <Border
+                        Height="1"
+                        Margin="0,8,0,8"
+                        Background="{ThemeResource DividerStrokeColorDefaultBrush}" />
+
+                    <!--  Profile  -->
+                    <Grid ColumnSpacing="16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" MinWidth="170" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock
+                            Grid.Column="0"
+                            FontWeight="SemiBold"
+                            Text="{Binding WF_ConnectionSecurityRuleProperties_Profile, Source={StaticResource LocalizedStrings}}" />
+                        <TextBlock
+                            x:Name="ProfileValue"
+                            Grid.Column="1"
+                            IsTextSelectionEnabled="True"
+                            Text="{Binding WF_Common_All, Source={StaticResource LocalizedStrings}}" />
+                    </Grid>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!--  ═══ Authentication ═══  -->
+            <ScrollViewer
+                x:Name="AuthenticationPanel"
+                HorizontalScrollBarVisibility="Disabled"
+                VerticalScrollBarVisibility="Auto"
+                VerticalScrollMode="Enabled"
+                Visibility="Collapsed">
+                <StackPanel Padding="0,0,4,0" Spacing="16">
+
+                    <!--  Requirements  -->
+                    <Grid ColumnSpacing="16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" MinWidth="120" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock
+                            Grid.Column="0"
+                            FontWeight="SemiBold"
+                            Text="{Binding WF_ConnectionSecurityRuleProperties_Requirements, Source={StaticResource LocalizedStrings}}" />
+                        <TextBlock
+                            x:Name="RequirementsValue"
+                            Grid.Column="1"
+                            IsTextSelectionEnabled="True"
+                            Text="{Binding WF_CSR_AuthMode_RequestInboundOutbound, Source={StaticResource LocalizedStrings}}"
+                            TextWrapping="Wrap" />
+                    </Grid>
+
+                    <!--  First authentication  -->
+                    <StackPanel Spacing="6">
+                        <TextBlock FontWeight="SemiBold" Text="{Binding WF_ConnectionSecurityRuleProperties_FirstAuthentication, Source={StaticResource LocalizedStrings}}" />
+                        <Border
+                            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                            BorderThickness="1"
+                            CornerRadius="4">
+                            <ListView
+                                x:Name="FirstAuthListView"
+                                MinHeight="120"
+                                MaxHeight="160"
+                                SelectionMode="Single">
+                                <ListView.Header>
+                                    <Grid
+                                        Padding="12,6"
+                                        Background="{ThemeResource SubtleFillColorSecondaryBrush}"
+                                        ColumnSpacing="8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock
+                                            Grid.Column="0"
+                                            FontWeight="SemiBold"
+                                            Style="{StaticResource CaptionTextBlockStyle}"
+                                            Text="{Binding WF_Common_Method, Source={StaticResource LocalizedStrings}}" />
+                                        <TextBlock
+                                            Grid.Column="1"
+                                            FontWeight="SemiBold"
+                                            Style="{StaticResource CaptionTextBlockStyle}"
+                                            Text="{Binding WF_Common_Details, Source={StaticResource LocalizedStrings}}" />
+                                    </Grid>
+                                </ListView.Header>
+                                <ListView.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid Padding="0,4" ColumnSpacing="8">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock
+                                                Grid.Column="0"
+                                                Text="{Binding Name}"
+                                                TextWrapping="Wrap" />
+                                            <TextBlock
+                                                Grid.Column="1"
+                                                Text="{Binding Description}"
+                                                TextWrapping="Wrap" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+                        </Border>
+                    </StackPanel>
+
+                    <!--  Second authentication  -->
+                    <StackPanel Spacing="6">
+                        <TextBlock FontWeight="SemiBold" Text="{Binding WF_ConnectionSecurityRuleProperties_SecondAuthentication, Source={StaticResource LocalizedStrings}}" />
+                        <Border
+                            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                            BorderThickness="1"
+                            CornerRadius="4">
+                            <ListView
+                                x:Name="SecondAuthListView"
+                                MinHeight="120"
+                                MaxHeight="160"
+                                SelectionMode="Single">
+                                <ListView.Header>
+                                    <Grid
+                                        Padding="12,6"
+                                        Background="{ThemeResource SubtleFillColorSecondaryBrush}"
+                                        ColumnSpacing="8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock
+                                            Grid.Column="0"
+                                            FontWeight="SemiBold"
+                                            Style="{StaticResource CaptionTextBlockStyle}"
+                                            Text="{Binding WF_Common_Method, Source={StaticResource LocalizedStrings}}" />
+                                        <TextBlock
+                                            Grid.Column="1"
+                                            FontWeight="SemiBold"
+                                            Style="{StaticResource CaptionTextBlockStyle}"
+                                            Text="{Binding WF_Common_Details, Source={StaticResource LocalizedStrings}}" />
+                                    </Grid>
+                                </ListView.Header>
+                                <ListView.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid Padding="0,4" ColumnSpacing="8">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock
+                                                Grid.Column="0"
+                                                Text="{Binding Name}"
+                                                TextWrapping="Wrap" />
+                                            <TextBlock
+                                                Grid.Column="1"
+                                                Text="{Binding Description}"
+                                                TextWrapping="Wrap" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+                        </Border>
+                    </StackPanel>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!--  ═══ Advanced ═══  -->
+            <ScrollViewer
+                x:Name="AdvancedPanel"
+                HorizontalScrollBarVisibility="Disabled"
+                VerticalScrollBarVisibility="Auto"
+                VerticalScrollMode="Enabled"
+                Visibility="Collapsed">
+                <StackPanel Padding="0,0,4,0" Spacing="8">
+                    <Grid ColumnSpacing="16" RowSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" MinWidth="200" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <TextBlock
+                            Grid.Row="0"
+                            Grid.Column="0"
+                            FontWeight="SemiBold"
+                            Text="{Binding WF_ConnectionSecurityRuleProperties_LocalTunnelEndpoint, Source={StaticResource LocalizedStrings}}" />
+                        <TextBlock
+                            x:Name="LocalTunnelValue"
+                            Grid.Row="0"
+                            Grid.Column="1"
+                            IsTextSelectionEnabled="True"
+                            Text="{Binding WF_Common_None, Source={StaticResource LocalizedStrings}}" />
+
+                        <TextBlock
+                            Grid.Row="1"
+                            Grid.Column="0"
+                            FontWeight="SemiBold"
+                            Text="{Binding WF_ConnectionSecurityRuleProperties_RemoteTunnelEndpoint, Source={StaticResource LocalizedStrings}}" />
+                        <TextBlock
+                            x:Name="RemoteTunnelValue"
+                            Grid.Row="1"
+                            Grid.Column="1"
+                            IsTextSelectionEnabled="True"
+                            Text="{Binding WF_Common_None, Source={StaticResource LocalizedStrings}}" />
+
+                        <TextBlock
+                            Grid.Row="2"
+                            Grid.Column="0"
+                            FontWeight="SemiBold"
+                            Text="{Binding WF_ConnectionSecurityRuleProperties_InterfaceTypes, Source={StaticResource LocalizedStrings}}" />
+                        <TextBlock
+                            x:Name="InterfaceTypesValue"
+                            Grid.Row="2"
+                            Grid.Column="1"
+                            IsTextSelectionEnabled="True"
+                            Text="{Binding WF_Common_AllInterfaceTypes, Source={StaticResource LocalizedStrings}}" />
+
+                        <TextBlock
+                            Grid.Row="3"
+                            Grid.Column="0"
+                            FontWeight="SemiBold"
+                            Text="{Binding WF_ConnectionSecurityRuleProperties_ApplyAuthorization, Source={StaticResource LocalizedStrings}}" />
+                        <TextBlock
+                            x:Name="ApplyAuthValue"
+                            Grid.Row="3"
+                            Grid.Column="1"
+                            IsTextSelectionEnabled="True"
+                            Text="{Binding WF_Common_No, Source={StaticResource LocalizedStrings}}" />
+                    </Grid>
+
+                    <Border
+                        Height="1"
+                        Margin="0,4,0,4"
+                        Background="{ThemeResource DividerStrokeColorDefaultBrush}" />
+
+                    <Grid ColumnSpacing="16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" MinWidth="200" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock
+                            Grid.Column="0"
+                            FontWeight="SemiBold"
+                            Text="{Binding WF_ConnectionSecurityRuleProperties_ExemptIPsecProtectedConnections, Source={StaticResource LocalizedStrings}}"
+                            TextWrapping="Wrap" />
+                        <TextBlock
+                            x:Name="ExemptIpsecValue"
+                            Grid.Column="1"
+                            IsTextSelectionEnabled="True"
+                            Text="{Binding WF_Common_No, Source={StaticResource LocalizedStrings}}" />
+                    </Grid>
+                </StackPanel>
+            </ScrollViewer>
+
+        </Grid>
+    </Grid>
+    </ScrollViewer>
+</ContentDialog>

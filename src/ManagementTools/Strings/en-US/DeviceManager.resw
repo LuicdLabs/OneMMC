@@ -1,0 +1,358 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="DeviceManager_SearchPlaceholder" xml:space="preserve">
+    <value>Search devices</value>
+  </data>
+  <data name="DeviceManager_RefreshTooltip" xml:space="preserve">
+    <value>Refresh and scan for changes</value>
+  </data>
+  <data name="DeviceManager_OpenSystemDeviceManager" xml:space="preserve">
+    <value>Open System Device Manager (devmgmt.msc)</value>
+  </data>
+  <data name="DeviceManager_ShowHiddenDevices" xml:space="preserve">
+    <value>Show hidden devices</value>
+  </data>
+  <data name="DeviceManager_DeviceCountPrefix" xml:space="preserve">
+    <value />
+  </data>
+  <data name="DeviceManager_DeviceCountSuffix" xml:space="preserve">
+    <value> devices total</value>
+  </data>
+  <data name="DeviceManager_EnableDevice" xml:space="preserve">
+    <value>Enable</value>
+  </data>
+  <data name="DeviceManager_DisableDevice" xml:space="preserve">
+    <value>Disable</value>
+  </data>
+  <data name="DeviceManager_UninstallDevice" xml:space="preserve">
+    <value>Uninstall</value>
+  </data>
+  <data name="DeviceManager_GeneralInformation" xml:space="preserve">
+    <value>General information</value>
+  </data>
+  <data name="DeviceManager_DeviceName" xml:space="preserve">
+    <value>Device name</value>
+  </data>
+  <data name="DeviceManager_DeviceType" xml:space="preserve">
+    <value>Device type</value>
+  </data>
+  <data name="DeviceManager_Manufacturer" xml:space="preserve">
+    <value>Manufacturer</value>
+  </data>
+  <data name="DeviceManager_Status" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="DeviceManager_DeviceID" xml:space="preserve">
+    <value>Device ID</value>
+  </data>
+  <data name="DeviceManager_DeviceIDDescription" xml:space="preserve">
+    <value>Unique identifier used to identify the device</value>
+  </data>
+  
+  <data name="DeviceManager_DriverInformation" xml:space="preserve">
+    <value>Driver information</value>
+  </data>
+  <data name="DeviceManager_DriverVersion" xml:space="preserve">
+    <value>Driver version</value>
+  </data>
+  <data name="DeviceManager_DriverDate" xml:space="preserve">
+    <value>Driver date</value>
+  </data>
+  <data name="DeviceManager_DriverProvider" xml:space="preserve">
+    <value>Driver provider</value>
+  </data>
+  <data name="DeviceManager_INFName" xml:space="preserve">
+    <value>INF file</value>
+  </data>
+  <data name="DeviceManager_DigitalSignature" xml:space="preserve">
+    <value>Digital signature</value>
+  </data>
+  <data name="DeviceManager_Signer" xml:space="preserve">
+    <value>Signer</value>
+  </data>
+  <data name="DeviceManager_HardwareIDs" xml:space="preserve">
+    <value>Hardware IDs</value>
+  </data>
+  <data name="DeviceManager_HardwareID" xml:space="preserve">
+    <value>Hardware ID</value>
+  </data>
+  <data name="DeviceManager_CompatibleID" xml:space="preserve">
+    <value>Compatible ID</value>
+  </data>
+  
+  <data name="DeviceManager_HiddenDevices" xml:space="preserve">
+    <value>Hidden devices</value>
+  </data>
+  <data name="DeviceManager_ConfirmDisableDeviceTitle" xml:space="preserve">
+    <value>Disable Device</value>
+  </data>
+  <data name="DeviceManager_ConfirmDisableDeviceContent" xml:space="preserve">
+    <value>You are about to disable "{0}"
+
+Do you understand this might cause the system errors or failure?</value>
+  </data>
+  <data name="DeviceManager_DisableButton" xml:space="preserve">
+    <value>Disable</value>
+  </data>
+  <data name="DeviceManager_ConfirmUninstallDeviceTitle" xml:space="preserve">
+    <value>Uninstall Device</value>
+  </data>
+  <data name="DeviceManager_ConfirmUninstallDeviceContent" xml:space="preserve">
+    <value>You are about to uninstall "{0}"
+
+Do you understand this might cause the system errors or failure?</value>
+  </data>
+  <data name="DeviceManager_UninstallButton" xml:space="preserve">
+    <value>Uninstall</value>
+  </data>
+  <data name="DeviceManager_EnableDeviceError" xml:space="preserve">
+    <value>Failed to enable device. Please ensure you have sufficient permissions.</value>
+  </data>
+  <data name="DeviceManager_DisableDeviceError" xml:space="preserve">
+    <value>Failed to disable device. Please ensure you have sufficient permissions.</value>
+  </data>
+  <data name="DeviceManager_UninstallDeviceError" xml:space="preserve">
+    <value>Failed to uninstall device. Please ensure you have sufficient permissions.</value>
+  </data>
+  <data name="DeviceManager_DevicePropertiesError" xml:space="preserve">
+    <value>Error: {0}</value>
+  </data>
+  
+  <data name="DeviceManager_StatusWorking" xml:space="preserve">
+    <value>This device is working properly</value>
+  </data>
+  <data name="DeviceManager_StatusConfigError" xml:space="preserve">
+    <value>This device is not configured correctly</value>
+  </data>
+  <data name="DeviceManager_StatusDriverCorrupt" xml:space="preserve">
+    <value>The driver for this device might be corrupted, or your system may be running low on memory or other resources</value>
+  </data>
+  <data name="DeviceManager_StatusCannotStart" xml:space="preserve">
+    <value>This device cannot start</value>
+  </data>
+  <data name="DeviceManager_StatusNoResources" xml:space="preserve">
+    <value>This device cannot find enough free resources that it can use</value>
+  </data>
+  <data name="DeviceManager_StatusRestartRequired" xml:space="preserve">
+    <value>This device must be restarted to complete the installation</value>
+  </data>
+  <data name="DeviceManager_StatusReinstallDriver" xml:space="preserve">
+    <value>Reinstall the drivers for this device</value>
+  </data>
+  <data name="DeviceManager_StatusRegistryCorrupt" xml:space="preserve">
+    <value>The registry might be corrupted</value>
+  </data>
+  <data name="DeviceManager_StatusRemoving" xml:space="preserve">
+    <value>Windows is removing this device</value>
+  </data>
+  <data name="DeviceManager_StatusDisabled" xml:space="preserve">
+    <value>This device is disabled</value>
+  </data>
+  <data name="DeviceManager_StatusNotPresent" xml:space="preserve">
+    <value>This device is not present, is not working properly, or does not have all its drivers installed</value>
+  </data>
+  <data name="DeviceManager_StatusNoDriver" xml:space="preserve">
+    <value>The drivers for this device are not installed</value>
+  </data>
+  <data name="DeviceManager_StatusDisabledFirmware" xml:space="preserve">
+    <value>This device is disabled because the firmware of the device did not give it the required resources</value>
+  </data>
+  <data name="DeviceManager_StatusCannotLoadDriver" xml:space="preserve">
+    <value>This device is not working properly because Windows cannot load the drivers required for this device</value>
+  </data>
+  <data name="DeviceManager_StatusDriverDisabled" xml:space="preserve">
+    <value>The driver for this device has been disabled</value>
+  </data>
+  <data name="DeviceManager_StatusCannotDetermineResources" xml:space="preserve">
+    <value>Windows cannot determine what resources this device uses</value>
+  </data>
+  <data name="DeviceManager_StatusCannotDetermineConfig" xml:space="preserve">
+    <value>Windows cannot determine the settings for this device</value>
+  </data>
+  <data name="DeviceManager_StatusInsufficientFirmware" xml:space="preserve">
+    <value>Your computer's system firmware does not include enough information to properly configure and use this device</value>
+  </data>
+  <data name="DeviceManager_StatusInterruptConflict" xml:space="preserve">
+    <value>This device requests a PCI interrupt but is configured for an ISA interrupt (or vice versa)</value>
+  </data>
+  <data name="DeviceManager_StatusCannotInitializeDriver" xml:space="preserve">
+    <value>Windows cannot initialize the device driver for this hardware</value>
+  </data>
+  <data name="DeviceManager_StatusDriverInMemory" xml:space="preserve">
+    <value>Windows cannot load the device driver for this hardware because a previous instance of the device driver is still in memory</value>
+  </data>
+  <data name="DeviceManager_StatusDriverCorruptOrMissing" xml:space="preserve">
+    <value>Windows cannot load the device driver for this hardware because the driver is corrupted or is missing</value>
+  </data>
+  <data name="DeviceManager_StatusRegistryMissing" xml:space="preserve">
+    <value>Windows cannot access this hardware because its service key information in the registry is missing or recorded incorrectly</value>
+  </data>
+  <data name="DeviceManager_StatusHardwareNotFound" xml:space="preserve">
+    <value>The device driver for this hardware has been successfully loaded, but the hardware device was not found</value>
+  </data>
+  <data name="DeviceManager_StatusDuplicateDevice" xml:space="preserve">
+    <value>Windows cannot load the device driver for this hardware because there is a duplicate device already running in the system</value>
+  </data>
+  <data name="DeviceManager_StatusDeviceReportedProblem" xml:space="preserve">
+    <value>Windows has stopped this device because it has reported problems</value>
+  </data>
+  <data name="DeviceManager_StatusApplicationClosed" xml:space="preserve">
+    <value>An application or service has shut down this hardware device</value>
+  </data>
+  <data name="DeviceManager_StatusNotConnected" xml:space="preserve">
+    <value>Currently, this hardware device is not connected to the computer</value>
+  </data>
+  <data name="DeviceManager_StatusSystemShutdown" xml:space="preserve">
+    <value>Windows cannot gain access to this hardware device because the operating system is in the process of shutting down</value>
+  </data>
+  <data name="DeviceManager_StatusSafeRemoval" xml:space="preserve">
+    <value>Windows cannot use this hardware device because it has been prepared for "safe removal", but it has not been removed from the computer</value>
+  </data>
+  <data name="DeviceManager_StatusSoftwareBlocked" xml:space="preserve">
+    <value>The software for this device has been blocked from starting because it is known to have problems with Windows</value>
+  </data>
+  <data name="DeviceManager_StatusRegistryTooBig" xml:space="preserve">
+    <value>Windows cannot start new hardware devices because the system hive is too large (exceeds the Registry Size Limit)</value>
+  </data>
+  <data name="DeviceManager_StatusInvalidSignature" xml:space="preserve">
+    <value>Windows cannot verify the digital signature for the drivers required for this device</value>
+  </data>
+  <data name="DeviceManager_StatusUnknownError" xml:space="preserve">
+    <value>Unknown error (Code: {0})</value>
+  </data>
+  <data name="DeviceManager_Unknown" xml:space="preserve">
+    <value>Unknown</value>
+  </data>
+  <data name="DeviceManager_NoDeviceSelected" xml:space="preserve">
+    <value>No device selected</value>
+  </data>
+  <data name="DeviceManager_BooleanYes" xml:space="preserve">
+    <value>Yes</value>
+  </data>
+  <data name="DeviceManager_BooleanNo" xml:space="preserve">
+    <value>No</value>
+  </data>
+  <data name="DeviceManager_DeviceCountFormat" xml:space="preserve">
+    <value>{0} devices</value>
+  </data>
+  <data name="DeviceManager_DeviceCountZero" xml:space="preserve">
+    <value>0 devices</value>
+  </data>
+</root>

@@ -1,0 +1,759 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Page
+    x:Class="ManagementTools.Views.PerfMon.PerformanceMonitorPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:controls="using:CommunityToolkit.WinUI.Controls"
+    xmlns:core="using:ManagementTools.Core.Features.PCManagement.Models.PerfMon"
+
+    xmlns:localization="using:ManagementTools.Localization"
+    xmlns:converters="using:ManagementTools.Converters"
+    xmlns:sys="using:System"
+    mc:Ignorable="d"
+    x:Name="PageRoot">
+
+    <Page.Resources>
+        <localization:LocalizedStrings x:Key="LocalizedStrings" />
+        <converters:NullToVisibilityConverter x:Key="NullToVisibilityConverter" />
+        <converters:NullToBoolConverter x:Key="NullToBoolConverter" />
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+        <converters:NegateBoolConverter x:Key="NegateBoolConverter" />
+        <converters:BoolToBrushConverter x:Key="BoolToBrushConverter" />
+        <converters:BoolToGlyphConverter x:Key="BoolToGlyphConverter" />
+        <converters:BoolToTextConverter x:Key="BoolToTextConverter" />
+        <converters:ZeroToVisibilityConverter x:Key="ZeroToVisibilityConverter" />
+        <converters:DoubleToFormattedStringConverter x:Key="DoubleToFormattedStringConverter" />
+        <converters:HexColorToBrushConverter x:Key="HexColorToBrushConverter" />
+    </Page.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header Section -->
+        <Grid Grid.Row="0" Padding="24,20,24,20">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Status Indicator -->
+            <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                <Ellipse Width="10" Height="10" 
+                         Fill="{x:Bind ViewModel.IsMonitoring, Converter={StaticResource BoolToBrushConverter}, Mode=OneWay}"
+                         VerticalAlignment="Center"/>
+                <TextBlock Text="{x:Bind ViewModel.MonitoringStatus, Mode=OneWay}" 
+                           FontSize="13" 
+                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                           VerticalAlignment="Center"/>
+                <TextBlock Text="|" 
+                           FontSize="13" 
+                           Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                           VerticalAlignment="Center"/>
+                <TextBlock FontSize="13" 
+                           Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                           VerticalAlignment="Center">
+                    <Run Text="{x:Bind ViewModel.CounterCount, Mode=OneWay}"/>
+                    <Run Text="{x:Bind LocalizedStrings.PerfMon_CountersText}"/>
+                </TextBlock>
+            </StackPanel>
+
+            <!-- Action Buttons -->
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                <Button Style="{StaticResource SubtleButtonStyle}" 
+                        Padding="12,8"
+                        Click="PauseButton_Click">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <FontIcon Glyph="{x:Bind ViewModel.IsMonitoring, Converter={StaticResource BoolToGlyphConverter}, Mode=OneWay}" FontSize="16"/>
+                        <TextBlock Text="{x:Bind ViewModel.IsMonitoring, Converter={StaticResource BoolToTextConverter}, Mode=OneWay}"/>
+                    </StackPanel>
+                </Button>
+                <Button Style="{StaticResource SubtleButtonStyle}" 
+                        Padding="12,8"
+                        Click="RefreshButton_Click">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <FontIcon Glyph="&#xE72C;" FontSize="16"/>
+                        <TextBlock Text="{x:Bind LocalizedStrings.Common_Refresh}"/>
+                    </StackPanel>
+                </Button>
+                <Button Style="{StaticResource SubtleButtonStyle}" 
+                        Padding="12,8"
+                        Click="ClearButton_Click">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <FontIcon Glyph="&#xE74D;" FontSize="16"/>
+                        <TextBlock Text="{x:Bind LocalizedStrings.Common_ClearButton}"/>
+                    </StackPanel>
+                </Button>
+                <Button Style="{StaticResource SubtleButtonStyle}" Padding="12,8">
+                    <Button.Flyout>
+                        <MenuFlyout>
+                            <MenuFlyoutSubItem Text="{x:Bind LocalizedStrings.PerfMon_File_SaveConfiguration}">
+                                <MenuFlyoutItem Text="{x:Bind LocalizedStrings.PerfMon_File_SaveConfiguration}" Icon="Save" Click="SaveConfigurationMenuItem_Click"/>
+                                <MenuFlyoutItem Text="{x:Bind LocalizedStrings.PerfMon_File_LoadConfiguration}" Icon="OpenFile" Click="LoadConfigurationMenuItem_Click"/>
+                            </MenuFlyoutSubItem>
+                            <MenuFlyoutSeparator/>
+                            <MenuFlyoutItem Text="{x:Bind LocalizedStrings.PerfMon_ViewMode_Graph}" Click="GraphViewMenuItem_Click">
+                                <MenuFlyoutItem.Icon>
+                                    <FontIcon Glyph="&#xE9D9;"/>
+                                </MenuFlyoutItem.Icon>
+                            </MenuFlyoutItem>
+                            <MenuFlyoutItem Text="{x:Bind LocalizedStrings.PerfMon_ViewMode_Histogram}" Click="HistogramViewMenuItem_Click">
+                                <MenuFlyoutItem.Icon>
+                                    <SymbolIcon Symbol="Pictures"/>
+                                </MenuFlyoutItem.Icon>
+                            </MenuFlyoutItem>
+                            <MenuFlyoutItem Text="{x:Bind LocalizedStrings.PerfMon_ViewMode_Report}" Click="ReportViewMenuItem_Click">
+                                <MenuFlyoutItem.Icon>
+                                    <FontIcon Glyph="&#xE9F9;"/>
+                                </MenuFlyoutItem.Icon>
+                            </MenuFlyoutItem>
+                            <MenuFlyoutSeparator/>
+                            <MenuFlyoutSubItem Text="{x:Bind LocalizedStrings.PerfMon_UpdateInterval}">
+                                <MenuFlyoutItem Text="{x:Bind LocalizedStrings.PerfMon_OneSecond}" Tag="1000" Click="UpdateIntervalMenuItem_Click"/>
+                                <MenuFlyoutItem Text="{x:Bind LocalizedStrings.PerfMon_TwoSeconds}" Tag="2000" Click="UpdateIntervalMenuItem_Click"/>
+                                <MenuFlyoutItem Text="{x:Bind LocalizedStrings.PerfMon_FiveSeconds}" Tag="5000" Click="UpdateIntervalMenuItem_Click"/>
+                                <MenuFlyoutItem Text="{x:Bind LocalizedStrings.PerfMon_TenSeconds}" Tag="10000" Click="UpdateIntervalMenuItem_Click"/>
+                            </MenuFlyoutSubItem>
+                        </MenuFlyout>
+                    </Button.Flyout>
+                    <FontIcon Glyph="&#xE712;" FontSize="16"/>
+                </Button>
+            </StackPanel>
+        </Grid>
+
+        <!-- Main Content -->
+        <ScrollViewer Grid.Row="1" Padding="24,0,24,40">
+            <StackPanel Spacing="0">
+
+                <!-- Graph Section -->
+                <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" 
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" 
+                        BorderThickness="1" 
+                        CornerRadius="8"
+                        Padding="0"
+                        Visibility="{x:Bind ViewModel.IsGraphView, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
+
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="280"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- Graph Area -->
+                        <Grid Grid.Row="0" Margin="24,16,24,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="50"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="30"/>
+                            </Grid.RowDefinitions>
+
+                            <!-- Y-axis Labels -->
+                            <Grid Grid.Column="0" Grid.Row="0">
+                                <TextBlock x:Name="YAxisTopLabel" Text="{x:Bind LocalizedStrings.PerfMon_YAxisTopLabel}" FontSize="11" Foreground="{ThemeResource TextFillColorSecondaryBrush}" 
+                                          VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,8,8,0"/>
+                                <TextBlock x:Name="YAxisMidLabel" Text="{x:Bind LocalizedStrings.PerfMon_YAxisMidLabel}" FontSize="11" Foreground="{ThemeResource TextFillColorSecondaryBrush}" 
+                                          VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,8,0"/>
+                                <TextBlock x:Name="YAxisBottomLabel" Text="{x:Bind LocalizedStrings.PerfMon_YAxisBottomLabel}" FontSize="11" Foreground="{ThemeResource TextFillColorSecondaryBrush}" 
+                                          VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="0,0,8,8"/>
+                            </Grid>
+
+                            <!-- Chart Canvas -->
+                            <Canvas Grid.Column="1" Grid.Row="0" x:Name="ChartCanvas"
+                                    Background="{ThemeResource LayerFillColorDefaultBrush}"
+                                    SizeChanged="ChartCanvas_SizeChanged">
+                                <!-- Grid Lines - dynamically positioned in code-behind -->
+                                <Line x:Name="GridLine1" X1="0" Y1="46" X2="800" Y2="46" 
+                                      Stroke="{ThemeResource DividerStrokeColorDefaultBrush}" StrokeThickness="1" Opacity="0.5"/>
+                                <Line x:Name="GridLine2" X1="0" Y1="116" X2="800" Y2="116" 
+                                      Stroke="{ThemeResource DividerStrokeColorDefaultBrush}" StrokeThickness="1" Opacity="0.5"/>
+                                <Line x:Name="GridLine3" X1="0" Y1="186" X2="800" Y2="186" 
+                                      Stroke="{ThemeResource DividerStrokeColorDefaultBrush}" StrokeThickness="1" Opacity="0.5"/>
+
+                                <!-- Chart Lines Container - Lines added dynamically in code-behind -->
+                                <Canvas x:Name="ChartLinesCanvas"/>
+
+                                <!-- Vertical Time Marker -->
+                                <Line x:Name="VerticalMarker" X1="270" Y1="0" X2="270" Y2="232" 
+                                      Stroke="{ThemeResource AccentFillColorDefaultBrush}" StrokeThickness="2"
+                                      Visibility="Collapsed"/>
+                            </Canvas>
+
+                            <!-- X-axis Labels -->
+                            <Grid Grid.Column="1" Grid.Row="1">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock x:Name="TimeLabel1" Grid.Column="0" Text="" FontSize="11" 
+                                          Foreground="{ThemeResource TextFillColorSecondaryBrush}" 
+                                          VerticalAlignment="Top" HorizontalAlignment="Left" Margin="0,4,0,0"/>
+                                <TextBlock x:Name="TimeLabel2" Grid.Column="1" Text="" FontSize="11" 
+                                          Foreground="{ThemeResource TextFillColorSecondaryBrush}" 
+                                          VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                                <TextBlock x:Name="TimeLabel3" Grid.Column="2" Text="" FontSize="11" 
+                                          Foreground="{ThemeResource TextFillColorSecondaryBrush}" 
+                                          VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,4,0,0"/>
+                            </Grid>
+                        </Grid>
+
+                        <!-- Statistics Bar -->
+                        <Grid Grid.Row="1" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" 
+                              BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}" 
+                              BorderThickness="0,1,0,0"
+                              Padding="24,16">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="{x:Bind LocalizedStrings.PerfMon_LastLabel}" FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="0,0,0,4"/>
+                                <TextBlock x:Name="LastValueText" 
+                                          Text="{x:Bind ViewModel.LastValue, Converter={StaticResource DoubleToFormattedStringConverter}, Mode=OneWay}" 
+                                          FontSize="13" FontWeight="SemiBold"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="1">
+                                <TextBlock Text="{x:Bind LocalizedStrings.PerfMon_AverageLabel}" FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="0,0,0,4"/>
+                                <TextBlock x:Name="AverageValueText" 
+                                          Text="{x:Bind ViewModel.AverageValue, Converter={StaticResource DoubleToFormattedStringConverter}, Mode=OneWay}" 
+                                          FontSize="13" FontWeight="SemiBold"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="{x:Bind LocalizedStrings.PerfMon_MinimumLabel}" FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="0,0,0,4"/>
+                                <TextBlock x:Name="MinValueText" 
+                                          Text="{x:Bind ViewModel.MinimumValue, Converter={StaticResource DoubleToFormattedStringConverter}, Mode=OneWay}" 
+                                          FontSize="13" FontWeight="SemiBold"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="3">
+                                <TextBlock Text="{x:Bind LocalizedStrings.PerfMon_MaximumLabel}" FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="0,0,0,4"/>
+                                <TextBlock x:Name="MaxValueText" 
+                                          Text="{x:Bind ViewModel.MaximumValue, Converter={StaticResource DoubleToFormattedStringConverter}, Mode=OneWay}" 
+                                          FontSize="13" FontWeight="SemiBold"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="4">
+                                <TextBlock Text="{x:Bind LocalizedStrings.PerfMon_DurationLabel}" FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}" Margin="0,0,0,4"/>
+                                <TextBlock x:Name="DurationText" Text="{x:Bind ViewModel.Duration, Mode=OneWay}" FontSize="13" FontWeight="SemiBold"/>
+                            </StackPanel>
+                        </Grid>
+                    </Grid>
+                </Border>
+
+                <!-- Histogram Section -->
+                <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" 
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" 
+                        BorderThickness="1" 
+                        CornerRadius="8"
+                        Padding="24"
+                        MinHeight="280"
+                        Visibility="{x:Bind ViewModel.IsHistogramView, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
+
+                    <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+                        <ItemsControl ItemsSource="{x:Bind ViewModel.Counters, Mode=OneWay}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel Orientation="Horizontal" Spacing="16"/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="core:PerformanceCounterInfo">
+                                    <Grid Width="120">
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="*"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+
+                                        <!-- Bar Chart -->
+                                        <Border Grid.Row="0" 
+                                                Height="180" 
+                                                BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}" 
+                                                BorderThickness="1"
+                                                CornerRadius="4"
+                                                Background="{ThemeResource LayerFillColorDefaultBrush}"
+                                                VerticalAlignment="Bottom">
+                                            <Grid>
+                                                <Rectangle 
+                                                    Fill="{x:Bind ColorHex, Converter={StaticResource HexColorToBrushConverter}}"
+                                                    VerticalAlignment="Bottom"
+                                                    Opacity="0.7"
+                                                    RadiusX="4"
+                                                    RadiusY="4">
+                                                    <Rectangle.Height>
+                                                        <Binding Path="LastValue">
+                                                            <Binding.Converter>
+                                                                <converters:DoubleToHeightConverter MaxHeight="180" MaxValue="100"/>
+                                                            </Binding.Converter>
+                                                        </Binding>
+                                                    </Rectangle.Height>
+                                                </Rectangle>
+                                                <TextBlock 
+                                                    Text="{x:Bind LastValue, Converter={StaticResource DoubleToFormattedStringConverter}, Mode=OneWay}"
+                                                    FontSize="16"
+                                                    FontWeight="SemiBold"
+                                                    HorizontalAlignment="Center"
+                                                    VerticalAlignment="Center"/>
+                                            </Grid>
+                                        </Border>
+
+                                        <!-- Counter Name -->
+                                        <TextBlock Grid.Row="1" 
+                                                   Text="{x:Bind CounterName}"
+                                                   FontSize="11"
+                                                   TextWrapping="Wrap"
+                                                   TextAlignment="Center"
+                                                   MaxLines="2"
+                                                   TextTrimming="CharacterEllipsis"
+                                                   Margin="0,8,0,4"/>
+
+                                        <!-- Instance Name -->
+                                        <TextBlock Grid.Row="2" 
+                                                   Text="{x:Bind InstanceName}"
+                                                   FontSize="10"
+                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                   TextAlignment="Center"
+                                                   TextTrimming="CharacterEllipsis"
+                                                   MaxLines="1"/>
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Border>
+
+                <!-- Report Section -->
+                <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" 
+                        BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" 
+                        BorderThickness="1" 
+                        CornerRadius="8"
+                        Padding="24"
+                        MinHeight="280"
+                        Visibility="{x:Bind ViewModel.IsReportView, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
+
+                    <ScrollViewer>
+                        <StackPanel Spacing="16">
+                            <!-- Report Header -->
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="{x:Bind LocalizedStrings.PerfMon_Report_Title}" FontSize="18" FontWeight="SemiBold"/>
+
+                            </Grid>
+
+                            <!-- Report Statistics Grid -->
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <Border Grid.Column="0" 
+                                       Background="{ThemeResource LayerFillColorDefaultBrush}"
+                                       BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
+                                       BorderThickness="1"
+                                       CornerRadius="8"
+                                       Padding="16"
+                                       Margin="0,0,8,0">
+                                    <StackPanel Spacing="8">
+                                        <TextBlock Text="{x:Bind LocalizedStrings.PerfMon_MonitoringDurationLabel}" 
+                                                  FontSize="12" 
+                                                  Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                        <TextBlock Text="{x:Bind ViewModel.Duration, Mode=OneWay}" 
+                                                  FontSize="20" 
+                                                  FontWeight="SemiBold"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <Border Grid.Column="1" 
+                                       Background="{ThemeResource LayerFillColorDefaultBrush}"
+                                       BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
+                                       BorderThickness="1"
+                                       CornerRadius="8"
+                                       Padding="16"
+                                       Margin="4,0">
+                                    <StackPanel Spacing="8">
+                                        <TextBlock Text="{x:Bind LocalizedStrings.PerfMon_ActiveCountersLabel}" 
+                                                  FontSize="12" 
+                                                  Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                        <TextBlock Text="{x:Bind ViewModel.CounterCount, Mode=OneWay}" 
+                                                  FontSize="20" 
+                                                  FontWeight="SemiBold"/>
+                                    </StackPanel>
+                                </Border>
+
+                                <Border Grid.Column="2" 
+                                       Background="{ThemeResource LayerFillColorDefaultBrush}"
+                                       BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
+                                       BorderThickness="1"
+                                       CornerRadius="8"
+                                       Padding="16"
+                                       Margin="8,0,0,0">
+                                    <StackPanel Spacing="8">
+                                        <TextBlock Text="{x:Bind LocalizedStrings.PerfMon_DataPointsLabel}" 
+                                                  FontSize="12" 
+                                                  Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                        <TextBlock Text="{x:Bind ViewModel.DataPointCount, Mode=OneWay}" 
+                                                  FontSize="20" 
+                                                  FontWeight="SemiBold"/>
+                                    </StackPanel>
+                                </Border>
+                            </Grid>
+
+                            <!-- Detailed Counter Statistics -->
+                            <TextBlock Text="{x:Bind LocalizedStrings.PerfMon_CounterStatisticsLabel}" FontSize="16" FontWeight="SemiBold" Margin="0,8,0,0"/>
+                            
+                            <ListView ItemsSource="{x:Bind ViewModel.Counters, Mode=OneWay}"
+                                     SelectionMode="None">
+                                <ListView.ItemTemplate>
+                                    <DataTemplate x:DataType="core:PerformanceCounterInfo">
+                                        <Border Background="{ThemeResource LayerFillColorDefaultBrush}"
+                                               BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
+                                               BorderThickness="1"
+                                               CornerRadius="8"
+                                               Padding="16"
+                                               Margin="0,4">
+                                            <Grid>
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="Auto"/>
+                                                    <RowDefinition Height="Auto"/>
+                                                </Grid.RowDefinitions>
+
+                                                <!-- Counter Header -->
+                                                <Grid Grid.Row="0" Margin="0,0,0,12">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                    </Grid.ColumnDefinitions>
+                                                    <Ellipse Grid.Column="0" 
+                                                            Width="12" Height="12" 
+                                                            Fill="{x:Bind ColorHex, Converter={StaticResource HexColorToBrushConverter}}"
+                                                            VerticalAlignment="Center"
+                                                            Margin="0,0,12,0"/>
+                                                    <StackPanel Grid.Column="1">
+                                                        <TextBlock Text="{x:Bind DisplayName}"
+                                                                  FontSize="14" 
+                                                                  FontWeight="SemiBold"/>
+                                                        <TextBlock Text="{x:Bind Description}" 
+                                                                  FontSize="12" 
+                                                                  Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                                    </StackPanel>
+                                                </Grid>
+
+                                                <!-- Statistics Grid -->
+                                                <Grid Grid.Row="1">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                    </Grid.ColumnDefinitions>
+
+                                                    <StackPanel Grid.Column="0">
+                                                        <TextBlock Text="{Binding PerfMon_CurrentLabel, Source={StaticResource LocalizedStrings}}" 
+                                                                  FontSize="11" 
+                                                                  Foreground="{ThemeResource TextFillColorSecondaryBrush}" 
+                                                                  Margin="0,0,0,4"/>
+                                                        <TextBlock Text="{x:Bind LastValue, Converter={StaticResource DoubleToFormattedStringConverter}, Mode=OneWay}"
+                                                                  FontSize="14" 
+                                                                  FontWeight="SemiBold"/>
+                                                    </StackPanel>
+
+                                                    <StackPanel Grid.Column="1">
+                                                        <TextBlock Text="{Binding PerfMon_AverageLabel, Source={StaticResource LocalizedStrings}}" 
+                                                                  FontSize="11" 
+                                                                  Foreground="{ThemeResource TextFillColorSecondaryBrush}" 
+                                                                  Margin="0,0,0,4"/>
+                                                        <TextBlock Text="{x:Bind AverageValue, Converter={StaticResource DoubleToFormattedStringConverter}, Mode=OneWay}"
+                                                                  FontSize="14" 
+                                                                  FontWeight="SemiBold"/>
+                                                    </StackPanel>
+
+                                                    <StackPanel Grid.Column="2">
+                                                        <TextBlock Text="{Binding PerfMon_MinimumLabel, Source={StaticResource LocalizedStrings}}" 
+                                                                  FontSize="11" 
+                                                                  Foreground="{ThemeResource TextFillColorSecondaryBrush}" 
+                                                                  Margin="0,0,0,4"/>
+                                                        <TextBlock Text="{x:Bind MinimumValue, Converter={StaticResource DoubleToFormattedStringConverter}, Mode=OneWay}"
+                                                                  FontSize="14" 
+                                                                  FontWeight="SemiBold"/>
+                                                    </StackPanel>
+
+                                                    <StackPanel Grid.Column="3">
+                                                        <TextBlock Text="{Binding PerfMon_MaximumLabel, Source={StaticResource LocalizedStrings}}" 
+                                                                  FontSize="11" 
+                                                                  Foreground="{ThemeResource TextFillColorSecondaryBrush}" 
+                                                                  Margin="0,0,0,4"/>
+                                                        <TextBlock Text="{x:Bind MaximumValue, Converter={StaticResource DoubleToFormattedStringConverter}, Mode=OneWay}"
+                                                                  FontSize="14" 
+                                                                  FontWeight="SemiBold"/>
+                                                    </StackPanel>
+                                                </Grid>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+
+                            <!-- Empty State -->
+                            <StackPanel Visibility="{x:Bind ViewModel.CounterCount, Mode=OneWay, Converter={StaticResource ZeroToVisibilityConverter}}"
+                                       HorizontalAlignment="Center"
+                                       Padding="40">
+                                <FontIcon Glyph="&#xE9F9;" FontSize="64" Opacity="0.3"/>
+                                <TextBlock Text="{x:Bind LocalizedStrings.PerfMon_NoDataToReport}" 
+                                          FontSize="16" 
+                                          HorizontalAlignment="Center"
+                                          Margin="0,16,0,0"/>
+                                <TextBlock Text="{x:Bind LocalizedStrings.PerfMon_AddCountersToGenerateReport}" 
+                                          FontSize="13" 
+                                          Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                          HorizontalAlignment="Center"
+                                          Margin="0,8,0,0"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Border>
+
+                <!-- Monitor List Section -->
+                <controls:SettingsExpander Header="{x:Bind LocalizedStrings.PerfMon_MonitorListHeader}"
+                          IsExpanded="True"
+                          HorizontalAlignment="Stretch"
+                          HorizontalContentAlignment="Stretch"
+                                           Margin="0,4,0,0"
+                                           Padding="0"
+                                           ItemContainerStyleSelector="{x:Null}">
+                    <controls:SettingsExpander.HeaderIcon>
+                                <FontIcon Glyph="&#xE9D2;" FontSize="16"/>
+                    </controls:SettingsExpander.HeaderIcon>
+
+                    <controls:SettingsExpander.Items>
+                    <StackPanel Spacing="16" Padding="16" HorizontalAlignment="Stretch" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                        <!-- Search and Actions Bar -->
+                            <Grid HorizontalAlignment="Stretch">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" MinWidth="200" MaxWidth="300"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <AutoSuggestBox Grid.Column="0" 
+                                           PlaceholderText="{x:Bind LocalizedStrings.PerfMon_SearchCounters}" 
+                                           QueryIcon="Find" 
+                                           Height="32"
+                                           Text="{x:Bind ViewModel.SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                                <TextBlock Grid.Column="1" 
+                                       FontSize="13"
+                                       Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                       VerticalAlignment="Center"
+                                       Margin="16,0,0,0">
+                                <Run Text="{x:Bind ViewModel.CounterCount, Mode=OneWay}"/>
+                                <Run Text="{x:Bind LocalizedStrings.PerfMon_MonitorsText}"/>
+                                </TextBlock>
+                                <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="8">
+                                    <Button Style="{StaticResource SubtleButtonStyle}" Height="32" Padding="12,6"
+                                        Click="AddCounterButton_Click">
+                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                            <FontIcon Glyph="&#xE710;" FontSize="14"/>
+                                            <TextBlock Text="{x:Bind LocalizedStrings.Common_AddButton}" FontSize="13"/>
+                                        </StackPanel>
+                                    </Button>
+                                    <Button Style="{StaticResource SubtleButtonStyle}" Height="32" Width="32" Padding="0">
+                                        <Button.Flyout>
+                                            <MenuFlyout>
+                                                <MenuFlyoutItem Text="{x:Bind LocalizedStrings.Common_RemoveButton}" Icon="Delete" Click="RemoveAllCountersMenuItem_Click"/>
+                                                <MenuFlyoutItem Text="{x:Bind LocalizedStrings.PerfMon_ShowAll}" Click="ShowAllCountersMenuItem_Click">
+                                                    <MenuFlyoutItem.Icon>
+                                                        <FontIcon Glyph="&#xE890;"/>
+                                                    </MenuFlyoutItem.Icon>
+                                                </MenuFlyoutItem>
+                                                <MenuFlyoutItem Text="{x:Bind LocalizedStrings.PerfMon_HideAll}" Click="HideAllCountersMenuItem_Click">
+                                                    <MenuFlyoutItem.Icon>
+                                                        <FontIcon Glyph="&#xED1A;"/>
+                                                    </MenuFlyoutItem.Icon>
+                                                </MenuFlyoutItem>
+                                            </MenuFlyout>
+                                        </Button.Flyout>
+                                        <FontIcon Glyph="&#xE712;" FontSize="14"/>
+                                    </Button>
+                                </StackPanel>
+                            </Grid>
+
+                        <!-- Monitor Items List -->
+                        <ListView x:Name="CountersListView"
+                                 ItemsSource="{x:Bind ViewModel.FilteredCounters, Mode=OneWay}"
+                                 SelectedItem="{x:Bind ViewModel.SelectedCounter, Mode=TwoWay}"
+                                 SelectionMode="Single"
+                                 MaxHeight="400">
+                            <ListView.ItemTemplate>
+                                <DataTemplate x:DataType="core:PerformanceCounterInfo">
+                                    <Grid Padding="8,12">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <CheckBox Grid.Column="0" 
+                                                 IsChecked="{x:Bind IsVisible, Mode=TwoWay}" 
+                                                 VerticalAlignment="Center" 
+                                                 Margin="0,0,-85,0"/>
+
+                                        <Ellipse Grid.Column="1" 
+                                                Width="12" Height="12" 
+                                                Fill="{x:Bind ColorHex, Converter={StaticResource HexColorToBrushConverter}}"
+                                                VerticalAlignment="Center"
+                                                Margin="0,0,12,0"/>
+
+                                        <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                                            <TextBlock Text="{x:Bind DisplayName}" FontSize="13"/>
+                                            <TextBlock Text="{x:Bind Description}" 
+                                                      FontSize="12" 
+                                                      Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                      TextTrimming="CharacterEllipsis"/>
+                                        </StackPanel>
+
+                                        <TextBlock Grid.Column="3" 
+                                                  Text="{x:Bind LastValue, Converter={StaticResource DoubleToFormattedStringConverter}, Mode=OneWay}" 
+                                                  FontSize="13"
+                                                  FontWeight="SemiBold"
+                                                  VerticalAlignment="Center"
+                                                  Margin="16,0"/>
+
+                                        <Button Grid.Column="4" 
+                                               Style="{StaticResource SubtleButtonStyle}" 
+                                               Height="32" Width="32" 
+                                               Padding="0"
+                                               Tag="{x:Bind}"
+                                               Click="CounterOptionsButton_Click">
+                                            <FontIcon Glyph="&#xE712;" FontSize="14"/>
+                                        </Button>
+                                    </Grid>
+                                </DataTemplate>
+                            </ListView.ItemTemplate>
+                        </ListView>
+
+                        <!-- Empty State -->
+                        <StackPanel Visibility="{x:Bind ViewModel.CounterCount, Mode=OneWay, Converter={StaticResource ZeroToVisibilityConverter}}"
+                                   HorizontalAlignment="Center"
+                                   Padding="24">
+                            <FontIcon Glyph="&#xE9D2;" FontSize="48" Opacity="0.5"/>
+                            <TextBlock Text="{x:Bind LocalizedStrings.PerfMon_NoCountersAdded}" 
+                                      FontSize="14" 
+                                      HorizontalAlignment="Center"
+                                      Margin="0,12,0,0"/>
+                            <TextBlock Text="{x:Bind LocalizedStrings.PerfMon_ClickAddToStartMonitoring}" 
+                                      FontSize="12" 
+                                      Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                      HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </StackPanel>
+                    </controls:SettingsExpander.Items>
+                </controls:SettingsExpander>
+
+
+
+                <!-- Quick Counters Section -->
+                <controls:SettingsExpander Header="{x:Bind LocalizedStrings.PerfMon_QuickCountersHeader}"
+                          Margin="0,4,0,0"
+                                           IsExpanded="False"
+                                           ItemContainerStyleSelector="{x:Null}">
+                    <controls:SettingsExpander.HeaderIcon>
+                                <FontIcon Glyph="&#xEB05;" FontSize="16"/>
+                    </controls:SettingsExpander.HeaderIcon>
+                    <controls:SettingsExpander.Items>
+                    <StackPanel Spacing="8" Padding="16" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
+                        <TextBlock Text="{x:Bind LocalizedStrings.PerfMon_CommonCountersDescription}"
+                                  FontSize="13"
+                                  Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                  Margin="0,0,0,8"/>
+
+                        <ItemsControl ItemsSource="{x:Bind ViewModel.CommonCounters, Mode=OneWay}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel Spacing="4"/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="core:PerformanceCounterInfo">
+                                    <Button Style="{StaticResource SubtleButtonStyle}"
+                                           HorizontalAlignment="Stretch"
+                                           HorizontalContentAlignment="Left"
+                                           Padding="12,8"
+                                           Tag="{x:Bind}"
+                                           Click="QuickCounterButton_Click">
+                                        <StackPanel Orientation="Horizontal" Spacing="12">
+                                            <Ellipse Width="10" Height="10" 
+                                                    Fill="{x:Bind ColorHex, Converter={StaticResource HexColorToBrushConverter}}"
+                                                    VerticalAlignment="Center"/>
+                                            <StackPanel>
+                                                <TextBlock Text="{x:Bind DisplayName}" FontSize="13"/>
+                                                <TextBlock Text="{x:Bind CategoryName}" 
+                                                          FontSize="12"
+                                                          Foreground="{ThemeResource TextFillColorSecondaryBrush}"/>
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                    </controls:SettingsExpander.Items>
+                </controls:SettingsExpander>
+
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Loading Overlay -->
+        <Grid Grid.Row="1"
+              Opacity="0.9"
+              Visibility="{x:Bind ViewModel.IsLoading, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}"
+              Background="Transparent">
+            <ProgressBar
+                Margin="24,0"
+                VerticalAlignment="Top"
+                IsIndeterminate="True" />
+        </Grid>
+
+        <!-- Status Bar -->
+        <Grid
+            Grid.Row="2"
+            Padding="24,8"
+            BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
+            BorderThickness="0,1,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <TextBlock
+                Grid.Column="0"
+                VerticalAlignment="Center"
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                Text="{x:Bind ViewModel.StatusMessage, Mode=OneWay}" />
+            <ProgressRing
+                Grid.Column="1"
+                Width="20"
+                Height="20"
+                Margin="12,0,0,0"
+                IsActive="{x:Bind ViewModel.IsLoading, Mode=OneWay}" />
+        </Grid>
+    </Grid>
+</Page>

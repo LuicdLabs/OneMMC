@@ -1,0 +1,2225 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <!-- CommandBar -->
+  <data name="WF_NewRule" xml:space="preserve">
+    <value>New Rule</value>
+  </data>
+  <data name="WF_EnableRule" xml:space="preserve">
+    <value>Enable Rule</value>
+  </data>
+  <data name="WF_DisableRule" xml:space="preserve">
+    <value>Disable Rule</value>
+  </data>
+  <data name="WF_DeleteRule" xml:space="preserve">
+    <value>Delete Rule</value>
+  </data>
+  <data name="WF_SearchRules" xml:space="preserve">
+    <value>Search rules</value>
+  </data>
+  <data name="WF_LoadingRules" xml:space="preserve">
+    <value>Loading firewall rules...</value>
+  </data>
+
+  <!-- Column headers -->
+  <data name="WF_Column_Name" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="WF_Column_Enabled" xml:space="preserve">
+    <value>Enabled</value>
+  </data>
+  <data name="WF_Column_Action" xml:space="preserve">
+    <value>Action</value>
+  </data>
+  <data name="WF_Column_Protocol" xml:space="preserve">
+    <value>Protocol</value>
+  </data>
+  <data name="WF_Column_Profile" xml:space="preserve">
+    <value>Profile</value>
+  </data>
+
+  <!-- Dialog titles -->
+  <data name="WF_AddInboundRule_Title" xml:space="preserve">
+    <value>New Inbound Rule</value>
+  </data>
+  <data name="WF_AddOutboundRule_Title" xml:space="preserve">
+    <value>New Outbound Rule</value>
+  </data>
+  <data name="WF_EditInboundRule_Title" xml:space="preserve">
+    <value>Edit Inbound Rule</value>
+  </data>
+  <data name="WF_EditOutboundRule_Title" xml:space="preserve">
+    <value>Edit Outbound Rule</value>
+  </data>
+
+  <!-- Direction labels -->
+  <data name="WF_Direction_Inbound" xml:space="preserve">
+    <value>Inbound</value>
+  </data>
+  <data name="WF_Direction_Outbound" xml:space="preserve">
+    <value>Outbound</value>
+  </data>
+
+  <!-- Dialog tabs -->
+  <data name="WF_Tab_General" xml:space="preserve">
+    <value>General</value>
+  </data>
+  <data name="WF_Tab_Programs" xml:space="preserve">
+    <value>Programs &amp; Ports</value>
+  </data>
+  <data name="WF_Tab_Scope" xml:space="preserve">
+    <value>Scope</value>
+  </data>
+  <data name="WF_Tab_Advanced" xml:space="preserve">
+    <value>Advanced</value>
+  </data>
+
+  <!-- Dialog fields -->
+  <data name="WF_Field_Name" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="WF_Field_Name_Placeholder" xml:space="preserve">
+    <value>Enter a name for this rule</value>
+  </data>
+  <data name="WF_Field_Description" xml:space="preserve">
+    <value>Description</value>
+  </data>
+  <data name="WF_Field_Action" xml:space="preserve">
+    <value>Action</value>
+  </data>
+  <data name="WF_Field_Protocol" xml:space="preserve">
+    <value>Protocol</value>
+  </data>
+  <data name="WF_Field_Enabled" xml:space="preserve">
+    <value>Rule is enabled</value>
+  </data>
+  <data name="WF_Field_Program" xml:space="preserve">
+    <value>Program path</value>
+  </data>
+  <data name="WF_Field_Program_Description" xml:space="preserve">
+    <value>Specify the program this rule applies to. Leave blank to apply to all programs.</value>
+  </data>
+  <data name="WF_Field_LocalPort" xml:space="preserve">
+    <value>Local port</value>
+  </data>
+  <data name="WF_Field_RemotePort" xml:space="preserve">
+    <value>Remote port</value>
+  </data>
+  <data name="WF_Field_LocalAddress" xml:space="preserve">
+    <value>Local IP address</value>
+  </data>
+  <data name="WF_Field_RemoteAddress" xml:space="preserve">
+    <value>Remote IP address</value>
+  </data>
+  <data name="WF_Field_Profile" xml:space="preserve">
+    <value>Profiles</value>
+  </data>
+
+  <!-- Action values -->
+  <data name="WF_Action_Allow" xml:space="preserve">
+    <value>Allow the connection</value>
+  </data>
+  <data name="WF_Action_Block" xml:space="preserve">
+    <value>Block the connection</value>
+  </data>
+
+  <!-- Profile values -->
+  <data name="WF_Profile_Domain" xml:space="preserve">
+    <value>Domain</value>
+  </data>
+  <data name="WF_Profile_Private" xml:space="preserve">
+    <value>Private</value>
+  </data>
+  <data name="WF_Profile_Public" xml:space="preserve">
+    <value>Public</value>
+  </data>
+
+  <!-- Validation errors -->
+  <data name="WF_Error_NameRequired" xml:space="preserve">
+    <value>Please enter a name for this rule.</value>
+  </data>
+  <data name="WF_Error_LoadRules" xml:space="preserve">
+    <value>Unable to load Windows Firewall rules.</value>
+  </data>
+  <data name="WF_Error_UpdateRule" xml:space="preserve">
+    <value>Unable to update the Windows Firewall rule.</value>
+  </data>
+  <data name="WF_Error_DeleteRule" xml:space="preserve">
+    <value>Unable to delete the Windows Firewall rule.</value>
+  </data>
+  <data name="WF_Error_LoadConnectionSecurityRules" xml:space="preserve">
+    <value>Unable to load connection security rules.</value>
+  </data>
+  <data name="WF_Error_CreateConnectionSecurityRule" xml:space="preserve">
+    <value>Unable to create the connection security rule.</value>
+  </data>
+  <data name="WF_Error_UpdateConnectionSecurityRule" xml:space="preserve">
+    <value>Unable to update the connection security rule.</value>
+  </data>
+  <data name="WF_DeleteRule_ConfirmationTitle" xml:space="preserve">
+    <value>Delete firewall rule?</value>
+  </data>
+  <data name="WF_DeleteRule_ConfirmationMessage" xml:space="preserve">
+    <value>Do you want to delete "{0}"?</value>
+  </data>
+  <data name="WF_DeleteRule_ConfirmButton" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="WF_RuleUnavailable_Title" xml:space="preserve">
+    <value>Rule no longer exists</value>
+  </data>
+  <data name="WF_RuleUnavailable_Message" xml:space="preserve">
+    <value>This rule was removed outside this page. Go back or refresh the rules list.</value>
+  </data>
+
+  <!-- Page breadcrumb labels -->
+  <data name="WF_InboundRules_PageTitle" xml:space="preserve">
+    <value>Inbound Rules</value>
+  </data>
+  <data name="WF_OutboundRules_PageTitle" xml:space="preserve">
+    <value>Outbound Rules</value>
+  </data>
+  <data name="WF_Monitoring_PageTitle" xml:space="preserve">
+    <value>Monitoring</value>
+  </data>
+  <data name="WF_ConnectionSecurityRules_PageTitle" xml:space="preserve">
+    <value>Connection Security Rules</value>
+  </data>
+
+  <!-- Connection Security Rules -->
+  <data name="WF_Rule_On" xml:space="preserve">
+    <value>On</value>
+  </data>
+
+  <!-- Rule Info page -->
+  <data name="WF_Rule_Apply" xml:space="preserve">
+    <value>Apply</value>
+  </data>
+  <data name="WF_Rule_Disable" xml:space="preserve">
+    <value>Disable</value>
+  </data>
+  <data name="WF_Rule_Enable" xml:space="preserve">
+    <value>Enable</value>
+  </data>
+
+  <!-- Section headers -->
+  <data name="WF_Section_General" xml:space="preserve">
+    <value>General</value>
+  </data>
+  <data name="WF_Section_Action" xml:space="preserve">
+    <value>Action</value>
+  </data>
+  <data name="WF_Section_ProgramsServices" xml:space="preserve">
+    <value>Programs &amp; Services</value>
+  </data>
+  <data name="WF_Section_ProtocolsPorts" xml:space="preserve">
+    <value>Protocols and ports</value>
+  </data>
+  <data name="WF_Section_Scope" xml:space="preserve">
+    <value>Scope</value>
+  </data>
+  <data name="WF_Section_Advanced" xml:space="preserve">
+    <value>Advanced</value>
+  </data>
+  <data name="WF_Section_LocalPrincipals" xml:space="preserve">
+    <value>Local Principals</value>
+  </data>
+  <data name="WF_Section_RemoteUsers" xml:space="preserve">
+    <value>Remote Users</value>
+  </data>
+  <data name="WF_Section_RemoteComputers" xml:space="preserve">
+    <value>Remote Computers</value>
+  </data>
+
+  <!-- Action section -->
+  <data name="WF_Action_ConnectionAction" xml:space="preserve">
+    <value>Connection action</value>
+  </data>
+  <data name="WF_Action_AllowIfSecure" xml:space="preserve">
+    <value>Allow the connection if it is secure</value>
+  </data>
+  <data name="WF_Action_CustomizeAllowSecure" xml:space="preserve">
+    <value>Customize Allow if Secure Settings</value>
+  </data>
+  <data name="WF_AllowIfSecure_OverrideBlockRules_Desc" xml:space="preserve">
+    <value>Applies to tools that must always be available (such as remote management tools).</value>
+  </data>
+  <data name="WF_AllowIfSecure_OverrideBlockRules_Desc_Inbound" xml:space="preserve">
+    <value>Useful for tools that must always be available, such as remote administration tools. If you specify this option, you must also specify an authorized computer or computer group.</value>
+  </data>
+
+  <!-- Programs & Services -->
+  <data name="WF_ProgramsServices_SpecifiedConditions" xml:space="preserve">
+    <value>Specified conditions</value>
+  </data>
+  <data name="WF_ProgramsServices_RuleApplies" xml:space="preserve">
+    <value>Rule applies</value>
+  </data>
+  <data name="WF_Field_Compartments" xml:space="preserve">
+    <value>Compartments</value>
+  </data>
+  <data name="WF_Field_ApplicationPackages" xml:space="preserve">
+    <value>Application Packages</value>
+  </data>
+  <data name="WF_Field_Services" xml:space="preserve">
+    <value>Services</value>
+  </data>
+  <data name="WF_Program_AllPrograms" xml:space="preserve">
+    <value>All programs</value>
+  </data>
+  <data name="WF_Program_ThisProgram" xml:space="preserve">
+    <value>This program</value>
+  </data>
+  <data name="WF_Compartments_All" xml:space="preserve">
+    <value>All compartments that meet the specified conditions</value>
+  </data>
+  <data name="WF_Compartments_This" xml:space="preserve">
+    <value>This compartment</value>
+  </data>
+  <data name="WF_Program_Browse" xml:space="preserve">
+    <value>Browse</value>
+  </data>
+  <data name="WF_Program_PathPlaceholder" xml:space="preserve">
+    <value>e.g. %ProgramFiles%\App\app.exe</value>
+  </data>
+
+  <!-- Protocols and ports -->
+  <data name="WF_Protocol_Type" xml:space="preserve">
+    <value>Protocol type</value>
+  </data>
+  <data name="WF_Protocol_Number" xml:space="preserve">
+    <value>Protocol number</value>
+  </data>
+  <data name="WF_Protocol_ICMP" xml:space="preserve">
+    <value>Internet Control Message Protocol (ICMP) settings</value>
+  </data>
+  <data name="WF_Port_AllPorts" xml:space="preserve">
+    <value>All Ports</value>
+  </data>
+  <data name="WF_Port_SpecificPorts" xml:space="preserve">
+    <value>Specific Ports</value>
+  </data>
+  <data name="WF_Port_InputLocalPort" xml:space="preserve">
+    <value>Input for local port</value>
+  </data>
+  <data name="WF_Port_InputRemotePort" xml:space="preserve">
+    <value>Input for remote port</value>
+  </data>
+
+  <!-- Scope -->
+  <data name="WF_Scope_ManageIPAddress" xml:space="preserve">
+    <value>Manage Local &amp; Remote IP address</value>
+  </data>
+
+  <!-- Advanced -->
+  <data name="WF_Advanced_Profiles" xml:space="preserve">
+    <value>Profiles</value>
+  </data>
+  <data name="WF_Advanced_ProfilesDescription" xml:space="preserve">
+    <value>Specify profiles to which this rule applies</value>
+  </data>
+  <data name="WF_Advanced_InterfaceTypes" xml:space="preserve">
+    <value>Rule applies for Interface types</value>
+  </data>
+  <data name="WF_Advanced_EdgeTraversal" xml:space="preserve">
+    <value>Edge traversal</value>
+  </data>
+  <data name="WF_Advanced_EdgeTraversalDescription" xml:space="preserve">
+    <value>Allows the computer to accept unsolicited inbound packets that have passed through an edge device such as a Network Address Translation (NAT) router or firewall</value>
+  </data>
+  <data name="WF_Advanced_EdgeTraversalType" xml:space="preserve">
+    <value>Edge traversal type</value>
+  </data>
+  <data name="WF_EdgeTraversal_Block" xml:space="preserve">
+    <value>Block edge traversal</value>
+  </data>
+  <data name="WF_EdgeTraversal_Allow" xml:space="preserve">
+    <value>Allow edge traversal</value>
+  </data>
+  <data name="WF_EdgeTraversal_DeferToUser" xml:space="preserve">
+    <value>Defer to user</value>
+  </data>
+  <data name="WF_EdgeTraversal_DeferToApp" xml:space="preserve">
+    <value>Defer to application</value>
+  </data>
+  <data name="WF_EdgeTraversal_Block_Desc" xml:space="preserve">
+    <value>Prevent applications from receiving unsolicited traffic from the Internet through a NAT edge device.</value>
+  </data>
+  <data name="WF_EdgeTraversal_Allow_Desc" xml:space="preserve">
+    <value>Allow applications to receive unsolicited traffic directly from the Internet through a NAT edge device.</value>
+  </data>
+  <data name="WF_EdgeTraversal_DeferToUser_Desc" xml:space="preserve">
+    <value>Let the user decide whether to allow unsolicited from the Internet through a NAT edge device when an application requests it.</value>
+  </data>
+  <data name="WF_EdgeTraversal_DeferToApp_Desc" xml:space="preserve">
+    <value>Let each application decide whether to allow unsolicited traffic from the Internet through a NAT edge device.</value>
+  </data>
+
+  <!-- Local Principals / Remote Users / Remote Computers -->
+  <data name="WF_LocalPrincipals_Manage" xml:space="preserve">
+    <value>Manage Authorized users and Exceptions</value>
+  </data>
+  <data name="WF_RemoteUsers_Manage" xml:space="preserve">
+    <value>Manage Authorized users and Exceptions</value>
+  </data>
+  <data name="WF_RemoteComputers_Manage" xml:space="preserve">
+    <value>Manage Authorized computers and Exceptions</value>
+  </data>
+
+  <!-- Connection Security Rules - Remote Computers -->
+  <data name="WF_CSR_RemoteEndpoints_Manage" xml:space="preserve">
+    <value>Manage remote endpoints</value>
+  </data>
+
+  <!-- Connection Security Rules - Protocols and Ports -->
+  <data name="WF_CSR_Endpoint1Port" xml:space="preserve">
+    <value>Endpoint 1 port</value>
+  </data>
+  <data name="WF_CSR_Endpoint1Port_Input" xml:space="preserve">
+    <value>Input for endpoint 1 port</value>
+  </data>
+  <data name="WF_CSR_Endpoint2Port" xml:space="preserve">
+    <value>Endpoint 2 port</value>
+  </data>
+  <data name="WF_CSR_Endpoint2Port_Input" xml:space="preserve">
+    <value>Input for endpoint 2 port</value>
+  </data>
+
+  <!-- Connection Security Rules - Authentication -->
+  <data name="WF_Section_Authentication" xml:space="preserve">
+    <value>Authentication</value>
+  </data>
+  <data name="WF_CSR_AuthenticationMode" xml:space="preserve">
+    <value>Authentication mode</value>
+  </data>
+  <data name="WF_CSR_AuthMode_DoNotAuthenticate" xml:space="preserve">
+    <value>Do not authenticate</value>
+  </data>
+  <data name="WF_CSR_AuthMode_RequestInboundOutbound" xml:space="preserve">
+    <value>Request inbound and outbound</value>
+  </data>
+  <data name="WF_CSR_AuthMode_RequireInboundRequestOutbound" xml:space="preserve">
+    <value>Require inbound and request outbound</value>
+  </data>
+  <data name="WF_CSR_AuthMode_RequireInboundOutbound" xml:space="preserve">
+    <value>Require inbound and outbound</value>
+  </data>
+  <data name="WF_CSR_AuthMode_RequireInboundClearOutbound" xml:space="preserve">
+    <value>Require inbound and clear outbound</value>
+  </data>
+  <data name="WF_CSR_Section_Methods" xml:space="preserve">
+    <value>Methods</value>
+  </data>
+  <data name="WF_CSR_AuthenticationMethod" xml:space="preserve">
+    <value>Authentication method</value>
+  </data>
+  <data name="WF_CSR_AuthMethod_Default" xml:space="preserve">
+    <value>Default</value>
+  </data>
+  <data name="WF_CSR_AuthMethod_ComputerAndUser" xml:space="preserve">
+    <value>Computer and user (Kerberos V5)</value>
+  </data>
+  <data name="WF_CSR_AuthMethod_Computer" xml:space="preserve">
+    <value>Computer (Kerberos V5)</value>
+  </data>
+  <data name="WF_CSR_AuthMethod_User" xml:space="preserve">
+    <value>User (Kerberos V5)</value>
+  </data>
+  <data name="WF_CSR_AuthMethod_Advanced" xml:space="preserve">
+    <value>Advanced</value>
+  </data>
+  <data name="WF_CSR_CustomizeMethods" xml:space="preserve">
+    <value>Customize methods</value>
+  </data>
+
+  <!-- Connection Security Rules - Advanced -->
+  <data name="WF_CSR_ConfigureIPsec" xml:space="preserve">
+    <value>Configure IPsec channel</value>
+  </data>
+
+  <!-- Buttons -->
+  <data name="WF_Button_Customize" xml:space="preserve">
+    <value>Customize</value>
+  </data>
+  <data name="WF_Button_Specify" xml:space="preserve">
+    <value>Specify</value>
+  </data>
+  <data name="WF_Button_Manage" xml:space="preserve">
+    <value>Manage</value>
+  </data>
+  <data name="WF_Button_Configure" xml:space="preserve">
+    <value>Configure</value>
+  </data>
+  <data name="WF_OpenLegacyFirewall" xml:space="preserve">
+    <value>Open Windows Firewall with Advanced Security</value>
+  </data>
+  <data name="WF_PredefinedRule_InfoBar_Title" xml:space="preserve">
+    <value>This is a predefined rule</value>
+  </data>
+  <data name="WF_PredefinedRule_InfoBar_Message" xml:space="preserve">
+    <value>Some properties of this predefined rule cannot be modified.</value>
+  </data>
+
+  <!-- Validation / Scope dialogs -->
+  <data name="WF_Validation_ProgramPathRequired" xml:space="preserve">
+    <value>Please choose a program path before applying this rule.</value>
+  </data>
+  <data name="WF_Validation_CompartmentRequired" xml:space="preserve">
+    <value>Please enter a compartment before applying this rule.</value>
+  </data>
+  <data name="WF_Validation_CompartmentInvalid" xml:space="preserve">
+    <value>Compartment must be a number from 0 through 65535.</value>
+  </data>
+  <data name="WF_Validation_ProtocolNumberInvalid" xml:space="preserve">
+    <value>Custom protocol number must be a whole number from 0 through 255.</value>
+  </data>
+  <data name="WF_ServicesDialog_Title" xml:space="preserve">
+    <value>Customize Service Settings</value>
+  </data>
+  <data name="WF_ServicesDialog_Description" xml:space="preserve">
+    <value>Choose how this rule applies to services.</value>
+  </data>
+  <data name="WF_ServicesDialog_All" xml:space="preserve">
+    <value>Apply to all programs and services</value>
+  </data>
+  <data name="WF_ServicesDialog_Only" xml:space="preserve">
+    <value>Apply to services only</value>
+  </data>
+  <data name="WF_ServicesDialog_Specific" xml:space="preserve">
+    <value>Apply to this service:</value>
+  </data>
+  <data name="WF_ServicesDialog_ShortName" xml:space="preserve">
+    <value>Apply to a service with this short name (for example: eventlog):</value>
+  </data>
+  <data name="WF_ServicesDialog_ShortNamePlaceholder" xml:space="preserve">
+    <value>Enter a service short name</value>
+  </data>
+  <data name="WF_ServicesDialog_ShortNameColumn" xml:space="preserve">
+    <value>Short name</value>
+  </data>
+  <data name="WF_ServicesDialog_SelectionRequired" xml:space="preserve">
+    <value>Select a service before saving.</value>
+  </data>
+  <data name="WF_ServicesDialog_ShortNameRequired" xml:space="preserve">
+    <value>Enter a service short name before saving.</value>
+  </data>
+  <data name="WF_ApplicationPackagesDialog_Title" xml:space="preserve">
+    <value>Customize Application Package Settings</value>
+  </data>
+  <data name="WF_ApplicationPackagesDialog_Description" xml:space="preserve">
+    <value>Choose how this rule applies to application packages.</value>
+  </data>
+  <data name="WF_ApplicationPackagesDialog_All" xml:space="preserve">
+    <value>Apply to all programs and application packages</value>
+  </data>
+  <data name="WF_ApplicationPackagesDialog_PackagesOnly" xml:space="preserve">
+    <value>Apply to application packages only</value>
+  </data>
+  <data name="WF_ApplicationPackagesDialog_Specific" xml:space="preserve">
+    <value>Apply to this application package:</value>
+  </data>
+  <data name="WF_ApplicationPackagesDialog_Sid" xml:space="preserve">
+    <value>Apply to an app container package SID (for example: S-1-15-...):</value>
+  </data>
+  <data name="WF_ApplicationPackagesDialog_SidPlaceholder" xml:space="preserve">
+    <value>Enter an app container package SID</value>
+  </data>
+  <data name="WF_ApplicationPackagesDialog_UserColumn" xml:space="preserve">
+    <value>User</value>
+  </data>
+  <data name="WF_ApplicationPackagesDialog_SelectionRequired" xml:space="preserve">
+    <value>Select an application package before saving.</value>
+  </data>
+  <data name="WF_ApplicationPackagesDialog_SidRequired" xml:space="preserve">
+    <value>Enter an app container package SID before saving.</value>
+  </data>
+  <data name="WF_RemoteComputersDialog_Title" xml:space="preserve">
+    <value>Manage Authorized Computers</value>
+  </data>
+  <data name="WF_RemoteComputersDialog_SecureRequired" xml:space="preserve">
+    <value>This condition is only available when the connection action is set to allow the connection if it is secure.</value>
+  </data>
+  <data name="WF_RemoteComputersDialog_Description" xml:space="preserve">
+    <value>Specify authorized computers and optional exceptions.</value>
+  </data>
+  <data name="WF_RemoteComputersDialog_Authorized" xml:space="preserve">
+    <value>These authorized computers</value>
+  </data>
+  <data name="WF_RemoteComputersDialog_Exception" xml:space="preserve">
+    <value>Except for these computers</value>
+  </data>
+  <data name="WF_RemoteComputersDialog_ExceptionDescription" xml:space="preserve">
+    <value>These computers are excluded even if they appear in the authorized list.</value>
+  </data>
+  <data name="WF_RemoteComputersDialog_SelectionRequired" xml:space="preserve">
+    <value>Specify at least one computer for each enabled list before saving.</value>
+  </data>
+  <!-- WF XAML semantic UI strings -->
+  <data name="WF_AddFirstAuthMethod_ComputerCertificateFromThisCertificationAuthorityCA" xml:space="preserve">
+    <value>Computer certificate from this certification authority (CA):</value>
+  </data>
+  <data name="WF_AddFirstAuthMethod_EnterPresharedKey" xml:space="preserve">
+    <value>Enter preshared key</value>
+  </data>
+  <data name="WF_AddFirstAuthMethod_PresharedKeyAuthenticationIsLessSecureThanOtherAuthenticationMethodsPresharedKeys" xml:space="preserve">
+    <value>Preshared key authentication is less secure than other authentication methods. Preshared keys are stored in plaintext. When preshared key authentication is used, Second Authentication cannot be used.</value>
+  </data>
+  <data name="WF_AddFirstAuthMethod_PresharedKeyNotRecommended" xml:space="preserve">
+    <value>Preshared key (not recommended):</value>
+  </data>
+  <data name="WF_AddFirstAuthMethod_SelectTheCredentialToUseForFirstAuthentication" xml:space="preserve">
+    <value>Select the credential to use for first authentication:</value>
+  </data>
+  <data name="WF_AddSecondAuthMethod_ComputerHealthCertificateFromThisCertificationAuthorityCA" xml:space="preserve">
+    <value>Computer health certificate from this certification authority (CA):</value>
+  </data>
+  <data name="WF_AddSecondAuthMethod_NoteYouCannotUseBothUserCredentialsAndComputerCredentialsInThe" xml:space="preserve">
+    <value>Note:  You cannot use both user credentials and computer credentials in the second authentication methods list.</value>
+  </data>
+  <data name="WF_AddSecondAuthMethod_SelectTheCredentialToUseForTheSecondAuthentication" xml:space="preserve">
+    <value>Select the credential to use for the second authentication:</value>
+  </data>
+  <data name="WF_AddSecondAuthMethod_UserCertificateFromThisCertificationAuthorityCA" xml:space="preserve">
+    <value>User certificate from this certification authority (CA):</value>
+  </data>
+  <data name="WF_AdvancedCertCriteria_Add" xml:space="preserve">
+    <value>Add &gt;</value>
+  </data>
+  <data name="WF_AdvancedCertCriteria_CertificateName" xml:space="preserve">
+    <value>Certificate name:</value>
+  </data>
+  <data name="WF_AdvancedCertCriteria_CertificateNameRestriction" xml:space="preserve">
+    <value>Certificate name restriction</value>
+  </data>
+  <data name="WF_AdvancedCertCriteria_CertificateThumbprint" xml:space="preserve">
+    <value>Certificate thumbprint</value>
+  </data>
+  <data name="WF_AdvancedCertCriteria_ClientAuthentication136155732" xml:space="preserve">
+    <value>Client Authentication (1.3.6.1.5.5.7.3.2)</value>
+  </data>
+  <data name="WF_AdvancedCertCriteria_CustomEKU" xml:space="preserve">
+    <value>Custom EKU</value>
+  </data>
+  <data name="WF_AdvancedCertCriteria_CustomOIDEG1234" xml:space="preserve">
+    <value>Custom OID (e.g. 1.2.3.4)</value>
+  </data>
+  <data name="WF_AdvancedCertCriteria_DNSSEC1361413116411" xml:space="preserve">
+    <value>DNSSEC (1.3.6.1.4.1.311.64.1.1)</value>
+  </data>
+  <data name="WF_AdvancedCertCriteria_EnhancedKeyUsageEKU" xml:space="preserve">
+    <value>Enhanced key usage (EKU)</value>
+  </data>
+  <data name="WF_AdvancedCertCriteria_FollowCertificateRenewal" xml:space="preserve">
+    <value>Follow certificate renewal</value>
+  </data>
+  <data name="WF_AdvancedCertCriteria_IPsecSecurityIKEIntermediate13615582" xml:space="preserve">
+    <value>IPsec security IKE intermediate (1.3.6.1.5.5.8.2.2)</value>
+  </data>
+  <data name="WF_AdvancedCertCriteria_NoRestrictionDefault" xml:space="preserve">
+    <value>No restriction (default)</value>
+  </data>
+  <data name="WF_AdvancedCertCriteria_Remove" xml:space="preserve">
+    <value>Remove &lt;</value>
+  </data>
+  <data name="WF_AdvancedCertCriteria_RequiredEKUs" xml:space="preserve">
+    <value>Required EKUs</value>
+  </data>
+  <data name="WF_AdvancedCertCriteria_RestrictUsage" xml:space="preserve">
+    <value>Restrict usage</value>
+  </data>
+  <data name="WF_AdvancedCertCriteria_SelectNameType" xml:space="preserve">
+    <value>Select name type</value>
+  </data>
+  <data name="WF_AdvancedCertCriteria_ServerAuthentication136155731" xml:space="preserve">
+    <value>Server Authentication (1.3.6.1.5.5.7.3.1)</value>
+  </data>
+  <data name="WF_AdvancedCertCriteria_SubjectAlternativeNameDNS" xml:space="preserve">
+    <value>Subject Alternative Name DNS</value>
+  </data>
+  <data name="WF_AdvancedCertCriteria_SubjectAlternativeNameEmail" xml:space="preserve">
+    <value>Subject Alternative Name Email</value>
+  </data>
+  <data name="WF_AdvancedCertCriteria_SubjectAlternativeNamePrincipal" xml:space="preserve">
+    <value>Subject Alternative Name Principal</value>
+  </data>
+  <data name="WF_AdvancedCertCriteria_SubjectCN" xml:space="preserve">
+    <value>Subject CN</value>
+  </data>
+  <data name="WF_AdvancedCertCriteria_SubjectDC" xml:space="preserve">
+    <value>Subject DC</value>
+  </data>
+  <data name="WF_AdvancedCertCriteria_SubjectO" xml:space="preserve">
+    <value>Subject O</value>
+  </data>
+  <data name="WF_AdvancedCertCriteria_SubjectOU" xml:space="preserve">
+    <value>Subject OU</value>
+  </data>
+  <data name="WF_AdvancedCertCriteria_Thumbprint" xml:space="preserve">
+    <value>Thumbprint:</value>
+  </data>
+  <data name="WF_AdvancedKeyExchangeSettings_CompatibleWithWindowsVistaAndLater" xml:space="preserve">
+    <value>Compatible with Windows Vista and later.</value>
+  </data>
+  <data name="WF_AdvancedKeyExchangeSettings_KeyExchangeAlgorithm" xml:space="preserve">
+    <value>Key exchange algorithm</value>
+  </data>
+  <data name="WF_AdvancedKeyExchangeSettings_KeyExchangeOptions" xml:space="preserve">
+    <value>Key exchange options</value>
+  </data>
+  <data name="WF_AdvancedKeyExchangeSettings_Sessions" xml:space="preserve">
+    <value>Sessions:</value>
+  </data>
+  <data name="WF_AdvancedKeyExchangeSettings_SpecifyWhenANewKeyIsGeneratedIfYouSelectBothOptions" xml:space="preserve">
+    <value>Specify when a new key is generated. If you select both options, a new key is generated when the first threshold is reached.</value>
+  </data>
+  <data name="WF_AdvancedKeyExchangeSettings_UseDiffieHellmanForEnhancedSecurity" xml:space="preserve">
+    <value>Use Diffie-Hellman for enhanced security.</value>
+  </data>
+  <data name="WF_AdvancedKeyExchangeSettings_UseTheFollowingSecurityMethodsForKeyExchangeThoseHigherInThe" xml:space="preserve">
+    <value>Use the following security methods for key exchange. Those higher in the list are tried first.</value>
+  </data>
+  <data name="WF_Capabilities_ChooseCapabilities" xml:space="preserve">
+    <value>Choose Capabilities</value>
+  </data>
+  <data name="WF_Capabilities_SelectTheApplicationPackageCapabilitiesToAuthorize" xml:space="preserve">
+    <value>Select the application package capabilities to authorize.</value>
+  </data>
+  <data name="WF_Common_AcceptOnlyHealthCertificates" xml:space="preserve">
+    <value>Accept only health certificates</value>
+  </data>
+  <data name="WF_Common_AddEllipsis" xml:space="preserve">
+    <value>Add...</value>
+  </data>
+  <data name="WF_Common_AdvancedEllipsis" xml:space="preserve">
+    <value>Advanced...</value>
+  </data>
+  <data name="WF_Common_AESCBC128" xml:space="preserve">
+    <value>AES-CBC 128</value>
+  </data>
+  <data name="WF_Common_AESCBC192" xml:space="preserve">
+    <value>AES-CBC 192</value>
+  </data>
+  <data name="WF_Common_AESCBC256" xml:space="preserve">
+    <value>AES-CBC 256</value>
+  </data>
+  <data name="WF_Common_AESGMAC128" xml:space="preserve">
+    <value>AES-GMAC 128</value>
+  </data>
+  <data name="WF_Common_AESGMAC192" xml:space="preserve">
+    <value>AES-GMAC 192</value>
+  </data>
+  <data name="WF_Common_AESGMAC256" xml:space="preserve">
+    <value>AES-GMAC 256</value>
+  </data>
+  <data name="WF_Common_All" xml:space="preserve">
+    <value>All</value>
+  </data>
+  <data name="WF_Common_AllInterfaceTypes" xml:space="preserve">
+    <value>All interface types</value>
+  </data>
+  <data name="WF_Common_Any" xml:space="preserve">
+    <value>Any</value>
+  </data>
+  <data name="WF_Common_AnyAddressForDynamicTunnelConfiguration" xml:space="preserve">
+    <value>Any address (for dynamic tunnel configuration)</value>
+  </data>
+  <data name="WF_Common_AnyIPAddress" xml:space="preserve">
+    <value>Any IP address</value>
+  </data>
+  <data name="WF_Common_Browse" xml:space="preserve">
+    <value>Browse...</value>
+  </data>
+  <data name="WF_Common_CADistinguishedName" xml:space="preserve">
+    <value>CA distinguished name</value>
+  </data>
+  <data name="WF_Common_CertificateStoreType" xml:space="preserve">
+    <value>Certificate store type:</value>
+  </data>
+  <data name="WF_Common_ComputerKerberosV5" xml:space="preserve">
+    <value>Computer (Kerberos V5)</value>
+  </data>
+  <data name="WF_Common_Computers" xml:space="preserve">
+    <value>Computers</value>
+  </data>
+  <data name="WF_Common_ConfigureTunnelEndpoints" xml:space="preserve">
+    <value>Configure Tunnel Endpoints</value>
+  </data>
+  <data name="WF_Common_Custom" xml:space="preserve">
+    <value>Custom</value>
+  </data>
+  <data name="WF_Common_Default" xml:space="preserve">
+    <value>Default</value>
+  </data>
+  <data name="WF_Common_DES" xml:space="preserve">
+    <value>DES</value>
+  </data>
+  <data name="WF_Common_DescriptionOptional" xml:space="preserve">
+    <value>Description (optional)</value>
+  </data>
+  <data name="WF_Common_Details" xml:space="preserve">
+    <value>Details</value>
+  </data>
+  <data name="WF_Common_Edit" xml:space="preserve">
+    <value>Edit...</value>
+  </data>
+  <data name="WF_Common_EnableCertificateToAccountMapping" xml:space="preserve">
+    <value>Enable certificate to account mapping</value>
+  </data>
+  <data name="WF_Common_Encryption" xml:space="preserve">
+    <value>Encryption</value>
+  </data>
+  <data name="WF_Common_EncryptionAlgorithm" xml:space="preserve">
+    <value>Encryption algorithm:</value>
+  </data>
+  <data name="WF_Common_ESPRecommended" xml:space="preserve">
+    <value>ESP (recommended)</value>
+  </data>
+  <data name="WF_Common_Integrity" xml:space="preserve">
+    <value>Integrity</value>
+  </data>
+  <data name="WF_Common_IntegrityAlgorithm" xml:space="preserve">
+    <value>Integrity algorithm:</value>
+  </data>
+  <data name="WF_Common_IPsecTunnelAuthorization" xml:space="preserve">
+    <value>IPsec tunnel authorization</value>
+  </data>
+  <data name="WF_Common_IPv4Address" xml:space="preserve">
+    <value>IPv4 address:</value>
+  </data>
+  <data name="WF_Common_IPv6Address" xml:space="preserve">
+    <value>IPv6 address:</value>
+  </data>
+  <data name="WF_Common_KB" xml:space="preserve">
+    <value>KB:</value>
+  </data>
+  <data name="WF_Common_KeyLifetimes" xml:space="preserve">
+    <value>Key lifetimes</value>
+  </data>
+  <data name="WF_Common_LocalAreaNetworkLAN" xml:space="preserve">
+    <value>Local area network (LAN)</value>
+  </data>
+  <data name="WF_Common_MD5" xml:space="preserve">
+    <value>MD5</value>
+  </data>
+  <data name="WF_Common_Method" xml:space="preserve">
+    <value>Method</value>
+  </data>
+  <data name="WF_Common_Minutes" xml:space="preserve">
+    <value>Minutes:</value>
+  </data>
+  <data name="WF_Common_No" xml:space="preserve">
+    <value>No</value>
+  </data>
+  <data name="WF_Common_NoDefault" xml:space="preserve">
+    <value>No (default)</value>
+  </data>
+  <data name="WF_Common_None" xml:space="preserve">
+    <value>None</value>
+  </data>
+  <data name="WF_Common_OnlyAllowConnectionsFromTheseUsers" xml:space="preserve">
+    <value>Only allow connections from these users</value>
+  </data>
+  <data name="WF_Common_RemoteAccess" xml:space="preserve">
+    <value>Remote access</value>
+  </data>
+  <data name="WF_Common_RuleName" xml:space="preserve">
+    <value>Rule Name</value>
+  </data>
+  <data name="WF_Common_SHA1" xml:space="preserve">
+    <value>SHA-1</value>
+  </data>
+  <data name="WF_Common_SHA256" xml:space="preserve">
+    <value>SHA-256</value>
+  </data>
+  <data name="WF_Common_SigningAlgorithm" xml:space="preserve">
+    <value>Signing algorithm:</value>
+  </data>
+  <data name="WF_Common_SpecificAddress" xml:space="preserve">
+    <value>Specific address</value>
+  </data>
+  <data name="WF_Common_TCP" xml:space="preserve">
+    <value>TCP</value>
+  </data>
+  <data name="WF_Common_TheseIPAddresses" xml:space="preserve">
+    <value>These IP addresses:</value>
+  </data>
+  <data name="WF_Common_Type" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="WF_Common_UDP" xml:space="preserve">
+    <value>UDP</value>
+  </data>
+  <data name="WF_Common_UserKerberosV5" xml:space="preserve">
+    <value>User (Kerberos V5)</value>
+  </data>
+  <data name="WF_Common_Users" xml:space="preserve">
+    <value>Users</value>
+  </data>
+  <data name="WF_Common_Value3DES" xml:space="preserve">
+    <value>3DES</value>
+  </data>
+  <data name="WF_Common_WindowsDefenderFirewallProperties" xml:space="preserve">
+    <value>Windows Defender Firewall Properties</value>
+  </data>
+  <data name="WF_Common_Wireless" xml:space="preserve">
+    <value>Wireless</value>
+  </data>
+  <data name="WF_Common_Yes" xml:space="preserve">
+    <value>Yes</value>
+  </data>
+  <data name="WF_Common_YesDefault" xml:space="preserve">
+    <value>Yes (default)</value>
+  </data>
+  <data name="WF_ConfigureIPsec_ApplyAuthorizationA" xml:space="preserve">
+    <value>Apply authorization (A)</value>
+  </data>
+  <data name="WF_ConfigureIPsec_ConnectionsFromEndpoint1ToEndpoint2WillPassThroughTheSpecified" xml:space="preserve">
+    <value>Connections from endpoint 1 to endpoint 2 will pass through the specified tunnel endpoints. Tunnel endpoints are typically gateway servers.</value>
+  </data>
+  <data name="WF_ConfigureIPsec_EditD" xml:space="preserve">
+    <value>Edit (D)...</value>
+  </data>
+  <data name="WF_ConfigureIPsec_EditE" xml:space="preserve">
+    <value>Edit (E)...</value>
+  </data>
+  <data name="WF_ConfigureIPsec_EG19216811" xml:space="preserve">
+    <value>e.g., 192.168.1.1</value>
+  </data>
+  <data name="WF_ConfigureIPsec_EG2001Db81" xml:space="preserve">
+    <value>e.g., 2001:db8::1</value>
+  </data>
+  <data name="WF_ConfigureIPsec_ExemptIPsecProtectedConnectionsX" xml:space="preserve">
+    <value>Exempt IPsec-protected connections (X)</value>
+  </data>
+  <data name="WF_ConfigureIPsec_IPv4" xml:space="preserve">
+    <value>IPv4:</value>
+  </data>
+  <data name="WF_ConfigureIPsec_IPv4I" xml:space="preserve">
+    <value>IPv4 (I):</value>
+  </data>
+  <data name="WF_ConfigureIPsec_IPv4V" xml:space="preserve">
+    <value>IPv4 (V):</value>
+  </data>
+  <data name="WF_ConfigureIPsec_IPv6" xml:space="preserve">
+    <value>IPv6:</value>
+  </data>
+  <data name="WF_ConfigureIPsec_IPv66" xml:space="preserve">
+    <value>IPv6 (6):</value>
+  </data>
+  <data name="WF_ConfigureIPsec_IPv6P" xml:space="preserve">
+    <value>IPv6 (P):</value>
+  </data>
+  <data name="WF_ConfigureIPsec_LocalTunnelEndpointClosestToEndpoint1" xml:space="preserve">
+    <value>Local tunnel endpoint (closest to endpoint 1):</value>
+  </data>
+  <data name="WF_ConfigureIPsec_NoteWhenUsingIPsecTunnelsTheAuthenticationModeMustBeSetTo" xml:space="preserve">
+    <value>Note: When using IPsec tunnels, the authentication mode must be set to [Require inbound and outbound] or [Require inbound and clear outbound] (for gateway devices).</value>
+  </data>
+  <data name="WF_ConfigureIPsec_RemoteTunnelEndpointClosestToEndpoint2" xml:space="preserve">
+    <value>Remote tunnel endpoint (closest to endpoint 2):</value>
+  </data>
+  <data name="WF_ConfigureIPsec_SpecificAddress" xml:space="preserve">
+    <value>Specific address:</value>
+  </data>
+  <data name="WF_ConfigureIPsec_UseIPsecTunnelU" xml:space="preserve">
+    <value>Use IPsec tunnel (U)</value>
+  </data>
+  <data name="WF_ConfigureTunnelEndpoints_ApplyIPsecTunnelAuthorizationAsSpecifiedOnTheIPsecSettingsTab" xml:space="preserve">
+    <value>Apply IPsec tunnel authorization as specified on the IPsec Settings tab.</value>
+  </data>
+  <data name="WF_ConfigureTunnelEndpoints_Client" xml:space="preserve">
+    <value>Client</value>
+  </data>
+  <data name="WF_ConfigureTunnelEndpoints_MyIPAddress" xml:space="preserve">
+    <value>My IP address</value>
+  </data>
+  <data name="WF_ConfigureTunnelEndpoints_WhatIsTheLocalTunnelEndpointClosestToEndpoint1" xml:space="preserve">
+    <value>What is the local tunnel endpoint (closest to Endpoint 1)?</value>
+  </data>
+  <data name="WF_ConfigureTunnelEndpoints_WhatIsTheRemoteTunnelEndpointClosestToEndpoint2" xml:space="preserve">
+    <value>What is the remote tunnel endpoint (closest to Endpoint 2)?</value>
+  </data>
+  <data name="WF_ConnectionSecurityRuleProperties_ApplyAuthorization" xml:space="preserve">
+    <value>Apply authorization:</value>
+  </data>
+  <data name="WF_ConnectionSecurityRuleProperties_DefaultRuleName" xml:space="preserve">
+    <value>Rule</value>
+  </data>
+  <data name="WF_ConnectionSecurityRuleProperties_Endpoint1IPAddress" xml:space="preserve">
+    <value>Endpoint 1 IP address:</value>
+  </data>
+  <data name="WF_ConnectionSecurityRuleProperties_Endpoint1Port" xml:space="preserve">
+    <value>Endpoint 1 port:</value>
+  </data>
+  <data name="WF_ConnectionSecurityRuleProperties_Endpoint2IPAddress" xml:space="preserve">
+    <value>Endpoint 2 IP address:</value>
+  </data>
+  <data name="WF_ConnectionSecurityRuleProperties_Endpoint2Port" xml:space="preserve">
+    <value>Endpoint 2 port:</value>
+  </data>
+  <data name="WF_ConnectionSecurityRuleProperties_ExemptIPsecProtectedConnections" xml:space="preserve">
+    <value>Exempt IPsec protected connections:</value>
+  </data>
+  <data name="WF_ConnectionSecurityRuleProperties_FirstAuthentication" xml:space="preserve">
+    <value>First authentication:</value>
+  </data>
+  <data name="WF_ConnectionSecurityRuleProperties_InterfaceTypes" xml:space="preserve">
+    <value>Interface types:</value>
+  </data>
+  <data name="WF_ConnectionSecurityRuleProperties_LocalTunnelEndpoint" xml:space="preserve">
+    <value>Local tunnel endpoint:</value>
+  </data>
+  <data name="WF_ConnectionSecurityRuleProperties_Profile" xml:space="preserve">
+    <value>Profile:</value>
+  </data>
+  <data name="WF_ConnectionSecurityRuleProperties_Protocol" xml:space="preserve">
+    <value>Protocol:</value>
+  </data>
+  <data name="WF_ConnectionSecurityRuleProperties_RemoteTunnelEndpoint" xml:space="preserve">
+    <value>Remote tunnel endpoint:</value>
+  </data>
+  <data name="WF_ConnectionSecurityRuleProperties_Requirements" xml:space="preserve">
+    <value>Requirements:</value>
+  </data>
+  <data name="WF_ConnectionSecurityRuleProperties_SecondAuthentication" xml:space="preserve">
+    <value>Second authentication:</value>
+  </data>
+  <data name="WF_CustomizeAllowIfSecure_AllowAuthenticatedAndIntegrityProtectedConnectionsA" xml:space="preserve">
+    <value>Allow authenticated and integrity-protected connections (A)</value>
+  </data>
+  <data name="WF_CustomizeAllowIfSecure_AllowConnectionsUsingNullEncapsulationN" xml:space="preserve">
+    <value>Allow connections using Null encapsulation (N)</value>
+  </data>
+  <data name="WF_CustomizeAllowIfSecure_AllowTheComputersToDynamicallyNegotiateEncryption" xml:space="preserve">
+    <value>Allow the computers to dynamically negotiate encryption</value>
+  </data>
+  <data name="WF_CustomizeAllowIfSecure_InAdditionToIntegrityAndAuthenticationAlsoRequirePrivacy" xml:space="preserve">
+    <value>In addition to integrity and authentication, also require privacy.</value>
+  </data>
+  <data name="WF_CustomizeAllowIfSecure_NullEncapsulationAllowsYouToRequireAuthenticationForConnectionsButWithoutProviding" xml:space="preserve">
+    <value>Null encapsulation allows you to require authentication for connections, but without providing integrity or privacy protection for the encapsulated packets. Compatible with Windows 7 and later.</value>
+  </data>
+  <data name="WF_CustomizeAllowIfSecure_OnlyAllowConnectionsThatAreAuthenticatedAndIntegrityProtectedUsingIPsecCompatible" xml:space="preserve">
+    <value>Only allow connections that are authenticated and integrity-protected using IPsec. Compatible with Windows Vista and later.</value>
+  </data>
+  <data name="WF_CustomizeAllowIfSecure_OverrideBlockRulesO" xml:space="preserve">
+    <value>Override block rules (O)</value>
+  </data>
+  <data name="WF_CustomizeAllowIfSecure_RequireEncryptedConnectionsE" xml:space="preserve">
+    <value>Require encrypted connections (E)</value>
+  </data>
+  <data name="WF_CustomizeAllowIfSecure_SelectOneOfTheFollowingOptionsToDetermineTheActionWindowsDefender" xml:space="preserve">
+    <value>Select one of the following options to determine the action Windows Defender Firewall with Advanced Security takes on connections that match the firewall rule conditions.</value>
+  </data>
+  <data name="WF_CustomizeAllowIfSecure_ThisOptionAllowsAuthenticatedButUnencryptedNetworkPacketsToBeSentWhile" xml:space="preserve">
+    <value>This option allows authenticated but unencrypted network packets to be sent while encryption is being negotiated. Compatible with Windows Vista and later.</value>
+  </data>
+  <data name="WF_CustomizeAuthMethods_ConfigureTheFirstAndSecondAuthenticationMethodsForThisConnectionSecurityRule" xml:space="preserve">
+    <value>Configure the first and second authentication methods for this connection security rule.</value>
+  </data>
+  <data name="WF_CustomizeAuthMethods_FirstAuthenticationIsOptional" xml:space="preserve">
+    <value>First authentication is optional</value>
+  </data>
+  <data name="WF_CustomizeAuthMethods_FirstAuthenticationMethods" xml:space="preserve">
+    <value>First authentication methods:</value>
+  </data>
+  <data name="WF_CustomizeAuthMethods_MoveDown" xml:space="preserve">
+    <value>Move Down</value>
+  </data>
+  <data name="WF_CustomizeAuthMethods_MoveUp" xml:space="preserve">
+    <value>Move Up</value>
+  </data>
+  <data name="WF_CustomizeAuthMethods_SecondAuthenticationIsOptional" xml:space="preserve">
+    <value>Second authentication is optional</value>
+  </data>
+  <data name="WF_CustomizeAuthMethods_SecondAuthenticationMethods" xml:space="preserve">
+    <value>Second authentication methods:</value>
+  </data>
+  <data name="WF_CustomizeAuthMethods_SecondAuthenticationPresharedKeyNote" xml:space="preserve">
+    <value>A second authentication cannot be specified when a preshared key is in the first authentication methods list.</value>
+  </data>
+  <data name="WF_CustomizeIpsecDefaults_Customize" xml:space="preserve">
+    <value>Customize...</value>
+  </data>
+  <data name="WF_CustomizeIpsecDefaults_DataProtectionQuickMode" xml:space="preserve">
+    <value>Data protection (Quick Mode)</value>
+  </data>
+  <data name="WF_CustomizeIpsecDefaults_DefaultRecommended" xml:space="preserve">
+    <value>Default (recommended)</value>
+  </data>
+  <data name="WF_CustomizeIpsecDefaults_IPsecWillUseTheseSettingsToEstablishSecuredConnectionsWhenThereAre" xml:space="preserve">
+    <value>IPsec will use these settings to establish secured connections when there are active connection security rules.</value>
+  </data>
+  <data name="WF_CustomizeIpsecDefaults_KeyExchangeMainMode" xml:space="preserve">
+    <value>Key exchange (Main Mode)</value>
+  </data>
+  <data name="WF_CustomizeIpsecDefaults_WhenYouUseTheDefaultOptionsAnySettingsInAGPOWith" xml:space="preserve">
+    <value>When you use the default options, any settings in a GPO with a higher precedence are used.</value>
+  </data>
+  <data name="WF_DataProtectionSettings_DataIntegrity" xml:space="preserve">
+    <value>Data integrity</value>
+  </data>
+  <data name="WF_DataProtectionSettings_DataIntegrityAndEncryption" xml:space="preserve">
+    <value>Data integrity and encryption</value>
+  </data>
+  <data name="WF_DataProtectionSettings_DataProtectionSettingsAreUsedByConnectionSecurityRulesToProtectNetwork" xml:space="preserve">
+    <value>Data protection settings are used by connection security rules to protect network traffic.</value>
+  </data>
+  <data name="WF_DataProtectionSettings_KeyLifetimeMinutesKB" xml:space="preserve">
+    <value>Key lifetime (minutes/KB)</value>
+  </data>
+  <data name="WF_DataProtectionSettings_ProtectDataFromModificationAndPreserveConfidentialityOnTheNetworkWithThese" xml:space="preserve">
+    <value>Protect data from modification and preserve confidentiality on the network with these integrity and encryption algorithms. Those higher in the list are tried first.</value>
+  </data>
+  <data name="WF_DataProtectionSettings_ProtectDataFromModificationOnTheNetworkWithTheseIntegrityAlgorithmsThose" xml:space="preserve">
+    <value>Protect data from modification on the network with these integrity algorithms. Those higher in the list are tried first.</value>
+  </data>
+  <data name="WF_DataProtectionSettings_RequireEncryptionForAllConnectionSecurityRulesThatUseTheseSettings" xml:space="preserve">
+    <value>Require encryption for all connection security rules that use these settings</value>
+  </data>
+  <data name="WF_FirewallProperties_IcmpExemptionsDescription" xml:space="preserve">
+    <value>Exempting ICMP from all IPsec requirements can simplify troubleshooting of network connectivity issues</value>
+  </data>
+  <data name="WF_FirewallProperties_IpsecDefaultsDescription" xml:space="preserve">
+    <value>Specify settings used by IPsec to establish secured connections</value>
+  </data>
+  <data name="WF_FirewallProperties_TunnelAuthorizationDescription" xml:space="preserve">
+    <value>Specify the users and computers that are authorized to establish IPsec tunnel connections to this computer</value>
+  </data>
+  <data name="WF_FirewallRuleInfo_EG80443" xml:space="preserve">
+    <value>e.g. 80, 443</value>
+  </data>
+  <data name="WF_FirewallRuleInfo_EG8044380808090" xml:space="preserve">
+    <value>e.g. 80, 443, 8080-8090</value>
+  </data>
+  <data name="WF_FirewallRuleInfo_GRE47" xml:space="preserve">
+    <value>GRE (47)</value>
+  </data>
+  <data name="WF_FirewallRuleInfo_HOPOPT0" xml:space="preserve">
+    <value>HOPOPT (0)</value>
+  </data>
+  <data name="WF_FirewallRuleInfo_ICMPv41" xml:space="preserve">
+    <value>ICMPv4 (1)</value>
+  </data>
+  <data name="WF_FirewallRuleInfo_ICMPv658" xml:space="preserve">
+    <value>ICMPv6 (58)</value>
+  </data>
+  <data name="WF_FirewallRuleInfo_IGMP2" xml:space="preserve">
+    <value>IGMP (2)</value>
+  </data>
+  <data name="WF_FirewallRuleInfo_IPv641" xml:space="preserve">
+    <value>IPv6 (41)</value>
+  </data>
+  <data name="WF_FirewallRuleInfo_IPv6Frag44" xml:space="preserve">
+    <value>IPv6-Frag (44)</value>
+  </data>
+  <data name="WF_FirewallRuleInfo_IPv6NoNxt59" xml:space="preserve">
+    <value>IPv6-NoNxt (59)</value>
+  </data>
+  <data name="WF_FirewallRuleInfo_IPv6Opts60" xml:space="preserve">
+    <value>IPv6-Opts (60)</value>
+  </data>
+  <data name="WF_FirewallRuleInfo_IPv6Route43" xml:space="preserve">
+    <value>IPv6-Route (43)</value>
+  </data>
+  <data name="WF_FirewallRuleInfo_L2TP115" xml:space="preserve">
+    <value>L2TP (115)</value>
+  </data>
+  <data name="WF_FirewallRuleInfo_PGM113" xml:space="preserve">
+    <value>PGM (113)</value>
+  </data>
+  <data name="WF_FirewallRuleInfo_TCP6" xml:space="preserve">
+    <value>TCP (6)</value>
+  </data>
+  <data name="WF_FirewallRuleInfo_UDP17" xml:space="preserve">
+    <value>UDP (17)</value>
+  </data>
+  <data name="WF_FirewallRuleInfo_VRRP112" xml:space="preserve">
+    <value>VRRP (112)</value>
+  </data>
+  <data name="WF_ICMPSettings_AddD" xml:space="preserve">
+    <value>Add (D)</value>
+  </data>
+  <data name="WF_ICMPSettings_AddressMaskRequest" xml:space="preserve">
+    <value>Address Mask Request</value>
+  </data>
+  <data name="WF_ICMPSettings_AllICMPTypesA" xml:space="preserve">
+    <value>All ICMP types (A)</value>
+  </data>
+  <data name="WF_ICMPSettings_ApplyThisRuleToTheFollowingInternetControlMessageProtocolICMPConnections" xml:space="preserve">
+    <value>Apply this rule to the following Internet Control Message Protocol (ICMP) connections:</value>
+  </data>
+  <data name="WF_ICMPSettings_CodeC" xml:space="preserve">
+    <value>Code (C):</value>
+  </data>
+  <data name="WF_ICMPSettings_DestinationUnreachable" xml:space="preserve">
+    <value>Destination Unreachable</value>
+  </data>
+  <data name="WF_ICMPSettings_EchoRequest" xml:space="preserve">
+    <value>Echo Request</value>
+  </data>
+  <data name="WF_ICMPSettings_PacketTooBig" xml:space="preserve">
+    <value>Packet Too Big</value>
+  </data>
+  <data name="WF_ICMPSettings_ParameterProblem" xml:space="preserve">
+    <value>Parameter Problem</value>
+  </data>
+  <data name="WF_ICMPSettings_Redirect" xml:space="preserve">
+    <value>Redirect</value>
+  </data>
+  <data name="WF_ICMPSettings_RouterAdvertisement" xml:space="preserve">
+    <value>Router Advertisement</value>
+  </data>
+  <data name="WF_ICMPSettings_RouterSolicitation" xml:space="preserve">
+    <value>Router Solicitation</value>
+  </data>
+  <data name="WF_ICMPSettings_SourceQuench" xml:space="preserve">
+    <value>Source Quench</value>
+  </data>
+  <data name="WF_ICMPSettings_SpecificICMPTypesS" xml:space="preserve">
+    <value>Specific ICMP types (S)</value>
+  </data>
+  <data name="WF_ICMPSettings_ThisICMPType" xml:space="preserve">
+    <value>This ICMP type:</value>
+  </data>
+  <data name="WF_ICMPSettings_TimeExceeded" xml:space="preserve">
+    <value>Time Exceeded</value>
+  </data>
+  <data name="WF_ICMPSettings_TimestampRequest" xml:space="preserve">
+    <value>Timestamp Request</value>
+  </data>
+  <data name="WF_ICMPSettings_TypeT" xml:space="preserve">
+    <value>Type (T):</value>
+  </data>
+  <data name="WF_IntegrityAlgorithmEditor_AH" xml:space="preserve">
+    <value>AH</value>
+  </data>
+  <data name="WF_IntegrityAlgorithmEditor_Algorithm" xml:space="preserve">
+    <value>Algorithm</value>
+  </data>
+  <data name="WF_IntegrityAlgorithmEditor_NullEncapsulation" xml:space="preserve">
+    <value>Null encapsulation</value>
+  </data>
+  <data name="WF_IntegrityAlgorithmEditor_ProvidesIntegrityForBothThePacketPayloadAndTheIPHeaderAH" xml:space="preserve">
+    <value>Provides integrity for both the packet payload and the IP header. AH protocol is not compatible with NAT.</value>
+  </data>
+  <data name="WF_IntegrityAlgorithmEditor_ProvidesIntegrityOnlyForThePacketPayloadESPIsCompatibleWithNetwork" xml:space="preserve">
+    <value>Provides integrity only for the packet payload. ESP is compatible with Network Address Translation (NAT).</value>
+  </data>
+  <data name="WF_IntegrityAlgorithmEditor_ProvidesNoIntegrityProtectionForThePacketPayloadOrIPHeader" xml:space="preserve">
+    <value>Provides no integrity protection for the packet payload or IP header.</value>
+  </data>
+  <data name="WF_IntegrityEncryptionAlgorithmEditor_AddingTheAHProtocolProvidesAdditionalIntegrityForTheIPHeaderThis" xml:space="preserve">
+    <value>Adding the AH protocol provides additional integrity for the IP header. This option is not compatible with NAT.</value>
+  </data>
+  <data name="WF_IntegrityEncryptionAlgorithmEditor_AESGCM128" xml:space="preserve">
+    <value>AES-GCM 128</value>
+  </data>
+  <data name="WF_IntegrityEncryptionAlgorithmEditor_AESGCM192" xml:space="preserve">
+    <value>AES-GCM 192</value>
+  </data>
+  <data name="WF_IntegrityEncryptionAlgorithmEditor_AESGCM256" xml:space="preserve">
+    <value>AES-GCM 256</value>
+  </data>
+  <data name="WF_IntegrityEncryptionAlgorithmEditor_Algorithms" xml:space="preserve">
+    <value>Algorithms</value>
+  </data>
+  <data name="WF_IntegrityEncryptionAlgorithmEditor_ESPAndAH" xml:space="preserve">
+    <value>ESP and AH</value>
+  </data>
+  <data name="WF_IntegrityEncryptionAlgorithmEditor_ESPProtocolProvidesPrivacyAndIntegrityForThePacketPayloadESPIs" xml:space="preserve">
+    <value>ESP protocol provides privacy and integrity for the packet payload. ESP is compatible with Network Address Translation (NAT).</value>
+  </data>
+  <data name="WF_IntegrityEncryptionAlgorithmEditor_InvalidAlgorithmCombinationForAESGCMEncryptionIntegrityMustMatchTheSame" xml:space="preserve">
+    <value>Invalid algorithm combination. For AES-GCM encryption, integrity must match the same AES-GCM bit length. AES-GCM or AES-GMAC integrity requires AES-GCM encryption.</value>
+  </data>
+  <data name="WF_InterfaceTypes_SpecifyTheInterfaceTypesThisRuleAppliesTo" xml:space="preserve">
+    <value>Specify the interface types this rule applies to.</value>
+  </data>
+  <data name="WF_InterfaceTypes_TheseInterfaceTypes" xml:space="preserve">
+    <value>These interface types:</value>
+  </data>
+  <data name="WF_IPAddressEntry_CaptivePortalAddresses" xml:space="preserve">
+    <value>Captive Portal Addresses</value>
+  </data>
+  <data name="WF_IPAddressEntry_DefaultGateway" xml:space="preserve">
+    <value>Default gateway</value>
+  </data>
+  <data name="WF_IPAddressEntry_DHCPServers" xml:space="preserve">
+    <value>DHCP servers</value>
+  </data>
+  <data name="WF_IPAddressEntry_DNSServers" xml:space="preserve">
+    <value>DNS servers</value>
+  </data>
+  <data name="WF_IPAddressEntry_EG1921681024" xml:space="preserve">
+    <value>e.g. 192.168.1.0/24</value>
+  </data>
+  <data name="WF_IPAddressEntry_Examples192168012" xml:space="preserve">
+    <value>Examples:  192.168.0.12</value>
+  </data>
+  <data name="WF_IPAddressEntry_From" xml:space="preserve">
+    <value>From:</value>
+  </data>
+  <data name="WF_IPAddressEntry_Internet" xml:space="preserve">
+    <value>Internet</value>
+  </data>
+  <data name="WF_IPAddressEntry_Intranet" xml:space="preserve">
+    <value>Intranet</value>
+  </data>
+  <data name="WF_IPAddressEntry_LocalSubnet" xml:space="preserve">
+    <value>Local subnet</value>
+  </data>
+  <data name="WF_IPAddressEntry_PlayToRenderers" xml:space="preserve">
+    <value>PlayTo Renderers</value>
+  </data>
+  <data name="WF_IPAddressEntry_PredefinedSetOfComputers" xml:space="preserve">
+    <value>Predefined set of computers:</value>
+  </data>
+  <data name="WF_IPAddressEntry_RemoteCorpNetwork" xml:space="preserve">
+    <value>Remote Corp Network</value>
+  </data>
+  <data name="WF_IPAddressEntry_SpecifyTheIPAddressesToMatch" xml:space="preserve">
+    <value>Specify the IP addresses to match:</value>
+  </data>
+  <data name="WF_IPAddressEntry_ThisIPAddressOrSubnet" xml:space="preserve">
+    <value>This IP address or subnet:</value>
+  </data>
+  <data name="WF_IPAddressEntry_ThisIPAddressRange" xml:space="preserve">
+    <value>This IP address range:</value>
+  </data>
+  <data name="WF_IPAddressEntry_To" xml:space="preserve">
+    <value>To:</value>
+  </data>
+  <data name="WF_IPAddressEntry_Value1921681024" xml:space="preserve">
+    <value>192.168.1.0/24</value>
+  </data>
+  <data name="WF_IPAddressEntry_Value20029d3b1a31420874ffFe390112" xml:space="preserve">
+    <value>2002:9d3b:1a31:4:208:74ff:fe39:0/112</value>
+  </data>
+  <data name="WF_IPAddressEntry_Value20029d3b1a31420874ffFe396c43" xml:space="preserve">
+    <value>2002:9d3b:1a31:4:208:74ff:fe39:6c43</value>
+  </data>
+  <data name="WF_IPAddressEntry_WINSServers" xml:space="preserve">
+    <value>WINS servers</value>
+  </data>
+  <data name="WF_IpsecTunnelAuthorizations_AuthorizedComputers" xml:space="preserve">
+    <value>Authorized computers</value>
+  </data>
+  <data name="WF_IpsecTunnelAuthorizations_AuthorizedUsers" xml:space="preserve">
+    <value>Authorized users</value>
+  </data>
+  <data name="WF_IpsecTunnelAuthorizations_DenyConnectionsFromTheseComputers" xml:space="preserve">
+    <value>Deny connections from these computers:</value>
+  </data>
+  <data name="WF_IpsecTunnelAuthorizations_DenyConnectionsFromTheseUsers" xml:space="preserve">
+    <value>Deny connections from these users:</value>
+  </data>
+  <data name="WF_IpsecTunnelAuthorizations_Exceptions" xml:space="preserve">
+    <value>Exceptions</value>
+  </data>
+  <data name="WF_IpsecTunnelAuthorizations_OnlyAllowConnectionsFromTheseComputers" xml:space="preserve">
+    <value>Only allow connections from these computers:</value>
+  </data>
+  <data name="WF_NewConnectionSecurityRule_AuthenticationExemption" xml:space="preserve">
+    <value>Authentication exemption</value>
+  </data>
+  <data name="WF_NewConnectionSecurityRule_CAName" xml:space="preserve">
+    <value>CA name</value>
+  </data>
+  <data name="WF_NewConnectionSecurityRule_CertificateStoreType" xml:space="preserve">
+    <value>Certificate store type</value>
+  </data>
+  <data name="WF_NewConnectionSecurityRule_ClientToGateway" xml:space="preserve">
+    <value>Client-to-gateway</value>
+  </data>
+  <data name="WF_NewConnectionSecurityRule_ComputerCertificate" xml:space="preserve">
+    <value>Computer certificate</value>
+  </data>
+  <data name="WF_NewConnectionSecurityRule_ConfigureIPEndpoints" xml:space="preserve">
+    <value>Configure IP Endpoints</value>
+  </data>
+  <data name="WF_NewConnectionSecurityRule_CustomConfiguration" xml:space="preserve">
+    <value>Custom configuration</value>
+  </data>
+  <data name="WF_NewConnectionSecurityRule_CustomizeInterfaceTypes" xml:space="preserve">
+    <value>Customize Interface Types...</value>
+  </data>
+  <data name="WF_NewConnectionSecurityRule_Endpoints" xml:space="preserve">
+    <value>Endpoints</value>
+  </data>
+  <data name="WF_NewConnectionSecurityRule_ExemptComputers" xml:space="preserve">
+    <value>Exempt computers</value>
+  </data>
+  <data name="WF_NewConnectionSecurityRule_GatewayToClient" xml:space="preserve">
+    <value>Gateway-to-client</value>
+  </data>
+  <data name="WF_NewConnectionSecurityRule_IKEv2" xml:space="preserve">
+    <value>IKEv2</value>
+  </data>
+  <data name="WF_NewConnectionSecurityRule_Isolation" xml:space="preserve">
+    <value>Isolation</value>
+  </data>
+  <data name="WF_NewConnectionSecurityRule_KeyingModule" xml:space="preserve">
+    <value>Keying module</value>
+  </data>
+  <data name="WF_NewConnectionSecurityRule_NewConnectionSecurityRule" xml:space="preserve">
+    <value>New Connection Security Rule</value>
+  </data>
+  <data name="WF_NewConnectionSecurityRule_NoSendAllNetworkTrafficThatMatchesThisRuleThroughTheTunnel" xml:space="preserve">
+    <value>No. Send all network traffic that matches this rule through the tunnel.</value>
+  </data>
+  <data name="WF_NewConnectionSecurityRule_Requirements" xml:space="preserve">
+    <value>Requirements</value>
+  </data>
+  <data name="WF_NewConnectionSecurityRule_ServerToServer" xml:space="preserve">
+    <value>Server-to-server</value>
+  </data>
+  <data name="WF_NewConnectionSecurityRule_SigningAlgorithm" xml:space="preserve">
+    <value>Signing algorithm</value>
+  </data>
+  <data name="WF_NewConnectionSecurityRule_Tunnel" xml:space="preserve">
+    <value>Tunnel</value>
+  </data>
+  <data name="WF_NewConnectionSecurityRule_TunnelEndpoints" xml:space="preserve">
+    <value>Tunnel Endpoints</value>
+  </data>
+  <data name="WF_NewConnectionSecurityRule_WhatTypeOfTunnelWouldYouLikeToCreate" xml:space="preserve">
+    <value>What type of tunnel would you like to create?</value>
+  </data>
+  <data name="WF_NewConnectionSecurityRule_WouldYouLikeToExemptIPsecProtectedConnectionsFromThisTunnel" xml:space="preserve">
+    <value>Would you like to exempt IPsec-protected connections from this tunnel?</value>
+  </data>
+  <data name="WF_NewConnectionSecurityRule_YesIfANetworkConnectionIsAlreadyProtectedByIPsecThroughAnother" xml:space="preserve">
+    <value>Yes. If a network connection is already protected by IPsec through another rule, do not send packets through this tunnel.</value>
+  </data>
+  <data name="WF_NewFirewallRule_ConfigureIPScope" xml:space="preserve">
+    <value>Configure IP Scope</value>
+  </data>
+  <data name="WF_NewFirewallRule_ExampleCPathProgramExe" xml:space="preserve">
+    <value>Example: C:\path\program.exe</value>
+  </data>
+  <data name="WF_NewFirewallRule_ICMPSettings" xml:space="preserve">
+    <value>ICMP settings</value>
+  </data>
+  <data name="WF_NewFirewallRule_ICMPv4" xml:space="preserve">
+    <value>ICMPv4</value>
+  </data>
+  <data name="WF_NewFirewallRule_ICMPv6" xml:space="preserve">
+    <value>ICMPv6</value>
+  </data>
+  <data name="WF_NewFirewallRule_Port" xml:space="preserve">
+    <value>Port</value>
+  </data>
+  <data name="WF_NewFirewallRule_Predefined" xml:space="preserve">
+    <value>Predefined</value>
+  </data>
+  <data name="WF_NewFirewallRule_PredefinedRule" xml:space="preserve">
+    <value>Predefined rule</value>
+  </data>
+  <data name="WF_NewFirewallRule_SpecifyServices" xml:space="preserve">
+    <value>Specify Services</value>
+  </data>
+  <data name="WF_NewFirewallRule_Value80443" xml:space="preserve">
+    <value>80,443</value>
+  </data>
+  <data name="WF_NewFirewallRule_Value8044380808090" xml:space="preserve">
+    <value>80,443,8080-8090</value>
+  </data>
+  <data name="WF_Principals_ApplicationPackageProperties" xml:space="preserve">
+    <value>Application Package Properties</value>
+  </data>
+  <data name="WF_Principals_LocalUser" xml:space="preserve">
+    <value>Local User</value>
+  </data>
+  <data name="WF_Principals_SkipThisRuleForConnectionsFromTheseUsers" xml:space="preserve">
+    <value>Skip this rule for connections from these users</value>
+  </data>
+  <data name="WF_ProfileFirewallBehavior_AllowsRulesCreatedByLocalAdministratorsToBeMergedWithRulesDistributed" xml:space="preserve">
+    <value>Allows rules created by local administrators to be merged with rules distributed through Group Policy.</value>
+  </data>
+  <data name="WF_ProfileFirewallBehavior_AllowUnicastResponse" xml:space="preserve">
+    <value>Allow unicast response:</value>
+  </data>
+  <data name="WF_ProfileFirewallBehavior_AllowUnicastResponseToMulticastOrBroadcastNetworkTraffic" xml:space="preserve">
+    <value>Allow unicast response to multicast or broadcast network traffic.</value>
+  </data>
+  <data name="WF_ProfileFirewallBehavior_ApplyLocalConnectionSecurityRules" xml:space="preserve">
+    <value>Apply local connection security rules:</value>
+  </data>
+  <data name="WF_ProfileFirewallBehavior_ApplyLocalFirewallRules" xml:space="preserve">
+    <value>Apply local firewall rules:</value>
+  </data>
+  <data name="WF_ProfileFirewallBehavior_DisplayANotification" xml:space="preserve">
+    <value>Display a notification:</value>
+  </data>
+  <data name="WF_ProfileFirewallBehavior_DisplayNotificationsToTheUserWhenAProgramIsBlockedFromReceiving" xml:space="preserve">
+    <value>Display notifications to the user when a program is blocked from receiving inbound connections.</value>
+  </data>
+  <data name="WF_ProfileFirewallBehavior_FirewallSettings" xml:space="preserve">
+    <value>Firewall settings</value>
+  </data>
+  <data name="WF_ProfileFirewallBehavior_RuleMerging" xml:space="preserve">
+    <value>Rule merging</value>
+  </data>
+  <data name="WF_ProfileFirewallBehavior_SpecifySettingsThatControlWindowsDefenderFirewallWithAdvancedSecurityBehavior" xml:space="preserve">
+    <value>Specify settings that control Windows Defender Firewall with Advanced Security behavior.</value>
+  </data>
+  <data name="WF_ProfileFirewallBehavior_UnicastResponse" xml:space="preserve">
+    <value>Unicast response</value>
+  </data>
+  <data name="WF_ProfileLoggingSettings_DefaultPathForTheLogFileIsSystemrootSystem32LogfilesFirewallPfirewall" xml:space="preserve">
+    <value>Default path for the log file is %systemroot%\\system32\\logfiles\\firewall\\pfirewall.log.</value>
+  </data>
+  <data name="WF_ProfileLoggingSettings_LogDroppedPackets" xml:space="preserve">
+    <value>Log dropped packets:</value>
+  </data>
+  <data name="WF_ProfileLoggingSettings_LogSuccessfulConnections" xml:space="preserve">
+    <value>Log successful connections:</value>
+  </data>
+  <data name="WF_ProfileLoggingSettings_Name" xml:space="preserve">
+    <value>Name:</value>
+  </data>
+  <data name="WF_ProfileLoggingSettings_NoteIfYouAreConfiguringTheLogFileNameOnGroupPolicy" xml:space="preserve">
+    <value>Note: If you are configuring the log file name on Group Policy object, ensure that the Windows Defender Firewall service account has write permissions to the folder containing the log file.</value>
+  </data>
+  <data name="WF_ProfileLoggingSettings_SizeLimitKB" xml:space="preserve">
+    <value>Size limit (KB):</value>
+  </data>
+  <data name="WF_ProfileLoggingSettings_System32LogFilesFirewallPfirewallLog" xml:space="preserve">
+    <value>%system32%\\LogFiles\\Firewall\\pfirewall.log</value>
+  </data>
+  <data name="WF_ProtectedNetworkConnections_NetworkConnections" xml:space="preserve">
+    <value>Network connections:</value>
+  </data>
+  <data name="WF_ProtectedNetworkConnections_SelectTheCheckBoxForEachConnectionYouWantWindowsDefenderFirewall" xml:space="preserve">
+    <value>Select the check box for each connection you want Windows Defender Firewall to help protect.</value>
+  </data>
+  <data name="WF_RemoteEndpoints_Endpoint1" xml:space="preserve">
+    <value>Endpoint 1</value>
+  </data>
+  <data name="WF_RemoteEndpoints_Endpoint2" xml:space="preserve">
+    <value>Endpoint 2</value>
+  </data>
+  <data name="WF_ScopeIPAddress_LocalIPAddresses" xml:space="preserve">
+    <value>Local IP addresses</value>
+  </data>
+  <data name="WF_ScopeIPAddress_RemoteIPAddresses" xml:space="preserve">
+    <value>Remote IP addresses</value>
+  </data>
+  <data name="WF_SecurityMethodEditor_DiffieHellmanGroup1" xml:space="preserve">
+    <value>Diffie-Hellman Group 1</value>
+  </data>
+  <data name="WF_SecurityMethodEditor_DiffieHellmanGroup14" xml:space="preserve">
+    <value>Diffie-Hellman Group 14</value>
+  </data>
+  <data name="WF_SecurityMethodEditor_DiffieHellmanGroup2" xml:space="preserve">
+    <value>Diffie-Hellman Group 2</value>
+  </data>
+  <data name="WF_SecurityMethodEditor_DiffieHellmanGroup24" xml:space="preserve">
+    <value>Diffie-Hellman Group 24</value>
+  </data>
+  <data name="WF_SecurityMethodEditor_EllipticCurveDiffieHellmanP256" xml:space="preserve">
+    <value>Elliptic Curve Diffie-Hellman P-256</value>
+  </data>
+  <data name="WF_SecurityMethodEditor_EllipticCurveDiffieHellmanP384" xml:space="preserve">
+    <value>Elliptic Curve Diffie-Hellman P-384</value>
+  </data>
+  <data name="WF_SecurityMethodEditor_KeyExchangeAlgorithm" xml:space="preserve">
+    <value>Key exchange algorithm:</value>
+  </data>
+  <data name="WF_SecurityMethodEditor_SHA384" xml:space="preserve">
+    <value>SHA-384</value>
+  </data>
+  <data name="WF_WindowsFirewall_DomainProfile" xml:space="preserve">
+    <value>Domain Profile</value>
+  </data>
+  <data name="WF_WindowsFirewall_InboundConnectionsThatDoNotMatchARuleAreBlocked" xml:space="preserve">
+    <value>Inbound connections that do not match a rule are blocked.</value>
+  </data>
+  <data name="WF_WindowsFirewall_OutboundConnectionsThatDoNotMatchARuleAreAllowed" xml:space="preserve">
+    <value>Outbound connections that do not match a rule are allowed.</value>
+  </data>
+  <data name="WF_WindowsFirewall_Overview" xml:space="preserve">
+    <value>Overview</value>
+  </data>
+  <data name="WF_WindowsFirewall_PrivateProfile" xml:space="preserve">
+    <value>Private Profile</value>
+  </data>
+  <data name="WF_WindowsFirewall_PublicProfile" xml:space="preserve">
+    <value>Public Profile</value>
+  </data>
+  <data name="WF_WindowsFirewall_RestoreLocalDefaults" xml:space="preserve">
+    <value>Restore local defaults</value>
+  </data>
+  <data name="WF_WindowsFirewall_WindowsDefenderFirewallIsOn" xml:space="preserve">
+    <value>Windows Defender Firewall is on.</value>
+  </data>
+  <data name="WF_WindowsFirewallProperties_AllowDefault" xml:space="preserve">
+    <value>Allow (default)</value>
+  </data>
+  <data name="WF_WindowsFirewallProperties_BlockAllConnections" xml:space="preserve">
+    <value>Block all connections</value>
+  </data>
+  <data name="WF_WindowsFirewallProperties_BlockDefault" xml:space="preserve">
+    <value>Block (default)</value>
+  </data>
+  <data name="WF_WindowsFirewallProperties_ExemptICMPFromIPsec" xml:space="preserve">
+    <value>Exempt ICMP from IPsec</value>
+  </data>
+  <data name="WF_WindowsFirewallProperties_InboundConnections" xml:space="preserve">
+    <value>Inbound connections</value>
+  </data>
+  <data name="WF_WindowsFirewallProperties_IPsecDefaults" xml:space="preserve">
+    <value>IPsec defaults</value>
+  </data>
+  <data name="WF_WindowsFirewallProperties_IPsecExemptions" xml:space="preserve">
+    <value>IPsec exemptions</value>
+  </data>
+  <data name="WF_WindowsFirewallProperties_IPsecSettings" xml:space="preserve">
+    <value>IPsec settings</value>
+  </data>
+  <data name="WF_WindowsFirewallProperties_OutboundConnections" xml:space="preserve">
+    <value>Outbound connections</value>
+  </data>
+  <data name="WF_WindowsFirewallProperties_Profiles" xml:space="preserve">
+    <value>Profiles</value>
+  </data>
+  <data name="WF_WindowsFirewallProperties_ProtectedNetworkConnections" xml:space="preserve">
+    <value>Protected network connections</value>
+  </data>
+  <data name="WF_WindowsFirewallProperties_SpecifyLoggingSettingsForTroubleshooting" xml:space="preserve">
+    <value>Specify logging settings for troubleshooting</value>
+  </data>
+  <data name="WF_WindowsFirewallProperties_SpecifySettingsThatControlWindowsDefenderFirewallBehavior" xml:space="preserve">
+    <value>Specify settings that control Windows Defender Firewall behavior</value>
+  </data>
+  <!-- WF code-behind UI strings -->
+  <data name="WF_RestoreLocalDefaults_Title" xml:space="preserve">
+    <value>Restore local firewall defaults</value>
+  </data>
+  <data name="WF_RestoreLocalDefaults_Message" xml:space="preserve">
+    <value>This will restore the local Windows Defender Firewall configuration to its defaults. Continue?</value>
+  </data>
+  <data name="WF_RestoreLocalDefaults_Button" xml:space="preserve">
+    <value>Restore</value>
+  </data>
+  <data name="WF_ProfileHeader_Format" xml:space="preserve">
+    <value>{0} Profile</value>
+  </data>
+  <data name="WF_ProfileHeaderActive_Format" xml:space="preserve">
+    <value>{0} Profile is Active</value>
+  </data>
+  <data name="WF_FirewallStatus_Format" xml:space="preserve">
+    <value>Windows Defender Firewall is {0}.</value>
+  </data>
+  <data name="WF_InboundOverview_Format" xml:space="preserve">
+    <value>Inbound connections that do not match a rule are {0}.</value>
+  </data>
+  <data name="WF_OutboundOverview_Format" xml:space="preserve">
+    <value>Outbound connections that do not match a rule are {0}.</value>
+  </data>
+  <data name="WF_State_On" xml:space="preserve">
+    <value>on</value>
+  </data>
+  <data name="WF_State_Off" xml:space="preserve">
+    <value>off</value>
+  </data>
+  <data name="WF_Traffic_Blocked" xml:space="preserve">
+    <value>blocked</value>
+  </data>
+  <data name="WF_Traffic_Allowed" xml:space="preserve">
+    <value>allowed</value>
+  </data>
+  <data name="WF_AdvancedCertificateCriteria_Title" xml:space="preserve">
+    <value>Advanced Certificate Criteria Properties</value>
+  </data>
+  <data name="WF_CustomizeAdvancedAuthenticationMethods_Title" xml:space="preserve">
+    <value>Customize Advanced Authentication Methods</value>
+  </data>
+  <data name="WF_CustomizeAdvancedKeyExchange_Title" xml:space="preserve">
+    <value>Customize Advanced Key Exchange Settings</value>
+  </data>
+  <data name="WF_CustomizeDataProtection_Title" xml:space="preserve">
+    <value>Customize Data Protection Settings</value>
+  </data>
+  <data name="WF_CustomizeIcmpSettings_Title" xml:space="preserve">
+    <value>Customize ICMP Settings</value>
+  </data>
+  <data name="WF_CustomizeIpsecDefaults_Title" xml:space="preserve">
+    <value>Customize IPsec Defaults</value>
+  </data>
+  <data name="WF_CustomizeIpsecTunnelSettings_Title" xml:space="preserve">
+    <value>Customize IPsec Tunnel Settings</value>
+  </data>
+  <data name="WF_CustomizeIpsecTunnelAuthorizations_Title" xml:space="preserve">
+    <value>Customize IPsec Tunnel Authorizations</value>
+  </data>
+  <data name="WF_InterfaceTypes_Title" xml:space="preserve">
+    <value>Interface Types</value>
+  </data>
+  <data name="WF_IPAddress_Title" xml:space="preserve">
+    <value>IP Address</value>
+  </data>
+  <data name="WF_ManageIPAddresses_Title" xml:space="preserve">
+    <value>Manage IP Addresses</value>
+  </data>
+  <data name="WF_ManageRemoteEndpoints_Title" xml:space="preserve">
+    <value>Manage Remote Endpoints</value>
+  </data>
+  <data name="WF_Monitoring_AuthorizedUsersComputers" xml:space="preserve">
+    <value>Authorized users and computers:</value>
+  </data>
+  <data name="WF_Monitoring_ExceptedUsersComputers" xml:space="preserve">
+    <value>Excepted users and computers:</value>
+  </data>
+  <data name="WF_Monitoring_IcmpSettings" xml:space="preserve">
+    <value>ICMP settings:</value>
+  </data>
+  <data name="WF_Monitoring_ProgramsAndPortsTab" xml:space="preserve">
+    <value>Programs and Ports</value>
+  </data>
+  <data name="WF_EdgeTraversal_AllowDisplay" xml:space="preserve">
+    <value>Allow edge traversal</value>
+  </data>
+  <data name="WF_EdgeTraversal_BlockDisplay" xml:space="preserve">
+    <value>Block edge traversal</value>
+  </data>
+  <data name="WF_EdgeTraversal_DeferToAppDisplay" xml:space="preserve">
+    <value>Defer to application</value>
+  </data>
+  <data name="WF_EdgeTraversal_DeferToUserDisplay" xml:space="preserve">
+    <value>Defer to user</value>
+  </data>
+  <data name="WF_TunnelEndpoints_ClientToGatewayDescription" xml:space="preserve">
+    <value>Specify the remote tunnel endpoint and the computers that can be reached through the tunnel.</value>
+  </data>
+  <data name="WF_TunnelEndpoints_ClientToGatewayRemoteHeader" xml:space="preserve">
+    <value>What are the remote endpoints?</value>
+  </data>
+  <data name="WF_TunnelEndpoints_GatewayToClientDescription" xml:space="preserve">
+    <value>Specify which computers behind the gateway can be reached through the tunnel.</value>
+  </data>
+  <data name="WF_TunnelEndpoints_GatewayToClientLocalHeader" xml:space="preserve">
+    <value>What are the local endpoints?</value>
+  </data>
+  <data name="WF_TunnelEndpoints_DefaultDescription" xml:space="preserve">
+    <value>Connections from Endpoint 1 to Endpoint 2 pass through the specified tunnel endpoints.</value>
+  </data>
+  <data name="WF_TunnelEndpoints_Endpoint1Header" xml:space="preserve">
+    <value>Which computers are in Endpoint 1?</value>
+  </data>
+  <data name="WF_TunnelEndpoints_Endpoint2Header" xml:space="preserve">
+    <value>Which computers are in Endpoint 2?</value>
+  </data>
+  <data name="WF_TunnelEndpoints_DialogDescription" xml:space="preserve">
+    <value>Connections from Endpoint 1 to Endpoint 2 will pass through the specified tunnel endpoints. Tunnel endpoints are generally gateway servers.</value>
+  </data>
+  <data name="WF_TunnelEndpoints_AuthModeNote" xml:space="preserve">
+    <value>Note: When IPsec tunneling is used, the authentication mode must be set to Require inbound and outbound.</value>
+  </data>
+  <data name="WF_CSR_TunnelType_ClientToGatewayDescription" xml:space="preserve">
+    <value>Use the local computer as one endpoint. Specify the remote endpoint and reachable computers through the tunnel.</value>
+  </data>
+  <data name="WF_CSR_TunnelType_GatewayToClientDescription" xml:space="preserve">
+    <value>Use the local computer as a gateway endpoint. Specify computers that can be reached through the tunnel by a remote client.</value>
+  </data>
+  <data name="WF_CSR_TunnelType_DefaultDescription" xml:space="preserve">
+    <value>Specify the tunnel endpoints and the computers that can be reached at either end of the tunnel.</value>
+  </data>
+  <data name="WF_CSR_Summary_IsolationFormat" xml:space="preserve">
+    <value>Requirements: {0} | Authentication: {1}</value>
+  </data>
+  <data name="WF_CSR_Summary_TunnelFormat" xml:space="preserve">
+    <value>{0} | Endpoint 1: {1} | Endpoint 2: {2}</value>
+  </data>
+  <data name="WF_Icmp_CustomTypeFormat" xml:space="preserve">
+    <value>Type {0}, Code {1}</value>
+  </data>
+  <data name="WF_IpsecDefaults_KeyExchangeRequired" xml:space="preserve">
+    <value>You must specify the Key exchange (Main Mode) settings.</value>
+  </data>
+  <data name="WF_IpsecDefaults_DataProtectionRequired" xml:space="preserve">
+    <value>You must specify the Data protection (Quick Mode) settings.</value>
+  </data>
+  <data name="WF_IpsecDefaults_AuthenticationRequired" xml:space="preserve">
+    <value>You must specify the Authentication method settings.</value>
+  </data>
+  <data name="WF_IpsecTunnelAuth_RemoveInvalidAccounts" xml:space="preserve">
+    <value>Remove invalid or unresolved accounts before saving.</value>
+  </data>
+  <data name="WF_Principals_InvalidAccountTitle" xml:space="preserve">
+    <value>Error: Invalid account selected</value>
+  </data>
+  <data name="WF_Principals_LocalTitle" xml:space="preserve">
+    <value>Manage Local Principals</value>
+  </data>
+  <data name="WF_Principals_LocalDescription" xml:space="preserve">
+    <value>Specify the local user accounts that are authorized to make connections matching this rule.</value>
+  </data>
+  <data name="WF_Principals_LocalAuthorized" xml:space="preserve">
+    <value>Authorized local principals:</value>
+  </data>
+  <data name="WF_Principals_LocalException" xml:space="preserve">
+    <value>Exception local principals:</value>
+  </data>
+  <data name="WF_Principals_RemoteTitle" xml:space="preserve">
+    <value>Manage Remote Users</value>
+  </data>
+  <data name="WF_Principals_RemoteDescription" xml:space="preserve">
+    <value>Specify the remote user accounts that are authorized to make connections matching this rule.</value>
+  </data>
+  <data name="WF_Principals_RemoteAuthorized" xml:space="preserve">
+    <value>Authorized remote users:</value>
+  </data>
+  <data name="WF_Principals_RemoteException" xml:space="preserve">
+    <value>Exception remote users:</value>
+  </data>
+  <data name="WF_AlgorithmDescription_AesCbc128" xml:space="preserve">
+    <value>Faster and stronger than 3DES. Compatible only with Windows Vista and later.</value>
+  </data>
+  <data name="WF_AlgorithmDescription_AesCbc192" xml:space="preserve">
+    <value>Stronger than AES-CBC 128, medium resource usage. Compatible only with Windows Vista and later.</value>
+  </data>
+  <data name="WF_AlgorithmDescription_AesCbc256" xml:space="preserve">
+    <value>Stronger than AES-192, higher resources usage. Compatible only with Windows Vista and later.</value>
+  </data>
+  <data name="WF_AlgorithmDescription_AesGmac128" xml:space="preserve">
+    <value>Compatible with Windows Vista SP1 and later. This is the equivalent of AES-GCM 128 for integrity.</value>
+  </data>
+  <data name="WF_AlgorithmDescription_AesGmac192" xml:space="preserve">
+    <value>Compatible with Windows Vista SP1 and later. This is the equivalent of AES-GCM 192 for integrity.</value>
+  </data>
+  <data name="WF_AlgorithmDescription_AesGmac256" xml:space="preserve">
+    <value>Compatible with Windows Vista SP1 and later. This is the equivalent of AES-GCM 256 for integrity.</value>
+  </data>
+  <data name="WF_AlgorithmDescription_CompatibleVistaSp1" xml:space="preserve">
+    <value>Compatible with Windows Vista SP1 and later.</value>
+  </data>
+  <data name="WF_AlgorithmDescription_Des" xml:space="preserve">
+    <value>Not recommended. This algorithm is provided for backward compatibility only.</value>
+  </data>
+  <data name="WF_AlgorithmDescription_DiffieHellmanGroup1" xml:space="preserve">
+    <value>This algorithm is provided for backward compatibility only.</value>
+  </data>
+  <data name="WF_AlgorithmDescription_DiffieHellmanGroup2" xml:space="preserve">
+    <value>Stronger than DH Group 1.</value>
+  </data>
+  <data name="WF_AlgorithmDescription_DiffieHellmanGroup14" xml:space="preserve">
+    <value>Stronger than DH Group 2.</value>
+  </data>
+  <data name="WF_AlgorithmDescription_EcdhP256" xml:space="preserve">
+    <value>Stronger security, medium resource usage. Compatible only with Windows Vista and later.</value>
+  </data>
+  <data name="WF_AlgorithmDescription_EcdhP384" xml:space="preserve">
+    <value>Strongest security, highest resources usage. Compatible only with Windows Vista and later.</value>
+  </data>
+  <data name="WF_AlgorithmDescription_HigherResourceThanDes" xml:space="preserve">
+    <value>Higher resource usage than DES.</value>
+  </data>
+  <data name="WF_AlgorithmDescription_Md5" xml:space="preserve">
+    <value>Not recommended. This algorithm is provided for backward compatibility only.</value>
+  </data>
+  <data name="WF_AlgorithmDescription_Sha1" xml:space="preserve">
+    <value>Stronger than MD5, uses slightly more resources.</value>
+  </data>
+  <!-- WF monitoring code strings -->
+  <data name="WF_Monitoring_PropertiesTitleFormat" xml:space="preserve">
+    <value>{0} Properties</value>
+  </data>
+  <data name="WF_Monitoring_Label_AhIntegrity" xml:space="preserve">
+    <value>AH integrity</value>
+  </data>
+  <data name="WF_Monitoring_Label_AppPackage" xml:space="preserve">
+    <value>App Package</value>
+  </data>
+  <data name="WF_Monitoring_Label_Cipher" xml:space="preserve">
+    <value>Cipher</value>
+  </data>
+  <data name="WF_Monitoring_Label_Direction" xml:space="preserve">
+    <value>Direction</value>
+  </data>
+  <data name="WF_Monitoring_Label_EdgeTraversal" xml:space="preserve">
+    <value>Edge traversal</value>
+  </data>
+  <data name="WF_Monitoring_Label_EspEncryption" xml:space="preserve">
+    <value>ESP encryption</value>
+  </data>
+  <data name="WF_Monitoring_Label_EspIntegrity" xml:space="preserve">
+    <value>ESP integrity</value>
+  </data>
+  <data name="WF_Monitoring_Label_FirstAuthentication" xml:space="preserve">
+    <value>First authentication</value>
+  </data>
+  <data name="WF_Monitoring_Label_Hash" xml:space="preserve">
+    <value>Hash</value>
+  </data>
+  <data name="WF_Monitoring_Label_KeyExchange" xml:space="preserve">
+    <value>Key exchange</value>
+  </data>
+  <data name="WF_Monitoring_Label_LocalAddress" xml:space="preserve">
+    <value>Local address</value>
+  </data>
+  <data name="WF_Monitoring_Label_LocalEndpoint" xml:space="preserve">
+    <value>Local endpoint</value>
+  </data>
+  <data name="WF_Monitoring_Label_LocalIPAddress" xml:space="preserve">
+    <value>Local IP address</value>
+  </data>
+  <data name="WF_Monitoring_Label_Mode" xml:space="preserve">
+    <value>Mode</value>
+  </data>
+  <data name="WF_Monitoring_Label_RemoteAddress" xml:space="preserve">
+    <value>Remote address</value>
+  </data>
+  <data name="WF_Monitoring_Label_RemoteEndpoint" xml:space="preserve">
+    <value>Remote endpoint</value>
+  </data>
+  <data name="WF_Monitoring_Label_RemoteIPAddress" xml:space="preserve">
+    <value>Remote IP address</value>
+  </data>
+  <data name="WF_Monitoring_Label_SecondAuthentication" xml:space="preserve">
+    <value>Second authentication</value>
+  </data>
+  <data name="WF_Monitoring_Label_Service" xml:space="preserve">
+    <value>Service</value>
+  </data>
+  <!-- WF authentication dialog code strings -->
+  <data name="WF_AddFirstAuthenticationMethod_Title" xml:space="preserve">
+    <value>Add First Authentication Method</value>
+  </data>
+  <data name="WF_EditFirstAuthenticationMethod_Title" xml:space="preserve">
+    <value>Edit First Authentication Method</value>
+  </data>
+  <data name="WF_AddSecondAuthenticationMethod_Title" xml:space="preserve">
+    <value>Add Second Authentication Method</value>
+  </data>
+  <data name="WF_EditSecondAuthenticationMethod_Title" xml:space="preserve">
+    <value>Edit Second Authentication Method</value>
+  </data>
+  <data name="WF_FileDialog_ExecutableFiles" xml:space="preserve">
+    <value>Executable Files</value>
+  </data>
+  <data name="WF_FileDialog_LogFiles" xml:space="preserve">
+    <value>Log Files</value>
+  </data>
+  <data name="WF_FileDialog_AllFiles" xml:space="preserve">
+    <value>All Files</value>
+  </data>
+  <data name="WF_FileDialog_SelectProgramTitle" xml:space="preserve">
+    <value>Select program</value>
+  </data>
+  <data name="WF_Validation_RuleNameRequired" xml:space="preserve">
+    <value>Rule Name is required.</value>
+  </data>
+  <data name="WF_Validation_ProfileRequired" xml:space="preserve">
+    <value>Please select at least one profile.</value>
+  </data>
+  <data name="WF_Validation_ExemptComputerRequired" xml:space="preserve">
+    <value>Please add at least one exempt computer.</value>
+  </data>
+  <data name="WF_Validation_EndpointsRequired" xml:space="preserve">
+    <value>You must specify endpoints for this rule.</value>
+  </data>
+  <data name="WF_Validation_Endpoint1PortsRequired" xml:space="preserve">
+    <value>Please enter endpoint 1 ports.</value>
+  </data>
+  <data name="WF_Validation_Endpoint2PortsRequired" xml:space="preserve">
+    <value>Please enter endpoint 2 ports.</value>
+  </data>
+  <data name="WF_Validation_CertificateAuthorityPathRequired" xml:space="preserve">
+    <value>You must specify the certification authority path.</value>
+  </data>
+  <data name="WF_Validation_CustomAuthenticationRequired" xml:space="preserve">
+    <value>You must specify at least one custom authentication method.</value>
+  </data>
+  <data name="WF_Validation_PresharedKeyRequired" xml:space="preserve">
+    <value>You must enter a preshared key.</value>
+  </data>
+  <data name="WF_Validation_PresharedKeyCannotUseSecondAuthentication" xml:space="preserve">
+    <value>Second authentication cannot be configured when the first authentication methods list contains a preshared key. Remove second authentication methods or clear the optional second authentication setting.</value>
+  </data>
+  <data name="WF_Validation_SecondAuthenticationCategoryMismatch" xml:space="preserve">
+    <value>The second authentication list must contain only user authentication methods or only computer health certificate methods. The selected method does not match the current list.</value>
+  </data>
+  <data name="WF_Validation_FollowRenewalRequiresThumbprint" xml:space="preserve">
+    <value>Certificate renewal cannot be followed unless a certificate thumbprint is specified.</value>
+  </data>
+  <data name="WF_Validation_CertificateNameRestrictionIncomplete" xml:space="preserve">
+    <value>To restrict the certificate name, select a name type and enter a certificate name.</value>
+  </data>
+  <data name="WF_Validation_CustomEkuRequired" xml:space="preserve">
+    <value>Enter a custom EKU value before adding it.</value>
+  </data>
+  <data name="WF_Validation_AddressInterfaceConflict" xml:space="preserve">
+    <value>A local or remote address cannot be used in conjunction with an interface type condition.</value>
+  </data>
+  <data name="WF_Validation_TunnelEndpointFamiliesRequired" xml:space="preserve">
+    <value>Local and remote tunnel endpoint addresses must use matching IP address families.</value>
+  </data>
+  <data name="WF_Validation_Ikev2FirstAuthOnly" xml:space="preserve">
+    <value>IKEv2 tunnel rules support first authentication only. Remove second authentication methods.</value>
+  </data>
+  <data name="WF_Validation_Ikev2UnsupportedAuth" xml:space="preserve">
+    <value>IKEv2 tunnel rules do not support Kerberos, NTLM, or preshared key authentication.</value>
+  </data>
+  <data name="WF_Validation_PredefinedRuleGroupRequired" xml:space="preserve">
+    <value>Please select a predefined rule group.</value>
+  </data>
+  <data name="WF_Validation_PredefinedRuleRequired" xml:space="preserve">
+    <value>Please select at least one predefined rule.</value>
+  </data>
+  <data name="WF_Validation_LocalPortsRequired" xml:space="preserve">
+    <value>Please enter local ports.</value>
+  </data>
+  <data name="WF_Validation_RemotePortsRequired" xml:space="preserve">
+    <value>Please enter remote ports.</value>
+  </data>
+  <data name="WF_Summary_RequirementsAuthenticationFormat" xml:space="preserve">
+    <value>Requirements: {0} | Authentication: {1}</value>
+  </data>
+  <data name="WF_Summary_NoExemptComputers" xml:space="preserve">
+    <value>No exempt computers</value>
+  </data>
+  <data name="WF_Summary_ExemptComputersFormat" xml:space="preserve">
+    <value>Exempt computers: {0}</value>
+  </data>
+  <data name="WF_Summary_EndpointPairFormat" xml:space="preserve">
+    <value>Endpoint 1: {0} | Endpoint 2: {1}</value>
+  </data>
+  <data name="WF_Summary_EndpointArrowFormat" xml:space="preserve">
+    <value>{0} -&gt; {1}</value>
+  </data>
+  <data name="WF_Summary_EndpointSecurityFormat" xml:space="preserve">
+    <value>{0} -&gt; {1} | {2}/{3}</value>
+  </data>
+  <data name="WF_ProfileFirewallBehavior_TitleFormat" xml:space="preserve">
+    <value>Customize Settings for the {0} Profile</value>
+  </data>
+  <data name="WF_ProfileLogging_TitleFormat" xml:space="preserve">
+    <value>Customize Logging Settings for the {0} Profile</value>
+  </data>
+  <data name="WF_ProtectedNetworkConnections_TitleFormat" xml:space="preserve">
+    <value>Protected Network Connections for the {0} Profile</value>
+  </data>
+  <data name="WF_AdvancedKeyExchange_AddSecurityMethodTitle" xml:space="preserve">
+    <value>Add Security Method</value>
+  </data>
+  <data name="WF_AdvancedKeyExchange_EditSecurityMethodTitle" xml:space="preserve">
+    <value>Edit Security Method</value>
+  </data>
+  <data name="WF_DataProtection_AddIntegrityAlgorithmTitle" xml:space="preserve">
+    <value>Add Integrity Algorithm</value>
+  </data>
+  <data name="WF_DataProtection_EditIntegrityAlgorithmTitle" xml:space="preserve">
+    <value>Edit Integrity Algorithm</value>
+  </data>
+  <data name="WF_DataProtection_AddIntegrityEncryptionAlgorithmsTitle" xml:space="preserve">
+    <value>Add Integrity and Encryption Algorithms</value>
+  </data>
+  <data name="WF_DataProtection_EditIntegrityEncryptionAlgorithmsTitle" xml:space="preserve">
+    <value>Edit Integrity and Encryption Algorithms</value>
+  </data>
+  <data name="WF_AuthDetails_KerberosAuthentication" xml:space="preserve">
+    <value>Kerberos authentication</value>
+  </data>
+  <data name="WF_AuthDetails_NtlmAuthentication" xml:space="preserve">
+    <value>NTLMv2 authentication</value>
+  </data>
+  <data name="WF_AuthDetails_AnonymousAuthentication" xml:space="preserve">
+    <value>Anonymous authentication</value>
+  </data>
+  <data name="WF_AuthDetails_NotSet" xml:space="preserve">
+    <value>not set</value>
+  </data>
+  <data name="WF_AuthDetails_CertificateAuthorityFormat" xml:space="preserve">
+    <value>CA: {0}</value>
+  </data>
+  <data name="WF_AuthDetails_AlgorithmFormat" xml:space="preserve">
+    <value>Alg: {0}</value>
+  </data>
+  <data name="WF_AuthDetails_StoreFormat" xml:space="preserve">
+    <value>Store: {0}</value>
+  </data>
+  <data name="WF_AuthDetails_CombinedCertificateFormat" xml:space="preserve">
+    <value>CA: {0}, Alg: {1}, Store: {2}</value>
+  </data>
+  <data name="WF_AuthDetails_HealthCertificatesOnly" xml:space="preserve">
+    <value>Health certificates only</value>
+  </data>
+  <data name="WF_AuthDetails_MappingEnabled" xml:space="preserve">
+    <value>Mapping enabled</value>
+  </data>
+  <data name="WF_AuthDetails_KeyNotSet" xml:space="preserve">
+    <value>Key not set</value>
+  </data>
+  <data name="WF_AuthDetails_KeyConfigured" xml:space="preserve">
+    <value>Key configured</value>
+  </data>
+  <data name="WF_AuthMethod_ComputerKerberos" xml:space="preserve">
+    <value>Computer (Kerberos V5)</value>
+  </data>
+  <data name="WF_AuthMethod_UserKerberos" xml:space="preserve">
+    <value>User (Kerberos V5)</value>
+  </data>
+  <data name="WF_AuthMethod_ComputerNtlm" xml:space="preserve">
+    <value>Computer (NTLMv2)</value>
+  </data>
+  <data name="WF_AuthMethod_UserNtlm" xml:space="preserve">
+    <value>User (NTLMv2)</value>
+  </data>
+  <data name="WF_AuthMethod_Anonymous" xml:space="preserve">
+    <value>Anonymous</value>
+  </data>
+  <data name="WF_AuthMethod_ComputerCertificateFromCA" xml:space="preserve">
+    <value>Computer certificate from CA</value>
+  </data>
+  <data name="WF_AuthMethod_UserCertificateFromCA" xml:space="preserve">
+    <value>User certificate from CA</value>
+  </data>
+  <data name="WF_AuthMethod_ComputerHealthCertificateFromCA" xml:space="preserve">
+    <value>Computer health certificate from CA</value>
+  </data>
+  <data name="WF_CertificateStore_IntermediateCA" xml:space="preserve">
+    <value>Intermediate CA</value>
+  </data>
+  <data name="WF_CertificateStore_RootCADefault" xml:space="preserve">
+    <value>Root CA (default)</value>
+  </data>
+  <data name="WF_SigningAlgorithm_EcdsaP256" xml:space="preserve">
+    <value>ECDSA P-256</value>
+  </data>
+  <data name="WF_SigningAlgorithm_EcdsaP384" xml:space="preserve">
+    <value>ECDSA P-384</value>
+  </data>
+  <data name="WF_SigningAlgorithm_RsaDefault" xml:space="preserve">
+    <value>RSA (default)</value>
+  </data>
+  <data name="WF_AdvancedCriteria_RestrictFormat" xml:space="preserve">
+    <value>Restrict: {0}</value>
+  </data>
+  <data name="WF_AdvancedCriteria_EkuFormat" xml:space="preserve">
+    <value>EKU: {0}</value>
+  </data>
+  <data name="WF_AdvancedCriteria_NameFormat" xml:space="preserve">
+    <value>Name: {0}</value>
+  </data>
+  <data name="WF_AdvancedCriteria_ThumbprintSet" xml:space="preserve">
+    <value>Thumbprint set</value>
+  </data>
+  <data name="WF_AdvancedCriteria_FollowRenewal" xml:space="preserve">
+    <value>Follow renewal</value>
+  </data>
+  <data name="WF_AdvancedCriteria_Configured" xml:space="preserve">
+    <value>Advanced criteria configured</value>
+  </data>
+  <data name="WF_Principals_ResolveAccountsFailedFormat" xml:space="preserve">
+    <value>Failed to resolve one or more accounts. Please remove any invalid accounts and try again.
+
+Details: {0}</value>
+  </data>
+  <data name="WF_AlgorithmDescription_AesGcm128" xml:space="preserve">
+    <value>Faster and stronger than 3DES. Compatible with Windows Vista (SP1) and later.</value>
+  </data>
+  <data name="WF_AlgorithmDescription_AesGcm192" xml:space="preserve">
+    <value>Stronger than AES-GCM/AES-CBC 128, medium resource usage. Compatible with Windows Vista SP1 and later.</value>
+  </data>
+  <data name="WF_AlgorithmDescription_AesGcm256" xml:space="preserve">
+    <value>Stronger than AES-GCM/AES-CBC 192 and 128, higher resource usage. Compatible with Windows Vista SP1 and later.</value>
+  </data>
+  <data name="WF_AlgorithmDescription_DataAesCbc128" xml:space="preserve">
+    <value>Faster and stronger than 3DES. Compatible with Windows Vista (SP1) and later.</value>
+  </data>
+  <data name="WF_AlgorithmDescription_DataAesCbc192" xml:space="preserve">
+    <value>Stronger than AES-GCM/AES-CBC 128, medium resource usage. Compatible with Windows Vista SP1 and later.</value>
+  </data>
+  <data name="WF_AlgorithmDescription_DataAesCbc256" xml:space="preserve">
+    <value>Stronger than AES-GCM/AES-CBC 192 and 128, higher resource usage. Compatible with Windows Vista SP1 and later.</value>
+  </data>
+  <data name="WF_AlgorithmDescription_DiffieHellmanGroup24" xml:space="preserve">
+    <value>Stronger than DH Group 14.</value>
+  </data>
+  <data name="WF_AuthMethod_PresharedKey" xml:space="preserve">
+    <value>Preshared key</value>
+  </data>
+  <data name="WF_AdvancedCriteria_RestrictNoRestriction" xml:space="preserve">
+    <value>No restriction</value>
+  </data>
+  <data name="WF_AdvancedCriteria_RestrictSelectionOnly" xml:space="preserve">
+    <value>Selection only</value>
+  </data>
+  <data name="WF_AdvancedCriteria_RestrictValidationOnly" xml:space="preserve">
+    <value>Validation only</value>
+  </data>
+  <data name="WF_AuthMethod_UnsupportedProposal" xml:space="preserve">
+    <value>Unsupported authentication proposal</value>
+  </data>
+  <data name="WF_AuthDetails_UnsupportedProposalFormat" xml:space="preserve">
+    <value>Class={0}; Method={1}</value>
+  </data>
+  <data name="WF_SecurityRequirement_None" xml:space="preserve">
+    <value>None</value>
+  </data>
+  <data name="WF_SecurityRequirement_Request" xml:space="preserve">
+    <value>Request</value>
+  </data>
+  <data name="WF_SecurityRequirement_Require" xml:space="preserve">
+    <value>Require</value>
+  </data>
+  <data name="WF_Monitoring_Node_SecurityAssociations" xml:space="preserve">
+    <value>Security Associations</value>
+  </data>
+  <data name="WF_Monitoring_Node_MainMode" xml:space="preserve">
+    <value>Main Mode</value>
+  </data>
+  <data name="WF_Monitoring_Node_QuickMode" xml:space="preserve">
+    <value>Quick Mode</value>
+  </data>
+  <data name="WF_Error_UpdateIpsecDefaults" xml:space="preserve">
+    <value>Unable to update IPsec defaults.</value>
+  </data>
+  <data name="WF_Error_UpdateIpsecTunnelAuthorization" xml:space="preserve">
+    <value>Unable to update IPsec tunnel authorization.</value>
+  </data>
+  <data name="WF_Error_UpdateIpsecIcmpExemption" xml:space="preserve">
+    <value>Unable to update IPsec ICMP exemption.</value>
+  </data>
+  <data name="WF_CurrentSetting_Format" xml:space="preserve">
+    <value>Current setting: {0}</value>
+  </data>
+  <data name="WF_TunnelEndpoints_LocalEndpointTitle" xml:space="preserve">
+    <value>Local tunnel endpoint</value>
+  </data>
+  <data name="WF_TunnelEndpoints_RemoteEndpointTitle" xml:space="preserve">
+    <value>Remote tunnel endpoint</value>
+  </data>
+  <data name="WF_Monitoring_Node_Firewall" xml:space="preserve">
+    <value>Firewall</value>
+  </data>
+  <data name="WF_WindowsFirewall_ConnectionSecurityRulesDescription" xml:space="preserve">
+    <value>Define IPsec rules to secure and authenticate computer connections</value>
+  </data>
+  <data name="WF_WindowsFirewall_InboundRulesDescription" xml:space="preserve">
+    <value>Configure rules for incoming network traffic</value>
+  </data>
+  <data name="WF_WindowsFirewall_MonitoringDescription" xml:space="preserve">
+    <value>Display active firewall rules and IPsec security associations</value>
+  </data>
+  <data name="WF_WindowsFirewall_OutboundRulesDescription" xml:space="preserve">
+    <value>Configure rules for outgoing network traffic</value>
+  </data>
+  <data name="WF_WindowsFirewall_PropertiesDescription" xml:space="preserve">
+    <value>Customize profile and IPsec settings</value>
+  </data>
+</root>

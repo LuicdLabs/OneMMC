@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ContentDialog
+    x:Class="ManagementTools.Views.DiskMgmt.MountToFolderDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
+    xmlns:local="using:ManagementTools.Views.DiskMgmt"
+    xmlns:core="using:ManagementTools.Core.Features.PCManagement.Models.DiskMgmt"
+    xmlns:localization="using:ManagementTools.Localization"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    CloseButtonText="{x:Bind LocalizedStrings.Common_CancelButton}"
+    PrimaryButtonText="{x:Bind LocalizedStrings.DiskMgmt_Mount}"
+    DefaultButton="Primary"
+    Style="{StaticResource DefaultContentDialogStyle}">
+
+    <ContentDialog.Resources>
+        <localization:LocalizedStrings x:Key="LocalizedStrings" />
+    </ContentDialog.Resources>
+
+    <Grid MinWidth="450" MinHeight="200">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <TextBlock
+            Grid.Row="0"
+            Margin="0,0,0,12"
+            Style="{StaticResource SubtitleTextBlockStyle}"
+            Text="{x:Bind LocalizedStrings.DiskMgmt_MountToFolderTitle}"
+            TextWrapping="Wrap" />
+
+        <!-- Content -->
+        <ScrollViewer Grid.Row="1">
+            <StackPanel Spacing="12">
+                <TextBlock Text="{x:Bind LocalizedStrings.DiskMgmt_Volume}" FontWeight="SemiBold" />
+                <TextBlock x:Name="VolumeInfoTextBlock" />
+
+                <TextBlock Text="{x:Bind LocalizedStrings.DiskMgmt_MountPoint}" FontWeight="SemiBold" />
+                <TextBox x:Name="MountPathTextBox" PlaceholderText="{x:Bind LocalizedStrings.DiskMgmt_MountPointPlaceholder}" />
+                
+                <InfoBar Severity="Informational" IsOpen="True" IsClosable="False" Message="{x:Bind LocalizedStrings.DiskMgmt_MountInfo}" />
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</ContentDialog>

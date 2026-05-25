@@ -1,0 +1,65 @@
+name: Bug report
+description: Report a problem or unexpected behavior
+title: "[Bug] "
+labels: ["bug"]
+assignees: ["Editird"]
+type: bug
+body:
+  - type: textarea
+    id: problem
+    validations:
+      required: true
+    attributes:
+      label: What happened?
+      description: Describe the problem you encountered.
+      placeholder: "Example: Clicking the button, the app shows an error message."
+
+  - type: textarea
+    id: steps
+    validations:
+      required: true
+    attributes:
+      label: How can we reproduce it?
+      description: Tell us the steps to reproduce the issue.
+      placeholder: |
+        1. Open the app
+        2. Click ...
+        3. See the issue
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: "What did you expect to happen?"
+      placeholder: "Example: The app should enable the service normally."
+
+  - type: upload
+    id: log_file
+    validations:
+      required: true
+    attributes:
+      label: "Log file"
+      description: |
+        Upload your log file.
+
+        Usually located at:
+        %LOCALAPPDATA%\ManagementTools\Logs\
+
+  - type: input
+    id: app_version
+    validations:
+      required: true
+    attributes:
+      label: App version
+      placeholder: "Example: 1.0.0"
+
+  - type: input
+    id: windows_version
+    attributes:
+      label: "Windows version"
+      placeholder: "Example: Windows 11 26200.8457 (check winver)"
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: Additional Context (optional)
+      description: Screenshots or anything else that may help.

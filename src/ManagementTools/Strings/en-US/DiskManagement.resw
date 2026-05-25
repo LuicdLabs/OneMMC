@@ -1,0 +1,561 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="DiskMgmt_VirtualHardDisk" xml:space="preserve">
+    <value>Virtual hard disk (VHD)</value>
+  </data>
+  <data name="DiskMgmt_VirtualHardDiskDescription" xml:space="preserve">
+    <value>Create, attach, or detach virtual hard disks</value>
+  </data>
+  <data name="DiskMgmt_Attach" xml:space="preserve">
+    <value>Attach</value>
+  </data>
+  <data name="DiskMgmt_Detach" xml:space="preserve">
+    <value>Detach</value>
+  </data>
+  <data name="DiskMgmt_OpenDiskManagement" xml:space="preserve">
+    <value>Open Disk Management</value>
+  </data>
+  <data name="DiskMgmt_Properties" xml:space="preserve">
+    <value>Properties</value>
+  </data>
+  <data name="DiskMgmt_InitializeDisk" xml:space="preserve">
+    <value>Initialize Disk</value>
+  </data>
+  <data name="DiskMgmt_CreateSimpleVolume" xml:space="preserve">
+    <value>Create Simple Volume</value>
+  </data>
+  <data name="DiskMgmt_Online" xml:space="preserve">
+    <value>Online</value>
+  </data>
+  <data name="DiskMgmt_Offline" xml:space="preserve">
+    <value>Offline</value>
+  </data>
+  <data name="DiskMgmt_SetReadOnly" xml:space="preserve">
+    <value>Set Read-Only</value>
+  </data>
+  <data name="DiskMgmt_ClearReadOnly" xml:space="preserve">
+    <value>Clear Read-Only</value>
+  </data>
+  <data name="DiskMgmt_CleanDisk" xml:space="preserve">
+    <value>Clean Disk</value>
+  </data>
+  <data name="DiskMgmt_SystemProtected" xml:space="preserve">
+    <value>System Protected</value>
+  </data>
+  <data name="DiskMgmt_OpenInFileExplorer" xml:space="preserve">
+    <value>Open in File Explorer</value>
+  </data>
+  <data name="DiskMgmt_NewSimpleVolume" xml:space="preserve">
+    <value>New Simple Volume</value>
+  </data>
+  <data name="DiskMgmt_ManageDriveLetter" xml:space="preserve">
+    <value>Manage Drive Letter</value>
+  </data>
+  <data name="DiskMgmt_RemoveDriveLetter" xml:space="preserve">
+    <value>Remove Drive Letter</value>
+  </data>
+  <data name="DiskMgmt_MountToFolder" xml:space="preserve">
+    <value>Mount to Folder</value>
+  </data>
+  <data name="DiskMgmt_ExtendVolume" xml:space="preserve">
+    <value>Extend Volume</value>
+  </data>
+  <data name="DiskMgmt_ShrinkVolume" xml:space="preserve">
+    <value>Shrink Volume</value>
+  </data>
+  <data name="DiskMgmt_Format" xml:space="preserve">
+    <value>Format</value>
+  </data>
+  <data name="DiskMgmt_MarkAsActive" xml:space="preserve">
+    <value>Mark as Active</value>
+  </data>
+  <data name="DiskMgmt_DeleteVolume" xml:space="preserve">
+    <value>Delete Volume</value>
+  </data>
+  <data name="DiskMgmt_Eject" xml:space="preserve">
+    <value>Eject</value>
+  </data>
+  <data name="DiskMgmt_EjectDiscTray" xml:space="preserve">
+    <value>Eject disc tray</value>
+  </data>
+  <data name="DiskMgmt_FormatVolume" xml:space="preserve">
+    <value>Format Volume</value>
+  </data>
+  <data name="DiskMgmt_FormatWarning" xml:space="preserve">
+    <value>Warning: Formatting will erase all data on this volume. Please back up any data you want to keep before formatting.</value>
+  </data>
+  <data name="DiskMgmt_Drive" xml:space="preserve">
+    <value>Drive:</value>
+  </data>
+  <data name="DiskMgmt_VolumeLabel" xml:space="preserve">
+    <value>Volume Label:</value>
+  </data>
+  <data name="DiskMgmt_FileSystem" xml:space="preserve">
+    <value>File System:</value>
+  </data>
+  <data name="DiskMgmt_AllocationUnitSize" xml:space="preserve">
+    <value>Allocation Unit Size:</value>
+  </data>
+  <data name="DiskMgmt_Default" xml:space="preserve">
+    <value>Default</value>
+  </data>
+  <data name="DiskMgmt_PerformQuickFormat" xml:space="preserve">
+    <value>Perform a quick format</value>
+  </data>
+  <data name="DiskMgmt_EnableCompression" xml:space="preserve">
+    <value>Enable file and folder compression</value>
+  </data>
+  <data name="DiskMgmt_CreateVHD" xml:space="preserve">
+    <value>Create Virtual Hard Disk</value>
+  </data>
+  <data name="DiskMgmt_Location" xml:space="preserve">
+    <value>Location:</value>
+  </data>
+  <data name="DiskMgmt_VHDSize" xml:space="preserve">
+    <value>Virtual hard disk size (MiB):</value>
+  </data>
+  <data name="DiskMgmt_VHDFormat" xml:space="preserve">
+    <value>Virtual hard disk format:</value>
+  </data>
+  <data name="DiskMgmt_VHDType" xml:space="preserve">
+    <value>Virtual hard disk type:</value>
+  </data>
+  <data name="DiskMgmt_FixedSize" xml:space="preserve">
+    <value>Fixed size</value>
+  </data>
+  <data name="DiskMgmt_DynamicallyExpanding" xml:space="preserve">
+    <value>Dynamically expanding (Recommended)</value>
+  </data>
+  <data name="DiskMgmt_AttachVHD" xml:space="preserve">
+    <value>Attach Virtual Hard Disk</value>
+  </data>
+  <data name="DiskMgmt_VHDLocation" xml:space="preserve">
+    <value>Location:</value>
+  </data>
+  <data name="DiskMgmt_ReadOnly" xml:space="preserve">
+    <value>Read-only</value>
+  </data>
+  <data name="DiskMgmt_InitializeDiskTitle" xml:space="preserve">
+    <value>Initialize Disk</value>
+  </data>
+  <data name="DiskMgmt_SelectPartitionStyle" xml:space="preserve">
+    <value>Select the partition style for the selected disk:</value>
+  </data>
+  <data name="DiskMgmt_MBR" xml:space="preserve">
+    <value>MBR (Master Boot Record)</value>
+  </data>
+  <data name="DiskMgmt_GPT" xml:space="preserve">
+    <value>GPT (GUID Partition Table)</value>
+  </data>
+  <data name="DiskMgmt_MBRDescription" xml:space="preserve">
+    <value>For disks smaller than 2TB and compatibility with older systems</value>
+  </data>
+  <data name="DiskMgmt_GPTDescription" xml:space="preserve">
+    <value>For disks larger than 2TB and modern systems with UEFI</value>
+  </data>
+  <data name="DiskMgmt_ShrinkVolumeTitle" xml:space="preserve">
+    <value>Shrink Volume</value>
+  </data>
+  <data name="DiskMgmt_TotalSizeBeforeShrink" xml:space="preserve">
+    <value>Total size before shrink in MB:</value>
+  </data>
+  <data name="DiskMgmt_SizeOfAvailableShrinkSpace" xml:space="preserve">
+    <value>Size of available shrink space in MB:</value>
+  </data>
+  <data name="DiskMgmt_EnterAmountToShrink" xml:space="preserve">
+    <value>Enter the amount of space to shrink in MB:</value>
+  </data>
+  <data name="DiskMgmt_TotalSizeAfterShrink" xml:space="preserve">
+    <value>Total size after shrink in MB:</value>
+  </data>
+  <data name="DiskMgmt_Shrink" xml:space="preserve">
+    <value>Shrink</value>
+  </data>
+  <data name="DiskMgmt_ExtendVolumeTitle" xml:space="preserve">
+    <value>Extend Volume</value>
+  </data>
+  <data name="DiskMgmt_SelectAmountOfSpace" xml:space="preserve">
+    <value>Select the amount of space in MB:</value>
+  </data>
+  <data name="DiskMgmt_MaximumAvailableSpace" xml:space="preserve">
+    <value>Maximum available space in MB:</value>
+  </data>
+  <data name="DiskMgmt_SelectedSpace" xml:space="preserve">
+    <value>Selected space in MB:</value>
+  </data>
+  <data name="DiskMgmt_Extend" xml:space="preserve">
+    <value>Extend</value>
+  </data>
+  <data name="DiskMgmt_ManageDriveLetterTitle" xml:space="preserve">
+    <value>Change Drive Letter and Paths</value>
+  </data>
+  <data name="DiskMgmt_AssignDriveLetter" xml:space="preserve">
+    <value>Assign the following drive letter:</value>
+  </data>
+  <data name="DiskMgmt_DoNotAssignDriveLetter" xml:space="preserve">
+    <value>Do not assign a drive letter or drive path</value>
+  </data>
+  <data name="DiskMgmt_MountInEmptyNTFSFolder" xml:space="preserve">
+    <value>Mount in the following empty NTFS folder:</value>
+  </data>
+  <data name="DiskMgmt_VolumeProperties" xml:space="preserve">
+    <value>Volume Properties</value>
+  </data>
+  <data name="DiskMgmt_General" xml:space="preserve">
+    <value>General</value>
+  </data>
+  <data name="DiskMgmt_Type" xml:space="preserve">
+    <value>Type:</value>
+  </data>
+  <data name="DiskMgmt_UsedSpace" xml:space="preserve">
+    <value>Used space:</value>
+  </data>
+  <data name="DiskMgmt_FreeSpace" xml:space="preserve">
+    <value>Free space:</value>
+  </data>
+  <data name="DiskMgmt_Capacity" xml:space="preserve">
+    <value>Capacity:</value>
+  </data>
+  <data name="DiskMgmt_DiskProperties" xml:space="preserve">
+    <value>Disk Properties</value>
+  </data>
+  <data name="DiskMgmt_Model" xml:space="preserve">
+    <value>Model:</value>
+  </data>
+  <data name="DiskMgmt_Interface" xml:space="preserve">
+    <value>Interface:</value>
+  </data>
+  <data name="DiskMgmt_Status" xml:space="preserve">
+    <value>Status:</value>
+  </data>
+  <data name="DiskMgmt_PartitionStyle" xml:space="preserve">
+    <value>Partition style:</value>
+  </data>
+  <data name="DiskMgmt_CreateSimpleVolumeTitle" xml:space="preserve">
+    <value>Create Simple Volume</value>
+  </data>
+  <data name="DiskMgmt_Disk" xml:space="preserve">
+    <value>Disk:</value>
+  </data>
+  <data name="DiskMgmt_VolumeSizeMB" xml:space="preserve">
+    <value>Volume Size (MB):</value>
+  </data>
+  <data name="DiskMgmt_DriveLetter" xml:space="preserve">
+    <value>Drive Letter:</value>
+  </data>
+  <data name="DiskMgmt_NewVolume" xml:space="preserve">
+    <value>New Volume</value>
+  </data>
+  <data name="DiskMgmt_DeleteVolumeTitle" xml:space="preserve">
+    <value>Delete Volume</value>
+  </data>
+  <data name="DiskMgmt_DeleteVolumeWarning" xml:space="preserve">
+    <value>WARNING: Deleting a volume will permanently erase all data on it. This action cannot be undone.</value>
+  </data>
+  <data name="DiskMgmt_Volume" xml:space="preserve">
+    <value>Volume:</value>
+  </data>
+  <data name="DiskMgmt_ConfirmDeleteVolume" xml:space="preserve">
+    <value>I understand that all data on this volume will be permanently erased</value>
+  </data>
+  <data name="DiskMgmt_CleanDiskTitle" xml:space="preserve">
+    <value>Clean Disk</value>
+  </data>
+  <data name="DiskMgmt_CleanDiskWarning" xml:space="preserve">
+    <value>WARNING: Cleaning a disk will permanently erase all data on the disk. This action cannot be undone.</value>
+  </data>
+  <data name="DiskMgmt_ConfirmCleanDisk" xml:space="preserve">
+    <value>I understand that all data on this disk will be permanently erased</value>
+  </data>
+  <data name="DiskMgmt_CDROMPropertiesTitle" xml:space="preserve">
+    <value>CD-ROM Properties</value>
+  </data>
+  <data name="DiskMgmt_Name" xml:space="preserve">
+    <value>Name:</value>
+  </data>
+  <data name="DiskMgmt_Manufacturer" xml:space="preserve">
+    <value>Manufacturer:</value>
+  </data>
+  <data name="DiskMgmt_Media" xml:space="preserve">
+    <value>Media</value>
+  </data>
+  <data name="DiskMgmt_MediaLoaded" xml:space="preserve">
+    <value>Media Loaded:</value>
+  </data>
+  <data name="DiskMgmt_VolumeName" xml:space="preserve">
+    <value>Volume Name:</value>
+  </data>
+  <data name="DiskMgmt_MediaType" xml:space="preserve">
+    <value>Media Type:</value>
+  </data>
+  <data name="DiskMgmt_Size" xml:space="preserve">
+    <value>Size:</value>
+  </data>
+  <data name="DiskMgmt_Hardware" xml:space="preserve">
+    <value>Hardware</value>
+  </data>
+  <data name="DiskMgmt_SCSIBus" xml:space="preserve">
+    <value>SCSI Bus:</value>
+  </data>
+  <data name="DiskMgmt_SCSIPort" xml:space="preserve">
+    <value>SCSI Port:</value>
+  </data>
+  <data name="DiskMgmt_SCSITarget" xml:space="preserve">
+    <value>SCSI Target:</value>
+  </data>
+  <data name="DiskMgmt_SCSILUN" xml:space="preserve">
+    <value>SCSI LUN:</value>
+  </data>
+  <data name="DiskMgmt_MarkPartitionActiveTitle" xml:space="preserve">
+    <value>Mark Partition as Active</value>
+  </data>
+  <data name="DiskMgmt_MarkActive" xml:space="preserve">
+    <value>Mark Active</value>
+  </data>
+  <data name="DiskMgmt_MarkActiveWarning" xml:space="preserve">
+    <value>This is typically used for boot partitions on MBR disks.</value>
+  </data>
+  <data name="DiskMgmt_MarkActiveConfirm" xml:space="preserve">
+    <value>Are you sure you want to mark this partition as active? Marking the wrong partition as active may prevent your system from booting.</value>
+  </data>
+  <data name="DiskMgmt_MountToFolderTitle" xml:space="preserve">
+    <value>Mount Volume to Folder</value>
+  </data>
+  <data name="DiskMgmt_Mount" xml:space="preserve">
+    <value>Mount</value>
+  </data>
+  <data name="DiskMgmt_MountPoint" xml:space="preserve">
+    <value>Mount Point (Folder Path):</value>
+  </data>
+  <data name="DiskMgmt_MountPointPlaceholder" xml:space="preserve">
+    <value>C:\Mount\MyVolume</value>
+  </data>
+  <data name="DiskMgmt_MountInfo" xml:space="preserve">
+    <value>The folder must be empty and on an NTFS volume. Mounting to a folder allows you to access the volume's content through a folder path instead of a drive letter.</value>
+  </data>
+  <data name="DiskMgmt_RemoveDriveLetterTitle" xml:space="preserve">
+    <value>Remove Drive Letter</value>
+  </data>
+  <data name="DiskMgmt_RemoveDriveLetterConfirm" xml:space="preserve">
+    <value>Are you sure you want to remove the drive letter {0} from this volume?</value>
+  </data>
+  <data name="DiskMgmt_Warning" xml:space="preserve">
+    <value>Warning</value>
+  </data>
+  <data name="DiskMgmt_VHDOperations" xml:space="preserve">
+    <value>Attach/Detach</value>
+  </data>
+  <data name="DiskMgmt_AccessDenied_Operation" xml:space="preserve">
+    <value>{0}: Access denied. Administrator privileges required.</value>
+  </data>
+  <data name="DiskMgmt_AccessDenied_AdminRequired" xml:space="preserve">
+    <value>Access denied (Administrator privileges required)</value>
+  </data>
+  <data name="DiskMgmt_DiskLabel" xml:space="preserve">
+    <value>Disk</value>
+  </data>
+  <data name="DiskMgmt_Healthy" xml:space="preserve">
+    <value>Healthy</value>
+  </data>
+  <data name="DiskMgmt_HealthWarning" xml:space="preserve">
+    <value>Warning</value>
+  </data>
+  <data name="DiskMgmt_HealthUnhealthy" xml:space="preserve">
+    <value>Unhealthy</value>
+  </data>
+  <data name="DiskMgmt_HealthUnknown" xml:space="preserve">
+    <value>Unknown</value>
+  </data>
+  <data name="DiskMgmt_Unallocated" xml:space="preserve">
+    <value>Unallocated</value>
+  </data>
+  <data name="DiskMgmt_UnallocatedSpace" xml:space="preserve">
+    <value>Unallocated Space</value>
+  </data>
+  <data name="DiskMgmt_LocalDiskLabel" xml:space="preserve">
+    <value>Local Disk</value>
+  </data>
+  <data name="DiskMgmt_NoLabel" xml:space="preserve">
+    <value>No Label</value>
+  </data>
+  <data name="DiskMgmt_NoMedia" xml:space="preserve">
+    <value>No media</value>
+  </data>
+  <data name="DiskMgmt_MediaLoadedLabel" xml:space="preserve">
+    <value>Media loaded:</value>
+  </data>
+  <data name="DiskMgmt_Usage" xml:space="preserve">
+    <value>Usage:</value>
+  </data>
+  <data name="DiskMgmt_Health" xml:space="preserve">
+    <value>Health:</value>
+  </data>
+  <data name="DiskMgmt_Bootable" xml:space="preserve">
+    <value>Bootable:</value>
+  </data>
+  <data name="DiskMgmt_Primary" xml:space="preserve">
+    <value>Primary:</value>
+  </data>
+  <data name="DiskMgmt_Advanced" xml:space="preserve">
+    <value>Advanced</value>
+  </data>
+  <data name="DiskMgmt_DeviceId" xml:space="preserve">
+    <value>Device ID:</value>
+  </data>
+  <data name="DiskMgmt_StartingOffset" xml:space="preserve">
+    <value>Starting Offset:</value>
+  </data>
+  <data name="DiskMgmt_BlockSize" xml:space="preserve">
+    <value>Block Size:</value>
+  </data>
+  <data name="DiskMgmt_VolumeSerial" xml:space="preserve">
+    <value>Volume Serial:</value>
+  </data>
+  <data name="DiskMgmt_SerialNumber" xml:space="preserve">
+    <value>Serial Number:</value>
+  </data>
+  <data name="DiskMgmt_Partitions" xml:space="preserve">
+    <value>Partitions:</value>
+  </data>
+  <data name="DiskMgmt_Firmware" xml:space="preserve">
+    <value>Firmware:</value>
+  </data>
+  <data name="DiskMgmt_BytesPerSector" xml:space="preserve">
+    <value>Bytes/Sector:</value>
+  </data>
+  <data name="DiskMgmt_TotalSectors" xml:space="preserve">
+    <value>Total Sectors:</value>
+  </data>
+  <data name="DiskMgmt_TotalCylinders" xml:space="preserve">
+    <value>Total Cylinders:</value>
+  </data>
+  <data name="DiskMgmt_TotalHeads" xml:space="preserve">
+    <value>Total Heads:</value>
+  </data>
+  <data name="DiskMgmt_VirtualDisk" xml:space="preserve">
+    <value>Virtual Disk</value>
+  </data>
+  <data name="DiskMgmt_IsVirtual" xml:space="preserve">
+    <value>Virtual:</value>
+  </data>
+  <data name="DiskMgmt_Yes" xml:space="preserve">
+    <value>Yes</value>
+  </data>
+</root>

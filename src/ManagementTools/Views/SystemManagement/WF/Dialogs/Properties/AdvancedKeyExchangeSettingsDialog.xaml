@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<UserControl
+    x:Class="ManagementTools.Views.Dialogs.WFProperties.AdvancedKeyExchangeSettingsDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:ManagementTools.Localization"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <UserControl.Resources>
+        <local:LocalizedStrings x:Key="LocalizedStrings" />
+    </UserControl.Resources>
+
+    <Grid MinWidth="760" MinHeight="520" RowSpacing="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <Border
+            Grid.Row="0"
+            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+            BorderThickness="1"
+            CornerRadius="4"
+            Padding="10">
+            <Grid RowSpacing="8">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <TextBlock
+                    Grid.Row="0"
+                    Text="{Binding WF_AdvancedKeyExchangeSettings_UseTheFollowingSecurityMethodsForKeyExchangeThoseHigherInThe, Source={StaticResource LocalizedStrings}}"
+                    TextWrapping="Wrap" />
+
+                <Grid Grid.Row="1" ColumnSpacing="8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <ListView
+                        x:Name="SecurityMethodsListView"
+                        Grid.Column="0"
+                        MinHeight="220"
+                        SelectionChanged="SecurityMethodsListView_SelectionChanged"
+                        SelectionMode="Single">
+                        <ListView.Header>
+                            <Grid ColumnSpacing="8" Padding="8,4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="2*" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" FontWeight="SemiBold" Text="{Binding WF_Common_Integrity, Source={StaticResource LocalizedStrings}}" />
+                                <TextBlock Grid.Column="1" FontWeight="SemiBold" Text="{Binding WF_Common_Encryption, Source={StaticResource LocalizedStrings}}" />
+                                <TextBlock Grid.Column="2" FontWeight="SemiBold" Text="{Binding WF_AdvancedKeyExchangeSettings_KeyExchangeAlgorithm, Source={StaticResource LocalizedStrings}}" />
+                            </Grid>
+                        </ListView.Header>
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <Grid ColumnSpacing="8" Padding="0,4">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="2*" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="{Binding IntegrityAlgorithm}" TextWrapping="Wrap" />
+                                    <TextBlock Grid.Column="1" Text="{Binding EncryptionAlgorithm}" TextWrapping="Wrap" />
+                                    <TextBlock Grid.Column="2" Text="{Binding KeyExchangeAlgorithm}" TextWrapping="Wrap" />
+                                </Grid>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="6">
+                        <Button
+                            x:Name="MoveUpButton"
+                            Width="34"
+                            Click="MoveUpButton_Click"
+                            Content="&#xE70E;"
+                            FontFamily="Segoe MDL2 Assets" />
+                        <Button
+                            x:Name="MoveDownButton"
+                            Width="34"
+                            Click="MoveDownButton_Click"
+                            Content="&#xE70D;"
+                            FontFamily="Segoe MDL2 Assets" />
+                    </StackPanel>
+                </Grid>
+
+                <StackPanel
+                    Grid.Row="2"
+                    Orientation="Horizontal"
+                    Spacing="8">
+                    <Button
+                        x:Name="AddButton"
+                        MinWidth="88"
+                        Click="AddButton_Click"
+                        Content="{Binding WF_Common_AddEllipsis, Source={StaticResource LocalizedStrings}}" />
+                    <Button
+                        x:Name="EditButton"
+                        MinWidth="88"
+                        Click="EditButton_Click"
+                        Content="{Binding WF_Common_Edit, Source={StaticResource LocalizedStrings}}" />
+                    <Button
+                        x:Name="RemoveButton"
+                        MinWidth="88"
+                        Click="RemoveButton_Click"
+                        Content="{Binding Common_RemoveButton, Source={StaticResource LocalizedStrings}}" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <Grid Grid.Row="1" ColumnSpacing="10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <Border
+                Grid.Column="0"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="4"
+                Padding="10">
+                <StackPanel Spacing="10">
+                    <TextBlock FontWeight="SemiBold" Text="{Binding WF_Common_KeyLifetimes, Source={StaticResource LocalizedStrings}}" />
+                    <TextBlock
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Text="{Binding WF_AdvancedKeyExchangeSettings_SpecifyWhenANewKeyIsGeneratedIfYouSelectBothOptions, Source={StaticResource LocalizedStrings}}"
+                        TextWrapping="Wrap" />
+
+                    <Grid ColumnSpacing="8" RowSpacing="8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="140" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" Text="{Binding WF_Common_Minutes, Source={StaticResource LocalizedStrings}}" />
+                        <NumberBox
+                            x:Name="MinutesLifetimeNumberBox"
+                            Grid.Row="0"
+                            Grid.Column="1"
+                            Minimum="0"
+                            SpinButtonPlacementMode="Inline"
+                            Value="480" />
+
+                        <TextBlock Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" Text="{Binding WF_AdvancedKeyExchangeSettings_Sessions, Source={StaticResource LocalizedStrings}}" />
+                        <NumberBox
+                            x:Name="SessionsLifetimeNumberBox"
+                            Grid.Row="1"
+                            Grid.Column="1"
+                            Minimum="0"
+                            SpinButtonPlacementMode="Inline"
+                            Value="0" />
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <Border
+                Grid.Column="1"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="4"
+                Padding="10">
+                <StackPanel Spacing="10">
+                    <TextBlock FontWeight="SemiBold" Text="{Binding WF_AdvancedKeyExchangeSettings_KeyExchangeOptions, Source={StaticResource LocalizedStrings}}" />
+                    <CheckBox
+                        x:Name="UseDiffieHellmanCheckBox"
+                        Content="{Binding WF_AdvancedKeyExchangeSettings_UseDiffieHellmanForEnhancedSecurity, Source={StaticResource LocalizedStrings}}" />
+                    <TextBlock
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Text="{Binding WF_AdvancedKeyExchangeSettings_CompatibleWithWindowsVistaAndLater, Source={StaticResource LocalizedStrings}}"
+                        TextWrapping="Wrap" />
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

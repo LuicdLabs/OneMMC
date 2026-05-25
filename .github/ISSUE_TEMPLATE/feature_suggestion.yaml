@@ -1,0 +1,28 @@
+name: Feature suggestion
+description: Suggest an idea for this project
+title: "[Suggest] "
+labels: ["enhancement"]
+assignees: ["Editird"]
+type: feature
+body:
+  - type: textarea
+    id: overview
+    validations:
+      required: true
+    attributes:
+      label: "Overview"
+      description: "Tell us what feature or improvement you'd like to see."
+      placeholder: "Example: I want to filter services by status."
+
+  - type: textarea
+    id: reason
+    attributes:
+      label: "Why is this useful?"
+      description: "What problem would this solve for you?"
+      placeholder: "Example: It would help me quickly find stopped services."
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: "Additional context (optional)"
+      description: "Screenshots, mockups, or anything else."

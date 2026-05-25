@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <!-- TPM -->
+  <data name="TPM_StatusDescription" xml:space="preserve">
+    <value>Trusted Platform Module (TPM) information</value>
+  </data>
+  <data name="TPM_StatusHeader" xml:space="preserve">
+    <value>TPM status</value>
+  </data>
+  <data name="TPM_VersionHeader" xml:space="preserve">
+    <value>TPM version</value>
+  </data>
+  <data name="TPM_ManufacturerNameHeader" xml:space="preserve">
+    <value>Manufacturer name</value>
+  </data>
+  <data name="TPM_ManufacturerVersionHeader" xml:space="preserve">
+    <value>Manufacturer version</value>
+  </data>
+  <data name="TPM_SpecificationVersionHeader" xml:space="preserve">
+    <value>Specification version</value>
+  </data>
+  <data name="TPM_ReadyHeader" xml:space="preserve">
+    <value>TPM ready</value>
+  </data>
+  <data name="TPM_EnabledHeader" xml:space="preserve">
+    <value>TPM enabled</value>
+  </data>
+  <data name="TPM_ActivatedHeader" xml:space="preserve">
+    <value>TPM activated</value>
+  </data>
+  <data name="TPM_OwnedHeader" xml:space="preserve">
+    <value>Owner set</value>
+  </data>
+  <data name="TPM_ActionsHeader" xml:space="preserve">
+    <value>TPM actions</value>
+  </data>
+  <data name="TPM_OpenConsoleHeader" xml:space="preserve">
+    <value>Open TPM management console</value>
+  </data>
+  <data name="TPM_OpenConsoleDescription" xml:space="preserve">
+    <value>Launch Windows TPM management console (tpm.msc)</value>
+  </data>
+  <data name="TPM_RefreshStatusHeader" xml:space="preserve">
+    <value>Refresh TPM status</value>
+  </data>
+  <data name="TPM_RefreshStatusDescription" xml:space="preserve">
+    <value>Update TPM information</value>
+  </data>
+  <data name="TPM_ClearTPMHeader" xml:space="preserve">
+    <value>Clear TPM</value>
+  </data>
+  <data name="TPM_ClearTPMDescription" xml:space="preserve">
+    <value>Clear TPM security hardware (requires restart and confirmation steps)</value>
+  </data>
+  <data name="TPM_AboutHeader" xml:space="preserve">
+    <value>About TPM</value>
+  </data>
+  <data name="TPM_WhatIsTPMHeader" xml:space="preserve">
+    <value>What is Trusted Platform Module?</value>
+  </data>
+  <data name="TPM_WhatIsTPMDescription" xml:space="preserve">
+    <value>A Trusted Platform Module (TPM) is a microchip designed to provide basic security-related functions, primarily involving encryption keys. TPMs are usually installed on the computer's motherboard and communicate with the rest of the system using a hardware bus. Computers integrated with TPM can create cryptographic keys and encrypt them so that they can only be decrypted by the TPM. This process is called wrapping or binding the keys.</value>
+  </data>
+  <data name="TPM_Loading" xml:space="preserve">
+    <value>Loading...</value>
+  </data>
+  <data name="TPM_Success" xml:space="preserve">
+    <value>Success</value>
+  </data>
+  <data name="TPM_Error" xml:space="preserve">
+    <value>Error</value>
+  </data>
+  <data name="TPM_CannotOpenConsole" xml:space="preserve">
+    <value>Unable to open TPM management console</value>
+  </data>
+  <data name="TPM_Warning" xml:space="preserve">
+    <value>Warning</value>
+  </data>
+  <data name="TPM_CannotGetInfo" xml:space="preserve">
+    <value>Unable to get complete TPM information</value>
+  </data>
+  <data name="TPM_ClearTPMTitle" xml:space="preserve">
+    <value>Clear TPM</value>
+  </data>
+  <data name="TPM_ClearTPMMessage" xml:space="preserve">
+    <value>Please execute PowerShell command with admin privileges: Clear-Tpm, or use TPM management console to clear.</value>
+  </data>
+  <data name="TPM_ClearTPMConfirmMessage" xml:space="preserve">
+    <value>Are you sure you want to clear the TPM? This will remove keys stored by the TPM and may require a restart and firmware confirmation.</value>
+  </data>
+  <data name="TPM_ClearTPMConfirmPrimary" xml:space="preserve">
+    <value>Clear</value>
+  </data>
+  <data name="TPM_ClearTPMConfirmCancel" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="TPM_NoXamlRootError" xml:space="preserve">
+    <value>Unable to show confirmation dialog: XamlRoot is not available.</value>
+  </data>
+  <data name="TPM_ClearTPMStarted" xml:space="preserve">
+    <value>Clear operation started. The system may need to restart to complete the operation.</value>
+  </data>
+  <data name="TPM_ClearTPMSucceeded" xml:space="preserve">
+    <value>TPM cleared successfully. A restart may be required.</value>
+  </data>
+  <data name="TPM_ClearTPMRequiresAdmin" xml:space="preserve">
+    <value>Clearing TPM requires administrator privileges.</value>
+  </data>
+  <data name="TPM_ClearTPM_NoWin32Tpm" xml:space="preserve">
+    <value>Win32_Tpm object not found (TPM info not available via WMI).</value>
+  </data>
+  <data name="TPM_ClearTPM_NoMethod" xml:space="preserve">
+    <value>No suitable WMI method found to clear the TPM on this system.</value>
+  </data>
+  <data name="TPM_ClearTPM_NeedsParameters" xml:space="preserve">
+    <value>Found TPM clear method that requires input parameters; cannot invoke automatically.</value>
+  </data>
+  <data name="TPM_ClearTPM_InvokeFailed" xml:space="preserve">
+    <value>Failed to invoke WMI method to clear TPM: {0}</value>
+  </data>
+  <data name="TPM_ClearTPMError" xml:space="preserve">
+    <value>Error occurred while clearing TPM</value>
+  </data>
+  <data name="TPM_VersionFormat" xml:space="preserve">
+    <value> (Manufacturer: {0})</value>
+  </data>
+  <data name="TPM_NotAvailable" xml:space="preserve">
+    <value>TPM is not available on this system</value>
+  </data>
+  <data name="TPM_AccessDenied" xml:space="preserve">
+    <value>TPM access denied — administrator privileges required</value>
+  </data>
+  <data name="TPM_ClearAllMethodsFailed" xml:space="preserve">
+    <value>Unable to clear TPM: all clear methods have failed. Please ensure you have administrator privileges or try clearing TPM in BIOS/UEFI.</value>
+  </data>
+  <data name="TPM_WmiAccessDenied" xml:space="preserve">
+    <value>Access to WMI denied, administrator privileges required.</value>
+  </data>
+</root>

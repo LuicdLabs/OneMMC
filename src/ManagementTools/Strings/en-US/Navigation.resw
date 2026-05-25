@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <!-- Navigation Categories -->
+  <data name="Navigation_PC_Management" xml:space="preserve">
+    <value>PC management</value>
+  </data>
+  <data name="Navigation_Policy_Policies" xml:space="preserve">
+    <value>Policy &amp; policies</value>
+  </data>
+  <data name="Navigation_Certificates_Credential" xml:space="preserve">
+    <value>Certificates &amp; credential</value>
+  </data>
+  <data name="Navigation_User_Security" xml:space="preserve">
+    <value>User &amp; security</value>
+  </data>
+  <data name="Navigation_Print_Management" xml:space="preserve">
+    <value>Print management</value>
+  </data>
+  <data name="Navigation_System_Management" xml:space="preserve">
+    <value>System management</value>
+  </data>
+  <data name="Navigation_Settings" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <!-- Page Titles -->
+  <data name="PageTitle_CurrentUserCertificates" xml:space="preserve">
+    <value>Current user certificates</value>
+  </data>
+  <data name="PageTitle_LocalCertificates" xml:space="preserve">
+    <value>Local certificates</value>
+  </data>
+  <data name="PageTitle_DeviceManager" xml:space="preserve">
+    <value>Device manager</value>
+  </data>
+  <data name="PageTitle_DiskManagement" xml:space="preserve">
+    <value>Disk management</value>
+  </data>
+  <data name="PageTitle_EventViewer" xml:space="preserve">
+    <value>Event viewer</value>
+  </data>
+  <data name="PageTitle_LocalUsersGroups" xml:space="preserve">
+    <value>Local users and groups</value>
+  </data>
+  <data name="PageTitle_PerformanceMonitor" xml:space="preserve">
+    <value>Performance monitor</value>
+  </data>
+  <data name="PageTitle_Services" xml:space="preserve">
+    <value>Services</value>
+  </data>
+  <data name="PageTitle_SharedFolders" xml:space="preserve">
+    <value>Shared folders</value>
+  </data>
+  <data name="PageTitle_GroupPolicyEditor" xml:space="preserve">
+    <value>Group Policy</value>
+  </data>
+  <data name="PageTitle_ResultantSetOfPolicy" xml:space="preserve">
+    <value>Resultant Set of Policy</value>
+  </data>
+  <data name="PageTitle_PrintManagement" xml:space="preserve">
+    <value>Print management</value>
+  </data>
+  <data name="PageTitle_ComponentServices" xml:space="preserve">
+    <value>Component services</value>
+  </data>
+  <data name="PageTitle_HyperVManager" xml:space="preserve">
+    <value>Hyper‑V manager</value>
+  </data>
+  <data name="PageTitle_TPMManagement" xml:space="preserve">
+    <value>TPM management</value>
+  </data>
+  <data name="PageTitle_WindowsFirewall" xml:space="preserve">
+    <value>Firewall Advanced settings</value>
+  </data>
+  <data name="PageTitle_AuthorizationManager" xml:space="preserve">
+    <value>Authorization manager</value>
+  </data>
+  <data name="PageTitle_LocalSecurityPolicy" xml:space="preserve">
+    <value>Local security policy</value>
+  </data>
+  <data name="PageTitle_TaskScheduler" xml:space="preserve">
+    <value>Task Scheduler</value>
+  </data>
+</root>

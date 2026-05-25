@@ -1,0 +1,2276 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="WF_NewRule" xml:space="preserve">
+    <value>新增規則</value>
+  </data>
+  <data name="WF_EnableRule" xml:space="preserve">
+    <value>啟用規則</value>
+  </data>
+  <data name="WF_DisableRule" xml:space="preserve">
+    <value>停用規則</value>
+  </data>
+  <data name="WF_DeleteRule" xml:space="preserve">
+    <value>刪除規則</value>
+  </data>
+  <data name="WF_SearchRules" xml:space="preserve">
+    <value>搜尋規則</value>
+  </data>
+  <data name="WF_LoadingRules" xml:space="preserve">
+    <value>正在載入防火牆規則...</value>
+  </data>
+  <data name="WF_Column_Name" xml:space="preserve">
+    <value>名稱</value>
+  </data>
+  <data name="WF_Column_Enabled" xml:space="preserve">
+    <value>已啟用</value>
+  </data>
+  <data name="WF_Column_Action" xml:space="preserve">
+    <value>動作</value>
+  </data>
+  <data name="WF_Column_Protocol" xml:space="preserve">
+    <value>通訊協定</value>
+  </data>
+  <data name="WF_Column_Profile" xml:space="preserve">
+    <value>設定檔</value>
+  </data>
+  <data name="WF_AddInboundRule_Title" xml:space="preserve">
+    <value>新增輸入規則</value>
+  </data>
+  <data name="WF_AddOutboundRule_Title" xml:space="preserve">
+    <value>新增輸出規則</value>
+  </data>
+  <data name="WF_EditInboundRule_Title" xml:space="preserve">
+    <value>編輯輸入規則</value>
+  </data>
+  <data name="WF_EditOutboundRule_Title" xml:space="preserve">
+    <value>編輯輸出規則</value>
+  </data>
+  <data name="WF_Direction_Inbound" xml:space="preserve">
+    <value>輸入</value>
+  </data>
+  <data name="WF_Direction_Outbound" xml:space="preserve">
+    <value>輸出</value>
+  </data>
+  <data name="WF_Tab_General" xml:space="preserve">
+    <value>一般</value>
+  </data>
+  <data name="WF_Tab_Programs" xml:space="preserve">
+    <value>程式與連接埠</value>
+  </data>
+  <data name="WF_Tab_Scope" xml:space="preserve">
+    <value>範圍</value>
+  </data>
+  <data name="WF_Tab_Advanced" xml:space="preserve">
+    <value>進階</value>
+  </data>
+  <data name="WF_Field_Name" xml:space="preserve">
+    <value>名稱</value>
+  </data>
+  <data name="WF_Field_Name_Placeholder" xml:space="preserve">
+    <value>輸入此規則的名稱</value>
+  </data>
+  <data name="WF_Field_Description" xml:space="preserve">
+    <value>描述</value>
+  </data>
+  <data name="WF_Field_Action" xml:space="preserve">
+    <value>動作</value>
+  </data>
+  <data name="WF_Field_Protocol" xml:space="preserve">
+    <value>通訊協定</value>
+  </data>
+  <data name="WF_Field_Enabled" xml:space="preserve">
+    <value>已啟用規則</value>
+  </data>
+  <data name="WF_Field_Program" xml:space="preserve">
+    <value>程式路徑</value>
+  </data>
+  <data name="WF_Field_Program_Description" xml:space="preserve">
+    <value>指定此規則套用的程式。留空則套用至所有程式。</value>
+  </data>
+  <data name="WF_Field_LocalPort" xml:space="preserve">
+    <value>本機連接埠</value>
+  </data>
+  <data name="WF_Field_RemotePort" xml:space="preserve">
+    <value>遠端連接埠</value>
+  </data>
+  <data name="WF_Field_LocalAddress" xml:space="preserve">
+    <value>本機 IP 位址</value>
+  </data>
+  <data name="WF_Field_RemoteAddress" xml:space="preserve">
+    <value>遠端 IP 位址</value>
+  </data>
+  <data name="WF_Field_Profile" xml:space="preserve">
+    <value>設定檔</value>
+  </data>
+  <data name="WF_Action_Allow" xml:space="preserve">
+    <value>允許連線</value>
+  </data>
+  <data name="WF_Action_Block" xml:space="preserve">
+    <value>封鎖連線</value>
+  </data>
+  <data name="WF_Profile_Domain" xml:space="preserve">
+    <value>網域</value>
+  </data>
+  <data name="WF_Profile_Private" xml:space="preserve">
+    <value>私人</value>
+  </data>
+  <data name="WF_Profile_Public" xml:space="preserve">
+    <value>公用</value>
+  </data>
+  <data name="WF_Error_NameRequired" xml:space="preserve">
+    <value>請輸入此規則的名稱。</value>
+  </data>
+  <data name="WF_Error_LoadRules" xml:space="preserve">
+    <value>無法載入 Windows 防火牆規則。</value>
+  </data>
+  <data name="WF_Error_UpdateRule" xml:space="preserve">
+    <value>無法更新 Windows 防火牆規則。</value>
+  </data>
+  <data name="WF_Error_DeleteRule" xml:space="preserve">
+    <value>無法刪除 Windows 防火牆規則。</value>
+  </data>
+  <data name="WF_Error_LoadConnectionSecurityRules" xml:space="preserve">
+    <value>無法載入連線安全性規則。</value>
+  </data>
+  <data name="WF_Error_CreateConnectionSecurityRule" xml:space="preserve">
+    <value>無法建立連線安全性規則。</value>
+  </data>
+  <data name="WF_Error_UpdateConnectionSecurityRule" xml:space="preserve">
+    <value>無法更新連線安全性規則。</value>
+  </data>
+  <data name="WF_DeleteRule_ConfirmationTitle" xml:space="preserve">
+    <value>要刪除防火牆規則嗎？</value>
+  </data>
+  <data name="WF_DeleteRule_ConfirmationMessage" xml:space="preserve">
+    <value>是否要刪除「{0}」？</value>
+  </data>
+  <data name="WF_DeleteRule_ConfirmButton" xml:space="preserve">
+    <value>刪除</value>
+  </data>
+  <data name="WF_RuleUnavailable_Title" xml:space="preserve">
+    <value>規則已不存在</value>
+  </data>
+  <data name="WF_RuleUnavailable_Message" xml:space="preserve">
+    <value>這個規則已在此頁面以外被移除。請返回或重新整理規則清單。</value>
+  </data>
+  <data name="WF_InboundRules_PageTitle" xml:space="preserve">
+    <value>輸入規則</value>
+  </data>
+  <data name="WF_OutboundRules_PageTitle" xml:space="preserve">
+    <value>輸出規則</value>
+  </data>
+  <data name="WF_Monitoring_PageTitle" xml:space="preserve">
+    <value>監視</value>
+  </data>
+  <data name="WF_ConnectionSecurityRules_PageTitle" xml:space="preserve">
+    <value>連線安全性規則</value>
+  </data>
+  <data name="WF_Rule_On" xml:space="preserve">
+    <value>開啟</value>
+  </data>
+  <data name="WF_Rule_Apply" xml:space="preserve">
+    <value>套用</value>
+  </data>
+  <data name="WF_Rule_Disable" xml:space="preserve">
+    <value>停用</value>
+  </data>
+  <data name="WF_Rule_Enable" xml:space="preserve">
+    <value>啟用</value>
+  </data>
+  <data name="WF_Section_General" xml:space="preserve">
+    <value>一般</value>
+  </data>
+  <data name="WF_Section_Action" xml:space="preserve">
+    <value>動作</value>
+  </data>
+  <data name="WF_Section_ProgramsServices" xml:space="preserve">
+    <value>程式與服務</value>
+  </data>
+  <data name="WF_Section_ProtocolsPorts" xml:space="preserve">
+    <value>通訊協定和連接埠</value>
+  </data>
+  <data name="WF_Section_Scope" xml:space="preserve">
+    <value>範圍</value>
+  </data>
+  <data name="WF_Section_Advanced" xml:space="preserve">
+    <value>進階</value>
+  </data>
+  <data name="WF_Section_LocalPrincipals" xml:space="preserve">
+    <value>本機主體</value>
+  </data>
+  <data name="WF_Section_RemoteUsers" xml:space="preserve">
+    <value>遠端使用者</value>
+  </data>
+  <data name="WF_Section_RemoteComputers" xml:space="preserve">
+    <value>遠端電腦</value>
+  </data>
+  <data name="WF_Action_ConnectionAction" xml:space="preserve">
+    <value>連線動作</value>
+  </data>
+  <data name="WF_Action_AllowIfSecure" xml:space="preserve">
+    <value>如果連線安全則允許</value>
+  </data>
+  <data name="WF_Action_CustomizeAllowSecure" xml:space="preserve">
+    <value>自訂安全允許設定</value>
+  </data>
+  <data name="WF_AllowIfSecure_OverrideBlockRules_Desc" xml:space="preserve">
+    <value>適用於必須一律可用的工具 (例如遠端管理工具)。</value>
+  </data>
+  <data name="WF_AllowIfSecure_OverrideBlockRules_Desc_Inbound" xml:space="preserve">
+    <value>適用於必須一律可用的工具，例如遠端管理工具。若您指定此選項，必須同時指定授權的電腦或電腦群組。</value>
+  </data>
+  <data name="WF_ProgramsServices_SpecifiedConditions" xml:space="preserve">
+    <value>指定條件</value>
+  </data>
+  <data name="WF_ProgramsServices_RuleApplies" xml:space="preserve">
+    <value>規則套用</value>
+  </data>
+  <data name="WF_Field_Compartments" xml:space="preserve">
+    <value>區間</value>
+  </data>
+  <data name="WF_Field_ApplicationPackages" xml:space="preserve">
+    <value>應用程式套件</value>
+  </data>
+  <data name="WF_Field_Services" xml:space="preserve">
+    <value>服務</value>
+  </data>
+  <data name="WF_Program_AllPrograms" xml:space="preserve">
+    <value>所有程式</value>
+  </data>
+  <data name="WF_Program_ThisProgram" xml:space="preserve">
+    <value>此程式</value>
+  </data>
+  <data name="WF_Compartments_All" xml:space="preserve">
+    <value>符合指定條件的所有區間</value>
+  </data>
+  <data name="WF_Compartments_This" xml:space="preserve">
+    <value>此區間</value>
+  </data>
+  <data name="WF_Program_Browse" xml:space="preserve">
+    <value>瀏覽</value>
+  </data>
+  <data name="WF_Program_PathPlaceholder" xml:space="preserve">
+    <value>例如 %ProgramFiles%\App\app.exe</value>
+  </data>
+  <data name="WF_Protocol_Type" xml:space="preserve">
+    <value>通訊協定類型</value>
+  </data>
+  <data name="WF_Protocol_Number" xml:space="preserve">
+    <value>通訊協定號碼</value>
+  </data>
+  <data name="WF_Protocol_ICMP" xml:space="preserve">
+    <value>網際網路控制訊息通訊協定 (ICMP) 設定</value>
+  </data>
+  <data name="WF_Port_AllPorts" xml:space="preserve">
+    <value>所有連接埠</value>
+  </data>
+  <data name="WF_Port_SpecificPorts" xml:space="preserve">
+    <value>特定連接埠</value>
+  </data>
+  <data name="WF_Port_InputLocalPort" xml:space="preserve">
+    <value>輸入本機連接埠</value>
+  </data>
+  <data name="WF_Port_InputRemotePort" xml:space="preserve">
+    <value>輸入遠端連接埠</value>
+  </data>
+  <data name="WF_Scope_ManageIPAddress" xml:space="preserve">
+    <value>管理本機與遠端 IP 位址</value>
+  </data>
+  <data name="WF_Advanced_Profiles" xml:space="preserve">
+    <value>設定檔</value>
+  </data>
+  <data name="WF_Advanced_ProfilesDescription" xml:space="preserve">
+    <value>指定此規則套用的設定檔</value>
+  </data>
+  <data name="WF_Advanced_InterfaceTypes" xml:space="preserve">
+    <value>規則套用的介面類型</value>
+  </data>
+  <data name="WF_Advanced_EdgeTraversal" xml:space="preserve">
+    <value>邊緣周遊</value>
+  </data>
+  <data name="WF_Advanced_EdgeTraversalDescription" xml:space="preserve">
+    <value>允許電腦接受已通過邊緣裝置（例如網路位址轉譯 (NAT) 路由器或防火牆）的未經請求輸入封包</value>
+  </data>
+  <data name="WF_Advanced_EdgeTraversalType" xml:space="preserve">
+    <value>邊緣周遊類型</value>
+  </data>
+  <data name="WF_EdgeTraversal_Block" xml:space="preserve">
+    <value>封鎖邊緣周遊</value>
+  </data>
+  <data name="WF_EdgeTraversal_Allow" xml:space="preserve">
+    <value>允許邊緣周遊</value>
+  </data>
+  <data name="WF_EdgeTraversal_DeferToUser" xml:space="preserve">
+    <value>延遲至使用者</value>
+  </data>
+  <data name="WF_EdgeTraversal_DeferToApp" xml:space="preserve">
+    <value>延遲至應用程式</value>
+  </data>
+  <data name="WF_EdgeTraversal_Block_Desc" xml:space="preserve">
+    <value>防止應用程式透過 NAT 邊緣裝置從網際網路接收未經請求的流量。</value>
+  </data>
+  <data name="WF_EdgeTraversal_Allow_Desc" xml:space="preserve">
+    <value>允許應用程式透過 NAT 邊緣裝置直接從網際網路接收未經請求的流量。</value>
+  </data>
+  <data name="WF_EdgeTraversal_DeferToUser_Desc" xml:space="preserve">
+    <value>讓使用者決定是否允許應用程式要求時透過 NAT 邊緣裝置從網際網路接收未經請求的流量。</value>
+  </data>
+  <data name="WF_EdgeTraversal_DeferToApp_Desc" xml:space="preserve">
+    <value>讓每個應用程式決定是否允許透過 NAT 邊緣裝置從網際網路接收未經請求的流量。</value>
+  </data>
+  <data name="WF_LocalPrincipals_Manage" xml:space="preserve">
+    <value>管理授權使用者和例外</value>
+  </data>
+  <data name="WF_RemoteUsers_Manage" xml:space="preserve">
+    <value>管理授權使用者和例外</value>
+  </data>
+  <data name="WF_RemoteComputers_Manage" xml:space="preserve">
+    <value>管理授權電腦和例外</value>
+  </data>
+  <data name="WF_CSR_RemoteEndpoints_Manage" xml:space="preserve">
+    <value>管理遠端端點</value>
+  </data>
+  <data name="WF_CSR_Endpoint1Port" xml:space="preserve">
+    <value>端點 1 連接埠</value>
+  </data>
+  <data name="WF_CSR_Endpoint1Port_Input" xml:space="preserve">
+    <value>輸入端點 1 連接埠</value>
+  </data>
+  <data name="WF_CSR_Endpoint2Port" xml:space="preserve">
+    <value>端點 2 連接埠</value>
+  </data>
+  <data name="WF_CSR_Endpoint2Port_Input" xml:space="preserve">
+    <value>輸入端點 2 連接埠</value>
+  </data>
+  <data name="WF_Section_Authentication" xml:space="preserve">
+    <value>驗證</value>
+  </data>
+  <data name="WF_CSR_AuthenticationMode" xml:space="preserve">
+    <value>驗證模式</value>
+  </data>
+  <data name="WF_CSR_AuthMode_DoNotAuthenticate" xml:space="preserve">
+    <value>不驗證</value>
+  </data>
+  <data name="WF_CSR_AuthMode_RequestInboundOutbound" xml:space="preserve">
+    <value>要求輸入和輸出</value>
+  </data>
+  <data name="WF_CSR_AuthMode_RequireInboundRequestOutbound" xml:space="preserve">
+    <value>需要輸入並要求輸出</value>
+  </data>
+  <data name="WF_CSR_AuthMode_RequireInboundOutbound" xml:space="preserve">
+    <value>需要輸入和輸出</value>
+  </data>
+  <data name="WF_CSR_AuthMode_RequireInboundClearOutbound" xml:space="preserve">
+    <value>需要輸入並清除輸出</value>
+  </data>
+  <data name="WF_CSR_Section_Methods" xml:space="preserve">
+    <value>方法</value>
+  </data>
+  <data name="WF_CSR_AuthenticationMethod" xml:space="preserve">
+    <value>驗證方法</value>
+  </data>
+  <data name="WF_CSR_AuthMethod_Default" xml:space="preserve">
+    <value>預設</value>
+  </data>
+  <data name="WF_CSR_AuthMethod_ComputerAndUser" xml:space="preserve">
+    <value>電腦和使用者 (Kerberos V5)</value>
+  </data>
+  <data name="WF_CSR_AuthMethod_Computer" xml:space="preserve">
+    <value>電腦 (Kerberos V5)</value>
+  </data>
+  <data name="WF_CSR_AuthMethod_User" xml:space="preserve">
+    <value>使用者 (Kerberos V5)</value>
+  </data>
+  <data name="WF_CSR_AuthMethod_Advanced" xml:space="preserve">
+    <value>進階</value>
+  </data>
+  <data name="WF_CSR_CustomizeMethods" xml:space="preserve">
+    <value>自訂方法</value>
+  </data>
+  <data name="WF_CSR_ConfigureIPsec" xml:space="preserve">
+    <value>設定 IPsec 通道</value>
+  </data>
+  <data name="WF_Button_Customize" xml:space="preserve">
+    <value>自訂</value>
+  </data>
+  <data name="WF_Button_Specify" xml:space="preserve">
+    <value>指定</value>
+  </data>
+  <data name="WF_Button_Manage" xml:space="preserve">
+    <value>管理</value>
+  </data>
+  <data name="WF_Button_Configure" xml:space="preserve">
+    <value>設定</value>
+  </data>
+  <data name="WF_OpenLegacyFirewall" xml:space="preserve">
+    <value>開啟具有進階安全性的 Windows Defender 防火牆</value>
+  </data>
+  <data name="WF_PredefinedRule_InfoBar_Title" xml:space="preserve">
+    <value>這是預先定義的規則</value>
+  </data>
+  <data name="WF_PredefinedRule_InfoBar_Message" xml:space="preserve">
+    <value>此預先定義規則的部分屬性無法修改。</value>
+  </data>
+  <data name="WF_Validation_ProgramPathRequired" xml:space="preserve">
+    <value>當套用到「此程式」時，必須先指定程式路徑。</value>
+  </data>
+  <data name="WF_Validation_CompartmentRequired" xml:space="preserve">
+    <value>當套用到「此區間」時，必須先輸入區間。</value>
+  </data>
+  <data name="WF_Validation_CompartmentInvalid" xml:space="preserve">
+    <value>區間必須是 0 到 65535 之間的數字。</value>
+  </data>
+  <data name="WF_Validation_ProtocolNumberInvalid" xml:space="preserve">
+    <value>自訂通訊協定編號必須是 0 到 255 之間的整數。</value>
+  </data>
+  <data name="WF_ServicesDialog_Title" xml:space="preserve">
+    <value>自訂服務設定</value>
+  </data>
+  <data name="WF_ServicesDialog_Description" xml:space="preserve">
+    <value>選擇此規則套用到服務的方式。</value>
+  </data>
+  <data name="WF_ServicesDialog_All" xml:space="preserve">
+    <value>套用至所有程式及服務</value>
+  </data>
+  <data name="WF_ServicesDialog_Only" xml:space="preserve">
+    <value>僅套用至服務</value>
+  </data>
+  <data name="WF_ServicesDialog_Specific" xml:space="preserve">
+    <value>套用至此服務：</value>
+  </data>
+  <data name="WF_ServicesDialog_ShortName" xml:space="preserve">
+    <value>套用至名稱為此短名稱的服務 (例如：eventlog)：</value>
+  </data>
+  <data name="WF_ServicesDialog_ShortNamePlaceholder" xml:space="preserve">
+    <value>輸入服務短名稱</value>
+  </data>
+  <data name="WF_ServicesDialog_ShortNameColumn" xml:space="preserve">
+    <value>短名稱</value>
+  </data>
+  <data name="WF_ServicesDialog_SelectionRequired" xml:space="preserve">
+    <value>儲存前必須先選取服務。</value>
+  </data>
+  <data name="WF_ServicesDialog_ShortNameRequired" xml:space="preserve">
+    <value>儲存前必須先輸入服務短名稱。</value>
+  </data>
+  <data name="WF_ApplicationPackagesDialog_Title" xml:space="preserve">
+    <value>自訂應用程式套件設定</value>
+  </data>
+  <data name="WF_ApplicationPackagesDialog_Description" xml:space="preserve">
+    <value>選擇此規則套用到應用程式套件的方式。</value>
+  </data>
+  <data name="WF_ApplicationPackagesDialog_All" xml:space="preserve">
+    <value>套用至所有程式與應用程式套件</value>
+  </data>
+  <data name="WF_ApplicationPackagesDialog_PackagesOnly" xml:space="preserve">
+    <value>只套用至應用程式套件</value>
+  </data>
+  <data name="WF_ApplicationPackagesDialog_Specific" xml:space="preserve">
+    <value>套用至此應用程式套件：</value>
+  </data>
+  <data name="WF_ApplicationPackagesDialog_Sid" xml:space="preserve">
+    <value>套用至具有此 SID 的應用程式套件 (例如：S-1-15-...)：</value>
+  </data>
+  <data name="WF_ApplicationPackagesDialog_SidPlaceholder" xml:space="preserve">
+    <value>輸入應用程式套件 SID</value>
+  </data>
+  <data name="WF_ApplicationPackagesDialog_UserColumn" xml:space="preserve">
+    <value>使用者</value>
+  </data>
+  <data name="WF_ApplicationPackagesDialog_SelectionRequired" xml:space="preserve">
+    <value>儲存前必須先選取應用程式套件。</value>
+  </data>
+  <data name="WF_ApplicationPackagesDialog_SidRequired" xml:space="preserve">
+    <value>儲存前必須先輸入應用程式套件 SID。</value>
+  </data>
+  <data name="WF_RemoteComputersDialog_Title" xml:space="preserve">
+    <value>管理授權的電腦</value>
+  </data>
+  <data name="WF_RemoteComputersDialog_SecureRequired" xml:space="preserve">
+    <value>只有當連線動作設為「如果連線安全則允許」時，才可使用此條件。</value>
+  </data>
+  <data name="WF_RemoteComputersDialog_Description" xml:space="preserve">
+    <value>指定授權的電腦，以及可選的例外。</value>
+  </data>
+  <data name="WF_RemoteComputersDialog_Authorized" xml:space="preserve">
+    <value>這些授權的電腦</value>
+  </data>
+  <data name="WF_RemoteComputersDialog_Exception" xml:space="preserve">
+    <value>除了這些電腦之外</value>
+  </data>
+  <data name="WF_RemoteComputersDialog_ExceptionDescription" xml:space="preserve">
+    <value>即使這些電腦出現在授權清單中，也會被排除。</value>
+  </data>
+  <data name="WF_RemoteComputersDialog_SelectionRequired" xml:space="preserve">
+    <value>儲存前，每個已啟用的清單至少都要指定一台電腦。</value>
+  </data>
+  <data name="WF_AddFirstAuthMethod_ComputerCertificateFromThisCertificationAuthorityCA" xml:space="preserve">
+    <value>來自此憑證授權單位 (CA) 的電腦憑證:</value>
+  </data>
+  <data name="WF_AddFirstAuthMethod_EnterPresharedKey" xml:space="preserve">
+    <value>輸入預先共用金鑰</value>
+  </data>
+  <data name="WF_AddFirstAuthMethod_PresharedKeyAuthenticationIsLessSecureThanOtherAuthenticationMethodsPresharedKeys" xml:space="preserve">
+    <value>預先共用金鑰驗證的安全性低於其他驗證方法。預先共用金鑰以純文字儲存。使用預先共用金鑰驗證時，無法使用第二個驗證。</value>
+  </data>
+  <data name="WF_AddFirstAuthMethod_PresharedKeyNotRecommended" xml:space="preserve">
+    <value>預先共用金鑰 (不建議):</value>
+  </data>
+  <data name="WF_AddFirstAuthMethod_SelectTheCredentialToUseForFirstAuthentication" xml:space="preserve">
+    <value>選取要用於第一個驗證的憑證:</value>
+  </data>
+  <data name="WF_AddSecondAuthMethod_ComputerHealthCertificateFromThisCertificationAuthorityCA" xml:space="preserve">
+    <value>來自此憑證授權單位 (CA) 的電腦健康情況憑證:</value>
+  </data>
+  <data name="WF_AddSecondAuthMethod_NoteYouCannotUseBothUserCredentialsAndComputerCredentialsInThe" xml:space="preserve">
+    <value>注意: 您不能在第二個驗證方法清單中同時使用使用者憑證和電腦憑證。</value>
+  </data>
+  <data name="WF_AddSecondAuthMethod_SelectTheCredentialToUseForTheSecondAuthentication" xml:space="preserve">
+    <value>選取要用於第二個驗證的憑證:</value>
+  </data>
+  <data name="WF_AddSecondAuthMethod_UserCertificateFromThisCertificationAuthorityCA" xml:space="preserve">
+    <value>來自此憑證授權單位 (CA) 的使用者憑證:</value>
+  </data>
+  <data name="WF_AdvancedCertCriteria_Add" xml:space="preserve">
+    <value>新增 &gt;</value>
+  </data>
+  <data name="WF_AdvancedCertCriteria_CertificateName" xml:space="preserve">
+    <value>憑證名稱:</value>
+  </data>
+  <data name="WF_AdvancedCertCriteria_CertificateNameRestriction" xml:space="preserve">
+    <value>憑證名稱限制</value>
+  </data>
+  <data name="WF_AdvancedCertCriteria_CertificateThumbprint" xml:space="preserve">
+    <value>憑證指紋</value>
+  </data>
+  <data name="WF_AdvancedCertCriteria_ClientAuthentication136155732" xml:space="preserve">
+    <value>Client Authentication (1.3.6.1.5.5.7.3.2)</value>
+  </data>
+  <data name="WF_AdvancedCertCriteria_CustomEKU" xml:space="preserve">
+    <value>自訂 EKU</value>
+  </data>
+  <data name="WF_AdvancedCertCriteria_CustomOIDEG1234" xml:space="preserve">
+    <value>自訂 OID (例如 1.2.3.4)</value>
+  </data>
+  <data name="WF_AdvancedCertCriteria_DNSSEC1361413116411" xml:space="preserve">
+    <value>DNSSEC (1.3.6.1.4.1.311.64.1.1)</value>
+  </data>
+  <data name="WF_AdvancedCertCriteria_EnhancedKeyUsageEKU" xml:space="preserve">
+    <value>增強金鑰使用方式 (EKU)</value>
+  </data>
+  <data name="WF_AdvancedCertCriteria_FollowCertificateRenewal" xml:space="preserve">
+    <value>遵循憑證更新</value>
+  </data>
+  <data name="WF_AdvancedCertCriteria_IPsecSecurityIKEIntermediate13615582" xml:space="preserve">
+    <value>IPsec security IKE intermediate (1.3.6.1.5.5.8.2.2)</value>
+  </data>
+  <data name="WF_AdvancedCertCriteria_NoRestrictionDefault" xml:space="preserve">
+    <value>無限制 (預設)</value>
+  </data>
+  <data name="WF_AdvancedCertCriteria_Remove" xml:space="preserve">
+    <value>移除 &lt;</value>
+  </data>
+  <data name="WF_AdvancedCertCriteria_RequiredEKUs" xml:space="preserve">
+    <value>必要的 EKU</value>
+  </data>
+  <data name="WF_AdvancedCertCriteria_RestrictUsage" xml:space="preserve">
+    <value>限制使用方式</value>
+  </data>
+  <data name="WF_AdvancedCertCriteria_SelectNameType" xml:space="preserve">
+    <value>選取名稱類型</value>
+  </data>
+  <data name="WF_AdvancedCertCriteria_ServerAuthentication136155731" xml:space="preserve">
+    <value>Server Authentication (1.3.6.1.5.5.7.3.1)</value>
+  </data>
+  <data name="WF_AdvancedCertCriteria_SubjectAlternativeNameDNS" xml:space="preserve">
+    <value>主體別名 DNS</value>
+  </data>
+  <data name="WF_AdvancedCertCriteria_SubjectAlternativeNameEmail" xml:space="preserve">
+    <value>主體別名電子郵件</value>
+  </data>
+  <data name="WF_AdvancedCertCriteria_SubjectAlternativeNamePrincipal" xml:space="preserve">
+    <value>主體別名主體</value>
+  </data>
+  <data name="WF_AdvancedCertCriteria_SubjectCN" xml:space="preserve">
+    <value>主體 CN</value>
+  </data>
+  <data name="WF_AdvancedCertCriteria_SubjectDC" xml:space="preserve">
+    <value>主體 DC</value>
+  </data>
+  <data name="WF_AdvancedCertCriteria_SubjectO" xml:space="preserve">
+    <value>主體 O</value>
+  </data>
+  <data name="WF_AdvancedCertCriteria_SubjectOU" xml:space="preserve">
+    <value>主體 OU</value>
+  </data>
+  <data name="WF_AdvancedCertCriteria_Thumbprint" xml:space="preserve">
+    <value>指紋:</value>
+  </data>
+  <data name="WF_AdvancedKeyExchangeSettings_CompatibleWithWindowsVistaAndLater" xml:space="preserve">
+    <value>與 Windows Vista 及更新版本相容。</value>
+  </data>
+  <data name="WF_AdvancedKeyExchangeSettings_KeyExchangeAlgorithm" xml:space="preserve">
+    <value>金鑰交換演算法</value>
+  </data>
+  <data name="WF_AdvancedKeyExchangeSettings_KeyExchangeOptions" xml:space="preserve">
+    <value>金鑰交換選項</value>
+  </data>
+  <data name="WF_AdvancedKeyExchangeSettings_Sessions" xml:space="preserve">
+    <value>工作階段:</value>
+  </data>
+  <data name="WF_AdvancedKeyExchangeSettings_SpecifyWhenANewKeyIsGeneratedIfYouSelectBothOptions" xml:space="preserve">
+    <value>指定產生新金鑰的時機。如果您選取兩個選項，則會在達到第一個門檻時產生新金鑰。</value>
+  </data>
+  <data name="WF_AdvancedKeyExchangeSettings_UseDiffieHellmanForEnhancedSecurity" xml:space="preserve">
+    <value>使用 Diffie-Hellman 以增強安全性。</value>
+  </data>
+  <data name="WF_AdvancedKeyExchangeSettings_UseTheFollowingSecurityMethodsForKeyExchangeThoseHigherInThe" xml:space="preserve">
+    <value>使用下列安全性方法進行金鑰交換。清單中較上方的項目會優先嘗試。</value>
+  </data>
+  <data name="WF_Capabilities_ChooseCapabilities" xml:space="preserve">
+    <value>選擇功能</value>
+  </data>
+  <data name="WF_Capabilities_SelectTheApplicationPackageCapabilitiesToAuthorize" xml:space="preserve">
+    <value>選取要授權的應用程式套件功能。</value>
+  </data>
+  <data name="WF_Common_AcceptOnlyHealthCertificates" xml:space="preserve">
+    <value>僅接受健康情況憑證</value>
+  </data>
+  <data name="WF_Common_AddEllipsis" xml:space="preserve">
+    <value>新增...</value>
+  </data>
+  <data name="WF_Common_AdvancedEllipsis" xml:space="preserve">
+    <value>進階...</value>
+  </data>
+  <data name="WF_Common_AESCBC128" xml:space="preserve">
+    <value>AES-CBC 128</value>
+  </data>
+  <data name="WF_Common_AESCBC192" xml:space="preserve">
+    <value>AES-CBC 192</value>
+  </data>
+  <data name="WF_Common_AESCBC256" xml:space="preserve">
+    <value>AES-CBC 256</value>
+  </data>
+  <data name="WF_Common_AESGMAC128" xml:space="preserve">
+    <value>AES-GMAC 128</value>
+  </data>
+  <data name="WF_Common_AESGMAC192" xml:space="preserve">
+    <value>AES-GMAC 192</value>
+  </data>
+  <data name="WF_Common_AESGMAC256" xml:space="preserve">
+    <value>AES-GMAC 256</value>
+  </data>
+  <data name="WF_Common_All" xml:space="preserve">
+    <value>全部</value>
+  </data>
+  <data name="WF_Common_AllInterfaceTypes" xml:space="preserve">
+    <value>所有介面類型</value>
+  </data>
+  <data name="WF_Common_Any" xml:space="preserve">
+    <value>任何</value>
+  </data>
+  <data name="WF_Common_AnyAddressForDynamicTunnelConfiguration" xml:space="preserve">
+    <value>任何位址 (用於動態通道設定)</value>
+  </data>
+  <data name="WF_Common_AnyIPAddress" xml:space="preserve">
+    <value>任何 IP 位址</value>
+  </data>
+  <data name="WF_Common_Browse" xml:space="preserve">
+    <value>瀏覽...</value>
+  </data>
+  <data name="WF_Common_CADistinguishedName" xml:space="preserve">
+    <value>CA 辨別名稱</value>
+  </data>
+  <data name="WF_Common_CertificateStoreType" xml:space="preserve">
+    <value>憑證存放區類型:</value>
+  </data>
+  <data name="WF_Common_ComputerKerberosV5" xml:space="preserve">
+    <value>電腦 (Kerberos V5)</value>
+  </data>
+  <data name="WF_Common_Computers" xml:space="preserve">
+    <value>電腦</value>
+  </data>
+  <data name="WF_Common_ConfigureTunnelEndpoints" xml:space="preserve">
+    <value>設定通道端點</value>
+  </data>
+  <data name="WF_Common_Custom" xml:space="preserve">
+    <value>自訂</value>
+  </data>
+  <data name="WF_Common_Default" xml:space="preserve">
+    <value>預設</value>
+  </data>
+  <data name="WF_Common_DES" xml:space="preserve">
+    <value>DES</value>
+  </data>
+  <data name="WF_Common_DescriptionOptional" xml:space="preserve">
+    <value>描述 (選擇性)</value>
+  </data>
+  <data name="WF_Common_Details" xml:space="preserve">
+    <value>詳細資料</value>
+  </data>
+  <data name="WF_Common_Edit" xml:space="preserve">
+    <value>編輯...</value>
+  </data>
+  <data name="WF_Common_EnableCertificateToAccountMapping" xml:space="preserve">
+    <value>啟用憑證到帳戶的對應</value>
+  </data>
+  <data name="WF_Common_Encryption" xml:space="preserve">
+    <value>加密</value>
+  </data>
+  <data name="WF_Common_EncryptionAlgorithm" xml:space="preserve">
+    <value>加密演算法:</value>
+  </data>
+  <data name="WF_Common_ESPRecommended" xml:space="preserve">
+    <value>ESP (建議)</value>
+  </data>
+  <data name="WF_Common_Integrity" xml:space="preserve">
+    <value>完整性</value>
+  </data>
+  <data name="WF_Common_IntegrityAlgorithm" xml:space="preserve">
+    <value>完整性演算法:</value>
+  </data>
+  <data name="WF_Common_IPsecTunnelAuthorization" xml:space="preserve">
+    <value>IPsec 通道授權</value>
+  </data>
+  <data name="WF_Common_IPv4Address" xml:space="preserve">
+    <value>IPv4 位址:</value>
+  </data>
+  <data name="WF_Common_IPv6Address" xml:space="preserve">
+    <value>IPv6 地址:</value>
+  </data>
+  <data name="WF_Common_KB" xml:space="preserve">
+    <value>KB:</value>
+  </data>
+  <data name="WF_Common_KeyLifetimes" xml:space="preserve">
+    <value>金鑰使用期限</value>
+  </data>
+  <data name="WF_Common_LocalAreaNetworkLAN" xml:space="preserve">
+    <value>區域網路 (LAN)</value>
+  </data>
+  <data name="WF_Common_MD5" xml:space="preserve">
+    <value>MD5</value>
+  </data>
+  <data name="WF_Common_Method" xml:space="preserve">
+    <value>Method</value>
+  </data>
+  <data name="WF_Common_Minutes" xml:space="preserve">
+    <value>分鐘:</value>
+  </data>
+  <data name="WF_Common_No" xml:space="preserve">
+    <value>否</value>
+  </data>
+  <data name="WF_Common_NoDefault" xml:space="preserve">
+    <value>否 (預設)</value>
+  </data>
+  <data name="WF_Common_None" xml:space="preserve">
+    <value>無</value>
+  </data>
+  <data name="WF_Common_OnlyAllowConnectionsFromTheseUsers" xml:space="preserve">
+    <value>僅允許來自這些使用者的連線</value>
+  </data>
+  <data name="WF_Common_RemoteAccess" xml:space="preserve">
+    <value>遠端存取</value>
+  </data>
+  <data name="WF_Common_RuleName" xml:space="preserve">
+    <value>規則名稱</value>
+  </data>
+  <data name="WF_Common_SHA1" xml:space="preserve">
+    <value>SHA-1</value>
+  </data>
+  <data name="WF_Common_SHA256" xml:space="preserve">
+    <value>SHA-256</value>
+  </data>
+  <data name="WF_Common_SigningAlgorithm" xml:space="preserve">
+    <value>簽署演算法:</value>
+  </data>
+  <data name="WF_Common_SpecificAddress" xml:space="preserve">
+    <value>特定位址</value>
+  </data>
+  <data name="WF_Common_TCP" xml:space="preserve">
+    <value>TCP</value>
+  </data>
+  <data name="WF_Common_TheseIPAddresses" xml:space="preserve">
+    <value>這些 IP 位址:</value>
+  </data>
+  <data name="WF_Common_Type" xml:space="preserve">
+    <value>類型</value>
+  </data>
+  <data name="WF_Common_UDP" xml:space="preserve">
+    <value>UDP</value>
+  </data>
+  <data name="WF_Common_UserKerberosV5" xml:space="preserve">
+    <value>使用者 (Kerberos V5)</value>
+  </data>
+  <data name="WF_Common_Users" xml:space="preserve">
+    <value>使用者</value>
+  </data>
+  <data name="WF_Common_Value3DES" xml:space="preserve">
+    <value>3DES</value>
+  </data>
+  <data name="WF_Common_WindowsDefenderFirewallProperties" xml:space="preserve">
+    <value>Windows Defender 防火牆屬性</value>
+  </data>
+  <data name="WF_Common_Wireless" xml:space="preserve">
+    <value>無線</value>
+  </data>
+  <data name="WF_Common_Yes" xml:space="preserve">
+    <value>是</value>
+  </data>
+  <data name="WF_Common_YesDefault" xml:space="preserve">
+    <value>是 (預設)</value>
+  </data>
+  <data name="WF_ConfigureIPsec_ApplyAuthorizationA" xml:space="preserve">
+    <value>套用授權 (A)</value>
+  </data>
+  <data name="WF_ConfigureIPsec_ConnectionsFromEndpoint1ToEndpoint2WillPassThroughTheSpecified" xml:space="preserve">
+    <value>從端點 1 到端點 2 的連線會通過指定的通道端點。通道端點通常是閘道伺服器。</value>
+  </data>
+  <data name="WF_ConfigureIPsec_EditD" xml:space="preserve">
+    <value>編輯 (D)...</value>
+  </data>
+  <data name="WF_ConfigureIPsec_EditE" xml:space="preserve">
+    <value>編輯 (E)...</value>
+  </data>
+  <data name="WF_ConfigureIPsec_EG19216811" xml:space="preserve">
+    <value>例如 192.168.1.1</value>
+  </data>
+  <data name="WF_ConfigureIPsec_EG2001Db81" xml:space="preserve">
+    <value>例如 2001:db8::1</value>
+  </data>
+  <data name="WF_ConfigureIPsec_ExemptIPsecProtectedConnectionsX" xml:space="preserve">
+    <value>豁免 IPsec 保護的連線 (X)</value>
+  </data>
+  <data name="WF_ConfigureIPsec_IPv4" xml:space="preserve">
+    <value>IPv4:</value>
+  </data>
+  <data name="WF_ConfigureIPsec_IPv4I" xml:space="preserve">
+    <value>IPv4 (I):</value>
+  </data>
+  <data name="WF_ConfigureIPsec_IPv4V" xml:space="preserve">
+    <value>IPv4 (V):</value>
+  </data>
+  <data name="WF_ConfigureIPsec_IPv6" xml:space="preserve">
+    <value>IPv6:</value>
+  </data>
+  <data name="WF_ConfigureIPsec_IPv66" xml:space="preserve">
+    <value>IPv6 (6):</value>
+  </data>
+  <data name="WF_ConfigureIPsec_IPv6P" xml:space="preserve">
+    <value>IPv6 (P):</value>
+  </data>
+  <data name="WF_ConfigureIPsec_LocalTunnelEndpointClosestToEndpoint1" xml:space="preserve">
+    <value>本機通道端點 (最接近端點 1):</value>
+  </data>
+  <data name="WF_ConfigureIPsec_NoteWhenUsingIPsecTunnelsTheAuthenticationModeMustBeSetTo" xml:space="preserve">
+    <value>注意: 使用 IPsec 通道時，驗證模式必須設為 [需要輸入和輸出] 或 [需要輸入並清除輸出] (適用於閘道裝置)。</value>
+  </data>
+  <data name="WF_ConfigureIPsec_RemoteTunnelEndpointClosestToEndpoint2" xml:space="preserve">
+    <value>遠端通道端點 (最接近端點 2):</value>
+  </data>
+  <data name="WF_ConfigureIPsec_SpecificAddress" xml:space="preserve">
+    <value>特定位址:</value>
+  </data>
+  <data name="WF_ConfigureIPsec_UseIPsecTunnelU" xml:space="preserve">
+    <value>使用 IPsec 通道 (U)</value>
+  </data>
+  <data name="WF_ConfigureTunnelEndpoints_ApplyIPsecTunnelAuthorizationAsSpecifiedOnTheIPsecSettingsTab" xml:space="preserve">
+    <value>套用 IPsec 通道授權，如 IPsec 設定索引標籤上所指定。</value>
+  </data>
+  <data name="WF_ConfigureTunnelEndpoints_Client" xml:space="preserve">
+    <value>Client</value>
+  </data>
+  <data name="WF_ConfigureTunnelEndpoints_MyIPAddress" xml:space="preserve">
+    <value>我的 IP 位址</value>
+  </data>
+  <data name="WF_ConfigureTunnelEndpoints_WhatIsTheLocalTunnelEndpointClosestToEndpoint1" xml:space="preserve">
+    <value>最接近端點 1 的本機通道端點為何?</value>
+  </data>
+  <data name="WF_ConfigureTunnelEndpoints_WhatIsTheRemoteTunnelEndpointClosestToEndpoint2" xml:space="preserve">
+    <value>最接近端點 2 的遠端通道端點為何?</value>
+  </data>
+  <data name="WF_ConnectionSecurityRuleProperties_ApplyAuthorization" xml:space="preserve">
+    <value>套用授權:</value>
+  </data>
+  <data name="WF_ConnectionSecurityRuleProperties_DefaultRuleName" xml:space="preserve">
+    <value>規則</value>
+  </data>
+  <data name="WF_ConnectionSecurityRuleProperties_Endpoint1IPAddress" xml:space="preserve">
+    <value>端點 1 IP 位址:</value>
+  </data>
+  <data name="WF_ConnectionSecurityRuleProperties_Endpoint1Port" xml:space="preserve">
+    <value>端點 1 連接埠:</value>
+  </data>
+  <data name="WF_ConnectionSecurityRuleProperties_Endpoint2IPAddress" xml:space="preserve">
+    <value>端點 2 IP 位址:</value>
+  </data>
+  <data name="WF_ConnectionSecurityRuleProperties_Endpoint2Port" xml:space="preserve">
+    <value>端點 2 連接埠:</value>
+  </data>
+  <data name="WF_ConnectionSecurityRuleProperties_ExemptIPsecProtectedConnections" xml:space="preserve">
+    <value>豁免 IPsec 保護的連線:</value>
+  </data>
+  <data name="WF_ConnectionSecurityRuleProperties_FirstAuthentication" xml:space="preserve">
+    <value>第一個驗證:</value>
+  </data>
+  <data name="WF_ConnectionSecurityRuleProperties_InterfaceTypes" xml:space="preserve">
+    <value>介面類型:</value>
+  </data>
+  <data name="WF_ConnectionSecurityRuleProperties_LocalTunnelEndpoint" xml:space="preserve">
+    <value>本機通道端點:</value>
+  </data>
+  <data name="WF_ConnectionSecurityRuleProperties_Profile" xml:space="preserve">
+    <value>設定檔:</value>
+  </data>
+  <data name="WF_ConnectionSecurityRuleProperties_Protocol" xml:space="preserve">
+    <value>通訊協定:</value>
+  </data>
+  <data name="WF_ConnectionSecurityRuleProperties_RemoteTunnelEndpoint" xml:space="preserve">
+    <value>遠端通道端點:</value>
+  </data>
+  <data name="WF_ConnectionSecurityRuleProperties_Requirements" xml:space="preserve">
+    <value>需求:</value>
+  </data>
+  <data name="WF_ConnectionSecurityRuleProperties_SecondAuthentication" xml:space="preserve">
+    <value>第二個驗證:</value>
+  </data>
+  <data name="WF_CustomizeAllowIfSecure_AllowAuthenticatedAndIntegrityProtectedConnectionsA" xml:space="preserve">
+    <value>允許經過驗證和完整性保護的連線 (A)</value>
+  </data>
+  <data name="WF_CustomizeAllowIfSecure_AllowConnectionsUsingNullEncapsulationN" xml:space="preserve">
+    <value>允許使用 Null 封裝的連線 (N)</value>
+  </data>
+  <data name="WF_CustomizeAllowIfSecure_AllowTheComputersToDynamicallyNegotiateEncryption" xml:space="preserve">
+    <value>允許電腦動態協商加密</value>
+  </data>
+  <data name="WF_CustomizeAllowIfSecure_InAdditionToIntegrityAndAuthenticationAlsoRequirePrivacy" xml:space="preserve">
+    <value>除了完整性和驗證之外，還需要隱私。</value>
+  </data>
+  <data name="WF_CustomizeAllowIfSecure_NullEncapsulationAllowsYouToRequireAuthenticationForConnectionsButWithoutProviding" xml:space="preserve">
+    <value>Null 封裝可讓您要求連線進行驗證，但不為封裝的封包提供完整性或隱私保護。與 Windows 7 及更新版本相容。</value>
+  </data>
+  <data name="WF_CustomizeAllowIfSecure_OnlyAllowConnectionsThatAreAuthenticatedAndIntegrityProtectedUsingIPsecCompatible" xml:space="preserve">
+    <value>僅允許使用 IPsec 進行驗證和完整性保護的連線。與 Windows Vista 及更新版本相容。</value>
+  </data>
+  <data name="WF_CustomizeAllowIfSecure_OverrideBlockRulesO" xml:space="preserve">
+    <value>覆寫封鎖規則 (O)</value>
+  </data>
+  <data name="WF_CustomizeAllowIfSecure_RequireEncryptedConnectionsE" xml:space="preserve">
+    <value>需要加密的連線 (E)</value>
+  </data>
+  <data name="WF_CustomizeAllowIfSecure_SelectOneOfTheFollowingOptionsToDetermineTheActionWindowsDefender" xml:space="preserve">
+    <value>選取下列其中一個選項，以決定進階安全性 Windows Defender 防火牆對符合防火牆規則條件之連線採取的動作。</value>
+  </data>
+  <data name="WF_CustomizeAllowIfSecure_ThisOptionAllowsAuthenticatedButUnencryptedNetworkPacketsToBeSentWhile" xml:space="preserve">
+    <value>此選項允許在協商加密時傳送已驗證但未加密的網路封包。與 Windows Vista 及更新版本相容。</value>
+  </data>
+  <data name="WF_CustomizeAuthMethods_ConfigureTheFirstAndSecondAuthenticationMethodsForThisConnectionSecurityRule" xml:space="preserve">
+    <value>設定此連線安全性規則的第一和第二個驗證方法。</value>
+  </data>
+  <data name="WF_CustomizeAuthMethods_FirstAuthenticationIsOptional" xml:space="preserve">
+    <value>第一個驗證為選擇性</value>
+  </data>
+  <data name="WF_CustomizeAuthMethods_FirstAuthenticationMethods" xml:space="preserve">
+    <value>第一個驗證方法:</value>
+  </data>
+  <data name="WF_CustomizeAuthMethods_MoveDown" xml:space="preserve">
+    <value>下移</value>
+  </data>
+  <data name="WF_CustomizeAuthMethods_MoveUp" xml:space="preserve">
+    <value>上移</value>
+  </data>
+  <data name="WF_CustomizeAuthMethods_SecondAuthenticationIsOptional" xml:space="preserve">
+    <value>第二個驗證為選擇性</value>
+  </data>
+  <data name="WF_CustomizeAuthMethods_SecondAuthenticationMethods" xml:space="preserve">
+    <value>第二個驗證方法:</value>
+  </data>
+  <data name="WF_CustomizeAuthMethods_SecondAuthenticationPresharedKeyNote" xml:space="preserve">
+    <value>當第一個驗證方法清單包含預先共用金鑰時，無法指定第二個驗證。</value>
+  </data>
+  <data name="WF_CustomizeIpsecDefaults_Customize" xml:space="preserve">
+    <value>自訂...</value>
+  </data>
+  <data name="WF_CustomizeIpsecDefaults_DataProtectionQuickMode" xml:space="preserve">
+    <value>資料保護 (快速模式)</value>
+  </data>
+  <data name="WF_CustomizeIpsecDefaults_DefaultRecommended" xml:space="preserve">
+    <value>預設 (建議)</value>
+  </data>
+  <data name="WF_CustomizeIpsecDefaults_IPsecWillUseTheseSettingsToEstablishSecuredConnectionsWhenThereAre" xml:space="preserve">
+    <value>當有作用中的連線安全性規則時，IPsec 將使用這些設定來建立安全連線。</value>
+  </data>
+  <data name="WF_CustomizeIpsecDefaults_KeyExchangeMainMode" xml:space="preserve">
+    <value>金鑰交換 (主要模式)</value>
+  </data>
+  <data name="WF_CustomizeIpsecDefaults_WhenYouUseTheDefaultOptionsAnySettingsInAGPOWith" xml:space="preserve">
+    <value>使用預設選項時，會使用具有較高優先順序的 GPO 中的任何設定。</value>
+  </data>
+  <data name="WF_DataProtectionSettings_DataIntegrity" xml:space="preserve">
+    <value>資料完整性</value>
+  </data>
+  <data name="WF_DataProtectionSettings_DataIntegrityAndEncryption" xml:space="preserve">
+    <value>資料完整性和加密</value>
+  </data>
+  <data name="WF_DataProtectionSettings_DataProtectionSettingsAreUsedByConnectionSecurityRulesToProtectNetwork" xml:space="preserve">
+    <value>連線安全性規則使用資料保護設定來保護網路流量。</value>
+  </data>
+  <data name="WF_DataProtectionSettings_KeyLifetimeMinutesKB" xml:space="preserve">
+    <value>金鑰使用期限 (分鐘/KB)</value>
+  </data>
+  <data name="WF_DataProtectionSettings_ProtectDataFromModificationAndPreserveConfidentialityOnTheNetworkWithThese" xml:space="preserve">
+    <value>使用這些完整性和加密演算法保護資料免於遭修改，並在網路上保持機密性。清單中較上方的項目會優先嘗試。</value>
+  </data>
+  <data name="WF_DataProtectionSettings_ProtectDataFromModificationOnTheNetworkWithTheseIntegrityAlgorithmsThose" xml:space="preserve">
+    <value>使用這些完整性演算法保護網路上的資料免於遭修改。清單中較上方的項目會優先嘗試。</value>
+  </data>
+  <data name="WF_DataProtectionSettings_RequireEncryptionForAllConnectionSecurityRulesThatUseTheseSettings" xml:space="preserve">
+    <value>需要對所有使用這些設定的連線安全性規則進行加密</value>
+  </data>
+  <data name="WF_FirewallProperties_IcmpExemptionsDescription" xml:space="preserve">
+    <value>從所有 IPsec 需求中豁免 ICMP，可簡化網路連線問題的疑難排解</value>
+  </data>
+  <data name="WF_FirewallProperties_IpsecDefaultsDescription" xml:space="preserve">
+    <value>指定 IPsec 用來建立安全連線的設定</value>
+  </data>
+  <data name="WF_FirewallProperties_TunnelAuthorizationDescription" xml:space="preserve">
+    <value>指定被授權可與此電腦建立 IPsec 通道連線的使用者與電腦</value>
+  </data>
+  <data name="WF_FirewallRuleInfo_EG80443" xml:space="preserve">
+    <value>例如 80, 443</value>
+  </data>
+  <data name="WF_FirewallRuleInfo_EG8044380808090" xml:space="preserve">
+    <value>例如 80, 443, 8080-8090</value>
+  </data>
+  <data name="WF_FirewallRuleInfo_GRE47" xml:space="preserve">
+    <value>GRE (47)</value>
+  </data>
+  <data name="WF_FirewallRuleInfo_HOPOPT0" xml:space="preserve">
+    <value>HOPOPT (0)</value>
+  </data>
+  <data name="WF_FirewallRuleInfo_ICMPv41" xml:space="preserve">
+    <value>ICMPv4 (1)</value>
+  </data>
+  <data name="WF_FirewallRuleInfo_ICMPv658" xml:space="preserve">
+    <value>ICMPv6 (58)</value>
+  </data>
+  <data name="WF_FirewallRuleInfo_IGMP2" xml:space="preserve">
+    <value>IGMP (2)</value>
+  </data>
+  <data name="WF_FirewallRuleInfo_IPv641" xml:space="preserve">
+    <value>IPv6 (41)</value>
+  </data>
+  <data name="WF_FirewallRuleInfo_IPv6Frag44" xml:space="preserve">
+    <value>IPv6-Frag (44)</value>
+  </data>
+  <data name="WF_FirewallRuleInfo_IPv6NoNxt59" xml:space="preserve">
+    <value>IPv6-NoNxt (59)</value>
+  </data>
+  <data name="WF_FirewallRuleInfo_IPv6Opts60" xml:space="preserve">
+    <value>IPv6-Opts (60)</value>
+  </data>
+  <data name="WF_FirewallRuleInfo_IPv6Route43" xml:space="preserve">
+    <value>IPv6-Route (43)</value>
+  </data>
+  <data name="WF_FirewallRuleInfo_L2TP115" xml:space="preserve">
+    <value>L2TP (115)</value>
+  </data>
+  <data name="WF_FirewallRuleInfo_PGM113" xml:space="preserve">
+    <value>PGM (113)</value>
+  </data>
+  <data name="WF_FirewallRuleInfo_TCP6" xml:space="preserve">
+    <value>TCP (6)</value>
+  </data>
+  <data name="WF_FirewallRuleInfo_UDP17" xml:space="preserve">
+    <value>UDP (17)</value>
+  </data>
+  <data name="WF_FirewallRuleInfo_VRRP112" xml:space="preserve">
+    <value>VRRP (112)</value>
+  </data>
+  <data name="WF_ICMPSettings_AddD" xml:space="preserve">
+    <value>新增 (D)</value>
+  </data>
+  <data name="WF_ICMPSettings_AddressMaskRequest" xml:space="preserve">
+    <value>位址遮罩要求</value>
+  </data>
+  <data name="WF_ICMPSettings_AllICMPTypesA" xml:space="preserve">
+    <value>所有 ICMP 類型 (A)</value>
+  </data>
+  <data name="WF_ICMPSettings_ApplyThisRuleToTheFollowingInternetControlMessageProtocolICMPConnections" xml:space="preserve">
+    <value>將此規則套用至下列網際網路控制訊息通訊協定 (ICMP) 連線:</value>
+  </data>
+  <data name="WF_ICMPSettings_CodeC" xml:space="preserve">
+    <value>代碼 (C):</value>
+  </data>
+  <data name="WF_ICMPSettings_DestinationUnreachable" xml:space="preserve">
+    <value>目的地無法到達</value>
+  </data>
+  <data name="WF_ICMPSettings_EchoRequest" xml:space="preserve">
+    <value>回應要求</value>
+  </data>
+  <data name="WF_ICMPSettings_PacketTooBig" xml:space="preserve">
+    <value>封包太大</value>
+  </data>
+  <data name="WF_ICMPSettings_ParameterProblem" xml:space="preserve">
+    <value>參數問題</value>
+  </data>
+  <data name="WF_ICMPSettings_Redirect" xml:space="preserve">
+    <value>重新導向</value>
+  </data>
+  <data name="WF_ICMPSettings_RouterAdvertisement" xml:space="preserve">
+    <value>路由器通告</value>
+  </data>
+  <data name="WF_ICMPSettings_RouterSolicitation" xml:space="preserve">
+    <value>路由器要求</value>
+  </data>
+  <data name="WF_ICMPSettings_SourceQuench" xml:space="preserve">
+    <value>來源抑制</value>
+  </data>
+  <data name="WF_ICMPSettings_SpecificICMPTypesS" xml:space="preserve">
+    <value>特定 ICMP 類型 (S)</value>
+  </data>
+  <data name="WF_ICMPSettings_ThisICMPType" xml:space="preserve">
+    <value>此 ICMP 類型:</value>
+  </data>
+  <data name="WF_ICMPSettings_TimeExceeded" xml:space="preserve">
+    <value>超過時間</value>
+  </data>
+  <data name="WF_ICMPSettings_TimestampRequest" xml:space="preserve">
+    <value>時間戳記要求</value>
+  </data>
+  <data name="WF_ICMPSettings_TypeT" xml:space="preserve">
+    <value>類型 (T):</value>
+  </data>
+  <data name="WF_IntegrityAlgorithmEditor_AH" xml:space="preserve">
+    <value>AH</value>
+  </data>
+  <data name="WF_IntegrityAlgorithmEditor_Algorithm" xml:space="preserve">
+    <value>演算法</value>
+  </data>
+  <data name="WF_IntegrityAlgorithmEditor_NullEncapsulation" xml:space="preserve">
+    <value>Null 封裝</value>
+  </data>
+  <data name="WF_IntegrityAlgorithmEditor_ProvidesIntegrityForBothThePacketPayloadAndTheIPHeaderAH" xml:space="preserve">
+    <value>為封包承載和 IP 標頭提供完整性。AH 通訊協定與 NAT 不相容。</value>
+  </data>
+  <data name="WF_IntegrityAlgorithmEditor_ProvidesIntegrityOnlyForThePacketPayloadESPIsCompatibleWithNetwork" xml:space="preserve">
+    <value>僅為封包承載提供完整性。ESP 與網路位址轉譯 (NAT) 相容。</value>
+  </data>
+  <data name="WF_IntegrityAlgorithmEditor_ProvidesNoIntegrityProtectionForThePacketPayloadOrIPHeader" xml:space="preserve">
+    <value>不為封包承載或 IP 標頭提供完整性保護。</value>
+  </data>
+  <data name="WF_IntegrityEncryptionAlgorithmEditor_AddingTheAHProtocolProvidesAdditionalIntegrityForTheIPHeaderThis" xml:space="preserve">
+    <value>新增 AH 通訊協定可提供 IP 標頭的額外完整性。此選項與 NAT 不相容。</value>
+  </data>
+  <data name="WF_IntegrityEncryptionAlgorithmEditor_AESGCM128" xml:space="preserve">
+    <value>AES-GCM 128</value>
+  </data>
+  <data name="WF_IntegrityEncryptionAlgorithmEditor_AESGCM192" xml:space="preserve">
+    <value>AES-GCM 192</value>
+  </data>
+  <data name="WF_IntegrityEncryptionAlgorithmEditor_AESGCM256" xml:space="preserve">
+    <value>AES-GCM 256</value>
+  </data>
+  <data name="WF_IntegrityEncryptionAlgorithmEditor_Algorithms" xml:space="preserve">
+    <value>演算法</value>
+  </data>
+  <data name="WF_IntegrityEncryptionAlgorithmEditor_ESPAndAH" xml:space="preserve">
+    <value>ESP 和 AH</value>
+  </data>
+  <data name="WF_IntegrityEncryptionAlgorithmEditor_ESPProtocolProvidesPrivacyAndIntegrityForThePacketPayloadESPIs" xml:space="preserve">
+    <value>ESP 通訊協定提供封裝承載的隱私和完整性。ESP 與網路位址轉譯 (NAT) 相容。</value>
+  </data>
+  <data name="WF_IntegrityEncryptionAlgorithmEditor_InvalidAlgorithmCombinationForAESGCMEncryptionIntegrityMustMatchTheSame" xml:space="preserve">
+    <value>無效的演算法組合。對於 AES-GCM 加密，完整性必須符合相同的 AES-GCM 位元長度。AES-GCM 或 AES-GMAC 完整性需要 AES-GCM 加密。</value>
+  </data>
+  <data name="WF_InterfaceTypes_SpecifyTheInterfaceTypesThisRuleAppliesTo" xml:space="preserve">
+    <value>指定此規則套用的介面類型。</value>
+  </data>
+  <data name="WF_InterfaceTypes_TheseInterfaceTypes" xml:space="preserve">
+    <value>這些介面類型:</value>
+  </data>
+  <data name="WF_IPAddressEntry_CaptivePortalAddresses" xml:space="preserve">
+    <value>強制入口位址</value>
+  </data>
+  <data name="WF_IPAddressEntry_DefaultGateway" xml:space="preserve">
+    <value>預設閘道</value>
+  </data>
+  <data name="WF_IPAddressEntry_DHCPServers" xml:space="preserve">
+    <value>DHCP 伺服器</value>
+  </data>
+  <data name="WF_IPAddressEntry_DNSServers" xml:space="preserve">
+    <value>DNS 伺服器</value>
+  </data>
+  <data name="WF_IPAddressEntry_EG1921681024" xml:space="preserve">
+    <value>例如 192.168.1.0/24</value>
+  </data>
+  <data name="WF_IPAddressEntry_Examples192168012" xml:space="preserve">
+    <value>範例: 192.168.0.12</value>
+  </data>
+  <data name="WF_IPAddressEntry_From" xml:space="preserve">
+    <value>從:</value>
+  </data>
+  <data name="WF_IPAddressEntry_Internet" xml:space="preserve">
+    <value>網際網路</value>
+  </data>
+  <data name="WF_IPAddressEntry_Intranet" xml:space="preserve">
+    <value>內部網路</value>
+  </data>
+  <data name="WF_IPAddressEntry_LocalSubnet" xml:space="preserve">
+    <value>本機子網路</value>
+  </data>
+  <data name="WF_IPAddressEntry_PlayToRenderers" xml:space="preserve">
+    <value>PlayTo 轉譯器</value>
+  </data>
+  <data name="WF_IPAddressEntry_PredefinedSetOfComputers" xml:space="preserve">
+    <value>預先定義的電腦集:</value>
+  </data>
+  <data name="WF_IPAddressEntry_RemoteCorpNetwork" xml:space="preserve">
+    <value>遠端公司網路</value>
+  </data>
+  <data name="WF_IPAddressEntry_SpecifyTheIPAddressesToMatch" xml:space="preserve">
+    <value>指定要比對的 IP 位址:</value>
+  </data>
+  <data name="WF_IPAddressEntry_ThisIPAddressOrSubnet" xml:space="preserve">
+    <value>此 IP 位址或子網路:</value>
+  </data>
+  <data name="WF_IPAddressEntry_ThisIPAddressRange" xml:space="preserve">
+    <value>此 IP 位址範圍:</value>
+  </data>
+  <data name="WF_IPAddressEntry_To" xml:space="preserve">
+    <value>到:</value>
+  </data>
+  <data name="WF_IPAddressEntry_Value1921681024" xml:space="preserve">
+    <value>192.168.1.0/24</value>
+  </data>
+  <data name="WF_IPAddressEntry_Value20029d3b1a31420874ffFe390112" xml:space="preserve">
+    <value>2002:9d3b:1a31:4:208:74ff:fe39:0/112</value>
+  </data>
+  <data name="WF_IPAddressEntry_Value20029d3b1a31420874ffFe396c43" xml:space="preserve">
+    <value>2002:9d3b:1a31:4:208:74ff:fe39:6c43</value>
+  </data>
+  <data name="WF_IPAddressEntry_WINSServers" xml:space="preserve">
+    <value>WINS 伺服器</value>
+  </data>
+  <data name="WF_IpsecTunnelAuthorizations_AuthorizedComputers" xml:space="preserve">
+    <value>授權的電腦</value>
+  </data>
+  <data name="WF_IpsecTunnelAuthorizations_AuthorizedUsers" xml:space="preserve">
+    <value>授權的使用者</value>
+  </data>
+  <data name="WF_IpsecTunnelAuthorizations_DenyConnectionsFromTheseComputers" xml:space="preserve">
+    <value>拒絕來自這些電腦的連線:</value>
+  </data>
+  <data name="WF_IpsecTunnelAuthorizations_DenyConnectionsFromTheseUsers" xml:space="preserve">
+    <value>拒絕來自這些使用者的連線:</value>
+  </data>
+  <data name="WF_IpsecTunnelAuthorizations_Exceptions" xml:space="preserve">
+    <value>例外</value>
+  </data>
+  <data name="WF_IpsecTunnelAuthorizations_OnlyAllowConnectionsFromTheseComputers" xml:space="preserve">
+    <value>僅允許來自這些電腦的連線:</value>
+  </data>
+  <data name="WF_NewConnectionSecurityRule_AuthenticationExemption" xml:space="preserve">
+    <value>驗證豁免</value>
+  </data>
+  <data name="WF_NewConnectionSecurityRule_CAName" xml:space="preserve">
+    <value>CA 名稱</value>
+  </data>
+  <data name="WF_NewConnectionSecurityRule_CertificateStoreType" xml:space="preserve">
+    <value>憑證存放區類型</value>
+  </data>
+  <data name="WF_NewConnectionSecurityRule_ClientToGateway" xml:space="preserve">
+    <value>用戶端到閘道</value>
+  </data>
+  <data name="WF_NewConnectionSecurityRule_ComputerCertificate" xml:space="preserve">
+    <value>電腦憑證</value>
+  </data>
+  <data name="WF_NewConnectionSecurityRule_ConfigureIPEndpoints" xml:space="preserve">
+    <value>設定 IP 端點</value>
+  </data>
+  <data name="WF_NewConnectionSecurityRule_CustomConfiguration" xml:space="preserve">
+    <value>自訂設定</value>
+  </data>
+  <data name="WF_NewConnectionSecurityRule_CustomizeInterfaceTypes" xml:space="preserve">
+    <value>自訂介面類型...</value>
+  </data>
+  <data name="WF_NewConnectionSecurityRule_Endpoints" xml:space="preserve">
+    <value>端點</value>
+  </data>
+  <data name="WF_NewConnectionSecurityRule_ExemptComputers" xml:space="preserve">
+    <value>豁免的電腦</value>
+  </data>
+  <data name="WF_NewConnectionSecurityRule_GatewayToClient" xml:space="preserve">
+    <value>閘道到用戶端</value>
+  </data>
+  <data name="WF_NewConnectionSecurityRule_IKEv2" xml:space="preserve">
+    <value>IKEv2</value>
+  </data>
+  <data name="WF_NewConnectionSecurityRule_Isolation" xml:space="preserve">
+    <value>隔離</value>
+  </data>
+  <data name="WF_NewConnectionSecurityRule_KeyingModule" xml:space="preserve">
+    <value>金鑰模組</value>
+  </data>
+  <data name="WF_NewConnectionSecurityRule_NewConnectionSecurityRule" xml:space="preserve">
+    <value>新增連線安全性規則</value>
+  </data>
+  <data name="WF_NewConnectionSecurityRule_NoSendAllNetworkTrafficThatMatchesThisRuleThroughTheTunnel" xml:space="preserve">
+    <value>否。將所有符合此規則的網路流量通過通道傳送。</value>
+  </data>
+  <data name="WF_NewConnectionSecurityRule_Requirements" xml:space="preserve">
+    <value>需求</value>
+  </data>
+  <data name="WF_NewConnectionSecurityRule_ServerToServer" xml:space="preserve">
+    <value>伺服器到伺服器</value>
+  </data>
+  <data name="WF_NewConnectionSecurityRule_SigningAlgorithm" xml:space="preserve">
+    <value>簽署演算法</value>
+  </data>
+  <data name="WF_NewConnectionSecurityRule_Tunnel" xml:space="preserve">
+    <value>通道</value>
+  </data>
+  <data name="WF_NewConnectionSecurityRule_TunnelEndpoints" xml:space="preserve">
+    <value>通道端點</value>
+  </data>
+  <data name="WF_NewConnectionSecurityRule_WhatTypeOfTunnelWouldYouLikeToCreate" xml:space="preserve">
+    <value>您要建立哪種類型的通道?</value>
+  </data>
+  <data name="WF_NewConnectionSecurityRule_WouldYouLikeToExemptIPsecProtectedConnectionsFromThisTunnel" xml:space="preserve">
+    <value>是否要將 IPsec 保護的連線豁免於此通道?</value>
+  </data>
+  <data name="WF_NewConnectionSecurityRule_YesIfANetworkConnectionIsAlreadyProtectedByIPsecThroughAnother" xml:space="preserve">
+    <value>是。如果網路連線已透過另一個規則受到 IPsec 保護，則不要將封包通過此通道傳送。</value>
+  </data>
+  <data name="WF_NewFirewallRule_ConfigureIPScope" xml:space="preserve">
+    <value>設定 IP 範圍</value>
+  </data>
+  <data name="WF_NewFirewallRule_ExampleCPathProgramExe" xml:space="preserve">
+    <value>範例: C:\path\program.exe</value>
+  </data>
+  <data name="WF_NewFirewallRule_ICMPSettings" xml:space="preserve">
+    <value>ICMP 設定</value>
+  </data>
+  <data name="WF_NewFirewallRule_ICMPv4" xml:space="preserve">
+    <value>ICMPv4</value>
+  </data>
+  <data name="WF_NewFirewallRule_ICMPv6" xml:space="preserve">
+    <value>ICMPv6</value>
+  </data>
+  <data name="WF_NewFirewallRule_Port" xml:space="preserve">
+    <value>連接埠</value>
+  </data>
+  <data name="WF_NewFirewallRule_Predefined" xml:space="preserve">
+    <value>預先定義</value>
+  </data>
+  <data name="WF_NewFirewallRule_PredefinedRule" xml:space="preserve">
+    <value>預先定義的規則</value>
+  </data>
+  <data name="WF_NewFirewallRule_SpecifyServices" xml:space="preserve">
+    <value>指定服務</value>
+  </data>
+  <data name="WF_NewFirewallRule_Value80443" xml:space="preserve">
+    <value>80,443</value>
+  </data>
+  <data name="WF_NewFirewallRule_Value8044380808090" xml:space="preserve">
+    <value>80,443,8080-8090</value>
+  </data>
+  <data name="WF_Principals_ApplicationPackageProperties" xml:space="preserve">
+    <value>應用程式套件屬性</value>
+  </data>
+  <data name="WF_Principals_LocalUser" xml:space="preserve">
+    <value>本機使用者</value>
+  </data>
+  <data name="WF_Principals_SkipThisRuleForConnectionsFromTheseUsers" xml:space="preserve">
+    <value>對來自這些使用者的連線略過此規則</value>
+  </data>
+  <data name="WF_ProfileFirewallBehavior_AllowsRulesCreatedByLocalAdministratorsToBeMergedWithRulesDistributed" xml:space="preserve">
+    <value>允許本機系統管理員建立的規則與透過群組原則散發的規則合併。</value>
+  </data>
+  <data name="WF_ProfileFirewallBehavior_AllowUnicastResponse" xml:space="preserve">
+    <value>允許單點傳播回應:</value>
+  </data>
+  <data name="WF_ProfileFirewallBehavior_AllowUnicastResponseToMulticastOrBroadcastNetworkTraffic" xml:space="preserve">
+    <value>允許對多點傳播或廣播網路流量進行單點傳播回應。</value>
+  </data>
+  <data name="WF_ProfileFirewallBehavior_ApplyLocalConnectionSecurityRules" xml:space="preserve">
+    <value>套用本機連線安全性規則:</value>
+  </data>
+  <data name="WF_ProfileFirewallBehavior_ApplyLocalFirewallRules" xml:space="preserve">
+    <value>套用本機防火牆規則:</value>
+  </data>
+  <data name="WF_ProfileFirewallBehavior_DisplayANotification" xml:space="preserve">
+    <value>顯示通知:</value>
+  </data>
+  <data name="WF_ProfileFirewallBehavior_DisplayNotificationsToTheUserWhenAProgramIsBlockedFromReceiving" xml:space="preserve">
+    <value>當程式被封鎖接收輸入連線時，向使用者顯示通知。</value>
+  </data>
+  <data name="WF_ProfileFirewallBehavior_FirewallSettings" xml:space="preserve">
+    <value>防火牆設定</value>
+  </data>
+  <data name="WF_ProfileFirewallBehavior_RuleMerging" xml:space="preserve">
+    <value>規則合併</value>
+  </data>
+  <data name="WF_ProfileFirewallBehavior_SpecifySettingsThatControlWindowsDefenderFirewallWithAdvancedSecurityBehavior" xml:space="preserve">
+    <value>指定控制進階安全性 Windows Defender 防火牆行為的設定。</value>
+  </data>
+  <data name="WF_ProfileFirewallBehavior_UnicastResponse" xml:space="preserve">
+    <value>單點傳播回應</value>
+  </data>
+  <data name="WF_ProfileLoggingSettings_DefaultPathForTheLogFileIsSystemrootSystem32LogfilesFirewallPfirewall" xml:space="preserve">
+    <value>記錄檔的預設路徑為 %systemroot%\system32\logfiles\firewall\pfirewall.log。</value>
+  </data>
+  <data name="WF_ProfileLoggingSettings_LogDroppedPackets" xml:space="preserve">
+    <value>記錄封棄的封包:</value>
+  </data>
+  <data name="WF_ProfileLoggingSettings_LogSuccessfulConnections" xml:space="preserve">
+    <value>記錄成功的連線:</value>
+  </data>
+  <data name="WF_ProfileLoggingSettings_Name" xml:space="preserve">
+    <value>名稱:</value>
+  </data>
+  <data name="WF_ProfileLoggingSettings_NoteIfYouAreConfiguringTheLogFileNameOnGroupPolicy" xml:space="preserve">
+    <value>注意: 如果您在群組原則物件上設定記錄檔名稱，請確定 Windows Defender 防火牆服務帳戶具有包含記錄檔之資料夾的寫入權限。</value>
+  </data>
+  <data name="WF_ProfileLoggingSettings_SizeLimitKB" xml:space="preserve">
+    <value>大小限制 (KB):</value>
+  </data>
+  <data name="WF_ProfileLoggingSettings_System32LogFilesFirewallPfirewallLog" xml:space="preserve">
+    <value>%system32%\LogFiles\Firewall\pfirewall.log</value>
+  </data>
+  <data name="WF_ProtectedNetworkConnections_NetworkConnections" xml:space="preserve">
+    <value>網路連線:</value>
+  </data>
+  <data name="WF_ProtectedNetworkConnections_SelectTheCheckBoxForEachConnectionYouWantWindowsDefenderFirewall" xml:space="preserve">
+    <value>選取您要 Windows Defender 防火牆協助保護的每個連線的核取方塊。</value>
+  </data>
+  <data name="WF_RemoteEndpoints_Endpoint1" xml:space="preserve">
+    <value>端點 1</value>
+  </data>
+  <data name="WF_RemoteEndpoints_Endpoint2" xml:space="preserve">
+    <value>端點 2</value>
+  </data>
+  <data name="WF_ScopeIPAddress_LocalIPAddresses" xml:space="preserve">
+    <value>本機 IP 位址</value>
+  </data>
+  <data name="WF_ScopeIPAddress_RemoteIPAddresses" xml:space="preserve">
+    <value>遠端 IP 位址</value>
+  </data>
+  <data name="WF_SecurityMethodEditor_DiffieHellmanGroup1" xml:space="preserve">
+    <value>Diffie-Hellman Group 1</value>
+  </data>
+  <data name="WF_SecurityMethodEditor_DiffieHellmanGroup14" xml:space="preserve">
+    <value>Diffie-Hellman Group 14</value>
+  </data>
+  <data name="WF_SecurityMethodEditor_DiffieHellmanGroup2" xml:space="preserve">
+    <value>Diffie-Hellman Group 2</value>
+  </data>
+  <data name="WF_SecurityMethodEditor_DiffieHellmanGroup24" xml:space="preserve">
+    <value>Diffie-Hellman Group 24</value>
+  </data>
+  <data name="WF_SecurityMethodEditor_EllipticCurveDiffieHellmanP256" xml:space="preserve">
+    <value>Elliptic Curve Diffie-Hellman P-256</value>
+  </data>
+  <data name="WF_SecurityMethodEditor_EllipticCurveDiffieHellmanP384" xml:space="preserve">
+    <value>Elliptic Curve Diffie-Hellman P-384</value>
+  </data>
+  <data name="WF_SecurityMethodEditor_KeyExchangeAlgorithm" xml:space="preserve">
+    <value>金鑰交換演算法:</value>
+  </data>
+  <data name="WF_SecurityMethodEditor_SHA384" xml:space="preserve">
+    <value>SHA-384</value>
+  </data>
+  <data name="WF_WindowsFirewall_DomainProfile" xml:space="preserve">
+    <value>網域設定檔</value>
+  </data>
+  <data name="WF_WindowsFirewall_InboundConnectionsThatDoNotMatchARuleAreBlocked" xml:space="preserve">
+    <value>不符合規則的輸入連線會被封鎖。</value>
+  </data>
+  <data name="WF_WindowsFirewall_OutboundConnectionsThatDoNotMatchARuleAreAllowed" xml:space="preserve">
+    <value>不符合規則的輸出連線會被允許。</value>
+  </data>
+  <data name="WF_WindowsFirewall_Overview" xml:space="preserve">
+    <value>概觀</value>
+  </data>
+  <data name="WF_WindowsFirewall_PrivateProfile" xml:space="preserve">
+    <value>私人設定檔</value>
+  </data>
+  <data name="WF_WindowsFirewall_PublicProfile" xml:space="preserve">
+    <value>公用設定檔</value>
+  </data>
+  <data name="WF_WindowsFirewall_RestoreLocalDefaults" xml:space="preserve">
+    <value>還原本機預設值</value>
+  </data>
+  <data name="WF_WindowsFirewall_WindowsDefenderFirewallIsOn" xml:space="preserve">
+    <value>Windows Defender 防火牆已開啟。</value>
+  </data>
+  <data name="WF_WindowsFirewallProperties_AllowDefault" xml:space="preserve">
+    <value>允許 (預設)</value>
+  </data>
+  <data name="WF_WindowsFirewallProperties_BlockAllConnections" xml:space="preserve">
+    <value>封鎖所有連線</value>
+  </data>
+  <data name="WF_WindowsFirewallProperties_BlockDefault" xml:space="preserve">
+    <value>封鎖 (預設)</value>
+  </data>
+  <data name="WF_WindowsFirewallProperties_ExemptICMPFromIPsec" xml:space="preserve">
+    <value>將 ICMP 豁免於 IPsec</value>
+  </data>
+  <data name="WF_WindowsFirewallProperties_InboundConnections" xml:space="preserve">
+    <value>輸入連線</value>
+  </data>
+  <data name="WF_WindowsFirewallProperties_IPsecDefaults" xml:space="preserve">
+    <value>IPsec 預設值</value>
+  </data>
+  <data name="WF_WindowsFirewallProperties_IPsecExemptions" xml:space="preserve">
+    <value>IPsec 豁免</value>
+  </data>
+  <data name="WF_WindowsFirewallProperties_IPsecSettings" xml:space="preserve">
+    <value>IPsec 設定</value>
+  </data>
+  <data name="WF_WindowsFirewallProperties_OutboundConnections" xml:space="preserve">
+    <value>輸出連線</value>
+  </data>
+  <data name="WF_WindowsFirewallProperties_Profiles" xml:space="preserve">
+    <value>設定檔</value>
+  </data>
+  <data name="WF_WindowsFirewallProperties_ProtectedNetworkConnections" xml:space="preserve">
+    <value>受保護的網路連線</value>
+  </data>
+  <data name="WF_WindowsFirewallProperties_SpecifyLoggingSettingsForTroubleshooting" xml:space="preserve">
+    <value>指定疑難排解的記錄設定</value>
+  </data>
+  <data name="WF_WindowsFirewallProperties_SpecifySettingsThatControlWindowsDefenderFirewallBehavior" xml:space="preserve">
+    <value>指定控制 Windows Defender 防火牆行為的設定</value>
+  </data>
+  <data name="WF_RestoreLocalDefaults_Title" xml:space="preserve">
+    <value>還原本機防火牆預設值</value>
+  </data>
+  <data name="WF_RestoreLocalDefaults_Message" xml:space="preserve">
+    <value>這會將本機 Windows Defender 防火牆設定還原為預設值。要繼續嗎?</value>
+  </data>
+  <data name="WF_RestoreLocalDefaults_Button" xml:space="preserve">
+    <value>還原</value>
+  </data>
+  <data name="WF_ProfileHeader_Format" xml:space="preserve">
+    <value>{0} 設定檔</value>
+  </data>
+  <data name="WF_ProfileHeaderActive_Format" xml:space="preserve">
+    <value>{0} 設定檔為作用中</value>
+  </data>
+  <data name="WF_FirewallStatus_Format" xml:space="preserve">
+    <value>Windows Defender 防火牆已{0}。</value>
+  </data>
+  <data name="WF_InboundOverview_Format" xml:space="preserve">
+    <value>不符合規則的輸入連線會被{0}。</value>
+  </data>
+  <data name="WF_OutboundOverview_Format" xml:space="preserve">
+    <value>不符合規則的輸出連線會被{0}。</value>
+  </data>
+  <data name="WF_State_On" xml:space="preserve">
+    <value>開啟</value>
+  </data>
+  <data name="WF_State_Off" xml:space="preserve">
+    <value>關閉</value>
+  </data>
+  <data name="WF_Traffic_Blocked" xml:space="preserve">
+    <value>封鎖</value>
+  </data>
+  <data name="WF_Traffic_Allowed" xml:space="preserve">
+    <value>允許</value>
+  </data>
+  <data name="WF_AdvancedCertificateCriteria_Title" xml:space="preserve">
+    <value>進階憑證條件屬性</value>
+  </data>
+  <data name="WF_CustomizeAdvancedAuthenticationMethods_Title" xml:space="preserve">
+    <value>自訂進階驗證方法</value>
+  </data>
+  <data name="WF_CustomizeAdvancedKeyExchange_Title" xml:space="preserve">
+    <value>自訂進階金鑰交換設定</value>
+  </data>
+  <data name="WF_CustomizeDataProtection_Title" xml:space="preserve">
+    <value>自訂資料保護設定</value>
+  </data>
+  <data name="WF_CustomizeIcmpSettings_Title" xml:space="preserve">
+    <value>自訂 ICMP 設定</value>
+  </data>
+  <data name="WF_CustomizeIpsecDefaults_Title" xml:space="preserve">
+    <value>自訂 IPsec 預設值</value>
+  </data>
+  <data name="WF_CustomizeIpsecTunnelSettings_Title" xml:space="preserve">
+    <value>自訂 IPsec 通道設定</value>
+  </data>
+  <data name="WF_CustomizeIpsecTunnelAuthorizations_Title" xml:space="preserve">
+    <value>自訂 IPsec 通道授權</value>
+  </data>
+  <data name="WF_InterfaceTypes_Title" xml:space="preserve">
+    <value>介面類型</value>
+  </data>
+  <data name="WF_IPAddress_Title" xml:space="preserve">
+    <value>IP 位址</value>
+  </data>
+  <data name="WF_ManageIPAddresses_Title" xml:space="preserve">
+    <value>管理 IP 位址</value>
+  </data>
+  <data name="WF_ManageRemoteEndpoints_Title" xml:space="preserve">
+    <value>管理遠端端點</value>
+  </data>
+  <data name="WF_Monitoring_AuthorizedUsersComputers" xml:space="preserve">
+    <value>授權的使用者和電腦:</value>
+  </data>
+  <data name="WF_Monitoring_ExceptedUsersComputers" xml:space="preserve">
+    <value>例外的使用者和電腦:</value>
+  </data>
+  <data name="WF_Monitoring_IcmpSettings" xml:space="preserve">
+    <value>ICMP 設定:</value>
+  </data>
+  <data name="WF_Monitoring_ProgramsAndPortsTab" xml:space="preserve">
+    <value>程式和連接埠</value>
+  </data>
+  <data name="WF_EdgeTraversal_AllowDisplay" xml:space="preserve">
+    <value>允許邊緣周遊</value>
+  </data>
+  <data name="WF_EdgeTraversal_BlockDisplay" xml:space="preserve">
+    <value>封鎖邊緣周遊</value>
+  </data>
+  <data name="WF_EdgeTraversal_DeferToAppDisplay" xml:space="preserve">
+    <value>延遲至應用程式</value>
+  </data>
+  <data name="WF_EdgeTraversal_DeferToUserDisplay" xml:space="preserve">
+    <value>延遲至使用者</value>
+  </data>
+  <data name="WF_TunnelEndpoints_ClientToGatewayDescription" xml:space="preserve">
+    <value>指定遠端通道端點和可透過通道到達的電腦。</value>
+  </data>
+  <data name="WF_TunnelEndpoints_ClientToGatewayRemoteHeader" xml:space="preserve">
+    <value>遠端端點為何?</value>
+  </data>
+  <data name="WF_TunnelEndpoints_GatewayToClientDescription" xml:space="preserve">
+    <value>指定閘道後方可透過通道到達的電腦。</value>
+  </data>
+  <data name="WF_TunnelEndpoints_GatewayToClientLocalHeader" xml:space="preserve">
+    <value>本機端點為何?</value>
+  </data>
+  <data name="WF_TunnelEndpoints_DefaultDescription" xml:space="preserve">
+    <value>從端點 1 到端點 2 的連線會通過指定的通道端點。</value>
+  </data>
+  <data name="WF_TunnelEndpoints_Endpoint1Header" xml:space="preserve">
+    <value>哪些電腦在端點 1 中?</value>
+  </data>
+  <data name="WF_TunnelEndpoints_Endpoint2Header" xml:space="preserve">
+    <value>哪些電腦在端點 2 中?</value>
+  </data>
+  <data name="WF_TunnelEndpoints_DialogDescription" xml:space="preserve">
+    <value>從端點 1 到端點 2 的連線會通過指定的通道端點。通道端點通常是閘道伺服器。</value>
+  </data>
+  <data name="WF_TunnelEndpoints_AuthModeNote" xml:space="preserve">
+    <value>注意: 使用 IPsec 通道時，驗證模式必須設為需要輸入和輸出。</value>
+  </data>
+  <data name="WF_CSR_TunnelType_ClientToGatewayDescription" xml:space="preserve">
+    <value>使用本機電腦作為一個端點。指定遠端端點和可透過通道到達的電腦。</value>
+  </data>
+  <data name="WF_CSR_TunnelType_GatewayToClientDescription" xml:space="preserve">
+    <value>使用本機電腦作為閘道端點。指定遠端用戶端可透過通道到達的電腦。</value>
+  </data>
+  <data name="WF_CSR_TunnelType_DefaultDescription" xml:space="preserve">
+    <value>指定通道端點和可在通道任一端到達的電腦。</value>
+  </data>
+  <data name="WF_CSR_Summary_IsolationFormat" xml:space="preserve">
+    <value>需求: {0} | 驗證: {1}</value>
+  </data>
+  <data name="WF_CSR_Summary_TunnelFormat" xml:space="preserve">
+    <value>{0} | 端點 1: {1} | 端點 2: {2}</value>
+  </data>
+  <data name="WF_Icmp_CustomTypeFormat" xml:space="preserve">
+    <value>類型 {0}, 代碼 {1}</value>
+  </data>
+  <data name="WF_IpsecDefaults_KeyExchangeRequired" xml:space="preserve">
+    <value>您必須指定金鑰交換 (主要模式) 設定。</value>
+  </data>
+  <data name="WF_IpsecDefaults_DataProtectionRequired" xml:space="preserve">
+    <value>您必須指定資料保護 (快速模式) 設定。</value>
+  </data>
+  <data name="WF_IpsecDefaults_AuthenticationRequired" xml:space="preserve">
+    <value>您必須指定驗證方法設定。</value>
+  </data>
+  <data name="WF_IpsecTunnelAuth_RemoveInvalidAccounts" xml:space="preserve">
+    <value>儲存前移除無效或未解析的帳戶。</value>
+  </data>
+  <data name="WF_Principals_InvalidAccountTitle" xml:space="preserve">
+    <value>錯誤: 選取了無效的帳戶</value>
+  </data>
+  <data name="WF_Principals_LocalTitle" xml:space="preserve">
+    <value>管理本機主體</value>
+  </data>
+  <data name="WF_Principals_LocalDescription" xml:space="preserve">
+    <value>指定授權進行符合此規則之連線的本機使用者帳戶。</value>
+  </data>
+  <data name="WF_Principals_LocalAuthorized" xml:space="preserve">
+    <value>授權的本機主體:</value>
+  </data>
+  <data name="WF_Principals_LocalException" xml:space="preserve">
+    <value>例外的本機主體:</value>
+  </data>
+  <data name="WF_Principals_RemoteTitle" xml:space="preserve">
+    <value>管理遠端使用者</value>
+  </data>
+  <data name="WF_Principals_RemoteDescription" xml:space="preserve">
+    <value>指定授權進行符合此規則之連線的遠端使用者帳戶。</value>
+  </data>
+  <data name="WF_Principals_RemoteAuthorized" xml:space="preserve">
+    <value>授權的遠端使用者:</value>
+  </data>
+  <data name="WF_Principals_RemoteException" xml:space="preserve">
+    <value>例外的遠端使用者:</value>
+  </data>
+  <data name="WF_AlgorithmDescription_AesCbc128" xml:space="preserve">
+    <value>比 3DES 更快更強。僅與 Windows Vista 及更新版本相容。</value>
+  </data>
+  <data name="WF_AlgorithmDescription_AesCbc192" xml:space="preserve">
+    <value>比 AES-CBC 128 更強，中等資源使用量。僅與 Windows Vista 及更新版本相容。</value>
+  </data>
+  <data name="WF_AlgorithmDescription_AesCbc256" xml:space="preserve">
+    <value>比 AES-192 更強，更高的資源使用量。僅與 Windows Vista 及更新版本相容。</value>
+  </data>
+  <data name="WF_AlgorithmDescription_AesGmac128" xml:space="preserve">
+    <value>與 Windows Vista SP1 及更新版本相容。這相當於 AES-GCM 128 的完整性。</value>
+  </data>
+  <data name="WF_AlgorithmDescription_AesGmac192" xml:space="preserve">
+    <value>與 Windows Vista SP1 及更新版本相容。這相當於 AES-GCM 192 的完整性。</value>
+  </data>
+  <data name="WF_AlgorithmDescription_AesGmac256" xml:space="preserve">
+    <value>與 Windows Vista SP1 及更新版本相容。這相當於 AES-GCM 256 的完整性。</value>
+  </data>
+  <data name="WF_AlgorithmDescription_CompatibleVistaSp1" xml:space="preserve">
+    <value>與 Windows Vista SP1 及更新版本相容。</value>
+  </data>
+  <data name="WF_AlgorithmDescription_Des" xml:space="preserve">
+    <value>不建議。此演算法僅提供回溯相容性。</value>
+  </data>
+  <data name="WF_AlgorithmDescription_DiffieHellmanGroup1" xml:space="preserve">
+    <value>此演算法僅提供回溯相容性。</value>
+  </data>
+  <data name="WF_AlgorithmDescription_DiffieHellmanGroup2" xml:space="preserve">
+    <value>比 DH 群組 1 更強。</value>
+  </data>
+  <data name="WF_AlgorithmDescription_DiffieHellmanGroup14" xml:space="preserve">
+    <value>比 DH 群組 2 更強。</value>
+  </data>
+  <data name="WF_AlgorithmDescription_EcdhP256" xml:space="preserve">
+    <value>更強的安全性，中等資源使用量。僅與 Windows Vista 及更新版本相容。</value>
+  </data>
+  <data name="WF_AlgorithmDescription_EcdhP384" xml:space="preserve">
+    <value>最強的安全性，最高的資源使用量。僅與 Windows Vista 及更新版本相容。</value>
+  </data>
+  <data name="WF_AlgorithmDescription_HigherResourceThanDes" xml:space="preserve">
+    <value>比 DES 使用更多資源。</value>
+  </data>
+  <data name="WF_AlgorithmDescription_Md5" xml:space="preserve">
+    <value>不建議。此演算法僅提供回溯相容性。</value>
+  </data>
+  <data name="WF_AlgorithmDescription_Sha1" xml:space="preserve">
+    <value>比 MD5 更強，使用稍多資源。</value>
+  </data>
+  <data name="WF_Monitoring_PropertiesTitleFormat" xml:space="preserve">
+    <value>{0} 屬性</value>
+  </data>
+  <data name="WF_Monitoring_Label_AhIntegrity" xml:space="preserve">
+    <value>AH 完整性</value>
+  </data>
+  <data name="WF_Monitoring_Label_AppPackage" xml:space="preserve">
+    <value>應用程式套件</value>
+  </data>
+  <data name="WF_Monitoring_Label_Cipher" xml:space="preserve">
+    <value>密碼</value>
+  </data>
+  <data name="WF_Monitoring_Label_Direction" xml:space="preserve">
+    <value>方向</value>
+  </data>
+  <data name="WF_Monitoring_Label_EdgeTraversal" xml:space="preserve">
+    <value>邊緣周遊</value>
+  </data>
+  <data name="WF_Monitoring_Label_EspEncryption" xml:space="preserve">
+    <value>ESP 加密</value>
+  </data>
+  <data name="WF_Monitoring_Label_EspIntegrity" xml:space="preserve">
+    <value>ESP 完整性</value>
+  </data>
+  <data name="WF_Monitoring_Label_FirstAuthentication" xml:space="preserve">
+    <value>第一個驗證</value>
+  </data>
+  <data name="WF_Monitoring_Label_Hash" xml:space="preserve">
+    <value>雜湊</value>
+  </data>
+  <data name="WF_Monitoring_Label_KeyExchange" xml:space="preserve">
+    <value>金鑰交換</value>
+  </data>
+  <data name="WF_Monitoring_Label_LocalAddress" xml:space="preserve">
+    <value>本機位址</value>
+  </data>
+  <data name="WF_Monitoring_Label_LocalEndpoint" xml:space="preserve">
+    <value>本機端點</value>
+  </data>
+  <data name="WF_Monitoring_Label_LocalIPAddress" xml:space="preserve">
+    <value>本機 IP 位址</value>
+  </data>
+  <data name="WF_Monitoring_Label_Mode" xml:space="preserve">
+    <value>模式</value>
+  </data>
+  <data name="WF_Monitoring_Label_RemoteAddress" xml:space="preserve">
+    <value>遠端位址</value>
+  </data>
+  <data name="WF_Monitoring_Label_RemoteEndpoint" xml:space="preserve">
+    <value>遠端端點</value>
+  </data>
+  <data name="WF_Monitoring_Label_RemoteIPAddress" xml:space="preserve">
+    <value>遠端 IP 位址</value>
+  </data>
+  <data name="WF_Monitoring_Label_SecondAuthentication" xml:space="preserve">
+    <value>第二個驗證</value>
+  </data>
+  <data name="WF_Monitoring_Label_Service" xml:space="preserve">
+    <value>服務</value>
+  </data>
+  <data name="WF_AddFirstAuthenticationMethod_Title" xml:space="preserve">
+    <value>新增第一個驗證方法</value>
+  </data>
+  <data name="WF_EditFirstAuthenticationMethod_Title" xml:space="preserve">
+    <value>編輯第一個驗證方法</value>
+  </data>
+  <data name="WF_AddSecondAuthenticationMethod_Title" xml:space="preserve">
+    <value>新增第二個驗證方法</value>
+  </data>
+  <data name="WF_EditSecondAuthenticationMethod_Title" xml:space="preserve">
+    <value>編輯第二個驗證方法</value>
+  </data>
+  <data name="WF_FileDialog_ExecutableFiles" xml:space="preserve">
+    <value>可執行檔</value>
+  </data>
+  <data name="WF_FileDialog_LogFiles" xml:space="preserve">
+    <value>記錄檔</value>
+  </data>
+  <data name="WF_FileDialog_AllFiles" xml:space="preserve">
+    <value>所有檔案</value>
+  </data>
+  <data name="WF_FileDialog_SelectProgramTitle" xml:space="preserve">
+    <value>選取程式</value>
+  </data>
+  <data name="WF_Validation_RuleNameRequired" xml:space="preserve">
+    <value>規則名稱為必要項。</value>
+  </data>
+  <data name="WF_Validation_ProfileRequired" xml:space="preserve">
+    <value>請至少選取一個設定檔。</value>
+  </data>
+  <data name="WF_Validation_ExemptComputerRequired" xml:space="preserve">
+    <value>請至少新增一個豁免的電腦。</value>
+  </data>
+  <data name="WF_Validation_EndpointsRequired" xml:space="preserve">
+    <value>您必須指定此規則的端點。</value>
+  </data>
+  <data name="WF_Validation_Endpoint1PortsRequired" xml:space="preserve">
+    <value>請輸入端點 1 連接埠。</value>
+  </data>
+  <data name="WF_Validation_Endpoint2PortsRequired" xml:space="preserve">
+    <value>請輸入端點 2 連接埠。</value>
+  </data>
+  <data name="WF_Validation_CertificateAuthorityPathRequired" xml:space="preserve">
+    <value>您必須指定憑證授權單位路徑。</value>
+  </data>
+  <data name="WF_Validation_CustomAuthenticationRequired" xml:space="preserve">
+    <value>您必須指定至少一個自訂驗證方法。</value>
+  </data>
+  <data name="WF_Validation_PresharedKeyRequired" xml:space="preserve">
+    <value>您必須輸入預先共用金鑰。</value>
+  </data>
+  <data name="WF_Validation_PresharedKeyCannotUseSecondAuthentication" xml:space="preserve">
+    <value>當第一個驗證方法清單包含預先共用金鑰時，無法指定第二個驗證。請移除次要驗證方法，或清除「可選擇是否使用次要驗證」。</value>
+  </data>
+  <data name="WF_Validation_SecondAuthenticationCategoryMismatch" xml:space="preserve">
+    <value>次要驗證清單必須僅包含使用者驗證方法或電腦健康憑證方法。您選取的驗證方法不符合目前清單中的方法。</value>
+  </data>
+  <data name="WF_Validation_FollowRenewalRequiresThumbprint" xml:space="preserve">
+    <value>若未指定任何憑證指紋，則無法檢查後續的憑證更新。</value>
+  </data>
+  <data name="WF_Validation_CertificateNameRestrictionIncomplete" xml:space="preserve">
+    <value>若要限制憑證名稱，請同時選取名稱類型並輸入憑證名稱。</value>
+  </data>
+  <data name="WF_Validation_CustomEkuRequired" xml:space="preserve">
+    <value>請先輸入自訂 EKU 值，再新增至清單。</value>
+  </data>
+  <data name="WF_Validation_AddressInterfaceConflict" xml:space="preserve">
+    <value>本機或遠端位址不能與介面類型條件一起使用。</value>
+  </data>
+  <data name="WF_Validation_TunnelEndpointFamiliesRequired" xml:space="preserve">
+    <value>本機和遠端通道端點位址必須使用相符的 IP 位址系列。</value>
+  </data>
+  <data name="WF_Validation_Ikev2FirstAuthOnly" xml:space="preserve">
+    <value>IKEv2 通道規則僅支援第一個驗證。移除第二個驗證方法。</value>
+  </data>
+  <data name="WF_Validation_Ikev2UnsupportedAuth" xml:space="preserve">
+    <value>IKEv2 通道規則不支援 Kerberos、NTLM 或預先共用金鑰驗證。</value>
+  </data>
+  <data name="WF_Validation_PredefinedRuleGroupRequired" xml:space="preserve">
+    <value>請選取預先定義的規則群組。</value>
+  </data>
+  <data name="WF_Validation_PredefinedRuleRequired" xml:space="preserve">
+    <value>請至少選取一個預先定義的規則。</value>
+  </data>
+  <data name="WF_Validation_LocalPortsRequired" xml:space="preserve">
+    <value>請輸入本機連接埠。</value>
+  </data>
+  <data name="WF_Validation_RemotePortsRequired" xml:space="preserve">
+    <value>請輸入遠端連接埠。</value>
+  </data>
+  <data name="WF_Summary_RequirementsAuthenticationFormat" xml:space="preserve">
+    <value>需求: {0} | 驗證: {1}</value>
+  </data>
+  <data name="WF_Summary_NoExemptComputers" xml:space="preserve">
+    <value>沒有豁免的電腦</value>
+  </data>
+  <data name="WF_Summary_ExemptComputersFormat" xml:space="preserve">
+    <value>豁免的電腦: {0}</value>
+  </data>
+  <data name="WF_Summary_EndpointPairFormat" xml:space="preserve">
+    <value>端點 1: {0} | 端點 2: {1}</value>
+  </data>
+  <data name="WF_Summary_EndpointArrowFormat" xml:space="preserve">
+    <value>{0} -&gt; {1}</value>
+  </data>
+  <data name="WF_Summary_EndpointSecurityFormat" xml:space="preserve">
+    <value>{0} -&gt; {1} | {2}/{3}</value>
+  </data>
+  <data name="WF_ProfileFirewallBehavior_TitleFormat" xml:space="preserve">
+    <value>自訂 {0} 設定檔的設定</value>
+  </data>
+  <data name="WF_ProfileLogging_TitleFormat" xml:space="preserve">
+    <value>自訂 {0} 設定檔的記錄設定</value>
+  </data>
+  <data name="WF_ProtectedNetworkConnections_TitleFormat" xml:space="preserve">
+    <value>{0} 設定檔的受保護網路連線</value>
+  </data>
+  <data name="WF_AdvancedKeyExchange_AddSecurityMethodTitle" xml:space="preserve">
+    <value>新增安全性方法</value>
+  </data>
+  <data name="WF_AdvancedKeyExchange_EditSecurityMethodTitle" xml:space="preserve">
+    <value>編輯安全性方法</value>
+  </data>
+  <data name="WF_DataProtection_AddIntegrityAlgorithmTitle" xml:space="preserve">
+    <value>新增完整性演算法</value>
+  </data>
+  <data name="WF_DataProtection_EditIntegrityAlgorithmTitle" xml:space="preserve">
+    <value>編輯完整性演算法</value>
+  </data>
+  <data name="WF_DataProtection_AddIntegrityEncryptionAlgorithmsTitle" xml:space="preserve">
+    <value>新增完整性和加密演算法</value>
+  </data>
+  <data name="WF_DataProtection_EditIntegrityEncryptionAlgorithmsTitle" xml:space="preserve">
+    <value>編輯完整性和加密演算法</value>
+  </data>
+  <data name="WF_AuthDetails_KerberosAuthentication" xml:space="preserve">
+    <value>Kerberos 驗證</value>
+  </data>
+  <data name="WF_AuthDetails_NtlmAuthentication" xml:space="preserve">
+    <value>NTLMv2 驗證</value>
+  </data>
+  <data name="WF_AuthDetails_AnonymousAuthentication" xml:space="preserve">
+    <value>匿名驗證</value>
+  </data>
+  <data name="WF_AuthDetails_NotSet" xml:space="preserve">
+    <value>未設定</value>
+  </data>
+  <data name="WF_AuthDetails_CertificateAuthorityFormat" xml:space="preserve">
+    <value>CA: {0}</value>
+  </data>
+  <data name="WF_AuthDetails_AlgorithmFormat" xml:space="preserve">
+    <value>演算法: {0}</value>
+  </data>
+  <data name="WF_AuthDetails_StoreFormat" xml:space="preserve">
+    <value>存放區: {0}</value>
+  </data>
+  <data name="WF_AuthDetails_CombinedCertificateFormat" xml:space="preserve">
+    <value>CA: {0}, 演算法: {1}, 存放區: {2}</value>
+  </data>
+  <data name="WF_AuthDetails_HealthCertificatesOnly" xml:space="preserve">
+    <value>僅健康情況憑證</value>
+  </data>
+  <data name="WF_AuthDetails_MappingEnabled" xml:space="preserve">
+    <value>已啟用對應</value>
+  </data>
+  <data name="WF_AuthDetails_KeyNotSet" xml:space="preserve">
+    <value>未設定金鑰</value>
+  </data>
+  <data name="WF_AuthDetails_KeyConfigured" xml:space="preserve">
+    <value>已設定金鑰</value>
+  </data>
+  <data name="WF_AuthMethod_ComputerKerberos" xml:space="preserve">
+    <value>電腦 (Kerberos V5)</value>
+  </data>
+  <data name="WF_AuthMethod_UserKerberos" xml:space="preserve">
+    <value>使用者 (Kerberos V5)</value>
+  </data>
+  <data name="WF_AuthMethod_ComputerNtlm" xml:space="preserve">
+    <value>電腦 (NTLMv2)</value>
+  </data>
+  <data name="WF_AuthMethod_UserNtlm" xml:space="preserve">
+    <value>使用者 (NTLMv2)</value>
+  </data>
+  <data name="WF_AuthMethod_Anonymous" xml:space="preserve">
+    <value>匿名</value>
+  </data>
+  <data name="WF_AuthMethod_ComputerCertificateFromCA" xml:space="preserve">
+    <value>來自 CA 的電腦憑證</value>
+  </data>
+  <data name="WF_AuthMethod_UserCertificateFromCA" xml:space="preserve">
+    <value>來自 CA 的使用者憑證</value>
+  </data>
+  <data name="WF_AuthMethod_ComputerHealthCertificateFromCA" xml:space="preserve">
+    <value>來自 CA 的電腦健康情況憑證</value>
+  </data>
+  <data name="WF_CertificateStore_IntermediateCA" xml:space="preserve">
+    <value>中繼 CA</value>
+  </data>
+  <data name="WF_CertificateStore_RootCADefault" xml:space="preserve">
+    <value>根 CA (預設)</value>
+  </data>
+  <data name="WF_SigningAlgorithm_EcdsaP256" xml:space="preserve">
+    <value>ECDSA P-256</value>
+  </data>
+  <data name="WF_SigningAlgorithm_EcdsaP384" xml:space="preserve">
+    <value>ECDSA P-384</value>
+  </data>
+  <data name="WF_SigningAlgorithm_RsaDefault" xml:space="preserve">
+    <value>RSA (預設)</value>
+  </data>
+  <data name="WF_AdvancedCriteria_RestrictFormat" xml:space="preserve">
+    <value>限制: {0}</value>
+  </data>
+  <data name="WF_AdvancedCriteria_EkuFormat" xml:space="preserve">
+    <value>EKU: {0}</value>
+  </data>
+  <data name="WF_AdvancedCriteria_NameFormat" xml:space="preserve">
+    <value>名稱: {0}</value>
+  </data>
+  <data name="WF_AdvancedCriteria_ThumbprintSet" xml:space="preserve">
+    <value>已設定指紋</value>
+  </data>
+  <data name="WF_AdvancedCriteria_FollowRenewal" xml:space="preserve">
+    <value>遵循更新</value>
+  </data>
+  <data name="WF_AdvancedCriteria_Configured" xml:space="preserve">
+    <value>已設定進階條件</value>
+  </data>
+  <data name="WF_Principals_ResolveAccountsFailedFormat" xml:space="preserve">
+    <value>無法解析一或多個帳戶。請移除任何無效的帳戶，然後再試一次。
+
+詳細資料: {0}</value>
+  </data>
+  <data name="WF_AlgorithmDescription_AesGcm128" xml:space="preserve">
+    <value>比 3DES 更快更強。與 Windows Vista (SP1) 及更新版本相容。</value>
+  </data>
+  <data name="WF_AlgorithmDescription_AesGcm192" xml:space="preserve">
+    <value>比 AES-GCM/AES-CBC 128 更強，中等資源使用量。與 Windows Vista SP1 及更新版本相容。</value>
+  </data>
+  <data name="WF_AlgorithmDescription_AesGcm256" xml:space="preserve">
+    <value>比 AES-GCM/AES-CBC 192 和 128 更強，更高的資源使用量。與 Windows Vista SP1 及更新版本相容。</value>
+  </data>
+  <data name="WF_AlgorithmDescription_DataAesCbc128" xml:space="preserve">
+    <value>比 3DES 更快更強。與 Windows Vista (SP1) 及更新版本相容。</value>
+  </data>
+  <data name="WF_AlgorithmDescription_DataAesCbc192" xml:space="preserve">
+    <value>比 AES-GCM/AES-CBC 128 更強，中等資源使用量。與 Windows Vista SP1 及更新版本相容。</value>
+  </data>
+  <data name="WF_AlgorithmDescription_DataAesCbc256" xml:space="preserve">
+    <value>比 AES-GCM/AES-CBC 192 和 128 更強，更高的資源使用量。與 Windows Vista SP1 及更新版本相容。</value>
+  </data>
+  <data name="WF_AlgorithmDescription_DiffieHellmanGroup24" xml:space="preserve">
+    <value>比 DH 群組 14 更強。</value>
+  </data>
+  <data name="WF_AuthMethod_PresharedKey" xml:space="preserve">
+    <value>預先共用金鑰</value>
+  </data>
+  <data name="WF_AdvancedCriteria_RestrictNoRestriction" xml:space="preserve">
+    <value>無限制</value>
+  </data>
+  <data name="WF_AdvancedCriteria_RestrictSelectionOnly" xml:space="preserve">
+    <value>僅選取項目</value>
+  </data>
+  <data name="WF_AdvancedCriteria_RestrictValidationOnly" xml:space="preserve">
+    <value>僅驗證</value>
+  </data>
+  <data name="WF_AuthMethod_UnsupportedProposal" xml:space="preserve">
+    <value>不支援的驗證提案</value>
+  </data>
+  <data name="WF_AuthDetails_UnsupportedProposalFormat" xml:space="preserve">
+    <value>類別={0}; 方法={1}</value>
+  </data>
+  <data name="WF_SecurityRequirement_None" xml:space="preserve">
+    <value>無</value>
+  </data>
+  <data name="WF_SecurityRequirement_Request" xml:space="preserve">
+    <value>要求</value>
+  </data>
+  <data name="WF_SecurityRequirement_Require" xml:space="preserve">
+    <value>需要</value>
+  </data>
+  <data name="WF_Monitoring_Node_SecurityAssociations" xml:space="preserve">
+    <value>安全性關聯</value>
+  </data>
+  <data name="WF_Monitoring_Node_MainMode" xml:space="preserve">
+    <value>主要模式</value>
+  </data>
+  <data name="WF_Monitoring_Node_QuickMode" xml:space="preserve">
+    <value>快速模式</value>
+  </data>
+  <data name="WF_Error_UpdateIpsecDefaults" xml:space="preserve">
+    <value>無法更新 IPsec 預設值。</value>
+  </data>
+  <data name="WF_Error_UpdateIpsecTunnelAuthorization" xml:space="preserve">
+    <value>無法更新 IPsec 通道授權。</value>
+  </data>
+  <data name="WF_Error_UpdateIpsecIcmpExemption" xml:space="preserve">
+    <value>無法更新 IPsec ICMP 豁免。</value>
+  </data>
+  <data name="WF_CurrentSetting_Format" xml:space="preserve">
+    <value>目前設定: {0}</value>
+  </data>
+  <data name="WF_TunnelEndpoints_LocalEndpointTitle" xml:space="preserve">
+    <value>本機通道端點</value>
+  </data>
+  <data name="WF_TunnelEndpoints_RemoteEndpointTitle" xml:space="preserve">
+    <value>遠端通道端點</value>
+  </data>
+  <data name="WF_Monitoring_Node_Firewall" xml:space="preserve">
+    <value>防火牆</value>
+  </data>
+  <data name="WF_WindowsFirewall_ConnectionSecurityRulesDescription" xml:space="preserve">
+    <value>定義 IPsec 規則以保護並驗證電腦連線</value>
+  </data>
+  <data name="WF_WindowsFirewall_InboundRulesDescription" xml:space="preserve">
+    <value>設定傳入網路流量的規則</value>
+  </data>
+  <data name="WF_WindowsFirewall_MonitoringDescription" xml:space="preserve">
+    <value>顯示作用中的防火牆規則與 IPsec 安全性關聯</value>
+  </data>
+  <data name="WF_WindowsFirewall_OutboundRulesDescription" xml:space="preserve">
+    <value>設定傳出網路流量的規則</value>
+  </data>
+  <data name="WF_WindowsFirewall_PropertiesDescription" xml:space="preserve">
+    <value>自訂設定檔與 IPsec 設定</value>
+  </data>
+</root>

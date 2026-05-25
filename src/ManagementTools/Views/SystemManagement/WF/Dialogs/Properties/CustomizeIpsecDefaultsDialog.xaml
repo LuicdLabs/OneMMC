@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentDialog
+    x:Class="ManagementTools.Views.Dialogs.WFProperties.CustomizeIpsecDefaultsDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:ManagementTools.Localization"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    CloseButtonText="{Binding Common_CancelButton, Source={StaticResource LocalizedStrings}}"
+    PrimaryButtonText="{Binding Common_OKButton, Source={StaticResource LocalizedStrings}}"
+    Style="{StaticResource DefaultContentDialogStyle}"
+    mc:Ignorable="d">
+
+    <ContentDialog.Resources>
+        <local:LocalizedStrings x:Key="LocalizedStrings" />
+    </ContentDialog.Resources>
+
+    <ScrollViewer
+        MaxHeight="560"
+        HorizontalScrollBarVisibility="Disabled"
+        VerticalScrollBarVisibility="Auto"
+        VerticalScrollMode="Enabled">
+        <StackPanel
+            MinWidth="500"
+            MinHeight="520"
+            Spacing="14">
+            <TextBlock Text="{Binding WF_CustomizeIpsecDefaults_IPsecWillUseTheseSettingsToEstablishSecuredConnectionsWhenThereAre, Source={StaticResource LocalizedStrings}}" TextWrapping="Wrap" />
+
+            <TextBlock
+                x:Name="ValidationMessageTextBlock"
+                Foreground="{ThemeResource SystemFillColorCriticalBrush}"
+                TextWrapping="Wrap"
+                Visibility="Collapsed" />
+
+            <TextBlock
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                Text="{Binding WF_CustomizeIpsecDefaults_WhenYouUseTheDefaultOptionsAnySettingsInAGPOWith, Source={StaticResource LocalizedStrings}}"
+                TextWrapping="Wrap" />
+
+            <Border
+                Padding="10"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="4">
+                <Grid ColumnSpacing="10" RowSpacing="8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <TextBlock
+                    Grid.Row="0"
+                    Grid.ColumnSpan="2"
+                    FontWeight="SemiBold"
+                    Text="{Binding WF_CustomizeIpsecDefaults_KeyExchangeMainMode, Source={StaticResource LocalizedStrings}}" />
+
+                <RadioButton
+                    x:Name="KeyExchangeDefaultRadioButton"
+                    Grid.Row="1"
+                    Grid.Column="0"
+                    Checked="KeyExchangeRadioButton_Checked"
+                    Content="{Binding WF_CustomizeIpsecDefaults_DefaultRecommended, Source={StaticResource LocalizedStrings}}"
+                    GroupName="KeyExchangeGroup"
+                    IsChecked="True" />
+
+                <RadioButton
+                    x:Name="KeyExchangeAdvancedRadioButton"
+                    Grid.Row="2"
+                    Grid.Column="0"
+                    Checked="KeyExchangeRadioButton_Checked"
+                    Content="{Binding WF_Tab_Advanced, Source={StaticResource LocalizedStrings}}"
+                    GroupName="KeyExchangeGroup" />
+
+                <Button
+                    x:Name="KeyExchangeCustomizeButton"
+                    Grid.Row="2"
+                    Grid.Column="1"
+                    MinWidth="110"
+                    Click="KeyExchangeCustomizeButton_Click"
+                    Content="{Binding WF_CustomizeIpsecDefaults_Customize, Source={StaticResource LocalizedStrings}}"
+                    IsEnabled="False" />
+            </Grid>
+        </Border>
+
+            <Border
+                Padding="10"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="4">
+                <Grid ColumnSpacing="10" RowSpacing="8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <TextBlock
+                    Grid.Row="0"
+                    Grid.ColumnSpan="2"
+                    FontWeight="SemiBold"
+                    Text="{Binding WF_CustomizeIpsecDefaults_DataProtectionQuickMode, Source={StaticResource LocalizedStrings}}" />
+
+                <RadioButton
+                    x:Name="DataProtectionDefaultRadioButton"
+                    Grid.Row="1"
+                    Grid.Column="0"
+                    Checked="DataProtectionRadioButton_Checked"
+                    Content="{Binding WF_CustomizeIpsecDefaults_DefaultRecommended, Source={StaticResource LocalizedStrings}}"
+                    GroupName="DataProtectionGroup" />
+
+                <RadioButton
+                    x:Name="DataProtectionAdvancedRadioButton"
+                    Grid.Row="2"
+                    Grid.Column="0"
+                    Checked="DataProtectionRadioButton_Checked"
+                    Content="{Binding WF_Tab_Advanced, Source={StaticResource LocalizedStrings}}"
+                    GroupName="DataProtectionGroup"
+                    IsChecked="True" />
+
+                <Button
+                    x:Name="DataProtectionCustomizeButton"
+                    Grid.Row="2"
+                    Grid.Column="1"
+                    MinWidth="110"
+                    Click="DataProtectionCustomizeButton_Click"
+                    Content="{Binding WF_CustomizeIpsecDefaults_Customize, Source={StaticResource LocalizedStrings}}" />
+            </Grid>
+        </Border>
+
+            <Border
+                Padding="10"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="4">
+                <Grid ColumnSpacing="10" RowSpacing="8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <TextBlock
+                    Grid.Row="0"
+                    Grid.ColumnSpan="2"
+                    FontWeight="SemiBold"
+                    Text="{Binding WF_CSR_AuthenticationMethod, Source={StaticResource LocalizedStrings}}" />
+
+                <RadioButton
+                    x:Name="AuthenticationDefaultRadioButton"
+                    Grid.Row="1"
+                    Grid.Column="0"
+                    Checked="AuthenticationMethodRadioButton_Checked"
+                    Content="{Binding WF_Common_Default, Source={StaticResource LocalizedStrings}}"
+                    GroupName="AuthenticationMethodGroup"
+                    IsChecked="True" />
+                <RadioButton
+                    x:Name="AuthenticationComputerAndUserRadioButton"
+                    Grid.Row="2"
+                    Grid.Column="0"
+                    Checked="AuthenticationMethodRadioButton_Checked"
+                    Content="{Binding WF_CSR_AuthMethod_ComputerAndUser, Source={StaticResource LocalizedStrings}}"
+                    GroupName="AuthenticationMethodGroup" />
+                <RadioButton
+                    x:Name="AuthenticationComputerRadioButton"
+                    Grid.Row="3"
+                    Grid.Column="0"
+                    Checked="AuthenticationMethodRadioButton_Checked"
+                    Content="{Binding WF_Common_ComputerKerberosV5, Source={StaticResource LocalizedStrings}}"
+                    GroupName="AuthenticationMethodGroup" />
+                <RadioButton
+                    x:Name="AuthenticationUserRadioButton"
+                    Grid.Row="4"
+                    Grid.Column="0"
+                    Checked="AuthenticationMethodRadioButton_Checked"
+                    Content="{Binding WF_Common_UserKerberosV5, Source={StaticResource LocalizedStrings}}"
+                    GroupName="AuthenticationMethodGroup" />
+
+                <RadioButton
+                    x:Name="AuthenticationAdvancedRadioButton"
+                    Grid.Row="5"
+                    Grid.Column="0"
+                    Checked="AuthenticationMethodRadioButton_Checked"
+                    Content="{Binding WF_Tab_Advanced, Source={StaticResource LocalizedStrings}}"
+                    GroupName="AuthenticationMethodGroup" />
+
+                <Button
+                    x:Name="AuthenticationCustomizeButton"
+                    Grid.Row="5"
+                    Grid.Column="1"
+                    MinWidth="110"
+                    Click="AuthenticationCustomizeButton_Click"
+                    Content="{Binding WF_CustomizeIpsecDefaults_Customize, Source={StaticResource LocalizedStrings}}"
+                    IsEnabled="False" />
+            </Grid>
+            </Border>
+
+        </StackPanel>
+    </ScrollViewer>
+</ContentDialog>

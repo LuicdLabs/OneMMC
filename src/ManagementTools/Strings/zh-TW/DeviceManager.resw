@@ -1,0 +1,358 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="DeviceManager_SearchPlaceholder" xml:space="preserve">
+    <value>搜尋裝置</value>
+  </data>
+  <data name="DeviceManager_RefreshTooltip" xml:space="preserve">
+    <value>重新整理與掃描變更</value>
+  </data>
+  <data name="DeviceManager_OpenSystemDeviceManager" xml:space="preserve">
+    <value>開啟系統裝置管理員 (devmgmt.msc)</value>
+  </data>
+  <data name="DeviceManager_ShowHiddenDevices" xml:space="preserve">
+    <value>顯示隱藏的裝置</value>
+  </data>
+  <data name="DeviceManager_DeviceCountPrefix" xml:space="preserve">
+    <value>共 </value>
+  </data>
+  <data name="DeviceManager_DeviceCountSuffix" xml:space="preserve">
+    <value> 個裝置</value>
+  </data>
+  <data name="DeviceManager_EnableDevice" xml:space="preserve">
+    <value>啟用</value>
+  </data>
+  <data name="DeviceManager_DisableDevice" xml:space="preserve">
+    <value>停用</value>
+  </data>
+  <data name="DeviceManager_UninstallDevice" xml:space="preserve">
+    <value>解除安裝</value>
+  </data>
+  <data name="DeviceManager_GeneralInformation" xml:space="preserve">
+    <value>一般資訊</value>
+  </data>
+  <data name="DeviceManager_DeviceName" xml:space="preserve">
+    <value>裝置名稱</value>
+  </data>
+  <data name="DeviceManager_DeviceType" xml:space="preserve">
+    <value>裝置類型</value>
+  </data>
+  <data name="DeviceManager_Manufacturer" xml:space="preserve">
+    <value>製造商</value>
+  </data>
+  <data name="DeviceManager_Status" xml:space="preserve">
+    <value>狀態</value>
+  </data>
+  <data name="DeviceManager_DeviceID" xml:space="preserve">
+    <value>裝置 ID</value>
+  </data>
+  <data name="DeviceManager_DeviceIDDescription" xml:space="preserve">
+    <value>用於識別裝置的唯一標識符</value>
+  </data>
+  
+  <data name="DeviceManager_DriverInformation" xml:space="preserve">
+    <value>驅動程式資訊</value>
+  </data>
+  <data name="DeviceManager_DriverVersion" xml:space="preserve">
+    <value>驅動程式版本</value>
+  </data>
+  <data name="DeviceManager_DriverDate" xml:space="preserve">
+    <value>驅動程式日期</value>
+  </data>
+  <data name="DeviceManager_DriverProvider" xml:space="preserve">
+    <value>驅動程式提供者</value>
+  </data>
+  <data name="DeviceManager_INFName" xml:space="preserve">
+    <value>INF 檔案</value>
+  </data>
+  <data name="DeviceManager_DigitalSignature" xml:space="preserve">
+    <value>數位簽章</value>
+  </data>
+  <data name="DeviceManager_Signer" xml:space="preserve">
+    <value>簽署者</value>
+  </data>
+  <data name="DeviceManager_HardwareIDs" xml:space="preserve">
+    <value>硬體識別碼</value>
+  </data>
+  <data name="DeviceManager_HardwareID" xml:space="preserve">
+    <value>硬體 ID</value>
+  </data>
+  <data name="DeviceManager_CompatibleID" xml:space="preserve">
+    <value>相容 ID</value>
+  </data>
+  
+  <data name="DeviceManager_HiddenDevices" xml:space="preserve">
+    <value>隱藏的裝置</value>
+  </data>
+  <data name="DeviceManager_ConfirmDisableDeviceTitle" xml:space="preserve">
+    <value>停用裝置</value>
+  </data>
+  <data name="DeviceManager_ConfirmDisableDeviceContent" xml:space="preserve">
+    <value>您即將停用「{0}」
+
+您是否了解這可能會導致系統錯誤或功能異常？</value>
+  </data>
+  <data name="DeviceManager_DisableButton" xml:space="preserve">
+    <value>停用</value>
+  </data>
+  <data name="DeviceManager_ConfirmUninstallDeviceTitle" xml:space="preserve">
+    <value>解除安裝裝置</value>
+  </data>
+  <data name="DeviceManager_ConfirmUninstallDeviceContent" xml:space="preserve">
+    <value>您即將解除安裝「{0}」
+
+您是否了解這可能會導致系統錯誤或功能異常？</value>
+  </data>
+  <data name="DeviceManager_UninstallButton" xml:space="preserve">
+    <value>解除安裝</value>
+  </data>
+  <data name="DeviceManager_EnableDeviceError" xml:space="preserve">
+    <value>啟用裝置失敗，請確保您有足夠的權限</value>
+  </data>
+  <data name="DeviceManager_DisableDeviceError" xml:space="preserve">
+    <value>停用裝置失敗，請確保您有足夠的權限</value>
+  </data>
+  <data name="DeviceManager_UninstallDeviceError" xml:space="preserve">
+    <value>解除安裝裝置失敗，請確保您有足夠的權限</value>
+  </data>
+  <data name="DeviceManager_DevicePropertiesError" xml:space="preserve">
+    <value>錯誤：{0}</value>
+  </data>
+  
+  <data name="DeviceManager_StatusWorking" xml:space="preserve">
+    <value>此裝置運作正常</value>
+  </data>
+  <data name="DeviceManager_StatusConfigError" xml:space="preserve">
+    <value>此裝置設定不正確</value>
+  </data>
+  <data name="DeviceManager_StatusDriverCorrupt" xml:space="preserve">
+    <value>此裝置的驅動程式可能已損壞，或您的系統記憶體或其他資源不足</value>
+  </data>
+  <data name="DeviceManager_StatusCannotStart" xml:space="preserve">
+    <value>此裝置無法啟動</value>
+  </data>
+  <data name="DeviceManager_StatusNoResources" xml:space="preserve">
+    <value>此裝置找不到足夠的可用資源</value>
+  </data>
+  <data name="DeviceManager_StatusRestartRequired" xml:space="preserve">
+    <value>必須重新啟動此裝置才能完成安裝</value>
+  </data>
+  <data name="DeviceManager_StatusReinstallDriver" xml:space="preserve">
+    <value>請重新安裝此裝置的驅動程式</value>
+  </data>
+  <data name="DeviceManager_StatusRegistryCorrupt" xml:space="preserve">
+    <value>登錄可能已損壞</value>
+  </data>
+  <data name="DeviceManager_StatusRemoving" xml:space="preserve">
+    <value>Windows 正在移除此裝置</value>
+  </data>
+  <data name="DeviceManager_StatusDisabled" xml:space="preserve">
+    <value>此裝置已停用</value>
+  </data>
+  <data name="DeviceManager_StatusNotPresent" xml:space="preserve">
+    <value>此裝置不存在、運作不正常，或未安裝所有驅動程式</value>
+  </data>
+  <data name="DeviceManager_StatusNoDriver" xml:space="preserve">
+    <value>此裝置的驅動程式未安裝</value>
+  </data>
+  <data name="DeviceManager_StatusDisabledFirmware" xml:space="preserve">
+    <value>此裝置已停用，因為裝置的韌體未提供所需的資源</value>
+  </data>
+  <data name="DeviceManager_StatusCannotLoadDriver" xml:space="preserve">
+    <value>此裝置運作不正常，因為 Windows 無法載入此裝置所需的驅動程式</value>
+  </data>
+  <data name="DeviceManager_StatusDriverDisabled" xml:space="preserve">
+    <value>此裝置的驅動程式已停用</value>
+  </data>
+  <data name="DeviceManager_StatusCannotDetermineResources" xml:space="preserve">
+    <value>Windows 無法確定此裝置使用的資源</value>
+  </data>
+  <data name="DeviceManager_StatusCannotDetermineConfig" xml:space="preserve">
+    <value>Windows 無法確定此裝置的設定</value>
+  </data>
+  <data name="DeviceManager_StatusInsufficientFirmware" xml:space="preserve">
+    <value>您電腦的系統韌體未包含足夠的資訊來正確設定和使用此裝置</value>
+  </data>
+  <data name="DeviceManager_StatusInterruptConflict" xml:space="preserve">
+    <value>此裝置要求 PCI 中斷，但設定為 ISA 中斷（或相反）</value>
+  </data>
+  <data name="DeviceManager_StatusCannotInitializeDriver" xml:space="preserve">
+    <value>Windows 無法初始化此硬體的裝置驅動程式</value>
+  </data>
+  <data name="DeviceManager_StatusDriverInMemory" xml:space="preserve">
+    <value>Windows 無法載入此硬體的裝置驅動程式，因為先前的裝置驅動程式執行個體仍在記憶體中</value>
+  </data>
+  <data name="DeviceManager_StatusDriverCorruptOrMissing" xml:space="preserve">
+    <value>Windows 無法載入此硬體的裝置驅動程式，因為驅動程式已損壞或遺失</value>
+  </data>
+  <data name="DeviceManager_StatusRegistryMissing" xml:space="preserve">
+    <value>Windows 無法存取此硬體，因為登錄中的服務金鑰資訊遺失或記錄不正確</value>
+  </data>
+  <data name="DeviceManager_StatusHardwareNotFound" xml:space="preserve">
+    <value>此硬體的裝置驅動程式已成功載入，但找不到硬體裝置</value>
+  </data>
+  <data name="DeviceManager_StatusDuplicateDevice" xml:space="preserve">
+    <value>Windows 無法載入此硬體的裝置驅動程式，因為系統中已有重複的裝置正在執行</value>
+  </data>
+  <data name="DeviceManager_StatusDeviceReportedProblem" xml:space="preserve">
+    <value>Windows 已停止此裝置，因為它回報了問題</value>
+  </data>
+  <data name="DeviceManager_StatusApplicationClosed" xml:space="preserve">
+    <value>應用程式或服務已關閉此硬體裝置</value>
+  </data>
+  <data name="DeviceManager_StatusNotConnected" xml:space="preserve">
+    <value>目前，此硬體裝置未連接到電腦</value>
+  </data>
+  <data name="DeviceManager_StatusSystemShutdown" xml:space="preserve">
+    <value>Windows 無法存取此硬體裝置，因為作業系統正在關機程序中</value>
+  </data>
+  <data name="DeviceManager_StatusSafeRemoval" xml:space="preserve">
+    <value>Windows 無法使用此硬體裝置，因為它已準備好「安全移除」，但尚未從電腦中移除</value>
+  </data>
+  <data name="DeviceManager_StatusSoftwareBlocked" xml:space="preserve">
+    <value>此裝置的軟體已被封鎖啟動，因為它與 Windows 有已知問題</value>
+  </data>
+  <data name="DeviceManager_StatusRegistryTooBig" xml:space="preserve">
+    <value>Windows 無法啟動新硬體裝置，因為系統登錄區太大（超過登錄大小限制）</value>
+  </data>
+  <data name="DeviceManager_StatusInvalidSignature" xml:space="preserve">
+    <value>Windows 無法驗證此裝置所需驅動程式的數位簽章</value>
+  </data>
+  <data name="DeviceManager_StatusUnknownError" xml:space="preserve">
+    <value>未知錯誤（代碼：{0}）</value>
+  </data>
+  <data name="DeviceManager_Unknown" xml:space="preserve">
+    <value>未知</value>
+  </data>
+  <data name="DeviceManager_NoDeviceSelected" xml:space="preserve">
+    <value>未選擇裝置</value>
+  </data>
+  <data name="DeviceManager_BooleanYes" xml:space="preserve">
+    <value>是</value>
+  </data>
+  <data name="DeviceManager_BooleanNo" xml:space="preserve">
+    <value>否</value>
+  </data>
+  <data name="DeviceManager_DeviceCountFormat" xml:space="preserve">
+    <value>{0} 個裝置</value>
+  </data>
+  <data name="DeviceManager_DeviceCountZero" xml:space="preserve">
+    <value>0 個裝置</value>
+  </data>
+</root>

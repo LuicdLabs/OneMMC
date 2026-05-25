@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentDialog
+    x:Class="ManagementTools.Views.UserSecurity.AzMan.Dialogs.RoleAssignmentPropertiesDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:local="using:ManagementTools.Views.UserSecurity.AzMan.Dialogs"
+    mc:Ignorable="d"
+    PrimaryButtonText="{x:Bind LocalizedStrings.Common_SaveButton, Mode=OneTime}"
+    CloseButtonText="{x:Bind LocalizedStrings.Common_CancelButton, Mode=OneTime}"
+    DefaultButton="Primary"
+    IsPrimaryButtonEnabled="True"
+    PrimaryButtonClick="OnPrimaryButtonClick"
+    AutomationProperties.Name="Role Assignment Properties">
+
+    <ContentDialog.PrimaryButtonStyle>
+        <Style TargetType="Button" BasedOn="{StaticResource DefaultButtonStyle}">
+            <Setter Property="AutomationProperties.Name" Value="Save" />
+        </Style>
+    </ContentDialog.PrimaryButtonStyle>
+
+    <ContentDialog.CloseButtonStyle>
+        <Style TargetType="Button" BasedOn="{StaticResource DefaultButtonStyle}">
+            <Setter Property="AutomationProperties.Name" Value="Cancel" />
+        </Style>
+    </ContentDialog.CloseButtonStyle>
+
+    <Grid MinWidth="500" MinHeight="480">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Tab Navigation -->
+        <SelectorBar
+            x:Name="TabSelectorBar"
+            Grid.Row="0"
+            Margin="0,0,0,16"
+            SelectionChanged="OnSelectorBarSelectionChanged">
+            <SelectorBarItem
+                Text="{x:Bind LocalizedStrings.RoleAssignmentPropertiesDialog_Tab_General, Mode=OneTime}"
+                Tag="General"
+                IsSelected="True"
+                AutomationProperties.Name="General" />
+            <SelectorBarItem
+                Text="{x:Bind LocalizedStrings.RoleAssignmentPropertiesDialog_Tab_AssignedUsers, Mode=OneTime}"
+                Tag="AssignedUsers"
+                AutomationProperties.Name="Assigned Users" />
+        </SelectorBar>
+
+        <!-- General Tab Panel -->
+        <ScrollViewer
+            x:Name="GeneralPanel"
+            Grid.Row="1"
+            VerticalScrollBarVisibility="Auto">
+            <StackPanel Spacing="16" Margin="0,8,0,0">
+                <!-- Error Display -->
+                <InfoBar
+                    x:Name="ErrorInfoBar"
+                    IsOpen="False"
+                    IsClosable="True"
+                    Severity="Error" />
+
+                <!-- Name Field (Read-Only) -->
+                <StackPanel Spacing="4">
+                    <TextBlock
+                        Text="{x:Bind LocalizedStrings.RoleAssignmentPropertiesDialog_Name_Header, Mode=OneTime}"
+                        Style="{StaticResource BodyStrongTextBlockStyle}" />
+                    <TextBox
+                        x:Name="NameTextBox"
+                        IsReadOnly="True"
+                        AutomationProperties.Name="Name" />
+                </StackPanel>
+
+                <!-- Description Field (Editable) -->
+                <StackPanel Spacing="4">
+                    <TextBlock
+                        Text="{x:Bind LocalizedStrings.RoleAssignmentPropertiesDialog_Description_Header, Mode=OneTime}"
+                        Style="{StaticResource BodyStrongTextBlockStyle}" />
+                    <TextBox
+                        x:Name="DescriptionTextBox"
+                        PlaceholderText="{x:Bind LocalizedStrings.RoleAssignmentPropertiesDialog_Description_Placeholder, Mode=OneTime}"
+                        AcceptsReturn="True"
+                        TextWrapping="Wrap"
+                        MinHeight="120"
+                        MaxHeight="240"
+                        AutomationProperties.Name="Description" />
+                </StackPanel>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Assigned Users Tab Panel -->
+        <ScrollViewer
+            x:Name="AssignedUsersPanel"
+            Grid.Row="1"
+            Visibility="Collapsed"
+            VerticalScrollBarVisibility="Auto">
+            <StackPanel Spacing="16" Margin="0,8,0,0">
+                <!-- Action Buttons -->
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <Button
+                        Click="OnAddUsersClick"
+                        AutomationProperties.Name="Add Users">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <FontIcon Glyph="&#xE710;" FontSize="16" />
+                            <TextBlock Text="{x:Bind LocalizedStrings.Common_AddButtonEllipsis, Mode=OneTime}" />
+                        </StackPanel>
+                    </Button>
+                    <Button
+                        x:Name="RemoveButton"
+                        Click="OnRemoveMemberClick"
+                        IsEnabled="False"
+                        AutomationProperties.Name="Remove">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <FontIcon Glyph="&#xE738;" FontSize="16" />
+                            <TextBlock Text="{x:Bind LocalizedStrings.Common_RemoveButton, Mode=OneTime}" />
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+
+                <!-- Members ListView -->
+                <ListView
+                    x:Name="MembersListView"
+                    SelectionMode="Extended"
+                    SelectionChanged="OnMembersSelectionChanged"
+                    MinHeight="300"
+                    MaxHeight="400"
+                    BorderThickness="1"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    CornerRadius="4">
+                    <ListView.Header>
+                        <!-- Empty State Message -->
+                        <TextBlock
+                            x:Name="NoMembersMessage"
+                            Text="{x:Bind LocalizedStrings.RoleAssignmentPropertiesDialog_NoMembers_Message, Mode=OneTime}"
+                            Margin="16"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            HorizontalAlignment="Center"
+                            Visibility="Collapsed" />
+                    </ListView.Header>
+                    <ListView.ItemTemplate>
+                        <DataTemplate x:DataType="local:MemberDisplayItem">
+                            <Grid Padding="8,4">
+                                <!-- Member Name -->
+                                <TextBlock
+                                    Text="{x:Bind Name}"
+                                    VerticalAlignment="Center"
+                                    TextTrimming="CharacterEllipsis" />
+                            </Grid>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</ContentDialog>

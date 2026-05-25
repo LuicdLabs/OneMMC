@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<UserControl
+    x:Class="ManagementTools.Views.Dialogs.ConnectionSecurity.RemoteEndpointsDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:ManagementTools.Localization"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <UserControl.Resources>
+        <local:LocalizedStrings x:Key="LocalizedStrings" />
+    </UserControl.Resources>
+
+    <Grid MinWidth="520" MinHeight="440">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Endpoint 1 -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,8" Spacing="8">
+            <TextBlock FontWeight="SemiBold" Text="{Binding WF_RemoteEndpoints_Endpoint1, Source={StaticResource LocalizedStrings}}" />
+            <RadioButton
+                x:Name="Endpoint1AnyRadio"
+                Content="{Binding WF_Common_AnyIPAddress, Source={StaticResource LocalizedStrings}}"
+                GroupName="Endpoint1Group"
+                IsChecked="True" />
+            <RadioButton
+                x:Name="Endpoint1SpecificRadio"
+                Content="{Binding WF_Common_TheseIPAddresses, Source={StaticResource LocalizedStrings}}"
+                GroupName="Endpoint1Group" />
+        </StackPanel>
+
+        <Border
+            Grid.Row="1"
+            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+            BorderThickness="1"
+            CornerRadius="4">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <ListView
+                    x:Name="Endpoint1ListView"
+                    Grid.Row="0"
+                    IsEnabled="False"
+                    MaxHeight="140"
+                    SelectionMode="Single" />
+                <StackPanel
+                    Grid.Row="1"
+                    Padding="8"
+                    Background="{ThemeResource SubtleFillColorSecondaryBrush}"
+                    Orientation="Horizontal"
+                    Spacing="8">
+                    <Button x:Name="Endpoint1AddButton" Content="{Binding Common_AddButton, Source={StaticResource LocalizedStrings}}" IsEnabled="False" Click="Endpoint1AddButton_Click" />
+                    <Button x:Name="Endpoint1EditButton" Content="{Binding Common_EditButton, Source={StaticResource LocalizedStrings}}" IsEnabled="False" Click="Endpoint1EditButton_Click" />
+                    <Button x:Name="Endpoint1DeleteButton" Content="{Binding Common_DeleteButton, Source={StaticResource LocalizedStrings}}" IsEnabled="False" Click="Endpoint1DeleteButton_Click" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Endpoint 2 -->
+        <StackPanel Grid.Row="2" Margin="0,12,0,8" Spacing="8">
+            <TextBlock FontWeight="SemiBold" Text="{Binding WF_RemoteEndpoints_Endpoint2, Source={StaticResource LocalizedStrings}}" />
+            <RadioButton
+                x:Name="Endpoint2AnyRadio"
+                Content="{Binding WF_Common_AnyIPAddress, Source={StaticResource LocalizedStrings}}"
+                GroupName="Endpoint2Group"
+                IsChecked="True" />
+            <RadioButton
+                x:Name="Endpoint2SpecificRadio"
+                Content="{Binding WF_Common_TheseIPAddresses, Source={StaticResource LocalizedStrings}}"
+                GroupName="Endpoint2Group" />
+        </StackPanel>
+
+        <Border
+            Grid.Row="3"
+            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+            BorderThickness="1"
+            CornerRadius="4">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <ListView
+                    x:Name="Endpoint2ListView"
+                    Grid.Row="0"
+                    IsEnabled="False"
+                    MaxHeight="140"
+                    SelectionMode="Single" />
+                <StackPanel
+                    Grid.Row="1"
+                    Padding="8"
+                    Background="{ThemeResource SubtleFillColorSecondaryBrush}"
+                    Orientation="Horizontal"
+                    Spacing="8">
+                    <Button x:Name="Endpoint2AddButton" Content="{Binding Common_AddButton, Source={StaticResource LocalizedStrings}}" IsEnabled="False" Click="Endpoint2AddButton_Click" />
+                    <Button x:Name="Endpoint2EditButton" Content="{Binding Common_EditButton, Source={StaticResource LocalizedStrings}}" IsEnabled="False" Click="Endpoint2EditButton_Click" />
+                    <Button x:Name="Endpoint2DeleteButton" Content="{Binding Common_DeleteButton, Source={StaticResource LocalizedStrings}}" IsEnabled="False" Click="Endpoint2DeleteButton_Click" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+    </Grid>
+</UserControl>

@@ -1,0 +1,561 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="DiskMgmt_VirtualHardDisk" xml:space="preserve">
+    <value>虛擬硬碟 (VHD)</value>
+  </data>
+  <data name="DiskMgmt_VirtualHardDiskDescription" xml:space="preserve">
+    <value>建立、連接或中斷連接虛擬硬碟</value>
+  </data>
+  <data name="DiskMgmt_Attach" xml:space="preserve">
+    <value>連接</value>
+  </data>
+  <data name="DiskMgmt_Detach" xml:space="preserve">
+    <value>中斷連接</value>
+  </data>
+  <data name="DiskMgmt_OpenDiskManagement" xml:space="preserve">
+    <value>開啟磁碟管理</value>
+  </data>
+  <data name="DiskMgmt_Properties" xml:space="preserve">
+    <value>內容</value>
+  </data>
+  <data name="DiskMgmt_InitializeDisk" xml:space="preserve">
+    <value>初始化磁碟</value>
+  </data>
+  <data name="DiskMgmt_CreateSimpleVolume" xml:space="preserve">
+    <value>建立簡單磁碟區</value>
+  </data>
+  <data name="DiskMgmt_Online" xml:space="preserve">
+    <value>上線</value>
+  </data>
+  <data name="DiskMgmt_Offline" xml:space="preserve">
+    <value>離線</value>
+  </data>
+  <data name="DiskMgmt_SetReadOnly" xml:space="preserve">
+    <value>設定為唯讀</value>
+  </data>
+  <data name="DiskMgmt_ClearReadOnly" xml:space="preserve">
+    <value>清除唯讀</value>
+  </data>
+  <data name="DiskMgmt_CleanDisk" xml:space="preserve">
+    <value>清理磁碟</value>
+  </data>
+  <data name="DiskMgmt_SystemProtected" xml:space="preserve">
+    <value>系統保護</value>
+  </data>
+  <data name="DiskMgmt_OpenInFileExplorer" xml:space="preserve">
+    <value>在檔案總管中開啟</value>
+  </data>
+  <data name="DiskMgmt_NewSimpleVolume" xml:space="preserve">
+    <value>新增簡單磁碟區</value>
+  </data>
+  <data name="DiskMgmt_ManageDriveLetter" xml:space="preserve">
+    <value>管理磁碟機代號</value>
+  </data>
+  <data name="DiskMgmt_RemoveDriveLetter" xml:space="preserve">
+    <value>移除磁碟機代號</value>
+  </data>
+  <data name="DiskMgmt_MountToFolder" xml:space="preserve">
+    <value>掛接到資料夾</value>
+  </data>
+  <data name="DiskMgmt_ExtendVolume" xml:space="preserve">
+    <value>延伸磁碟區</value>
+  </data>
+  <data name="DiskMgmt_ShrinkVolume" xml:space="preserve">
+    <value>壓縮磁碟區</value>
+  </data>
+  <data name="DiskMgmt_Format" xml:space="preserve">
+    <value>格式化</value>
+  </data>
+  <data name="DiskMgmt_MarkAsActive" xml:space="preserve">
+    <value>標示為使用中</value>
+  </data>
+  <data name="DiskMgmt_DeleteVolume" xml:space="preserve">
+    <value>刪除磁碟區</value>
+  </data>
+  <data name="DiskMgmt_Eject" xml:space="preserve">
+    <value>退出</value>
+  </data>
+  <data name="DiskMgmt_EjectDiscTray" xml:space="preserve">
+    <value>退出光碟匣</value>
+  </data>
+  <data name="DiskMgmt_FormatVolume" xml:space="preserve">
+    <value>格式化磁碟區</value>
+  </data>
+  <data name="DiskMgmt_FormatWarning" xml:space="preserve">
+    <value>警告：格式化將會清除此磁碟區上的所有資料。請在格式化之前備份您要保留的任何資料。</value>
+  </data>
+  <data name="DiskMgmt_Drive" xml:space="preserve">
+    <value>磁碟機：</value>
+  </data>
+  <data name="DiskMgmt_VolumeLabel" xml:space="preserve">
+    <value>磁碟區標籤：</value>
+  </data>
+  <data name="DiskMgmt_FileSystem" xml:space="preserve">
+    <value>檔案系統：</value>
+  </data>
+  <data name="DiskMgmt_AllocationUnitSize" xml:space="preserve">
+    <value>配置單位大小：</value>
+  </data>
+  <data name="DiskMgmt_Default" xml:space="preserve">
+    <value>預設</value>
+  </data>
+  <data name="DiskMgmt_PerformQuickFormat" xml:space="preserve">
+    <value>執行快速格式化</value>
+  </data>
+  <data name="DiskMgmt_EnableCompression" xml:space="preserve">
+    <value>啟用檔案和資料夾壓縮</value>
+  </data>
+  <data name="DiskMgmt_CreateVHD" xml:space="preserve">
+    <value>建立虛擬硬碟</value>
+  </data>
+  <data name="DiskMgmt_Location" xml:space="preserve">
+    <value>位置：</value>
+  </data>
+  <data name="DiskMgmt_VHDSize" xml:space="preserve">
+    <value>虛擬硬碟大小 (MiB)：</value>
+  </data>
+  <data name="DiskMgmt_VHDFormat" xml:space="preserve">
+    <value>虛擬硬碟格式：</value>
+  </data>
+  <data name="DiskMgmt_VHDType" xml:space="preserve">
+    <value>虛擬硬碟類型：</value>
+  </data>
+  <data name="DiskMgmt_FixedSize" xml:space="preserve">
+    <value>固定大小</value>
+  </data>
+  <data name="DiskMgmt_DynamicallyExpanding" xml:space="preserve">
+    <value>動態擴充 (建議)</value>
+  </data>
+  <data name="DiskMgmt_AttachVHD" xml:space="preserve">
+    <value>連接虛擬硬碟</value>
+  </data>
+  <data name="DiskMgmt_VHDLocation" xml:space="preserve">
+    <value>位置：</value>
+  </data>
+  <data name="DiskMgmt_ReadOnly" xml:space="preserve">
+    <value>唯讀</value>
+  </data>
+  <data name="DiskMgmt_InitializeDiskTitle" xml:space="preserve">
+    <value>初始化磁碟</value>
+  </data>
+  <data name="DiskMgmt_SelectPartitionStyle" xml:space="preserve">
+    <value>選取所選磁碟的磁碟分割樣式：</value>
+  </data>
+  <data name="DiskMgmt_MBR" xml:space="preserve">
+    <value>MBR (主開機記錄)</value>
+  </data>
+  <data name="DiskMgmt_GPT" xml:space="preserve">
+    <value>GPT (GUID 磁碟分割表格)</value>
+  </data>
+  <data name="DiskMgmt_MBRDescription" xml:space="preserve">
+    <value>適用於小於 2TB 的磁碟以及與舊系統的相容性</value>
+  </data>
+  <data name="DiskMgmt_GPTDescription" xml:space="preserve">
+    <value>適用於大於 2TB 的磁碟以及具有 UEFI 的現代系統</value>
+  </data>
+  <data name="DiskMgmt_ShrinkVolumeTitle" xml:space="preserve">
+    <value>壓縮磁碟區</value>
+  </data>
+  <data name="DiskMgmt_TotalSizeBeforeShrink" xml:space="preserve">
+    <value>壓縮前的總大小 (MB)：</value>
+  </data>
+  <data name="DiskMgmt_SizeOfAvailableShrinkSpace" xml:space="preserve">
+    <value>可用壓縮空間大小 (MB)：</value>
+  </data>
+  <data name="DiskMgmt_EnterAmountToShrink" xml:space="preserve">
+    <value>輸入要壓縮的空間量 (MB)：</value>
+  </data>
+  <data name="DiskMgmt_TotalSizeAfterShrink" xml:space="preserve">
+    <value>壓縮後的總大小 (MB)：</value>
+  </data>
+  <data name="DiskMgmt_Shrink" xml:space="preserve">
+    <value>壓縮</value>
+  </data>
+  <data name="DiskMgmt_ExtendVolumeTitle" xml:space="preserve">
+    <value>延伸磁碟區</value>
+  </data>
+  <data name="DiskMgmt_SelectAmountOfSpace" xml:space="preserve">
+    <value>選取空間量 (MB)：</value>
+  </data>
+  <data name="DiskMgmt_MaximumAvailableSpace" xml:space="preserve">
+    <value>最大可用空間 (MB)：</value>
+  </data>
+  <data name="DiskMgmt_SelectedSpace" xml:space="preserve">
+    <value>選取的空間 (MB)：</value>
+  </data>
+  <data name="DiskMgmt_Extend" xml:space="preserve">
+    <value>延伸</value>
+  </data>
+  <data name="DiskMgmt_ManageDriveLetterTitle" xml:space="preserve">
+    <value>變更磁碟機代號及路徑</value>
+  </data>
+  <data name="DiskMgmt_AssignDriveLetter" xml:space="preserve">
+    <value>指派下列磁碟機代號：</value>
+  </data>
+  <data name="DiskMgmt_DoNotAssignDriveLetter" xml:space="preserve">
+    <value>不要指派磁碟機代號或磁碟機路徑</value>
+  </data>
+  <data name="DiskMgmt_MountInEmptyNTFSFolder" xml:space="preserve">
+    <value>掛接在下列空的 NTFS 資料夾中：</value>
+  </data>
+  <data name="DiskMgmt_VolumeProperties" xml:space="preserve">
+    <value>磁碟區內容</value>
+  </data>
+  <data name="DiskMgmt_General" xml:space="preserve">
+    <value>一般</value>
+  </data>
+  <data name="DiskMgmt_Type" xml:space="preserve">
+    <value>類型：</value>
+  </data>
+  <data name="DiskMgmt_UsedSpace" xml:space="preserve">
+    <value>已使用空間：</value>
+  </data>
+  <data name="DiskMgmt_FreeSpace" xml:space="preserve">
+    <value>可用空間：</value>
+  </data>
+  <data name="DiskMgmt_Capacity" xml:space="preserve">
+    <value>容量：</value>
+  </data>
+  <data name="DiskMgmt_DiskProperties" xml:space="preserve">
+    <value>磁碟內容</value>
+  </data>
+  <data name="DiskMgmt_Model" xml:space="preserve">
+    <value>型號：</value>
+  </data>
+  <data name="DiskMgmt_Interface" xml:space="preserve">
+    <value>介面：</value>
+  </data>
+  <data name="DiskMgmt_Status" xml:space="preserve">
+    <value>狀態：</value>
+  </data>
+  <data name="DiskMgmt_PartitionStyle" xml:space="preserve">
+    <value>磁碟分割樣式：</value>
+  </data>
+  <data name="DiskMgmt_CreateSimpleVolumeTitle" xml:space="preserve">
+    <value>建立簡單磁碟區</value>
+  </data>
+  <data name="DiskMgmt_Disk" xml:space="preserve">
+    <value>磁碟：</value>
+  </data>
+  <data name="DiskMgmt_VolumeSizeMB" xml:space="preserve">
+    <value>磁碟區大小 (MB)：</value>
+  </data>
+  <data name="DiskMgmt_DriveLetter" xml:space="preserve">
+    <value>磁碟機代號：</value>
+  </data>
+  <data name="DiskMgmt_NewVolume" xml:space="preserve">
+    <value>新磁碟區</value>
+  </data>
+  <data name="DiskMgmt_DeleteVolumeTitle" xml:space="preserve">
+    <value>刪除磁碟區</value>
+  </data>
+  <data name="DiskMgmt_DeleteVolumeWarning" xml:space="preserve">
+    <value>警告：刪除磁碟區將永久清除其上的所有資料。此動作無法復原。</value>
+  </data>
+  <data name="DiskMgmt_Volume" xml:space="preserve">
+    <value>磁碟區：</value>
+  </data>
+  <data name="DiskMgmt_ConfirmDeleteVolume" xml:space="preserve">
+    <value>我了解此磁碟區上的所有資料將被永久清除</value>
+  </data>
+  <data name="DiskMgmt_CleanDiskTitle" xml:space="preserve">
+    <value>清理磁碟</value>
+  </data>
+  <data name="DiskMgmt_CleanDiskWarning" xml:space="preserve">
+    <value>警告：清理磁碟將永久清除磁碟上的所有資料。此動作無法復原。</value>
+  </data>
+  <data name="DiskMgmt_ConfirmCleanDisk" xml:space="preserve">
+    <value>我了解此磁碟上的所有資料將被永久清除</value>
+  </data>
+  <data name="DiskMgmt_CDROMPropertiesTitle" xml:space="preserve">
+    <value>CD-ROM 內容</value>
+  </data>
+  <data name="DiskMgmt_Name" xml:space="preserve">
+    <value>名稱：</value>
+  </data>
+  <data name="DiskMgmt_Manufacturer" xml:space="preserve">
+    <value>製造商：</value>
+  </data>
+  <data name="DiskMgmt_Media" xml:space="preserve">
+    <value>媒體</value>
+  </data>
+  <data name="DiskMgmt_MediaLoaded" xml:space="preserve">
+    <value>已載入媒體：</value>
+  </data>
+  <data name="DiskMgmt_VolumeName" xml:space="preserve">
+    <value>磁碟區名稱：</value>
+  </data>
+  <data name="DiskMgmt_MediaType" xml:space="preserve">
+    <value>媒體類型：</value>
+  </data>
+  <data name="DiskMgmt_Size" xml:space="preserve">
+    <value>大小：</value>
+  </data>
+  <data name="DiskMgmt_Hardware" xml:space="preserve">
+    <value>硬體</value>
+  </data>
+  <data name="DiskMgmt_SCSIBus" xml:space="preserve">
+    <value>SCSI 匯流排：</value>
+  </data>
+  <data name="DiskMgmt_SCSIPort" xml:space="preserve">
+    <value>SCSI 連接埠：</value>
+  </data>
+  <data name="DiskMgmt_SCSITarget" xml:space="preserve">
+    <value>SCSI 目標：</value>
+  </data>
+  <data name="DiskMgmt_SCSILUN" xml:space="preserve">
+    <value>SCSI LUN：</value>
+  </data>
+  <data name="DiskMgmt_MarkPartitionActiveTitle" xml:space="preserve">
+    <value>標示分割區為使用中</value>
+  </data>
+  <data name="DiskMgmt_MarkActive" xml:space="preserve">
+    <value>標示為使用中</value>
+  </data>
+  <data name="DiskMgmt_MarkActiveWarning" xml:space="preserve">
+    <value>這通常用於 MBR 磁碟上的開機分割區。</value>
+  </data>
+  <data name="DiskMgmt_MarkActiveConfirm" xml:space="preserve">
+    <value>您確定要將此分割區標示為使用中嗎？標示錯誤的分割區為使用中可能會導致系統無法開機。</value>
+  </data>
+  <data name="DiskMgmt_MountToFolderTitle" xml:space="preserve">
+    <value>將磁碟區掛載到資料夾</value>
+  </data>
+  <data name="DiskMgmt_Mount" xml:space="preserve">
+    <value>掛載</value>
+  </data>
+  <data name="DiskMgmt_MountPoint" xml:space="preserve">
+    <value>掛載點（資料夾路徑）：</value>
+  </data>
+  <data name="DiskMgmt_MountPointPlaceholder" xml:space="preserve">
+    <value>C:\Mount\MyVolume</value>
+  </data>
+  <data name="DiskMgmt_MountInfo" xml:space="preserve">
+    <value>資料夾必須是空的且位於 NTFS 磁碟區上。掛載到資料夾可讓您透過資料夾路徑而非磁碟機代號來存取磁碟區的內容。</value>
+  </data>
+  <data name="DiskMgmt_RemoveDriveLetterTitle" xml:space="preserve">
+    <value>移除磁碟機代號</value>
+  </data>
+  <data name="DiskMgmt_RemoveDriveLetterConfirm" xml:space="preserve">
+    <value>您確定要從此磁碟區移除磁碟機代號 {0} 嗎？</value>
+  </data>
+  <data name="DiskMgmt_Warning" xml:space="preserve">
+    <value>警告</value>
+  </data>
+  <data name="DiskMgmt_VHDOperations" xml:space="preserve">
+    <value>連接/中斷</value>
+  </data>
+  <data name="DiskMgmt_AccessDenied_Operation" xml:space="preserve">
+    <value>{0}：存取被拒。需要系統管理員權限。</value>
+  </data>
+  <data name="DiskMgmt_AccessDenied_AdminRequired" xml:space="preserve">
+    <value>存取被拒（需要系統管理員權限）</value>
+  </data>
+  <data name="DiskMgmt_DiskLabel" xml:space="preserve">
+    <value>磁碟</value>
+  </data>
+  <data name="DiskMgmt_Healthy" xml:space="preserve">
+    <value>狀況良好</value>
+  </data>
+  <data name="DiskMgmt_HealthWarning" xml:space="preserve">
+    <value>警告</value>
+  </data>
+  <data name="DiskMgmt_HealthUnhealthy" xml:space="preserve">
+    <value>不良</value>
+  </data>
+  <data name="DiskMgmt_HealthUnknown" xml:space="preserve">
+    <value>未知</value>
+  </data>
+  <data name="DiskMgmt_Unallocated" xml:space="preserve">
+    <value>未配置</value>
+  </data>
+  <data name="DiskMgmt_UnallocatedSpace" xml:space="preserve">
+    <value>未配置空間</value>
+  </data>
+  <data name="DiskMgmt_LocalDiskLabel" xml:space="preserve">
+    <value>本機磁碟</value>
+  </data>
+  <data name="DiskMgmt_NoLabel" xml:space="preserve">
+    <value>無標籤</value>
+  </data>
+  <data name="DiskMgmt_NoMedia" xml:space="preserve">
+    <value>無媒體</value>
+  </data>
+  <data name="DiskMgmt_MediaLoadedLabel" xml:space="preserve">
+    <value>已載入媒體：</value>
+  </data>
+  <data name="DiskMgmt_Usage" xml:space="preserve">
+    <value>使用率：</value>
+  </data>
+  <data name="DiskMgmt_Health" xml:space="preserve">
+    <value>健康狀態：</value>
+  </data>
+  <data name="DiskMgmt_Bootable" xml:space="preserve">
+    <value>可開機：</value>
+  </data>
+  <data name="DiskMgmt_Primary" xml:space="preserve">
+    <value>主要分割區：</value>
+  </data>
+  <data name="DiskMgmt_Advanced" xml:space="preserve">
+    <value>進階</value>
+  </data>
+  <data name="DiskMgmt_DeviceId" xml:space="preserve">
+    <value>裝置 ID：</value>
+  </data>
+  <data name="DiskMgmt_StartingOffset" xml:space="preserve">
+    <value>起始位移：</value>
+  </data>
+  <data name="DiskMgmt_BlockSize" xml:space="preserve">
+    <value>區塊大小：</value>
+  </data>
+  <data name="DiskMgmt_VolumeSerial" xml:space="preserve">
+    <value>磁碟區序號：</value>
+  </data>
+  <data name="DiskMgmt_SerialNumber" xml:space="preserve">
+    <value>序號：</value>
+  </data>
+  <data name="DiskMgmt_Partitions" xml:space="preserve">
+    <value>分割區數：</value>
+  </data>
+  <data name="DiskMgmt_Firmware" xml:space="preserve">
+    <value>韌體：</value>
+  </data>
+  <data name="DiskMgmt_BytesPerSector" xml:space="preserve">
+    <value>每磁區位元組：</value>
+  </data>
+  <data name="DiskMgmt_TotalSectors" xml:space="preserve">
+    <value>總磁區數：</value>
+  </data>
+  <data name="DiskMgmt_TotalCylinders" xml:space="preserve">
+    <value>總磁柱數：</value>
+  </data>
+  <data name="DiskMgmt_TotalHeads" xml:space="preserve">
+    <value>總磁頭數：</value>
+  </data>
+  <data name="DiskMgmt_VirtualDisk" xml:space="preserve">
+    <value>虛擬磁碟</value>
+  </data>
+  <data name="DiskMgmt_IsVirtual" xml:space="preserve">
+    <value>虛擬：</value>
+  </data>
+  <data name="DiskMgmt_Yes" xml:space="preserve">
+    <value>是</value>
+  </data>
+</root>

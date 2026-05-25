@@ -1,0 +1,179 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <!-- TPM -->
+  <data name="TPM_StatusDescription" xml:space="preserve">
+    <value>信賴平台模組 (TPM) 資訊</value>
+  </data>
+  <data name="TPM_StatusHeader" xml:space="preserve">
+    <value>TPM 狀態</value>
+  </data>
+  <data name="TPM_VersionHeader" xml:space="preserve">
+    <value>TPM 版本</value>
+  </data>
+  <data name="TPM_ManufacturerNameHeader" xml:space="preserve">
+    <value>製造廠商名稱</value>
+  </data>
+  <data name="TPM_ManufacturerVersionHeader" xml:space="preserve">
+    <value>製造廠商版本</value>
+  </data>
+  <data name="TPM_SpecificationVersionHeader" xml:space="preserve">
+    <value>規格版本</value>
+  </data>
+  <data name="TPM_ReadyHeader" xml:space="preserve">
+    <value>TPM 已就緒</value>
+  </data>
+  <data name="TPM_EnabledHeader" xml:space="preserve">
+    <value>TPM 已啟用</value>
+  </data>
+  <data name="TPM_ActivatedHeader" xml:space="preserve">
+    <value>TPM 已啟動</value>
+  </data>
+  <data name="TPM_OwnedHeader" xml:space="preserve">
+    <value>擁有者已設定</value>
+  </data>
+  <data name="TPM_ActionsHeader" xml:space="preserve">
+    <value>TPM 動作</value>
+  </data>
+  <data name="TPM_OpenConsoleHeader" xml:space="preserve">
+    <value>開啟 TPM 管理主控台</value>
+  </data>
+  <data name="TPM_OpenConsoleDescription" xml:space="preserve">
+    <value>啟動 Windows TPM 管理主控台 (tpm.msc)</value>
+  </data>
+  <data name="TPM_RefreshStatusHeader" xml:space="preserve">
+    <value>重新整理 TPM 狀態</value>
+  </data>
+  <data name="TPM_RefreshStatusDescription" xml:space="preserve">
+    <value>更新 TPM 資訊</value>
+  </data>
+  <data name="TPM_ClearTPMHeader" xml:space="preserve">
+    <value>清除 TPM</value>
+  </data>
+  <data name="TPM_ClearTPMDescription" xml:space="preserve">
+    <value>清除 TPM 安全性硬體（需要重新啟動並執行確認步驟）</value>
+  </data>
+  <data name="TPM_AboutHeader" xml:space="preserve">
+    <value>關於 TPM</value>
+  </data>
+  <data name="TPM_WhatIsTPMHeader" xml:space="preserve">
+    <value>何謂信賴平台模組？</value>
+  </data>
+  <data name="TPM_WhatIsTPMDescription" xml:space="preserve">
+    <value>信賴平台模組 (TPM) 是一種微晶片，旨在提供基本的安全性相關功能，主要涉及加密金鑰。TPM 通常安裝在電腦的主機板上，並使用硬體匯流排與系統的其餘部分通訊。整合 TPM 的電腦可建立加密金鑰，並將金鑰加密，以便只有 TPM 可將其解密。此程序稱為 wrapping 或 binding 金鑰。</value>
+  </data>
+  <data name="TPM_Loading" xml:space="preserve">
+    <value>正在載入...</value>
+  </data>
+  <data name="TPM_Success" xml:space="preserve">
+    <value>成功</value>
+  </data>
+  <data name="TPM_Error" xml:space="preserve">
+    <value>錯誤</value>
+  </data>
+  <data name="TPM_CannotOpenConsole" xml:space="preserve">
+    <value>無法開啟 TPM 管理主控台</value>
+  </data>
+  <data name="TPM_Warning" xml:space="preserve">
+    <value>警告</value>
+  </data>
+  <data name="TPM_CannotGetInfo" xml:space="preserve">
+    <value>無法取得完整 TPM 資訊</value>
+  </data>
+  <data name="TPM_ClearTPMTitle" xml:space="preserve">
+    <value>清除 TPM</value>
+  </data>
+  <data name="TPM_ClearTPMMessage" xml:space="preserve">
+    <value>請使用管理員權限執行 PowerShell 命令: Clear-Tpm，或使用 TPM 管理主控台進行清除操作。</value>
+  </data>
+  <data name="TPM_ClearTPMConfirmMessage" xml:space="preserve">
+    <value>確定要清除 TPM 嗎？此操作會移除 TPM 內的金鑰，可能需要重新啟動並在韌體中執行確認。</value>
+  </data>
+  <data name="TPM_ClearTPMConfirmPrimary" xml:space="preserve">
+    <value>清除</value>
+  </data>
+  <data name="TPM_ClearTPMConfirmCancel" xml:space="preserve">
+    <value>取消</value>
+  </data>
+  <data name="TPM_NoXamlRootError" xml:space="preserve">
+    <value>無法顯示確認對話框：XamlRoot 不可用。</value>
+  </data>
+  <data name="TPM_ClearTPMStarted" xml:space="preserve">
+    <value>已開始清除作業。系統可能需要重新啟動以完成此操作。</value>
+  </data>
+  <data name="TPM_ClearTPMSucceeded" xml:space="preserve">
+    <value>已成功清除 TPM。可能需要重新啟動系統。</value>
+  </data>
+  <data name="TPM_ClearTPMRequiresAdmin" xml:space="preserve">
+    <value>清除 TPM 需要系統管理員權限。</value>
+  </data>
+  <data name="TPM_ClearTPM_NoWin32Tpm" xml:space="preserve">
+    <value>找不到 Win32_Tpm 物件 (WMI 無法提供 TPM 資訊)。</value>
+  </data>
+  <data name="TPM_ClearTPM_NoMethod" xml:space="preserve">
+    <value>系統上的 WMI 未提供可用於清除 TPM 的方法。</value>
+  </data>
+  <data name="TPM_ClearTPM_NeedsParameters" xml:space="preserve">
+    <value>找到需要輸入參數的 TPM 清除方法，無法自動呼叫。</value>
+  </data>
+  <data name="TPM_ClearTPM_InvokeFailed" xml:space="preserve">
+    <value>呼叫 WMI 清除 TPM 方法失敗：{0}</value>
+  </data>
+  <data name="TPM_ClearTPMError" xml:space="preserve">
+    <value>清除 TPM 時發生錯誤</value>
+  </data>
+  <data name="TPM_VersionFormat" xml:space="preserve">
+    <value> (製造商: {0})</value>
+  </data>
+  <data name="TPM_NotAvailable" xml:space="preserve">
+    <value>此系統上無可用的 TPM</value>
+  </data>
+  <data name="TPM_AccessDenied" xml:space="preserve">
+    <value>TPM 存取被拒——需要系統管理員權限</value>
+  </data>
+  <data name="TPM_ClearAllMethodsFailed" xml:space="preserve">
+    <value>無法清除 TPM：所有清除方法均失敗。請確保您擁有系統管理員權限，或嘗試在 BIOS/UEFI 中清除 TPM。</value>
+  </data>
+  <data name="TPM_WmiAccessDenied" xml:space="preserve">
+    <value>WMI 存取被拒，需要系統管理員權限。</value>
+  </data>
+</root>

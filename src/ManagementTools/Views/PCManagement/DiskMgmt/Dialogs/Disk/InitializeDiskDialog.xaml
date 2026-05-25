@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ContentDialog
+    x:Class="ManagementTools.Views.DiskMgmt.InitializeDiskDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
+    xmlns:local="using:ManagementTools.Views.DiskMgmt"
+    xmlns:core="using:ManagementTools.Core.Features.PCManagement.Models.DiskMgmt"
+    xmlns:localization="using:ManagementTools.Localization"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    CloseButtonText="{x:Bind LocalizedStrings.Common_CancelButton}"
+    PrimaryButtonText="{x:Bind LocalizedStrings.Common_OKButton}"
+    DefaultButton="Primary"
+    Style="{StaticResource DefaultContentDialogStyle}">
+
+    <ContentDialog.Resources>
+        <localization:LocalizedStrings x:Key="LocalizedStrings" />
+    </ContentDialog.Resources>
+
+    <Grid MinWidth="400" MinHeight="250">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <TextBlock
+            Grid.Row="0"
+            Margin="0,0,0,12"
+            Style="{StaticResource SubtitleTextBlockStyle}"
+            Text="{x:Bind LocalizedStrings.DiskMgmt_InitializeDiskTitle}"
+            TextWrapping="Wrap" />
+
+        <!-- Content -->
+        <ScrollViewer Grid.Row="1">
+            <StackPanel Spacing="12">
+                <TextBlock Text="{x:Bind LocalizedStrings.DiskMgmt_SelectPartitionStyle}" FontWeight="SemiBold" />
+                <TextBlock x:Name="DiskInfoTextBlock" />
+
+                <RadioButton x:Name="MBRRadioButton" Content="{x:Bind LocalizedStrings.DiskMgmt_MBR}" GroupName="PartitionStyle" />
+                <TextBlock Text="{x:Bind LocalizedStrings.DiskMgmt_MBRDescription}" FontSize="12" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" Margin="32,0,0,0" />
+                
+                <RadioButton x:Name="GPTRadioButton" Content="{x:Bind LocalizedStrings.DiskMgmt_GPT}" GroupName="PartitionStyle" IsChecked="True" />
+                <TextBlock Text="{x:Bind LocalizedStrings.DiskMgmt_GPTDescription}" FontSize="12" Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}" Margin="32,0,0,0" />
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</ContentDialog>

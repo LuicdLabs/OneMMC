@@ -1,0 +1,405 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="PrintMgmt_CurrentPrintServerFormat" xml:space="preserve">
+    <value>目前列印伺服器: {0} (本機)</value>
+  </data>
+  <data name="PrintMgmt_PrintersHeader" xml:space="preserve">
+    <value>印表機</value>
+  </data>
+  <data name="PrintMgmt_DeployedPrintersHeader" xml:space="preserve">
+    <value>已部署的印表機</value>
+  </data>
+  <data name="PrintMgmt_DriversHeader" xml:space="preserve">
+    <value>驅動程式</value>
+  </data>
+  <data name="PrintMgmt_ModifyPrintPorts" xml:space="preserve">
+    <value>修改列印連接埠</value>
+  </data>
+  <data name="PrintMgmt_ViewEditPrintForms" xml:space="preserve">
+    <value>檢視/編輯列印格式</value>
+  </data>
+  <data name="PrintMgmt_PrintersCountFormat" xml:space="preserve">
+    <value>{0} 台印表機</value>
+  </data>
+  <data name="PrintMgmt_DeployedPrintersCountFormat" xml:space="preserve">
+    <value>{0} 台已部署的印表機</value>
+  </data>
+  <data name="PrintMgmt_DriversCountFormat" xml:space="preserve">
+    <value>{0} 個驅動程式</value>
+  </data>
+  <data name="PrintMgmt_StatusFormat" xml:space="preserve">
+    <value>{0} | {1} 個佇列中的工作 | {2}</value>
+  </data>
+  <data name="PrintMgmt_DefaultPrinter" xml:space="preserve">
+    <value>預設印表機</value>
+  </data>
+  <data name="PrintMgmt_DeployedPrinterServer" xml:space="preserve">
+    <value>伺服器：{0}</value>
+  </data>
+  <data name="PrintMgmt_DeployedPrinterPerUserGPO" xml:space="preserve">
+    <value>每位使用者的 GPO：{0}</value>
+  </data>
+  <data name="PrintMgmt_DeployedPrinterPerComputerGPO" xml:space="preserve">
+    <value>每台電腦的 GPO：{0}</value>
+  </data>
+  <data name="PrintMgmt_DriverInfoFormat" xml:space="preserve">
+    <value>{0} | {1} | {2} 隔離</value>
+  </data>
+  <data name="PrintMgmt_IsolationSuffix" xml:space="preserve">
+    <value>隔離</value>
+  </data>
+  <data name="PrintMgmt_PortsButton" xml:space="preserve">
+    <value>連接埠</value>
+  </data>
+  <data name="PrintMgmt_FormsButton" xml:space="preserve">
+    <value>格式</value>
+  </data>
+  <data name="PrintMgmt_MenuOpenPrinterQueue" xml:space="preserve">
+    <value>開啟印表機佇列</value>
+  </data>
+  <data name="PrintMgmt_MenuPausePrinting" xml:space="preserve">
+    <value>暫停列印</value>
+  </data>
+  <data name="PrintMgmt_MenuResumePrinting" xml:space="preserve">
+    <value>恢復列印</value>
+  </data>
+  <data name="PrintMgmt_MenuDeployWithGroupPolicy" xml:space="preserve">
+    <value>使用群組原則部署</value>
+  </data>
+  <data name="PrintMgmt_MenuSetPrintingDefaults" xml:space="preserve">
+    <value>設定列印預設值</value>
+  </data>
+  <data name="PrintMgmt_MenuPrintTestPage" xml:space="preserve">
+    <value>列印測試頁</value>
+  </data>
+  <data name="PrintMgmt_MenuProperties" xml:space="preserve">
+    <value>內容</value>
+  </data>
+  <data name="PrintMgmt_MenuRename" xml:space="preserve">
+    <value>重新命名</value>
+  </data>
+  <data name="PrintMgmt_MenuRemoveDriverPackage" xml:space="preserve">
+    <value>移除驅動程式套件</value>
+  </data>
+  <data name="PrintMgmt_MenuSetDriverIsolation" xml:space="preserve">
+    <value>設定驅動程式隔離</value>
+  </data>
+  <data name="PrintMgmt_IsolationNone" xml:space="preserve">
+    <value>無</value>
+  </data>
+  <data name="PrintMgmt_IsolationShared" xml:space="preserve">
+    <value>共用</value>
+  </data>
+  <data name="PrintMgmt_IsolationIsolated" xml:space="preserve">
+    <value>隔離</value>
+  </data>
+  <data name="PrintMgmt_IsolationSystemDefault" xml:space="preserve">
+    <value>系統預設</value>
+  </data>
+  <data name="PrintMgmt_PortsDialogTitle" xml:space="preserve">
+    <value>列印連接埠</value>
+  </data>
+  <data name="PrintMgmt_PortsCountFormat" xml:space="preserve">
+    <value>{0} 個連接埠</value>
+  </data>
+  <data name="PrintMgmt_PortPrinterFormat" xml:space="preserve">
+    <value>印表機：{0}</value>
+  </data>
+  <data name="PrintMgmt_NoPrinterAssigned" xml:space="preserve">
+    <value>(未指定印表機)</value>
+  </data>
+  <data name="PrintMgmt_FormsDialogTitle" xml:space="preserve">
+    <value>列印格式</value>
+  </data>
+  <data name="PrintMgmt_FormsCountFormat" xml:space="preserve">
+    <value>{0} 個格式</value>
+  </data>
+  <data name="PrintMgmt_FormSizeFormat" xml:space="preserve">
+    <value>可列印: {0} × {1} (單位: 0.1公釐)</value>
+  </data>
+  <data name="PrintMgmt_Loading" xml:space="preserve">
+    <value>載入中...</value>
+  </data>
+  <data name="PrintMgmt_LoadedFormat" xml:space="preserve">
+    <value>已載入 {0} 台印表機、{1} 個驅動程式、{2} 個連接埠、{3} 個格式。</value>
+  </data>
+  <data name="PrintMgmt_ErrorLoadingFormat" xml:space="preserve">
+    <value>載入列印管理資料時發生錯誤：{0}</value>
+  </data>
+  <data name="PrintMgmt_ActionFailedFormat" xml:space="preserve">
+    <value>列印管理動作失敗：{0}</value>
+  </data>
+  <data name="PrintMgmt_DeployDialogTitleFormat" xml:space="preserve">
+    <value>部署印表機 - {0}</value>
+  </data>
+  <data name="PrintMgmt_DeployDialogPrinterNameLabel" xml:space="preserve">
+    <value>印表機名稱：</value>
+  </data>
+  <data name="PrintMgmt_DeployDialogGpoSectionHeader" xml:space="preserve">
+    <value>群組原則物件</value>
+  </data>
+  <data name="PrintMgmt_DeployDialogGpoNameLabel" xml:space="preserve">
+    <value>GPO 名稱：</value>
+  </data>
+  <data name="PrintMgmt_DeployDialogBrowseButton" xml:space="preserve">
+    <value>瀏覽...</value>
+  </data>
+  <data name="PrintMgmt_DeployDialogAddButton" xml:space="preserve">
+    <value>新增</value>
+  </data>
+  <data name="PrintMgmt_DeployDialogRemoveButton" xml:space="preserve">
+    <value>移除</value>
+  </data>
+  <data name="PrintMgmt_DeployDialogRemoveAllButton" xml:space="preserve">
+    <value>全部移除</value>
+  </data>
+  <data name="PrintMgmt_DeployDialogApplyButton" xml:space="preserve">
+    <value>套用</value>
+  </data>
+  <data name="PrintMgmt_DeployDialogDeployToLabel" xml:space="preserve">
+    <value>將此印表機連線部署到下列對象：</value>
+  </data>
+  <data name="PrintMgmt_DeployDialogPerUser" xml:space="preserve">
+    <value>此 GPO 套用的使用者（每位使用者）</value>
+  </data>
+  <data name="PrintMgmt_DeployDialogPerMachine" xml:space="preserve">
+    <value>此 GPO 套用的電腦（每台電腦）</value>
+  </data>
+  <data name="PrintMgmt_DeployDialogListPrinterNameHeader" xml:space="preserve">
+    <value>印表機名稱</value>
+  </data>
+  <data name="PrintMgmt_DeployDialogListGpoHeader" xml:space="preserve">
+    <value>GPO</value>
+  </data>
+  <data name="PrintMgmt_DeployDialogListConnectionTypeHeader" xml:space="preserve">
+    <value>連線類型</value>
+  </data>
+  <data name="PrintMgmt_DeployDialogConnectionTypePerUser" xml:space="preserve">
+    <value>每位使用者</value>
+  </data>
+  <data name="PrintMgmt_DeployDialogConnectionTypePerMachine" xml:space="preserve">
+    <value>每台電腦</value>
+  </data>
+  <data name="PrintMgmt_DeployDialogDomainRequired" xml:space="preserve">
+    <value>此功能需要 Active Directory 網域。</value>
+  </data>
+  <data name="PrintMgmt_GpoBrowseDialogTitle" xml:space="preserve">
+    <value>瀏覽群組原則物件</value>
+  </data>
+  <data name="PrintMgmt_GpoBrowseDialogEmpty" xml:space="preserve">
+    <value>在目前的網域中找不到群組原則物件。</value>
+  </data>
+  <data name="PrintMgmt_DeployDialogDescription" xml:space="preserve">
+    <value>設定此共用印表機連線的本機部署目標。</value>
+  </data>
+  <data name="PrintMgmt_DeployDialogConnectionPathLabel" xml:space="preserve">
+    <value>連線路徑</value>
+  </data>
+  <data name="PrintMgmt_DeployDialogCurrentUser" xml:space="preserve">
+    <value>目前使用者</value>
+  </data>
+  <data name="PrintMgmt_DeployDialogAllUsers" xml:space="preserve">
+    <value>此裝置上的所有使用者</value>
+  </data>
+  <data name="PrintMgmt_DeployDialogNote" xml:space="preserve">
+    <value>目前使用者部署會立即套用。所有使用者部署會在下次登入時處理。</value>
+  </data>
+  <data name="PrintMgmt_DeployDialogUnavailable" xml:space="preserve">
+    <value>此印表機沒有可用的共用連線路徑，因此無法部署。</value>
+  </data>
+  <data name="PrintMgmt_DeletePrinterTitleFormat" xml:space="preserve">
+    <value>刪除印表機 - {0}</value>
+  </data>
+  <data name="PrintMgmt_DeletePrinterMessageFormat" xml:space="preserve">
+    <value>要刪除印表機「{0}」嗎？</value>
+  </data>
+  <data name="PrintMgmt_RenamePrinterTitleFormat" xml:space="preserve">
+    <value>重新命名印表機 - {0}</value>
+  </data>
+  <data name="PrintMgmt_RenamePrinterInstruction" xml:space="preserve">
+    <value>請輸入新的印表機名稱。</value>
+  </data>
+  <data name="PrintMgmt_RemoveDriverPackageTitleFormat" xml:space="preserve">
+    <value>移除驅動程式套件 - {0}</value>
+  </data>
+  <data name="PrintMgmt_RemoveDriverPackageMessageFormat" xml:space="preserve">
+    <value>要從驅動程式存放區移除驅動程式套件「{0}」嗎？</value>
+  </data>
+  <data name="PrintMgmt_DeleteDriverTitleFormat" xml:space="preserve">
+    <value>刪除驅動程式 - {0}</value>
+  </data>
+  <data name="PrintMgmt_DeleteDriverMessageFormat" xml:space="preserve">
+    <value>要刪除印表機驅動程式「{0}」嗎？</value>
+  </data>
+  <data name="PrintMgmt_DriverPropertiesTitleFormat" xml:space="preserve">
+    <value>驅動程式內容 - {0}</value>
+  </data>
+  <data name="PrintMgmt_DriverPropertyNameLabel" xml:space="preserve">
+    <value>名稱</value>
+  </data>
+  <data name="PrintMgmt_DriverPropertyInfLabel" xml:space="preserve">
+    <value>INF</value>
+  </data>
+  <data name="PrintMgmt_DriverPropertyVersionLabel" xml:space="preserve">
+    <value>版本</value>
+  </data>
+  <data name="PrintMgmt_DriverPropertyEnvironmentLabel" xml:space="preserve">
+    <value>環境</value>
+  </data>
+  <data name="PrintMgmt_DriverPropertyIsolationLabel" xml:space="preserve">
+    <value>隔離</value>
+  </data>
+  <data name="PrintMgmt_DriverPropertyPathLabel" xml:space="preserve">
+    <value>驅動程式路徑</value>
+  </data>
+  <data name="PrintMgmt_DriverPropertyDataFileLabel" xml:space="preserve">
+    <value>資料檔案</value>
+  </data>
+  <data name="PrintMgmt_DriverPropertyConfigFileLabel" xml:space="preserve">
+    <value>設定檔</value>
+  </data>
+  <data name="PrintMgmt_DriverPropertyMonitorLabel" xml:space="preserve">
+    <value>監視器</value>
+  </data>
+  <data name="PrintMgmt_NoPrintersFound" xml:space="preserve">
+    <value>找不到印表機</value>
+  </data>
+  <data name="PrintMgmt_NoDeployedPrintersFound" xml:space="preserve">
+    <value>找不到已部署的印表機</value>
+  </data>
+  <data name="PrintMgmt_NoDriversFound" xml:space="preserve">
+    <value>找不到驅動程式</value>
+  </data>
+  <data name="PrintMgmt_NoPortsFound" xml:space="preserve">
+    <value>找不到連接埠</value>
+  </data>
+  <data name="PrintMgmt_NoFormsFound" xml:space="preserve">
+    <value>找不到格式</value>
+  </data>
+  <data name="PrintMgmt_OpenLegacy" xml:space="preserve">
+    <value>開啟舊版列印管理</value>
+  </data>
+  <data name="PrintMgmt_ErrorDriverInUse">
+    <value>此驅動程式套件目前正在使用中，無法移除。</value>
+  </data>
+  <data name="PrintMgmt_ErrorDriverInBox">
+    <value>此驅動程式套件隨附於 Windows，無法被移除。</value>
+  </data>
+</root>

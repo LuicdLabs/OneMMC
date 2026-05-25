@@ -1,0 +1,968 @@
+[
+  {
+    "Key": "AdminAccountStatus",
+    "PolicyType": "Boolean",
+    "ExplainResourceId": 1962,
+    "SpecialHandler": "AdminAccountStatus"
+  },
+  {
+    "Key": "GuestAccountStatus",
+    "PolicyType": "Boolean",
+    "ExplainResourceId": 1963,
+    "SpecialHandler": "GuestAccountStatus"
+  },
+  {
+    "Key": "RenameAdministratorAccount",
+    "PolicyType": "String",
+    "ExplainResourceId": 1965,
+    "SpecialHandler": "RenameAdministratorAccount"
+  },
+  {
+    "Key": "RenameGuestAccount",
+    "PolicyType": "String",
+    "ExplainResourceId": 1966,
+    "SpecialHandler": "RenameGuestAccount"
+  },
+  {
+    "Key": "ForceLogoffWhenHourExpire",
+    "PolicyType": "Boolean",
+    "ExplainResourceId": 2013,
+    "SpecialHandler": "ForceLogoffWhenHourExpire"
+  },
+
+  {
+    "Key": "LimitBlankPasswordUse",
+    "PolicyType": "Boolean",
+    "RegistryKeyPath": "SYSTEM\\CurrentControlSet\\Control\\Lsa",
+    "RegistryValueName": "LimitBlankPasswordUse",
+    "ExplainResourceId": 1964
+  },
+  {
+    "Key": "BlockMicrosoftAccounts",
+    "PolicyType": "Dropdown",
+    "RegistryKeyPath": "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System",
+    "RegistryValueName": "NoConnectedUser",
+    "ExplainResourceId": 2077,
+    "AllowNotDefined": true,
+    "DropdownOptions": [
+      { "Value": 0, "DisplayName": "This policy is disabled" },
+      { "Value": 1, "DisplayName": "Users can't add Microsoft accounts" },
+      { "Value": 3, "DisplayName": "Users can't add or log on with Microsoft accounts" }
+    ]
+  },
+
+  {
+    "Key": "AuditGlobalObjects",
+    "PolicyType": "Boolean",
+    "RegistryKeyPath": "SYSTEM\\CurrentControlSet\\Control\\Lsa",
+    "RegistryValueName": "AuditBaseObjects",
+    "ExplainResourceId": 1967
+  },
+  {
+    "Key": "AuditBackupRestore",
+    "PolicyType": "Boolean",
+    "RegistryKeyPath": "SYSTEM\\CurrentControlSet\\Control\\Lsa",
+    "RegistryValueName": "FullPrivilegeAuditing",
+    "ExplainResourceId": 1968
+  },
+  {
+    "Key": "AuditForceSubcategory",
+    "PolicyType": "Boolean",
+    "RegistryKeyPath": "SYSTEM\\CurrentControlSet\\Control\\Lsa",
+    "RegistryValueName": "SCENoApplyLegacyAuditPolicy",
+    "ExplainResourceId": 2045,
+    "AllowNotDefined": true
+  },
+  {
+    "Key": "AuditCrashOnAuditFail",
+    "PolicyType": "Boolean",
+    "RegistryKeyPath": "SYSTEM\\CurrentControlSet\\Control\\Lsa",
+    "RegistryValueName": "CrashOnAuditFail",
+    "ExplainResourceId": 1969
+  },
+
+  {
+    "Key": "AllowUndock",
+    "PolicyType": "Boolean",
+    "RegistryKeyPath": "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System",
+    "RegistryValueName": "UndockWithoutLogon",
+    "ExplainResourceId": 1970
+  },
+  {
+    "Key": "AllocateDASD",
+    "PolicyType": "Dropdown",
+    "RegistryKeyPath": "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon",
+    "RegistryValueName": "AllocateDASD",
+    "ExplainResourceId": 1971,
+    "AllowNotDefined": true,
+    "DropdownOptions": [
+      { "Value": 0, "DisplayName": "Administrators" },
+      { "Value": 1, "DisplayName": "Administrators and Power Users" },
+      { "Value": 2, "DisplayName": "Administrators and Interactive Users" }
+    ]
+  },
+  {
+    "Key": "AddPrinterDrivers",
+    "PolicyType": "Boolean",
+    "RegistryKeyPath": "SYSTEM\\CurrentControlSet\\Control\\Print\\Providers\\LanMan Print Services\\Servers",
+    "RegistryValueName": "AddPrinterDrivers",
+    "ExplainResourceId": 1972
+  },
+  {
+    "Key": "AllocateCDRoms",
+    "PolicyType": "Boolean",
+    "RegistryKeyPath": "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon",
+    "RegistryValueName": "AllocateCDRoms",
+    "ExplainResourceId": 1973,
+    "AllowNotDefined": true
+  },
+  {
+    "Key": "AllocateFloppies",
+    "PolicyType": "Boolean",
+    "RegistryKeyPath": "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon",
+    "RegistryValueName": "AllocateFloppies",
+    "ExplainResourceId": 1974,
+    "AllowNotDefined": true
+  },
+
+  {
+    "Key": "DontDisplayLastUserName",
+    "PolicyType": "Boolean",
+    "RegistryKeyPath": "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System",
+    "RegistryValueName": "DontDisplayLastUserName",
+    "ExplainResourceId": 1985
+  },
+  {
+    "Key": "DisableCAD",
+    "PolicyType": "Boolean",
+    "RegistryKeyPath": "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System",
+    "RegistryValueName": "DisableCAD",
+    "ExplainResourceId": 1986,
+    "AllowNotDefined": true
+  },
+  {
+    "Key": "LegalNoticeText",
+    "PolicyType": "String",
+    "RegistryKeyPath": "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System",
+    "RegistryValueName": "LegalNoticeText",
+    "ExplainResourceId": 1987
+  },
+  {
+    "Key": "LegalNoticeCaption",
+    "PolicyType": "String",
+    "RegistryKeyPath": "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System",
+    "RegistryValueName": "LegalNoticeCaption",
+    "ExplainResourceId": 1988
+  },
+  {
+    "Key": "CachedLogonsCount",
+    "PolicyType": "Numeric",
+    "RegistryKeyPath": "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon",
+    "RegistryValueName": "CachedLogonsCount",
+    "ExplainResourceId": 1989,
+    "MinValue": 0,
+    "MaxValue": 50,
+    "Unit": "logons"
+  },
+  {
+    "Key": "PasswordExpiryWarning",
+    "PolicyType": "Numeric",
+    "RegistryKeyPath": "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon",
+    "RegistryValueName": "PasswordExpiryWarning",
+    "ExplainResourceId": 1990,
+    "MinValue": 0,
+    "MaxValue": 999,
+    "Unit": "days"
+  },
+  {
+    "Key": "ForceUnlockLogon",
+    "PolicyType": "Boolean",
+    "RegistryKeyPath": "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon",
+    "RegistryValueName": "ForceUnlockLogon",
+    "ExplainResourceId": 1991
+  },
+  {
+    "Key": "ScRemoveOption",
+    "PolicyType": "Dropdown",
+    "RegistryKeyPath": "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon",
+    "RegistryValueName": "ScRemoveOption",
+    "ExplainResourceId": 1993,
+    "DropdownOptions": [
+      { "Value": 0, "DisplayName": "No Action" },
+      { "Value": 1, "DisplayName": "Lock Workstation" },
+      { "Value": 2, "DisplayName": "Force Logoff" },
+      { "Value": 3, "DisplayName": "Disconnect if a Remote Desktop Services session" }
+    ]
+  },
+  {
+    "Key": "InactivityTimeoutSecs",
+    "PolicyType": "Numeric",
+    "RegistryKeyPath": "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System",
+    "RegistryValueName": "InactivityTimeoutSecs",
+    "ExplainResourceId": 2079,
+    "MinValue": 0,
+    "MaxValue": 599940,
+    "Unit": "seconds",
+    "AllowNotDefined": true
+  },
+
+  {
+    "Key": "RequireSignOrSeal",
+    "PolicyType": "Boolean",
+    "RegistryKeyPath": "SYSTEM\\CurrentControlSet\\Services\\Netlogon\\Parameters",
+    "RegistryValueName": "RequireSignOrSeal",
+    "ExplainResourceId": 1979
+  },
+  {
+    "Key": "SealSecureChannel",
+    "PolicyType": "Boolean",
+    "RegistryKeyPath": "SYSTEM\\CurrentControlSet\\Services\\Netlogon\\Parameters",
+    "RegistryValueName": "SealSecureChannel",
+    "ExplainResourceId": 1980
+  },
+  {
+    "Key": "SignSecureChannel",
+    "PolicyType": "Boolean",
+    "RegistryKeyPath": "SYSTEM\\CurrentControlSet\\Services\\Netlogon\\Parameters",
+    "RegistryValueName": "SignSecureChannel",
+    "ExplainResourceId": 1981
+  },
+  {
+    "Key": "DisablePasswordChange",
+    "PolicyType": "Boolean",
+    "RegistryKeyPath": "SYSTEM\\CurrentControlSet\\Services\\Netlogon\\Parameters",
+    "RegistryValueName": "DisablePasswordChange",
+    "ExplainResourceId": 1984
+  },
+  {
+    "Key": "MaxPasswordAge_DomainMember",
+    "PolicyType": "Numeric",
+    "RegistryKeyPath": "SYSTEM\\CurrentControlSet\\Services\\Netlogon\\Parameters",
+    "RegistryValueName": "MaximumPasswordAge",
+    "ExplainResourceId": 1982,
+    "MinValue": 1,
+    "MaxValue": 999,
+    "Unit": "days"
+  },
+  {
+    "Key": "RequireStrongKey",
+    "PolicyType": "Boolean",
+    "RegistryKeyPath": "SYSTEM\\CurrentControlSet\\Services\\Netlogon\\Parameters",
+    "RegistryValueName": "RequireStrongKey",
+    "ExplainResourceId": 1983
+  },
+
+  {
+    "Key": "RequireSecuritySignature_Client",
+    "PolicyType": "Boolean",
+    "RegistryKeyPath": "SYSTEM\\CurrentControlSet\\Services\\LanmanWorkstation\\Parameters",
+    "RegistryValueName": "RequireSecuritySignature",
+    "ExplainResourceId": 1994,
+    "AllowNotDefined": true
+  },
+  {
+    "Key": "EnableSecuritySignature_Client",
+    "PolicyType": "Boolean",
+    "RegistryKeyPath": "SYSTEM\\CurrentControlSet\\Services\\LanmanWorkstation\\Parameters",
+    "RegistryValueName": "EnableSecuritySignature",
+    "ExplainResourceId": 1995
+  },
+  {
+    "Key": "EnablePlainTextPassword",
+    "PolicyType": "Boolean",
+    "RegistryKeyPath": "SYSTEM\\CurrentControlSet\\Services\\LanmanWorkstation\\Parameters",
+    "RegistryValueName": "EnablePlainTextPassword",
+    "ExplainResourceId": 1996
+  },
+
+  {
+    "Key": "AutoDisconnect",
+    "PolicyType": "Numeric",
+    "RegistryKeyPath": "SYSTEM\\CurrentControlSet\\Services\\LanmanServer\\Parameters",
+    "RegistryValueName": "AutoDisconnect",
+    "ExplainResourceId": 1997,
+    "MinValue": 0,
+    "MaxValue": 99999,
+    "Unit": "minutes"
+  },
+  {
+    "Key": "RequireSecuritySignature_Server",
+    "PolicyType": "Boolean",
+    "RegistryKeyPath": "SYSTEM\\CurrentControlSet\\Services\\LanmanServer\\Parameters",
+    "RegistryValueName": "RequireSecuritySignature",
+    "ExplainResourceId": 1998,
+    "AllowNotDefined": true
+  },
+  {
+    "Key": "EnableSecuritySignature_Server",
+    "PolicyType": "Boolean",
+    "RegistryKeyPath": "SYSTEM\\CurrentControlSet\\Services\\LanmanServer\\Parameters",
+    "RegistryValueName": "EnableSecuritySignature",
+    "ExplainResourceId": 1999
+  },
+  {
+    "Key": "EnableForcedLogOff",
+    "PolicyType": "Boolean",
+    "RegistryKeyPath": "SYSTEM\\CurrentControlSet\\Services\\LanmanServer\\Parameters",
+    "RegistryValueName": "EnableForcedLogOff",
+    "ExplainResourceId": 2000
+  },
+
+  {
+    "Key": "LSAAnonymousNameLookup",
+    "PolicyType": "Boolean",
+    "RegistryKeyPath": "SYSTEM\\CurrentControlSet\\Control\\Lsa",
+    "RegistryValueName": "TurnOffAnonymousBlock",
+    "ExplainResourceId": 2001
+  },
+  {
+    "Key": "RestrictAnonymousSAM",
+    "PolicyType": "Boolean",
+    "RegistryKeyPath": "SYSTEM\\CurrentControlSet\\Control\\Lsa",
+    "RegistryValueName": "RestrictAnonymousSAM",
+    "ExplainResourceId": 2002
+  },
+  {
+    "Key": "RestrictAnonymous",
+    "PolicyType": "Boolean",
+    "RegistryKeyPath": "SYSTEM\\CurrentControlSet\\Control\\Lsa",
+    "RegistryValueName": "RestrictAnonymous",
+    "ExplainResourceId": 2003
+  },
+  {
+    "Key": "DisableDomainCreds",
+    "PolicyType": "Boolean",
+    "RegistryKeyPath": "SYSTEM\\CurrentControlSet\\Control\\Lsa",
+    "RegistryValueName": "DisableDomainCreds",
+    "ExplainResourceId": 2004
+  },
+  {
+    "Key": "EveryoneIncludesAnonymous",
+    "PolicyType": "Boolean",
+    "RegistryKeyPath": "SYSTEM\\CurrentControlSet\\Control\\Lsa",
+    "RegistryValueName": "EveryoneIncludesAnonymous",
+    "ExplainResourceId": 2005
+  },
+  {
+    "Key": "RestrictNullSessAccess",
+    "PolicyType": "Boolean",
+    "RegistryKeyPath": "SYSTEM\\CurrentControlSet\\Services\\LanmanServer\\Parameters",
+    "RegistryValueName": "RestrictNullSessAccess",
+    "ExplainResourceId": 2009
+  },
+  {
+    "Key": "ForceGuest",
+    "PolicyType": "Dropdown",
+    "RegistryKeyPath": "SYSTEM\\CurrentControlSet\\Control\\Lsa",
+    "RegistryValueName": "ForceGuest",
+    "ExplainResourceId": 2011,
+    "DropdownOptions": [
+      { "Value": 0, "DisplayName": "Classic - Local users authenticate as themselves" },
+      { "Value": 1, "DisplayName": "Guest only - Local users authenticate as Guest" }
+    ]
+  },
+
+  {
+    "Key": "LmCompatibilityLevel",
+    "PolicyType": "Dropdown",
+    "RegistryKeyPath": "SYSTEM\\CurrentControlSet\\Control\\Lsa",
+    "RegistryValueName": "LmCompatibilityLevel",
+    "ExplainResourceId": 2014,
+    "AllowNotDefined": true,
+    "DropdownOptions": [
+      { "Value": 0, "DisplayName": "Send LM & NTLM responses" },
+      { "Value": 1, "DisplayName": "Send LM & NTLM - use NTLMv2 session security if negotiated" },
+      { "Value": 2, "DisplayName": "Send NTLM response only" },
+      { "Value": 3, "DisplayName": "Send NTLMv2 response only" },
+      { "Value": 4, "DisplayName": "Send NTLMv2 response only. Refuse LM" },
+      { "Value": 5, "DisplayName": "Send NTLMv2 response only. Refuse LM & NTLM" }
+    ]
+  },
+  {
+    "Key": "LDAPClientIntegrity",
+    "PolicyType": "Dropdown",
+    "RegistryKeyPath": "SYSTEM\\CurrentControlSet\\Services\\LDAP",
+    "RegistryValueName": "LDAPClientIntegrity",
+    "ExplainResourceId": 2015,
+    "DropdownOptions": [
+      { "Value": 0, "DisplayName": "None" },
+      { "Value": 1, "DisplayName": "Negotiate signing" },
+      { "Value": 2, "DisplayName": "Require signing" }
+    ]
+  },
+  {
+    "Key": "NTLMMinClientSec",
+    "PolicyType": "BitmaskFlags",
+    "RegistryKeyPath": "SYSTEM\\CurrentControlSet\\Control\\Lsa\\MSV1_0",
+    "RegistryValueName": "NtlmMinClientSec",
+    "ExplainResourceId": 2016,
+    "MinValue": 0,
+    "MaxValue": 537395248,
+    "DropdownOptions": [
+      { "Value": 524288, "DisplayName": "Require NTLMv2 session security" },
+      { "Value": 536870912, "DisplayName": "Require 128-bit encryption" }
+    ]
+  },
+  {
+    "Key": "NTLMMinServerSec",
+    "PolicyType": "BitmaskFlags",
+    "RegistryKeyPath": "SYSTEM\\CurrentControlSet\\Control\\Lsa\\MSV1_0",
+    "RegistryValueName": "NtlmMinServerSec",
+    "ExplainResourceId": 2017,
+    "MinValue": 0,
+    "MaxValue": 537395248,
+    "DropdownOptions": [
+      { "Value": 524288, "DisplayName": "Require NTLMv2 session security" },
+      { "Value": 536870912, "DisplayName": "Require 128-bit encryption" }
+    ]
+  },
+
+  {
+    "Key": "RecoveryConsole_SecurityLevel",
+    "PolicyType": "Boolean",
+    "RegistryKeyPath": "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Setup\\RecoveryConsole",
+    "RegistryValueName": "SecurityLevel",
+    "ExplainResourceId": 2018
+  },
+  {
+    "Key": "RecoveryConsole_SetCommand",
+    "PolicyType": "Boolean",
+    "RegistryKeyPath": "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Setup\\RecoveryConsole",
+    "RegistryValueName": "SetCommand",
+    "ExplainResourceId": 2019
+  },
+
+  {
+    "Key": "ShutdownWithoutLogon",
+    "PolicyType": "Boolean",
+    "RegistryKeyPath": "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System",
+    "RegistryValueName": "ShutdownWithoutLogon",
+    "ExplainResourceId": 2020
+  },
+  {
+    "Key": "ClearPageFileAtShutdown",
+    "PolicyType": "Boolean",
+    "RegistryKeyPath": "SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Memory Management",
+    "RegistryValueName": "ClearPageFileAtShutdown",
+    "ExplainResourceId": 2021
+  },
+
+  {
+    "Key": "FIPSAlgorithmPolicy",
+    "PolicyType": "Boolean",
+    "RegistryKeyPath": "SYSTEM\\CurrentControlSet\\Control\\Lsa\\FIPSAlgorithmPolicy",
+    "RegistryValueName": "Enabled",
+    "ExplainResourceId": 2023
+  },
+
+  {
+    "Key": "ObCaseInsensitive",
+    "PolicyType": "Boolean",
+    "RegistryKeyPath": "SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Kernel",
+    "RegistryValueName": "ObCaseInsensitive",
+    "ExplainResourceId": 2025
+  },
+  {
+    "Key": "ProtectionMode",
+    "PolicyType": "Boolean",
+    "RegistryKeyPath": "SYSTEM\\CurrentControlSet\\Control\\Session Manager",
+    "RegistryValueName": "ProtectionMode",
+    "ExplainResourceId": 2026
+  },
+
+  {
+    "Key": "FilterAdministratorToken",
+    "PolicyType": "Boolean",
+    "RegistryKeyPath": "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System",
+    "RegistryValueName": "FilterAdministratorToken",
+    "ExplainResourceId": 2046,
+    "AllowNotDefined": true
+  },
+  {
+    "Key": "EnableUIADesktopToggle",
+    "PolicyType": "Boolean",
+    "RegistryKeyPath": "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System",
+    "RegistryValueName": "EnableUIADesktopToggle",
+    "ExplainResourceId": 2059
+  },
+  {
+    "Key": "ConsentPromptBehaviorAdmin",
+    "PolicyType": "Dropdown",
+    "RegistryKeyPath": "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System",
+    "RegistryValueName": "ConsentPromptBehaviorAdmin",
+    "ExplainResourceId": 2049,
+    "DropdownOptions": [
+      { "Value": 0, "DisplayName": "Elevate without prompting" },
+      { "Value": 1, "DisplayName": "Prompt for credentials on the secure desktop" },
+      { "Value": 2, "DisplayName": "Prompt for consent on the secure desktop" },
+      { "Value": 3, "DisplayName": "Prompt for credentials" },
+      { "Value": 4, "DisplayName": "Prompt for consent" },
+      { "Value": 5, "DisplayName": "Prompt for consent for non-Windows binaries" }
+    ]
+  },
+  {
+    "Key": "ConsentPromptBehaviorUser",
+    "PolicyType": "Dropdown",
+    "RegistryKeyPath": "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System",
+    "RegistryValueName": "ConsentPromptBehaviorUser",
+    "ExplainResourceId": 2050,
+    "DropdownOptions": [
+      { "Value": 0, "DisplayName": "Automatically deny elevation requests" },
+      { "Value": 1, "DisplayName": "Prompt for credentials on the secure desktop" },
+      { "Value": 3, "DisplayName": "Prompt for credentials" }
+    ]
+  },
+  {
+    "Key": "EnableInstallerDetection",
+    "PolicyType": "Boolean",
+    "RegistryKeyPath": "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System",
+    "RegistryValueName": "EnableInstallerDetection",
+    "ExplainResourceId": 2051
+  },
+  {
+    "Key": "ValidateAdminCodeSignatures",
+    "PolicyType": "Boolean",
+    "RegistryKeyPath": "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System",
+    "RegistryValueName": "ValidateAdminCodeSignatures",
+    "ExplainResourceId": 2052
+  },
+  {
+    "Key": "EnableSecureUIAPaths",
+    "PolicyType": "Boolean",
+    "RegistryKeyPath": "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System",
+    "RegistryValueName": "EnableSecureUIAPaths",
+    "ExplainResourceId": 2053
+  },
+  {
+    "Key": "EnableLUA",
+    "PolicyType": "Boolean",
+    "RegistryKeyPath": "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System",
+    "RegistryValueName": "EnableLUA",
+    "ExplainResourceId": 2054
+  },
+  {
+    "Key": "PromptOnSecureDesktop",
+    "PolicyType": "Boolean",
+    "RegistryKeyPath": "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System",
+    "RegistryValueName": "PromptOnSecureDesktop",
+    "ExplainResourceId": 2055
+  },
+  {
+    "Key": "EnableVirtualization",
+    "PolicyType": "Boolean",
+    "RegistryKeyPath": "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System",
+    "RegistryValueName": "EnableVirtualization",
+    "ExplainResourceId": 2056
+  },
+
+  {
+    "Key": "TypeOfAdminApprovalMode",
+    "PolicyType": "Dropdown",
+    "RegistryKeyPath": "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System",
+    "RegistryValueName": "TypeOfAdminApprovalMode",
+    "ExplainResourceId": 2094,
+    "AllowNotDefined": true,
+    "DropdownOptions": [
+      { "Value": 1, "DisplayName": "Admin Approval Mode" },
+      { "Value": 2, "DisplayName": "Admin Approval Mode with enhanced privilege protection" }
+    ]
+  },
+  {
+    "Key": "ConsentPromptBehaviorAdminAP",
+    "PolicyType": "Dropdown",
+    "RegistryKeyPath": "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System",
+    "RegistryValueName": "ConsentPromptBehaviorEnhancedAdmin",
+    "ExplainResourceId": 2096,
+    "AllowNotDefined": true,
+    "SpecialHandler": "ConsentPromptBehaviorAdminAP",
+    "DropdownOptions": [
+      { "Value": 1, "DisplayName": "Prompt for credentials on the secure desktop" },
+      { "Value": 2, "DisplayName": "Prompt for consent on the secure desktop" }
+    ]
+  },
+  {
+    "Key": "DontDisplayLockedUserId",
+    "PolicyType": "Dropdown",
+    "RegistryKeyPath": "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System",
+    "RegistryValueName": "DontDisplayLockedUserId",
+    "ExplainResourceId": 2083,
+    "AllowNotDefined": true,
+    "DropdownOptions": [
+      { "Value": 1, "DisplayName": "User display name, domain and user names" },
+      { "Value": 2, "DisplayName": "User display name only" },
+      { "Value": 3, "DisplayName": "Do not display user information" }
+    ]
+  },
+  {
+    "Key": "LDAPClientConfidentiality",
+    "PolicyType": "Dropdown",
+    "RegistryKeyPath": "SYSTEM\\CurrentControlSet\\Services\\LDAP",
+    "RegistryValueName": "LDAPClientConfidentiality",
+    "ExplainResourceId": 2091,
+    "AllowNotDefined": true,
+    "DropdownOptions": [
+      { "Value": 0, "DisplayName": "None" },
+      { "Value": 1, "DisplayName": "Negotiate encryption" },
+      { "Value": 2, "DisplayName": "Require encryption" }
+    ]
+  },
+
+  {
+    "Key": "DCOM_MachineAccessRestriction",
+    "PolicyType": "String",
+    "RegistryKeyPath": "SOFTWARE\\Policies\\Microsoft\\Windows NT\\DCOM",
+    "RegistryValueName": "MachineAccessRestriction",
+    "ExplainResourceId": 2047,
+    "AllowNotDefined": true
+  },
+  {
+    "Key": "DCOM_MachineLaunchRestriction",
+    "PolicyType": "String",
+    "RegistryKeyPath": "SOFTWARE\\Policies\\Microsoft\\Windows NT\\DCOM",
+    "RegistryValueName": "MachineLaunchRestriction",
+    "ExplainResourceId": 2048,
+    "AllowNotDefined": true
+  },
+
+  {
+    "Key": "DontDisplayUserName",
+    "PolicyType": "Boolean",
+    "RegistryKeyPath": "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System",
+    "RegistryValueName": "DontDisplayUserName",
+    "ExplainResourceId": 2082,
+    "AllowNotDefined": true
+  },
+  {
+    "Key": "ScForceOption",
+    "PolicyType": "Boolean",
+    "RegistryKeyPath": "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System",
+    "RegistryValueName": "ScForceOption",
+    "ExplainResourceId": 1992
+  },
+  {
+    "Key": "MaxDevicePasswordFailedAttempts",
+    "PolicyType": "Numeric",
+    "RegistryKeyPath": "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System",
+    "RegistryValueName": "MaxDevicePasswordFailedAttempts",
+    "ExplainResourceId": 2078,
+    "AllowNotDefined": true,
+    "MinValue": 0,
+    "MaxValue": 999,
+    "Unit": "invalid logon attempts"
+  },
+
+  {
+    "Key": "ForceKeyProtection",
+    "PolicyType": "Dropdown",
+    "RegistryKeyPath": "SOFTWARE\\Policies\\Microsoft\\Cryptography",
+    "RegistryValueName": "ForceKeyProtection",
+    "ExplainResourceId": 2022,
+    "AllowNotDefined": true,
+    "DropdownOptions": [
+      { "Value": 0, "DisplayName": "User input is not required when new keys are stored and used" },
+      { "Value": 1, "DisplayName": "User is prompted when the key is first used" },
+      { "Value": 2, "DisplayName": "User must enter a password each time they use a key" }
+    ]
+  },
+  {
+    "Key": "AuthenticodeEnabled",
+    "PolicyType": "Boolean",
+    "RegistryKeyPath": "SOFTWARE\\Policies\\Microsoft\\Windows\\Safer\\CodeIdentifiers",
+    "RegistryValueName": "AuthenticodeEnabled",
+    "ExplainResourceId": 2028
+  },
+  {
+    "Key": "OptionalSubsystems",
+    "PolicyType": "MultiString",
+    "RegistryKeyPath": "SYSTEM\\CurrentControlSet\\Control\\Session Manager\\SubSystems",
+    "RegistryValueName": "optional",
+    "ExplainResourceId": 2027
+  },
+
+  {
+    "Key": "LDAPServerIntegrity",
+    "PolicyType": "Dropdown",
+    "RegistryKeyPath": "SYSTEM\\CurrentControlSet\\Services\\NTDS\\Parameters",
+    "RegistryValueName": "LDAPServerIntegrity",
+    "ExplainResourceId": 1977,
+    "AllowNotDefined": true,
+    "DropdownOptions": [
+      { "Value": 1, "DisplayName": "None" },
+      { "Value": 2, "DisplayName": "Require signing" }
+    ]
+  },
+  {
+    "Key": "LDAPServerIntegrityEnforced",
+    "PolicyType": "Dropdown",
+    "RegistryKeyPath": "SYSTEM\\CurrentControlSet\\Services\\NTDS\\Parameters",
+    "RegistryValueName": "LdapEnforceSigningReqmts",
+    "ExplainResourceId": 2089,
+    "AllowNotDefined": true,
+    "DropdownOptions": [
+      { "Value": 0, "DisplayName": "Disabled" },
+      { "Value": 1, "DisplayName": "Enabled with compatibility" },
+      { "Value": 2, "DisplayName": "Enabled" }
+    ]
+  },
+  {
+    "Key": "LDAPEnforceChannelBinding",
+    "PolicyType": "Dropdown",
+    "RegistryKeyPath": "SYSTEM\\CurrentControlSet\\Services\\NTDS\\Parameters",
+    "RegistryValueName": "LdapEnforceChannelBinding",
+    "ExplainResourceId": 2086,
+    "AllowNotDefined": true,
+    "DropdownOptions": [
+      { "Value": 0, "DisplayName": "Never" },
+      { "Value": 1, "DisplayName": "When supported" },
+      { "Value": 2, "DisplayName": "Always" }
+    ]
+  },
+  {
+    "Key": "NetJoinLegacyAccountReuse",
+    "PolicyType": "Boolean",
+    "RegistryKeyPath": "SYSTEM\\CurrentControlSet\\Control\\Lsa",
+    "RegistryValueName": "NetJoinLegacyAccountReuse",
+    "ExplainResourceId": 2090,
+    "AllowNotDefined": true
+  },
+  {
+    "Key": "SubmitControl",
+    "PolicyType": "Boolean",
+    "RegistryKeyPath": "SYSTEM\\CurrentControlSet\\Control\\Lsa",
+    "RegistryValueName": "SubmitControl",
+    "ExplainResourceId": 1976,
+    "AllowNotDefined": true
+  },
+  {
+    "Key": "VulnerableChannelAllowList",
+    "PolicyType": "MultiString",
+    "RegistryKeyPath": "SYSTEM\\CurrentControlSet\\Services\\Netlogon\\Parameters",
+    "RegistryValueName": "VulnerableChannelAllowList",
+    "ExplainResourceId": 2087,
+    "AllowNotDefined": true
+  },
+  {
+    "Key": "RefusePasswordChange_DC",
+    "PolicyType": "Boolean",
+    "RegistryKeyPath": "SYSTEM\\CurrentControlSet\\Services\\Netlogon\\Parameters",
+    "RegistryValueName": "RefusePasswordChange",
+    "ExplainResourceId": 1978,
+    "AllowNotDefined": true
+  },
+  {
+    "Key": "RefuseDefaultMachineAccountPassword",
+    "PolicyType": "Boolean",
+    "RegistryKeyPath": "SYSTEM\\CurrentControlSet\\Services\\Netlogon\\Parameters",
+    "RegistryValueName": "RefuseDefaultMachineAccountPassword",
+    "ExplainResourceId": 2092,
+    "AllowNotDefined": true
+  },
+  {
+    "Key": "AllowAdministratorLockout",
+    "PolicyType": "Boolean",
+    "RegistryKeyPath": "SYSTEM\\CurrentControlSet\\Control\\Lsa",
+    "RegistryValueName": "AllowAdministratorLockout",
+    "ExplainResourceId": 2088,
+    "AllowNotDefined": true
+  },
+
+  {
+    "Key": "NullSessionPipes",
+    "PolicyType": "MultiString",
+    "RegistryKeyPath": "SYSTEM\\CurrentControlSet\\Services\\LanManServer\\Parameters",
+    "RegistryValueName": "NullSessionPipes",
+    "ExplainResourceId": 2006
+  },
+  {
+    "Key": "NullSessionShares",
+    "PolicyType": "MultiString",
+    "RegistryKeyPath": "SYSTEM\\CurrentControlSet\\Services\\LanManServer\\Parameters",
+    "RegistryValueName": "NullSessionShares",
+    "ExplainResourceId": 2010
+  },
+  {
+    "Key": "AllowedExactPaths",
+    "PolicyType": "MultiString",
+    "RegistryKeyPath": "SYSTEM\\CurrentControlSet\\Control\\SecurePipeServers\\Winreg\\AllowedExactPaths",
+    "RegistryValueName": "Machine",
+    "ExplainResourceId": 2007
+  },
+  {
+    "Key": "AllowedPaths",
+    "PolicyType": "MultiString",
+    "RegistryKeyPath": "SYSTEM\\CurrentControlSet\\Control\\SecurePipeServers\\Winreg\\AllowedPaths",
+    "RegistryValueName": "Machine",
+    "ExplainResourceId": 2008
+  },
+  {
+    "Key": "RestrictRemoteSAM",
+    "PolicyType": "String",
+    "RegistryKeyPath": "SYSTEM\\CurrentControlSet\\Control\\Lsa",
+    "RegistryValueName": "RestrictRemoteSAM",
+    "ExplainResourceId": 2081,
+    "AllowNotDefined": true
+  },
+  {
+    "Key": "NoLMHash",
+    "PolicyType": "Boolean",
+    "RegistryKeyPath": "SYSTEM\\CurrentControlSet\\Control\\Lsa",
+    "RegistryValueName": "NoLMHash",
+    "ExplainResourceId": 0,
+    "AllowNotDefined": true
+  },
+
+  {
+    "Key": "SPNTargetNameValidationLevel",
+    "PolicyType": "Dropdown",
+    "RegistryKeyPath": "SYSTEM\\CurrentControlSet\\Services\\LanmanServer\\Parameters",
+    "RegistryValueName": "SMBServerNameHardeningLevel",
+    "ExplainResourceId": 2075,
+    "AllowNotDefined": true,
+    "DropdownOptions": [
+      { "Value": 0, "DisplayName": "Off" },
+      { "Value": 1, "DisplayName": "Accept if provided by client" },
+      { "Value": 2, "DisplayName": "Required from client" }
+    ]
+  },
+  {
+    "Key": "S4U2SelfFlags",
+    "PolicyType": "Dropdown",
+    "RegistryKeyPath": "SYSTEM\\CurrentControlSet\\Services\\LanmanServer\\Parameters",
+    "RegistryValueName": "SmbServerNameHardenClaimFlags",
+    "ExplainResourceId": 2076,
+    "AllowNotDefined": true,
+    "DropdownOptions": [
+      { "Value": 0, "DisplayName": "Default" },
+      { "Value": 1, "DisplayName": "Enabled" },
+      { "Value": 2, "DisplayName": "Disabled" }
+    ]
+  },
+
+  {
+    "Key": "UseMachineId",
+    "PolicyType": "Boolean",
+    "RegistryKeyPath": "SYSTEM\\CurrentControlSet\\Control\\Lsa",
+    "RegistryValueName": "UseMachineId",
+    "ExplainResourceId": 2074,
+    "AllowNotDefined": true
+  },
+  {
+    "Key": "AllowNullSessionFallback",
+    "PolicyType": "Boolean",
+    "RegistryKeyPath": "SYSTEM\\CurrentControlSet\\Control\\Lsa\\MSV1_0",
+    "RegistryValueName": "AllowNullSessionFallback",
+    "ExplainResourceId": 2068,
+    "AllowNotDefined": true
+  },
+  {
+    "Key": "AllowOnlineID",
+    "PolicyType": "Boolean",
+    "RegistryKeyPath": "SYSTEM\\CurrentControlSet\\Control\\Lsa\\pku2u",
+    "RegistryValueName": "AllowOnlineID",
+    "ExplainResourceId": 2071,
+    "AllowNotDefined": true
+  },
+  {
+    "Key": "RestrictSendingNTLMTraffic",
+    "PolicyType": "Dropdown",
+    "RegistryKeyPath": "SYSTEM\\CurrentControlSet\\Control\\Lsa\\MSV1_0",
+    "RegistryValueName": "RestrictSendingNTLMTraffic",
+    "ExplainResourceId": 2063,
+    "AllowNotDefined": true,
+    "DropdownOptions": [
+      { "Value": 0, "DisplayName": "Allow all" },
+      { "Value": 1, "DisplayName": "Deny all domain accounts" },
+      { "Value": 2, "DisplayName": "Deny all accounts" }
+    ]
+  },
+  {
+    "Key": "RestrictNTLMInDomain",
+    "PolicyType": "Dropdown",
+    "RegistryKeyPath": "SYSTEM\\CurrentControlSet\\Services\\Netlogon\\Parameters",
+    "RegistryValueName": "RestrictNTLMInDomain",
+    "ExplainResourceId": 2065,
+    "AllowNotDefined": true,
+    "DropdownOptions": [
+      { "Value": 0, "DisplayName": "Disable" },
+      { "Value": 1, "DisplayName": "Deny for domain accounts to domain servers" },
+      { "Value": 3, "DisplayName": "Deny for domain accounts" },
+      { "Value": 5, "DisplayName": "Deny for domain servers" },
+      { "Value": 7, "DisplayName": "Deny all" }
+    ]
+  },
+  {
+    "Key": "RestrictReceivingNTLMTraffic",
+    "PolicyType": "Dropdown",
+    "RegistryKeyPath": "SYSTEM\\CurrentControlSet\\Control\\Lsa\\MSV1_0",
+    "RegistryValueName": "RestrictReceivingNTLMTraffic",
+    "ExplainResourceId": 2064,
+    "AllowNotDefined": true,
+    "DropdownOptions": [
+      { "Value": 0, "DisplayName": "Allow all" },
+      { "Value": 1, "DisplayName": "Deny all domain accounts" },
+      { "Value": 2, "DisplayName": "Deny all accounts" }
+    ]
+  },
+  {
+    "Key": "ClientAllowedNTLMServers",
+    "PolicyType": "MultiString",
+    "RegistryKeyPath": "SYSTEM\\CurrentControlSet\\Control\\Lsa\\MSV1_0",
+    "RegistryValueName": "ClientAllowedNTLMServers",
+    "ExplainResourceId": 2066,
+    "AllowNotDefined": true
+  },
+  {
+    "Key": "DCAllowedNTLMServers",
+    "PolicyType": "MultiString",
+    "RegistryKeyPath": "SYSTEM\\CurrentControlSet\\Services\\Netlogon\\Parameters",
+    "RegistryValueName": "DCAllowedNTLMServers",
+    "ExplainResourceId": 2067,
+    "AllowNotDefined": true
+  },
+  {
+    "Key": "AuditNTLMInDomain",
+    "PolicyType": "Dropdown",
+    "RegistryKeyPath": "SYSTEM\\CurrentControlSet\\Services\\Netlogon\\Parameters",
+    "RegistryValueName": "AuditNTLMInDomain",
+    "ExplainResourceId": 2073,
+    "AllowNotDefined": true,
+    "DropdownOptions": [
+      { "Value": 0, "DisplayName": "Disable" },
+      { "Value": 1, "DisplayName": "Enable for domain accounts to domain servers" },
+      { "Value": 3, "DisplayName": "Enable for domain accounts" },
+      { "Value": 5, "DisplayName": "Enable for domain servers" },
+      { "Value": 7, "DisplayName": "Enable all" }
+    ]
+  },
+  {
+    "Key": "AuditReceivingNTLMTraffic",
+    "PolicyType": "Dropdown",
+    "RegistryKeyPath": "SYSTEM\\CurrentControlSet\\Control\\Lsa\\MSV1_0",
+    "RegistryValueName": "AuditReceivingNTLMTraffic",
+    "ExplainResourceId": 2072,
+    "AllowNotDefined": true,
+    "DropdownOptions": [
+      { "Value": 0, "DisplayName": "Disable" },
+      { "Value": 1, "DisplayName": "Enable for domain accounts" },
+      { "Value": 2, "DisplayName": "Enable for all accounts" }
+    ]
+  },
+  {
+    "Key": "SupportedEncryptionTypes",
+    "PolicyType": "BitmaskFlags",
+    "RegistryKeyPath": "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System\\Kerberos\\Parameters",
+    "RegistryValueName": "SupportedEncryptionTypes",
+    "ExplainResourceId": 2069,
+    "AllowNotDefined": true,
+    "MinValue": 0,
+    "MaxValue": 2147483647,
+    "DropdownOptions": [
+      { "Value": 1, "DisplayName": "DES_CBC_CRC", "DisplayResourceId": 59122 },
+      { "Value": 2, "DisplayName": "DES_CBC_MD5", "DisplayResourceId": 59123 },
+      { "Value": 4, "DisplayName": "RC4_HMAC_MD5", "DisplayResourceId": 59124 },
+      { "Value": 8, "DisplayName": "AES128_HMAC_SHA1", "DisplayResourceId": 59125 },
+      { "Value": 16, "DisplayName": "AES256_HMAC_SHA1", "DisplayResourceId": 59126 },
+      { "Value": 2147483616, "DisplayName": "Future encryption types", "DisplayResourceId": 59127 }
+    ]
+  }
+]

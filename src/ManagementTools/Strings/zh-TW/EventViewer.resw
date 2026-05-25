@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <!-- Tree nodes -->
+  <data name="EventViewer_Tree_WindowsLogs" xml:space="preserve">
+    <value>Windows 記錄</value>
+  </data>
+  <data name="EventViewer_Tree_AppServicesLogs" xml:space="preserve">
+    <value>應用程式及服務記錄</value>
+  </data>
+  <data name="EventViewer_Tree_Application" xml:space="preserve">
+    <value>應用程式</value>
+  </data>
+  <data name="EventViewer_Tree_Security" xml:space="preserve">
+    <value>安全性</value>
+  </data>
+  <data name="EventViewer_Tree_Setup" xml:space="preserve">
+    <value>安裝程式</value>
+  </data>
+  <data name="EventViewer_Tree_System" xml:space="preserve">
+    <value>系統</value>
+  </data>
+  <data name="EventViewer_Tree_ForwardedEvents" xml:space="preserve">
+    <value>轉寄的事件</value>
+  </data>
+
+  <!-- Event levels -->
+  <data name="EventViewer_Level_Critical" xml:space="preserve">
+    <value>嚴重</value>
+  </data>
+  <data name="EventViewer_Level_Error" xml:space="preserve">
+    <value>錯誤</value>
+  </data>
+  <data name="EventViewer_Level_Warning" xml:space="preserve">
+    <value>警告</value>
+  </data>
+  <data name="EventViewer_Level_Information" xml:space="preserve">
+    <value>資訊</value>
+  </data>
+  <data name="EventViewer_Level_Verbose" xml:space="preserve">
+    <value>詳細資訊</value>
+  </data>
+
+  <!-- Details panel -->
+  <data name="EventViewer_Tab_General" xml:space="preserve">
+    <value>一般</value>
+  </data>
+  <data name="EventViewer_Tab_Details" xml:space="preserve">
+    <value>詳細資料</value>
+  </data>
+  <data name="EventViewer_Detail_LogName" xml:space="preserve">
+    <value>記錄檔名稱</value>
+  </data>
+  <data name="EventViewer_Detail_Source" xml:space="preserve">
+    <value>來源</value>
+  </data>
+  <data name="EventViewer_Detail_EventId" xml:space="preserve">
+    <value>事件識別碼</value>
+  </data>
+  <data name="EventViewer_Detail_Level" xml:space="preserve">
+    <value>等級</value>
+  </data>
+  <data name="EventViewer_Detail_User" xml:space="preserve">
+    <value>使用者</value>
+  </data>
+  <data name="EventViewer_Detail_OpCode" xml:space="preserve">
+    <value>作業碼</value>
+  </data>
+  <data name="EventViewer_Detail_Logged" xml:space="preserve">
+    <value>記錄時間</value>
+  </data>
+  <data name="EventViewer_Detail_TaskCategory" xml:space="preserve">
+    <value>工作類別</value>
+  </data>
+  <data name="EventViewer_Detail_Keywords" xml:space="preserve">
+    <value>關鍵字</value>
+  </data>
+  <data name="EventViewer_Detail_Computer" xml:space="preserve">
+    <value>電腦</value>
+  </data>
+
+  <!-- Filter -->
+  <data name="EventViewer_Filter_All" xml:space="preserve">
+    <value>所有層級</value>
+  </data>
+  <data name="EventViewer_SearchPlaceholder" xml:space="preserve">
+    <value>搜尋事件</value>
+  </data>
+
+  <!-- Commands / Actions -->
+  <data name="EventViewer_Refresh" xml:space="preserve">
+    <value>重新整理</value>
+  </data>
+  <data name="EventViewer_ClearLog" xml:space="preserve">
+    <value>清除記錄</value>
+  </data>
+  <data name="EventViewer_ExportLog" xml:space="preserve">
+    <value>匯出記錄</value>
+  </data>
+  <data name="EventViewer_LogProperties" xml:space="preserve">
+    <value>記錄內容</value>
+  </data>
+  <data name="EventViewer_OpenLegacy" xml:space="preserve">
+    <value>開啟舊版事件檢視器</value>
+  </data>
+
+  <!-- Status messages -->
+  <data name="EventViewer_Status_Loading" xml:space="preserve">
+    <value>正在載入事件...</value>
+  </data>
+  <data name="EventViewer_Status_LoadedFormat" xml:space="preserve">
+    <value>已載入 {0} 個事件</value>
+  </data>
+  <data name="EventViewer_Status_NoEvents" xml:space="preserve">
+    <value>找不到事件</value>
+  </data>
+
+  <!-- Clear log dialog -->
+  <data name="EventViewer_ClearLog_ConfirmTitle" xml:space="preserve">
+    <value>清除記錄</value>
+  </data>
+  <data name="EventViewer_ClearLog_ConfirmMessage" xml:space="preserve">
+    <value>確定要清除此記錄中的所有事件嗎？</value>
+  </data>
+  <data name="EventViewer_ClearLog_SaveFirst" xml:space="preserve">
+    <value>儲存並清除</value>
+  </data>
+  <data name="EventViewer_ClearLog_Success" xml:space="preserve">
+    <value>已成功清除記錄</value>
+  </data>
+
+  <!-- Log Properties dialog -->
+  <data name="EventViewer_LogProp_Title" xml:space="preserve">
+    <value>記錄內容</value>
+  </data>
+  <data name="EventViewer_LogProp_FullName" xml:space="preserve">
+    <value>完整名稱</value>
+  </data>
+  <data name="EventViewer_LogProp_LogPath" xml:space="preserve">
+    <value>記錄路徑</value>
+  </data>
+  <data name="EventViewer_LogProp_LogSize" xml:space="preserve">
+    <value>記錄大小</value>
+  </data>
+  <data name="EventViewer_LogProp_MaxSize" xml:space="preserve">
+    <value>最大記錄大小</value>
+  </data>
+  <data name="EventViewer_LogProp_Enabled" xml:space="preserve">
+    <value>已啟用</value>
+  </data>
+  <data name="EventViewer_LogProp_LogMode" xml:space="preserve">
+    <value>記錄模式</value>
+  </data>
+
+  <!-- Error messages -->
+  <data name="EventViewer_Error_AccessDenied" xml:space="preserve">
+    <value>存取被拒。可能需要系統管理員權限。</value>
+  </data>
+  <data name="EventViewer_Error_LoadFailed" xml:space="preserve">
+    <value>無法載入事件</value>
+  </data>
+
+  <!-- Load more -->
+  <data name="EventViewer_LoadMore" xml:space="preserve">
+    <value>載入更多</value>
+  </data>
+</root>

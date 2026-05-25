@@ -1,0 +1,73 @@
+<ContentDialog
+    x:Class="ManagementTools.Views.FormsDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:converters="using:ManagementTools.Converters"
+    xmlns:models="using:ManagementTools.Core.Features.PrintManagement.Models.PrintManagement"
+    mc:Ignorable="d"
+    DefaultButton="Close"
+    Style="{StaticResource DefaultContentDialogStyle}"
+    CloseButtonText="{x:Bind LocalizedStrings.Common_CloseButton}">
+
+    <ContentDialog.Resources>
+        <converters:CollectionEmptyToVisibilityConverter x:Key="CollectionEmptyToVisibilityConverter"/>
+        <converters:CollectionNotEmptyToVisibilityConverter x:Key="CollectionNotEmptyToVisibilityConverter"/>
+        <converters:PrintFormSizeConverter x:Key="PrintFormSizeConverter"/>
+    </ContentDialog.Resources>
+
+    <StackPanel Spacing="12">
+        <StackPanel Spacing="4">
+            <TextBlock 
+                Text="{x:Bind LocalizedStrings.PrintMgmt_FormsDialogTitle}"
+                FontSize="18" 
+                FontWeight="SemiBold"/>
+            <TextBlock 
+                Text="{x:Bind SubtitleText}"
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                FontSize="12"/>
+        </StackPanel>
+
+        <Grid>
+            <!-- Empty state -->
+            <TextBlock 
+                Text="{x:Bind LocalizedStrings.PrintMgmt_NoFormsFound}"
+                FontStyle="Italic"
+                Margin="0,8"
+                Visibility="{x:Bind ViewModel.Forms.Count, Mode=OneWay, Converter={StaticResource CollectionEmptyToVisibilityConverter}}"/>
+
+            <!-- Forms list -->
+            <ListView 
+                ItemsSource="{x:Bind ViewModel.Forms, Mode=OneWay}"
+                SelectionMode="None"
+                MaxHeight="500"
+                Visibility="{x:Bind ViewModel.Forms.Count, Mode=OneWay, Converter={StaticResource CollectionNotEmptyToVisibilityConverter}}">
+                <ListView.ItemContainerStyle>
+                    <Style TargetType="ListViewItem">
+                        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                        <Setter Property="Padding" Value="12,8"/>
+                    </Style>
+                </ListView.ItemContainerStyle>
+                <ListView.ItemTemplate>
+                    <DataTemplate x:DataType="models:PrintFormInfo">
+                        <StackPanel Spacing="2">
+                            <TextBlock 
+                                Text="{x:Bind Name}"
+                                FontWeight="SemiBold"
+                                FontSize="14"/>
+                            <TextBlock 
+                                Text="{x:Bind FormType}"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                FontSize="12"/>
+                            <TextBlock 
+                                Text="{x:Bind Converter={StaticResource PrintFormSizeConverter}}"
+                                Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                                FontSize="11"/>
+                        </StackPanel>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+        </Grid>
+    </StackPanel>
+</ContentDialog>

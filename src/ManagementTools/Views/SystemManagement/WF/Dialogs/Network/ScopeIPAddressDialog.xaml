@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<UserControl
+    x:Class="ManagementTools.Views.Dialogs.Network.ScopeIPAddressDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:ManagementTools.Localization"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <UserControl.Resources>
+        <local:LocalizedStrings x:Key="LocalizedStrings" />
+    </UserControl.Resources>
+
+    <Grid MinWidth="520" MinHeight="440">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Local IP addresses -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,8" Spacing="8">
+            <TextBlock FontWeight="SemiBold" Text="{Binding WF_ScopeIPAddress_LocalIPAddresses, Source={StaticResource LocalizedStrings}}" />
+            <RadioButton
+                x:Name="LocalAnyRadio"
+                Content="{Binding WF_Common_AnyIPAddress, Source={StaticResource LocalizedStrings}}"
+                GroupName="LocalGroup"
+                IsChecked="True" />
+            <RadioButton
+                x:Name="LocalSpecificRadio"
+                Content="{Binding WF_Common_TheseIPAddresses, Source={StaticResource LocalizedStrings}}"
+                GroupName="LocalGroup" />
+        </StackPanel>
+
+        <Border
+            Grid.Row="1"
+            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+            BorderThickness="1"
+            CornerRadius="4">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <ListView
+                    x:Name="LocalAddressListView"
+                    Grid.Row="0"
+                    IsEnabled="False"
+                    MaxHeight="140"
+                    SelectionMode="Single" />
+                <StackPanel
+                    Grid.Row="1"
+                    Padding="8"
+                    Background="{ThemeResource SubtleFillColorSecondaryBrush}"
+                    Orientation="Horizontal"
+                    Spacing="8">
+                    <Button x:Name="LocalAddButton" Content="{Binding Common_AddButton, Source={StaticResource LocalizedStrings}}" IsEnabled="False" Click="LocalAddButton_Click" />
+                    <Button x:Name="LocalEditButton" Content="{Binding Common_EditButton, Source={StaticResource LocalizedStrings}}" IsEnabled="False" Click="LocalEditButton_Click" />
+                    <Button x:Name="LocalDeleteButton" Content="{Binding Common_DeleteButton, Source={StaticResource LocalizedStrings}}" IsEnabled="False" Click="LocalDeleteButton_Click" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Remote IP addresses -->
+        <StackPanel Grid.Row="2" Margin="0,12,0,8" Spacing="8">
+            <TextBlock FontWeight="SemiBold" Text="{Binding WF_ScopeIPAddress_RemoteIPAddresses, Source={StaticResource LocalizedStrings}}" />
+            <RadioButton
+                x:Name="RemoteAnyRadio"
+                Content="{Binding WF_Common_AnyIPAddress, Source={StaticResource LocalizedStrings}}"
+                GroupName="RemoteGroup"
+                IsChecked="True" />
+            <RadioButton
+                x:Name="RemoteSpecificRadio"
+                Content="{Binding WF_Common_TheseIPAddresses, Source={StaticResource LocalizedStrings}}"
+                GroupName="RemoteGroup" />
+        </StackPanel>
+
+        <Border
+            Grid.Row="3"
+            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+            BorderThickness="1"
+            CornerRadius="4">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <ListView
+                    x:Name="RemoteAddressListView"
+                    Grid.Row="0"
+                    IsEnabled="False"
+                    MaxHeight="140"
+                    SelectionMode="Single" />
+                <StackPanel
+                    Grid.Row="1"
+                    Padding="8"
+                    Background="{ThemeResource SubtleFillColorSecondaryBrush}"
+                    Orientation="Horizontal"
+                    Spacing="8">
+                    <Button x:Name="RemoteAddButton" Content="{Binding Common_AddButton, Source={StaticResource LocalizedStrings}}" IsEnabled="False" Click="RemoteAddButton_Click" />
+                    <Button x:Name="RemoteEditButton" Content="{Binding Common_EditButton, Source={StaticResource LocalizedStrings}}" IsEnabled="False" Click="RemoteEditButton_Click" />
+                    <Button x:Name="RemoteDeleteButton" Content="{Binding Common_DeleteButton, Source={StaticResource LocalizedStrings}}" IsEnabled="False" Click="RemoteDeleteButton_Click" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+    </Grid>
+</UserControl>

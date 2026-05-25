@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<UserControl
+    x:Class="ManagementTools.Views.Dialogs.Authentication.AddFirstAuthMethodDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:ManagementTools.Localization"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <UserControl.Resources>
+        <local:LocalizedStrings x:Key="LocalizedStrings" />
+    </UserControl.Resources>
+
+    <ScrollViewer
+        HorizontalScrollBarVisibility="Disabled"
+        VerticalScrollBarVisibility="Auto"
+        VerticalScrollMode="Enabled">
+        <StackPanel MinWidth="420" Spacing="8">
+
+            <TextBlock Text="{Binding WF_AddFirstAuthMethod_SelectTheCredentialToUseForFirstAuthentication, Source={StaticResource LocalizedStrings}}" TextWrapping="Wrap" />
+            <TextBlock
+                x:Name="ValidationMessageTextBlock"
+                Foreground="{ThemeResource SystemFillColorCriticalBrush}"
+                TextWrapping="Wrap"
+                Visibility="Collapsed" />
+
+            <!-- Computer (Kerberos V5) -->
+            <RadioButton
+                x:Name="KerberosRadio"
+                Content="{Binding WF_Common_ComputerKerberosV5, Source={StaticResource LocalizedStrings}}"
+                GroupName="FirstAuthGroup"
+                IsChecked="True" />
+
+            <!-- Computer (NTLMv2) -->
+            <RadioButton
+                x:Name="NtlmRadio"
+                Content="{Binding WF_AuthMethod_ComputerNtlm, Source={StaticResource LocalizedStrings}}"
+                GroupName="FirstAuthGroup" />
+
+            <!-- Computer certificate from CA -->
+            <RadioButton
+                x:Name="CertRadio"
+                Content="{Binding WF_AddFirstAuthMethod_ComputerCertificateFromThisCertificationAuthorityCA, Source={StaticResource LocalizedStrings}}"
+                GroupName="FirstAuthGroup"
+                Checked="CertRadio_Checked"
+                Unchecked="CertRadio_Unchecked" />
+
+            <StackPanel
+                x:Name="CertPanel"
+                Margin="24,0,0,0"
+                Spacing="8">
+
+                <Grid ColumnSpacing="12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <TextBlock
+                        Grid.Row="0" Grid.Column="0"
+                        VerticalAlignment="Center"
+                        Text="{Binding WF_Common_SigningAlgorithm, Source={StaticResource LocalizedStrings}}" />
+                    <ComboBox
+                        x:Name="SigningAlgorithmCombo"
+                        Grid.Row="0" Grid.Column="1"
+                        SelectedIndex="0">
+                        <ComboBoxItem Content="{Binding WF_SigningAlgorithm_RsaDefault, Source={StaticResource LocalizedStrings}}" Tag="RSA" />
+                        <ComboBoxItem Content="{Binding WF_SigningAlgorithm_EcdsaP256, Source={StaticResource LocalizedStrings}}" Tag="ECDSA-P256" />
+                        <ComboBoxItem Content="{Binding WF_SigningAlgorithm_EcdsaP384, Source={StaticResource LocalizedStrings}}" Tag="ECDSA-P384" />
+                    </ComboBox>
+                    <TextBlock
+                        Grid.Row="1" Grid.Column="0"
+                        Margin="0,8,0,0"
+                        VerticalAlignment="Center"
+                        Text="{Binding WF_Common_CertificateStoreType, Source={StaticResource LocalizedStrings}}" />
+                    <ComboBox
+                        x:Name="CertStoreTypeCombo"
+                        Grid.Row="1" Grid.Column="1"
+                        Margin="0,8,0,0"
+                        SelectedIndex="0">
+                        <ComboBoxItem Content="{Binding WF_CertificateStore_RootCADefault, Source={StaticResource LocalizedStrings}}" Tag="RootCA" />
+                        <ComboBoxItem Content="{Binding WF_CertificateStore_IntermediateCA, Source={StaticResource LocalizedStrings}}" Tag="IntermediateCA" />
+                    </ComboBox>
+                </Grid>
+
+                <Grid ColumnSpacing="8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <TextBox
+                        x:Name="CertCATextBox"
+                        Grid.Row="0" Grid.Column="0"
+                        PlaceholderText="{Binding WF_Common_CADistinguishedName, Source={StaticResource LocalizedStrings}}" />
+                    <Button
+                        x:Name="BrowseButton"
+                        Grid.Row="0" Grid.Column="1"
+                        Content="{Binding WF_Common_Browse, Source={StaticResource LocalizedStrings}}"
+                        Click="BrowseButton_Click" />
+                    <CheckBox
+                        x:Name="HealthCertCheckBox"
+                        Grid.Row="1" Grid.Column="0"
+                        Content="{Binding WF_Common_AcceptOnlyHealthCertificates, Source={StaticResource LocalizedStrings}}" />
+                    <Button
+                        x:Name="AdvancedButton"
+                        Grid.Row="1" Grid.Column="1"
+                        Content="{Binding WF_Common_AdvancedEllipsis, Source={StaticResource LocalizedStrings}}"
+                        Click="AdvancedButton_Click" />
+                </Grid>
+
+                <CheckBox x:Name="CertMappingCheckBox" Content="{Binding WF_Common_EnableCertificateToAccountMapping, Source={StaticResource LocalizedStrings}}" />
+            </StackPanel>
+
+            <!-- Preshared key -->
+            <RadioButton
+                x:Name="PresharedRadio"
+                Content="{Binding WF_AddFirstAuthMethod_PresharedKeyNotRecommended, Source={StaticResource LocalizedStrings}}"
+                GroupName="FirstAuthGroup"
+                Checked="PresharedRadio_Checked"
+                Unchecked="PresharedRadio_Unchecked" />
+
+            <TextBox
+                x:Name="PresharedKeyTextBox"
+                Margin="24,0,0,0"
+                IsEnabled="False"
+                PlaceholderText="{Binding WF_AddFirstAuthMethod_EnterPresharedKey, Source={StaticResource LocalizedStrings}}" />
+
+            <TextBlock
+                Margin="0,4,0,0"
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                Text="{Binding WF_AddFirstAuthMethod_PresharedKeyAuthenticationIsLessSecureThanOtherAuthenticationMethodsPresharedKeys, Source={StaticResource LocalizedStrings}}"
+                TextWrapping="Wrap" />
+
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

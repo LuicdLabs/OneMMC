@@ -1,0 +1,44 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "build ManagementTools",
+			"type": "shell",
+			"command": "dotnet",
+			"args": [
+				"build",
+				"src/ManagementTools/ManagementTools.csproj"
+			],
+			"isBackground": false,
+			"problemMatcher": [
+				"$msCompile"
+			]
+		},
+		{
+			"label": "build ManagementTools",
+			"type": "shell",
+			"command": "dotnet",
+			"args": [
+				"build",
+				"src/ManagementTools/ManagementTools.csproj"
+			],
+			"isBackground": false,
+			"problemMatcher": [
+				"$msCompile"
+			]
+		},
+		{
+			"label": "build ManagementTools (verify)",
+			"type": "shell",
+			"command": "dotnet",
+			"args": [
+				"build",
+				"src/ManagementTools/ManagementTools.csproj"
+			],
+			"isBackground": false,
+			"problemMatcher": [
+				"$msCompile"
+			]
+		}
+	]
+}

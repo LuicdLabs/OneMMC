@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ContentDialog
+    x:Class="ManagementTools.Views.DiskMgmt.VolumePropertiesDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:converters="using:ManagementTools.Converters"
+    xmlns:core="using:ManagementTools.Core.Features.PCManagement.Models.DiskMgmt"
+    xmlns:localization="using:ManagementTools.Localization"
+    mc:Ignorable="d"
+    Title="{x:Bind LocalizedStrings.DiskMgmt_VolumeProperties}"
+    CloseButtonText="{x:Bind LocalizedStrings.Common_CloseButton}"
+    DefaultButton="Close"
+    Style="{StaticResource DefaultContentDialogStyle}">
+
+    <ContentDialog.Resources>
+        <localization:LocalizedStrings x:Key="LocalizedStrings" />
+        <converters:NullToDashStringConverter x:Key="NullToDashStringConverter"/>
+        <converters:BoolToYesNoConverter x:Key="BoolToYesNoConverter"/>
+        <converters:BytesToStringConverter x:Key="BytesToStringConverter"/>
+        <converters:PercentageConverter x:Key="PercentageConverter"/>
+        <converters:GreaterThanZeroToVisibilityConverter x:Key="GreaterThanZeroToVisibilityConverter"/>
+        <converters:StringNotEmptyToVisibilityConverter x:Key="StringNotEmptyToVisibilityConverter"/>
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+
+        <Style x:Key="PropertyHeaderStyle" TargetType="TextBlock">
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Margin" Value="0,12,0,8"/>
+        </Style>
+
+        <Style x:Key="FirstPropertyHeaderStyle" TargetType="TextBlock" BasedOn="{StaticResource PropertyHeaderStyle}">
+            <Setter Property="Margin" Value="0,0,0,8"/>
+        </Style>
+
+        <Style x:Key="PropertyLabelStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{ThemeResource TextFillColorSecondaryBrush}"/>
+            <Setter Property="Margin" Value="0,0,8,4"/>
+            <Setter Property="VerticalAlignment" Value="Top"/>
+        </Style>
+
+        <Style x:Key="PropertyValueStyle" TargetType="TextBlock">
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="IsTextSelectionEnabled" Value="True"/>
+            <Setter Property="Margin" Value="0,0,0,4"/>
+            <Setter Property="VerticalAlignment" Value="Top"/>
+        </Style>
+    </ContentDialog.Resources>
+
+    <ScrollViewer MaxHeight="500" MaxWidth="500">
+        <StackPanel Spacing="0" MinWidth="400">
+            <!-- General -->
+            <TextBlock Text="{x:Bind LocalizedStrings.DiskMgmt_General}" Style="{StaticResource FirstPropertyHeaderStyle}"/>
+
+            <Grid ColumnDefinitions="140,*">
+                <TextBlock Text="{x:Bind LocalizedStrings.DiskMgmt_VolumeLabel}" Style="{StaticResource PropertyLabelStyle}" Grid.Column="0"/>
+                <TextBlock Text="{x:Bind PartitionInfo.VolumeLabel, Converter={StaticResource NullToDashStringConverter}}" Style="{StaticResource PropertyValueStyle}" Grid.Column="1"/>
+            </Grid>
+
+            <Grid ColumnDefinitions="140,*">
+                <TextBlock Text="{x:Bind LocalizedStrings.DiskMgmt_Drive}" Style="{StaticResource PropertyLabelStyle}" Grid.Column="0"/>
+                <TextBlock Text="{x:Bind PartitionInfo.DriveLetter, Converter={StaticResource NullToDashStringConverter}}" Style="{StaticResource PropertyValueStyle}" Grid.Column="1"/>
+            </Grid>
+
+            <Grid ColumnDefinitions="140,*">
+                <TextBlock Text="{x:Bind LocalizedStrings.DiskMgmt_FileSystem}" Style="{StaticResource PropertyLabelStyle}" Grid.Column="0"/>
+                <TextBlock Text="{x:Bind PartitionInfo.FileSystem, Converter={StaticResource NullToDashStringConverter}}" Style="{StaticResource PropertyValueStyle}" Grid.Column="1"/>
+            </Grid>
+
+            <Grid ColumnDefinitions="140,*">
+                <TextBlock Text="{x:Bind LocalizedStrings.DiskMgmt_Type}" Style="{StaticResource PropertyLabelStyle}" Grid.Column="0"/>
+                <TextBlock Text="{x:Bind PartitionInfo.PartitionType, Converter={StaticResource NullToDashStringConverter}}" Style="{StaticResource PropertyValueStyle}" Grid.Column="1"/>
+            </Grid>
+
+            <!-- Capacity -->
+            <TextBlock Text="{x:Bind LocalizedStrings.DiskMgmt_Capacity}" Style="{StaticResource PropertyHeaderStyle}"/>
+
+            <Grid ColumnDefinitions="140,*">
+                <TextBlock Text="{x:Bind LocalizedStrings.DiskMgmt_Capacity}" Style="{StaticResource PropertyLabelStyle}" Grid.Column="0"/>
+                <TextBlock Text="{x:Bind PartitionInfo.FormattedSize, Converter={StaticResource NullToDashStringConverter}}" Style="{StaticResource PropertyValueStyle}" Grid.Column="1"/>
+            </Grid>
+
+            <Grid ColumnDefinitions="140,*">
+                <TextBlock Text="{x:Bind LocalizedStrings.DiskMgmt_UsedSpace}" Style="{StaticResource PropertyLabelStyle}" Grid.Column="0"/>
+                <TextBlock Text="{x:Bind PartitionInfo.FormattedUsedSpace, Converter={StaticResource NullToDashStringConverter}}" Style="{StaticResource PropertyValueStyle}" Grid.Column="1"/>
+            </Grid>
+
+            <Grid ColumnDefinitions="140,*">
+                <TextBlock Text="{x:Bind LocalizedStrings.DiskMgmt_FreeSpace}" Style="{StaticResource PropertyLabelStyle}" Grid.Column="0"/>
+                <TextBlock Text="{x:Bind PartitionInfo.FormattedFreeSpace, Converter={StaticResource NullToDashStringConverter}}" Style="{StaticResource PropertyValueStyle}" Grid.Column="1"/>
+            </Grid>
+
+            <Grid ColumnDefinitions="140,*" Visibility="{x:Bind PartitionInfo.TotalSize, Converter={StaticResource GreaterThanZeroToVisibilityConverter}}">
+                <TextBlock Text="{x:Bind LocalizedStrings.DiskMgmt_Usage}" Style="{StaticResource PropertyLabelStyle}" Grid.Column="0"/>
+                <TextBlock Text="{x:Bind PartitionInfo.UsagePercentage, Converter={StaticResource PercentageConverter}}" Style="{StaticResource PropertyValueStyle}" Grid.Column="1"/>
+            </Grid>
+
+            <!-- Status -->
+            <TextBlock Text="{x:Bind LocalizedStrings.DiskMgmt_Status}" Style="{StaticResource PropertyHeaderStyle}"/>
+
+            <Grid ColumnDefinitions="140,*">
+                <TextBlock Text="{x:Bind LocalizedStrings.DiskMgmt_Status}" Style="{StaticResource PropertyLabelStyle}" Grid.Column="0"/>
+                <TextBlock Text="{x:Bind PartitionInfo.LocalizedStatus, Converter={StaticResource NullToDashStringConverter}}" Style="{StaticResource PropertyValueStyle}" Grid.Column="1"/>
+            </Grid>
+
+            <Grid ColumnDefinitions="140,*">
+                <TextBlock Text="{x:Bind LocalizedStrings.DiskMgmt_Health}" Style="{StaticResource PropertyLabelStyle}" Grid.Column="0"/>
+                <TextBlock Text="{x:Bind PartitionInfo.LocalizedHealthStatus, Converter={StaticResource NullToDashStringConverter}}" Style="{StaticResource PropertyValueStyle}" Grid.Column="1"/>
+            </Grid>
+
+            <Grid ColumnDefinitions="140,*">
+                <TextBlock Text="{x:Bind LocalizedStrings.DiskMgmt_Bootable}" Style="{StaticResource PropertyLabelStyle}" Grid.Column="0"/>
+                <TextBlock Text="{x:Bind PartitionInfo.Bootable, Converter={StaticResource BoolToYesNoConverter}}" Style="{StaticResource PropertyValueStyle}" Grid.Column="1"/>
+            </Grid>
+
+            <Grid ColumnDefinitions="140,*">
+                <TextBlock Text="{x:Bind LocalizedStrings.DiskMgmt_Primary}" Style="{StaticResource PropertyLabelStyle}" Grid.Column="0"/>
+                <TextBlock Text="{x:Bind PartitionInfo.PrimaryPartition, Converter={StaticResource BoolToYesNoConverter}}" Style="{StaticResource PropertyValueStyle}" Grid.Column="1"/>
+            </Grid>
+
+            <!-- Advanced -->
+            <TextBlock Text="{x:Bind LocalizedStrings.DiskMgmt_Advanced}" Style="{StaticResource PropertyHeaderStyle}"/>
+
+            <Grid ColumnDefinitions="140,*">
+                <TextBlock Text="{x:Bind LocalizedStrings.DiskMgmt_DeviceId}" Style="{StaticResource PropertyLabelStyle}" Grid.Column="0"/>
+                <TextBlock Text="{x:Bind PartitionInfo.DeviceId, Converter={StaticResource NullToDashStringConverter}}" Style="{StaticResource PropertyValueStyle}" Grid.Column="1"/>
+            </Grid>
+
+            <Grid ColumnDefinitions="140,*">
+                <TextBlock Text="{x:Bind LocalizedStrings.DiskMgmt_StartingOffset}" Style="{StaticResource PropertyLabelStyle}" Grid.Column="0"/>
+                <TextBlock Text="{x:Bind PartitionInfo.StartingOffset, Converter={StaticResource BytesToStringConverter}}" Style="{StaticResource PropertyValueStyle}" Grid.Column="1"/>
+            </Grid>
+
+            <Grid ColumnDefinitions="140,*">
+                <TextBlock Text="{x:Bind LocalizedStrings.DiskMgmt_BlockSize}" Style="{StaticResource PropertyLabelStyle}" Grid.Column="0"/>
+                <TextBlock Text="{x:Bind PartitionInfo.BlockSize, Converter={StaticResource BytesToStringConverter}}" Style="{StaticResource PropertyValueStyle}" Grid.Column="1"/>
+            </Grid>
+
+            <Grid ColumnDefinitions="140,*" Visibility="{x:Bind PartitionInfo.VolumeSerialNumber, Converter={StaticResource StringNotEmptyToVisibilityConverter}}">
+                <TextBlock Text="{x:Bind LocalizedStrings.DiskMgmt_VolumeSerial}" Style="{StaticResource PropertyLabelStyle}" Grid.Column="0"/>
+                <TextBlock Text="{x:Bind PartitionInfo.VolumeSerialNumber, Converter={StaticResource NullToDashStringConverter}}" Style="{StaticResource PropertyValueStyle}" Grid.Column="1"/>
+            </Grid>
+        </StackPanel>
+    </ScrollViewer>
+</ContentDialog>
+

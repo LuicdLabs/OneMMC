@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentDialog
+    x:Class="ManagementTools.Views.Dialogs.WFProperties.ProfileFirewallBehaviorDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:ManagementTools.Localization"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    CloseButtonText="{Binding Common_CancelButton, Source={StaticResource LocalizedStrings}}"
+    PrimaryButtonText="{Binding Common_OKButton, Source={StaticResource LocalizedStrings}}"
+    Style="{StaticResource DefaultContentDialogStyle}"
+    mc:Ignorable="d">
+
+    <ContentDialog.Resources>
+        <local:LocalizedStrings x:Key="LocalizedStrings" />
+    </ContentDialog.Resources>
+
+    <ScrollViewer
+        MaxHeight="560"
+        HorizontalScrollBarVisibility="Disabled"
+        VerticalScrollBarVisibility="Auto"
+        VerticalScrollMode="Enabled">
+        <StackPanel MinWidth="500" Spacing="12">
+            <TextBlock Text="{Binding WF_ProfileFirewallBehavior_SpecifySettingsThatControlWindowsDefenderFirewallWithAdvancedSecurityBehavior, Source={StaticResource LocalizedStrings}}" TextWrapping="Wrap" />
+
+            <Border
+                Margin="0,2,0,0"
+                Padding="10"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="4">
+                <StackPanel Spacing="10">
+                    <TextBlock FontWeight="SemiBold" Text="{Binding WF_ProfileFirewallBehavior_FirewallSettings, Source={StaticResource LocalizedStrings}}" />
+                    <TextBlock
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Text="{Binding WF_ProfileFirewallBehavior_DisplayNotificationsToTheUserWhenAProgramIsBlockedFromReceiving, Source={StaticResource LocalizedStrings}}"
+                        TextWrapping="Wrap" />
+
+                    <Grid ColumnSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="220" />
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock
+                            Grid.Column="0"
+                            VerticalAlignment="Center"
+                            Text="{Binding WF_ProfileFirewallBehavior_DisplayANotification, Source={StaticResource LocalizedStrings}}" />
+
+                        <ComboBox
+                            x:Name="NotificationComboBox"
+                            Grid.Column="1"
+                            SelectedIndex="0">
+                            <ComboBoxItem Content="{Binding WF_Common_Yes, Source={StaticResource LocalizedStrings}}" Tag="Yes" />
+                            <ComboBoxItem Content="{Binding WF_Common_No, Source={StaticResource LocalizedStrings}}" Tag="No" />
+                        </ComboBox>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <Border
+                Padding="10"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="4">
+                <StackPanel Spacing="10">
+                    <TextBlock FontWeight="SemiBold" Text="{Binding WF_ProfileFirewallBehavior_UnicastResponse, Source={StaticResource LocalizedStrings}}" />
+                    <TextBlock
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Text="{Binding WF_ProfileFirewallBehavior_AllowUnicastResponseToMulticastOrBroadcastNetworkTraffic, Source={StaticResource LocalizedStrings}}"
+                        TextWrapping="Wrap" />
+
+                    <Grid ColumnSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="220" />
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock
+                            Grid.Column="0"
+                            VerticalAlignment="Center"
+                            Text="{Binding WF_ProfileFirewallBehavior_AllowUnicastResponse, Source={StaticResource LocalizedStrings}}" />
+
+                        <ComboBox
+                            x:Name="UnicastResponseComboBox"
+                            Grid.Column="1"
+                            SelectedIndex="0">
+                            <ComboBoxItem Content="{Binding WF_Common_YesDefault, Source={StaticResource LocalizedStrings}}" Tag="Yes (default)" />
+                            <ComboBoxItem Content="{Binding WF_Common_No, Source={StaticResource LocalizedStrings}}" Tag="No" />
+                        </ComboBox>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <Border
+                Padding="10"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="4">
+                <StackPanel Spacing="8">
+                    <TextBlock FontWeight="SemiBold" Text="{Binding WF_ProfileFirewallBehavior_RuleMerging, Source={StaticResource LocalizedStrings}}" />
+                    <TextBlock
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Text="{Binding WF_ProfileFirewallBehavior_AllowsRulesCreatedByLocalAdministratorsToBeMergedWithRulesDistributed, Source={StaticResource LocalizedStrings}}"
+                        TextWrapping="Wrap" />
+
+                    <Grid ColumnSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="220" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock
+                            Grid.Column="0"
+                            VerticalAlignment="Center"
+                            Text="{Binding WF_ProfileFirewallBehavior_ApplyLocalFirewallRules, Source={StaticResource LocalizedStrings}}" />
+                        <TextBox
+                            x:Name="ApplyLocalFirewallRulesTextBox"
+                            Grid.Column="1"
+                            IsReadOnly="True"
+                            Text="{Binding WF_Common_YesDefault, Source={StaticResource LocalizedStrings}}" />
+                    </Grid>
+
+                    <Grid ColumnSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="220" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock
+                            Grid.Column="0"
+                            VerticalAlignment="Center"
+                            Text="{Binding WF_ProfileFirewallBehavior_ApplyLocalConnectionSecurityRules, Source={StaticResource LocalizedStrings}}" />
+                        <TextBox
+                            x:Name="ApplyLocalConnectionSecurityRulesTextBox"
+                            Grid.Column="1"
+                            IsReadOnly="True"
+                            Text="{Binding WF_Common_YesDefault, Source={StaticResource LocalizedStrings}}" />
+                    </Grid>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</ContentDialog>

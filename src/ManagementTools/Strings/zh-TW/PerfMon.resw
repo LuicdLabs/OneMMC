@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <!-- Performance Monitor -->
+  <data name="PerfMon_ViewMode_Graph" xml:space="preserve">
+    <value>圖表</value>
+  </data>
+  <data name="PerfMon_ViewMode_Histogram" xml:space="preserve">
+    <value>直方圖</value>
+  </data>
+  <data name="PerfMon_ViewMode_Report" xml:space="preserve">
+    <value>報表</value>
+  </data>
+  <data name="PerfMon_File_SaveConfiguration" xml:space="preserve">
+    <value>儲存設定</value>
+  </data>
+  <data name="PerfMon_File_LoadConfiguration" xml:space="preserve">
+    <value>載入設定</value>
+  </data>
+  <data name="PerfMon_Report_Generated" xml:space="preserve">
+    <value>報表已產生</value>
+  </data>
+  <data name="PerfMon_Report_Title" xml:space="preserve">
+    <value>效能報表</value>
+  </data>
+  <data name="PerfMon_CountersText" xml:space="preserve">
+    <value>計數器</value>
+  </data>
+  <data name="PerfMon_MonitorsText" xml:space="preserve">
+    <value>監視器</value>
+  </data>
+  <data name="PerfMon_HideAll" xml:space="preserve">
+    <value>隱藏全部</value>
+  </data>
+  <data name="PerfMon_ShowAll" xml:space="preserve">
+    <value>顯示全部</value>
+  </data>
+  <data name="PerfMon_Properties" xml:space="preserve">
+    <value>屬性</value>
+  </data>
+  
+  <data name="PerfMon_EnterName" xml:space="preserve">
+    <value>輸入名稱</value>
+  </data>
+  <data name="PerfMon_NameLabel" xml:space="preserve">
+    <value>名稱：</value>
+  </data>
+  <data name="PerfMon_CsvFilesFilter" xml:space="preserve">
+    <value>CSV 檔案 (*.csv)</value>
+  </data>
+  <data name="PerfMon_CsvExtension" xml:space="preserve">
+    <value>.csv</value>
+  </data>
+  <data name="PerfMon_PmcfgFilesFilter" xml:space="preserve">
+    <value>效能監視器設定檔案 (*.pmcfg)</value>
+  </data>
+  <data name="PerfMon_PmcfgConfigurationFilter" xml:space="preserve">
+    <value>設定檔案 (*.pmcfg)</value>
+  </data>
+  <data name="PerfMon_PmcfgExtension" xml:space="preserve">
+    <value>.pmcfg</value>
+  </data>
+  <data name="PerfMon_AddCounters" xml:space="preserve">
+    <value>新增計數器</value>
+  </data>
+  <data name="PerfMon_SelectCategory" xml:space="preserve">
+    <value>選取類別</value>
+  </data>
+  <data name="PerfMon_SelectInstance" xml:space="preserve">
+    <value>選取實例</value>
+  </data>
+  <data name="PerfMon_InstanceLabel" xml:space="preserve">
+    <value>實例：</value>
+  </data>
+  
+  <data name="PerfMon_CounterProperties" xml:space="preserve">
+    <value>計數器屬性</value>
+  </data>
+  <data name="PerfMon_CounterLabel" xml:space="preserve">
+    <value>計數器：</value>
+  </data>
+  <data name="PerfMon_ColorLabel" xml:space="preserve">
+    <value>顏色：</value>
+  </data>
+  <data name="PerfMon_ConfigurationSaved" xml:space="preserve">
+    <value>設定已儲存</value>
+  </data>
+  <data name="PerfMon_ConfigurationLoaded" xml:space="preserve">
+    <value>設定已載入</value>
+  </data>
+  <data name="PerfMon_LastLabel" xml:space="preserve">
+    <value>最後</value>
+  </data>
+  <data name="PerfMon_AverageLabel" xml:space="preserve">
+    <value>平均</value>
+  </data>
+  <data name="PerfMon_MinimumLabel" xml:space="preserve">
+    <value>最小</value>
+  </data>
+  <data name="PerfMon_MaximumLabel" xml:space="preserve">
+    <value>最大</value>
+  </data>
+  <data name="PerfMon_DurationLabel" xml:space="preserve">
+    <value>持續時間</value>
+  </data>
+  <data name="PerfMon_CurrentLabel" xml:space="preserve">
+    <value>目前</value>
+  </data>
+  <data name="PerfMon_MonitoringDurationLabel" xml:space="preserve">
+    <value>監視持續時間</value>
+  </data>
+  <data name="PerfMon_ActiveCountersLabel" xml:space="preserve">
+    <value>作用中計數器</value>
+  </data>
+  <data name="PerfMon_DataPointsLabel" xml:space="preserve">
+    <value>資料點</value>
+  </data>
+  <data name="PerfMon_CounterStatisticsLabel" xml:space="preserve">
+    <value>計數器統計</value>
+  </data>
+  <data name="PerfMon_NoDataToReport" xml:space="preserve">
+    <value>沒有資料可供報告</value>
+  </data>
+  <data name="PerfMon_AddCountersToGenerateReport" xml:space="preserve">
+    <value>新增效能計數器以產生報告</value>
+  </data>
+  <data name="PerfMon_NoCountersAdded" xml:space="preserve">
+    <value>未新增計數器</value>
+  </data>
+  <data name="PerfMon_ClickAddToStartMonitoring" xml:space="preserve">
+    <value>按一下新增以開始監視效能計數器</value>
+  </data>
+  <data name="PerfMon_QuickCountersHeader" xml:space="preserve">
+    <value>快速計數器</value>
+  </data>
+  <data name="PerfMon_MonitorListHeader" xml:space="preserve">
+    <value>監視器清單</value>
+  </data>
+  <data name="PerfMon_AddCountersTitle" xml:space="preserve">
+    <value>新增計數器</value>
+  </data>
+  <data name="PerfMon_CounterPropertiesTitle" xml:space="preserve">
+    <value>計數器屬性</value>
+  </data>
+  <data name="PerfMon_CounterUnavailableTitle" xml:space="preserve">
+    <value>無法新增計數器</value>
+  </data>
+  <data name="PerfMon_CounterUnavailableMessage" xml:space="preserve">
+    <value>Windows 無法開啟所選計數器。這通常表示其提供者雖已註冊，但此電腦目前沒有可使用的執行個體或資料來源；無法存取計數器時也可能發生此情況。&#x0A;&#x0A;計數器：&#x0A;{0}</value>
+  </data>
+  
+  <data name="PerfMon_UpdateInterval" xml:space="preserve">
+    <value>更新間隔</value>
+  </data>
+  <data name="PerfMon_OneSecond" xml:space="preserve">
+    <value>1 秒</value>
+  </data>
+  <data name="PerfMon_TwoSeconds" xml:space="preserve">
+    <value>2 秒</value>
+  </data>
+  <data name="PerfMon_FiveSeconds" xml:space="preserve">
+    <value>5 秒</value>
+  </data>
+  <data name="PerfMon_TenSeconds" xml:space="preserve">
+    <value>10 秒</value>
+  </data>
+  <data name="PerfMon_YAxisTopLabel" xml:space="preserve">
+    <value>100</value>
+  </data>
+  <data name="PerfMon_YAxisMidLabel" xml:space="preserve">
+    <value>50</value>
+  </data>
+  <data name="PerfMon_YAxisBottomLabel" xml:space="preserve">
+    <value>0</value>
+  </data>
+
+  <data name="PerfMon_SearchCounters" xml:space="preserve">
+    <value>搜尋計數器</value>
+  </data>
+  <data name="PerfMon_CommonCountersDescription" xml:space="preserve">
+    <value>常見效能計數器 - 按一下以新增</value>
+  </data>
+  <data name="PerfMon_SelectCategoryLabel" xml:space="preserve">
+    <value>選取類別：</value>
+  </data>
+  <data name="PerfMon_Pause" xml:space="preserve">
+    <value>暫停</value>
+  </data>
+  <data name="PerfMon_Resume" xml:space="preserve">
+    <value>繼續</value>
+  </data>
+</root>

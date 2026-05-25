@@ -1,0 +1,1655 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="CreateStoreDialog_Title" xml:space="preserve">
+    <value>新增授權儲存體</value>
+  </data>
+  <data name="CreateStoreDialog_Subtitle" xml:space="preserve">
+    <value>為 Windows Authorization Manager 建立新的授權儲存體。</value>
+  </data>
+  <data name="CreateStoreDialog_StoreType_Label" xml:space="preserve">
+    <value>儲存體類型</value>
+  </data>
+  <data name="CreateStoreDialog_StoreType_Xml" xml:space="preserve">
+    <value>XML 檔案</value>
+  </data>
+  <data name="CreateStoreDialog_StoreType_ActiveDirectory" xml:space="preserve">
+    <value>Active Directory</value>
+  </data>
+  <data name="CreateStoreDialog_StoreType_SqlServer" xml:space="preserve">
+    <value>SQL Server</value>
+  </data>
+  <data name="CreateStoreDialog_XmlPath_Label" xml:space="preserve">
+    <value>檔案路徑</value>
+  </data>
+  <data name="CreateStoreDialog_XmlPath_Placeholder" xml:space="preserve">
+    <value>C:\MyStore.xml</value>
+  </data>
+  <data name="CreateStoreDialog_Browse_Button" xml:space="preserve">
+    <value>瀏覽</value>
+  </data>
+  <data name="CreateStoreDialog_AdPath_Label" xml:space="preserve">
+    <value>Active Directory 路徑</value>
+  </data>
+  <data name="CreateStoreDialog_AdPath_Placeholder" xml:space="preserve">
+    <value>CN=MyStore,CN=Program Data,DC=domain,DC=com</value>
+  </data>
+  <data name="CreateStoreDialog_AdPath_Example" xml:space="preserve">
+    <value>範例：CN=MyStore,CN=Program Data,DC=contoso,DC=com</value>
+  </data>
+  <data name="CreateStoreDialog_Sql_Label" xml:space="preserve">
+    <value>SQL Server 連線</value>
+  </data>
+  <data name="CreateStoreDialog_Sql_Server_Placeholder" xml:space="preserve">
+    <value>伺服器名稱或 IP 位址</value>
+  </data>
+  <data name="CreateStoreDialog_Sql_Database_Placeholder" xml:space="preserve">
+    <value>資料庫名稱</value>
+  </data>
+  <data name="CreateStoreDialog_Sql_Store_Placeholder" xml:space="preserve">
+    <value>Policy 儲存體名稱</value>
+  </data>
+  <data name="CreateStoreDialog_Sql_Format" xml:space="preserve">
+    <value>格式：Server/Database/StoreName</value>
+  </data>
+  <data name="CreateStoreDialog_Description_Label" xml:space="preserve">
+    <value>描述（選填）</value>
+  </data>
+  <data name="CreateStoreDialog_Description_Placeholder" xml:space="preserve">
+    <value>輸入此儲存體的描述</value>
+  </data>
+  <data name="CreateStoreDialog_GenerateAudits" xml:space="preserve">
+    <value>啟用稽核</value>
+  </data>
+  <data name="CreateStoreDialog_FileDialog_Title" xml:space="preserve">
+    <value>選取授權儲存體位置</value>
+  </data>
+  <data name="CreateStoreDialog_Error_EmptyPath" xml:space="preserve">
+    <value>請指定有效的儲存體路徑。</value>
+  </data>
+  <data name="CreateStoreDialog_Error_DirectoryMissing" xml:space="preserve">
+    <value>目錄 '{0}' 不存在。</value>
+  </data>
+  <data name="CreateStoreDialog_Error_FileExists" xml:space="preserve">
+    <value>檔案 '{0}' 已存在。請選擇不同的名稱。</value>
+  </data>
+  <data name="AuthorizationManagerPage_SearchPlaceholder" xml:space="preserve">
+    <value>搜尋授權儲存體</value>
+  </data>
+  <data name="AuthorizationManagerPage_StoreCount_Default" xml:space="preserve">
+    <value>沒有授權儲存體</value>
+  </data>
+  <data name="AuthorizationManagerPage_NewTooltip" xml:space="preserve">
+    <value>新增授權儲存體</value>
+  </data>
+  <data name="AuthorizationManagerPage_NewButton" xml:space="preserve">
+    <value>新增</value>
+  </data>
+  <data name="AuthorizationManagerPage_OpenTooltip" xml:space="preserve">
+    <value>開啟授權儲存體</value>
+  </data>
+  <data name="AuthorizationManagerPage_RefreshAll" xml:space="preserve">
+    <value>全部重新整理</value>
+  </data>
+  <data name="AuthorizationManagerPage_Deprecation_Title" xml:space="preserve">
+    <value>提醒</value>
+  </data>
+  <data name="AuthorizationManagerPage_Deprecation_Message" xml:space="preserve">
+    <value>授權管理員即將淘汰，請遷移至 Entra RBAC。</value>
+  </data>
+  <data name="AuthorizationManagerPage_EmptyTitle" xml:space="preserve">
+    <value>沒有授權儲存體</value>
+  </data>
+  <data name="AuthorizationManagerPage_EmptySubtitle" xml:space="preserve">
+    <value>建立或開啟儲存體以開始使用。</value>
+  </data>
+  <data name="AuthorizationManagerPage_CloseStoreTooltip" xml:space="preserve">
+    <value>關閉儲存體</value>
+  </data>
+  <data name="AuthorizationManagerPage_Status_CreateSuccess" xml:space="preserve">
+    <value>授權儲存體已建立。</value>
+  </data>
+  <data name="AuthorizationManagerPage_Status_OpenSuccess" xml:space="preserve">
+    <value>授權儲存體已開啟。</value>
+  </data>
+  <data name="AuthorizationManagerPage_Status_CloseStore" xml:space="preserve">
+    <value>授權儲存體已關閉。</value>
+  </data>
+  <data name="AuthorizationManager_StoreCount_Singular" xml:space="preserve">
+    <value>{0} 個授權儲存體</value>
+  </data>
+  <data name="AuthorizationManager_StoreCount_Plural" xml:space="preserve">
+    <value>{0} 個授權儲存體</value>
+  </data>
+  <data name="AuthorizationManager_Status_CreatingStore" xml:space="preserve">
+    <value>正在建立授權儲存體</value>
+  </data>
+  <data name="AuthorizationManager_Status_OpeningStore" xml:space="preserve">
+    <value>正在開啟授權儲存體</value>
+  </data>
+  <data name="AuthorizationManager_Status_DeletingStore" xml:space="preserve">
+    <value>正在刪除授權儲存體</value>
+  </data>
+  <data name="AuthorizationManager_Status_Refreshing" xml:space="preserve">
+    <value>重新整理中</value>
+  </data>
+  <data name="AuthorizationManager_Status_RefreshingAll" xml:space="preserve">
+    <value>正在重新整理所有儲存體</value>
+  </data>
+  <data name="AuthorizationManager_Status_CreateSuccess" xml:space="preserve">
+    <value>授權儲存體已建立。</value>
+  </data>
+  <data name="AuthorizationManager_Status_OpenSuccess" xml:space="preserve">
+    <value>授權儲存體已開啟。</value>
+  </data>
+  <data name="AuthorizationManager_Status_CloseStore" xml:space="preserve">
+    <value>授權儲存體已關閉。</value>
+  </data>
+  <data name="AuthorizationManager_Status_DeleteSuccess" xml:space="preserve">
+    <value>授權儲存體已刪除。</value>
+  </data>
+  <data name="AuthorizationManager_Status_RefreshComplete" xml:space="preserve">
+    <value>重新整理完成。</value>
+  </data>
+  <data name="AuthorizationStorePage_StoreNamePlaceholder" xml:space="preserve">
+    <value>儲存體名稱</value>
+  </data>
+  <data name="AuthorizationStorePage_StoreType_Default" xml:space="preserve">
+    <value>儲存體類型</value>
+  </data>
+  <data name="AuthorizationStorePage_Properties" xml:space="preserve">
+    <value>屬性</value>
+  </data>
+  <data name="AuthorizationStorePage_DeleteStore" xml:space="preserve">
+    <value>刪除儲存體</value>
+  </data>
+  <data name="AuthorizationStorePage_ApplicationsHeader" xml:space="preserve">
+    <value>應用程式</value>
+  </data>
+  <data name="AuthorizationStorePage_GroupsHeader" xml:space="preserve">
+    <value>群組</value>
+  </data>
+  <data name="AuthorizationStorePage_DeleteApplicationTooltip" xml:space="preserve">
+    <value>刪除應用程式</value>
+  </data>
+  <data name="AuthorizationStorePage_EditGroupTooltip" xml:space="preserve">
+    <value>編輯群組</value>
+  </data>
+  <data name="AuthorizationStorePage_DeleteGroupTooltip" xml:space="preserve">
+    <value>刪除群組</value>
+  </data>
+  <data name="AuthorizationStorePage_DeleteStore_Title" xml:space="preserve">
+    <value>刪除儲存體</value>
+  </data>
+  <data name="AuthorizationStorePage_DeleteStore_Content" xml:space="preserve">
+    <value>確定要刪除此儲存體嗎？</value>
+  </data>
+  <data name="AuthorizationStorePage_DeleteApplication_Title" xml:space="preserve">
+    <value>刪除應用程式</value>
+  </data>
+  <data name="AuthorizationStorePage_DeleteApplication_Content" xml:space="preserve">
+    <value>確定要刪除此應用程式嗎？</value>
+  </data>
+  <data name="AuthorizationStorePage_DeleteGroup_Title" xml:space="preserve">
+    <value>刪除群組</value>
+  </data>
+  <data name="AuthorizationStorePage_DeleteGroup_Content" xml:space="preserve">
+    <value>確定要刪除此群組嗎？</value>
+  </data>
+  <data name="AuthorizationStorePage_Status_PropertiesUpdated" xml:space="preserve">
+    <value>儲存體屬性已更新。</value>
+  </data>
+  <data name="AuthorizationStorePage_Status_PropertiesUpdateFailed" xml:space="preserve">
+    <value>更新儲存體屬性失敗。</value>
+  </data>
+  <data name="AuthorizationStorePage_Status_AppCreated" xml:space="preserve">
+    <value>應用程式已建立。</value>
+  </data>
+  <data name="AuthorizationStorePage_Status_AppDeleted" xml:space="preserve">
+    <value>應用程式已刪除。</value>
+  </data>
+  <data name="AuthorizationStorePage_Status_GroupCreated" xml:space="preserve">
+    <value>群組已建立。</value>
+  </data>
+  <data name="AuthorizationStorePage_Status_GroupUpdated" xml:space="preserve">
+    <value>群組已更新。</value>
+  </data>
+  <data name="AuthorizationStorePage_Status_GroupUpdateFailed" xml:space="preserve">
+    <value>更新群組失敗。</value>
+  </data>
+  <data name="AuthorizationStorePage_Status_GroupDeleted" xml:space="preserve">
+    <value>群組已刪除。</value>
+  </data>
+  <data name="AuthorizationStore_Status_CreatingApplication" xml:space="preserve">
+    <value>正在建立應用程式</value>
+  </data>
+  <data name="AuthorizationStore_Status_CreateApplicationSuccess" xml:space="preserve">
+    <value>應用程式已建立。</value>
+  </data>
+  <data name="AuthorizationStore_Status_DeletingApplication" xml:space="preserve">
+    <value>正在刪除應用程式…</value>
+  </data>
+  <data name="AuthorizationStore_Status_DeleteApplicationSuccess" xml:space="preserve">
+    <value>應用程式已刪除。</value>
+  </data>
+  <data name="AuthorizationStore_Status_CreatingGroup" xml:space="preserve">
+    <value>正在建立群組…</value>
+  </data>
+  <data name="AuthorizationStore_Status_CreateGroupSuccess" xml:space="preserve">
+    <value>群組已建立。</value>
+  </data>
+  <data name="AuthorizationStore_Status_DeletingGroup" xml:space="preserve">
+    <value>正在刪除群組…</value>
+  </data>
+  <data name="AuthorizationStore_Status_DeleteGroupSuccess" xml:space="preserve">
+    <value>群組已刪除。</value>
+  </data>
+  <data name="AuthorizationStore_Status_UpdateGroupSuccess" xml:space="preserve">
+    <value>群組已更新。</value>
+  </data>
+  <data name="OpenStoreDialog_Title" xml:space="preserve">
+    <value>開啟授權儲存體</value>
+  </data>
+  <data name="OpenStoreDialog_StoreType_Label" xml:space="preserve">
+    <value>儲存體類型</value>
+  </data>
+  <data name="OpenStoreDialog_StoreType_Xml" xml:space="preserve">
+    <value>XML 檔案</value>
+  </data>
+  <data name="OpenStoreDialog_StoreType_ActiveDirectory" xml:space="preserve">
+    <value>Active Directory</value>
+  </data>
+  <data name="OpenStoreDialog_StoreType_SqlServer" xml:space="preserve">
+    <value>SQL Server</value>
+  </data>
+  <data name="OpenStoreDialog_XmlPath_Label" xml:space="preserve">
+    <value>檔案路徑</value>
+  </data>
+  <data name="OpenStoreDialog_XmlPath_Placeholder" xml:space="preserve">
+    <value>C:\MyStore.xml</value>
+  </data>
+  <data name="OpenStoreDialog_AdPath_Label" xml:space="preserve">
+    <value>Active Directory 路徑</value>
+  </data>
+  <data name="OpenStoreDialog_AdPath_Placeholder" xml:space="preserve">
+    <value>CN=MyStore,CN=Program Data,DC=domain,DC=com</value>
+  </data>
+  <data name="OpenStoreDialog_Sql_Label" xml:space="preserve">
+    <value>SQL Server 連線</value>
+  </data>
+  <data name="OpenStoreDialog_Sql_Server_Placeholder" xml:space="preserve">
+    <value>伺服器名稱或 IP 位址</value>
+  </data>
+  <data name="OpenStoreDialog_Sql_Database_Placeholder" xml:space="preserve">
+    <value>資料庫名稱</value>
+  </data>
+  <data name="OpenStoreDialog_Sql_Store_Placeholder" xml:space="preserve">
+    <value>Policy 儲存體名稱</value>
+  </data>
+  <data name="OpenStoreDialog_OpenMode_Label" xml:space="preserve">
+    <value>開啟模式</value>
+  </data>
+  <data name="OpenStoreDialog_OpenMode_Admin" xml:space="preserve">
+    <value>管理員（讀寫）</value>
+  </data>
+  <data name="OpenStoreDialog_OpenMode_Reader" xml:space="preserve">
+    <value>唯讀（僅讀）</value>
+  </data>
+  <data name="OpenStoreDialog_FileDialog_Title" xml:space="preserve">
+    <value>選取授權儲存體</value>
+  </data>
+  <data name="OpenStoreDialog_Error_InvalidPath" xml:space="preserve">
+    <value>請指定有效的儲存體路徑。</value>
+  </data>
+  <data name="OpenStoreDialog_Error_FileNotFound" xml:space="preserve">
+    <value>找不到檔案 '{0}'.</value>
+  </data>
+  <data name="StorePropertiesDialog_Title" xml:space="preserve">
+    <value>儲存體屬性</value>
+  </data>
+  <data name="StorePropertiesDialog_Tab_General" xml:space="preserve">
+    <value>一般</value>
+  </data>
+  <data name="StorePropertiesDialog_StoreInfo_Header" xml:space="preserve">
+    <value>儲存體資訊</value>
+  </data>
+  <data name="StorePropertiesDialog_StorePath_Header" xml:space="preserve">
+    <value>儲存體路徑</value>
+  </data>
+  <data name="StorePropertiesDialog_StoreType_Header" xml:space="preserve">
+    <value>儲存體類型</value>
+  </data>
+  <data name="StorePropertiesDialog_SchemaVersion_Header" xml:space="preserve">
+    <value>Schema 版本</value>
+  </data>
+  <data name="StorePropertiesDialog_Description_Header" xml:space="preserve">
+    <value>描述</value>
+  </data>
+  <data name="StorePropertiesDialog_Description_Placeholder" xml:space="preserve">
+    <value>輸入描述</value>
+  </data>
+  <data name="StorePropertiesDialog_Settings_Header" xml:space="preserve">
+    <value>設定</value>
+  </data>
+  <data name="StorePropertiesDialog_GenerateAudits" xml:space="preserve">
+    <value>啟用稽核</value>
+  </data>
+  <data name="StorePropertiesDialog_ApplicationData_Header" xml:space="preserve">
+    <value>應用程式資料</value>
+  </data>
+  <data name="StorePropertiesDialog_ApplicationData_Placeholder" xml:space="preserve">
+    <value>輸入應用程式專用資料</value>
+  </data>
+  <data name="StorePropertiesDialog_Tab_Security" xml:space="preserve">
+    <value>安全性</value>
+  </data>
+  <data name="StorePropertiesDialog_PolicyAdmins_Header" xml:space="preserve">
+    <value>政策管理者</value>
+  </data>
+  <data name="StorePropertiesDialog_PolicyAdmins_Description" xml:space="preserve">
+    <value>對政策儲存體擁有完全控制權的使用者與群組。</value>
+  </data>
+  <data name="StorePropertiesDialog_PolicyReaders_Header" xml:space="preserve">
+    <value>政策讀者</value>
+  </data>
+  <data name="StorePropertiesDialog_PolicyReaders_Description" xml:space="preserve">
+    <value>擁有政策儲存體唯讀存取權的使用者與群組。</value>
+  </data>
+  <data name="StorePropertiesDialog_Tab_Auditing" xml:space="preserve">
+    <value>稽核</value>
+  </data>
+  <data name="StorePropertiesDialog_Auditing_Info_Title" xml:space="preserve">
+    <value>稽核設定</value>
+  </data>
+  <data name="StorePropertiesDialog_Auditing_Info_Message" xml:space="preserve">
+    <value>為此授權儲存體設定稽核選項。</value>
+  </data>
+  <data name="StorePropertiesDialog_Auditing_Description" xml:space="preserve">
+    <value>啟用稽核以追蹤授權決定與政策變更。</value>
+  </data>
+  <data name="StorePropertiesDialog_StoreType_Xml" xml:space="preserve">
+    <value>XML 檔案</value>
+  </data>
+  <data name="StorePropertiesDialog_StoreType_ActiveDirectory" xml:space="preserve">
+    <value>Active Directory</value>
+  </data>
+  <data name="StorePropertiesDialog_StoreType_SqlServer" xml:space="preserve">
+    <value>SQL Server</value>
+  </data>
+  <data name="StorePropertiesDialog_StoreType_Unknown" xml:space="preserve">
+    <value>未知</value>
+  </data>
+  <data name="StoreAdvancedPropertiesDialog_Title" xml:space="preserve">
+    <value>進階儲存體屬性</value>
+  </data>
+  <data name="StoreAdvancedPropertiesDialog_TitleWithName" xml:space="preserve">
+    <value>進階屬性 - {0}</value>
+  </data>
+  <data name="StoreAdvancedPropertiesDialog_TimeoutSettings_Header" xml:space="preserve">
+    <value>逾時設定</value>
+  </data>
+  <data name="StoreAdvancedPropertiesDialog_DomainTimeout_Header" xml:space="preserve">
+    <value>網域逾時（毫秒）</value>
+  </data>
+  <data name="StoreAdvancedPropertiesDialog_DomainTimeout_Placeholder" xml:space="preserve">
+    <value>15000</value>
+  </data>
+  <data name="StoreAdvancedPropertiesDialog_DomainTimeout_Description" xml:space="preserve">
+    <value>等待網域控制站回應的最長時間。</value>
+  </data>
+  <data name="StoreAdvancedPropertiesDialog_ScriptTimeout_Header" xml:space="preserve">
+    <value>腳本引擎逾時（毫秒）</value>
+  </data>
+  <data name="StoreAdvancedPropertiesDialog_ScriptTimeout_Placeholder" xml:space="preserve">
+    <value>45000</value>
+  </data>
+  <data name="StoreAdvancedPropertiesDialog_ScriptTimeout_Description" xml:space="preserve">
+    <value>商業規則腳本執行的最長時間。</value>
+  </data>
+  <data name="StoreAdvancedPropertiesDialog_ScriptEngineSettings_Header" xml:space="preserve">
+    <value>腳本引擎設定</value>
+  </data>
+  <data name="StoreAdvancedPropertiesDialog_MaxScriptEngines_Header" xml:space="preserve">
+    <value>最大腳本引擎數</value>
+  </data>
+  <data name="StoreAdvancedPropertiesDialog_MaxScriptEngines_Placeholder" xml:space="preserve">
+    <value>120</value>
+  </data>
+  <data name="StoreAdvancedPropertiesDialog_MaxScriptEngines_Description" xml:space="preserve">
+    <value>允許的最大並行腳本引擎數量。</value>
+  </data>
+  <data name="StoreAdvancedPropertiesDialog_AuditSettings_Header" xml:space="preserve">
+    <value>稽核設定</value>
+  </data>
+  <data name="StoreAdvancedPropertiesDialog_GenerateAudits_Header" xml:space="preserve">
+    <value>啟用稽核</value>
+  </data>
+  <data name="StoreAdvancedPropertiesDialog_GenerateAudits_Description" xml:space="preserve">
+    <value>為授權決定啟用稽核事件產生。</value>
+  </data>
+  <data name="StoreAdvancedPropertiesDialog_TargetMachine_Header" xml:space="preserve">
+    <value>目標主機</value>
+  </data>
+  <data name="StoreAdvancedPropertiesDialog_TargetMachine_NameHeader" xml:space="preserve">
+    <value>主機名稱</value>
+  </data>
+  <data name="StoreAdvancedPropertiesDialog_TargetMachine_Placeholder" xml:space="preserve">
+    <value>本機</value>
+  </data>
+  <data name="StoreAdvancedPropertiesDialog_TargetMachine_Local" xml:space="preserve">
+    <value>本機</value>
+  </data>
+  <data name="StoreAdvancedPropertiesDialog_ResetButton" xml:space="preserve">
+    <value>重設為預設值</value>
+  </data>
+  <data name="StoreAdvancedPropertiesDialog_Error_LoadFailed" xml:space="preserve">
+    <value>載入進階屬性失敗：{0}</value>
+  </data>
+  <data name="StoreAdvancedPropertiesDialog_Error_DomainTimeout" xml:space="preserve">
+    <value>網域逾時必須至少為 1000 毫秒。</value>
+  </data>
+  <data name="StoreAdvancedPropertiesDialog_Error_ScriptTimeout" xml:space="preserve">
+    <value>腳本逾時必須至少為 1000 毫秒。</value>
+  </data>
+  <data name="StoreAdvancedPropertiesDialog_Error_MaxScriptEngines" xml:space="preserve">
+    <value>最大腳本引擎數必須至少為 1。</value>
+  </data>
+  <data name="CreateItemDialog_Title_Default" xml:space="preserve">
+    <value>建立新項目</value>
+  </data>
+  <data name="CreateItemDialog_Name_Label" xml:space="preserve">
+    <value>名稱</value>
+  </data>
+  <data name="CreateItemDialog_Name_Placeholder_Default" xml:space="preserve">
+    <value>輸入項目名稱</value>
+  </data>
+  <data name="CreateItemDialog_GroupType_Label" xml:space="preserve">
+    <value>群組類型</value>
+  </data>
+  <data name="CreateItemDialog_GroupType_Basic" xml:space="preserve">
+    <value>基本</value>
+  </data>
+  <data name="CreateItemDialog_GroupType_LdapQuery" xml:space="preserve">
+    <value>LDAP 查詢</value>
+  </data>
+  <data name="CreateItemDialog_LdapQuery_Label" xml:space="preserve">
+    <value>LDAP 查詢</value>
+  </data>
+  <data name="CreateItemDialog_LdapQuery_Placeholder" xml:space="preserve">
+    <value>輸入 LDAP 查詢字串</value>
+  </data>
+  <data name="CreateItemDialog_OperationId_Label" xml:space="preserve">
+    <value>操作 ID</value>
+  </data>
+  <data name="CreateItemDialog_OperationId_Placeholder" xml:space="preserve">
+    <value>-1（自動指定）</value>
+  </data>
+  <data name="CreateItemDialog_Description_Label" xml:space="preserve">
+    <value>描述</value>
+  </data>
+  <data name="CreateItemDialog_Description_Placeholder" xml:space="preserve">
+    <value>輸入描述</value>
+  </data>
+  <data name="CreateItemDialog_Title_Application" xml:space="preserve">
+    <value>建立新應用程式</value>
+  </data>
+  <data name="CreateItemDialog_Name_Placeholder_Application" xml:space="preserve">
+    <value>輸入應用程式名稱</value>
+  </data>
+  <data name="CreateItemDialog_Title_Group" xml:space="preserve">
+    <value>建立新群組</value>
+  </data>
+  <data name="CreateItemDialog_Name_Placeholder_Group" xml:space="preserve">
+    <value>輸入群組名稱</value>
+  </data>
+  <data name="CreateItemDialog_Title_RoleDefinition" xml:space="preserve">
+    <value>建立新角色定義</value>
+  </data>
+  <data name="CreateItemDialog_Name_Placeholder_RoleDefinition" xml:space="preserve">
+    <value>輸入角色定義名稱</value>
+  </data>
+  <data name="CreateItemDialog_Title_RoleAssignment" xml:space="preserve">
+    <value>建立新角色指派</value>
+  </data>
+  <data name="CreateItemDialog_Name_Placeholder_RoleAssignment" xml:space="preserve">
+    <value>輸入角色指派名稱</value>
+  </data>
+  <data name="CreateItemDialog_Title_Task" xml:space="preserve">
+    <value>建立新工作</value>
+  </data>
+  <data name="CreateItemDialog_Name_Placeholder_Task" xml:space="preserve">
+    <value>輸入工作名稱</value>
+  </data>
+  <data name="CreateItemDialog_Title_Operation" xml:space="preserve">
+    <value>建立新操作</value>
+  </data>
+  <data name="CreateItemDialog_Name_Placeholder_Operation" xml:space="preserve">
+    <value>輸入操作名稱</value>
+  </data>
+  <data name="CreateItemDialog_Error_EnterName" xml:space="preserve">
+    <value>請輸入名稱。</value>
+  </data>
+  <data name="CreateItemDialog_Error_InvalidNameCharacters" xml:space="preserve">
+    <value>名稱不可包含 '/'、'\\' 或 ':' 字元。</value>
+  </data>
+  <data name="CreateItemDialog_Error_LdapQueryRequired" xml:space="preserve">
+    <value>LDAP 查詢群組需要 LDAP 查詢。</value>
+  </data>
+  <data name="EditItemDialog_Title_Default" xml:space="preserve">
+    <value>編輯項目</value>
+  </data>
+  <data name="EditItemDialog_General_Header" xml:space="preserve">
+    <value>一般</value>
+  </data>
+  <data name="EditItemDialog_Name_Header" xml:space="preserve">
+    <value>名稱</value>
+  </data>
+  <data name="EditItemDialog_Name_Placeholder" xml:space="preserve">
+    <value>項目名稱</value>
+  </data>
+  <data name="EditItemDialog_Description_Header" xml:space="preserve">
+    <value>描述</value>
+  </data>
+  <data name="EditItemDialog_Description_Placeholder" xml:space="preserve">
+    <value>輸入描述</value>
+  </data>
+  <data name="EditItemDialog_GroupType_Header" xml:space="preserve">
+    <value>群組類型</value>
+  </data>
+  <data name="EditItemDialog_GroupType_Label" xml:space="preserve">
+    <value>類型</value>
+  </data>
+  <data name="EditItemDialog_GroupType_Basic" xml:space="preserve">
+    <value>基本</value>
+  </data>
+  <data name="EditItemDialog_GroupType_LdapQuery" xml:space="preserve">
+    <value>LDAP 查詢</value>
+  </data>
+  <data name="EditItemDialog_LdapQuery_Header" xml:space="preserve">
+    <value>LDAP 查詢</value>
+  </data>
+  <data name="EditItemDialog_LdapQuery_Label" xml:space="preserve">
+    <value>查詢字串</value>
+  </data>
+  <data name="EditItemDialog_LdapQuery_Placeholder" xml:space="preserve">
+    <value>輸入 LDAP 查詢</value>
+  </data>
+  <data name="EditItemDialog_Operation_Header" xml:space="preserve">
+    <value>操作</value>
+  </data>
+  <data name="EditItemDialog_OperationId_Header" xml:space="preserve">
+    <value>操作 ID</value>
+  </data>
+  <data name="EditItemDialog_ApplicationData_Header" xml:space="preserve">
+    <value>應用程式資料</value>
+  </data>
+  <data name="EditItemDialog_ApplicationData_Label" xml:space="preserve">
+    <value>資料</value>
+  </data>
+  <data name="EditItemDialog_ApplicationData_Placeholder" xml:space="preserve">
+    <value>輸入應用程式專用資料</value>
+  </data>
+  <data name="EditItemDialog_Title_Store" xml:space="preserve">
+    <value>編輯儲存體</value>
+  </data>
+  <data name="EditItemDialog_Title_Application" xml:space="preserve">
+    <value>編輯應用程式</value>
+  </data>
+  <data name="EditItemDialog_Title_Group" xml:space="preserve">
+    <value>編輯群組</value>
+  </data>
+  <data name="EditItemDialog_Title_RoleDefinition" xml:space="preserve">
+    <value>編輯角色定義</value>
+  </data>
+  <data name="EditItemDialog_Title_RoleAssignment" xml:space="preserve">
+    <value>編輯角色指派</value>
+  </data>
+  <data name="EditItemDialog_Title_Task" xml:space="preserve">
+    <value>編輯工作</value>
+  </data>
+  <data name="EditItemDialog_Title_Operation" xml:space="preserve">
+    <value>編輯操作</value>
+  </data>
+  <data name="EditItemDialog_Error_LdapQueryRequired" xml:space="preserve">
+    <value>LDAP 查詢群組需要 LDAP 查詢。</value>
+  </data>
+  <data name="AssignItemsDialog_Title_Default" xml:space="preserve">
+    <value>指派項目</value>
+  </data>
+  <data name="AssignItemsDialog_SearchPlaceholder" xml:space="preserve">
+    <value>搜尋項目</value>
+  </data>
+  <data name="AssignItemsDialog_AvailableItems_Header" xml:space="preserve">
+    <value>可用項目</value>
+  </data>
+  <data name="AssignItemsDialog_SelectedItems_Header" xml:space="preserve">
+    <value>已選取項目</value>
+  </data>
+  <data name="AssignItemsDialog_Title_OperationsToTask" xml:space="preserve">
+    <value>將操作指派給工作 - {0}</value>
+  </data>
+  <data name="AssignItemsDialog_Title_TasksToRole" xml:space="preserve">
+    <value>將工作指派給角色 - {0}</value>
+  </data>
+  <data name="AssignItemsDialog_Title_OperationsToRole" xml:space="preserve">
+    <value>將操作指派給角色 - {0}</value>
+  </data>
+  <data name="AssignItemsDialog_Title_RolesToRole" xml:space="preserve">
+    <value>將角色指派給角色 - {0}</value>
+  </data>
+  <data name="GroupMembersDialog_Title" xml:space="preserve">
+    <value>群組成員</value>
+  </data>
+  <data name="GroupMembersDialog_TitleWithName" xml:space="preserve">
+    <value>群組成員 - {0}</value>
+  </data>
+  <data name="GroupMembersDialog_Tab_Members" xml:space="preserve">
+    <value>成員</value>
+  </data>
+  <data name="GroupMembersDialog_Tab_NonMembers" xml:space="preserve">
+    <value>非成員</value>
+  </data>
+  <data name="GroupMembersDialog_Tab_AppGroups" xml:space="preserve">
+    <value>應用程式群組</value>
+  </data>
+  <data name="GroupMembersDialog_IncludedGroups_Header" xml:space="preserve">
+    <value>包含的群組</value>
+  </data>
+  <data name="GroupMembersDialog_ExcludedGroups_Header" xml:space="preserve">
+    <value>排除的群組</value>
+  </data>
+  <data name="PolicyUsersDialog_Title" xml:space="preserve">
+    <value>政策使用者</value>
+  </data>
+  <data name="PolicyUsersDialog_TitleWithName" xml:space="preserve">
+    <value>政策使用者 - {0}</value>
+  </data>
+  <data name="PolicyUsersDialog_Tab_Administrators" xml:space="preserve">
+    <value>管理者</value>
+  </data>
+  <data name="PolicyUsersDialog_Tab_Readers" xml:space="preserve">
+    <value>讀者</value>
+  </data>
+  <data name="PolicyUsersDialog_Tab_Delegated" xml:space="preserve">
+    <value>委派</value>
+  </data>
+  <data name="PolicyUsersDialog_EmptyState" xml:space="preserve">
+    <value>沒有使用者或群組</value>
+  </data>
+  <data name="PolicyUsersDialog_Message_LoadFailed" xml:space="preserve">
+    <value>載入政策使用者失敗：{0}</value>
+  </data>
+  <data name="PolicyUsersDialog_Message_UserAdded" xml:space="preserve">
+    <value>使用者 '{0}' 新增成功。</value>
+  </data>
+  <data name="PolicyUsersDialog_Title_UserAdded" xml:space="preserve">
+    <value>使用者已新增</value>
+  </data>
+  <data name="PolicyUsersDialog_Message_AddUserFailed" xml:space="preserve">
+    <value>新增使用者失敗：{0}</value>
+  </data>
+  <data name="PolicyUsersDialog_RemoveUser_Title" xml:space="preserve">
+    <value>移除使用者</value>
+  </data>
+  <data name="PolicyUsersDialog_RemoveUser_Content" xml:space="preserve">
+    <value>確定要從 {1} 移除 '{0}'？</value>
+  </data>
+  <data name="PolicyUsersDialog_Message_UserRemoved" xml:space="preserve">
+    <value>使用者 '{0}' 已移除。</value>
+  </data>
+  <data name="PolicyUsersDialog_Title_UserRemoved" xml:space="preserve">
+    <value>使用者已移除</value>
+  </data>
+  <data name="PolicyUsersDialog_Message_RemoveUserFailed" xml:space="preserve">
+    <value>移除使用者失敗：{0}</value>
+  </data>
+  <data name="PolicyUsersDialog_Type_Readers" xml:space="preserve">
+    <value>讀者</value>
+  </data>
+  <data name="PolicyUsersDialog_Type_Delegated" xml:space="preserve">
+    <value>委派使用者</value>
+  </data>
+  <data name="PolicyUsersDialog_Type_Administrators" xml:space="preserve">
+    <value>管理者</value>
+  </data>
+  <data name="RoleAssignmentTasksDialog_Title" xml:space="preserve">
+    <value>角色指派工作</value>
+  </data>
+  <data name="RoleAssignmentTasksDialog_TitleWithName" xml:space="preserve">
+    <value>角色指派工作 - {0}</value>
+  </data>
+  <data name="RoleAssignmentTasksDialog_TitleWithScope" xml:space="preserve">
+    <value>角色指派工作 - {0}（範圍：{1}）</value>
+  </data>
+  <data name="RoleAssignmentTasksDialog_AssignedTasks_Header" xml:space="preserve">
+    <value>已指派的工作</value>
+  </data>
+  <data name="RoleAssignmentTasksDialog_NoTasks" xml:space="preserve">
+    <value>未指派任何工作</value>
+  </data>
+  <data name="RoleAssignmentTasksDialog_AssignedOperations_Header" xml:space="preserve">
+    <value>已指派的操作</value>
+  </data>
+  <data name="RoleAssignmentTasksDialog_NoOperations" xml:space="preserve">
+    <value>未指派任何操作</value>
+  </data>
+  <data name="RoleAssignmentTasksDialog_Message_NoTasksAvailable" xml:space="preserve">
+    <value>沒有可指派的工作。</value>
+  </data>
+  <data name="RoleAssignmentTasksDialog_Message_LoadTasksFailed" xml:space="preserve">
+    <value>載入工作失敗：{0}</value>
+  </data>
+  <data name="RoleAssignmentTasksDialog_Message_TaskAdded" xml:space="preserve">
+    <value>工作 '{0}' 新增成功。</value>
+  </data>
+  <data name="RoleAssignmentTasksDialog_Title_TaskAdded" xml:space="preserve">
+    <value>工作已新增</value>
+  </data>
+  <data name="RoleAssignmentTasksDialog_Message_AddTaskFailed" xml:space="preserve">
+    <value>新增工作失敗：{0}</value>
+  </data>
+  <data name="RoleAssignmentTasksDialog_Message_TaskRemoved" xml:space="preserve">
+    <value>工作 '{0}' 已移除。</value>
+  </data>
+  <data name="RoleAssignmentTasksDialog_Title_TaskRemoved" xml:space="preserve">
+    <value>工作已移除</value>
+  </data>
+  <data name="RoleAssignmentTasksDialog_Message_RemoveTaskFailed" xml:space="preserve">
+    <value>移除工作失敗：{0}</value>
+  </data>
+  <data name="RoleAssignmentTasksDialog_Message_NoOperationsAvailable" xml:space="preserve">
+    <value>沒有可指派的操作。</value>
+  </data>
+  <data name="RoleAssignmentTasksDialog_Message_LoadOperationsFailed" xml:space="preserve">
+    <value>載入操作失敗：{0}</value>
+  </data>
+  <data name="RoleAssignmentTasksDialog_Message_OperationAdded" xml:space="preserve">
+    <value>操作 '{0}' 新增成功。</value>
+  </data>
+  <data name="RoleAssignmentTasksDialog_Title_OperationAdded" xml:space="preserve">
+    <value>操作已新增</value>
+  </data>
+  <data name="RoleAssignmentTasksDialog_Message_AddOperationFailed" xml:space="preserve">
+    <value>新增操作失敗：{0}</value>
+  </data>
+  <data name="RoleAssignmentTasksDialog_Message_OperationRemoved" xml:space="preserve">
+    <value>操作 '{0}' 已移除。</value>
+  </data>
+  <data name="RoleAssignmentTasksDialog_Title_OperationRemoved" xml:space="preserve">
+    <value>操作已移除</value>
+  </data>
+  <data name="RoleAssignmentTasksDialog_Message_RemoveOperationFailed" xml:space="preserve">
+    <value>移除操作失敗：{0}</value>
+  </data>
+  <data name="SelectItemDialog_Title_AddTask" xml:space="preserve">
+    <value>新增工作</value>
+  </data>
+  <data name="SelectItemDialog_Description_AddTask" xml:space="preserve">
+    <value>選擇要加入此角色指派的工作。</value>
+  </data>
+  <data name="SelectItemDialog_Title_AddOperation" xml:space="preserve">
+    <value>新增操作</value>
+  </data>
+  <data name="SelectItemDialog_Description_AddOperation" xml:space="preserve">
+    <value>選擇要加入此角色指派的操作。</value>
+  </data>
+  <data name="BizRuleEditorDialog_Title" xml:space="preserve">
+    <value>商業規則編輯器</value>
+  </data>
+  <data name="BizRuleEditorDialog_ValidateButton" xml:space="preserve">
+    <value>驗證</value>
+  </data>
+  <data name="BizRuleEditorDialog_Language_Label" xml:space="preserve">
+    <value>腳本語言</value>
+  </data>
+  <data name="BizRuleEditorDialog_Language_VBScript" xml:space="preserve">
+    <value>VBScript</value>
+  </data>
+  <data name="BizRuleEditorDialog_Language_JScript" xml:space="preserve">
+    <value>JScript</value>
+  </data>
+  <data name="BizRuleEditorDialog_InsertSample" xml:space="preserve">
+    <value>插入範例</value>
+  </data>
+  <data name="BizRuleEditorDialog_InsertSample_Tooltip" xml:space="preserve">
+    <value>插入商業規則範例腳本</value>
+  </data>
+  <data name="BizRuleEditorDialog_Clear_Tooltip" xml:space="preserve">
+    <value>清除腳本</value>
+  </data>
+  <data name="BizRuleEditorDialog_ImportButton" xml:space="preserve">
+    <value>匯入</value>
+  </data>
+  <data name="BizRuleEditorDialog_Import_Tooltip" xml:space="preserve">
+    <value>從檔案匯入腳本</value>
+  </data>
+  <data name="BizRuleEditorDialog_ExportButton" xml:space="preserve">
+    <value>匯出</value>
+  </data>
+  <data name="BizRuleEditorDialog_Export_Tooltip" xml:space="preserve">
+    <value>將腳本匯出到檔案</value>
+  </data>
+  <data name="BizRuleEditorDialog_Script_Placeholder" xml:space="preserve">
+    <value>在此輸入商業規則腳本…</value>
+  </data>
+  <data name="BizRuleEditorDialog_ImportedFrom_Prefix" xml:space="preserve">
+    <value>匯入自：</value>
+  </data>
+  <data name="BizRuleEditorDialog_Validation_Header" xml:space="preserve">
+    <value>驗證結果</value>
+  </data>
+  <data name="BizRuleEditorDialog_Validation_SuccessInline" xml:space="preserve">
+    <value>腳本有效</value>
+  </data>
+  <data name="BizRuleEditorDialog_TitleWithName" xml:space="preserve">
+    <value>商業規則編輯器 - {0}</value>
+  </data>
+  <data name="BizRuleEditorDialog_ImportedFrom_Format" xml:space="preserve">
+    <value>匯入自：{0}</value>
+  </data>
+  <data name="BizRuleEditorDialog_SampleComment_Format" xml:space="preserve">
+    <value>針對 {0} 的商業規則範例</value>
+  </data>
+  <data name="BizRuleEditorDialog_Message_SampleInserted" xml:space="preserve">
+    <value>範例腳本已插入。</value>
+  </data>
+  <data name="BizRuleEditorDialog_Title_SampleInserted" xml:space="preserve">
+    <value>已插入範例</value>
+  </data>
+  <data name="BizRuleEditorDialog_Message_ImportSuccess" xml:space="preserve">
+    <value>腳本已從 '{0}' 匯入。</value>
+  </data>
+  <data name="BizRuleEditorDialog_Title_ImportSuccess" xml:space="preserve">
+    <value>匯入成功</value>
+  </data>
+  <data name="BizRuleEditorDialog_Message_ImportFailed" xml:space="preserve">
+    <value>匯入腳本失敗：{0}</value>
+  </data>
+  <data name="BizRuleEditorDialog_Title_ImportFailed" xml:space="preserve">
+    <value>匯入失敗</value>
+  </data>
+  <data name="BizRuleEditorDialog_Message_NoScriptToExport" xml:space="preserve">
+    <value>沒有腳本可匯出。</value>
+  </data>
+  <data name="BizRuleEditorDialog_Title_Export" xml:space="preserve">
+    <value>匯出腳本</value>
+  </data>
+  <data name="BizRuleEditorDialog_Message_ExportSuccess" xml:space="preserve">
+    <value>腳本已匯出到 '{0}'。</value>
+  </data>
+  <data name="BizRuleEditorDialog_Title_ExportSuccess" xml:space="preserve">
+    <value>匯出成功</value>
+  </data>
+  <data name="BizRuleEditorDialog_Message_ExportFailed" xml:space="preserve">
+    <value>匯出腳本失敗：{0}</value>
+  </data>
+  <data name="BizRuleEditorDialog_Title_ExportFailed" xml:space="preserve">
+    <value>匯出失敗</value>
+  </data>
+  <data name="BizRuleEditorDialog_Message_ValidationSuccess" xml:space="preserve">
+    <value>腳本驗證成功。未發現錯誤。</value>
+  </data>
+  <data name="BizRuleEditorDialog_Message_ValidationSuccessWithWarnings" xml:space="preserve">
+    <value>腳本驗證成功，但有 {0} 則警告。</value>
+  </data>
+  <data name="BizRuleEditorDialog_Message_ValidationFailed" xml:space="preserve">
+    <value>腳本驗證失敗，發現 {0} 個錯誤。</value>
+  </data>
+  <data name="BizRuleEditorDialog_Title_Validation" xml:space="preserve">
+    <value>驗證</value>
+  </data>
+  <data name="BizRuleEditorDialog_Message_ValidationFixBeforeSave" xml:space="preserve">
+    <value>請在儲存前修正驗證錯誤。</value>
+  </data>
+  <data name="BizRuleEditorDialog_Title_ValidationError" xml:space="preserve">
+    <value>驗證錯誤</value>
+  </data>
+  <data name="BizRuleEditorDialog_FileType_JScript" xml:space="preserve">
+    <value>JScript 檔案</value>
+  </data>
+  <data name="BizRuleEditorDialog_FileType_VBScript" xml:space="preserve">
+    <value>VBScript 檔案</value>
+  </data>
+  <data name="BizRuleEditorDialog_FileType_TextFiles" xml:space="preserve">
+    <value>文字檔案</value>
+  </data>
+  <data name="AuthApplicationsPage_AssignItems_RoleDefinitionFormat" xml:space="preserve">
+    <value>角色定義：{0}</value>
+  </data>
+  <data name="AuthApplicationsPage_AssignItems_TaskFormat" xml:space="preserve">
+    <value>任務：{0}</value>
+  </data>
+  <data name="AuthApplicationsPage_DeleteApplication" xml:space="preserve">
+    <value>刪除應用程式</value>
+  </data>
+  <data name="AuthApplicationsPage_DeleteApplication_Content" xml:space="preserve">
+    <value>您確定要刪除此應用程式嗎？</value>
+  </data>
+  <data name="AuthApplicationsPage_DeleteApplication_Title" xml:space="preserve">
+    <value>刪除應用程式</value>
+  </data>
+  <data name="AuthApplicationsPage_DeleteGroup_Content" xml:space="preserve">
+    <value>您確定要刪除此群組嗎？</value>
+  </data>
+  <data name="AuthApplicationsPage_DeleteGroup_Title" xml:space="preserve">
+    <value>刪除群組</value>
+  </data>
+  <data name="AuthApplicationsPage_DeleteOperation_Content" xml:space="preserve">
+    <value>您確定要刪除此操作嗎？</value>
+  </data>
+  <data name="AuthApplicationsPage_DeleteOperation_Title" xml:space="preserve">
+    <value>刪除操作</value>
+  </data>
+  <data name="AuthApplicationsPage_DeleteRole_Content" xml:space="preserve">
+    <value>您確定要刪除此角色嗎？</value>
+  </data>
+  <data name="AuthApplicationsPage_DeleteRole_Title" xml:space="preserve">
+    <value>刪除角色</value>
+  </data>
+  <data name="AuthApplicationsPage_DeleteRoleAssignment_Content" xml:space="preserve">
+    <value>您確定要刪除此角色指派嗎？</value>
+  </data>
+  <data name="AuthApplicationsPage_DeleteRoleAssignment_Title" xml:space="preserve">
+    <value>刪除角色指派</value>
+  </data>
+  <data name="AuthApplicationsPage_DeleteScope_Content" xml:space="preserve">
+    <value>您確定要刪除此範圍嗎？</value>
+  </data>
+  <data name="AuthApplicationsPage_DeleteScope_Title" xml:space="preserve">
+    <value>刪除範圍</value>
+  </data>
+  <data name="AuthApplicationsPage_DeleteTask_Content" xml:space="preserve">
+    <value>您確定要刪除此任務嗎？</value>
+  </data>
+  <data name="AuthApplicationsPage_DeleteTask_Title" xml:space="preserve">
+    <value>刪除任務</value>
+  </data>
+  <data name="AuthApplicationsPage_NewScope_Title" xml:space="preserve">
+    <value>新增範圍</value>
+  </data>
+  <data name="AuthApplicationsPage_OperationIdLabel" xml:space="preserve">
+    <value>操作 ID</value>
+  </data>
+  <data name="AuthApplicationsPage_Properties" xml:space="preserve">
+    <value>屬性</value>
+  </data>
+  <data name="AuthApplicationsPage_RoleAssignment_AssignMembers" xml:space="preserve">
+    <value>指派成員</value>
+  </data>
+  <data name="AuthApplicationsPage_RoleAssignment_AssignMembersTitle" xml:space="preserve">
+    <value>指派成員至角色指派</value>
+  </data>
+  <data name="AuthApplicationsPage_RoleAssignment_AssignTasksRoles" xml:space="preserve">
+    <value>指派任務/角色</value>
+  </data>
+  <data name="AuthApplicationsPage_RoleAssignment_EditPrompt" xml:space="preserve">
+    <value>編輯角色指派</value>
+  </data>
+  <data name="AuthApplicationsPage_RoleAssignment_EditTitle" xml:space="preserve">
+    <value>編輯角色指派</value>
+  </data>
+  <data name="AuthApplicationsPage_RoleAssignment_MembersAdded" xml:space="preserve">
+    <value>成員新增成功。</value>
+  </data>
+  <data name="AuthApplicationsPage_RoleAssignment_MembersAddFailed" xml:space="preserve">
+    <value>新增成員失敗。</value>
+  </data>
+  <data name="AuthApplicationsPage_RoleAssignment_UpdateFailed" xml:space="preserve">
+    <value>更新角色指派失敗。</value>
+  </data>
+  <data name="AuthApplicationsPage_RoleAssignment_UpdateSuccess" xml:space="preserve">
+    <value>角色指派更新成功。</value>
+  </data>
+  <data name="AuthApplicationsPage_RoleAssignmentsHeader" xml:space="preserve">
+    <value>角色指派</value>
+  </data>
+  <data name="AuthApplicationsPage_RolesHeader" xml:space="preserve">
+    <value>角色</value>
+  </data>
+  <data name="AuthApplicationsPage_ScopeProperties_Title" xml:space="preserve">
+    <value>範圍屬性</value>
+  </data>
+  <data name="AuthApplicationsPage_ScopePropertiesTooltip" xml:space="preserve">
+    <value>編輯範圍屬性</value>
+  </data>
+  <data name="AuthApplicationsPage_ScopesHeader" xml:space="preserve">
+    <value>範圍</value>
+  </data>
+  <data name="AuthApplicationsPage_Status_ApplicationUpdated" xml:space="preserve">
+    <value>應用程式更新成功。</value>
+  </data>
+  <data name="AuthApplicationsPage_Status_ApplicationUpdateFailed" xml:space="preserve">
+    <value>更新應用程式失敗。</value>
+  </data>
+  <data name="AuthApplicationsPage_Status_GroupCreated" xml:space="preserve">
+    <value>群組建立成功。</value>
+  </data>
+  <data name="AuthApplicationsPage_Status_GroupDeleted" xml:space="preserve">
+    <value>群組刪除成功。</value>
+  </data>
+  <data name="AuthApplicationsPage_Status_GroupUpdated" xml:space="preserve">
+    <value>群組更新成功。</value>
+  </data>
+  <data name="AuthApplicationsPage_Status_GroupUpdateFailed" xml:space="preserve">
+    <value>更新群組失敗。</value>
+  </data>
+  <data name="AuthApplicationsPage_Status_OperationCreated" xml:space="preserve">
+    <value>操作建立成功。</value>
+  </data>
+  <data name="AuthApplicationsPage_Status_OperationDeleted" xml:space="preserve">
+    <value>操作刪除成功。</value>
+  </data>
+  <data name="AuthApplicationsPage_Status_OperationUpdated" xml:space="preserve">
+    <value>操作更新成功。</value>
+  </data>
+  <data name="AuthApplicationsPage_Status_OperationUpdateFailed" xml:space="preserve">
+    <value>更新操作失敗。</value>
+  </data>
+  <data name="AuthApplicationsPage_Status_RoleAssignmentCreated" xml:space="preserve">
+    <value>角色指派建立成功。</value>
+  </data>
+  <data name="AuthApplicationsPage_Status_RoleAssignmentDeleted" xml:space="preserve">
+    <value>角色指派刪除成功。</value>
+  </data>
+  <data name="AuthApplicationsPage_Status_RoleAssignmentUpdated" xml:space="preserve">
+    <value>角色指派更新成功。</value>
+  </data>
+  <data name="AuthApplicationsPage_Status_RoleAssignmentUpdateFailed" xml:space="preserve">
+    <value>更新角色指派失敗：{0}</value>
+  </data>
+  <data name="AuthApplicationsPage_Status_RoleCreated" xml:space="preserve">
+    <value>角色建立成功。</value>
+  </data>
+  <data name="AuthApplicationsPage_Status_RoleDeleted" xml:space="preserve">
+    <value>角色刪除成功。</value>
+  </data>
+  <data name="AuthApplicationsPage_Status_RoleUpdated" xml:space="preserve">
+    <value>角色更新成功。</value>
+  </data>
+  <data name="AuthApplicationsPage_Status_RoleUpdateFailed" xml:space="preserve">
+    <value>更新角色失敗。</value>
+  </data>
+  <data name="AuthApplicationsPage_Status_ScopeCreated" xml:space="preserve">
+    <value>範圍建立成功。</value>
+  </data>
+  <data name="AuthApplicationsPage_Status_ScopeDeleted" xml:space="preserve">
+    <value>範圍刪除成功。</value>
+  </data>
+  <data name="AuthApplicationsPage_Status_ScopeUpdated" xml:space="preserve">
+    <value>範圍更新成功。</value>
+  </data>
+  <data name="AuthApplicationsPage_Status_ScopeUpdateFailed" xml:space="preserve">
+    <value>更新範圍失敗。</value>
+  </data>
+  <data name="AuthApplicationsPage_Status_TaskCreated" xml:space="preserve">
+    <value>任務建立成功。</value>
+  </data>
+  <data name="AuthApplicationsPage_Status_TaskDeleted" xml:space="preserve">
+    <value>任務刪除成功。</value>
+  </data>
+  <data name="AuthApplicationsPage_Status_TaskUpdated" xml:space="preserve">
+    <value>任務更新成功。</value>
+  </data>
+  <data name="AuthApplicationsPage_Status_TaskUpdateFailed" xml:space="preserve">
+    <value>更新任務失敗。</value>
+  </data>
+  <data name="AuthApplicationsPage_Tab_Definitions" xml:space="preserve">
+    <value>定義</value>
+  </data>
+  <data name="AuthApplicationsPage_Tab_GroupsRoles" xml:space="preserve">
+    <value>群組與角色</value>
+  </data>
+  <data name="ScopesPage_AssignMembers_Title" xml:space="preserve">
+    <value>指派成員</value>
+  </data>
+  <data name="ScopesPage_DeleteGroup_Content" xml:space="preserve">
+    <value>您確定要刪除此群組嗎？</value>
+  </data>
+  <data name="ScopesPage_DeleteGroup_Title" xml:space="preserve">
+    <value>刪除群組</value>
+  </data>
+  <data name="ScopesPage_DeleteRole_Content" xml:space="preserve">
+    <value>您確定要刪除此角色嗎？</value>
+  </data>
+  <data name="ScopesPage_DeleteRole_Title" xml:space="preserve">
+    <value>刪除角色</value>
+  </data>
+  <data name="ScopesPage_DeleteRoleAssignment_Content" xml:space="preserve">
+    <value>您確定要刪除此角色指派嗎？</value>
+  </data>
+  <data name="ScopesPage_DeleteRoleAssignment_Title" xml:space="preserve">
+    <value>刪除角色指派</value>
+  </data>
+  <data name="ScopesPage_DeleteScope" xml:space="preserve">
+    <value>刪除範圍</value>
+  </data>
+  <data name="ScopesPage_DeleteScope_Content" xml:space="preserve">
+    <value>您確定要刪除此範圍嗎？</value>
+  </data>
+  <data name="ScopesPage_DeleteScope_Title" xml:space="preserve">
+    <value>刪除範圍</value>
+  </data>
+  <data name="ScopesPage_DeleteTask_Content" xml:space="preserve">
+    <value>您確定要刪除此任務嗎？</value>
+  </data>
+  <data name="ScopesPage_DeleteTask_Title" xml:space="preserve">
+    <value>刪除任務</value>
+  </data>
+  <data name="ScopesPage_Info_Message" xml:space="preserve">
+    <value>範圍允許您定義應用程式的子集，其中可以指派角色和任務。</value>
+  </data>
+  <data name="ScopesPage_Info_Title" xml:space="preserve">
+    <value>關於範圍</value>
+  </data>
+  <data name="ScopesPage_Properties" xml:space="preserve">
+    <value>屬性</value>
+  </data>
+  <data name="ScopesPage_RoleAssignmentsHeader" xml:space="preserve">
+    <value>角色指派</value>
+  </data>
+  <data name="ScopesPage_RoleDefinitionsHeader" xml:space="preserve">
+    <value>角色定義</value>
+  </data>
+  <data name="ScopesPage_ScopeProperties_Title" xml:space="preserve">
+    <value>範圍屬性</value>
+  </data>
+  <data name="ScopesPage_Status_GroupCreated" xml:space="preserve">
+    <value>群組建立成功。</value>
+  </data>
+  <data name="ScopesPage_Status_GroupDeleted" xml:space="preserve">
+    <value>群組刪除成功。</value>
+  </data>
+  <data name="ScopesPage_Status_GroupUpdated" xml:space="preserve">
+    <value>群組更新成功。</value>
+  </data>
+  <data name="ScopesPage_Status_GroupUpdateFailed" xml:space="preserve">
+    <value>更新群組失敗。</value>
+  </data>
+  <data name="ScopesPage_Status_RoleAssignmentCreated" xml:space="preserve">
+    <value>角色指派建立成功。</value>
+  </data>
+  <data name="ScopesPage_Status_RoleAssignmentDeleted" xml:space="preserve">
+    <value>角色指派刪除成功。</value>
+  </data>
+  <data name="ScopesPage_Status_RoleAssignmentUpdated" xml:space="preserve">
+    <value>角色指派更新成功。</value>
+  </data>
+  <data name="ScopesPage_Status_RoleAssignmentUpdateFailed" xml:space="preserve">
+    <value>更新角色指派失敗：{0}</value>
+  </data>
+  <data name="ScopesPage_Status_RoleAssignmentMembersAdded" xml:space="preserve">
+    <value>成員成功新增至角色指派。</value>
+  </data>
+  <data name="ScopesPage_Status_RoleAssignmentMembersAddFailed" xml:space="preserve">
+    <value>新增成員至角色指派失敗。</value>
+  </data>
+  <data name="ScopesPage_Status_RoleCreated" xml:space="preserve">
+    <value>角色建立成功。</value>
+  </data>
+  <data name="ScopesPage_Status_RoleDeleted" xml:space="preserve">
+    <value>角色刪除成功。</value>
+  </data>
+  <data name="ScopesPage_Status_RoleUpdated" xml:space="preserve">
+    <value>角色更新成功。</value>
+  </data>
+  <data name="ScopesPage_Status_RoleUpdateFailed" xml:space="preserve">
+    <value>更新角色失敗。</value>
+  </data>
+  <data name="ScopesPage_Status_ScopePropertiesUpdated" xml:space="preserve">
+    <value>範圍屬性更新成功。</value>
+  </data>
+  <data name="ScopesPage_Status_ScopePropertiesUpdateFailed" xml:space="preserve">
+    <value>更新範圍屬性失敗。</value>
+  </data>
+  <data name="ScopesPage_Status_TaskCreated" xml:space="preserve">
+    <value>任務建立成功。</value>
+  </data>
+  <data name="ScopesPage_Status_TaskDeleted" xml:space="preserve">
+    <value>任務刪除成功。</value>
+  </data>
+  <data name="ScopesPage_Status_TaskUpdated" xml:space="preserve">
+    <value>任務更新成功。</value>
+  </data>
+  <data name="ScopesPage_Status_TaskUpdateFailed" xml:space="preserve">
+    <value>更新任務失敗。</value>
+  </data>
+  <data name="AzMan_AccessDenied" xml:space="preserve">
+    <value>存取被拒。請確認您有足夠的權限。</value>
+  </data>
+  <data name="RoleAssignmentPropertiesDialog_Title" xml:space="preserve">
+    <value>{0} 屬性</value>
+  </data>
+  <data name="RoleAssignmentPropertiesDialog_Tab_General" xml:space="preserve">
+    <value>一般</value>
+  </data>
+  <data name="RoleAssignmentPropertiesDialog_Tab_AssignedUsers" xml:space="preserve">
+    <value>指派的使用者</value>
+  </data>
+  <data name="RoleAssignmentPropertiesDialog_Name_Header" xml:space="preserve">
+    <value>名稱</value>
+  </data>
+  <data name="RoleAssignmentPropertiesDialog_Description_Header" xml:space="preserve">
+    <value>描述</value>
+  </data>
+  <data name="RoleAssignmentPropertiesDialog_Description_Placeholder" xml:space="preserve">
+    <value>輸入描述...</value>
+  </data>
+  <data name="RoleAssignmentPropertiesDialog_NoMembers_Message" xml:space="preserve">
+    <value>沒有使用者或群組指派給此角色。</value>
+  </data>
+  <data name="RoleAssignmentPropertiesDialog_Error_AddUsersFailed" xml:space="preserve">
+    <value>新增使用者失敗：{0}</value>
+  </data>
+  <data name="RoleAssignmentPropertiesDialog_Error_RemoveUserFailed" xml:space="preserve">
+    <value>移除使用者失敗：{0}</value>
+  </data>
+  <data name="AuthorizationRuleDialog_Title" xml:space="preserve">
+    <value>授權規則</value>
+  </data>
+  <data name="AuthorizationRuleDialog_ScriptFiles_Filter" xml:space="preserve">
+    <value>腳本檔案</value>
+  </data>
+  <data name="AuthorizationRuleDialog_SelectScriptFile_Title" xml:space="preserve">
+    <value>選取腳本檔案</value>
+  </data>
+  <data name="DefinitionAssignItemsDialog_Title_Format" xml:space="preserve">
+    <value>指派項目 - {0}</value>
+  </data>
+  <data name="DefinitionAssignItemsDialog_Header_Task" xml:space="preserve">
+    <value>定義此工作的任務與操作：</value>
+  </data>
+  <data name="DefinitionAssignItemsDialog_Header_Role" xml:space="preserve">
+    <value>定義此角色的任務與低階角色：</value>
+  </data>
+  <data name="DefinitionPropertiesDialog_Title_RoleDefinition" xml:space="preserve">
+    <value>角色定義屬性</value>
+  </data>
+  <data name="DefinitionPropertiesDialog_Title_Task" xml:space="preserve">
+    <value>工作屬性</value>
+  </data>
+  <data name="DefinitionPropertiesDialog_Summary_Format" xml:space="preserve">
+    <value>角色：{0}，任務：{1}，操作：{2}</value>
+  </data>
+  <data name="DefinitionPropertiesDialog_Action_ClearFromStore" xml:space="preserve">
+    <value>從儲存體清除</value>
+  </data>
+  <data name="DefinitionPropertiesDialog_Action_ReloadIntoStore" xml:space="preserve">
+    <value>重新載入至儲存體</value>
+  </data>
+  <data name="DefinitionPropertiesDialog_Action_NoAction" xml:space="preserve">
+    <value>無動作</value>
+  </data>
+  <data name="DefinitionPropertiesDialog_Path_None" xml:space="preserve">
+    <value>（無）</value>
+  </data>
+  <data name="GroupMembersDialog_BusinessRuleScript_Header" xml:space="preserve">
+    <value>商業規則腳本</value>
+  </data>
+  <data name="GroupMembersDialog_BusinessRuleScript_Title" xml:space="preserve">
+    <value>商業規則腳本</value>
+  </data>
+  <data name="GroupMembersDialog_Language_Header" xml:space="preserve">
+    <value>語言</value>
+  </data>
+  <data name="StorePropertiesDialog_DefaultsSelected" xml:space="preserve">
+    <value>已選取預設值</value>
+  </data>
+  <data name="StorePropertiesDialog_UpgradeSelected" xml:space="preserve">
+    <value>已選取升級</value>
+  </data>
+  <data name="StorePropertiesDialog_Error_AuthRuleTimeout" xml:space="preserve">
+    <value>選取指定逾時模式時，授權規則逾時必須大於 0。</value>
+  </data>
+  <data name="Common_FailedToOpenDialog_Format" xml:space="preserve">
+    <value>開啟對話方塊失敗：{0}</value>
+  </data>
+  <data name="Common_FailedToAddUsers_Format" xml:space="preserve">
+    <value>新增使用者失敗：{0}</value>
+  </data>
+  <data name="Common_FailedToRemoveUser_Format" xml:space="preserve">
+    <value>移除使用者失敗：{0}</value>
+  </data>
+  <!-- Authorization Rule Dialog -->
+  <data name="AuthorizationRuleDialog_ScriptSourceCode_Label" xml:space="preserve">
+    <value>腳本原始碼：</value>
+  </data>
+  <data name="AuthorizationRuleDialog_ScriptPath_Label" xml:space="preserve">
+    <value>腳本路徑：</value>
+  </data>
+  <data name="AuthorizationRuleDialog_Browse_Button" xml:space="preserve">
+    <value>瀏覽...</value>
+  </data>
+  <data name="AuthorizationRuleDialog_ScriptType_Label" xml:space="preserve">
+    <value>腳本類型：</value>
+  </data>
+  <data name="AuthorizationRuleDialog_VBScript" xml:space="preserve">
+    <value>VBScript</value>
+  </data>
+  <data name="AuthorizationRuleDialog_JScript" xml:space="preserve">
+    <value>JScript</value>
+  </data>
+  <data name="AuthorizationRuleDialog_ReloadRule_Button" xml:space="preserve">
+    <value>重新載入規則至儲存體</value>
+  </data>
+  <data name="AuthorizationRuleDialog_ClearRule_Button" xml:space="preserve">
+    <value>從儲存體清除規則</value>
+  </data>
+  <!-- Definition Assign Items Dialog -->
+  <data name="DefinitionAssignItemsDialog_Tab_Roles" xml:space="preserve">
+    <value>角色</value>
+  </data>
+  <data name="DefinitionAssignItemsDialog_Tab_Tasks" xml:space="preserve">
+    <value>工作</value>
+  </data>
+  <data name="DefinitionAssignItemsDialog_Tab_Operations" xml:space="preserve">
+    <value>操作</value>
+  </data>
+  <!-- Definition Properties Dialog -->
+  <data name="DefinitionPropertiesDialog_Tab_General" xml:space="preserve">
+    <value>一般</value>
+  </data>
+  <data name="DefinitionPropertiesDialog_Tab_Definition" xml:space="preserve">
+    <value>定義</value>
+  </data>
+  <data name="DefinitionPropertiesDialog_Name_Header" xml:space="preserve">
+    <value>名稱</value>
+  </data>
+  <data name="DefinitionPropertiesDialog_Description_Header" xml:space="preserve">
+    <value>描述</value>
+  </data>
+  <data name="DefinitionPropertiesDialog_AssignItems_Button" xml:space="preserve">
+    <value>指派項目...</value>
+  </data>
+  <data name="DefinitionPropertiesDialog_AuthorizationRule_Button" xml:space="preserve">
+    <value>授權規則...</value>
+  </data>
+  <!-- Edit Item Dialog -->
+  <data name="EditItemDialog_GroupType_Bizrule" xml:space="preserve">
+    <value>商業規則</value>
+  </data>
+  <!-- Group Members Dialog -->
+  <data name="GroupMembersDialog_Tab_General" xml:space="preserve">
+    <value>一般</value>
+  </data>
+  <data name="GroupMembersDialog_Tab_Query" xml:space="preserve">
+    <value>查詢</value>
+  </data>
+  <data name="GroupMembersDialog_Tab_Exclusions" xml:space="preserve">
+    <value>排除項目</value>
+  </data>
+  <data name="GroupMembersDialog_Name_Header" xml:space="preserve">
+    <value>名稱</value>
+  </data>
+  <data name="GroupMembersDialog_Description_Header" xml:space="preserve">
+    <value>描述</value>
+  </data>
+  <data name="GroupMembersDialog_GroupType_Header" xml:space="preserve">
+    <value>群組類型</value>
+  </data>
+  <data name="GroupMembersDialog_LdapQuery_Header" xml:space="preserve">
+    <value>LDAP 查詢</value>
+  </data>
+  <data name="GroupMembersDialog_WindowsMembers_Header" xml:space="preserve">
+    <value>成員 (Windows / Active Directory)</value>
+  </data>
+  <data name="GroupMembersDialog_AppGroupMembers_Header" xml:space="preserve">
+    <value>成員 (授權管理員應用程式群組)</value>
+  </data>
+  <data name="GroupMembersDialog_WindowsExclusions_Header" xml:space="preserve">
+    <value>排除項目 (Windows / Active Directory)</value>
+  </data>
+  <data name="GroupMembersDialog_AppGroupExclusions_Header" xml:space="preserve">
+    <value>排除項目 (授權管理員應用程式群組)</value>
+  </data>
+  <!-- Store Properties Dialog -->
+  <data name="StorePropertiesDialog_Tab_Limits" xml:space="preserve">
+    <value>限制</value>
+  </data>
+  <data name="StorePropertiesDialog_UpgradeSchema_Button" xml:space="preserve">
+    <value>升級結構描述至版本 2.0</value>
+  </data>
+  <data name="StorePropertiesDialog_SchemaUpgrade_Title" xml:space="preserve">
+    <value>結構描述升級</value>
+  </data>
+  <data name="StorePropertiesDialog_SchemaUpgrade_Message" xml:space="preserve">
+    <value>此授權儲存體使用結構描述 1.0。選取此選項以升級至結構描述 2.0。</value>
+  </data>
+  <data name="StorePropertiesDialog_AuthorizationRules_Header" xml:space="preserve">
+    <value>授權規則</value>
+  </data>
+  <data name="StorePropertiesDialog_AuthRuleTimeout_Header" xml:space="preserve">
+    <value>授權規則逾時</value>
+  </data>
+  <data name="StorePropertiesDialog_MaxCachedAuthRules_Header" xml:space="preserve">
+    <value>快取授權規則的最大數目</value>
+  </data>
+  <data name="StorePropertiesDialog_LdapQueryTimeout_Header" xml:space="preserve">
+    <value>LDAP 查詢逾時</value>
+  </data>
+  <data name="StorePropertiesDialog_AuthRules_Disable" xml:space="preserve">
+    <value>停用</value>
+  </data>
+  <data name="StorePropertiesDialog_AuthRules_EnableNoTimeout" xml:space="preserve">
+    <value>啟用且無逾時值</value>
+  </data>
+  <data name="StorePropertiesDialog_AuthRules_EnableSpecifiedTimeout" xml:space="preserve">
+    <value>啟用且指定逾時值</value>
+  </data>
+  <data name="StorePropertiesDialog_UseDefaultValues_Button" xml:space="preserve">
+    <value>使用預設值</value>
+  </data>
+  <data name="StorePropertiesDialog_RuntimeAppInitAuditing" xml:space="preserve">
+    <value>執行階段應用程式初始化稽核</value>
+  </data>
+  <data name="StorePropertiesDialog_StoreChangeAuditing" xml:space="preserve">
+    <value>授權儲存體變更稽核</value>
+  </data>
+  <!-- Group Type Display Text -->
+  <data name="GroupType_BusinessRuleAppGroup" xml:space="preserve">
+    <value>商業規則應用程式群組</value>
+  </data>
+  <data name="GroupType_AppBasicGroup" xml:space="preserve">
+    <value>應用程式基本群組</value>
+  </data>
+  <data name="GroupType_LdapQueryGroup" xml:space="preserve">
+    <value>LDAP 查詢群組</value>
+  </data>
+  <data name="GroupType_Unknown" xml:space="preserve">
+    <value>未知</value>
+  </data>
+  <!-- Error Messages -->
+  <data name="Error_FailedToCloseStore" xml:space="preserve">
+    <value>關閉儲存體失敗：{0}</value>
+  </data>
+  <data name="Error_StoreFileNotFound" xml:space="preserve">
+    <value>找不到儲存體檔案：{0}。儲存體已關閉。</value>
+  </data>
+  <data name="Error_FileNotFound" xml:space="preserve">
+    <value>找不到指定的檔案。</value>
+  </data>
+  <data name="Error_PathNotFound" xml:space="preserve">
+    <value>找不到指定的路徑。</value>
+  </data>
+  <data name="Error_NetworkPathNotFound" xml:space="preserve">
+    <value>找不到網路路徑。請檢查路徑是否正確且可存取。</value>
+  </data>
+  <data name="Error_FileAlreadyExists" xml:space="preserve">
+    <value>檔案已存在。</value>
+  </data>
+  <data name="Error_ElementNotFound" xml:space="preserve">
+    <value>找不到元素。</value>
+  </data>
+  <data name="Error_InterfaceNotSupported" xml:space="preserve">
+    <value>不支援介面。請確認已正確安裝 AzMan 元件。</value>
+  </data>
+  <data name="Error_InvalidClassString" xml:space="preserve">
+    <value>無效的類別字串。AzMan COM 元件可能未註冊。</value>
+  </data>
+  <data name="Error_ClassNotRegistered" xml:space="preserve">
+    <value>類別未註冊。請確認已安裝 AzMan 元件。</value>
+  </data>
+  <!-- BizRule Validator Messages -->
+  <data name="BizRuleValidator_Error_EmptyScript" xml:space="preserve">
+    <value>腳本不能為空白。</value>
+  </data>
+  <data name="BizRuleValidator_Error_InvalidLanguage" xml:space="preserve">
+    <value>無效的腳本語言：'{0}'。必須是 'VBScript' 或 'JScript'。</value>
+  </data>
+  <data name="BizRuleValidator_Warning_NoAzBizRuleContext" xml:space="preserve">
+    <value>腳本未參考 'AzBizRuleContext'。商業規則通常使用此物件來設定授權結果。</value>
+  </data>
+  <data name="BizRuleValidator_Warning_NoBusinessRuleResult" xml:space="preserve">
+    <value>腳本未設定 'BusinessRuleResult'。此規則可能不會影響授權決策。</value>
+  </data>
+  <data name="BizRuleValidator_Error_UnbalancedSubEndSub" xml:space="preserve">
+    <value>Sub/End Sub 不平衡：{0} 個 Sub 但有 {1} 個 End Sub。</value>
+  </data>
+  <data name="BizRuleValidator_Error_UnbalancedFunctionEndFunction" xml:space="preserve">
+    <value>Function/End Function 不平衡：{0} 個 Function 但有 {1} 個 End Function。</value>
+  </data>
+  <data name="BizRuleValidator_Warning_UnbalancedIfEndIf" xml:space="preserve">
+    <value>可能的 If/End If 不平衡：{0} 個 If 但有 {1} 個 End If。</value>
+  </data>
+  <data name="BizRuleValidator_Error_UnbalancedBraces" xml:space="preserve">
+    <value>大括號不平衡：{0} 個開啟但有 {1} 個關閉。</value>
+  </data>
+  <data name="BizRuleValidator_Error_UnbalancedParentheses" xml:space="preserve">
+    <value>括號不平衡：{0} 個開啟但有 {1} 個關閉。</value>
+  </data>
+  <data name="BizRuleValidator_Warning_DoubleSemicolons" xml:space="preserve">
+    <value>偵測到雙分號。這可能表示缺少程式碼。</value>
+  </data>
+  <data name="BizRuleValidator_SampleDescription" xml:space="preserve">
+    <value>範例商業規則</value>
+  </data>
+  <!-- Common UI Strings -->
+  <data name="Common_OK" xml:space="preserve">
+    <value>確定</value>
+  </data>
+  <data name="Common_Cancel" xml:space="preserve">
+    <value>取消</value>
+  </data>
+  <data name="Common_Save" xml:space="preserve">
+    <value>儲存</value>
+  </data>
+  <!-- Additional Error Messages -->
+  <data name="Error_StoreNotOpen" xml:space="preserve">
+    <value>儲存體 '{0}' 未開啟。請先開啟儲存體。</value>
+  </data>
+</root>

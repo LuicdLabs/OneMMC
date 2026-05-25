@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "ManagementTools (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "ManagementTools (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}

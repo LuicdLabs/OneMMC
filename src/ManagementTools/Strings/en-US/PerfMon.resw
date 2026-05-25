@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <!-- Performance Monitor -->
+  <data name="PerfMon_ViewMode_Graph" xml:space="preserve">
+    <value>Graph</value>
+  </data>
+  <data name="PerfMon_ViewMode_Histogram" xml:space="preserve">
+    <value>Histogram</value>
+  </data>
+  <data name="PerfMon_ViewMode_Report" xml:space="preserve">
+    <value>Report</value>
+  </data>
+  <data name="PerfMon_File_SaveConfiguration" xml:space="preserve">
+    <value>Save Configuration</value>
+  </data>
+  <data name="PerfMon_File_LoadConfiguration" xml:space="preserve">
+    <value>Load Configuration</value>
+  </data>
+  <data name="PerfMon_Report_Generated" xml:space="preserve">
+    <value>Report Generated</value>
+  </data>
+  <data name="PerfMon_Report_Title" xml:space="preserve">
+    <value>Performance Report</value>
+  </data>
+  <data name="PerfMon_CountersText" xml:space="preserve">
+    <value>Counters</value>
+  </data>
+  <data name="PerfMon_MonitorsText" xml:space="preserve">
+    <value>Monitors</value>
+  </data>
+  <data name="PerfMon_HideAll" xml:space="preserve">
+    <value>Hide all</value>
+  </data>
+  <data name="PerfMon_ShowAll" xml:space="preserve">
+    <value>Show all</value>
+  </data>
+  <data name="PerfMon_Properties" xml:space="preserve">
+    <value>Properties</value>
+  </data>
+  
+  <data name="PerfMon_EnterName" xml:space="preserve">
+    <value>Enter Name</value>
+  </data>
+  <data name="PerfMon_NameLabel" xml:space="preserve">
+    <value>Name:</value>
+  </data>
+  <data name="PerfMon_CsvFilesFilter" xml:space="preserve">
+    <value>CSV Files (*.csv)</value>
+  </data>
+  <data name="PerfMon_CsvExtension" xml:space="preserve">
+    <value>.csv</value>
+  </data>
+  <data name="PerfMon_PmcfgFilesFilter" xml:space="preserve">
+    <value>Performance Monitor Configuration Files (*.pmcfg)</value>
+  </data>
+  <data name="PerfMon_PmcfgConfigurationFilter" xml:space="preserve">
+    <value>Configuration Files (*.pmcfg)</value>
+  </data>
+  <data name="PerfMon_PmcfgExtension" xml:space="preserve">
+    <value>.pmcfg</value>
+  </data>
+  <data name="PerfMon_AddCounters" xml:space="preserve">
+    <value>Add Counters</value>
+  </data>
+  <data name="PerfMon_SelectCategory" xml:space="preserve">
+    <value>Select Category</value>
+  </data>
+  <data name="PerfMon_SelectInstance" xml:space="preserve">
+    <value>Select Instance</value>
+  </data>
+  <data name="PerfMon_InstanceLabel" xml:space="preserve">
+    <value>Instance:</value>
+  </data>
+  
+  <data name="PerfMon_CounterProperties" xml:space="preserve">
+    <value>Counter Properties</value>
+  </data>
+  <data name="PerfMon_CounterLabel" xml:space="preserve">
+    <value>Counter:</value>
+  </data>
+  <data name="PerfMon_ColorLabel" xml:space="preserve">
+    <value>Color:</value>
+  </data>
+  <data name="PerfMon_ConfigurationSaved" xml:space="preserve">
+    <value>Configuration saved</value>
+  </data>
+  <data name="PerfMon_ConfigurationLoaded" xml:space="preserve">
+    <value>Configuration loaded</value>
+  </data>
+  <data name="PerfMon_LastLabel" xml:space="preserve">
+    <value>Last</value>
+  </data>
+  <data name="PerfMon_AverageLabel" xml:space="preserve">
+    <value>Average</value>
+  </data>
+  <data name="PerfMon_MinimumLabel" xml:space="preserve">
+    <value>Minimum</value>
+  </data>
+  <data name="PerfMon_MaximumLabel" xml:space="preserve">
+    <value>Maximum</value>
+  </data>
+  <data name="PerfMon_DurationLabel" xml:space="preserve">
+    <value>Duration</value>
+  </data>
+  <data name="PerfMon_CurrentLabel" xml:space="preserve">
+    <value>Current</value>
+  </data>
+  <data name="PerfMon_MonitoringDurationLabel" xml:space="preserve">
+    <value>Monitoring Duration</value>
+  </data>
+  <data name="PerfMon_ActiveCountersLabel" xml:space="preserve">
+    <value>Active Counters</value>
+  </data>
+  <data name="PerfMon_DataPointsLabel" xml:space="preserve">
+    <value>Data Points</value>
+  </data>
+  <data name="PerfMon_CounterStatisticsLabel" xml:space="preserve">
+    <value>Counter Statistics</value>
+  </data>
+  <data name="PerfMon_NoDataToReport" xml:space="preserve">
+    <value>No data to show yet</value>
+  </data>
+  <data name="PerfMon_AddCountersToGenerateReport" xml:space="preserve">
+    <value>Add performance counters to generate a report</value>
+  </data>
+  <data name="PerfMon_NoCountersAdded" xml:space="preserve">
+    <value>Ready to check your system's health?</value>
+  </data>
+  <data name="PerfMon_ClickAddToStartMonitoring" xml:space="preserve">
+    <value>Click Add to start monitoring performance counters</value>
+  </data>
+  <data name="PerfMon_QuickCountersHeader" xml:space="preserve">
+    <value>Quick counters</value>
+  </data>
+  <data name="PerfMon_MonitorListHeader" xml:space="preserve">
+    <value>Monitor list</value>
+  </data>
+  <data name="PerfMon_AddCountersTitle" xml:space="preserve">
+    <value>Add Counters</value>
+  </data>
+  <data name="PerfMon_CounterPropertiesTitle" xml:space="preserve">
+    <value>Counter Properties</value>
+  </data>
+  <data name="PerfMon_CounterUnavailableTitle" xml:space="preserve">
+    <value>Unable to add counter</value>
+  </data>
+  <data name="PerfMon_CounterUnavailableMessage" xml:space="preserve">
+    <value>Windows could not open the selected counter. This usually means its provider is registered, but no active instance or data source is currently available on this computer. It can also occur when access to the counter is unavailable.&#x0A;&#x0A;Counter(s):&#x0A;{0}</value>
+  </data>
+  
+  <data name="PerfMon_UpdateInterval" xml:space="preserve">
+    <value>Update interval</value>
+  </data>
+  <data name="PerfMon_OneSecond" xml:space="preserve">
+    <value>1 second</value>
+  </data>
+  <data name="PerfMon_TwoSeconds" xml:space="preserve">
+    <value>2 seconds</value>
+  </data>
+  <data name="PerfMon_FiveSeconds" xml:space="preserve">
+    <value>5 seconds</value>
+  </data>
+  <data name="PerfMon_TenSeconds" xml:space="preserve">
+    <value>10 seconds</value>
+  </data>
+  <data name="PerfMon_YAxisTopLabel" xml:space="preserve">
+    <value>100</value>
+  </data>
+  <data name="PerfMon_YAxisMidLabel" xml:space="preserve">
+    <value>50</value>
+  </data>
+  <data name="PerfMon_YAxisBottomLabel" xml:space="preserve">
+    <value>0</value>
+  </data>
+
+  <data name="PerfMon_SearchCounters" xml:space="preserve">
+    <value>Search counters</value>
+  </data>
+  <data name="PerfMon_CommonCountersDescription" xml:space="preserve">
+    <value>Common performance counters - click to add</value>
+  </data>
+  <data name="PerfMon_SelectCategoryLabel" xml:space="preserve">
+    <value>Select category:</value>
+  </data>
+  <data name="PerfMon_Pause" xml:space="preserve">
+    <value>Pause</value>
+  </data>
+  <data name="PerfMon_Resume" xml:space="preserve">
+    <value>Resume</value>
+  </data>
+</root>

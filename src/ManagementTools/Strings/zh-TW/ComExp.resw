@@ -1,0 +1,378 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  
+  <!-- Page Title -->
+  <data name="ComExp_PageTitle" xml:space="preserve">
+    <value>元件服務</value>
+  </data>
+  <data name="ComExp_CurrentPC" xml:space="preserve">
+    <value>目前電腦: {0} (本機)</value>
+  </data>
+  <data name="ComExp_OpenLegacy" xml:space="preserve">
+    <value>開啟舊版元件服務 (comexp.msc)</value>
+  </data>
+
+  <!-- Sections -->
+  <data name="ComExp_ComPlusDcom" xml:space="preserve">
+    <value>COM+ 與 DCOM</value>
+  </data>
+  <data name="ComExp_DistributedTransactionCoordinator" xml:space="preserve">
+    <value>分散式交易協調器</value>
+  </data>
+
+  <!-- COM+ Applications -->
+  <data name="ComExp_ComPlusApplications" xml:space="preserve">
+    <value>COM+ 應用程式</value>
+  </data>
+  <data name="ComExp_ComPlusApplications_Description" xml:space="preserve">
+    <value>管理 COM+ 應用程式及其元件</value>
+  </data>
+  <data name="ComExp_Application_Name" xml:space="preserve">
+    <value>名稱</value>
+  </data>
+  <data name="ComExp_Application_Id" xml:space="preserve">
+    <value>應用程式識別碼</value>
+  </data>
+  <data name="ComExp_Application_Description" xml:space="preserve">
+    <value>描述</value>
+  </data>
+  <data name="ComExp_Application_Activation" xml:space="preserve">
+    <value>啟用</value>
+  </data>
+  <data name="ComExp_Application_AuthenticationLevel" xml:space="preserve">
+    <value>驗證層級</value>
+  </data>
+
+  <!-- Activation Types -->
+  <data name="ComExp_Activation_Library" xml:space="preserve">
+    <value>程式庫</value>
+  </data>
+  <data name="ComExp_Activation_Server" xml:space="preserve">
+    <value>伺服器</value>
+  </data>
+
+  <!-- Authentication Levels -->
+  <data name="ComExp_Auth_None" xml:space="preserve">
+    <value>無</value>
+  </data>
+  <data name="ComExp_Auth_Connect" xml:space="preserve">
+    <value>連線</value>
+  </data>
+  <data name="ComExp_Auth_Call" xml:space="preserve">
+    <value>呼叫</value>
+  </data>
+  <data name="ComExp_Auth_Packet" xml:space="preserve">
+    <value>封包</value>
+  </data>
+  <data name="ComExp_Auth_PacketIntegrity" xml:space="preserve">
+    <value>封包完整性</value>
+  </data>
+  <data name="ComExp_Auth_PacketPrivacy" xml:space="preserve">
+    <value>封包隱私權</value>
+  </data>
+
+  <!-- DCOM Config -->
+  <data name="ComExp_DcomConfig" xml:space="preserve">
+    <value>DCOM 設定</value>
+  </data>
+  <data name="ComExp_DcomConfig_Description" xml:space="preserve">
+    <value>設定 DCOM 應用程式與安全性設定</value>
+  </data>
+  <data name="ComExp_Dcom_AppId" xml:space="preserve">
+    <value>應用程式識別碼</value>
+  </data>
+  <data name="ComExp_Dcom_LocalService" xml:space="preserve">
+    <value>本機服務</value>
+  </data>
+  <data name="ComExp_Dcom_RunAs" xml:space="preserve">
+    <value>執行身分</value>
+  </data>
+
+  <!-- Running Processes -->
+  <data name="ComExp_RunningProcesses" xml:space="preserve">
+    <value>執行中的處理程序</value>
+  </data>
+  <data name="ComExp_RunningProcesses_Description" xml:space="preserve">
+    <value>檢視目前執行中的 COM+ 應用程式</value>
+  </data>
+  <data name="ComExp_Process_Id" xml:space="preserve">
+    <value>處理程序識別碼</value>
+  </data>
+  <data name="ComExp_Process_Name" xml:space="preserve">
+    <value>名稱</value>
+  </data>
+  <data name="ComExp_Process_Description" xml:space="preserve">
+    <value>描述</value>
+  </data>
+  <data name="ComExp_Process_FilePath" xml:space="preserve">
+    <value>檔案路徑</value>
+  </data>
+  <data name="ComExp_Process_StartTime" xml:space="preserve">
+    <value>啟動時間</value>
+  </data>
+  <data name="ComExp_Process_Executable" xml:space="preserve">
+    <value>可執行檔</value>
+  </data>
+  <data name="ComExp_Process_IsPaused" xml:space="preserve">
+    <value>已暫停</value>
+  </data>
+  <data name="ComExp_Process_IsRecycling" xml:space="preserve">
+    <value>回收中</value>
+  </data>
+  <data name="ComExp_Process_IsNTService" xml:space="preserve">
+    <value>NT 服務</value>
+  </data>
+
+  <!-- DTC -->
+  <data name="ComExp_LocalDtc" xml:space="preserve">
+    <value>本機 DTC</value>
+  </data>
+  <data name="ComExp_Dtc_TransactionList" xml:space="preserve">
+    <value>交易清單</value>
+  </data>
+  <data name="ComExp_Dtc_TransactionStatistics" xml:space="preserve">
+    <value>交易統計資料</value>
+  </data>
+  <data name="ComExp_Dtc_Status" xml:space="preserve">
+    <value>狀態</value>
+  </data>
+  <data name="ComExp_Dtc_ProcessId" xml:space="preserve">
+    <value>處理程序識別碼</value>
+  </data>
+  <data name="ComExp_Dtc_StartTime" xml:space="preserve">
+    <value>啟動時間</value>
+  </data>
+
+  <!-- DTC Transaction List -->
+  <data name="ComExp_Transaction_Status" xml:space="preserve">
+    <value>狀態</value>
+  </data>
+  <data name="ComExp_Transaction_UnitOfWorkId" xml:space="preserve">
+    <value>工作單位識別碼</value>
+  </data>
+
+  <!-- DTC Statistics -->
+  <data name="ComExp_Stats_Open" xml:space="preserve">
+    <value>開啟</value>
+  </data>
+  <data name="ComExp_Stats_OpenMax" xml:space="preserve">
+    <value>開啟 (最大值)</value>
+  </data>
+  <data name="ComExp_Stats_InDoubt" xml:space="preserve">
+    <value>不確定</value>
+  </data>
+  <data name="ComExp_Stats_Committed" xml:space="preserve">
+    <value>已認可</value>
+  </data>
+  <data name="ComExp_Stats_Aborted" xml:space="preserve">
+    <value>已中止</value>
+  </data>
+  <data name="ComExp_Stats_ForcedCommit" xml:space="preserve">
+    <value>強制認可</value>
+  </data>
+  <data name="ComExp_Stats_ForcedAbort" xml:space="preserve">
+    <value>強制中止</value>
+  </data>
+  <data name="ComExp_Stats_Heuristic" xml:space="preserve">
+    <value>啟發式</value>
+  </data>
+  <data name="ComExp_Stats_ResponseTimeMin" xml:space="preserve">
+    <value>回應時間 (最小值)</value>
+  </data>
+  <data name="ComExp_Stats_ResponseTimeAvg" xml:space="preserve">
+    <value>回應時間 (平均值)</value>
+  </data>
+  <data name="ComExp_Stats_ResponseTimeMax" xml:space="preserve">
+    <value>回應時間 (最大值)</value>
+  </data>
+
+  <!-- Status Messages -->
+  <data name="ComExp_Loading" xml:space="preserve">
+    <value>載入中...</value>
+  </data>
+  <data name="ComExp_LoadingApplications" xml:space="preserve">
+    <value>正在載入 COM+ 應用程式...</value>
+  </data>
+  <data name="ComExp_LoadingDcomApps" xml:space="preserve">
+    <value>正在載入 DCOM 應用程式...</value>
+  </data>
+  <data name="ComExp_LoadingProcesses" xml:space="preserve">
+    <value>正在載入 COM+ 執行中的處理程序...</value>
+  </data>
+  <data name="ComExp_LoadingStatistics" xml:space="preserve">
+    <value>正在載入 DTC 統計資料...</value>
+  </data>
+  <data name="ComExp_LoadedSuccess" xml:space="preserve">
+    <value>載入成功。</value>
+  </data>
+  <data name="ComExp_LoadedCount" xml:space="preserve">
+    <value>已載入 {0} 個項目。</value>
+  </data>
+  <data name="ComExp_LoadFailed" xml:space="preserve">
+    <value>載入失敗: {0}</value>
+  </data>
+  <data name="ComExp_NoDataAvailable" xml:space="preserve">
+    <value>沒有可用的資料</value>
+  </data>
+
+  <!-- Actions -->
+  <data name="ComExp_ViewButton" xml:space="preserve">
+    <value>檢視</value>
+  </data>
+  <data name="ComExp_PropertiesButton" xml:space="preserve">
+    <value>內容</value>
+  </data>
+  <data name="ComExp_RefreshButton" xml:space="preserve">
+    <value>重新整理</value>
+  </data>
+  
+  <!-- Common Values -->
+  <data name="ComExp_Yes" xml:space="preserve">
+    <value>是</value>
+  </data>
+  <data name="ComExp_No" xml:space="preserve">
+    <value>否</value>
+  </data>
+
+  <!-- Navigation Breadcrumbs -->
+  <data name="ComExp_Breadcrumb_DcomConfig" xml:space="preserve">
+    <value>DCOM 設定</value>
+  </data>
+  <data name="ComExp_Breadcrumb_RunningProcesses" xml:space="preserve">
+    <value>執行中的處理程序</value>
+  </data>
+  <data name="ComExp_Breadcrumb_TransactionList" xml:space="preserve">
+    <value>交易清單</value>
+  </data>
+  <data name="ComExp_Breadcrumb_TransactionStatistics" xml:space="preserve">
+    <value>交易統計資料</value>
+  </data>
+
+  <!-- Application Details Dialog -->
+  <data name="ComExp_Dialog_ApplicationDetails" xml:space="preserve">
+    <value>COM+ 應用程式詳細資料</value>
+  </data>
+  <data name="ComExp_Dialog_Close" xml:space="preserve">
+    <value>關閉</value>
+  </data>
+  <data name="ComExp_Dialog_Name" xml:space="preserve">
+    <value>名稱</value>
+  </data>
+  <data name="ComExp_Dialog_ID" xml:space="preserve">
+    <value>識別碼</value>
+  </data>
+  <data name="ComExp_Dialog_Description" xml:space="preserve">
+    <value>描述</value>
+  </data>
+  <data name="ComExp_Dialog_Activation" xml:space="preserve">
+    <value>啟用</value>
+  </data>
+  <data name="ComExp_Dialog_Authentication" xml:space="preserve">
+    <value>驗證</value>
+  </data>
+  <data name="ComExp_Dialog_AccessChecks" xml:space="preserve">
+    <value>存取檢查</value>
+  </data>
+  <data name="ComExp_Dialog_Identity" xml:space="preserve">
+    <value>身分識別</value>
+  </data>
+  <data name="ComExp_Dialog_NotSet" xml:space="preserve">
+    <value>(未設定)</value>
+  </data>
+
+  <!-- Application Count -->
+  <data name="ComExp_ApplicationsCount" xml:space="preserve">
+    <value>{0} 個應用程式</value>
+  </data>
+
+  <!-- DTC Statistics Sections -->
+  <data name="ComExp_Stats_Current" xml:space="preserve">
+    <value>目前</value>
+  </data>
+  <data name="ComExp_Stats_Aggregate" xml:space="preserve">
+    <value>彙總</value>
+  </data>
+  <data name="ComExp_Stats_Total" xml:space="preserve">
+    <value>總計</value>
+  </data>
+  <data name="ComExp_Stats_ResponseTimes" xml:space="preserve">
+    <value>回應時間 (毫秒)</value>
+  </data>
+
+  <!-- Format Strings -->
+  <data name="ComExp_Format_NoId" xml:space="preserve">
+    <value>(無識別碼)</value>
+  </data>
+  <data name="ComExp_Format_Unknown" xml:space="preserve">
+    <value>未知</value>
+  </data>
+  <data name="ComExp_Format_Default" xml:space="preserve">
+    <value>預設</value>
+  </data>
+
+  <!-- DCOM Properties -->
+  <data name="ComExp_Dcom_DllSurrogate" xml:space="preserve">
+    <value>DLL 代理</value>
+  </data>
+  <data name="ComExp_Dcom_ServiceParameters" xml:space="preserve">
+    <value>服務參數</value>
+  </data>
+</root>
