@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using ManagementTools.Core.Features.PrintManagement.Models.PrintManagement;
+using ManagementTools.Core.Features.PrintManagement.Services.PrintManagement.Native;
 using Microsoft.Extensions.Logging;
 
 namespace ManagementTools.Core.Features.PrintManagement.Services.PrintManagement.Providers;
@@ -24,8 +25,16 @@ internal class DeployedPrinterProvider
     {
         var printers = new Dictionary<string, PrinterInfo>(StringComparer.OrdinalIgnoreCase);
 
-        // Get deployed printers from Active Directory
-        GetDeployedPrintersFromAD(printers);
+        // Querying LDAP is useful only for domain-joined PCs and can delay loading
+        // considerably when a workgroup PC cannot locate Active Directory.
+        if (!DomainJoinNativeMethods.TryGetIsJoinedToDomain(out bool isJoinedToDomain) || isJoinedToDomain)
+        {
+            GetDeployedPrintersFromAD(printers);
+        }
+        else
+        {
+            _logger.LogDebug("Skipping Active Directory deployed-printer lookup because this computer is not domain joined.");
+        }
 
         // Supplement with local registry checks
         SupplementWithLocalDeployedPrinters(printers);

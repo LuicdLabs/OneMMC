@@ -62,6 +62,7 @@ LsaQueryInformationPolicy
 LsaRemoveAccountRights
 LsaSetInformationPolicy
 NetApiBufferFree
+NetGetJoinInformation
 NetUserGetInfo
 NetUserModalsGet
 NetUserModalsSet
