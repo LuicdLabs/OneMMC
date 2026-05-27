@@ -58,6 +58,9 @@
   <data name="Certificates_PropertiesCommand" xml:space="preserve">
     <value>Properties</value>
   </data>
+  <data name="Certificates_PropertiesTitleFormat" xml:space="preserve">
+    <value>{0} Properties</value>
+  </data>
   <data name="Certificates_MoreButton" xml:space="preserve">
     <value>More</value>
   </data>

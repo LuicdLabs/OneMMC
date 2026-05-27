@@ -3,6 +3,7 @@ using System.Runtime.InteropServices;
 using System.Security.Cryptography.X509Certificates;
 using ManagementTools.Core.Features.Certificates.Interop;
 using ManagementTools.Core.Features.Certificates.Models;
+using ManagementTools.Core.Localization;
 using Microsoft.Extensions.Logging;
 using Windows.Win32.Security.Cryptography;
 using Win32PInvoke = Windows.Win32.PInvoke;
@@ -19,7 +20,6 @@ public sealed unsafe class CertificateNativeUiService
     private const uint CertStoreCtlContext = 3;
 
     private const uint CryptUiDisableEditProperties = 0x00000004;
-    private const uint CryptUiEnableEditProperties = 0x00000008;
 
     private const uint CryptUiWizImportNoChangeDestStore = 0x00010000;
     private const uint CryptUiWizImportAllowCert = 0x00020000;
@@ -37,6 +37,7 @@ public sealed unsafe class CertificateNativeUiService
 
     private readonly CertificateStoreService _certificateStoreService;
     private readonly ILogger<CertificateNativeUiService> _logger;
+    private readonly string _propertiesTitleFormat;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CertificateNativeUiService"/> class.
@@ -49,6 +50,9 @@ public sealed unsafe class CertificateNativeUiService
     {
         _certificateStoreService = certificateStoreService;
         _logger = logger;
+        _propertiesTitleFormat = LocalizationProvider.Current.GetString(
+            ResourceFileNames.Certificates,
+            CertificateKeys.PropertiesTitleFormat);
     }
 
     /// <summary>
@@ -65,7 +69,9 @@ public sealed unsafe class CertificateNativeUiService
 
         return entry.Kind switch
         {
-            CertificateEntryKind.Certificate => OpenCertificate(entry, ownerWindowHandle, openProperties, allowEditProperties),
+            CertificateEntryKind.Certificate => openProperties
+                ? OpenCertificateProperties(entry, ownerWindowHandle, allowEditProperties)
+                : OpenCertificate(entry, ownerWindowHandle),
             CertificateEntryKind.CertificateRevocationList => OpenCrl(entry, ownerWindowHandle),
             CertificateEntryKind.CertificateTrustList => OpenCtl(entry, ownerWindowHandle),
             _ => false
@@ -146,7 +152,7 @@ public sealed unsafe class CertificateNativeUiService
         };
     }
 
-    private bool OpenCertificate(CertificateEntry entry, nint ownerWindowHandle, bool openProperties, bool allowEditProperties)
+    private bool OpenCertificate(CertificateEntry entry, nint ownerWindowHandle)
     {
         CERT_CONTEXT* certificateContext = _certificateStoreService.DuplicateCertificateContext(entry);
 
@@ -156,9 +162,7 @@ public sealed unsafe class CertificateNativeUiService
             {
                 dwSize = (uint)Marshal.SizeOf<CryptUiNativeMethods.CRYPTUI_VIEWCERTIFICATE_STRUCTW>(),
                 hwndParent = ownerWindowHandle,
-                dwFlags = openProperties && allowEditProperties
-                    ? CryptUiEnableEditProperties
-                    : CryptUiDisableEditProperties,
+                dwFlags = CryptUiDisableEditProperties,
                 pCertContext = certificateContext
             };
 
@@ -168,6 +172,45 @@ public sealed unsafe class CertificateNativeUiService
             }
 
             return propertiesChanged;
+        }
+        finally
+        {
+            Win32PInvoke.CertFreeCertificateContext(certificateContext);
+        }
+    }
+
+    private bool OpenCertificateProperties(CertificateEntry entry, nint ownerWindowHandle, bool allowEditProperties)
+    {
+        using var store = _certificateStoreService.OpenStore(
+            entry.StoreLocation,
+            entry.StoreName,
+            writable: allowEditProperties);
+        CERT_CONTEXT* certificateContext = _certificateStoreService.DuplicateCertificateContext(entry, store);
+
+        try
+        {
+            HCERTSTORE storeHandle = (HCERTSTORE)store.StoreHandle;
+            string title = string.Format(_propertiesTitleFormat, entry.DisplayName);
+
+            fixed (char* titlePointer = title)
+            {
+                var viewInfo = new CryptUiNativeMethods.CRYPTUI_VIEWCERTIFICATE_PROPERTIES_STRUCTW
+                {
+                    dwSize = (uint)Marshal.SizeOf<CryptUiNativeMethods.CRYPTUI_VIEWCERTIFICATE_PROPERTIES_STRUCTW>(),
+                    hwndParent = ownerWindowHandle,
+                    szTitle = titlePointer,
+                    pCertContext = certificateContext,
+                    cStores = 1,
+                    rghStores = &storeHandle
+                };
+
+                if (!CryptUiNativeMethods.CryptUIDlgViewCertificatePropertiesW(&viewInfo, out bool propertiesChanged))
+                {
+                    return HandleDialogResult("view certificate properties", entry.DisplayName);
+                }
+
+                return propertiesChanged;
+            }
         }
         finally
         {

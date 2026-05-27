@@ -135,6 +135,17 @@ public sealed unsafe class CertificateStoreService
     internal CERT_CONTEXT* DuplicateCertificateContext(CertificateEntry entry)
     {
         using var store = OpenStore(entry.StoreLocation, entry.StoreName, writable: false);
+        return DuplicateCertificateContext(entry, store);
+    }
+
+    /// <summary>
+    /// Resolves and duplicates a certificate context while the caller retains the source store lifetime.
+    /// </summary>
+    /// <param name="entry">The certificate entry to resolve.</param>
+    /// <param name="store">The opened source store to use for resolving the context.</param>
+    /// <returns>A duplicated native certificate context. The caller must free it.</returns>
+    internal CERT_CONTEXT* DuplicateCertificateContext(CertificateEntry entry, X509Store store)
+    {
         var handle = (HCERTSTORE)store.StoreHandle;
         CERT_CONTEXT* current = null;
 
@@ -164,6 +175,17 @@ public sealed unsafe class CertificateStoreService
     internal CRL_CONTEXT* DuplicateCrlContext(CertificateEntry entry)
     {
         using var store = OpenStore(entry.StoreLocation, entry.StoreName, writable: false);
+        return DuplicateCrlContext(entry, store);
+    }
+
+    /// <summary>
+    /// Resolves and duplicates a CRL context while the caller retains the source store lifetime.
+    /// </summary>
+    /// <param name="entry">The CRL entry to resolve.</param>
+    /// <param name="store">The opened source store to use for resolving the context.</param>
+    /// <returns>A duplicated native CRL context. The caller must free it.</returns>
+    internal CRL_CONTEXT* DuplicateCrlContext(CertificateEntry entry, X509Store store)
+    {
         var handle = (HCERTSTORE)store.StoreHandle;
         CRL_CONTEXT* current = null;
 
@@ -193,6 +215,17 @@ public sealed unsafe class CertificateStoreService
     internal CTL_CONTEXT* DuplicateCtlContext(CertificateEntry entry)
     {
         using var store = OpenStore(entry.StoreLocation, entry.StoreName, writable: false);
+        return DuplicateCtlContext(entry, store);
+    }
+
+    /// <summary>
+    /// Resolves and duplicates a CTL context while the caller retains the source store lifetime.
+    /// </summary>
+    /// <param name="entry">The CTL entry to resolve.</param>
+    /// <param name="store">The opened source store to use for resolving the context.</param>
+    /// <returns>A duplicated native CTL context. The caller must free it.</returns>
+    internal CTL_CONTEXT* DuplicateCtlContext(CertificateEntry entry, X509Store store)
+    {
         var handle = (HCERTSTORE)store.StoreHandle;
         CTL_CONTEXT* current = null;
 
@@ -411,11 +444,11 @@ public sealed unsafe class CertificateStoreService
         {
             case CertificateEntryKind.Certificate:
             {
-                CERT_CONTEXT* certificateContext = DuplicateCertificateContext(entry);
+                using var store = OpenStore(entry.StoreLocation, entry.StoreName, writable: true);
+                CERT_CONTEXT* certificateContext = DuplicateCertificateContext(entry, store);
                 if (!Win32PInvoke.CertDeleteCertificateFromStore(certificateContext))
                 {
                     int error = Marshal.GetLastWin32Error();
-                    Win32PInvoke.CertFreeCertificateContext(certificateContext);
                     throw new Win32Exception(error, _operationFailedMessage);
                 }
 
@@ -424,11 +457,11 @@ public sealed unsafe class CertificateStoreService
 
             case CertificateEntryKind.CertificateRevocationList:
             {
-                CRL_CONTEXT* crlContext = DuplicateCrlContext(entry);
+                using var store = OpenStore(entry.StoreLocation, entry.StoreName, writable: true);
+                CRL_CONTEXT* crlContext = DuplicateCrlContext(entry, store);
                 if (!Win32PInvoke.CertDeleteCRLFromStore(crlContext))
                 {
                     int error = Marshal.GetLastWin32Error();
-                    Win32PInvoke.CertFreeCRLContext(crlContext);
                     throw new Win32Exception(error, _operationFailedMessage);
                 }
 
@@ -437,11 +470,11 @@ public sealed unsafe class CertificateStoreService
 
             case CertificateEntryKind.CertificateTrustList:
             {
-                CTL_CONTEXT* ctlContext = DuplicateCtlContext(entry);
+                using var store = OpenStore(entry.StoreLocation, entry.StoreName, writable: true);
+                CTL_CONTEXT* ctlContext = DuplicateCtlContext(entry, store);
                 if (!Win32PInvoke.CertDeleteCTLFromStore(ctlContext))
                 {
                     int error = Marshal.GetLastWin32Error();
-                    Win32PInvoke.CertFreeCTLContext(ctlContext);
                     throw new Win32Exception(error, _operationFailedMessage);
                 }
 

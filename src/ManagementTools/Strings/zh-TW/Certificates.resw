@@ -58,6 +58,9 @@
   <data name="Certificates_PropertiesCommand" xml:space="preserve">
     <value>內容</value>
   </data>
+  <data name="Certificates_PropertiesTitleFormat" xml:space="preserve">
+    <value>{0} 內容</value>
+  </data>
   <data name="Certificates_MoreButton" xml:space="preserve">
     <value>更多</value>
   </data>

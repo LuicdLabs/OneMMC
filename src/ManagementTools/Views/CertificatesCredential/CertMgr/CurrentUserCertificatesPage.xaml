@@ -96,8 +96,6 @@
                             <controls:SettingsExpander.ItemTemplate>
                                 <DataTemplate x:DataType="certModels:CertificateDisplayRow">
                                     <controls:SettingsCard
-                                        Background="Transparent"
-                                        BorderThickness="0"
                                         DoubleTapped="EntryContainer_DoubleTapped"
                                         Padding="16,8"
                                         Tag="{x:Bind Entry}">

@@ -36,6 +36,7 @@ public static class CertificateKeys
     public const string ExportStoreCommand = "Certificates_ExportStoreCommand";
     public const string ExportItemCommand = "Certificates_ExportItemCommand";
     public const string PropertiesCommand = "Certificates_PropertiesCommand";
+    public const string PropertiesTitleFormat = "Certificates_PropertiesTitleFormat";
     public const string MoreButton = "Certificates_MoreButton";
     public const string SectionCertificates = "Certificates_SectionCertificates";
     public const string SectionCRLs = "Certificates_SectionCRLs";
