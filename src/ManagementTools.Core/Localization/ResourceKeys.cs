@@ -7,6 +7,7 @@ public static class ResourceFileNames
 {
     public const string Resources = "Resources";
     public const string Common = "Common";
+    public const string Certificates = "Certificates";
     public const string Navigation = "Navigation";
     public const string Settings = "Settings";
     public const string DeviceManager = "DeviceManager";
@@ -22,6 +23,36 @@ public static class ResourceFileNames
     public const string EventViewer = "EventViewer";
     public const string PrintManagement = "PrintManagement";
     public const string WF = "WF";
+}
+
+/// <summary>
+/// Resource key constants for certificate management pages.
+/// </summary>
+public static class CertificateKeys
+{
+    public const string LocalComputerScopeFormat = "Certificates_LocalComputerScopeFormat";
+    public const string CurrentUserScopeFormat = "Certificates_CurrentUserScopeFormat";
+    public const string ImportStoreCommand = "Certificates_ImportStoreCommand";
+    public const string ExportStoreCommand = "Certificates_ExportStoreCommand";
+    public const string ExportItemCommand = "Certificates_ExportItemCommand";
+    public const string PropertiesCommand = "Certificates_PropertiesCommand";
+    public const string MoreButton = "Certificates_MoreButton";
+    public const string SectionCertificates = "Certificates_SectionCertificates";
+    public const string SectionCRLs = "Certificates_SectionCRLs";
+    public const string SectionCTLs = "Certificates_SectionCTLs";
+    public const string EmptyCertificates = "Certificates_EmptyCertificates";
+    public const string EmptyCRLs = "Certificates_EmptyCRLs";
+    public const string EmptyCTLs = "Certificates_EmptyCTLs";
+    public const string CertificateIssuerFormat = "Certificates_CertificateIssuerFormat";
+    public const string CertificateValidityFormat = "Certificates_CertificateValidityFormat";
+    public const string ContextValidityFormat = "Certificates_ContextValidityFormat";
+    public const string CertificateSummaryFormat = "Certificates_CertificateSummaryFormat";
+    public const string CrlSummaryFormat = "Certificates_CrlSummaryFormat";
+    public const string CtlSummaryFormat = "Certificates_CtlSummaryFormat";
+    public const string ItemHashFormat = "Certificates_ItemHashFormat";
+    public const string NotAvailable = "Certificates_NotAvailable";
+    public const string DeleteConfirmTitle = "Certificates_DeleteConfirmTitle";
+    public const string DeleteConfirmMessage = "Certificates_DeleteConfirmMessage";
 }
 
 /// <summary>
