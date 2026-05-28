@@ -27,7 +27,12 @@ namespace ManagementTools.Views
             ViewModel = App.GetRequiredService<DeviceManagerViewModel>();
             this.InitializeComponent();
             this.Loaded += DeviceManagerPage_Loaded;
-            this.Unloaded += (_, _) => this.Loaded -= DeviceManagerPage_Loaded;
+            this.Unloaded += (_, _) =>
+            {
+                ViewModel.PropertyChanged -= ViewModel_PropertyChanged;
+                ViewModel.ClearCachedData();
+                this.Loaded -= DeviceManagerPage_Loaded;
+            };
         }
 
         private async void DeviceManagerPage_Loaded(object sender, RoutedEventArgs e)
@@ -64,14 +69,12 @@ namespace ManagementTools.Views
         {
             if (sender is CommunityToolkit.WinUI.Controls.SettingsCard card && card.Tag is DeviceInfo device)
             {
-                var navigationParameter = (ViewModel, device);
-
                 // Add breadcrumb and navigate to device details page
                 BreadcrumbNavigationService.AddBreadcrumb(
                     device.Name ?? LocalizedStrings.DeviceManager_Unknown,
                     typeof(DeviceDetailsPage),
-                    navigationParameter);
-                Frame.Navigate(typeof(DeviceDetailsPage), navigationParameter, new SlideNavigationTransitionInfo()
+                    device);
+                Frame.Navigate(typeof(DeviceDetailsPage), device, new SlideNavigationTransitionInfo()
                 {
 			        Effect = SlideNavigationTransitionEffect.FromRight
 		        });

@@ -18,6 +18,7 @@ public sealed partial class EventViewerPage : Page
     public LocalizedStrings LocalizedStrings { get; } = LocalizedStrings.Instance;
 
     private int _previousDetailTabIndex = 0;
+    private ScrollViewer? _eventsScrollViewer;
 
     public EventViewerPage()
     {
@@ -46,9 +47,23 @@ public sealed partial class EventViewerPage : Page
 
     private void EventViewerPage_Unloaded(object sender, RoutedEventArgs e)
     {
+        if (_eventsScrollViewer is not null)
+        {
+            _eventsScrollViewer.ViewChanged -= ScrollViewer_ViewChanged;
+            _eventsScrollViewer = null;
+        }
+
+        DetailContentFrame.BackStack.Clear();
+        DetailContentFrame.ForwardStack.Clear();
+        DetailContentFrame.Content = null;
+        EventLogTreeView.RootNodes.Clear();
+        EventsListView.ItemsSource = null;
+        DataContext = null;
         ViewModel.AdminPermissionRequired -= OnAdminPermissionRequired;
         ViewModel.PropertyChanged -= ViewModel_PropertyChanged;
         ViewModel.Dispose();
+        Loaded -= EventViewerPage_Loaded;
+        Unloaded -= EventViewerPage_Unloaded;
     }
 
     // ========================================================================
@@ -125,6 +140,8 @@ public sealed partial class EventViewerPage : Page
         if (isXmlTab)
         {
             DetailContentFrame.Navigate(typeof(EventDetailsPage), null, transition);
+            DetailContentFrame.BackStack.Clear();
+            DetailContentFrame.ForwardStack.Clear();
             if (DetailContentFrame.Content is EventDetailsPage detailsPage)
             {
                 detailsPage.SelectedEvent = ViewModel.SelectedEvent;
@@ -134,6 +151,8 @@ public sealed partial class EventViewerPage : Page
         else
         {
             DetailContentFrame.Navigate(typeof(EventGeneralPage), null, transition);
+            DetailContentFrame.BackStack.Clear();
+            DetailContentFrame.ForwardStack.Clear();
             if (DetailContentFrame.Content is EventGeneralPage generalPage)
             {
                 generalPage.SelectedEvent = ViewModel.SelectedEvent;
@@ -296,8 +315,16 @@ public sealed partial class EventViewerPage : Page
         var scrollViewer = GetScrollViewer(EventsListView);
         if (scrollViewer != null)
         {
-            scrollViewer.ViewChanged -= ScrollViewer_ViewChanged;
-            scrollViewer.ViewChanged += ScrollViewer_ViewChanged;
+            if (!ReferenceEquals(_eventsScrollViewer, scrollViewer))
+            {
+                if (_eventsScrollViewer is not null)
+                {
+                    _eventsScrollViewer.ViewChanged -= ScrollViewer_ViewChanged;
+                }
+
+                _eventsScrollViewer = scrollViewer;
+                _eventsScrollViewer.ViewChanged += ScrollViewer_ViewChanged;
+            }
         }
     }
 

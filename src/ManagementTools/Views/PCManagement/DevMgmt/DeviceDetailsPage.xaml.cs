@@ -23,9 +23,9 @@ namespace ManagementTools.Views
         {
             base.OnNavigatedTo(e);
 
-            if (e.Parameter is (DeviceManagerViewModel viewModel, DeviceInfo device))
+            if (e.Parameter is DeviceInfo device)
             {
-                ViewModel = viewModel;
+                ViewModel = App.GetRequiredService<DeviceManagerViewModel>();
                 _device = device;
                 ViewModel.SelectedDevice = device;
 

@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using ManagementTools.Core.Features.SystemManagement.Interop.WF;
 using ManagementTools.Core.Features.SystemManagement.Infrastructure.WF;
 using ManagementTools.Core.Features.SystemManagement.Models.WF.ConnectionSecurity;
@@ -52,15 +51,12 @@ internal static class RuleApplier
 
     internal static void ApplyAddressFilter(CimSession session, CimInstance ruleInstance, ConnectionSecurityRuleModel rule)
     {
-        CimInstance filter = session.EnumerateAssociatedInstances(
-                WindowsFirewallSupport.StandardCimNamespace,
-                ruleInstance,
-                "MSFT_NetConSecRuleFilterByAddress",
-                "MSFT_NetAddressFilter",
-                null,
-                null)
-            .FirstOrDefault()
-            ?? throw new InvalidOperationException("The connection security rule address filter could not be found.");
+        using CimInstance filter = GetRequiredAssociatedInstance(
+            session,
+            ruleInstance,
+            "MSFT_NetConSecRuleFilterByAddress",
+            "MSFT_NetAddressFilter",
+            "The connection security rule address filter could not be found.");
 
         filter.CimInstanceProperties["LocalAddress"].Value = ValueHelper.BuildAddressArray(rule.Endpoint1Expression);
         filter.CimInstanceProperties["RemoteAddress"].Value = ValueHelper.BuildAddressArray(rule.Endpoint2Expression);
@@ -69,15 +65,12 @@ internal static class RuleApplier
 
     internal static void ApplyProtocolFilter(CimSession session, CimInstance ruleInstance, ConnectionSecurityRuleModel rule)
     {
-        CimInstance filter = session.EnumerateAssociatedInstances(
-                WindowsFirewallSupport.StandardCimNamespace,
-                ruleInstance,
-                "MSFT_NetConSecRuleFilterByProtocolPort",
-                "MSFT_NetProtocolPortFilter",
-                null,
-                null)
-            .FirstOrDefault()
-            ?? throw new InvalidOperationException("The connection security rule protocol/port filter could not be found.");
+        using CimInstance filter = GetRequiredAssociatedInstance(
+            session,
+            ruleInstance,
+            "MSFT_NetConSecRuleFilterByProtocolPort",
+            "MSFT_NetProtocolPortFilter",
+            "The connection security rule protocol/port filter could not be found.");
 
         filter.CimInstanceProperties["Protocol"].Value = ValueHelper.ResolveProtocolValue(rule.Protocol);
         filter.CimInstanceProperties["LocalPort"].Value = ValueHelper.SupportsPorts(rule.Protocol)
@@ -92,17 +85,35 @@ internal static class RuleApplier
 
     internal static void ApplyInterfaceTypeFilter(CimSession session, CimInstance ruleInstance, ConnectionSecurityRuleModel rule)
     {
-        CimInstance filter = session.EnumerateAssociatedInstances(
-                WindowsFirewallSupport.StandardCimNamespace,
-                ruleInstance,
-                "MSFT_NetConSecRuleFilterByInterfaceType",
-                "MSFT_NetInterfaceTypeFilter",
-                null,
-                null)
-            .FirstOrDefault()
-            ?? throw new InvalidOperationException("The connection security rule interface type filter could not be found.");
+        using CimInstance filter = GetRequiredAssociatedInstance(
+            session,
+            ruleInstance,
+            "MSFT_NetConSecRuleFilterByInterfaceType",
+            "MSFT_NetInterfaceTypeFilter",
+            "The connection security rule interface type filter could not be found.");
 
         filter.CimInstanceProperties["InterfaceType"].Value = ValueHelper.ResolveInterfaceTypeValue(rule.InterfaceTypes);
         session.ModifyInstance(WindowsFirewallSupport.StandardCimNamespace, filter);
+    }
+
+    private static CimInstance GetRequiredAssociatedInstance(
+        CimSession session,
+        CimInstance ruleInstance,
+        string associationClassName,
+        string resultClassName,
+        string errorMessage)
+    {
+        foreach (CimInstance filter in session.EnumerateAssociatedInstances(
+                     WindowsFirewallSupport.StandardCimNamespace,
+                     ruleInstance,
+                     associationClassName,
+                     resultClassName,
+                     null,
+                     null))
+        {
+            return filter;
+        }
+
+        throw new InvalidOperationException(errorMessage);
     }
 }

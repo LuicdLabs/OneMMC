@@ -47,6 +47,8 @@ public sealed partial class CurrentUserCertificatesPage : Page
     private void OnUnloaded(object sender, RoutedEventArgs e)
     {
         ViewModel.AdminPermissionRequired -= OnAdminPermissionRequired;
+        ViewModel.ClearCachedData();
+        Loaded -= OnLoaded;
         Unloaded -= OnUnloaded;
     }
 

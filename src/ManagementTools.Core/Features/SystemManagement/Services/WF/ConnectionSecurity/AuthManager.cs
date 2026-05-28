@@ -69,12 +69,20 @@ internal static class AuthManager
 
     internal static CimInstance? FindSetByCreationClass(CimSession session, string className, string creationClassName)
     {
-        return session.EnumerateInstances(WindowsFirewallSupport.StandardCimNamespace, className)
-            .FirstOrDefault(instance =>
-                string.Equals(
+        foreach (CimInstance instance in session.EnumerateInstances(WindowsFirewallSupport.StandardCimNamespace, className))
+        {
+            if (string.Equals(
                     instance.CimInstanceProperties["CreationClassName"]?.Value?.ToString(),
                     creationClassName,
-                    StringComparison.OrdinalIgnoreCase));
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                return instance;
+            }
+
+            instance.Dispose();
+        }
+
+        return null;
     }
 
     private static string ResolvePhaseAuthSetId(
@@ -116,7 +124,18 @@ internal static class AuthManager
 
         string setId = BuildManagedAuthSetId(ruleIdentity, phase1);
         string creationClassName = BuildManagedAuthSetCreationClassName(phase1, setId);
-        UpsertManagedAuthSet(session, phase1, setId, creationClassName, rule.Name, proposals);
+        try
+        {
+            UpsertManagedAuthSet(session, phase1, setId, creationClassName, rule.Name, proposals);
+        }
+        finally
+        {
+            foreach (CimInstance proposal in proposals)
+            {
+                proposal.Dispose();
+            }
+        }
+
         return setId;
     }
 
@@ -317,10 +336,10 @@ internal static class AuthManager
         string className = phase1 ? "MSFT_NetIKEP1AuthSet" : "MSFT_NetIKEP2AuthSet";
         string displayName = $"{ManagedAuthSetDisplayPrefix} - {ruleName} - {(phase1 ? "Phase 1" : "Phase 2")}";
 
-        CimInstance? existing = FindSetByCreationClass(session, className, creationClassName);
+        using CimInstance? existing = FindSetByCreationClass(session, className, creationClassName);
         if (existing is null)
         {
-            var instance = new CimInstance(className, WindowsFirewallSupport.StandardCimNamespace);
+            using var instance = new CimInstance(className, WindowsFirewallSupport.StandardCimNamespace);
             instance.CimInstanceProperties.Add(CimProperty.Create("CreationClassName", creationClassName, CimType.String, CimFlags.Key));
             instance.CimInstanceProperties.Add(CimProperty.Create("PolicyActionName", string.Empty, CimType.String, CimFlags.Key));
             instance.CimInstanceProperties.Add(CimProperty.Create("PolicyRuleCreationClassName", string.Empty, CimType.String, CimFlags.Key));
@@ -331,7 +350,7 @@ internal static class AuthManager
             instance.CimInstanceProperties.Add(CimProperty.Create("PolicyStoreSource", "PersistentStore", CimType.String, CimFlags.None));
             instance.CimInstanceProperties.Add(CimProperty.Create("PolicyStoreSourceType", (ushort)1, CimType.UInt16, CimFlags.None));
             instance.CimInstanceProperties.Add(CimProperty.Create("Proposals", proposals, CimType.InstanceArray, CimFlags.None));
-            session.CreateInstance(WindowsFirewallSupport.StandardCimNamespace, instance);
+            using CimInstance _ = session.CreateInstance(WindowsFirewallSupport.StandardCimNamespace, instance);
             return;
         }
 
@@ -346,7 +365,7 @@ internal static class AuthManager
         string creationClassName = BuildManagedAuthSetCreationClassName(phase1, setId);
         string className = phase1 ? "MSFT_NetIKEP1AuthSet" : "MSFT_NetIKEP2AuthSet";
 
-        CimInstance? existing = FindSetByCreationClass(session, className, creationClassName);
+        using CimInstance? existing = FindSetByCreationClass(session, className, creationClassName);
         if (existing is null)
         {
             return;

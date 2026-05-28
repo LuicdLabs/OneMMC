@@ -7,6 +7,7 @@ using System.Linq;
 using System.Management;
 using ManagementTools.Core.Features.PCManagement.Services.DiskMgmt.Common;
 using ManagementTools.Core.Features.PCManagement.Models.DiskMgmt;
+using ManagementTools.Core.Infrastructure.Wmi;
 
 namespace ManagementTools.Core.Features.PCManagement.Services.DiskMgmt
 {
@@ -36,7 +37,7 @@ namespace ManagementTools.Core.Features.PCManagement.Services.DiskMgmt
                 using var searcher = new ManagementObjectSearcher(
                     DiskManagementConstants.CimV2WmiScope, "SELECT * FROM Win32_DiskDrive");
 
-                foreach (ManagementObject disk in searcher.Get())
+                foreach (ManagementObject disk in searcher.GetAndDispose())
                 {
                     using (disk)
                     {
@@ -210,7 +211,7 @@ namespace ManagementTools.Core.Features.PCManagement.Services.DiskMgmt
                 using var searcher = new ManagementObjectSearcher(scope,
                     new ObjectQuery("SELECT * FROM MSFT_Disk"));
 
-                foreach (ManagementObject disk in searcher.Get())
+                foreach (ManagementObject disk in searcher.GetAndDispose())
                 {
                     using (disk)
                     {
@@ -282,7 +283,7 @@ namespace ManagementTools.Core.Features.PCManagement.Services.DiskMgmt
                 var query = new ObjectQuery($"SELECT * FROM MSFT_Partition WHERE DiskNumber = {diskIndex}");
                 using var searcher = new ManagementObjectSearcher(scope, query);
 
-                foreach (ManagementObject partition in searcher.Get())
+                foreach (ManagementObject partition in searcher.GetAndDispose())
                 {
                     using (partition)
                     {
@@ -358,7 +359,7 @@ namespace ManagementTools.Core.Features.PCManagement.Services.DiskMgmt
                     DiskManagementConstants.CimV2WmiScope,
                     $"SELECT * FROM Win32_DiskPartition WHERE DiskIndex = {diskIndex}");
 
-                foreach (ManagementObject partition in searcher.Get())
+                foreach (ManagementObject partition in searcher.GetAndDispose())
                 {
                     using (partition)
                     {
@@ -504,7 +505,7 @@ namespace ManagementTools.Core.Features.PCManagement.Services.DiskMgmt
                 {
                     using var searcher = new ManagementObjectSearcher(
                         DiskManagementConstants.CimV2WmiScope, "SELECT * FROM Win32_CDROMDrive");
-                    foreach (ManagementObject cdrom in searcher.Get())
+                    foreach (ManagementObject cdrom in searcher.GetAndDispose())
                     {
                         using (cdrom)
                         {
@@ -545,7 +546,7 @@ namespace ManagementTools.Core.Features.PCManagement.Services.DiskMgmt
                 using var searcher = new ManagementObjectSearcher(scope,
                     new ObjectQuery("SELECT * FROM MSFT_StoragePool WHERE IsPrimordial = FALSE"));
 
-                foreach (ManagementObject pool in searcher.Get())
+                foreach (ManagementObject pool in searcher.GetAndDispose())
                 {
                     using (pool)
                     {
@@ -583,7 +584,7 @@ namespace ManagementTools.Core.Features.PCManagement.Services.DiskMgmt
                     DiskManagementConstants.CimV2WmiScope,
                     "SELECT * FROM Win32_LogicalDiskToPartition");
 
-                foreach (ManagementObject assoc in assocSearcher.Get())
+                foreach (ManagementObject assoc in assocSearcher.GetAndDispose())
                 {
                     using (assoc)
                     {
@@ -676,7 +677,7 @@ namespace ManagementTools.Core.Features.PCManagement.Services.DiskMgmt
                     DiskManagementConstants.CimV2WmiScope,
                     $"SELECT Type FROM Win32_DiskPartition WHERE DiskIndex = {diskIndex}");
 
-                foreach (ManagementObject partition in partSearcher.Get())
+                foreach (ManagementObject partition in partSearcher.GetAndDispose())
                 {
                     using (partition)
                     {
@@ -692,7 +693,7 @@ namespace ManagementTools.Core.Features.PCManagement.Services.DiskMgmt
                     DiskManagementConstants.CimV2WmiScope,
                     $"SELECT Partitions FROM Win32_DiskDrive WHERE Index = {diskIndex}");
 
-                foreach (ManagementObject disk in diskSearcher.Get())
+                foreach (ManagementObject disk in diskSearcher.GetAndDispose())
                 {
                     using (disk)
                     {

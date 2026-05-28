@@ -47,6 +47,7 @@
 			TextTrimming="CharacterEllipsis"
 			TextWrapping="NoWrap" />
 		<NavigationView x:Name="NavigationViewControl"
+			AutomationProperties.AutomationId="MainNavigationView"
 			Grid.Row="0"
 			Grid.RowSpan="2"
 			Grid.Column="1"
@@ -90,37 +91,55 @@
                 <Thickness x:Key="BreadcrumbBarChevronPadding">12,0</Thickness>
             </NavigationView.Resources>
 			<NavigationView.MenuItems>
-				<NavigationViewItem Content="{x:Bind LocalizedStrings.Navigation_PC_Management}" Tag="PCManagement">
+				<NavigationViewItem
+					AutomationProperties.AutomationId="Nav_PCManagement"
+					Content="{x:Bind LocalizedStrings.Navigation_PC_Management}"
+					Tag="PCManagement">
 					<NavigationViewItem.Icon>
 						<FontIcon Glyph="&#xEBDE;" />
 					</NavigationViewItem.Icon>
 				</NavigationViewItem>
 
-				<NavigationViewItem Content="{x:Bind LocalizedStrings.Navigation_Policy_Policies}" Tag="PolicyPolicies">
+				<NavigationViewItem
+					AutomationProperties.AutomationId="Nav_PolicyPolicies"
+					Content="{x:Bind LocalizedStrings.Navigation_Policy_Policies}"
+					Tag="PolicyPolicies">
 					<NavigationViewItem.Icon>
 						<FontIcon Glyph="&#xEA18;" />
 					</NavigationViewItem.Icon>
 				</NavigationViewItem>
 
-				<NavigationViewItem Content="{x:Bind LocalizedStrings.Navigation_Certificates_Credential}" Tag="CertificatesCredential">
+				<NavigationViewItem
+					AutomationProperties.AutomationId="Nav_CertificatesCredential"
+					Content="{x:Bind LocalizedStrings.Navigation_Certificates_Credential}"
+					Tag="CertificatesCredential">
 					<NavigationViewItem.Icon>
 						<FontIcon Glyph="&#xEB95;" />
 					</NavigationViewItem.Icon>
 				</NavigationViewItem>
 
-				<NavigationViewItem Content="{x:Bind LocalizedStrings.Navigation_User_Security}" Tag="UserSecurity">
+				<NavigationViewItem
+					AutomationProperties.AutomationId="Nav_UserSecurity"
+					Content="{x:Bind LocalizedStrings.Navigation_User_Security}"
+					Tag="UserSecurity">
 					<NavigationViewItem.Icon>
 						<FontIcon Glyph="&#xE77B;" />
 					</NavigationViewItem.Icon>
 				</NavigationViewItem>
 
-				<NavigationViewItem Content="{x:Bind LocalizedStrings.Navigation_Print_Management}" Tag="PrintManagement">
+				<NavigationViewItem
+					AutomationProperties.AutomationId="Nav_PrintManagement"
+					Content="{x:Bind LocalizedStrings.Navigation_Print_Management}"
+					Tag="PrintManagement">
 					<NavigationViewItem.Icon>
 						<FontIcon Glyph="&#xE749;" />
 					</NavigationViewItem.Icon>
 				</NavigationViewItem>
 
-				<NavigationViewItem Content="{x:Bind LocalizedStrings.Navigation_System_Management}" Tag="SystemManagement">
+				<NavigationViewItem
+					AutomationProperties.AutomationId="Nav_SystemManagement"
+					Content="{x:Bind LocalizedStrings.Navigation_System_Management}"
+					Tag="SystemManagement">
 					<NavigationViewItem.Icon>
 						<FontIcon Glyph="&#xE770;" />
 					</NavigationViewItem.Icon>
@@ -128,6 +147,7 @@
 			</NavigationView.MenuItems>
 			<NavigationView.FooterMenuItems>
 				<NavigationViewItem x:Name="RunAsAdminItem"
+									AutomationProperties.AutomationId="Nav_RunAsAdmin"
 									Content="{x:Bind LocalizedStrings.Common_RunAsAdministrator}"
 									Tag="RunAsAdmin"
 									SelectsOnInvoked="False">
@@ -136,7 +156,12 @@
 					</NavigationViewItem.Icon>
 				</NavigationViewItem>
 			</NavigationView.FooterMenuItems>
-            <Frame x:Name="contentFrame" x:FieldModifier="public" HorizontalAlignment="Stretch" MaxWidth="1000" />
+            <Frame
+				x:Name="contentFrame"
+				x:FieldModifier="public"
+				AutomationProperties.AutomationId="MainContentFrame"
+				HorizontalAlignment="Stretch"
+				MaxWidth="1000" />
 		</NavigationView>
 	</Grid>
 </Window>

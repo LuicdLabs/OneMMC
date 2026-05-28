@@ -294,7 +294,7 @@ namespace ManagementTools.Core.Features.PCManagement.ViewModels.PerfMon
             FilteredCounters = new ObservableCollection<PerformanceCounterInfo>(Counters);
             
             // Subscribe to Counters collection change events to update filter results
-            Counters.CollectionChanged += (s, e) => FilterCounters();
+            Counters.CollectionChanged += OnCountersCollectionChanged;
         }
 
         // ====================================================================
@@ -710,9 +710,19 @@ namespace ManagementTools.Core.Features.PCManagement.ViewModels.PerfMon
             _updateTimer.Stop();
             _updateTimer.Dispose();
             _performanceService.DisposeAllCounters();
+            Counters.CollectionChanged -= OnCountersCollectionChanged;
+            Counters.Clear();
+            Categories.Clear();
+            AvailableCounters.Clear();
+            Instances.Clear();
+            SearchResults.Clear();
+            CommonCounters.Clear();
+            FilteredCounters.Clear();
             _disposed = true;
             GC.SuppressFinalize(this);
         }
+
+        private void OnCountersCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e) => FilterCounters();
     }
 }
 

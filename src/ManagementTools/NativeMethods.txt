@@ -1,2 +1,4 @@
 CoCreateInstance
 SetForegroundWindow
+GetCurrentProcess
+SetProcessWorkingSetSize

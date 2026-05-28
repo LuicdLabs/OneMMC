@@ -28,7 +28,10 @@ namespace ManagementTools.Services
         {
             if (_pageMap.TryGetValue(pageKey, out var pageType))
             {
-                _frame.Navigate(pageType);
+                if (_frame.Navigate(pageType))
+                {
+                    BreadcrumbNavigationService.TrimNavigationHistory();
+                }
             }
         }
 
@@ -39,5 +42,6 @@ namespace ManagementTools.Services
                 _frame.GoBack();
             }
         }
+
     }
 }

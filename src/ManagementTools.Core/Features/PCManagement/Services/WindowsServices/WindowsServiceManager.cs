@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.IO;
+using ManagementTools.Core.Infrastructure.Wmi;
 using Microsoft.Extensions.Logging;
 using Windows.Win32.Foundation;
 using Windows.Win32.Security;
@@ -75,17 +76,23 @@ namespace ManagementTools.Core.Features.PCManagement.Services.WindowsServices
                 var services = new List<ServiceInfo>();
                 var controllers = ServiceController.GetServices();
                 
-                var wmiData = new Dictionary<string, ManagementObject>();
+                var wmiData = new Dictionary<string, ServiceWmiData>();
                 try
                 {
                     using (var searcher = new ManagementObjectSearcher("SELECT Name, StartMode, DelayedAutoStart, StartName, PathName, Description, ProcessId FROM Win32_Service"))
                     {
-                        foreach (ManagementObject obj in searcher.Get())
+                        foreach (ManagementObject obj in searcher.GetAndDispose())
                         {
                             var name = obj["Name"]?.ToString();
                             if (!string.IsNullOrEmpty(name))
                             {
-                                wmiData[name] = obj;
+                                wmiData[name] = new ServiceWmiData(
+                                    obj["StartMode"]?.ToString(),
+                                    obj["DelayedAutoStart"] is not null && Convert.ToBoolean(obj["DelayedAutoStart"]),
+                                    obj["StartName"]?.ToString() ?? string.Empty,
+                                    obj["PathName"]?.ToString() ?? string.Empty,
+                                    obj["Description"]?.ToString() ?? string.Empty,
+                                    obj["ProcessId"] is not null ? Convert.ToInt32(obj["ProcessId"]) : null);
                             }
                         }
                     }
@@ -97,51 +104,54 @@ namespace ManagementTools.Core.Features.PCManagement.Services.WindowsServices
 
                 foreach (var controller in controllers)
                 {
-                    var info = new ServiceInfo
+                    using (controller)
                     {
-                        Name = controller.ServiceName,
-                        DisplayName = controller.DisplayName,
-                        Status = GetServiceStatus(controller),
-                        Dependencies = GetServiceDependencies(controller),
-                        Dependents = GetServiceDependents(controller)
-                    };
-
-                    if (wmiData.TryGetValue(controller.ServiceName, out var wmiObj))
-                    {
-                        info.Description = wmiObj["Description"]?.ToString() ?? string.Empty;
-                        string? startMode = wmiObj["StartMode"]?.ToString();
-                        if (startMode == "Auto")
+                        var info = new ServiceInfo
                         {
-                            if (wmiObj["DelayedAutoStart"] != null && Convert.ToBoolean(wmiObj["DelayedAutoStart"]))
+                            Name = controller.ServiceName,
+                            DisplayName = controller.DisplayName,
+                            Status = GetServiceStatus(controller),
+                            Dependencies = GetServiceDependencies(controller),
+                            Dependents = GetServiceDependents(controller)
+                        };
+
+                        if (wmiData.TryGetValue(controller.ServiceName, out var wmiObj))
+                        {
+                            info.Description = wmiObj.Description;
+                            string? startMode = wmiObj.StartMode;
+                            if (startMode == "Auto")
                             {
-                                info.StartupType = "Automatic (Delayed Start)";
+                                if (wmiObj.DelayedAutoStart)
+                                {
+                                    info.StartupType = "Automatic (Delayed Start)";
+                                }
+                                else
+                                {
+                                    info.StartupType = "Auto";
+                                }
+                            }
+                            else if (startMode == "Manual")
+                            {
+                                info.StartupType = "Manual";
+                            }
+                            else if (startMode == "Disabled")
+                            {
+                                info.StartupType = "Disabled";
                             }
                             else
                             {
-                                info.StartupType = "Auto";
+                                info.StartupType = startMode ?? string.Empty;
+                            }
+                            info.LogOnAs = wmiObj.StartName;
+                            info.BinaryPath = wmiObj.PathName;
+                            if (wmiObj.ProcessId is not null)
+                            {
+                                 info.ProcessId = wmiObj.ProcessId.Value;
                             }
                         }
-                        else if (startMode == "Manual")
-                        {
-                            info.StartupType = "Manual";
-                        }
-                        else if (startMode == "Disabled")
-                        {
-                            info.StartupType = "Disabled";
-                        }
-                        else
-                        {
-                            info.StartupType = startMode ?? string.Empty;
-                        }
-                        info.LogOnAs = wmiObj["StartName"]?.ToString() ?? string.Empty;
-                        info.BinaryPath = wmiObj["PathName"]?.ToString() ?? string.Empty;
-                        if (wmiObj["ProcessId"] != null)
-                        {
-                             info.ProcessId = Convert.ToInt32(wmiObj["ProcessId"]);
-                        }
-                    }
                     
-                    services.Add(info);
+                        services.Add(info);
+                    }
                 }
 
                 _logger.LogInformation("Service enumeration completed. Count={ServiceCount}", services.Count);
@@ -166,7 +176,18 @@ namespace ManagementTools.Core.Features.PCManagement.Services.WindowsServices
         {
             try
             {
-                return controller.ServicesDependedOn.Select(s => s.ServiceName).ToList();
+                ServiceController[] dependencies = controller.ServicesDependedOn;
+                try
+                {
+                    return dependencies.Select(s => s.ServiceName).ToList();
+                }
+                finally
+                {
+                    foreach (ServiceController dependency in dependencies)
+                    {
+                        dependency.Dispose();
+                    }
+                }
             }
             catch (Win32Exception ex)
             {
@@ -179,7 +200,18 @@ namespace ManagementTools.Core.Features.PCManagement.Services.WindowsServices
         {
             try
             {
-                return controller.DependentServices.Select(s => s.ServiceName).ToList();
+                ServiceController[] dependents = controller.DependentServices;
+                try
+                {
+                    return dependents.Select(s => s.ServiceName).ToList();
+                }
+                finally
+                {
+                    foreach (ServiceController dependent in dependents)
+                    {
+                        dependent.Dispose();
+                    }
+                }
             }
             catch (Win32Exception ex)
             {
@@ -297,7 +329,7 @@ namespace ManagementTools.Core.Features.PCManagement.Services.WindowsServices
             {
                 using (var searcher = new ManagementObjectSearcher($"SELECT * FROM Win32_Service WHERE Name = '{serviceName}'"))
                 {
-                    foreach (ManagementObject service in searcher.Get())
+                    foreach (ManagementObject service in searcher.GetAndDispose())
                     {
                         var parameters = service.GetMethodParameters("Change");
                         parameters["StartName"] = username;
@@ -516,5 +548,13 @@ namespace ManagementTools.Core.Features.PCManagement.Services.WindowsServices
                 default: return "none";
             }
         }
+
+        private sealed record ServiceWmiData(
+            string? StartMode,
+            bool DelayedAutoStart,
+            string StartName,
+            string PathName,
+            string Description,
+            int? ProcessId);
     }
 }

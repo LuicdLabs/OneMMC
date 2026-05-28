@@ -307,6 +307,17 @@ namespace ManagementTools.Core.Features.PCManagement.ViewModels.DevMgmt
             }
         }
 
+        public void ClearCachedData()
+        {
+            SelectedDevice = null;
+            SelectedCategory = null;
+            SelectedDeviceProperties = null;
+            _searchText = string.Empty;
+            OnPropertyChanged(nameof(SearchText));
+            DeviceCategories.Clear();
+            IsLoading = false;
+        }
+
         private void FilterDevices()
         {
             if (string.IsNullOrWhiteSpace(SearchText))

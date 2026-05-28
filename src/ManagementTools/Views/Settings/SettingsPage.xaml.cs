@@ -47,6 +47,7 @@ namespace ManagementTools.Views
         private void SettingsPage_Loaded(object sender, RoutedEventArgs e)
         {
             _viewModel.OnNavigateRequest = (index) => { /* Settings items don't navigate */ };
+            SettingsItems.Clear();
             
             // Handle localization at UI layer, convert data from ViewModel to UI's SettingItem
             foreach (var data in _viewModel.SettingsData)

@@ -88,9 +88,12 @@ internal static class RuleMapper
                      null,
                      null))
         {
-            model.Endpoint1Expression = ValueHelper.JoinArray(filter.CimInstanceProperties["LocalAddress"]?.Value, "Any");
-            model.Endpoint2Expression = ValueHelper.JoinArray(filter.CimInstanceProperties["RemoteAddress"]?.Value, "Any");
-            return;
+            using (filter)
+            {
+                model.Endpoint1Expression = ValueHelper.JoinArray(filter.CimInstanceProperties["LocalAddress"]?.Value, "Any");
+                model.Endpoint2Expression = ValueHelper.JoinArray(filter.CimInstanceProperties["RemoteAddress"]?.Value, "Any");
+                return;
+            }
         }
     }
 
@@ -104,10 +107,13 @@ internal static class RuleMapper
                      null,
                      null))
         {
-            model.Protocol = filter.CimInstanceProperties["Protocol"]?.Value?.ToString() ?? "Any";
-            model.LocalPort = ValueHelper.JoinArray(filter.CimInstanceProperties["LocalPort"]?.Value, "Any");
-            model.RemotePort = ValueHelper.JoinArray(filter.CimInstanceProperties["RemotePort"]?.Value, "Any");
-            return;
+            using (filter)
+            {
+                model.Protocol = filter.CimInstanceProperties["Protocol"]?.Value?.ToString() ?? "Any";
+                model.LocalPort = ValueHelper.JoinArray(filter.CimInstanceProperties["LocalPort"]?.Value, "Any");
+                model.RemotePort = ValueHelper.JoinArray(filter.CimInstanceProperties["RemotePort"]?.Value, "Any");
+                return;
+            }
         }
     }
 
@@ -121,8 +127,11 @@ internal static class RuleMapper
                      null,
                      null))
         {
-            model.InterfaceTypes = ValueHelper.ResolveInterfaceType(filter.CimInstanceProperties["InterfaceType"]?.Value);
-            return;
+            using (filter)
+            {
+                model.InterfaceTypes = ValueHelper.ResolveInterfaceType(filter.CimInstanceProperties["InterfaceType"]?.Value);
+                return;
+            }
         }
     }
 
@@ -140,7 +149,7 @@ internal static class RuleMapper
             return;
         }
 
-        CimInstance? authSet = FindAuthSetById(session, phase1, setId);
+        using CimInstance? authSet = FindAuthSetById(session, phase1, setId);
         if (authSet?.CimInstanceProperties["Proposals"]?.Value is not CimInstance[] proposals || proposals.Length == 0)
         {
             return;
@@ -200,6 +209,8 @@ internal static class RuleMapper
             {
                 return set;
             }
+
+            set.Dispose();
         }
 
         return null;

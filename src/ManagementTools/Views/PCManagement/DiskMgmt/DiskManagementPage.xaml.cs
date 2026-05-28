@@ -26,7 +26,12 @@ public sealed partial class DiskManagementPage : Page
         this.Loaded += DiskManagementPage_Loaded;
         this.RequestedTheme = App.CurrentTheme;
         App.ThemeChanged += OnThemeChanged;
-        this.Unloaded += (_, _) => App.ThemeChanged -= OnThemeChanged;
+        this.Unloaded += (_, _) =>
+        {
+            this.Loaded -= DiskManagementPage_Loaded;
+            App.ThemeChanged -= OnThemeChanged;
+            ViewModel.ClearCachedData();
+        };
     }
 
     private void OnThemeChanged(ElementTheme theme)

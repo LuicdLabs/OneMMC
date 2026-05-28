@@ -92,13 +92,15 @@ namespace ManagementTools.Services
         public static BreadcrumbBar? MainBreadcrumb { get; private set; }
         public static Frame? MainFrame { get; private set; }
         public static ObservableCollection<Breadcrumb> BreadCrumbs { get; private set; } = new ObservableCollection<Breadcrumb>();
+
+        private const int MaxNavigationHistoryEntries = 4;
         
         // Breadcrumb history stack for breadcrumb click navigation (separate from main nav history)
         private static Stack<List<Breadcrumb>> _breadcrumbClickHistory = new Stack<List<Breadcrumb>>();
-        
-        // Main navigation history stack for switching between main nav items
-        // Each entry contains: (breadcrumbs, associated click history, associated back stack source types)
-        private static Stack<(List<Breadcrumb> Breadcrumbs, Stack<List<Breadcrumb>> ClickHistory, Stack<bool> BackStackSourceTypes)> _mainNavHistory = 
+
+        // Main navigation history stack for switching between main nav items.
+        // Each entry contains: (breadcrumbs, associated click history, associated back stack source types).
+        private static Stack<(List<Breadcrumb> Breadcrumbs, Stack<List<Breadcrumb>> ClickHistory, Stack<bool> BackStackSourceTypes)> _mainNavHistory =
             new Stack<(List<Breadcrumb>, Stack<List<Breadcrumb>>, Stack<bool>)>();
         
         // Track whether each BackStack entry was created from breadcrumb click navigation
@@ -182,6 +184,7 @@ namespace ManagementTools.Services
             _breadcrumbClickHistory.Clear();
             _backStackSourceType.Clear();
             MainFrame?.BackStack.Clear();
+            MainFrame?.ForwardStack.Clear();
         }
 
         /// <summary>
@@ -197,11 +200,45 @@ namespace ManagementTools.Services
             UpdateBreadcrumb();
         }
 
-        /// <summary>
-        /// Clone a stack of breadcrumb lists
-        /// </summary>
-        private static Stack<List<Breadcrumb>> CloneBreadcrumbStack(Stack<List<Breadcrumb>> source) =>
-            new(source.Reverse().Select(list => list.ToList()));
+        private static List<Breadcrumb> ToLightweightBreadcrumbs(IEnumerable<Breadcrumb> breadcrumbs) =>
+            breadcrumbs.Select(crumb => crumb with { Parameter = null }).ToList();
+
+        private static Stack<List<Breadcrumb>> CloneLightweightBreadcrumbStack(Stack<List<Breadcrumb>> source) =>
+            new(source.Reverse().Select(ToLightweightBreadcrumbs));
+
+        private static Stack<bool> CloneBoolStack(Stack<bool> source) =>
+            new(source.Reverse());
+
+        private static Stack<T> TrimStack<T>(Stack<T> source, int maxCount)
+        {
+            if (source.Count <= maxCount)
+            {
+                return source;
+            }
+
+            return new Stack<T>(source.Reverse().Skip(source.Count - maxCount));
+        }
+
+        private static void TrimFrameBackStack()
+        {
+            if (MainFrame is null)
+            {
+                return;
+            }
+
+            while (MainFrame.BackStack.Count > MaxNavigationHistoryEntries)
+            {
+                MainFrame.BackStack.RemoveAt(0);
+            }
+        }
+
+        private static void TrimStoredHistory()
+        {
+            _breadcrumbClickHistory = TrimStack(_breadcrumbClickHistory, MaxNavigationHistoryEntries);
+            _mainNavHistory = TrimStack(_mainNavHistory, MaxNavigationHistoryEntries);
+            _backStackSourceType = TrimStack(_backStackSourceType, MaxNavigationHistoryEntries);
+        }
+
         #endregion
 
         #region Public Functions
@@ -242,6 +279,7 @@ namespace ManagementTools.Services
 
             // Execute navigation
             MainFrame.Navigate(targetPageType, parameter, info);
+            TrimNavigationHistory();
             
             CurrentState = NavigationState.Idle;
         }
@@ -291,6 +329,7 @@ namespace ManagementTools.Services
             
             // Navigate to target page (this adds current page to BackStack, enabling GoBack)
             MainFrame.Navigate(targetPageType, parameter, info);
+            TrimNavigationHistory();
             
             // Reset state after navigation completes
             CurrentState = NavigationState.Idle;
@@ -319,6 +358,7 @@ namespace ManagementTools.Services
 
             // Execute navigation
             MainFrame.Navigate(targetPageType, parameter, GetTransitionInfo(animType));
+            TrimNavigationHistory();
         }
 
         /// <summary>
@@ -340,8 +380,6 @@ namespace ManagementTools.Services
             LogDebug("ClearBreadcrumbs", "START");
             SaveToMainNavHistory();
             BreadCrumbs.Clear();
-            // Note: Do NOT clear _breadcrumbClickHistory here, as it's needed for back navigation
-            // The click history will be consumed by RestorePreviousBreadcrumbState when user goes back
             UpdateBreadcrumb();
             LogDebug("ClearBreadcrumbs", "END");
         }
@@ -360,22 +398,22 @@ namespace ManagementTools.Services
             LogDebug("AddBreadcrumb", $"Added '{label}'");
         }
 
-
         /// <summary>
-        /// Save current breadcrumb state to main navigation history (for switching between main nav items)
-        /// Also saves and clears the current click history, as it belongs to the current nav session
+        /// Save current breadcrumb state to main navigation history (for switching between main nav items).
+        /// Parameter values are intentionally dropped so old view models and large model graphs are not retained.
         /// </summary>
         private static void SaveToMainNavHistory()
         {
             if (BreadCrumbs.Count == 0) return;
-            
-            var currentState = BreadCrumbs.ToList();
-            var clickHistoryCopy = CloneBreadcrumbStack(_breadcrumbClickHistory);
-            var backStackSourceTypeCopy = new Stack<bool>(_backStackSourceType.Reverse());
-            
+
+            var currentState = ToLightweightBreadcrumbs(BreadCrumbs);
+            var clickHistoryCopy = CloneLightweightBreadcrumbStack(_breadcrumbClickHistory);
+            var backStackSourceTypeCopy = CloneBoolStack(_backStackSourceType);
+
             _mainNavHistory.Push((currentState, clickHistoryCopy, backStackSourceTypeCopy));
+            TrimStoredHistory();
             LogDebug("SaveToMainNavHistory", $"Saved [{string.Join(" > ", currentState.Select(b => b.Label))}] with {clickHistoryCopy.Count} click history entries");
-            
+
             _breadcrumbClickHistory.Clear();
             _backStackSourceType.Clear();
         }
@@ -387,8 +425,9 @@ namespace ManagementTools.Services
         {
             if (BreadCrumbs.Count == 0) return;
             
-            var currentState = BreadCrumbs.ToList();
+            var currentState = ToLightweightBreadcrumbs(BreadCrumbs);
             _breadcrumbClickHistory.Push(currentState);
+            TrimStoredHistory();
             LogDebug("SaveToBreadcrumbClickHistory", $"Saved [{string.Join(" > ", currentState.Select(b => b.Label))}]");
         }
 
@@ -429,7 +468,7 @@ namespace ManagementTools.Services
                 // Restore from main nav history
                 var (previousBreadcrumbs, previousClickHistory, previousBackStackSourceTypes) = _mainNavHistory.Pop();
                 LogDebug("RestorePreviousBreadcrumbState", $"Restoring from main nav history: [{string.Join(" > ", previousBreadcrumbs.Select(b => b.Label))}]");
-                
+
                 RestoreBreadcrumbs(previousBreadcrumbs);
                 _breadcrumbClickHistory = previousClickHistory;
                 _backStackSourceType = previousBackStackSourceTypes;
@@ -453,6 +492,15 @@ namespace ManagementTools.Services
             _breadcrumbClickHistory.Clear();
             _mainNavHistory.Clear();
             _backStackSourceType.Clear();
+        }
+
+        /// <summary>
+        /// Trims retained navigation state to the configured in-memory history limit.
+        /// </summary>
+        public static void TrimNavigationHistory()
+        {
+            TrimFrameBackStack();
+            TrimStoredHistory();
         }
         #endregion
     }

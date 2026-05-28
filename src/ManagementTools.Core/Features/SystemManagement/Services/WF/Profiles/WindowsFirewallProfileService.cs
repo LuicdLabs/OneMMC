@@ -125,7 +125,7 @@ public class WindowsFirewallProfileService
 
     public IpsecDefaultsModel GetIpsecDefaults()
     {
-        FirewallSettingSnapshot snapshot = GetFirewallSettingSnapshot();
+        using FirewallSettingSnapshot snapshot = GetFirewallSettingSnapshot();
 
         return new IpsecDefaultsModel
         {
@@ -154,7 +154,7 @@ public class WindowsFirewallProfileService
     public void UpdateIpsecDefaults(IpsecDefaultsModel defaults)
     {
         using CimSession session = CimSession.Create(null);
-        CimInstance setting = CimSetManager.GetFirewallSettingInstance(session);
+        using CimInstance setting = CimSetManager.GetFirewallSettingInstance(session);
 
         setting.CimInstanceProperties["AllowIPsecThroughNAT"].Value = ResolveNatTraversalValue(defaults.NatTraversalMode);
         setting.CimInstanceProperties["Exemptions"].Value = UpdateExemptionsMask(
@@ -182,7 +182,7 @@ public class WindowsFirewallProfileService
     public IpsecDefaultsModel UpdateIcmpExemption(bool enabled)
     {
         using CimSession session = CimSession.Create(null);
-        CimInstance setting = CimSetManager.GetFirewallSettingInstance(session);
+        using CimInstance setting = CimSetManager.GetFirewallSettingInstance(session);
 
         setting.CimInstanceProperties["Exemptions"].Value = UpdateExemptionsMask(
             ValueConverter.ConvertToUInt32(setting.CimInstanceProperties["Exemptions"]?.Value, 0),
@@ -203,7 +203,7 @@ public class WindowsFirewallProfileService
 
     public FirewallTunnelAuthorizationSettings GetTunnelAuthorizationSettings()
     {
-        FirewallSettingSnapshot snapshot = GetFirewallSettingSnapshot();
+        using FirewallSettingSnapshot snapshot = GetFirewallSettingSnapshot();
 
         bool hasTransportAuthorizations = snapshot.HasTransportAuthorizations;
         string machineList = hasTransportAuthorizations
@@ -255,7 +255,7 @@ public class WindowsFirewallProfileService
             : WindowsFirewallSupport.BuildAuthorizationSddl(settings.AllowedUsers, settings.DeniedUsers);
 
         using CimSession session = CimSession.Create(null);
-        CimInstance firewallSetting = CimSetManager.GetFirewallSettingInstance(session);
+        using CimInstance firewallSetting = CimSetManager.GetFirewallSettingInstance(session);
 
         firewallSetting.CimInstanceProperties["RemoteMachineTunnelAuthorizationList"].Value =
             settings.Mode == TunnelAuthorizationMode.Advanced ? machineAuthorization : "NotConfigured";
@@ -273,7 +273,7 @@ public class WindowsFirewallProfileService
     private FirewallLoggingSettings ReadLoggingSettings(FirewallProfileType profileType)
     {
         using CimSession session = CimSession.Create(null);
-        CimInstance profile = CimSetManager.GetFirewallProfileInstance(session, profileType);
+        using CimInstance profile = CimSetManager.GetFirewallProfileInstance(session, profileType);
 
         return new FirewallLoggingSettings
         {
@@ -287,7 +287,7 @@ public class WindowsFirewallProfileService
     private static void WriteLoggingSettings(FirewallProfileType profileType, FirewallLoggingSettings settings)
     {
         using CimSession session = CimSession.Create(null);
-        CimInstance profile = CimSetManager.GetFirewallProfileInstance(session, profileType);
+        using CimInstance profile = CimSetManager.GetFirewallProfileInstance(session, profileType);
 
         profile.CimInstanceProperties["LogFileName"].Value = string.IsNullOrWhiteSpace(settings.FileName)
             ? "%systemroot%\\system32\\logfiles\\firewall\\pfirewall.log"
@@ -301,7 +301,7 @@ public class WindowsFirewallProfileService
     private FirewallSettingSnapshot GetFirewallSettingSnapshot()
     {
         using CimSession session = CimSession.Create(null);
-        CimInstance firewallSetting = CimSetManager.GetFirewallSettingInstance(session);
+        using CimInstance firewallSetting = CimSetManager.GetFirewallSettingInstance(session);
         CimInstance? defaultMainModeSet = CimSetManager.GetDefaultMainModeSet(session);
 
         return new FirewallSettingSnapshot(
@@ -430,7 +430,19 @@ public class WindowsFirewallProfileService
                 proposals = AdvancedMainModeProposals;
             }
 
-            CimSetManager.UpsertMainModeSet(session, CimSetManager.BuildMainModeProposals(proposals), defaults);
+            CimInstance[] mainModeProposals = CimSetManager.BuildMainModeProposals(proposals);
+            try
+            {
+                using CimInstance _ = CimSetManager.UpsertMainModeSet(session, mainModeProposals, defaults);
+            }
+            finally
+            {
+                foreach (CimInstance proposal in mainModeProposals)
+                {
+                    proposal.Dispose();
+                }
+            }
+
             return;
         }
 
@@ -450,11 +462,23 @@ public class WindowsFirewallProfileService
                 proposals = AdvancedQuickModeProposals;
             }
 
-            CimSetManager.UpsertSet(
-                session,
-                "MSFT_NetIKEQMCryptoSet",
-                "MSFT|FW|QMCryptoSet|{E5A5D32A-4BCE-4e4d-B07F-4AB1BA7E5FE2}",
-                CimSetManager.BuildQuickModeProposals(proposals));
+            CimInstance[] quickModeProposals = CimSetManager.BuildQuickModeProposals(proposals);
+            try
+            {
+                using CimInstance _ = CimSetManager.UpsertSet(
+                    session,
+                    "MSFT_NetIKEQMCryptoSet",
+                    "MSFT|FW|QMCryptoSet|{E5A5D32A-4BCE-4e4d-B07F-4AB1BA7E5FE2}",
+                    quickModeProposals);
+            }
+            finally
+            {
+                foreach (CimInstance proposal in quickModeProposals)
+                {
+                    proposal.Dispose();
+                }
+            }
+
             return;
         }
 
@@ -493,29 +517,44 @@ public class WindowsFirewallProfileService
                 CimInstance[] phase1AdvancedProposals = AuthProposalManager.BuildAuthProposals(defaults.AdvancedFirstAuthMethods).ToArray();
                 CimInstance[] phase2AdvancedProposals = AuthProposalManager.BuildAuthProposals(defaults.AdvancedSecondAuthMethods).ToArray();
 
-                if (phase1AdvancedProposals.Length == 0 && phase2AdvancedProposals.Length == 0)
+                try
                 {
-                    CimSetManager.UpsertAuthSet(session, "MSFT_NetIKEP1AuthSet", "MSFT|FW|P1AuthSet|{E5A5D32A-4BCE-4e4d-B07F-4AB1BA7E5FE3}", MachineKerberosAndNtlmAuthMethods);
-                    CimSetManager.UpsertAuthSet(session, "MSFT_NetIKEP2AuthSet", "MSFT|FW|P2AuthSet|{E5A5D32A-4BCE-4e4d-B07F-4AB1BA7E5FE4}", UserKerberosNtlmAnonymousAuthMethods);
-                    break;
-                }
+                    if (phase1AdvancedProposals.Length == 0 && phase2AdvancedProposals.Length == 0)
+                    {
+                        CimSetManager.UpsertAuthSet(session, "MSFT_NetIKEP1AuthSet", "MSFT|FW|P1AuthSet|{E5A5D32A-4BCE-4e4d-B07F-4AB1BA7E5FE3}", MachineKerberosAndNtlmAuthMethods);
+                        CimSetManager.UpsertAuthSet(session, "MSFT_NetIKEP2AuthSet", "MSFT|FW|P2AuthSet|{E5A5D32A-4BCE-4e4d-B07F-4AB1BA7E5FE4}", UserKerberosNtlmAnonymousAuthMethods);
+                        break;
+                    }
 
-                if (phase1AdvancedProposals.Length == 0)
-                {
-                    CimSetManager.DeleteSetIfExists(session, "MSFT_NetIKEP1AuthSet", "MSFT|FW|P1AuthSet|{E5A5D32A-4BCE-4e4d-B07F-4AB1BA7E5FE3}");
-                }
-                else
-                {
-                    CimSetManager.UpsertSet(session, "MSFT_NetIKEP1AuthSet", "MSFT|FW|P1AuthSet|{E5A5D32A-4BCE-4e4d-B07F-4AB1BA7E5FE3}", phase1AdvancedProposals);
-                }
+                    if (phase1AdvancedProposals.Length == 0)
+                    {
+                        CimSetManager.DeleteSetIfExists(session, "MSFT_NetIKEP1AuthSet", "MSFT|FW|P1AuthSet|{E5A5D32A-4BCE-4e4d-B07F-4AB1BA7E5FE3}");
+                    }
+                    else
+                    {
+                        using CimInstance _ = CimSetManager.UpsertSet(session, "MSFT_NetIKEP1AuthSet", "MSFT|FW|P1AuthSet|{E5A5D32A-4BCE-4e4d-B07F-4AB1BA7E5FE3}", phase1AdvancedProposals);
+                    }
 
-                if (phase2AdvancedProposals.Length == 0)
-                {
-                    CimSetManager.DeleteSetIfExists(session, "MSFT_NetIKEP2AuthSet", "MSFT|FW|P2AuthSet|{E5A5D32A-4BCE-4e4d-B07F-4AB1BA7E5FE4}");
+                    if (phase2AdvancedProposals.Length == 0)
+                    {
+                        CimSetManager.DeleteSetIfExists(session, "MSFT_NetIKEP2AuthSet", "MSFT|FW|P2AuthSet|{E5A5D32A-4BCE-4e4d-B07F-4AB1BA7E5FE4}");
+                    }
+                    else
+                    {
+                        using CimInstance _ = CimSetManager.UpsertSet(session, "MSFT_NetIKEP2AuthSet", "MSFT|FW|P2AuthSet|{E5A5D32A-4BCE-4e4d-B07F-4AB1BA7E5FE4}", phase2AdvancedProposals);
+                    }
                 }
-                else
+                finally
                 {
-                    CimSetManager.UpsertSet(session, "MSFT_NetIKEP2AuthSet", "MSFT|FW|P2AuthSet|{E5A5D32A-4BCE-4e4d-B07F-4AB1BA7E5FE4}", phase2AdvancedProposals);
+                    foreach (CimInstance proposal in phase1AdvancedProposals)
+                    {
+                        proposal.Dispose();
+                    }
+
+                    foreach (CimInstance proposal in phase2AdvancedProposals)
+                    {
+                        proposal.Dispose();
+                    }
                 }
 
                 break;
@@ -620,10 +659,20 @@ public class WindowsFirewallProfileService
         try
         {
             using CimSession session = CimSession.Create(null);
-            return session.EnumerateInstances(WindowsFirewallSupport.StandardCimNamespace, "MSFT_NetAdapter")
-                .Select(instance => instance.CimInstanceProperties["Name"]?.Value?.ToString())
-                .Where(name => !string.IsNullOrWhiteSpace(name))
-                .Select(name => name!.Trim())
+            List<string> aliases = [];
+            foreach (CimInstance instance in session.EnumerateInstances(WindowsFirewallSupport.StandardCimNamespace, "MSFT_NetAdapter"))
+            {
+                using (instance)
+                {
+                    string? name = instance.CimInstanceProperties["Name"]?.Value?.ToString();
+                    if (!string.IsNullOrWhiteSpace(name))
+                    {
+                        aliases.Add(name.Trim());
+                    }
+                }
+            }
+
+            return aliases
                 .Distinct(StringComparer.OrdinalIgnoreCase)
                 .OrderBy(name => name, StringComparer.CurrentCultureIgnoreCase)
                 .ToArray();
@@ -645,7 +694,7 @@ public class WindowsFirewallProfileService
             .ToArray();
 
         using CimSession session = CimSession.Create(null);
-        CimInstance cimProfile = CimSetManager.GetFirewallProfileInstance(session, profile.ProfileType);
+        using CimInstance cimProfile = CimSetManager.GetFirewallProfileInstance(session, profile.ProfileType);
 
         try
         {

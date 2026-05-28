@@ -12,6 +12,7 @@ using Microsoft.Win32;
 using System.ServiceProcess;
 using ManagementTools.Core.Features.SystemManagement.Models.ComExp;
 using ManagementTools.Core.DependencyInjection;
+using ManagementTools.Core.Infrastructure.Wmi;
 using ManagementTools.Core.Localization;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -441,7 +442,7 @@ public sealed class ComponentServicesManager
                     @"root\MsDTC",
                     "SELECT * FROM MSFT_DtcTransactionTask");
 
-                foreach (ManagementObject obj in searcher.Get())
+                foreach (ManagementObject obj in searcher.GetAndDispose())
                 {
                     try
                     {
@@ -495,7 +496,7 @@ public sealed class ComponentServicesManager
                     "SELECT * FROM MSFT_DtcTransactionsStatisticsTask");
 
                 // Call the Get method to retrieve statistics
-                foreach (ManagementObject obj in searcher.Get())
+                foreach (ManagementObject obj in searcher.GetAndDispose())
                 {
                     try
                     {
@@ -532,7 +533,7 @@ public sealed class ComponentServicesManager
                     @"root\MsDTC",
                     "SELECT * FROM DtcTransactionsStatistics");
 
-                foreach (ManagementObject obj in statSearcher.Get())
+                foreach (ManagementObject obj in statSearcher.GetAndDispose())
                 {
                     return new DtcTransactionsStatistics
                     {
@@ -660,7 +661,7 @@ public sealed class ComponentServicesManager
             using var searcher = new ManagementObjectSearcher(
                 "SELECT ProcessId, ExecutablePath, Description, CreationDate FROM Win32_Process");
 
-            foreach (ManagementObject obj in searcher.Get())
+            foreach (ManagementObject obj in searcher.GetAndDispose())
             {
                 try
                 {

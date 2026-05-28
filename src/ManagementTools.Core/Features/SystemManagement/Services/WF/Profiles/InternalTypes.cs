@@ -16,7 +16,7 @@ internal sealed record FirewallSettingSnapshot(
     CimInstance? DefaultMainModeSet,
     CimInstance? DefaultQuickModeSet,
     CimInstance? DefaultPhase1AuthSet,
-    CimInstance? DefaultPhase2AuthSet)
+    CimInstance? DefaultPhase2AuthSet) : IDisposable
 {
     public bool HasTransportAuthorizations =>
         IsConfigured(RemoteMachineTransportAuthorizationList) || IsConfigured(RemoteUserTransportAuthorizationList);
@@ -28,6 +28,14 @@ internal sealed record FirewallSettingSnapshot(
         => !string.IsNullOrWhiteSpace(value) &&
            !string.Equals(value, "None", StringComparison.OrdinalIgnoreCase) &&
            !string.Equals(value, "NotConfigured", StringComparison.OrdinalIgnoreCase);
+
+    public void Dispose()
+    {
+        DefaultMainModeSet?.Dispose();
+        DefaultQuickModeSet?.Dispose();
+        DefaultPhase1AuthSet?.Dispose();
+        DefaultPhase2AuthSet?.Dispose();
+    }
 }
 
 internal readonly record struct MainModeProposalDefinition(ushort CipherAlgorithm, ushort HashAlgorithm, ushort GroupId);

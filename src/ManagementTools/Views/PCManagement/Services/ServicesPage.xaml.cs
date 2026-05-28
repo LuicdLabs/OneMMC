@@ -30,6 +30,7 @@ public sealed partial class ServicesPage : Page
         this.Unloaded += (_, _) =>
         {
             ViewModel.AdminPermissionRequired -= OnAdminPermissionRequired;
+            ViewModel.ClearCachedData();
         };
     }
 

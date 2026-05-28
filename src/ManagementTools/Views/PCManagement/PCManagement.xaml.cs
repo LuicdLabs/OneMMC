@@ -108,6 +108,7 @@ public sealed partial class PCManagement : Page
 	private void PCManagement_Loaded(object sender, RoutedEventArgs e)
 	{
 		var mainWindow = App.MainWindowInstance;
+		SettingsItems.Clear();
 
         // Handle localization in the UI layer, converting ViewModel data into UI SettingItems
 		foreach (var data in SettingsData)

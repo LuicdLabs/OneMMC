@@ -167,6 +167,19 @@ public partial class PrintManagementViewModel : ObservableObject
     {
         await LoadDataAsync();
     }
+
+    public void ClearCachedData()
+    {
+        Printers.Clear();
+        Drivers.Clear();
+        Ports.Clear();
+        Forms.Clear();
+        DeployedPrinters.Clear();
+        StatusMessage = string.Empty;
+        OnPropertyChanged(nameof(PrinterCountText));
+        OnPropertyChanged(nameof(DeployedPrinterCountText));
+        OnPropertyChanged(nameof(DriverCountText));
+    }
 }
 
 

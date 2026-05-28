@@ -1242,6 +1242,23 @@ namespace ManagementTools.Core.Features.PCManagement.ViewModels.DiskMgmt
             return _diskService.GetUnallocatedSpace(diskIndex);
         }
 
+        public void ClearCachedData()
+        {
+            SelectedDisk = null;
+            SelectedPartition = null;
+            PhysicalDisks.Clear();
+            CDROMDrives.Clear();
+            AllDiskItems.Clear();
+            Volumes.Clear();
+            StoragePools.Clear();
+            DriveCount = 0;
+            TotalPartitions = 0;
+            TotalCapacity = 0;
+            TotalFreeSpace = 0;
+            StatusMessage = string.Empty;
+            IsLoading = false;
+        }
+
         /// <summary>
         /// Check if disk needs initialization
         /// </summary>

@@ -63,6 +63,8 @@ public sealed partial class UserSecurityPage : Page
 
 	private void UserSecurityPage_Loaded(object sender, RoutedEventArgs e)
 	{
+        SettingsItems.Clear();
+
         // Handle localization in the UI layer, converting ViewModel data into UI SettingItems
         foreach (var data in SettingsData)
 		{

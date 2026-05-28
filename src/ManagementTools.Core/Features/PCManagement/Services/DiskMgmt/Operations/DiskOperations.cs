@@ -2,6 +2,7 @@
 using System.Management;
 using System.Runtime.InteropServices;
 using ManagementTools.Core.Features.PCManagement.Services.DiskMgmt.Common;
+using ManagementTools.Core.Infrastructure.Wmi;
 
 namespace ManagementTools.Core.Features.PCManagement.Services.DiskMgmt
 {
@@ -72,7 +73,7 @@ namespace ManagementTools.Core.Features.PCManagement.Services.DiskMgmt
                 var query = new ObjectQuery($"SELECT IsOffline FROM MSFT_Disk WHERE Number = {diskIndex}");
                 using var searcher = new ManagementObjectSearcher(scope, query);
 
-                foreach (ManagementObject disk in searcher.Get())
+                foreach (ManagementObject disk in searcher.GetAndDispose())
                 {
                     using (disk)
                         return !GetWmiPropertySafe<bool>(disk, "IsOffline");
@@ -117,7 +118,7 @@ namespace ManagementTools.Core.Features.PCManagement.Services.DiskMgmt
                 var query = new ObjectQuery($"SELECT IsReadOnly FROM MSFT_Disk WHERE Number = {diskIndex}");
                 using var searcher = new ManagementObjectSearcher(scope, query);
 
-                foreach (ManagementObject disk in searcher.Get())
+                foreach (ManagementObject disk in searcher.GetAndDispose())
                 {
                     using (disk)
                         return GetWmiPropertySafe<bool>(disk, "IsReadOnly");
@@ -169,7 +170,7 @@ namespace ManagementTools.Core.Features.PCManagement.Services.DiskMgmt
                 var query = new ObjectQuery($"SELECT PartitionStyle FROM MSFT_Disk WHERE Number = {diskIndex}");
                 using var searcher = new ManagementObjectSearcher(scope, query);
 
-                foreach (ManagementObject disk in searcher.Get())
+                foreach (ManagementObject disk in searcher.GetAndDispose())
                 {
                     using (disk)
                     {

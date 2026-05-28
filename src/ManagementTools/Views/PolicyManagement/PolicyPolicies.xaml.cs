@@ -62,6 +62,8 @@ public sealed partial class PolicyManagement : Page
 
 	private void PolicyManagement_Loaded(object sender, RoutedEventArgs e)
 	{
+        SettingsItems.Clear();
+
         // Handle localization in the UI layer, converting ViewModel data into UI SettingItems
         foreach (var data in SettingsData)
 		{

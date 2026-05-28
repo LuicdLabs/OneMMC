@@ -117,6 +117,10 @@ public sealed partial class PerformanceMonitorPage : Page
         {
             _chartUpdateTimer.Stop();
             _chartUpdateTimer.Dispose();
+            ChartLinesCanvas.Children.Clear();
+            _counterLines.Clear();
+            _counterRetainedLines.Clear();
+            DataContext = null;
             ViewModel.Dispose();
         };
     }

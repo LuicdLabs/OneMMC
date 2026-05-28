@@ -210,12 +210,19 @@ public sealed partial class LocalUsersGroupsPage : Page
             }
         });
         this.Loaded += LocalUsersGroupsPage_Loaded;
-        this.Unloaded += (_, _) => this.Loaded -= LocalUsersGroupsPage_Loaded;
+        this.Unloaded += (_, _) =>
+        {
+            ViewModel.ClearCachedData();
+            this.Loaded -= LocalUsersGroupsPage_Loaded;
+        };
     }
 
     private void LocalUsersGroupsPage_Loaded(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
     {
-        // nothing else to do here
+        if (ViewModel.Users.Count == 0 && ViewModel.Groups.Count == 0)
+        {
+            ViewModel.Reload();
+        }
     }
 }
 

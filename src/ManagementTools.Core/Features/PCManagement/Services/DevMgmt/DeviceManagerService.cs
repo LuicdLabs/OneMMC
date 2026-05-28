@@ -6,6 +6,7 @@ using System.Management;
 using System.Runtime.InteropServices;
 using System.Text;
 using ManagementTools.Core.Infrastructure.Admin;
+using ManagementTools.Core.Infrastructure.Wmi;
 using ManagementTools.Core.Localization;
 using Microsoft.Extensions.Logging;
 using Windows.Win32.Devices.DeviceAndDriverInstallation;
@@ -141,7 +142,7 @@ namespace ManagementTools.Core.Features.PCManagement.Services.DevMgmt
             {
                 using (var searcher = new ManagementObjectSearcher("SELECT * FROM Win32_PnPEntity"))
                 {
-                    foreach (ManagementObject device in searcher.Get())
+                    foreach (ManagementObject device in searcher.GetAndDispose())
                     {
                         var className = device["PNPClass"]?.ToString() ?? "Unknown";
                         var classGuid = device["ClassGuid"]?.ToString() ?? "";
@@ -198,7 +199,7 @@ namespace ManagementTools.Core.Features.PCManagement.Services.DevMgmt
                 var query = $"SELECT * FROM Win32_PnPEntity WHERE DeviceID='{deviceId.Replace("\\", "\\\\")}'";
                 using (var searcher = new ManagementObjectSearcher(query))
                 {
-                    foreach (ManagementObject device in searcher.Get())
+                    foreach (ManagementObject device in searcher.GetAndDispose())
                     {
                         properties.Name = device["Caption"]?.ToString() ?? string.Empty;
                         properties.Description = device["Description"]?.ToString() ?? string.Empty;
@@ -250,7 +251,7 @@ namespace ManagementTools.Core.Features.PCManagement.Services.DevMgmt
                 var query = $"SELECT * FROM Win32_PnPSignedDriver WHERE DeviceID='{deviceId.Replace("\\", "\\\\")}'";
                 using (var searcher = new ManagementObjectSearcher(query))
                 {
-                    foreach (ManagementObject driver in searcher.Get())
+                    foreach (ManagementObject driver in searcher.GetAndDispose())
                     {
                         driverInfo.DriverVersion = driver["DriverVersion"]?.ToString() ?? string.Empty;
                         
@@ -680,7 +681,7 @@ namespace ManagementTools.Core.Features.PCManagement.Services.DevMgmt
                 using (var searcher = new ManagementObjectSearcher(
                     "SELECT * FROM Win32_PnPEntity WHERE ConfigManagerErrorCode = 22"))
                 {
-                    foreach (ManagementObject device in searcher.Get())
+                    foreach (ManagementObject device in searcher.GetAndDispose())
                     {
                         var deviceInfo = new DeviceInfo
                         {

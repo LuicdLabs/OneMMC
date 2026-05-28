@@ -5,6 +5,7 @@ using System.Linq;
 using System.Management;
 using ManagementTools.Core.Features.PCManagement.Models.DiskMgmt;
 using ManagementTools.Core.Features.PCManagement.Services.DiskMgmt.Common;
+using ManagementTools.Core.Infrastructure.Wmi;
 
 namespace ManagementTools.Core.Features.PCManagement.Services.DiskMgmt
 {
@@ -65,7 +66,7 @@ namespace ManagementTools.Core.Features.PCManagement.Services.DiskMgmt
                     var partitionQuery = new ObjectQuery($"SELECT DiskNumber FROM MSFT_Partition WHERE DriveLetter = '{driveLetterChar}'");
                     using var partitionSearcher = new ManagementObjectSearcher(scope, partitionQuery);
 
-                    foreach (ManagementObject partition in partitionSearcher.Get())
+                    foreach (ManagementObject partition in partitionSearcher.GetAndDispose())
                     {
                         using (partition) // Ensure proper disposal
                         {
@@ -87,7 +88,7 @@ namespace ManagementTools.Core.Features.PCManagement.Services.DiskMgmt
                         DiskManagementConstants.CimV2WmiScope,
                         $"ASSOCIATORS OF {{Win32_LogicalDisk.DeviceID='{systemDriveLetter}'}} WHERE AssocClass=Win32_LogicalDiskToPartition");
 
-                    foreach (ManagementObject partition in assocSearcher.Get())
+                    foreach (ManagementObject partition in assocSearcher.GetAndDispose())
                     {
                         using (partition) // Ensure proper disposal
                         {
@@ -108,7 +109,7 @@ namespace ManagementTools.Core.Features.PCManagement.Services.DiskMgmt
                     using var allPartitionsSearcher = new ManagementObjectSearcher(scope, 
                         new ObjectQuery("SELECT DiskNumber, DriveLetter FROM MSFT_Partition"));
 
-                    foreach (ManagementObject partition in allPartitionsSearcher.Get())
+                    foreach (ManagementObject partition in allPartitionsSearcher.GetAndDispose())
                     {
                         using (partition) // Ensure proper disposal
                         {

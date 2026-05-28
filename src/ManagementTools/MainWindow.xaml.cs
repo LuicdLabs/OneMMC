@@ -43,6 +43,7 @@ namespace ManagementTools
     {
         private readonly ILogger<MainWindow> _logger;
         private readonly IAdminService _adminService;
+        private readonly NavigationMemoryCleanupService _navigationMemoryCleanupService;
         private const double MinimumWidthForTitleBarAppTitle = 900;
         private bool _welcomeDialogRequested;
         private OverlappedPresenterState _windowState = OverlappedPresenterState.Restored;
@@ -99,6 +100,10 @@ namespace ManagementTools
                     _logger.LogWarning("NavigateToPage received unsupported index={Index}", index);
                     break;
             }
+
+            BreadcrumbNavigationService.TrimNavigationHistory();
+            UpdateBackButtonState();
+            _navigationMemoryCleanupService.RequestCleanup();
         }
 
         public ManagementTools.Localization.LocalizedStrings LocalizedStrings { get; } = ManagementTools.Localization.LocalizedStrings.Instance;
@@ -108,6 +113,7 @@ namespace ManagementTools
         {
             _logger = App.GetRequiredService<ILogger<MainWindow>>();
             _adminService = App.GetRequiredService<IAdminService>();
+            _navigationMemoryCleanupService = App.GetRequiredService<NavigationMemoryCleanupService>();
             _logger.LogInformation("MainWindow initializing.");
 
             InitializeComponent();
@@ -305,6 +311,7 @@ namespace ManagementTools
                 BreadcrumbNavigationService.ClearBreadcrumbs();
                 BreadcrumbNavigationService.AddBreadcrumb(LocalizedStrings.Navigation_Settings ?? "Settings", typeof(SettingsPage));
                 ViewModel.NavigateToSettingsCommand.Execute(null);
+                UpdateBackButtonState();
                 return;
             }
 
@@ -326,6 +333,7 @@ namespace ManagementTools
                 BreadcrumbNavigationService.ClearBreadcrumbs();
                 BreadcrumbNavigationService.AddBreadcrumb(pageTitle, targetPageType);
                 ViewModel.NavigateToPageCommand.Execute(tag);
+                UpdateBackButtonState();
             }
         }
 
@@ -377,6 +385,7 @@ namespace ManagementTools
             BreadcrumbNavigationService.ClearBreadcrumbs();
             BreadcrumbNavigationService.AddBreadcrumb(pageTitle, GetPageTypeFromTag(tag));
             ViewModel.NavigateToPageCommand.Execute(tag);
+            UpdateBackButtonState();
         }
 
         private void NavigateToSettings()
@@ -384,6 +393,15 @@ namespace ManagementTools
             BreadcrumbNavigationService.ClearBreadcrumbs();
             BreadcrumbNavigationService.AddBreadcrumb(LocalizedStrings.Navigation_Settings ?? "Settings", typeof(SettingsPage));
             ViewModel.NavigateToSettingsCommand.Execute(null);
+            UpdateBackButtonState();
+        }
+
+        private void UpdateBackButtonState()
+        {
+            if (NavigationViewControl != null && contentFrame != null)
+            {
+                NavigationViewControl.IsBackEnabled = contentFrame.CanGoBack;
+            }
         }
 
         private void MainBreadcrumb_ItemClicked(BreadcrumbBar sender, BreadcrumbBarItemClickedEventArgs args)
@@ -397,6 +415,9 @@ namespace ManagementTools
 
         private void ContentFrame_Navigated(object sender, NavigationEventArgs e)
         {
+            BreadcrumbNavigationService.TrimNavigationHistory();
+            _navigationMemoryCleanupService.RequestCleanup();
+
             if (NavigationViewControl != null && contentFrame != null)
             {
                 NavigationViewControl.IsBackEnabled = contentFrame.CanGoBack;

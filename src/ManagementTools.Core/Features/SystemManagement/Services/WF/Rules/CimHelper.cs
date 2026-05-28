@@ -21,6 +21,8 @@ internal static class CimHelper
             {
                 return instance;
             }
+
+            instance.Dispose();
         }
 
         return null;
@@ -28,14 +30,18 @@ internal static class CimHelper
 
     internal static CimInstance? GetSecurityFilterInstance(CimSession session, CimInstance ruleInstance)
     {
-        return session.EnumerateAssociatedInstances(
+        foreach (CimInstance filter in session.EnumerateAssociatedInstances(
                 WindowsFirewallSupport.StandardCimNamespace,
                 ruleInstance,
                 "MSFT_NetFirewallRuleFilterBySecurity",
                 "MSFT_NetNetworkLayerSecurityFilter",
                 null,
-                null)
-            .FirstOrDefault();
+                null))
+        {
+            return filter;
+        }
+
+        return null;
     }
 
     private static HashSet<string> BuildCandidateNames(IEnumerable<string?> ruleNames)

@@ -3,6 +3,7 @@ using System.Diagnostics;
 using Debug = System.Diagnostics.Trace;
 using System.Management;
 using ManagementTools.Core.Infrastructure.Admin;
+using ManagementTools.Core.Infrastructure.Wmi;
 using ManagementTools.Core.Localization;
 using Microsoft.Extensions.Logging;
 
@@ -46,7 +47,7 @@ namespace ManagementTools.Core.Features.SystemManagement.Services.TPM
                 // Query TPM using WMI
                 using (var searcher = new ManagementObjectSearcher("root\\CIMV2\\Security\\MicrosoftTpm", "SELECT * FROM Win32_Tpm"))
                 {
-                    foreach (ManagementObject obj in searcher.Get())
+                    foreach (ManagementObject obj in searcher.GetAndDispose())
                     {
                         // Get TPM version
                         info.SpecVersion = obj["SpecVersion"]?.ToString() ?? "Unknown";
@@ -135,7 +136,7 @@ namespace ManagementTools.Core.Features.SystemManagement.Services.TPM
             {
                 using (var searcher = new ManagementObjectSearcher("root\\CIMV2\\Security\\MicrosoftTpm", "SELECT * FROM Win32_Tpm"))
                 {
-                    var collection = searcher.Get();
+                    using var collection = searcher.Get();
                     if (collection.Count == 0)
                     {
                         result.Success = false;
@@ -144,7 +145,7 @@ namespace ManagementTools.Core.Features.SystemManagement.Services.TPM
                         return result;
                     }
 
-                    foreach (ManagementObject obj in collection)
+                    foreach (ManagementObject obj in collection.DisposeItems())
                     {
                         // Method 1: Try using Clear method (TPM 2.0 doesn't need OwnerAuth, pass empty string)
                         try

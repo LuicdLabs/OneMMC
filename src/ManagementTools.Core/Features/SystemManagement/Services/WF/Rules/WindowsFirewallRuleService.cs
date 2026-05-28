@@ -369,13 +369,13 @@ public class WindowsFirewallRuleService
         try
         {
             using CimSession session = CimSession.Create(null);
-            CimInstance? ruleInstance = CimHelper.GetFirewallRuleInstance(session, lookupNames);
+            using CimInstance? ruleInstance = CimHelper.GetFirewallRuleInstance(session, lookupNames);
             if (ruleInstance is null)
             {
                 return false;
             }
 
-            CimInstance? filter = CimHelper.GetSecurityFilterInstance(session, ruleInstance);
+            using CimInstance? filter = CimHelper.GetSecurityFilterInstance(session, ruleInstance);
             if (filter is null)
             {
                 return false;
@@ -405,14 +405,14 @@ public class WindowsFirewallRuleService
         try
         {
             using CimSession session = CimSession.Create(null);
-            CimInstance? ruleInstance = CimHelper.GetFirewallRuleInstance(session, lookupNames);
+            using CimInstance? ruleInstance = CimHelper.GetFirewallRuleInstance(session, lookupNames);
             if (ruleInstance is null)
             {
                 _logger.LogWarning("Firewall rule {RuleName} not found when setting OverrideBlockRules.", FormatRuleNames(lookupNames));
                 return false;
             }
 
-            CimInstance? filter = CimHelper.GetSecurityFilterInstance(session, ruleInstance);
+            using CimInstance? filter = CimHelper.GetSecurityFilterInstance(session, ruleInstance);
             if (filter is null)
             {
                 _logger.LogWarning("Security filter not found for firewall rule {RuleName}.", FormatRuleNames(lookupNames));

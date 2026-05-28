@@ -237,10 +237,10 @@ internal static class ComApplier
             try
             {
                 using CimSession session = CimSession.Create(null);
-                CimInstance? ruleInstance = CimHelper.GetFirewallRuleInstance(session, ruleName);
+                using CimInstance? ruleInstance = CimHelper.GetFirewallRuleInstance(session, ruleName);
                 if (ruleInstance is not null)
                 {
-                    CimInstance? filter = CimHelper.GetSecurityFilterInstance(session, ruleInstance);
+                    using CimInstance? filter = CimHelper.GetSecurityFilterInstance(session, ruleInstance);
                     if (filter is not null)
                     {
                         string wmiPropertyName = propertyName switch

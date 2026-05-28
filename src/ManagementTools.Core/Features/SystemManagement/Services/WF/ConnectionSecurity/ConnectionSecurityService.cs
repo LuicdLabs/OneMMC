@@ -27,7 +27,10 @@ public class ConnectionSecurityService
 
         foreach (CimInstance instance in session.EnumerateInstances(WindowsFirewallSupport.StandardCimNamespace, "MSFT_NetConSecRule"))
         {
-            rules.Add(RuleMapper.MapRule(session, instance));
+            using (instance)
+            {
+                rules.Add(RuleMapper.MapRule(session, instance));
+            }
         }
 
         return rules
@@ -61,7 +64,7 @@ public class ConnectionSecurityService
             ? rule.Name
             : rule.OriginalName;
 
-        CimInstance existing = GetRuleInstance(session, lookupName)
+        using CimInstance existing = GetRuleInstance(session, lookupName)
             ?? throw new InvalidOperationException($"Connection security rule '{lookupName}' was not found.");
 
         if (!string.Equals(lookupName, rule.Name, StringComparison.OrdinalIgnoreCase))
@@ -86,7 +89,7 @@ public class ConnectionSecurityService
     public void DeleteRule(string name)
     {
         using CimSession session = CimSession.Create(null);
-        CimInstance existing = GetRuleInstance(session, name)
+        using CimInstance existing = GetRuleInstance(session, name)
             ?? throw new InvalidOperationException($"Connection security rule '{name}' was not found.");
 
         AuthManager.DeleteManagedAuthSets(session, name);
@@ -103,7 +106,7 @@ public class ConnectionSecurityService
     public void SetRuleEnabled(string name, bool enabled)
     {
         using CimSession session = CimSession.Create(null);
-        CimInstance existing = GetRuleInstance(session, name)
+        using CimInstance existing = GetRuleInstance(session, name)
             ?? throw new InvalidOperationException($"Connection security rule '{name}' was not found.");
 
         SetRuleEnabledInternal(session, existing, enabled);
@@ -112,10 +115,10 @@ public class ConnectionSecurityService
 
     private static void AddRuleInternal(CimSession session, ConnectionSecurityRuleModel rule)
     {
-        CimInstance skeleton = CreateRuleSkeleton(rule);
-        session.CreateInstance(WindowsFirewallSupport.StandardCimNamespace, skeleton);
+        using CimInstance skeleton = CreateRuleSkeleton(rule);
+        using CimInstance _ = session.CreateInstance(WindowsFirewallSupport.StandardCimNamespace, skeleton);
 
-        CimInstance created = GetRuleInstance(session, rule.Name)
+        using CimInstance created = GetRuleInstance(session, rule.Name)
             ?? throw new InvalidOperationException($"Connection security rule '{rule.Name}' was created but could not be queried.");
 
         try
@@ -158,6 +161,8 @@ public class ConnectionSecurityService
             {
                 return instance;
             }
+
+            instance.Dispose();
         }
 
         return null;

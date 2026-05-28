@@ -393,6 +393,13 @@ public partial class EventViewerViewModel : ObservableObject, IDisposable
         _loadCts?.Cancel();
         _loadCts?.Dispose();
         _eventViewerService.Dispose();
+        _allEvents.Clear();
+        RootNodes.Clear();
+        Events.Clear();
+        SelectedEvent = null;
+        SelectedNode = null;
+        CurrentLogInfo = null;
+        AdminPermissionRequired = null;
         GC.SuppressFinalize(this);
     }
 }

@@ -27,7 +27,17 @@ internal static class CimSetManager
             return;
         }
 
-        UpsertSet(session, setClassName, creationClassName, proposals);
+        try
+        {
+            using CimInstance _ = UpsertSet(session, setClassName, creationClassName, proposals);
+        }
+        finally
+        {
+            foreach (CimInstance proposal in proposals)
+            {
+                proposal.Dispose();
+            }
+        }
     }
 
     internal static CimInstance UpsertMainModeSet(
@@ -43,9 +53,10 @@ internal static class CimSetManager
         CimInstance? existing = GetDefaultMainModeSet(session);
         if (existing is null)
         {
+            using CimInstance instance = BuildMainModeSetInstance(proposals, defaults);
             CimInstance created = session.CreateInstance(
                 WindowsFirewallSupport.StandardCimNamespace,
-                BuildMainModeSetInstance(proposals, defaults));
+                instance);
 
             return created;
         }
@@ -70,9 +81,10 @@ internal static class CimSetManager
         CimInstance? existing = FindSetByCreationClass(session, setClassName, creationClassName);
         if (existing is null)
         {
+            using CimInstance instance = BuildPolicySetInstance(setClassName, creationClassName, proposals);
             CimInstance created = session.CreateInstance(
                 WindowsFirewallSupport.StandardCimNamespace,
-                BuildPolicySetInstance(setClassName, creationClassName, proposals));
+                instance);
 
             return created;
         }
@@ -84,7 +96,7 @@ internal static class CimSetManager
 
     internal static void DeleteSetIfExists(CimSession session, string setClassName, string creationClassName)
     {
-        CimInstance? existing = FindSetByCreationClass(session, setClassName, creationClassName);
+        using CimInstance? existing = FindSetByCreationClass(session, setClassName, creationClassName);
         if (existing is not null)
         {
             session.DeleteInstance(WindowsFirewallSupport.StandardCimNamespace, existing);
@@ -96,39 +108,63 @@ internal static class CimSetManager
 
     internal static CimInstance? FindSetByCreationClass(CimSession session, string setClassName, string creationClassName)
     {
-        return session.EnumerateInstances(WindowsFirewallSupport.StandardCimNamespace, setClassName)
-            .FirstOrDefault(instance =>
-                string.Equals(
+        foreach (CimInstance instance in session.EnumerateInstances(WindowsFirewallSupport.StandardCimNamespace, setClassName))
+        {
+            if (string.Equals(
                     instance.CimInstanceProperties["CreationClassName"]?.Value?.ToString(),
                     creationClassName,
-                    StringComparison.OrdinalIgnoreCase));
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                return instance;
+            }
+
+            instance.Dispose();
+        }
+
+        return null;
     }
 
     internal static CimInstance GetFirewallSettingInstance(CimSession session)
     {
-        CimInstance? instance = session.EnumerateInstances(WindowsFirewallSupport.StandardCimNamespace, "MSFT_NetSecuritySettingData")
-            .FirstOrDefault(item =>
-                string.Equals(
-                    item.CimInstanceProperties["InstanceID"]?.Value?.ToString(),
+        CimInstance? fallback = null;
+        foreach (CimInstance instance in session.EnumerateInstances(WindowsFirewallSupport.StandardCimNamespace, "MSFT_NetSecuritySettingData"))
+        {
+            if (string.Equals(
+                    instance.CimInstanceProperties["InstanceID"]?.Value?.ToString(),
                     "MSFT|GlobalIPSecSettingData",
                     StringComparison.OrdinalIgnoreCase))
-            ?? session.EnumerateInstances(WindowsFirewallSupport.StandardCimNamespace, "MSFT_NetSecuritySettingData")
-                .FirstOrDefault();
+            {
+                fallback?.Dispose();
+                return instance;
+            }
 
-        return instance ?? throw new InvalidOperationException("The firewall IPsec settings instance could not be found.");
+            fallback ??= instance;
+            if (!ReferenceEquals(fallback, instance))
+            {
+                instance.Dispose();
+            }
+        }
+
+        return fallback ?? throw new InvalidOperationException("The firewall IPsec settings instance could not be found.");
     }
 
     internal static CimInstance GetFirewallProfileInstance(CimSession session, FirewallProfileType profileType)
     {
         string profileName = profileType.ToString();
-        CimInstance? instance = session.EnumerateInstances(WindowsFirewallSupport.StandardCimNamespace, "MSFT_NetFirewallProfile")
-            .FirstOrDefault(item =>
-                string.Equals(
-                    item.CimInstanceProperties["Name"]?.Value?.ToString(),
+        foreach (CimInstance instance in session.EnumerateInstances(WindowsFirewallSupport.StandardCimNamespace, "MSFT_NetFirewallProfile"))
+        {
+            if (string.Equals(
+                    instance.CimInstanceProperties["Name"]?.Value?.ToString(),
                     profileName,
-                    StringComparison.OrdinalIgnoreCase));
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                return instance;
+            }
 
-        return instance ?? throw new InvalidOperationException($"The firewall profile '{profileName}' could not be found.");
+            instance.Dispose();
+        }
+
+        throw new InvalidOperationException($"The firewall profile '{profileName}' could not be found.");
     }
 
     internal static CimInstance[] BuildMainModeProposals(System.Collections.Generic.IEnumerable<MainModeProposalDefinition> proposals)
