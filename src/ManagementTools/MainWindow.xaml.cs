@@ -101,9 +101,7 @@ namespace ManagementTools
                     break;
             }
 
-            BreadcrumbNavigationService.TrimNavigationHistory();
             UpdateBackButtonState();
-            _navigationMemoryCleanupService.RequestCleanup();
         }
 
         public ManagementTools.Localization.LocalizedStrings LocalizedStrings { get; } = ManagementTools.Localization.LocalizedStrings.Instance;
@@ -415,7 +413,6 @@ namespace ManagementTools
 
         private void ContentFrame_Navigated(object sender, NavigationEventArgs e)
         {
-            BreadcrumbNavigationService.TrimNavigationHistory();
             _navigationMemoryCleanupService.RequestCleanup();
 
             if (NavigationViewControl != null && contentFrame != null)

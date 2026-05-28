@@ -28,10 +28,7 @@ namespace ManagementTools.Services
         {
             if (_pageMap.TryGetValue(pageKey, out var pageType))
             {
-                if (_frame.Navigate(pageType))
-                {
-                    BreadcrumbNavigationService.TrimNavigationHistory();
-                }
+                _frame.Navigate(pageType);
             }
         }
 

@@ -93,8 +93,6 @@ namespace ManagementTools.Services
         public static Frame? MainFrame { get; private set; }
         public static ObservableCollection<Breadcrumb> BreadCrumbs { get; private set; } = new ObservableCollection<Breadcrumb>();
 
-        private const int MaxNavigationHistoryEntries = 4;
-        
         // Breadcrumb history stack for breadcrumb click navigation (separate from main nav history)
         private static Stack<List<Breadcrumb>> _breadcrumbClickHistory = new Stack<List<Breadcrumb>>();
 
@@ -183,8 +181,6 @@ namespace ManagementTools.Services
             BreadCrumbs.Clear();
             _breadcrumbClickHistory.Clear();
             _backStackSourceType.Clear();
-            MainFrame?.BackStack.Clear();
-            MainFrame?.ForwardStack.Clear();
         }
 
         /// <summary>
@@ -208,36 +204,6 @@ namespace ManagementTools.Services
 
         private static Stack<bool> CloneBoolStack(Stack<bool> source) =>
             new(source.Reverse());
-
-        private static Stack<T> TrimStack<T>(Stack<T> source, int maxCount)
-        {
-            if (source.Count <= maxCount)
-            {
-                return source;
-            }
-
-            return new Stack<T>(source.Reverse().Skip(source.Count - maxCount));
-        }
-
-        private static void TrimFrameBackStack()
-        {
-            if (MainFrame is null)
-            {
-                return;
-            }
-
-            while (MainFrame.BackStack.Count > MaxNavigationHistoryEntries)
-            {
-                MainFrame.BackStack.RemoveAt(0);
-            }
-        }
-
-        private static void TrimStoredHistory()
-        {
-            _breadcrumbClickHistory = TrimStack(_breadcrumbClickHistory, MaxNavigationHistoryEntries);
-            _mainNavHistory = TrimStack(_mainNavHistory, MaxNavigationHistoryEntries);
-            _backStackSourceType = TrimStack(_backStackSourceType, MaxNavigationHistoryEntries);
-        }
 
         #endregion
 
@@ -279,7 +245,6 @@ namespace ManagementTools.Services
 
             // Execute navigation
             MainFrame.Navigate(targetPageType, parameter, info);
-            TrimNavigationHistory();
             
             CurrentState = NavigationState.Idle;
         }
@@ -329,7 +294,6 @@ namespace ManagementTools.Services
             
             // Navigate to target page (this adds current page to BackStack, enabling GoBack)
             MainFrame.Navigate(targetPageType, parameter, info);
-            TrimNavigationHistory();
             
             // Reset state after navigation completes
             CurrentState = NavigationState.Idle;
@@ -358,7 +322,6 @@ namespace ManagementTools.Services
 
             // Execute navigation
             MainFrame.Navigate(targetPageType, parameter, GetTransitionInfo(animType));
-            TrimNavigationHistory();
         }
 
         /// <summary>
@@ -411,7 +374,6 @@ namespace ManagementTools.Services
             var backStackSourceTypeCopy = CloneBoolStack(_backStackSourceType);
 
             _mainNavHistory.Push((currentState, clickHistoryCopy, backStackSourceTypeCopy));
-            TrimStoredHistory();
             LogDebug("SaveToMainNavHistory", $"Saved [{string.Join(" > ", currentState.Select(b => b.Label))}] with {clickHistoryCopy.Count} click history entries");
 
             _breadcrumbClickHistory.Clear();
@@ -427,7 +389,6 @@ namespace ManagementTools.Services
             
             var currentState = ToLightweightBreadcrumbs(BreadCrumbs);
             _breadcrumbClickHistory.Push(currentState);
-            TrimStoredHistory();
             LogDebug("SaveToBreadcrumbClickHistory", $"Saved [{string.Join(" > ", currentState.Select(b => b.Label))}]");
         }
 
@@ -494,14 +455,6 @@ namespace ManagementTools.Services
             _backStackSourceType.Clear();
         }
 
-        /// <summary>
-        /// Trims retained navigation state to the configured in-memory history limit.
-        /// </summary>
-        public static void TrimNavigationHistory()
-        {
-            TrimFrameBackStack();
-            TrimStoredHistory();
-        }
         #endregion
     }
 }

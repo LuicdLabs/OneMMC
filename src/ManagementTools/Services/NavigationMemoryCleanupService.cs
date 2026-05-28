@@ -1,22 +1,24 @@
 using System;
-using System.Runtime;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Windows.Win32;
 
 namespace ManagementTools.Services;
 
 /// <summary>
-/// Coalesces navigation cleanup work so short page visits release stale managed and native working-set pressure.
+/// Coalesces lightweight GC maintenance after navigation releases large page data.
 /// </summary>
 public sealed class NavigationMemoryCleanupService
 {
-    private static readonly TimeSpan CleanupDelay = TimeSpan.FromMilliseconds(700);
+    private const long MinimumManagedHeapGrowthBytes = 16 * 1024 * 1024;
+    private static readonly TimeSpan CleanupDelay = TimeSpan.FromSeconds(2);
+    private static readonly TimeSpan MinimumCollectionInterval = TimeSpan.FromSeconds(15);
 
     private readonly ILogger<NavigationMemoryCleanupService> _logger;
     private int _scheduled;
     private int _collecting;
+    private long _lastManagedHeapBytes = GC.GetTotalMemory(forceFullCollection: false);
+    private DateTimeOffset _lastCollectionTime = DateTimeOffset.MinValue;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="NavigationMemoryCleanupService"/> class.
@@ -55,8 +57,7 @@ public sealed class NavigationMemoryCleanupService
 
             try
             {
-                CompactManagedMemory();
-                TrimWorkingSet();
+                RunOptimizedCollectionIfUseful();
             }
             finally
             {
@@ -71,23 +72,26 @@ public sealed class NavigationMemoryCleanupService
         }
     }
 
-    private static void CompactManagedMemory()
+    private void RunOptimizedCollectionIfUseful()
     {
-        GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
-        GC.Collect(2, GCCollectionMode.Forced, blocking: true, compacting: true);
-        GC.WaitForPendingFinalizers();
-        GC.Collect(2, GCCollectionMode.Forced, blocking: true, compacting: true);
-    }
+        DateTimeOffset now = DateTimeOffset.UtcNow;
+        if (now - _lastCollectionTime < MinimumCollectionInterval)
+        {
+            return;
+        }
 
-    private static void TrimWorkingSet()
-    {
-        try
+        long currentManagedHeapBytes = GC.GetTotalMemory(forceFullCollection: false);
+        if (currentManagedHeapBytes - _lastManagedHeapBytes < MinimumManagedHeapGrowthBytes)
         {
-            _ = PInvoke.SetProcessWorkingSetSize(PInvoke.GetCurrentProcess(), nuint.MaxValue, nuint.MaxValue);
+            _lastManagedHeapBytes = Math.Min(_lastManagedHeapBytes, currentManagedHeapBytes);
+            return;
         }
-        catch
-        {
-            // Working-set trimming is best-effort. Managed cleanup above is the functional release path.
-        }
+
+        GC.Collect(2, GCCollectionMode.Optimized, blocking: false, compacting: false);
+        _lastCollectionTime = now;
+        _lastManagedHeapBytes = GC.GetTotalMemory(forceFullCollection: false);
+        _logger.LogDebug(
+            "Requested optimized navigation memory maintenance. Managed heap before request: {ManagedHeapBytes} bytes.",
+            currentManagedHeapBytes);
     }
 }

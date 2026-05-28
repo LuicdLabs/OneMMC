@@ -160,6 +160,7 @@
 				x:Name="contentFrame"
 				x:FieldModifier="public"
 				AutomationProperties.AutomationId="MainContentFrame"
+				CacheSize="0"
 				HorizontalAlignment="Stretch"
 				MaxWidth="1000" />
 		</NavigationView>
