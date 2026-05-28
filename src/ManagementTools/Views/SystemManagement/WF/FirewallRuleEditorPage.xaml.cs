@@ -86,6 +86,8 @@ public sealed partial class FirewallRuleEditorPage : Page
         ViewModel.AdminPermissionRequired -= OnAdminPermissionRequired;
         _firewallChangeSubscription?.Dispose();
         _firewallChangeSubscription = null;
+        _trackedRuleToggles.Clear();
+        _userInitiatedRuleToggles.Clear();
         Unloaded -= OnUnloaded;
     }
 

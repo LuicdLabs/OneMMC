@@ -38,7 +38,14 @@ public sealed partial class ComponentServicesPage : Page
 		_componentServicesService = App.GetRequiredService<ComponentServicesManager>();
 		InitializeComponent();
 		Loaded += ComponentServicesPage_Loaded;
-		Unloaded += (_, _) => Loaded -= ComponentServicesPage_Loaded;
+		Unloaded += ComponentServicesPage_Unloaded;
+	}
+
+	private void ComponentServicesPage_Unloaded(object sender, RoutedEventArgs e)
+	{
+		Loaded -= ComponentServicesPage_Loaded;
+		Unloaded -= ComponentServicesPage_Unloaded;
+		ComPlusApplications.Clear();
 	}
 
 	private async void ComponentServicesPage_Loaded(object sender, RoutedEventArgs e)

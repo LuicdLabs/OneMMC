@@ -58,7 +58,13 @@ public sealed partial class UserSecurityPage : Page
 		this.Loaded += UserSecurityPage_Loaded;
 		this.RequestedTheme = App.CurrentTheme;
 		App.ThemeChanged += OnThemeChanged;
-		this.Unloaded += (_, _) => App.ThemeChanged -= OnThemeChanged;
+		this.Unloaded += (_, _) =>
+		{
+			App.ThemeChanged -= OnThemeChanged;
+			SettingsItems.Clear();
+			DataContext = null;
+			this.Loaded -= UserSecurityPage_Loaded;
+		};
 	}
 
 	private void UserSecurityPage_Loaded(object sender, RoutedEventArgs e)

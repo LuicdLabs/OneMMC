@@ -31,6 +31,8 @@ public sealed partial class ServicesPage : Page
         {
             ViewModel.AdminPermissionRequired -= OnAdminPermissionRequired;
             ViewModel.ClearCachedData();
+            DataContext = null;
+            this.Loaded -= ServicesPage_Loaded;
         };
     }
 

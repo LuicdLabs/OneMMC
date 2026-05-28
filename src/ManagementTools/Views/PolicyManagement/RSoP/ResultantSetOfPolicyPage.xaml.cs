@@ -67,6 +67,10 @@ public sealed partial class ResultantSetOfPolicyPage : Page
         App.ThemeChanged -= OnThemeChanged;
         ViewModel.RootNodes.CollectionChanged -= RootNodes_CollectionChanged;
         ViewModel.Dispose();
+        PolicyTree.RootNodes.Clear();
+        DataContext = null;
+        Loaded -= OnLoaded;
+        Unloaded -= OnUnloaded;
     }
 
     private void OnThemeChanged(ElementTheme theme)

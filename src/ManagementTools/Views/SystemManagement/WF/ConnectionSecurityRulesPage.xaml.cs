@@ -68,6 +68,8 @@ public sealed partial class ConnectionSecurityRulesPage : Page
         App.ThemeChanged -= OnThemeChanged;
         _firewallChangeSubscription?.Dispose();
         _firewallChangeSubscription = null;
+        _trackedRuleToggles.Clear();
+        _userInitiatedRuleToggles.Clear();
         Unloaded -= OnUnloaded;
     }
 

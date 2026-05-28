@@ -31,6 +31,7 @@ public sealed partial class DiskManagementPage : Page
             this.Loaded -= DiskManagementPage_Loaded;
             App.ThemeChanged -= OnThemeChanged;
             ViewModel.ClearCachedData();
+            DataContext = null;
         };
     }
 

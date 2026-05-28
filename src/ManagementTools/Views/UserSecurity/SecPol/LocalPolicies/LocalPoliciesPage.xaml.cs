@@ -35,6 +35,8 @@ public sealed partial class LocalPoliciesPage : Page
         this.Unloaded += (_, _) =>
         {
             ViewModel.AdminPermissionRequired -= OnAdminPermissionRequired;
+            DataContext = null;
+            Loaded -= OnPageLoaded;
         };
     }
 

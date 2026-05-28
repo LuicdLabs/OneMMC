@@ -213,6 +213,7 @@ public sealed partial class LocalUsersGroupsPage : Page
         this.Unloaded += (_, _) =>
         {
             ViewModel.ClearCachedData();
+            DataContext = null;
             this.Loaded -= LocalUsersGroupsPage_Loaded;
         };
     }

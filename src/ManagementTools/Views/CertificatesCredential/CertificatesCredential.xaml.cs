@@ -56,7 +56,13 @@ public sealed partial class CertificatesCredential : Page
 		this.Loaded += CertificatesCredential_Loaded;
 		this.RequestedTheme = App.CurrentTheme;
 		App.ThemeChanged += OnThemeChanged;
-		this.Unloaded += (_, _) => App.ThemeChanged -= OnThemeChanged;
+		this.Unloaded += (_, _) =>
+		{
+			App.ThemeChanged -= OnThemeChanged;
+			SettingsItems.Clear();
+			DataContext = null;
+			this.Loaded -= CertificatesCredential_Loaded;
+		};
 	}
 
 	private void CertificatesCredential_Loaded(object sender, RoutedEventArgs e)

@@ -514,6 +514,7 @@ public sealed partial class WindowsFirewallPropertiesPage : Page
         App.ThemeChanged -= OnThemeChanged;
         _firewallChangeSubscription?.Dispose();
         _firewallChangeSubscription = null;
+        _dialogSemaphore.Dispose();
         Unloaded -= WindowsFirewallPropertiesPage_Unloaded;
     }
 

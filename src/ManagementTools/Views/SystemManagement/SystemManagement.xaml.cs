@@ -63,7 +63,13 @@ public sealed partial class SystemManagement : Page
 		this.Loaded += SystemManagement_Loaded;
 		this.RequestedTheme = App.CurrentTheme;
 		App.ThemeChanged += OnThemeChanged;
-		this.Unloaded += (_, _) => App.ThemeChanged -= OnThemeChanged;
+		this.Unloaded += (_, _) =>
+		{
+			App.ThemeChanged -= OnThemeChanged;
+			SettingsItems.Clear();
+			DataContext = null;
+			this.Loaded -= SystemManagement_Loaded;
+		};
 	}
 
 	private void SystemManagement_Loaded(object sender, RoutedEventArgs e)

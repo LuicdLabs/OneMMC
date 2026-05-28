@@ -57,7 +57,13 @@ public sealed partial class PolicyManagement : Page
 		this.Loaded += PolicyManagement_Loaded;
 		this.RequestedTheme = App.CurrentTheme;
 		App.ThemeChanged += OnThemeChanged;
-		this.Unloaded += (_, _) => App.ThemeChanged -= OnThemeChanged;
+		this.Unloaded += (_, _) =>
+		{
+			App.ThemeChanged -= OnThemeChanged;
+			SettingsItems.Clear();
+			DataContext = null;
+			this.Loaded -= PolicyManagement_Loaded;
+		};
 	}
 
 	private void PolicyManagement_Loaded(object sender, RoutedEventArgs e)

@@ -38,7 +38,18 @@ public sealed partial class AuthorizationStorePage : Page
         InitializeComponent();
         this.RequestedTheme = App.CurrentTheme;
         App.ThemeChanged += OnThemeChanged;
-        this.Unloaded += (_, _) => App.ThemeChanged -= OnThemeChanged;
+        this.Unloaded += (_, _) =>
+        {
+            App.ThemeChanged -= OnThemeChanged;
+            if (_viewModel != null)
+            {
+                _viewModel.PropertyChanged -= OnViewModelPropertyChanged;
+                _viewModel = null;
+            }
+            _service = null;
+            _store = null;
+            _managerViewModel = null;
+        };
     }
 
     #region Navigation

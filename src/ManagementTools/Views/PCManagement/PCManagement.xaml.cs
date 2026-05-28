@@ -97,7 +97,13 @@ public sealed partial class PCManagement : Page
 		this.Loaded += PCManagement_Loaded;
 		this.RequestedTheme = App.CurrentTheme;
 		App.ThemeChanged += OnThemeChanged;
-		this.Unloaded += (_, _) => App.ThemeChanged -= OnThemeChanged;
+		this.Unloaded += (_, _) =>
+		{
+			App.ThemeChanged -= OnThemeChanged;
+			SettingsItems.Clear();
+			DataContext = null;
+			this.Loaded -= PCManagement_Loaded;
+		};
 	}
 	
 	private void OnThemeChanged(Microsoft.UI.Xaml.ElementTheme theme)

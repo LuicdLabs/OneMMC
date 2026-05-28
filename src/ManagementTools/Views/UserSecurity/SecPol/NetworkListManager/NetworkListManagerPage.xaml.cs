@@ -49,6 +49,8 @@ public sealed partial class NetworkListManagerPage : Page
     private void OnPageUnloaded(object sender, RoutedEventArgs e)
     {
         ViewModel.AdminPermissionRequired -= OnAdminPermissionRequired;
+        _selectionSnapshot.Clear();
+        DataContext = null;
         Loaded -= OnPageLoaded;
         Unloaded -= OnPageUnloaded;
     }

@@ -57,6 +57,8 @@ namespace ManagementTools.Views.PolicyManagement.GpEdit
             ViewModel.AdminPermissionRequired -= OnAdminPermissionRequired;
             ViewModel.RootNodes.CollectionChanged -= RootNodes_CollectionChanged;
             ViewModel.Dispose();
+            PolicyTree.RootNodes.Clear();
+            DataContext = null;
         }
 
         private async void OnAdminPermissionRequired(object? sender, EventArgs e)

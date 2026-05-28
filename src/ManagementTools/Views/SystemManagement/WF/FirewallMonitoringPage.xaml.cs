@@ -95,6 +95,8 @@ public sealed partial class FirewallMonitoringPage : Page
         _loadCancellationTokenSource?.Cancel();
         _loadCancellationTokenSource?.Dispose();
         _loadCancellationTokenSource = null;
+        _currentItems.Clear();
+        DetailsListView.ItemsSource = null;
     }
 
     private void MonitoringTree_ItemInvoked(TreeView sender, TreeViewItemInvokedEventArgs args)

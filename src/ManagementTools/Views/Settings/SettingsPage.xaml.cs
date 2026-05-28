@@ -41,7 +41,12 @@ namespace ManagementTools.Views
             this.Loaded += SettingsPage_Loaded;
             this.RequestedTheme = App.CurrentTheme;
             App.ThemeChanged += OnThemeChanged;
-            this.Unloaded += (_, _) => App.ThemeChanged -= OnThemeChanged;
+            this.Unloaded += (_, _) =>
+            {
+                App.ThemeChanged -= OnThemeChanged;
+                DataContext = null;
+                this.Loaded -= SettingsPage_Loaded;
+            };
         }
 
         private void SettingsPage_Loaded(object sender, RoutedEventArgs e)

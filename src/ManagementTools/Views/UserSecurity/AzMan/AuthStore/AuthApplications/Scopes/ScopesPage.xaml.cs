@@ -39,7 +39,16 @@ public sealed partial class ScopesPage : Page
         InitializeComponent();
         this.RequestedTheme = App.CurrentTheme;
         App.ThemeChanged += OnThemeChanged;
-        this.Unloaded += (_, _) => App.ThemeChanged -= OnThemeChanged;
+        this.Unloaded += (_, _) =>
+        {
+            App.ThemeChanged -= OnThemeChanged;
+            if (_viewModel != null)
+            {
+                _viewModel.PropertyChanged -= OnViewModelPropertyChanged;
+                _viewModel = null;
+            }
+            _service = null;
+        };
     }
 
     protected override async void OnNavigatedTo(NavigationEventArgs e)

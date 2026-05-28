@@ -14,7 +14,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<WinUIThemeService>();
         services.AddSingleton<IThemeService>(sp => sp.GetRequiredService<WinUIThemeService>());
         services.AddSingleton<BreadcrumbNavigationService>();
-        services.AddSingleton<NavigationMemoryCleanupService>();
+
         services.AddSingleton<LocalizationService>();
         services.AddSingleton<NavigationService>();
         services.AddSingleton<SettingsViewModel>();

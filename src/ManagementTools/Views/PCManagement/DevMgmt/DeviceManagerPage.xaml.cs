@@ -27,10 +27,12 @@ namespace ManagementTools.Views
             ViewModel = App.GetRequiredService<DeviceManagerViewModel>();
             this.InitializeComponent();
             this.Loaded += DeviceManagerPage_Loaded;
+            ViewModel.PropertyChanged += ViewModel_PropertyChanged;
             this.Unloaded += (_, _) =>
             {
                 ViewModel.PropertyChanged -= ViewModel_PropertyChanged;
                 ViewModel.ClearCachedData();
+                DataContext = null;
                 this.Loaded -= DeviceManagerPage_Loaded;
             };
         }
@@ -94,21 +96,6 @@ namespace ManagementTools.Views
             }
         }
 
-        protected override void OnNavigatedTo(NavigationEventArgs e)
-        {
-            base.OnNavigatedTo(e);
-            
-            // Subscribe to property changes to update UI
-            ViewModel.PropertyChanged += ViewModel_PropertyChanged;
-        }
-
-        protected override void OnNavigatedFrom(NavigationEventArgs e)
-        {
-            base.OnNavigatedFrom(e);
-            
-            // Unsubscribe from property changes
-            ViewModel.PropertyChanged -= ViewModel_PropertyChanged;
-        }
 
         private void ViewModel_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
