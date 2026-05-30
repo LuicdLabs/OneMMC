@@ -53,8 +53,22 @@ public sealed partial class EventViewerPage : Page
             _eventsScrollViewer = null;
         }
 
-        DetailContentFrame.BackStack.Clear();
-        DetailContentFrame.ForwardStack.Clear();
+        // Defer BackStack/ForwardStack clearing — the Unloaded event may fire
+        // while a parent Frame navigation is still in progress, and WinUI 3
+        // throws COMException 0x800710DD if the stacks are modified at that point.
+        DispatcherQueue.TryEnqueue(() =>
+        {
+            try
+            {
+                DetailContentFrame.BackStack.Clear();
+                DetailContentFrame.ForwardStack.Clear();
+            }
+            catch (System.Runtime.InteropServices.COMException)
+            {
+                // Still navigating — safe to ignore; the frame is being discarded.
+            }
+        });
+
         DetailContentFrame.Content = null;
         EventLogTreeView.RootNodes.Clear();
         EventsListView.ItemsSource = null;
@@ -137,11 +151,13 @@ public sealed partial class EventViewerPage : Page
             ? new SlideNavigationTransitionInfo { Effect = slideEffect }
             : new SuppressNavigationTransitionInfo();
 
+        // Disable navigation stack so entries never accumulate — avoids
+        // COMException 0x800710DD when clearing stacks during navigation.
+        DetailContentFrame.IsNavigationStackEnabled = false;
+
         if (isXmlTab)
         {
             DetailContentFrame.Navigate(typeof(EventDetailsPage), null, transition);
-            DetailContentFrame.BackStack.Clear();
-            DetailContentFrame.ForwardStack.Clear();
             if (DetailContentFrame.Content is EventDetailsPage detailsPage)
             {
                 detailsPage.SelectedEvent = ViewModel.SelectedEvent;
@@ -151,8 +167,6 @@ public sealed partial class EventViewerPage : Page
         else
         {
             DetailContentFrame.Navigate(typeof(EventGeneralPage), null, transition);
-            DetailContentFrame.BackStack.Clear();
-            DetailContentFrame.ForwardStack.Clear();
             if (DetailContentFrame.Content is EventGeneralPage generalPage)
             {
                 generalPage.SelectedEvent = ViewModel.SelectedEvent;
