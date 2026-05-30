@@ -21,6 +21,7 @@ public static class ResourceFileNames
     public const string AzMan = "AzMan";
     public const string ComExp = "ComExp";
     public const string EventViewer = "EventViewer";
+    public const string FsMgmt = "FsMgmt";
     public const string PrintManagement = "PrintManagement";
     public const string WF = "WF";
 }
@@ -411,6 +412,63 @@ public static class CommonKeys
     public const string CountOperation_Plural = "Common_CountOperation_Plural";
     public const string CountScope_Singular = "Common_CountScope_Singular";
     public const string CountScope_Plural = "Common_CountScope_Plural";
+}
+
+/// <summary>
+/// Resource key constants for Shared Folders.
+/// </summary>
+public static class FsMgmtKeys
+{
+    public const string PageSearchPlaceholder = "FsMgmt_Page_SearchPlaceholder";
+    public const string SharesHeader = "FsMgmt_Shares_Header";
+    public const string SessionsHeader = "FsMgmt_Sessions_Header";
+    public const string OpenFilesHeader = "FsMgmt_OpenFiles_Header";
+    public const string ComputerNameLabel = "FsMgmt_ComputerName_Label";
+    public const string ShareInformationHeader = "FsMgmt_ShareInformation_Header";
+    public const string SharePathLabel = "FsMgmt_SharePath_Label";
+    public const string FolderPathPlaceholder = "FsMgmt_FolderPath_Placeholder";
+    public const string PermissionsSecurityHeader = "FsMgmt_PermissionsSecurity_Header";
+    public const string SharesCountFormat = "FsMgmt_Shares_CountFormat";
+    public const string SessionsCountFormat = "FsMgmt_Sessions_CountFormat";
+    public const string OpenFilesCountFormat = "FsMgmt_OpenFiles_CountFormat";
+    public const string EmptyShares = "FsMgmt_Empty_Shares";
+    public const string EmptySessions = "FsMgmt_Empty_Sessions";
+    public const string EmptyOpenFiles = "FsMgmt_Empty_OpenFiles";
+    public const string ShareDetailsFormat = "FsMgmt_Share_DetailsFormat";
+    public const string SessionDetailsFormat = "FsMgmt_Session_DetailsFormat";
+    public const string OpenFileDetailsFormat = "FsMgmt_OpenFile_DetailsFormat";
+    public const string ShareTypeDisk = "FsMgmt_ShareType_Disk";
+    public const string ShareTypePrint = "FsMgmt_ShareType_Print";
+    public const string ShareTypeDevice = "FsMgmt_ShareType_Device";
+    public const string ShareTypeIpc = "FsMgmt_ShareType_Ipc";
+    public const string ShareTypeUnknown = "FsMgmt_ShareType_Unknown";
+    public const string NotAvailable = "FsMgmt_NotAvailable";
+    public const string UserLimitMaximumAllowed = "FsMgmt_UserLimit_MaximumAllowed";
+    public const string OfflineManual = "FsMgmt_Offline_Manual";
+    public const string OfflineNone = "FsMgmt_Offline_None";
+    public const string OfflineAutomatic = "FsMgmt_Offline_Automatic";
+    public const string FilePermissionRead = "FsMgmt_FilePermission_Read";
+    public const string FilePermissionWrite = "FsMgmt_FilePermission_Write";
+    public const string FilePermissionReadWrite = "FsMgmt_FilePermission_ReadWrite";
+    public const string GuestYes = "FsMgmt_Guest_Yes";
+    public const string GuestNo = "FsMgmt_Guest_No";
+    public const string PermissionAllow = "FsMgmt_Permissions_Allow";
+    public const string PermissionDeny = "FsMgmt_Permissions_Deny";
+    public const string PermissionRead = "FsMgmt_Permissions_Read";
+    public const string PermissionChange = "FsMgmt_Permissions_Change";
+    public const string PermissionFullControl = "FsMgmt_Permissions_FullControl";
+    public const string DurationDaysFormat = "FsMgmt_Duration_DaysFormat";
+    public const string DurationHoursFormat = "FsMgmt_Duration_HoursFormat";
+    public const string StatusLoading = "FsMgmt_Status_Loading";
+    public const string StatusLoadedFormat = "FsMgmt_Status_LoadedFormat";
+    public const string StatusCreatingShare = "FsMgmt_Status_CreatingShare";
+    public const string StatusUpdatingShare = "FsMgmt_Status_UpdatingShare";
+    public const string StatusDeletingShare = "FsMgmt_Status_DeletingShare";
+    public const string StatusDisconnectingSession = "FsMgmt_Status_DisconnectingSession";
+    public const string StatusClosingOpenFile = "FsMgmt_Status_ClosingOpenFile";
+    public const string StatusOperationComplete = "FsMgmt_Status_OperationComplete";
+    public const string ErrorLoadFailed = "FsMgmt_Error_LoadFailed";
+    public const string ErrorOperationFailed = "FsMgmt_Error_OperationFailed";
 }
 
 /// <summary>

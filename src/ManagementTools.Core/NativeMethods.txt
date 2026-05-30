@@ -74,7 +74,16 @@ LsaQueryInformationPolicy
 LsaRemoveAccountRights
 LsaSetInformationPolicy
 NetApiBufferFree
+NetFileClose
+NetFileEnum
 NetGetJoinInformation
+NetSessionDel
+NetSessionEnum
+NetShareAdd
+NetShareDel
+NetShareEnum
+NetShareGetInfo
+NetShareSetInfo
 NetUserGetInfo
 NetUserModalsGet
 NetUserModalsSet

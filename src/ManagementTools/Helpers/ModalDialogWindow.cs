@@ -117,6 +117,11 @@ public sealed class ModalDialogOptions
     /// </summary>
     public WindowDialogResult DefaultButton { get; init; } = WindowDialogResult.Primary;
 
+    /// <summary>
+    /// Places the primary action before the close button in the footer when <c>true</c>.
+    /// </summary>
+    public bool IsPrimaryButtonLeading { get; init; }
+
     /// <summary>Initial dialog width in raw pixels (device pixels, not DIPs).</summary>
     public int Width { get; init; } = 640;
 
@@ -314,7 +319,7 @@ public sealed class ModalDialogWindow : Window
             var obj => new TextBlock { Text = obj.ToString(), TextWrapping = TextWrapping.Wrap }
         };
 
-        if (content is ScrollViewer || content is UserControl { Content: ScrollViewer })
+        if (content is ScrollViewer or UserControl)
         {
             return content;
         }
@@ -366,57 +371,22 @@ public sealed class ModalDialogWindow : Window
         Button? primary = null;
         int columnIndex = 0;
 
-        if (hasSecondary)
+        void AddButton(Button button)
         {
             panel.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-            secondary = new Button
-            {
-                Content = _options.SecondaryButtonText,
-                HorizontalAlignment = HorizontalAlignment.Stretch
-            };
-            secondary.Click += (_, _) =>
-            {
-                // Allow the caller to cancel the close (e.g. unsaved changes guard).
-                if (_options.OnSecondaryButtonClick?.Invoke() == false)
-                {
-                    return;
-                }
-
-                CompleteWith(WindowDialogResult.Secondary);
-            };
-            Grid.SetColumn(secondary, columnIndex++);
-            panel.Children.Add(secondary);
+            Grid.SetColumn(button, columnIndex++);
+            panel.Children.Add(button);
         }
 
-        if (hasClose)
+        Button CreatePrimaryButton()
         {
-            panel.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-            close = new Button
-            {
-                Content = _options.CloseButtonText,
-                HorizontalAlignment = HorizontalAlignment.Stretch
-            };
-            close.Click += (_, _) =>
-            {
-                _options.OnCloseButtonClick?.Invoke();
-                CompleteWith(WindowDialogResult.None);
-            };
-            Grid.SetColumn(close, columnIndex++);
-            panel.Children.Add(close);
-        }
-
-        if (hasPrimary)
-        {
-            panel.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-            // AccentButtonStyle gives the primary button the system accent color,
-            // making it visually distinct as the recommended action.
-            primary = new Button
+            var button = new Button
             {
                 Content = _options.PrimaryButtonText,
                 Style = (Style)Application.Current.Resources["AccentButtonStyle"],
                 HorizontalAlignment = HorizontalAlignment.Stretch
             };
-            primary.Click += (_, _) =>
+            button.Click += (_, _) =>
             {
                 // Allow the caller to cancel the close (e.g. form validation failure).
                 if (_options.OnPrimaryButtonClick?.Invoke() == false)
@@ -426,8 +396,68 @@ public sealed class ModalDialogWindow : Window
 
                 CompleteWith(WindowDialogResult.Primary);
             };
-            Grid.SetColumn(primary, columnIndex);
-            panel.Children.Add(primary);
+
+            primary = button;
+            return button;
+        }
+
+        Button CreateSecondaryButton()
+        {
+            var button = new Button
+            {
+                Content = _options.SecondaryButtonText,
+                HorizontalAlignment = HorizontalAlignment.Stretch
+            };
+            button.Click += (_, _) =>
+            {
+                // Allow the caller to cancel the close (e.g. unsaved changes guard).
+                if (_options.OnSecondaryButtonClick?.Invoke() == false)
+                {
+                    return;
+                }
+
+                CompleteWith(WindowDialogResult.Secondary);
+            };
+
+            secondary = button;
+            return button;
+        }
+
+        Button CreateCloseButton()
+        {
+            var button = new Button
+            {
+                Content = _options.CloseButtonText,
+                HorizontalAlignment = HorizontalAlignment.Stretch
+            };
+            button.Click += (_, _) =>
+            {
+                _options.OnCloseButtonClick?.Invoke();
+                CompleteWith(WindowDialogResult.None);
+            };
+
+            close = button;
+            return button;
+        }
+
+        if (_options.IsPrimaryButtonLeading && hasPrimary)
+        {
+            AddButton(CreatePrimaryButton());
+        }
+
+        if (hasSecondary)
+        {
+            AddButton(CreateSecondaryButton());
+        }
+
+        if (hasClose)
+        {
+            AddButton(CreateCloseButton());
+        }
+
+        if (hasPrimary && !_options.IsPrimaryButtonLeading)
+        {
+            AddButton(CreatePrimaryButton());
         }
 
         var container = new Border

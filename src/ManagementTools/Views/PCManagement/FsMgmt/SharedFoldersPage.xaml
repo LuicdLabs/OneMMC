@@ -1,161 +1,263 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <Page
-	x:Class="ManagementTools.Views.SharedFoldersPage"
-	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-	xmlns:local="using:ManagementTools.Views"
-	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-	xmlns:controls="using:CommunityToolkit.WinUI.Controls"
-	mc:Ignorable="d">
+    x:Class="ManagementTools.Views.SharedFoldersPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:CommunityToolkit.WinUI.Controls"
+    xmlns:converters="using:ManagementTools.Converters"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:models="using:ManagementTools.Core.Features.PCManagement.Models.FsMgmt"
+    x:Name="PageRoot"
+    mc:Ignorable="d">
 
-	<Grid>
+    <Page.Resources>
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+        <converters:CollectionEmptyToVisibilityConverter x:Key="CollectionEmptyToVisibilityConverter" />
+        <converters:StringVisibilityConverter x:Key="StringVisibilityConverter" />
+    </Page.Resources>
+
+    <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
-		</Grid.RowDefinitions>
+        </Grid.RowDefinitions>
 
-		<!-- CommandBar -->
-        <CommandBar Grid.Row="0" Margin="0,12,0,0" DefaultLabelPosition="Right" Background="Transparent">
-			<CommandBar.Content>
-				<AutoSuggestBox 
-					PlaceholderText="Search" 
-					QueryIcon="Find"
-					Width="300"
-					Margin="12,8,0,8" />
-			</CommandBar.Content>
-			
-			<AppBarButton Icon="Refresh" Label="Refresh" />
-            <AppBarButton Icon="More" />
-        </CommandBar>
+        <Grid
+            Grid.Row="0"
+            Margin="24,18,24,12"
+            ColumnDefinitions="Auto,*,Auto">
+            <AutoSuggestBox
+                x:Name="SearchBox"
+                Width="360"
+                PlaceholderText="{x:Bind LocalizedStrings.FsMgmt_Page_SearchPlaceholder}"
+                QueryIcon="Find"
+                TextChanged="SearchBox_TextChanged" />
 
-		<!-- Main Content -->
-		<ScrollViewer Grid.Row="1">
-			<StackPanel Padding="24,12,24,24" Spacing="4">
-				
-				<!-- Shares Section -->
-				<controls:SettingsExpander 
-					IsExpanded="True"
-					Header="Shares"
-					Description="4 folders shared">
-					<controls:SettingsExpander.HeaderIcon>
-                        <FontIcon Glyph="&#xEC25;" />
-					</controls:SettingsExpander.HeaderIcon>
-					<controls:SettingsExpander.Items>
-						
-						<!-- Lab Share -->
-                        <controls:SettingsCard 
-							Header="Lab">
-                            <controls:SettingsCard.Description>
-                                <StackPanel>
-                                    <TextBlock 
-										Text="This is a description" 
-										Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-										FontSize="12"
-										VerticalAlignment="Center" />
-                                    <TextBlock 
-										Text="Path: C:\Users\Admin\Desktop\Lab | Client Connections: 0" 
-										Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-										FontSize="12"
-										VerticalAlignment="Center" />
-                                </StackPanel>
-                            </controls:SettingsCard.Description>
-                            <Button Grid.Column="1" Margin="8,0,0,0" Style="{StaticResource SubtleButtonStyle}">
-                                <FontIcon Glyph="&#xE712;" FontSize="16" />
-                            </Button>
-                        </controls:SettingsCard>
+            <StackPanel
+                Grid.Column="2"
+                Orientation="Horizontal"
+                Spacing="8">
+                <Button
+                    Click="Refresh_Click"
+                    Style="{StaticResource SubtleButtonStyle}">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <FontIcon Glyph="&#xE72C;" />
+                        <TextBlock Text="{x:Bind LocalizedStrings.Common_Refresh}" />
+                    </StackPanel>
+                </Button>
+                <Button Style="{StaticResource SubtleButtonStyle}">
+                    <FontIcon Glyph="&#xE712;" />
+                    <Button.Flyout>
+                        <MenuFlyout />
+                    </Button.Flyout>
+                </Button>
+            </StackPanel>
+        </Grid>
 
-						<!-- ADMIN$ Share -->
-                        <controls:SettingsCard 
-							Header="ADMIN$">
-                            <controls:SettingsCard.Description>
-                                <StackPanel>
-                                    <TextBlock 
-										Text="Remote Admin" 
-										Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-										FontSize="12"
-										VerticalAlignment="Center" />
-                                    <TextBlock 
-										Text="Path: C:\WINDOWS | Client Connections: 0" 
-										Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-										FontSize="12"
-										VerticalAlignment="Center" />
-                                </StackPanel>
-                            </controls:SettingsCard.Description>
-                            <Button Grid.Column="1" Margin="8,0,0,0" Style="{StaticResource SubtleButtonStyle}">
-                                <FontIcon Glyph="&#xE712;" FontSize="16" />
-                            </Button>
-                        </controls:SettingsCard>
+        <InfoBar
+            Grid.Row="1"
+            Margin="24,0,24,12"
+            IsClosable="True"
+            IsOpen="{x:Bind ViewModel.HasStatusMessage, Mode=OneWay}"
+            Message="{x:Bind ViewModel.StatusMessage, Mode=OneWay}"
+            Severity="Informational" />
 
-						<!-- C$ Share -->
-                        <controls:SettingsCard 
-							Header="C$">
-                            <controls:SettingsCard.Description>
-                                <StackPanel>
-                                    <TextBlock 
-										Text="Default share" 
-										Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-										FontSize="12"
-										VerticalAlignment="Center" />
-                                    <TextBlock 
-										Text="Path: C:\ | Client Connections: 0" 
-										Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-										FontSize="12"
-										VerticalAlignment="Center" />
-                                </StackPanel>
-                            </controls:SettingsCard.Description>
-                            <Button Grid.Column="1" Margin="8,0,0,0" Style="{StaticResource SubtleButtonStyle}">
-                                <FontIcon Glyph="&#xE712;" FontSize="16" />
-                            </Button>
-                        </controls:SettingsCard>
+        <ScrollViewer Grid.Row="2">
+            <StackPanel Padding="24,0,24,24" Spacing="4">
 
-						<!-- IPC$ Share -->
-                        <controls:SettingsCard 
-							Header="IPC$">
-                            <controls:SettingsCard.Description>
-                                <StackPanel>
-                                    <TextBlock 
-										Text="Remote IPC" 
-										Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-										FontSize="12"
-										VerticalAlignment="Center" />
-                                    <TextBlock 
-										Text="Path:  | Client Connections: 1" 
-										Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-										FontSize="12"
-										VerticalAlignment="Center" />
-                                </StackPanel>
-                            </controls:SettingsCard.Description>
-                            <Button Grid.Column="1" Margin="8,0,0,0" Style="{StaticResource SubtleButtonStyle}">
-                                <FontIcon Glyph="&#xE712;" FontSize="16" />
-                            </Button>
-                        </controls:SettingsCard>
+                <!--  Shares  -->
+                <controls:SettingsExpander
+                    HorizontalAlignment="Stretch"
+                    Header="{x:Bind LocalizedStrings.FsMgmt_Shares_Header}"
+                    IsExpanded="True"
+                    ItemsSource="{x:Bind ViewModel.Shares, Mode=OneWay}">
+                    <controls:SettingsExpander.HeaderIcon>
+                        <FontIcon FontSize="16" Glyph="&#xEC25;" />
+                    </controls:SettingsExpander.HeaderIcon>
+                    <controls:SettingsExpander.Description>
+                        <TextBlock Text="{x:Bind ViewModel.SharesDescription, Mode=OneWay}" />
+                    </controls:SettingsExpander.Description>
 
-					</controls:SettingsExpander.Items>
-					
-					<!-- Add Button in Header -->
-                    <Button Content="Add" MinWidth="120" />
+                    <Button
+                        Click="AddShare_Click"
+                        Content="{x:Bind LocalizedStrings.Common_AddButton}"
+                        MinWidth="110" />
+
+                    <controls:SettingsExpander.ItemTemplate>
+                        <DataTemplate x:DataType="models:SharedFolderShare">
+                            <controls:SettingsCard>
+                                <controls:SettingsCard.Header>
+                                    <StackPanel Spacing="2">
+                                        <TextBlock
+                                            FontWeight="SemiBold"
+                                            Text="{x:Bind Name}" />
+                                        <TextBlock
+                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                            Style="{StaticResource CaptionTextBlockStyle}"
+                                            Text="{x:Bind Description}"
+                                            TextTrimming="CharacterEllipsis"
+                                            Visibility="{Binding Description, Converter={StaticResource StringVisibilityConverter}}" />
+                                        <TextBlock
+                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                            Style="{StaticResource CaptionTextBlockStyle}"
+                                            Text="{x:Bind DetailsLine}"
+                                            TextTrimming="CharacterEllipsis" />
+                                    </StackPanel>
+                                </controls:SettingsCard.Header>
+                                <controls:SettingsCard.Content>
+                                    <Button
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        Tag="{x:Bind}">
+                                        <FontIcon FontSize="16" Glyph="&#xE712;" />
+                                        <Button.Flyout>
+                                            <MenuFlyout>
+                                                <MenuFlyoutItem
+                                                    Click="OpenShare_Click"
+                                                    Tag="{x:Bind}"
+                                                    Text="{Binding FsMgmt_Open, Source={StaticResource LocalizedStrings}}" />
+                                                <MenuFlyoutItem
+                                                    Click="StopSharing_Click"
+                                                    Tag="{x:Bind}"
+                                                    Text="{Binding FsMgmt_StopSharing, Source={StaticResource LocalizedStrings}}" />
+                                                <MenuFlyoutItem
+                                                    Click="ShareProperties_Click"
+                                                    Tag="{x:Bind}"
+                                                    Text="{Binding FsMgmt_Properties, Source={StaticResource LocalizedStrings}}" />
+                                            </MenuFlyout>
+                                        </Button.Flyout>
+                                    </Button>
+                                </controls:SettingsCard.Content>
+                            </controls:SettingsCard>
+                        </DataTemplate>
+                    </controls:SettingsExpander.ItemTemplate>
                 </controls:SettingsExpander>
 
-				<!-- Sessions Section -->
-				<controls:SettingsCard 
-					Header="Sessions">
-					<controls:SettingsCard.HeaderIcon>
-                        <FontIcon Glyph="&#xE7EE;" />
-					</controls:SettingsCard.HeaderIcon>
-					<Button Content="View" MinWidth="120" />
-				</controls:SettingsCard>
+                <!--  Sessions  -->
+                <controls:SettingsExpander
+                    HorizontalAlignment="Stretch"
+                    Header="{x:Bind LocalizedStrings.FsMgmt_Sessions_Header}"
+                    IsExpanded="True"
+                    ItemsSource="{x:Bind ViewModel.Sessions, Mode=OneWay}">
+                    <controls:SettingsExpander.HeaderIcon>
+                        <FontIcon FontSize="16" Glyph="&#xE7EE;" />
+                    </controls:SettingsExpander.HeaderIcon>
+                    <controls:SettingsExpander.Description>
+                        <TextBlock Text="{x:Bind ViewModel.SessionsDescription, Mode=OneWay}" />
+                    </controls:SettingsExpander.Description>
 
-				<!-- Open Files Section -->
-				<controls:SettingsCard 
-					Header="Open Files">
-					<controls:SettingsCard.HeaderIcon>
-                        <FontIcon Glyph="&#xE838;" />
-					</controls:SettingsCard.HeaderIcon>
-					<Button Content="View" MinWidth="120" />
-				</controls:SettingsCard>
+                    <Button
+                        Background="Transparent"
+                        BorderThickness="0">
+                        <FontIcon FontSize="16" Glyph="&#xE712;" />
+                        <Button.Flyout>
+                            <MenuFlyout>
+                                <MenuFlyoutItem
+                                    Click="DisconnectAllSessions_Click"
+                                    IsEnabled="{x:Bind ViewModel.HasSessions, Mode=OneWay}"
+                                    Text="{x:Bind LocalizedStrings.FsMgmt_DisconnectAllSessions}" />
+                            </MenuFlyout>
+                        </Button.Flyout>
+                    </Button>
 
-			</StackPanel>
-		</ScrollViewer>
-	</Grid>
+                    <controls:SettingsExpander.ItemTemplate>
+                        <DataTemplate x:DataType="models:SharedFolderSession">
+                            <controls:SettingsCard>
+                                <controls:SettingsCard.Header>
+                                    <StackPanel Spacing="2">
+                                        <TextBlock
+                                            FontWeight="SemiBold"
+                                            Text="{x:Bind UserName}" />
+                                        <TextBlock
+                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                            Style="{StaticResource CaptionTextBlockStyle}"
+                                            Text="{x:Bind ClientName}"
+                                            TextTrimming="CharacterEllipsis" />
+                                        <TextBlock
+                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                            Style="{StaticResource CaptionTextBlockStyle}"
+                                            Text="{x:Bind DetailsLine}"
+                                            TextTrimming="CharacterEllipsis" />
+                                    </StackPanel>
+                                </controls:SettingsCard.Header>
+                                <controls:SettingsCard.Content>
+                                    <Button
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        Click="DisconnectSession_Click"
+                                        Tag="{x:Bind}">
+                                        <FontIcon FontSize="16" Glyph="&#xE74D;" />
+                                    </Button>
+                                </controls:SettingsCard.Content>
+                            </controls:SettingsCard>
+                        </DataTemplate>
+                    </controls:SettingsExpander.ItemTemplate>
+                </controls:SettingsExpander>
+
+                <!--  Open Files  -->
+                <controls:SettingsExpander
+                    HorizontalAlignment="Stretch"
+                    Header="{x:Bind LocalizedStrings.FsMgmt_OpenFiles_Header}"
+                    IsExpanded="True"
+                    ItemsSource="{x:Bind ViewModel.OpenFiles, Mode=OneWay}">
+                    <controls:SettingsExpander.HeaderIcon>
+                        <FontIcon FontSize="16" Glyph="&#xE838;" />
+                    </controls:SettingsExpander.HeaderIcon>
+                    <controls:SettingsExpander.Description>
+                        <TextBlock Text="{x:Bind ViewModel.OpenFilesDescription, Mode=OneWay}" />
+                    </controls:SettingsExpander.Description>
+
+                    <Button
+                        Background="Transparent"
+                        BorderThickness="0">
+                        <FontIcon FontSize="16" Glyph="&#xE712;" />
+                        <Button.Flyout>
+                            <MenuFlyout>
+                                <MenuFlyoutItem
+                                    Click="CloseAllOpenFiles_Click"
+                                    IsEnabled="{x:Bind ViewModel.HasOpenFiles, Mode=OneWay}"
+                                    Text="{x:Bind LocalizedStrings.FsMgmt_CloseAllOpenFiles}" />
+                            </MenuFlyout>
+                        </Button.Flyout>
+                    </Button>
+
+                    <controls:SettingsExpander.ItemTemplate>
+                        <DataTemplate x:DataType="models:SharedFolderOpenFile">
+                            <controls:SettingsCard>
+                                <controls:SettingsCard.Header>
+                                    <StackPanel Spacing="2">
+                                        <TextBlock
+                                            FontWeight="SemiBold"
+                                            Text="{x:Bind Path}" />
+                                        <TextBlock
+                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                            Style="{StaticResource CaptionTextBlockStyle}"
+                                            Text="{x:Bind UserName}"
+                                            TextTrimming="CharacterEllipsis" />
+                                        <TextBlock
+                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                            Style="{StaticResource CaptionTextBlockStyle}"
+                                            Text="{x:Bind DetailsLine}"
+                                            TextTrimming="CharacterEllipsis" />
+                                    </StackPanel>
+                                </controls:SettingsCard.Header>
+                                <controls:SettingsCard.Content>
+                                    <Button
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        Click="CloseOpenFile_Click"
+                                        Tag="{x:Bind}">
+                                        <FontIcon FontSize="16" Glyph="&#xE74D;" />
+                                    </Button>
+                                </controls:SettingsCard.Content>
+                            </controls:SettingsCard>
+                        </DataTemplate>
+                    </controls:SettingsExpander.ItemTemplate>
+                </controls:SettingsExpander>
+
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
 </Page>
