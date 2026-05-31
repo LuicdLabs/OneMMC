@@ -11,7 +11,7 @@ namespace ManagementTools.Views.FsMgmt;
 /// <summary>
 /// Dialog content used to create or edit an SMB share.
 /// </summary>
-public sealed partial class ShareEditDialog : UserControl
+public sealed partial class ShareEditDialog : ContentDialog
 {
     private readonly SharedFolderShare? _share;
     private readonly bool _isEditMode;
@@ -51,37 +51,28 @@ public sealed partial class ShareEditDialog : UserControl
     /// </summary>
     /// <param name="ownerXamlRoot">The owner XAML root.</param>
     /// <returns>The modal dialog result.</returns>
-    public Task<WindowDialogResult> ShowDialogAsync(XamlRoot ownerXamlRoot)
+    public Task<ContentDialogResult> ShowDialogAsync(XamlRoot ownerXamlRoot)
     {
-        var modalWindow = new ModalDialogWindow(new ModalDialogOptions
-        {
-            Title = GetDialogTitle(),
-            Content = this,
-            OwnerXamlRoot = ownerXamlRoot,
-            RequestedTheme = App.CurrentTheme,
-            ThemeChangeSubscribe = handler => App.ThemeChanged += handler,
-            ThemeChangeUnsubscribe = handler => App.ThemeChanged -= handler,
-            PrimaryButtonText = IsReadOnly
-                ? null
-                : _isEditMode
-                    ? LocalizedStrings.Common_OKButton
-                    : LocalizedStrings.Common_AddButton,
-            CloseButtonText = IsReadOnly
-                ? LocalizedStrings.Common_OKButton
-                : LocalizedStrings.Common_CancelButton,
-            DefaultButton = IsReadOnly ? WindowDialogResult.None : WindowDialogResult.Primary,
-            Width = 920,
-            Height = _isEditMode ? 840 : 760,
-            IsPrimaryButtonLeading = true,
-            OnPrimaryButtonClick = IsReadOnly ? null : TryCommitDefinition
-        });
-
-        return modalWindow.ShowDialogAsync();
+        XamlRoot = ownerXamlRoot;
+        return ShowAsync().AsTask();
     }
 
     private void ConfigureDialog()
     {
-        DialogTitleTextBlock.Text = GetDialogTitle();
+        Title = GetDialogTitle();
+        
+        PrimaryButtonText = IsReadOnly
+            ? string.Empty
+            : _isEditMode
+                ? LocalizedStrings.Common_OKButton
+                : LocalizedStrings.Common_AddButton;
+
+        CloseButtonText = IsReadOnly
+            ? LocalizedStrings.Common_OKButton
+            : LocalizedStrings.Common_CancelButton;
+
+        DefaultButton = IsReadOnly ? ContentDialogButton.Close : ContentDialogButton.Primary;
+
         ComputerNameTextBlock.Text = Environment.MachineName;
         FolderPathBox.PlaceholderText = LocalizedStrings.FsMgmt_FolderPath_Placeholder;
         PermissionsHeaderTextBlock.Text = _isEditMode
@@ -198,6 +189,17 @@ public sealed partial class ShareEditDialog : UserControl
             _securityDescriptorSddl = dialog.ResultSddl;
             PermissionsPresetComboBox.SelectedIndex = 3;
             UpdatePermissionsState();
+        }
+    }
+
+    private void ShareEditDialog_PrimaryButtonClick(ContentDialog sender, ContentDialogButtonClickEventArgs args)
+    {
+        if (!IsReadOnly)
+        {
+            if (!TryCommitDefinition())
+            {
+                args.Cancel = true;
+            }
         }
     }
 

@@ -313,6 +313,63 @@
   <data name="FsMgmt_Permissions_FullControl" xml:space="preserve">
     <value>完全控制</value>
   </data>
+  <data name="FsMgmt_Permissions_AddButton" xml:space="preserve">
+    <value>新增...</value>
+  </data>
+  <data name="FsMgmt_Permissions_SecurityTab" xml:space="preserve">
+    <value>安全性</value>
+  </data>
+  <data name="FsMgmt_Permissions_ForFormat" xml:space="preserve">
+    <value>{0} 的權限</value>
+  </data>
+  <data name="FsMgmt_Permissions_ObjectName" xml:space="preserve">
+    <value>物件名稱:</value>
+  </data>
+  <data name="FsMgmt_Permissions_EditInstruction" xml:space="preserve">
+    <value>若要變更權限，請按一下 [編輯]。</value>
+  </data>
+  <data name="FsMgmt_Permissions_EditButton" xml:space="preserve">
+    <value>編輯...</value>
+  </data>
+  <data name="FsMgmt_Permissions_AdvancedInstruction" xml:space="preserve">
+    <value>如需特殊權限或進階設定，請按一下 [進階]。</value>
+  </data>
+  <data name="FsMgmt_Permissions_Modify" xml:space="preserve">
+    <value>修改</value>
+  </data>
+  <data name="FsMgmt_Permissions_ReadExecute" xml:space="preserve">
+    <value>讀取和執行</value>
+  </data>
+  <data name="FsMgmt_Permissions_ListFolder" xml:space="preserve">
+    <value>列出資料夾內容</value>
+  </data>
+  <data name="FsMgmt_Permissions_Write" xml:space="preserve">
+    <value>寫入</value>
+  </data>
+  <data name="FsMgmt_Permissions_Delete" xml:space="preserve">
+    <value>刪除</value>
+  </data>
+  <data name="FsMgmt_Permissions_ThisFolderOnly" xml:space="preserve">
+    <value>只有此資料夾</value>
+  </data>
+  <data name="FsMgmt_Permissions_ThisFolderSubfoldersFiles" xml:space="preserve">
+    <value>此資料夾、子資料夾及檔案</value>
+  </data>
+  <data name="FsMgmt_Permissions_ThisFolderSubfolders" xml:space="preserve">
+    <value>此資料夾及子資料夾</value>
+  </data>
+  <data name="FsMgmt_Permissions_ThisFolderFiles" xml:space="preserve">
+    <value>此資料夾及檔案</value>
+  </data>
+  <data name="FsMgmt_Permissions_SubfoldersFilesOnly" xml:space="preserve">
+    <value>只有子資料夾及檔案</value>
+  </data>
+  <data name="FsMgmt_Permissions_SubfoldersOnly" xml:space="preserve">
+    <value>只有子資料夾</value>
+  </data>
+  <data name="FsMgmt_Permissions_FilesOnly" xml:space="preserve">
+    <value>只有檔案</value>
+  </data>
   <data name="FsMgmt_Permissions_Advanced" xml:space="preserve">
     <value>進階...</value>
   </data>

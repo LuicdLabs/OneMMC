@@ -313,6 +313,63 @@
   <data name="FsMgmt_Permissions_FullControl" xml:space="preserve">
     <value>Full Control</value>
   </data>
+  <data name="FsMgmt_Permissions_AddButton" xml:space="preserve">
+    <value>Add...</value>
+  </data>
+  <data name="FsMgmt_Permissions_SecurityTab" xml:space="preserve">
+    <value>Security</value>
+  </data>
+  <data name="FsMgmt_Permissions_ForFormat" xml:space="preserve">
+    <value>Permissions for {0}</value>
+  </data>
+  <data name="FsMgmt_Permissions_ObjectName" xml:space="preserve">
+    <value>Object name:</value>
+  </data>
+  <data name="FsMgmt_Permissions_EditInstruction" xml:space="preserve">
+    <value>To change permissions, click Edit.</value>
+  </data>
+  <data name="FsMgmt_Permissions_EditButton" xml:space="preserve">
+    <value>Edit...</value>
+  </data>
+  <data name="FsMgmt_Permissions_AdvancedInstruction" xml:space="preserve">
+    <value>For special permissions or advanced settings, click Advanced.</value>
+  </data>
+  <data name="FsMgmt_Permissions_Modify" xml:space="preserve">
+    <value>Modify</value>
+  </data>
+  <data name="FsMgmt_Permissions_ReadExecute" xml:space="preserve">
+    <value>Read &amp; execute</value>
+  </data>
+  <data name="FsMgmt_Permissions_ListFolder" xml:space="preserve">
+    <value>List folder contents</value>
+  </data>
+  <data name="FsMgmt_Permissions_Write" xml:space="preserve">
+    <value>Write</value>
+  </data>
+  <data name="FsMgmt_Permissions_Delete" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="FsMgmt_Permissions_ThisFolderOnly" xml:space="preserve">
+    <value>This folder only</value>
+  </data>
+  <data name="FsMgmt_Permissions_ThisFolderSubfoldersFiles" xml:space="preserve">
+    <value>This folder, subfolders and files</value>
+  </data>
+  <data name="FsMgmt_Permissions_ThisFolderSubfolders" xml:space="preserve">
+    <value>This folder and subfolders</value>
+  </data>
+  <data name="FsMgmt_Permissions_ThisFolderFiles" xml:space="preserve">
+    <value>This folder and files</value>
+  </data>
+  <data name="FsMgmt_Permissions_SubfoldersFilesOnly" xml:space="preserve">
+    <value>Subfolders and files only</value>
+  </data>
+  <data name="FsMgmt_Permissions_SubfoldersOnly" xml:space="preserve">
+    <value>Subfolders only</value>
+  </data>
+  <data name="FsMgmt_Permissions_FilesOnly" xml:space="preserve">
+    <value>Files only</value>
+  </data>
   <data name="FsMgmt_Permissions_Advanced" xml:space="preserve">
     <value>Advanced...</value>
   </data>

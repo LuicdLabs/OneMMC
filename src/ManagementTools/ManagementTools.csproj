@@ -80,6 +80,7 @@
         <PackageReference Include="Serilog.Sinks.File" />
         <PackageReference Include="System.Drawing.Common" />
         <PackageReference Include="System.DirectoryServices.AccountManagement" />
+        <PackageReference Include="System.IO.FileSystem.AccessControl" />
       </ItemGroup>
       <ItemGroup>
         <ProjectReference Include="..\ManagementTools.Core\ManagementTools.Core.csproj" />

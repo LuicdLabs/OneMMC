@@ -69,6 +69,17 @@ public partial class LocalizedStrings
     public string FsMgmt_Permissions_Read => GetResource(ResourceFileNames.FsMgmt, "FsMgmt_Permissions_Read");
     public string FsMgmt_Permissions_Change => GetResource(ResourceFileNames.FsMgmt, "FsMgmt_Permissions_Change");
     public string FsMgmt_Permissions_FullControl => GetResource(ResourceFileNames.FsMgmt, "FsMgmt_Permissions_FullControl");
+    public string FsMgmt_Permissions_AddButton => GetResource(ResourceFileNames.FsMgmt, "FsMgmt_Permissions_AddButton");
+    public string FsMgmt_Permissions_SecurityTab => GetResource(ResourceFileNames.FsMgmt, "FsMgmt_Permissions_SecurityTab");
+    public string FsMgmt_Permissions_ForFormat => GetResource(ResourceFileNames.FsMgmt, "FsMgmt_Permissions_ForFormat");
+    public string FsMgmt_Permissions_ObjectName => GetResource(ResourceFileNames.FsMgmt, "FsMgmt_Permissions_ObjectName");
+    public string FsMgmt_Permissions_EditInstruction => GetResource(ResourceFileNames.FsMgmt, "FsMgmt_Permissions_EditInstruction");
+    public string FsMgmt_Permissions_EditButton => GetResource(ResourceFileNames.FsMgmt, "FsMgmt_Permissions_EditButton");
+    public string FsMgmt_Permissions_AdvancedInstruction => GetResource(ResourceFileNames.FsMgmt, "FsMgmt_Permissions_AdvancedInstruction");
+    public string FsMgmt_Permissions_Modify => GetResource(ResourceFileNames.FsMgmt, "FsMgmt_Permissions_Modify");
+    public string FsMgmt_Permissions_ReadExecute => GetResource(ResourceFileNames.FsMgmt, "FsMgmt_Permissions_ReadExecute");
+    public string FsMgmt_Permissions_ListFolder => GetResource(ResourceFileNames.FsMgmt, "FsMgmt_Permissions_ListFolder");
+    public string FsMgmt_Permissions_Write => GetResource(ResourceFileNames.FsMgmt, "FsMgmt_Permissions_Write");
     public string FsMgmt_Permissions_Advanced => GetResource(ResourceFileNames.FsMgmt, "FsMgmt_Permissions_Advanced");
     public string FsMgmt_Guest_Yes => GetResource(ResourceFileNames.FsMgmt, "FsMgmt_Guest_Yes");
     public string FsMgmt_Guest_No => GetResource(ResourceFileNames.FsMgmt, "FsMgmt_Guest_No");

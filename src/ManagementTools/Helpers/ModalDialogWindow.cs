@@ -472,13 +472,7 @@ public sealed class ModalDialogWindow : Window
     /// <summary>
     /// Configures the <see cref="OverlappedPresenter"/> to match standard dialog behavior:
     /// <list type="bullet">
-    ///   <item>Modal – blocks input to the owner window while open.</item>
-    ///   <item>Non-resizable, non-maximizable, non-minimizable – dialogs have fixed size.</item>
-    /// </list>
-    /// <c>IsModal</c> is only set to <c>true</c> when an owner HWND was successfully
-    /// established, because a modal window without an owner would block all app input.
-    /// </summary>
-    private void ConfigurePresenter()
+ private void ConfigurePresenter()
     {
         var presenter = OverlappedPresenter.CreateForDialog();
         bool hasOwner = SetWindowOwner();

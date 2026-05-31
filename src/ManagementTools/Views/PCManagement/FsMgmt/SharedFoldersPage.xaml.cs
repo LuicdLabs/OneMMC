@@ -63,7 +63,7 @@ public sealed partial class SharedFoldersPage : Page
     private async void AddShare_Click(object sender, RoutedEventArgs e)
     {
         var dialog = new ShareEditDialog();
-        if (await dialog.ShowDialogAsync(XamlRoot) == WindowDialogResult.Primary)
+        if (await dialog.ShowDialogAsync(XamlRoot) == ContentDialogResult.Primary)
         {
             await ViewModel.CreateShareAsync(dialog.Definition);
         }
@@ -105,7 +105,7 @@ public sealed partial class SharedFoldersPage : Page
         }
 
         var dialog = new ShareEditDialog(share);
-        if (await dialog.ShowDialogAsync(XamlRoot) == WindowDialogResult.Primary && !dialog.IsReadOnly)
+        if (await dialog.ShowDialogAsync(XamlRoot) == ContentDialogResult.Primary && !dialog.IsReadOnly)
         {
             await ViewModel.UpdateShareAsync(share.Name, dialog.Definition);
         }
