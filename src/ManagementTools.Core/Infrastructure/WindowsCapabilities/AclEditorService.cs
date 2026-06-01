@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security.AccessControl;
+using System.Security.Principal;
 using Microsoft.Extensions.Logging;
 
 namespace ManagementTools.Core.Infrastructure.WindowsCapabilities;
@@ -40,7 +41,12 @@ public enum AclEditorPageType : uint
     /// <summary>
     /// Opens the take ownership page.
     /// </summary>
-    TakeOwnership = 5
+    TakeOwnership = 5,
+
+    /// <summary>
+    /// Opens the share permissions page.
+    /// </summary>
+    Share = 6
 }
 
 /// <summary>
@@ -48,6 +54,9 @@ public enum AclEditorPageType : uint
 /// </summary>
 public static class AclEditorObjectFlags
 {
+    /// <summary>Allows editing the owner.</summary>
+    public const uint EditOwner = 0x00000001;
+
     /// <summary>Allows editing audit ACEs.</summary>
     public const uint EditAudits = 0x00000002;
 
@@ -65,6 +74,9 @@ public static class AclEditorObjectFlags
 
     /// <summary>Uses the provided page title.</summary>
     public const uint PageTitle = 0x00000800;
+
+    /// <summary>Shows the effective access page when supported by the editor callback.</summary>
+    public const uint EditEffective = 0x00020000;
 }
 
 /// <summary>
@@ -172,6 +184,63 @@ public sealed class AclEditorRequest
     /// </summary>
     public Func<RawSecurityDescriptor> EmptySecurityDescriptorFactory { get; set; } =
         static () => new RawSecurityDescriptor(ControlFlags.DiscretionaryAclPresent, null, null, null, new RawAcl(2, 0));
+
+    /// <summary>
+    /// Gets or sets an optional secondary security context shown by the native editor.
+    /// </summary>
+    public AclEditorSecondarySecurityRequest? SecondarySecurity { get; set; }
+}
+
+/// <summary>
+/// Describes a secondary security context shown by the native ACL editor.
+/// </summary>
+public sealed class AclEditorSecondarySecurityRequest
+{
+    /// <summary>
+    /// Gets or sets the secondary security context display name.
+    /// </summary>
+    public string Name { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Gets or sets the object name displayed by the editor.
+    /// </summary>
+    public string ObjectName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Gets or sets the page title displayed by the editor.
+    /// </summary>
+    public string PageTitle { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Gets or sets the initial self-relative security descriptor in SDDL form.
+    /// </summary>
+    public string SecurityDescriptorSddl { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Gets or sets the editor object-information flags.
+    /// </summary>
+    public uint ObjectInformationFlags { get; set; } = AclEditorObjectFlags.Advanced;
+
+    /// <summary>
+    /// Gets the access-right entries shown by the editor.
+    /// </summary>
+    public List<AclEditorAccessEntry> AccessEntries { get; } = [];
+
+    /// <summary>
+    /// Gets the inheritance entries shown by the editor.
+    /// </summary>
+    public List<AclEditorInheritType> InheritTypes { get; } = [];
+
+    /// <summary>
+    /// Gets or sets a function used to map generic access bits to resource-specific bits.
+    /// </summary>
+    public Func<uint, uint>? MapGenericAccess { get; set; }
+
+    /// <summary>
+    /// Gets or sets the descriptor created when the initial SDDL cannot be parsed.
+    /// </summary>
+    public Func<RawSecurityDescriptor> EmptySecurityDescriptorFactory { get; set; } =
+        static () => new RawSecurityDescriptor(ControlFlags.DiscretionaryAclPresent, null, null, null, new RawAcl(2, 0));
 }
 
 /// <summary>
@@ -189,6 +258,21 @@ public sealed class AclEditorResult
     /// </summary>
     public RawSecurityDescriptor SecurityDescriptor { get; init; } =
         new(ControlFlags.DiscretionaryAclPresent, null, null, null, new RawAcl(2, 0));
+
+    /// <summary>
+    /// Gets the security-information flags requested when the primary descriptor was changed.
+    /// </summary>
+    public uint SecurityInformation { get; init; }
+
+    /// <summary>
+    /// Gets whether the optional secondary descriptor was modified.
+    /// </summary>
+    public bool WasSecondaryModified { get; init; }
+
+    /// <summary>
+    /// Gets the optional secondary security descriptor.
+    /// </summary>
+    public RawSecurityDescriptor? SecondarySecurityDescriptor { get; init; }
 }
 
 /// <summary>
@@ -235,12 +319,19 @@ public sealed class AclEditorService
         return new AclEditorResult
         {
             WasModified = securityInformation.WasModified,
-            SecurityDescriptor = securityInformation.SecurityDescriptor
+            SecurityDescriptor = securityInformation.SecurityDescriptor,
+            SecurityInformation = securityInformation.SecurityInformation,
+            WasSecondaryModified = securityInformation.WasSecondaryModified,
+            SecondarySecurityDescriptor = securityInformation.SecondarySecurityDescriptor
         };
     }
 
     [ComVisible(true)]
-    private sealed class EditableSecurityInformation : AclEditorNativeMethods.ISecurityInformation, IDisposable
+    private sealed class EditableSecurityInformation :
+        AclEditorNativeMethods.ISecurityInformation,
+        AclEditorNativeMethods.ISecurityInformation4,
+        AclEditorNativeMethods.IEffectivePermission,
+        IDisposable
     {
         private readonly AclEditorRequest _request;
         private readonly List<IntPtr> _allocatedStrings = [];
@@ -251,6 +342,10 @@ public sealed class AclEditorService
         private readonly IntPtr _accessEntriesPointer;
         private readonly AclEditorNativeMethods.SiInheritType[] _inheritEntries;
         private readonly IntPtr _inheritEntriesPointer;
+        private readonly EditableSecurityInformation? _secondarySecurityInformation;
+        private readonly IntPtr _secondarySecurityInformationPointer;
+        private readonly IntPtr _guidNullPointer;
+        private readonly IntPtr _defaultObjectTypeListPointer;
 
         public EditableSecurityInformation(AclEditorRequest request, ILogger logger)
         {
@@ -268,14 +363,50 @@ public sealed class AclEditorService
 
             _inheritEntries = CreateInheritEntries(request.InheritTypes);
             _inheritEntriesPointer = AllocateStructureArray(_inheritEntries);
+
+            _guidNullPointer = Marshal.AllocHGlobal(Marshal.SizeOf<Guid>());
+            Marshal.StructureToPtr(Guid.Empty, _guidNullPointer, false);
+            _defaultObjectTypeListPointer = Marshal.AllocHGlobal(Marshal.SizeOf<AclEditorNativeMethods.ObjectTypeList>());
+            Marshal.StructureToPtr(
+                new AclEditorNativeMethods.ObjectTypeList
+                {
+                    Level = 0,
+                    Siblings = 0,
+                    ObjectType = _guidNullPointer
+                },
+                _defaultObjectTypeListPointer,
+                false);
+
+            if (request.SecondarySecurity is not null)
+            {
+                _secondarySecurityInformation = new EditableSecurityInformation(
+                    CreateSecondaryRequest(request.SecondarySecurity),
+                    logger);
+                _secondarySecurityInformationPointer = Marshal.GetComInterfaceForObject(
+                    _secondarySecurityInformation,
+                    typeof(AclEditorNativeMethods.ISecurityInformation));
+            }
         }
 
         public RawSecurityDescriptor SecurityDescriptor { get; private set; }
 
         public bool WasModified { get; private set; }
 
+        public uint SecurityInformation { get; private set; }
+
+        public bool WasSecondaryModified => _secondarySecurityInformation?.WasModified == true;
+
+        public RawSecurityDescriptor? SecondarySecurityDescriptor => _secondarySecurityInformation?.SecurityDescriptor;
+
         public void Dispose()
         {
+            if (_secondarySecurityInformationPointer != IntPtr.Zero)
+            {
+                Marshal.Release(_secondarySecurityInformationPointer);
+            }
+
+            _secondarySecurityInformation?.Dispose();
+
             foreach (IntPtr pointer in _allocatedStrings)
             {
                 if (pointer != IntPtr.Zero)
@@ -292,6 +423,16 @@ public sealed class AclEditorService
             if (_inheritEntriesPointer != IntPtr.Zero)
             {
                 Marshal.FreeHGlobal(_inheritEntriesPointer);
+            }
+
+            if (_defaultObjectTypeListPointer != IntPtr.Zero)
+            {
+                Marshal.FreeHGlobal(_defaultObjectTypeListPointer);
+            }
+
+            if (_guidNullPointer != IntPtr.Zero)
+            {
+                Marshal.FreeHGlobal(_guidNullPointer);
             }
         }
 
@@ -348,6 +489,7 @@ public sealed class AclEditorService
 
                 SecurityDescriptor = new RawSecurityDescriptor(descriptorBytes, 0);
                 WasModified = true;
+                SecurityInformation |= securityInformation;
             }
             catch (Exception ex)
             {
@@ -388,10 +530,110 @@ public sealed class AclEditorService
             return S_OK;
         }
 
+        public int GetSecondarySecurity(out IntPtr securityObjects, out uint securityObjectCount)
+        {
+            securityObjects = IntPtr.Zero;
+            securityObjectCount = 0;
+
+            if (_request.SecondarySecurity is null || _secondarySecurityInformationPointer == IntPtr.Zero)
+            {
+                return S_OK;
+            }
+
+            int size = Marshal.SizeOf<AclEditorNativeMethods.SecurityObject>();
+            securityObjects = AclEditorNativeMethods.LocalAlloc(LmemFixed, (UIntPtr)size);
+            if (securityObjects == IntPtr.Zero)
+            {
+                return Marshal.GetHRForLastWin32Error();
+            }
+
+            string name = string.IsNullOrWhiteSpace(_request.SecondarySecurity.Name)
+                ? _request.SecondarySecurity.PageTitle
+                : _request.SecondarySecurity.Name;
+            IntPtr namePointer = AllocateLocalString(name);
+            if (namePointer == IntPtr.Zero)
+            {
+                _ = AclEditorNativeMethods.LocalFree(securityObjects);
+                securityObjects = IntPtr.Zero;
+                return Marshal.GetHRForLastWin32Error();
+            }
+
+            Marshal.StructureToPtr(
+                new AclEditorNativeMethods.SecurityObject
+                {
+                    Name = namePointer,
+                    Data = _secondarySecurityInformationPointer,
+                    DataLength = 0,
+                    Data2 = IntPtr.Zero,
+                    Data2Length = 0,
+                    Id = AclEditorNativeMethods.SecurityObjectIdShare,
+                    IsWellKnown = 1
+                },
+                securityObjects,
+                false);
+
+            securityObjectCount = 1;
+            return S_OK;
+        }
+
+        public int GetEffectivePermission(
+            IntPtr objectTypeGuid,
+            IntPtr userSid,
+            IntPtr serverName,
+            IntPtr securityDescriptor,
+            out IntPtr objectTypeList,
+            out uint objectTypeListLength,
+            out IntPtr grantedAccessList,
+            out uint grantedAccessListLength)
+        {
+            objectTypeList = _defaultObjectTypeListPointer;
+            objectTypeListLength = 1;
+            grantedAccessList = IntPtr.Zero;
+            grantedAccessListLength = 0;
+
+            if (userSid == IntPtr.Zero || securityDescriptor == IntPtr.Zero)
+            {
+                return AclEditorNativeMethods.EInvalidArg;
+            }
+
+            try
+            {
+                uint grantedAccess = CalculateEffectiveAccess(userSid, securityDescriptor);
+                grantedAccessList = AclEditorNativeMethods.LocalAlloc(LmemFixed, (UIntPtr)sizeof(uint));
+                if (grantedAccessList == IntPtr.Zero)
+                {
+                    return Marshal.GetHRForLastWin32Error();
+                }
+
+                Marshal.WriteInt32(grantedAccessList, unchecked((int)grantedAccess));
+                grantedAccessListLength = 1;
+                return S_OK;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[AclEditorService] Failed to calculate effective access for {PageTitle}.", _request.PageTitle);
+                return Marshal.GetHRForException(ex);
+            }
+        }
+
         private IntPtr AllocateString(string value)
         {
             IntPtr pointer = Marshal.StringToHGlobalUni(value);
             _allocatedStrings.Add(pointer);
+            return pointer;
+        }
+
+        private static IntPtr AllocateLocalString(string value)
+        {
+            char[] characters = $"{value}\0".ToCharArray();
+            IntPtr pointer = AclEditorNativeMethods.LocalAlloc(
+                LmemFixed,
+                (UIntPtr)(characters.Length * sizeof(char)));
+            if (pointer != IntPtr.Zero)
+            {
+                Marshal.Copy(characters, 0, pointer, characters.Length);
+            }
+
             return pointer;
         }
 
@@ -410,6 +652,24 @@ public sealed class AclEditorService
             }
 
             return request.EmptySecurityDescriptorFactory();
+        }
+
+        private static AclEditorRequest CreateSecondaryRequest(AclEditorSecondarySecurityRequest secondary)
+        {
+            var request = new AclEditorRequest
+            {
+                ObjectName = secondary.ObjectName,
+                PageTitle = secondary.PageTitle,
+                SecurityDescriptorSddl = secondary.SecurityDescriptorSddl,
+                ObjectInformationFlags = secondary.ObjectInformationFlags,
+                PageType = AclEditorPageType.Permissions,
+                MapGenericAccess = secondary.MapGenericAccess,
+                EmptySecurityDescriptorFactory = secondary.EmptySecurityDescriptorFactory
+            };
+
+            request.AccessEntries.AddRange(secondary.AccessEntries);
+            request.InheritTypes.AddRange(secondary.InheritTypes);
+            return request;
         }
 
         private IntPtr AllocateStructureArray<T>(T[] values) where T : struct
@@ -481,6 +741,47 @@ public sealed class AclEditorService
             }
         }
 
+        private uint CalculateEffectiveAccess(IntPtr userSid, IntPtr securityDescriptor)
+        {
+            SecurityIdentifier targetSid = new(userSid);
+            SecurityIdentifier everyoneSid = new(WellKnownSidType.WorldSid, null);
+            byte[] descriptorBytes = ConvertToSelfRelative(securityDescriptor);
+            if (descriptorBytes.Length == 0)
+            {
+                return 0;
+            }
+
+            RawSecurityDescriptor descriptor = new(descriptorBytes, 0);
+            if (descriptor.DiscretionaryAcl is null)
+            {
+                return 0;
+            }
+
+            uint allowed = 0;
+            uint denied = 0;
+            foreach (GenericAce ace in descriptor.DiscretionaryAcl)
+            {
+                if (ace is not CommonAce commonAce
+                    || commonAce.SecurityIdentifier != targetSid && commonAce.SecurityIdentifier != everyoneSid)
+                {
+                    continue;
+                }
+
+                uint mask = _request.MapGenericAccess?.Invoke(unchecked((uint)commonAce.AccessMask))
+                    ?? unchecked((uint)commonAce.AccessMask);
+                if (commonAce.AceQualifier == AceQualifier.AccessDenied)
+                {
+                    denied |= mask;
+                }
+                else if (commonAce.AceQualifier == AceQualifier.AccessAllowed)
+                {
+                    allowed |= mask & ~denied;
+                }
+            }
+
+            return allowed;
+        }
+
         private AclEditorNativeMethods.SiAccess[] CreateAccessEntries(IEnumerable<AclEditorAccessEntry> entries)
         {
             return entries
@@ -518,6 +819,9 @@ public sealed class AclEditorService
 /// </remarks>
 internal static class AclEditorNativeMethods
 {
+    internal const int EInvalidArg = unchecked((int)0x80070057);
+    internal const uint SecurityObjectIdShare = 2;
+
     [DllImport("aclui.dll", ExactSpelling = true)]
     internal static extern int EditSecurityAdvanced(
         IntPtr hwndOwner,
@@ -536,6 +840,9 @@ internal static class AclEditorNativeMethods
 
     [DllImport("kernel32.dll", SetLastError = true)]
     internal static extern IntPtr LocalAlloc(uint flags, UIntPtr bytes);
+
+    [DllImport("kernel32.dll", SetLastError = true)]
+    internal static extern IntPtr LocalFree(IntPtr memory);
 
     [StructLayout(LayoutKind.Sequential)]
     internal struct SiObjectInfo
@@ -565,6 +872,26 @@ internal static class AclEditorNativeMethods
         public IntPtr Name;
     }
 
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct SecurityObject
+    {
+        public IntPtr Name;
+        public IntPtr Data;
+        public uint DataLength;
+        public IntPtr Data2;
+        public uint Data2Length;
+        public uint Id;
+        public byte IsWellKnown;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct ObjectTypeList
+    {
+        public ushort Level;
+        public ushort Siblings;
+        public IntPtr ObjectType;
+    }
+
     [ComVisible(true)]
     [Guid("965FC360-16FF-11d0-91CB-00AA00BBB723")]
     [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
@@ -590,5 +917,31 @@ internal static class AclEditorNativeMethods
 
         [PreserveSig]
         int PropertySheetPageCallback(IntPtr hwnd, uint message, AclEditorPageType pageType);
+    }
+
+    [ComVisible(true)]
+    [Guid("EA961070-CD14-4621-ACE4-F63C03E583E4")]
+    [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+    internal interface ISecurityInformation4
+    {
+        [PreserveSig]
+        int GetSecondarySecurity(out IntPtr securityObjects, out uint securityObjectCount);
+    }
+
+    [ComVisible(true)]
+    [Guid("3853DC76-9F35-407c-88A1-D19344365FBC")]
+    [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+    internal interface IEffectivePermission
+    {
+        [PreserveSig]
+        int GetEffectivePermission(
+            IntPtr objectTypeGuid,
+            IntPtr userSid,
+            IntPtr serverName,
+            IntPtr securityDescriptor,
+            out IntPtr objectTypeList,
+            out uint objectTypeListLength,
+            out IntPtr grantedAccessList,
+            out uint grantedAccessListLength);
     }
 }

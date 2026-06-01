@@ -62,27 +62,9 @@
                     ItemsSource="{x:Bind Entries}"
                     SelectionChanged="PermissionsList_SelectionChanged"
                     SelectionMode="Single">
-                    <ListView.ItemContainerStyle>
-                        <Style TargetType="ListViewItem">
-                            <Setter Property="MinHeight" Value="22" />
-                            <Setter Property="Padding" Value="2,0" />
-                            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-                        </Style>
-                    </ListView.ItemContainerStyle>
                     <ListView.ItemTemplate>
                         <DataTemplate x:DataType="models:SharePermissionEntry">
-                            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="4">
-                                <FontIcon
-                                    FontSize="14"
-                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                    Glyph="&#xE716;" />
-                                <TextBlock
-                                    Grid.Column="1"
-                                    VerticalAlignment="Center"
-                                    Text="{x:Bind Name, Mode=OneTime}"
-                                    TextTrimming="CharacterEllipsis"
-                                    TextWrapping="NoWrap" />
-                            </Grid>
+                            <TextBlock Text="{x:Bind Name, Mode=OneTime}" />
                         </DataTemplate>
                     </ListView.ItemTemplate>
                 </ListView>
@@ -229,27 +211,9 @@
                     ItemsSource="{x:Bind SecurityEntries}"
                     SelectionChanged="SecurityPrincipalsList_SelectionChanged"
                     SelectionMode="Single">
-                    <ListView.ItemContainerStyle>
-                        <Style TargetType="ListViewItem">
-                            <Setter Property="MinHeight" Value="22" />
-                            <Setter Property="Padding" Value="2,0" />
-                            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-                        </Style>
-                    </ListView.ItemContainerStyle>
                     <ListView.ItemTemplate>
                         <DataTemplate x:DataType="local:FileSystemPermissionEntry">
-                            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="4">
-                                <FontIcon
-                                    FontSize="14"
-                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                    Glyph="&#xE716;" />
-                                <TextBlock
-                                    Grid.Column="1"
-                                    VerticalAlignment="Center"
-                                    Text="{x:Bind Name, Mode=OneTime}"
-                                    TextTrimming="CharacterEllipsis"
-                                    TextWrapping="NoWrap" />
-                            </Grid>
+                            <TextBlock Text="{x:Bind Name, Mode=OneTime}" />
                         </DataTemplate>
                     </ListView.ItemTemplate>
                 </ListView>

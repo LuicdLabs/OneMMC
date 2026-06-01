@@ -289,6 +289,9 @@
   <data name="FsMgmt_Permissions_SecurityTab" xml:space="preserve">
     <value>Security</value>
   </data>
+  <data name="FsMgmt_Permissions_ShareTab" xml:space="preserve">
+    <value>Share</value>
+  </data>
   <data name="FsMgmt_Permissions_ForFormat" xml:space="preserve">
     <value>Permissions for {0}</value>
   </data>

@@ -289,6 +289,9 @@
   <data name="FsMgmt_Permissions_SecurityTab" xml:space="preserve">
     <value>安全性</value>
   </data>
+  <data name="FsMgmt_Permissions_ShareTab" xml:space="preserve">
+    <value>共用</value>
+  </data>
   <data name="FsMgmt_Permissions_ForFormat" xml:space="preserve">
     <value>{0} 的權限</value>
   </data>

@@ -183,7 +183,7 @@ public sealed partial class ShareEditDialog : ContentDialog
     {
         var dialog = new SharePermissionsDialog(
             _securityDescriptorSddl,
-            string.IsNullOrWhiteSpace(ShareNameBox.Text) ? LocalizedStrings.FsMgmt_Permissions_Title : ShareNameBox.Text);
+            FolderPathBox.Text);
 
         if (await dialog.ShowDialogAsync(XamlRoot) == WindowDialogResult.Primary)
         {

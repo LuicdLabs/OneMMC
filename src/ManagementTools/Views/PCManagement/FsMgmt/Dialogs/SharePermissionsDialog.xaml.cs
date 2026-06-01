@@ -23,6 +23,12 @@ public sealed partial class SharePermissionsDialog : UserControl
     private const uint GenericWriteAccess = 0x40000000;
     private const uint GenericExecuteAccess = 0x20000000;
     private const uint GenericAllAccess = 0x10000000;
+    private const uint OwnerSecurityInformation = 0x00000001;
+    private const uint GroupSecurityInformation = 0x00000002;
+    private const uint DaclSecurityInformation = 0x00000004;
+    private const uint SaclSecurityInformation = 0x00000008;
+    private const uint DaclTreeSecurityInformation = 0x00004000;
+    private const uint SaclTreeSecurityInformation = 0x00008000;
     private const uint FileReadData = 0x0001;
     private const uint FileWriteData = 0x0002;
     private const uint FileAppendData = 0x0004;
@@ -260,20 +266,29 @@ public sealed partial class SharePermissionsDialog : UserControl
         {
             DirectorySecurity currentSecurity = FileSystemAclExtensions.GetAccessControl(new DirectoryInfo(_folderPath));
             var request = CreateFileSystemAclEditorRequest(
-                currentSecurity.GetSecurityDescriptorSddlForm(AccessControlSections.Access),
+                currentSecurity.GetSecurityDescriptorSddlForm(AccessControlSections.All),
                 pageType);
             nint hwnd = WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindowInstance);
             AclEditorResult result = App.GetRequiredService<AclEditorService>().EditSecurity(hwnd, request);
             if (result.WasModified)
             {
+                AccessControlSections sections = GetAccessControlSections(result.SecurityInformation);
                 var updatedSecurity = new DirectorySecurity();
                 updatedSecurity.SetSecurityDescriptorSddlForm(
-                    result.SecurityDescriptor.GetSddlForm(AccessControlSections.Access),
-                    AccessControlSections.Access);
+                    result.SecurityDescriptor.GetSddlForm(sections),
+                    sections);
                 FileSystemAclExtensions.SetAccessControl(new DirectoryInfo(_folderPath), updatedSecurity);
                 LoadSecurityEntries();
                 SelectFirstSecurityEntry();
                 UpdateSecuritySelectionControls();
+            }
+
+            if (result.WasSecondaryModified && result.SecondarySecurityDescriptor is not null)
+            {
+                ResultSddl = result.SecondarySecurityDescriptor.GetSddlForm(AccessControlSections.Access);
+                LoadEntries(ResultSddl);
+                SelectFirstSharePermissionEntry();
+                UpdateSelectionControls();
             }
         }
         catch (Exception ex)
@@ -287,13 +302,16 @@ public sealed partial class SharePermissionsDialog : UserControl
         var request = new AclEditorRequest
         {
             ObjectName = _folderPath,
-            PageTitle = LocalizedStrings.FsMgmt_Permissions_SecurityTab,
+            PageTitle = string.Empty,
             SecurityDescriptorSddl = securityDescriptorSddl,
             ObjectInformationFlags = AclEditorObjectFlags.Advanced
                                      | AclEditorObjectFlags.Container
-                                     | AclEditorObjectFlags.PageTitle,
+                                     | AclEditorObjectFlags.EditOwner
+                                     | AclEditorObjectFlags.EditAudits
+                                     | AclEditorObjectFlags.EditEffective,
             PageType = pageType,
             MapGenericAccess = MapFileSystemGenericAccess,
+            SecondarySecurity = CreateShareAclEditorRequest(),
             EmptySecurityDescriptorFactory = static () => new RawSecurityDescriptor(
                 ControlFlags.DiscretionaryAclPresent,
                 owner: null,
@@ -304,6 +322,28 @@ public sealed partial class SharePermissionsDialog : UserControl
 
         request.AccessEntries.AddRange(CreateFileSystemAccessEntries());
         request.InheritTypes.AddRange(CreateFileSystemInheritEntries());
+        return request;
+    }
+
+    private AclEditorSecondarySecurityRequest CreateShareAclEditorRequest()
+    {
+        var request = new AclEditorSecondarySecurityRequest
+        {
+            Name = LocalizedString(FsMgmtKeys.PermissionShareTab, FsMgmtKeys.PermissionShareTab),
+            ObjectName = _folderPath,
+            PageTitle = LocalizedString(FsMgmtKeys.PermissionShareTab, FsMgmtKeys.PermissionShareTab),
+            SecurityDescriptorSddl = ResultSddl,
+            ObjectInformationFlags = AclEditorObjectFlags.Advanced,
+            MapGenericAccess = SharedFolderSecurityDescriptor.MapGenericAccess,
+            EmptySecurityDescriptorFactory = static () => new RawSecurityDescriptor(
+                ControlFlags.DiscretionaryAclPresent,
+                owner: null,
+                group: null,
+                systemAcl: null,
+                discretionaryAcl: new RawAcl(2, 0))
+        };
+
+        request.AccessEntries.AddRange(CreateShareAccessEntries());
         return request;
     }
 
@@ -554,6 +594,16 @@ public sealed partial class SharePermissionsDialog : UserControl
         ];
     }
 
+    private static IEnumerable<AclEditorAccessEntry> CreateShareAccessEntries()
+    {
+        return
+        [
+            CreateFileSystemAccessEntry(SharedFolderSecurityDescriptor.ShareFullControl, FsMgmtKeys.PermissionFullControl),
+            CreateFileSystemAccessEntry(SharedFolderSecurityDescriptor.ShareChange, FsMgmtKeys.PermissionChange),
+            CreateFileSystemAccessEntry(SharedFolderSecurityDescriptor.ShareRead, FsMgmtKeys.PermissionRead)
+        ];
+    }
+
     private static IEnumerable<AclEditorInheritType> CreateFileSystemInheritEntries()
     {
         return
@@ -621,6 +671,33 @@ public sealed partial class SharePermissionsDialog : UserControl
         }
 
         return mask;
+    }
+
+    private static AccessControlSections GetAccessControlSections(uint securityInformation)
+    {
+        AccessControlSections sections = AccessControlSections.None;
+
+        if ((securityInformation & OwnerSecurityInformation) != 0)
+        {
+            sections |= AccessControlSections.Owner;
+        }
+
+        if ((securityInformation & GroupSecurityInformation) != 0)
+        {
+            sections |= AccessControlSections.Group;
+        }
+
+        if ((securityInformation & (DaclSecurityInformation | DaclTreeSecurityInformation)) != 0)
+        {
+            sections |= AccessControlSections.Access;
+        }
+
+        if ((securityInformation & (SaclSecurityInformation | SaclTreeSecurityInformation)) != 0)
+        {
+            sections |= AccessControlSections.Audit;
+        }
+
+        return sections == AccessControlSections.None ? AccessControlSections.Access : sections;
     }
 
     private static string ResolveSidName(SecurityIdentifier sid)

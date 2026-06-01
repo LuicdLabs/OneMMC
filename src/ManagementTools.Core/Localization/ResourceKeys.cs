@@ -459,6 +459,7 @@ public static class FsMgmtKeys
     public const string PermissionFullControl = "FsMgmt_Permissions_FullControl";
     public const string PermissionAddButton = "FsMgmt_Permissions_AddButton";
     public const string PermissionSecurityTab = "FsMgmt_Permissions_SecurityTab";
+    public const string PermissionShareTab = "FsMgmt_Permissions_ShareTab";
     public const string PermissionForFormat = "FsMgmt_Permissions_ForFormat";
     public const string PermissionObjectName = "FsMgmt_Permissions_ObjectName";
     public const string PermissionEditInstruction = "FsMgmt_Permissions_EditInstruction";
