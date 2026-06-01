@@ -148,36 +148,6 @@
   <data name="FsMgmt_Duration_HoursFormat" xml:space="preserve">
     <value>{0}小時 {1}分鐘 {2}秒</value>
   </data>
-  <data name="FsMgmt_Status_Loading" xml:space="preserve">
-    <value>正在載入共用資料夾狀態...</value>
-  </data>
-  <data name="FsMgmt_Status_LoadedFormat" xml:space="preserve">
-    <value>已載入 {0} 個共用、{1} 個工作階段與 {2} 個開啟檔案。</value>
-  </data>
-  <data name="FsMgmt_Status_CreatingShare" xml:space="preserve">
-    <value>正在建立共用...</value>
-  </data>
-  <data name="FsMgmt_Status_UpdatingShare" xml:space="preserve">
-    <value>正在更新共用...</value>
-  </data>
-  <data name="FsMgmt_Status_DeletingShare" xml:space="preserve">
-    <value>正在停止共用...</value>
-  </data>
-  <data name="FsMgmt_Status_DisconnectingSession" xml:space="preserve">
-    <value>正在中斷工作階段...</value>
-  </data>
-  <data name="FsMgmt_Status_ClosingOpenFile" xml:space="preserve">
-    <value>正在關閉開啟的檔案...</value>
-  </data>
-  <data name="FsMgmt_Status_OperationComplete" xml:space="preserve">
-    <value>操作已完成。</value>
-  </data>
-  <data name="FsMgmt_Error_LoadFailed" xml:space="preserve">
-    <value>無法載入共用資料夾資料: {0}</value>
-  </data>
-  <data name="FsMgmt_Error_OperationFailed" xml:space="preserve">
-    <value>操作失敗: {0}</value>
-  </data>
   <data name="FsMgmt_AddShare_Title" xml:space="preserve">
     <value>新增共用資料夾</value>
   </data>

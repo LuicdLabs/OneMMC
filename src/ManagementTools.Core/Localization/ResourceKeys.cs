@@ -478,16 +478,6 @@ public static class FsMgmtKeys
     public const string PermissionFilesOnly = "FsMgmt_Permissions_FilesOnly";
     public const string DurationDaysFormat = "FsMgmt_Duration_DaysFormat";
     public const string DurationHoursFormat = "FsMgmt_Duration_HoursFormat";
-    public const string StatusLoading = "FsMgmt_Status_Loading";
-    public const string StatusLoadedFormat = "FsMgmt_Status_LoadedFormat";
-    public const string StatusCreatingShare = "FsMgmt_Status_CreatingShare";
-    public const string StatusUpdatingShare = "FsMgmt_Status_UpdatingShare";
-    public const string StatusDeletingShare = "FsMgmt_Status_DeletingShare";
-    public const string StatusDisconnectingSession = "FsMgmt_Status_DisconnectingSession";
-    public const string StatusClosingOpenFile = "FsMgmt_Status_ClosingOpenFile";
-    public const string StatusOperationComplete = "FsMgmt_Status_OperationComplete";
-    public const string ErrorLoadFailed = "FsMgmt_Error_LoadFailed";
-    public const string ErrorOperationFailed = "FsMgmt_Error_OperationFailed";
 }
 
 /// <summary>

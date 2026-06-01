@@ -81,6 +81,7 @@ public sealed partial class ShareEditDialog : ContentDialog
 
         ComputerNamePanel.Visibility = _isEditMode ? Visibility.Collapsed : Visibility.Visible;
         UserLimitPanel.Visibility = _isEditMode ? Visibility.Visible : Visibility.Collapsed;
+        PermissionsPresetComboBox.Visibility = _isEditMode ? Visibility.Collapsed : Visibility.Visible;
 
         if (_share is null)
         {

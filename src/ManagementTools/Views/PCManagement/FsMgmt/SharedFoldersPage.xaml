@@ -20,7 +20,6 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
@@ -55,14 +54,6 @@
                 </Button>
             </StackPanel>
         </Grid>
-
-        <InfoBar
-            Grid.Row="1"
-            Margin="24,0,24,12"
-            IsClosable="True"
-            IsOpen="{x:Bind ViewModel.HasStatusMessage, Mode=OneWay}"
-            Message="{x:Bind ViewModel.StatusMessage, Mode=OneWay}"
-            Severity="Informational" />
 
         <ScrollViewer Grid.Row="2">
             <StackPanel Padding="24,0,24,24" Spacing="4">

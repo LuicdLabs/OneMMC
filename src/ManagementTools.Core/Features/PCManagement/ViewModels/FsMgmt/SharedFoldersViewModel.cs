@@ -21,8 +21,6 @@ public sealed partial class SharedFoldersViewModel : ObservableObject
     private readonly List<SharedFolderShare> _allShares = [];
     private readonly List<SharedFolderSession> _allSessions = [];
     private readonly List<SharedFolderOpenFile> _allOpenFiles = [];
-    private string _lastOptionalLoadMessage = string.Empty;
-
     [ObservableProperty]
     private ObservableCollection<SharedFolderShare> _shares = [];
 
@@ -37,9 +35,6 @@ public sealed partial class SharedFoldersViewModel : ObservableObject
 
     [ObservableProperty]
     private bool _isLoading;
-
-    [ObservableProperty]
-    private string _statusMessage = string.Empty;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SharedFoldersViewModel"/> class.
@@ -71,9 +66,6 @@ public sealed partial class SharedFoldersViewModel : ObservableObject
     /// <summary>Gets the localized open files section description.</summary>
     public string OpenFilesDescription => string.Format(GetString(FsMgmtKeys.OpenFilesCountFormat), OpenFiles.Count);
 
-    /// <summary>Gets whether a status message is available.</summary>
-    public bool HasStatusMessage => !string.IsNullOrWhiteSpace(StatusMessage);
-
     /// <summary>Gets whether at least one share is displayed.</summary>
     public bool HasShares => Shares.Count > 0;
 
@@ -90,12 +82,10 @@ public sealed partial class SharedFoldersViewModel : ObservableObject
     public async Task LoadAsync()
     {
         IsLoading = true;
-        StatusMessage = GetString(FsMgmtKeys.StatusLoading);
         _logger.LogInformation("Loading Shared Folders state.");
 
         try
         {
-            _lastOptionalLoadMessage = string.Empty;
             IReadOnlyList<SharedFolderShare> shares = await _sharedFoldersService.GetSharesAsync();
             IReadOnlyList<SharedFolderSession> sessions = await LoadOptionalAsync(
                 _sharedFoldersService.GetSessionsAsync,
@@ -112,9 +102,6 @@ public sealed partial class SharedFoldersViewModel : ObservableObject
             _allOpenFiles.AddRange(openFiles);
 
             ApplyFilter();
-            StatusMessage = string.IsNullOrWhiteSpace(_lastOptionalLoadMessage)
-                ? string.Format(GetString(FsMgmtKeys.StatusLoadedFormat), Shares.Count, Sessions.Count, OpenFiles.Count)
-                : _lastOptionalLoadMessage;
             _logger.LogInformation(
                 "Loaded Shared Folders state. Shares={ShareCount}, Sessions={SessionCount}, OpenFiles={OpenFileCount}",
                 Shares.Count,
@@ -123,7 +110,7 @@ public sealed partial class SharedFoldersViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-            HandleOperationException(ex, FsMgmtKeys.ErrorLoadFailed);
+            HandleOperationException(ex);
         }
         finally
         {
@@ -145,9 +132,7 @@ public sealed partial class SharedFoldersViewModel : ObservableObject
     {
         ArgumentNullException.ThrowIfNull(definition);
 
-        await RunMutatingOperationAsync(
-            FsMgmtKeys.StatusCreatingShare,
-            () => _sharedFoldersService.CreateShareAsync(definition));
+        await RunMutatingOperationAsync(() => _sharedFoldersService.CreateShareAsync(definition));
     }
 
     /// <summary>
@@ -160,9 +145,7 @@ public sealed partial class SharedFoldersViewModel : ObservableObject
         ArgumentException.ThrowIfNullOrWhiteSpace(shareName);
         ArgumentNullException.ThrowIfNull(definition);
 
-        await RunMutatingOperationAsync(
-            FsMgmtKeys.StatusUpdatingShare,
-            () => _sharedFoldersService.UpdateShareAsync(shareName, definition));
+        await RunMutatingOperationAsync(() => _sharedFoldersService.UpdateShareAsync(shareName, definition));
     }
 
     /// <summary>
@@ -173,9 +156,7 @@ public sealed partial class SharedFoldersViewModel : ObservableObject
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(shareName);
 
-        await RunMutatingOperationAsync(
-            FsMgmtKeys.StatusDeletingShare,
-            () => _sharedFoldersService.DeleteShareAsync(shareName));
+        await RunMutatingOperationAsync(() => _sharedFoldersService.DeleteShareAsync(shareName));
     }
 
     /// <summary>
@@ -186,9 +167,7 @@ public sealed partial class SharedFoldersViewModel : ObservableObject
     {
         ArgumentNullException.ThrowIfNull(session);
 
-        await RunMutatingOperationAsync(
-            FsMgmtKeys.StatusDisconnectingSession,
-            () => _sharedFoldersService.DisconnectSessionAsync(session));
+        await RunMutatingOperationAsync(() => _sharedFoldersService.DisconnectSessionAsync(session));
     }
 
     /// <summary>
@@ -196,9 +175,7 @@ public sealed partial class SharedFoldersViewModel : ObservableObject
     /// </summary>
     public async Task DisconnectAllSessionsAsync()
     {
-        await RunMutatingOperationAsync(
-            FsMgmtKeys.StatusDisconnectingSession,
-            _sharedFoldersService.DisconnectAllSessionsAsync);
+        await RunMutatingOperationAsync(_sharedFoldersService.DisconnectAllSessionsAsync);
     }
 
     /// <summary>
@@ -209,9 +186,7 @@ public sealed partial class SharedFoldersViewModel : ObservableObject
     {
         ArgumentNullException.ThrowIfNull(openFile);
 
-        await RunMutatingOperationAsync(
-            FsMgmtKeys.StatusClosingOpenFile,
-            () => _sharedFoldersService.CloseOpenFileAsync(openFile.Id));
+        await RunMutatingOperationAsync(() => _sharedFoldersService.CloseOpenFileAsync(openFile.Id));
     }
 
     /// <summary>
@@ -219,9 +194,7 @@ public sealed partial class SharedFoldersViewModel : ObservableObject
     /// </summary>
     public async Task CloseAllOpenFilesAsync()
     {
-        await RunMutatingOperationAsync(
-            FsMgmtKeys.StatusClosingOpenFile,
-            _sharedFoldersService.CloseAllOpenFilesAsync);
+        await RunMutatingOperationAsync(_sharedFoldersService.CloseAllOpenFilesAsync);
     }
 
     /// <summary>
@@ -235,7 +208,6 @@ public sealed partial class SharedFoldersViewModel : ObservableObject
         Shares.Clear();
         Sessions.Clear();
         OpenFiles.Clear();
-        StatusMessage = string.Empty;
         FilterText = string.Empty;
         NotifySectionDescriptions();
     }
@@ -245,25 +217,18 @@ public sealed partial class SharedFoldersViewModel : ObservableObject
         ApplyFilter();
     }
 
-    partial void OnStatusMessageChanged(string value)
-    {
-        OnPropertyChanged(nameof(HasStatusMessage));
-    }
-
-    private async Task RunMutatingOperationAsync(string statusKey, Func<Task> operation)
+    private async Task RunMutatingOperationAsync(Func<Task> operation)
     {
         IsLoading = true;
-        StatusMessage = GetString(statusKey);
 
         try
         {
             await operation();
-            StatusMessage = GetString(FsMgmtKeys.StatusOperationComplete);
             await LoadAsync();
         }
         catch (Exception ex)
         {
-            HandleOperationException(ex, FsMgmtKeys.ErrorOperationFailed);
+            HandleOperationException(ex);
         }
         finally
         {
@@ -312,10 +277,8 @@ public sealed partial class SharedFoldersViewModel : ObservableObject
         OnPropertyChanged(nameof(HasOpenFiles));
     }
 
-    private void HandleOperationException(Exception ex, string errorKey)
+    private void HandleOperationException(Exception ex)
     {
-        string message = string.Format(GetString(errorKey), ex.Message);
-        StatusMessage = message;
         _logger.LogError(ex, "Shared Folders operation failed.");
 
         if (IsPermissionError(ex))
@@ -332,14 +295,12 @@ public sealed partial class SharedFoldersViewModel : ObservableObject
         }
         catch (Exception ex) when (IsPermissionError(ex))
         {
-            _lastOptionalLoadMessage = string.Format(GetString(FsMgmtKeys.ErrorLoadFailed), ex.Message);
             _logger.LogWarning(ex, "Shared Folders optional load failed due to insufficient permissions. Operation={Operation}", operationName);
             AdminPermissionRequired?.Invoke(this, EventArgs.Empty);
             return [];
         }
         catch (Exception ex)
         {
-            _lastOptionalLoadMessage = string.Format(GetString(FsMgmtKeys.ErrorLoadFailed), ex.Message);
             _logger.LogWarning(ex, "Shared Folders optional load failed. Operation={Operation}", operationName);
             return [];
         }

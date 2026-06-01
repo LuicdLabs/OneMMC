@@ -148,36 +148,6 @@
   <data name="FsMgmt_Duration_HoursFormat" xml:space="preserve">
     <value>{0}h {1}m {2}s</value>
   </data>
-  <data name="FsMgmt_Status_Loading" xml:space="preserve">
-    <value>Loading Shared Folders state...</value>
-  </data>
-  <data name="FsMgmt_Status_LoadedFormat" xml:space="preserve">
-    <value>Loaded {0} shares, {1} sessions, and {2} open files.</value>
-  </data>
-  <data name="FsMgmt_Status_CreatingShare" xml:space="preserve">
-    <value>Creating share...</value>
-  </data>
-  <data name="FsMgmt_Status_UpdatingShare" xml:space="preserve">
-    <value>Updating share...</value>
-  </data>
-  <data name="FsMgmt_Status_DeletingShare" xml:space="preserve">
-    <value>Stopping share...</value>
-  </data>
-  <data name="FsMgmt_Status_DisconnectingSession" xml:space="preserve">
-    <value>Disconnecting session...</value>
-  </data>
-  <data name="FsMgmt_Status_ClosingOpenFile" xml:space="preserve">
-    <value>Closing open file...</value>
-  </data>
-  <data name="FsMgmt_Status_OperationComplete" xml:space="preserve">
-    <value>Operation completed.</value>
-  </data>
-  <data name="FsMgmt_Error_LoadFailed" xml:space="preserve">
-    <value>Unable to load Shared Folders data: {0}</value>
-  </data>
-  <data name="FsMgmt_Error_OperationFailed" xml:space="preserve">
-    <value>The operation failed: {0}</value>
-  </data>
   <data name="FsMgmt_AddShare_Title" xml:space="preserve">
     <value>Add a new Shared Folder</value>
   </data>
