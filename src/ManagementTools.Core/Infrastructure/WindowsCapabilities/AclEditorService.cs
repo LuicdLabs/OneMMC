@@ -50,6 +50,37 @@ public enum AclEditorPageType : uint
 }
 
 /// <summary>
+/// Identifies the securable Windows object type represented by the edited resource.
+/// </summary>
+public enum AclEditorResourceObjectType : uint
+{
+    /// <summary>
+    /// No specific object type is associated with the resource.
+    /// </summary>
+    Unknown = 0,
+
+    /// <summary>
+    /// The resource is a file or directory.
+    /// </summary>
+    FileObject = 1,
+
+    /// <summary>
+    /// The resource is a registry key.
+    /// </summary>
+    RegistryKey = 3
+}
+
+internal enum AclEditorActivatedPageType : uint
+{
+    ShowDefault = 0,
+    ShowPermissionsActivated = 1,
+    ShowAuditingActivated = 2,
+    ShowOwnerActivated = 3,
+    ShowEffectiveAccessActivated = 4,
+    ShowShareActivated = 5
+}
+
+/// <summary>
 /// Defines object-information flags used by the native ACL editor.
 /// </summary>
 public static class AclEditorObjectFlags
@@ -77,6 +108,9 @@ public static class AclEditorObjectFlags
 
     /// <summary>Shows the effective access page when supported by the editor callback.</summary>
     public const uint EditEffective = 0x00020000;
+
+    /// <summary>Shows elevation UI for owner edits.</summary>
+    public const uint OwnerElevationRequired = 0x04000000;
 }
 
 /// <summary>
@@ -132,14 +166,45 @@ public sealed class AclEditorInheritType
 }
 
 /// <summary>
+/// Maps generic access bits to resource-specific access masks for native ACL APIs.
+/// </summary>
+public sealed class AclEditorGenericMapping
+{
+    /// <summary>
+    /// Gets or sets the mask that represents generic read access.
+    /// </summary>
+    public uint GenericRead { get; set; }
+
+    /// <summary>
+    /// Gets or sets the mask that represents generic write access.
+    /// </summary>
+    public uint GenericWrite { get; set; }
+
+    /// <summary>
+    /// Gets or sets the mask that represents generic execute access.
+    /// </summary>
+    public uint GenericExecute { get; set; }
+
+    /// <summary>
+    /// Gets or sets the mask that represents generic all access.
+    /// </summary>
+    public uint GenericAll { get; set; }
+}
+
+/// <summary>
 /// Contains the configuration required to open the native ACL editor.
 /// </summary>
 public sealed class AclEditorRequest
 {
     /// <summary>
-    /// Gets or sets the object name displayed by the editor.
+    /// Gets or sets the object display name shown by the editor.
     /// </summary>
     public string ObjectName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Gets or sets the full resource name used by native editor integrations that need a canonical path.
+    /// </summary>
+    public string FullResourceName { get; set; } = string.Empty;
 
     /// <summary>
     /// Gets or sets the page title displayed by the editor.
@@ -178,6 +243,16 @@ public sealed class AclEditorRequest
     /// Gets or sets a function used to map generic access bits to resource-specific bits.
     /// </summary>
     public Func<uint, uint>? MapGenericAccess { get; set; }
+
+    /// <summary>
+    /// Gets or sets the generic access mapping used by native inheritance and effective-access helpers.
+    /// </summary>
+    public AclEditorGenericMapping? GenericMapping { get; set; }
+
+    /// <summary>
+    /// Gets or sets the securable object type represented by the edited resource.
+    /// </summary>
+    public AclEditorResourceObjectType ResourceObjectType { get; set; } = AclEditorResourceObjectType.Unknown;
 
     /// <summary>
     /// Gets or sets the descriptor created when the initial SDDL cannot be parsed.
@@ -276,6 +351,132 @@ public sealed class AclEditorResult
 }
 
 /// <summary>
+/// Native SI_OBJECT_INFO layout returned to the Windows ACL editor callback.
+/// </summary>
+[StructLayout(LayoutKind.Sequential)]
+public struct AclEditorSiObjectInfo
+{
+    /// <summary>Object-information flags.</summary>
+    public uint Flags;
+
+    /// <summary>Optional caller-defined instance value.</summary>
+    public IntPtr Instance;
+
+    /// <summary>Optional server name pointer.</summary>
+    public IntPtr ServerName;
+
+    /// <summary>Object display name pointer.</summary>
+    public IntPtr ObjectName;
+
+    /// <summary>Property page title pointer.</summary>
+    public IntPtr PageTitle;
+
+    /// <summary>Object type GUID.</summary>
+    public Guid ObjectType;
+}
+
+/// <summary>
+/// COM-visible callback interface consumed by the native Windows ACL editor.
+/// </summary>
+[ComVisible(true)]
+[Guid("965FC360-16FF-11d0-91CB-00AA00BBB723")]
+[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+public interface IAclEditorSecurityInformation
+{
+    /// <summary>Gets display metadata for the edited object.</summary>
+    [PreserveSig]
+    int GetObjectInformation(out AclEditorSiObjectInfo objectInfo);
+
+    /// <summary>Gets the current security descriptor.</summary>
+    [PreserveSig]
+    int GetSecurity(uint requestedInformation, out IntPtr securityDescriptor, [MarshalAs(UnmanagedType.Bool)] bool defaultSecurity);
+
+    /// <summary>Accepts an updated security descriptor from the editor.</summary>
+    [PreserveSig]
+    int SetSecurity(uint securityInformation, IntPtr securityDescriptor);
+
+    /// <summary>Gets the editable access-right rows.</summary>
+    [PreserveSig]
+    int GetAccessRights(IntPtr objectTypeGuid, uint flags, out IntPtr access, out uint accessCount, out uint defaultAccess);
+
+    /// <summary>Maps generic access rights to resource-specific rights.</summary>
+    [PreserveSig]
+    int MapGeneric(IntPtr objectTypeGuid, ref byte aceFlags, ref uint mask);
+
+    /// <summary>Gets inheritance choices for container objects.</summary>
+    [PreserveSig]
+    int GetInheritTypes(out IntPtr inheritTypes, out uint inheritTypeCount);
+
+    /// <summary>Receives property-sheet page lifecycle callbacks.</summary>
+    [PreserveSig]
+    int PropertySheetPageCallback(IntPtr hwnd, uint message, AclEditorPageType pageType);
+}
+
+/// <summary>
+/// COM-visible extension callback for secondary security descriptors.
+/// </summary>
+[ComVisible(true)]
+[Guid("EA961070-CD14-4621-ACE4-F63C03E583E4")]
+[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+public interface IAclEditorSecurityInformation4
+{
+    /// <summary>Gets secondary security objects shown by the editor.</summary>
+    [PreserveSig]
+    int GetSecondarySecurity(out IntPtr securityObjects, out uint securityObjectCount);
+}
+
+/// <summary>
+/// COM-visible callback used by the editor to calculate effective permissions.
+/// </summary>
+[ComVisible(true)]
+[Guid("3853DC76-9F35-407c-88A1-D19344365FBC")]
+[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+public interface IAclEditorEffectivePermission
+{
+    /// <summary>Calculates granted access for the selected security principal.</summary>
+    [PreserveSig]
+    int GetEffectivePermission(
+        IntPtr objectTypeGuid,
+        IntPtr userSid,
+        IntPtr serverName,
+        IntPtr securityDescriptor,
+        out IntPtr objectTypeList,
+        out uint objectTypeListLength,
+        out IntPtr grantedAccessList,
+        out uint grantedAccessListLength);
+}
+
+/// <summary>
+/// COM-visible callback used by the native editor to retrieve the canonical resource path.
+/// </summary>
+[ComVisible(true)]
+[Guid("E2CDC9CC-31BD-4F8F-8C8B-B641AF516A1A")]
+[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+public interface IAclEditorSecurityInformation3
+{
+    /// <summary>Gets the full resource path represented by the edited object.</summary>
+    [PreserveSig]
+    int GetFullResourceName(out IntPtr resourceName);
+
+    /// <summary>Opens a second editor instance when the shell requests elevated editing.</summary>
+    [PreserveSig]
+    int OpenElevatedEditor(IntPtr hwnd, AclEditorPageType pageType);
+}
+
+/// <summary>
+/// COM-visible callback used by the native editor to resolve inherited ACE sources.
+/// </summary>
+[ComVisible(true)]
+[Guid("FC3066EB-79EF-444B-9111-D18A75EBF2FA")]
+[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+public interface IAclEditorSecurityObjectTypeInfo
+{
+    /// <summary>Returns the ancestor source for each ACE in the supplied ACL.</summary>
+    [PreserveSig]
+    int GetInheritSource(uint securityInformation, IntPtr acl, out IntPtr inheritArray);
+}
+
+/// <summary>
 /// Opens the native Windows ACL editor for callers that provide security descriptor state.
 /// </summary>
 public sealed class AclEditorService
@@ -309,7 +510,7 @@ public sealed class AclEditorService
         int hr = AclEditorNativeMethods.EditSecurityAdvanced(
             ownerWindowHandle,
             securityInformation,
-            request.PageType);
+            GetNativePageType(request.PageType));
 
         if (hr < 0)
         {
@@ -326,16 +527,41 @@ public sealed class AclEditorService
         };
     }
 
+    private static uint GetNativePageType(AclEditorPageType pageType)
+    {
+        return pageType switch
+        {
+            AclEditorPageType.AdvancedPermissions => CombinePageActivation(AclEditorPageType.Permissions, AclEditorActivatedPageType.ShowPermissionsActivated),
+            AclEditorPageType.Auditing => CombinePageActivation(AclEditorPageType.Permissions, AclEditorActivatedPageType.ShowAuditingActivated),
+            AclEditorPageType.Owner => CombinePageActivation(AclEditorPageType.Permissions, AclEditorActivatedPageType.ShowOwnerActivated),
+            AclEditorPageType.EffectiveAccess => CombinePageActivation(AclEditorPageType.Permissions, AclEditorActivatedPageType.ShowEffectiveAccessActivated),
+            AclEditorPageType.Share => CombinePageActivation(AclEditorPageType.Permissions, AclEditorActivatedPageType.ShowShareActivated),
+            _ => (uint)pageType
+        };
+    }
+
+    private static uint CombinePageActivation(AclEditorPageType pageType, AclEditorActivatedPageType activationType)
+    {
+        return ((uint)activationType << 16) | (uint)pageType;
+    }
+
+    /// <summary>
+    /// COM callback object consumed by the native ACL editor.
+    /// </summary>
     [ComVisible(true)]
-    private sealed class EditableSecurityInformation :
-        AclEditorNativeMethods.ISecurityInformation,
-        AclEditorNativeMethods.ISecurityInformation4,
-        AclEditorNativeMethods.IEffectivePermission,
+    [ClassInterface(ClassInterfaceType.None)]
+    public sealed class EditableSecurityInformation :
+        IAclEditorSecurityInformation,
+        IAclEditorSecurityInformation4,
+        IAclEditorEffectivePermission,
+        IAclEditorSecurityInformation3,
+        IAclEditorSecurityObjectTypeInfo,
         IDisposable
     {
         private readonly AclEditorRequest _request;
         private readonly List<IntPtr> _allocatedStrings = [];
         private readonly ILogger _logger;
+        private readonly IntPtr _serverNamePointer;
         private readonly IntPtr _objectNamePointer;
         private readonly IntPtr _pageTitlePointer;
         private readonly AclEditorNativeMethods.SiAccess[] _accessEntries;
@@ -347,7 +573,7 @@ public sealed class AclEditorService
         private readonly IntPtr _guidNullPointer;
         private readonly IntPtr _defaultObjectTypeListPointer;
 
-        public EditableSecurityInformation(AclEditorRequest request, ILogger logger)
+        internal EditableSecurityInformation(AclEditorRequest request, ILogger logger)
         {
             _request = request;
             _logger = logger;
@@ -355,6 +581,7 @@ public sealed class AclEditorService
 
             string objectName = string.IsNullOrWhiteSpace(request.ObjectName) ? request.PageTitle : request.ObjectName;
             string pageTitle = string.IsNullOrWhiteSpace(request.PageTitle) ? objectName : request.PageTitle;
+            _serverNamePointer = AllocateString(string.Empty);
             _objectNamePointer = AllocateString(objectName);
             _pageTitlePointer = AllocateString(pageTitle);
 
@@ -384,7 +611,7 @@ public sealed class AclEditorService
                     logger);
                 _secondarySecurityInformationPointer = Marshal.GetComInterfaceForObject(
                     _secondarySecurityInformation,
-                    typeof(AclEditorNativeMethods.ISecurityInformation));
+                    typeof(IAclEditorSecurityInformation));
             }
         }
 
@@ -436,13 +663,13 @@ public sealed class AclEditorService
             }
         }
 
-        public int GetObjectInformation(out AclEditorNativeMethods.SiObjectInfo objectInfo)
+        public int GetObjectInformation(out AclEditorSiObjectInfo objectInfo)
         {
-            objectInfo = new AclEditorNativeMethods.SiObjectInfo
+            objectInfo = new AclEditorSiObjectInfo
             {
                 Flags = _request.ObjectInformationFlags,
                 Instance = IntPtr.Zero,
-                ServerName = IntPtr.Zero,
+                ServerName = _serverNamePointer,
                 ObjectName = _objectNamePointer,
                 PageTitle = _pageTitlePointer,
                 ObjectType = Guid.Empty
@@ -532,6 +759,7 @@ public sealed class AclEditorService
 
         public int GetSecondarySecurity(out IntPtr securityObjects, out uint securityObjectCount)
         {
+            _logger.LogDebug("[AclEditorService] GetSecondarySecurity requested for {PageTitle}.", _request.PageTitle);
             securityObjects = IntPtr.Zero;
             securityObjectCount = 0;
 
@@ -586,6 +814,7 @@ public sealed class AclEditorService
             out IntPtr grantedAccessList,
             out uint grantedAccessListLength)
         {
+            _logger.LogDebug("[AclEditorService] GetEffectivePermission requested for {PageTitle}.", _request.PageTitle);
             objectTypeList = _defaultObjectTypeListPointer;
             objectTypeListLength = 1;
             grantedAccessList = IntPtr.Zero;
@@ -614,6 +843,96 @@ public sealed class AclEditorService
                 _logger.LogError(ex, "[AclEditorService] Failed to calculate effective access for {PageTitle}.", _request.PageTitle);
                 return Marshal.GetHRForException(ex);
             }
+        }
+
+        public int GetFullResourceName(out IntPtr resourceName)
+        {
+            string fullResourceName = string.IsNullOrWhiteSpace(_request.FullResourceName)
+                ? _request.ObjectName
+                : _request.FullResourceName;
+
+            resourceName = AllocateLocalString(fullResourceName);
+            if (resourceName == IntPtr.Zero && fullResourceName.Length > 0)
+            {
+                return AclEditorNativeMethods.EOutOfMemory;
+            }
+
+            _logger.LogDebug("[AclEditorService] GetFullResourceName requested for {ResourceName}.", fullResourceName);
+            return S_OK;
+        }
+
+        public int OpenElevatedEditor(IntPtr hwnd, AclEditorPageType pageType)
+        {
+            _logger.LogDebug(
+                "[AclEditorService] OpenElevatedEditor requested for {PageTitle} on page {PageType}.",
+                _request.PageTitle,
+                pageType);
+
+            return AclEditorNativeMethods.EditSecurityAdvanced(
+                hwnd,
+                this,
+                GetNativePageType(pageType));
+        }
+
+        public int GetInheritSource(uint securityInformation, IntPtr acl, out IntPtr inheritArray)
+        {
+            inheritArray = IntPtr.Zero;
+
+            if (acl == IntPtr.Zero
+                || _request.ResourceObjectType == AclEditorResourceObjectType.Unknown
+                || _request.GenericMapping is null
+                || string.IsNullOrWhiteSpace(_request.FullResourceName))
+            {
+                return AclEditorNativeMethods.ENotImpl;
+            }
+
+            var genericMapping = new AclEditorNativeMethods.GenericMapping
+            {
+                GenericRead = _request.GenericMapping.GenericRead,
+                GenericWrite = _request.GenericMapping.GenericWrite,
+                GenericExecute = _request.GenericMapping.GenericExecute,
+                GenericAll = _request.GenericMapping.GenericAll
+            };
+
+            ushort aceCount = Marshal.PtrToStructure<AclEditorNativeMethods.Acl>(acl).AceCount;
+            if (aceCount == 0)
+            {
+                return S_OK;
+            }
+
+            int inheritEntrySize = Marshal.SizeOf<AclEditorNativeMethods.InheritedFrom>();
+            inheritArray = AclEditorNativeMethods.LocalAlloc(LmemFixed, (UIntPtr)(inheritEntrySize * aceCount));
+            if (inheritArray == IntPtr.Zero)
+            {
+                return Marshal.GetHRForLastWin32Error();
+            }
+
+            uint status = AclEditorNativeMethods.GetInheritanceSourceW(
+                _request.FullResourceName,
+                (uint)_request.ResourceObjectType,
+                securityInformation,
+                (_request.ObjectInformationFlags & AclEditorObjectFlags.Container) != 0,
+                IntPtr.Zero,
+                0,
+                acl,
+                IntPtr.Zero,
+                ref genericMapping,
+                inheritArray);
+            if (status != 0)
+            {
+                _ = AclEditorNativeMethods.LocalFree(inheritArray);
+                inheritArray = IntPtr.Zero;
+                _logger.LogDebug(
+                    "[AclEditorService] GetInheritanceSourceW failed for {ResourceName}. Status={Status}.",
+                    _request.FullResourceName,
+                    status);
+                return unchecked((int)(0x80070000u | status));
+            }
+
+            _logger.LogDebug(
+                "[AclEditorService] GetInheritSource requested for {ResourceName}.",
+                _request.FullResourceName);
+            return S_OK;
         }
 
         private IntPtr AllocateString(string value)
@@ -659,6 +978,7 @@ public sealed class AclEditorService
             var request = new AclEditorRequest
             {
                 ObjectName = secondary.ObjectName,
+                FullResourceName = secondary.ObjectName,
                 PageTitle = secondary.PageTitle,
                 SecurityDescriptorSddl = secondary.SecurityDescriptorSddl,
                 ObjectInformationFlags = secondary.ObjectInformationFlags,
@@ -820,13 +1140,15 @@ public sealed class AclEditorService
 internal static class AclEditorNativeMethods
 {
     internal const int EInvalidArg = unchecked((int)0x80070057);
+    internal const int ENotImpl = unchecked((int)0x80004001);
+    internal const int EOutOfMemory = unchecked((int)0x8007000E);
     internal const uint SecurityObjectIdShare = 2;
 
     [DllImport("aclui.dll", ExactSpelling = true)]
     internal static extern int EditSecurityAdvanced(
         IntPtr hwndOwner,
-        [MarshalAs(UnmanagedType.Interface)] ISecurityInformation securityInformation,
-        AclEditorPageType pageType);
+        [MarshalAs(UnmanagedType.Interface)] IAclEditorSecurityInformation securityInformation,
+        uint pageType);
 
     [DllImport("advapi32.dll", SetLastError = true)]
     internal static extern uint GetSecurityDescriptorLength(IntPtr securityDescriptor);
@@ -844,16 +1166,24 @@ internal static class AclEditorNativeMethods
     [DllImport("kernel32.dll", SetLastError = true)]
     internal static extern IntPtr LocalFree(IntPtr memory);
 
-    [StructLayout(LayoutKind.Sequential)]
-    internal struct SiObjectInfo
-    {
-        public uint Flags;
-        public IntPtr Instance;
-        public IntPtr ServerName;
-        public IntPtr ObjectName;
-        public IntPtr PageTitle;
-        public Guid ObjectType;
-    }
+    [DllImport("advapi32.dll", CharSet = CharSet.Unicode, ExactSpelling = true)]
+    internal static extern uint GetInheritanceSourceW(
+        string objectName,
+        uint objectType,
+        uint securityInformation,
+        [MarshalAs(UnmanagedType.Bool)] bool isContainer,
+        IntPtr objectClassGuids,
+        uint guidCount,
+        IntPtr acl,
+        IntPtr objectManagerFunctions,
+        ref GenericMapping genericMapping,
+        IntPtr inheritArray);
+
+    [DllImport("advapi32.dll", ExactSpelling = true)]
+    internal static extern uint FreeInheritedFromArray(
+        IntPtr inheritArray,
+        ushort aceCount,
+        IntPtr objectManagerFunctions);
 
     [StructLayout(LayoutKind.Sequential)]
     internal struct SiAccess
@@ -892,56 +1222,29 @@ internal static class AclEditorNativeMethods
         public IntPtr ObjectType;
     }
 
-    [ComVisible(true)]
-    [Guid("965FC360-16FF-11d0-91CB-00AA00BBB723")]
-    [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-    internal interface ISecurityInformation
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct Acl
     {
-        [PreserveSig]
-        int GetObjectInformation(out SiObjectInfo objectInfo);
-
-        [PreserveSig]
-        int GetSecurity(uint requestedInformation, out IntPtr securityDescriptor, [MarshalAs(UnmanagedType.Bool)] bool defaultSecurity);
-
-        [PreserveSig]
-        int SetSecurity(uint securityInformation, IntPtr securityDescriptor);
-
-        [PreserveSig]
-        int GetAccessRights(IntPtr objectTypeGuid, uint flags, out IntPtr access, out uint accessCount, out uint defaultAccess);
-
-        [PreserveSig]
-        int MapGeneric(IntPtr objectTypeGuid, ref byte aceFlags, ref uint mask);
-
-        [PreserveSig]
-        int GetInheritTypes(out IntPtr inheritTypes, out uint inheritTypeCount);
-
-        [PreserveSig]
-        int PropertySheetPageCallback(IntPtr hwnd, uint message, AclEditorPageType pageType);
+        public byte Revision;
+        public byte Reserved;
+        public ushort Size;
+        public ushort AceCount;
+        public ushort Reserved2;
     }
 
-    [ComVisible(true)]
-    [Guid("EA961070-CD14-4621-ACE4-F63C03E583E4")]
-    [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-    internal interface ISecurityInformation4
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct InheritedFrom
     {
-        [PreserveSig]
-        int GetSecondarySecurity(out IntPtr securityObjects, out uint securityObjectCount);
+        public int GenerationGap;
+        public IntPtr AncestorName;
     }
 
-    [ComVisible(true)]
-    [Guid("3853DC76-9F35-407c-88A1-D19344365FBC")]
-    [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-    internal interface IEffectivePermission
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct GenericMapping
     {
-        [PreserveSig]
-        int GetEffectivePermission(
-            IntPtr objectTypeGuid,
-            IntPtr userSid,
-            IntPtr serverName,
-            IntPtr securityDescriptor,
-            out IntPtr objectTypeList,
-            out uint objectTypeListLength,
-            out IntPtr grantedAccessList,
-            out uint grantedAccessListLength);
+        public uint GenericRead;
+        public uint GenericWrite;
+        public uint GenericExecute;
+        public uint GenericAll;
     }
 }

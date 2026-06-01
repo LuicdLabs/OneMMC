@@ -301,16 +301,26 @@ public sealed partial class SharePermissionsDialog : UserControl
     {
         var request = new AclEditorRequest
         {
-            ObjectName = _folderPath,
+            ObjectName = new DirectoryInfo(_folderPath).Name,
+            FullResourceName = _folderPath,
             PageTitle = string.Empty,
             SecurityDescriptorSddl = securityDescriptorSddl,
             ObjectInformationFlags = AclEditorObjectFlags.Advanced
                                      | AclEditorObjectFlags.Container
                                      | AclEditorObjectFlags.EditOwner
                                      | AclEditorObjectFlags.EditAudits
-                                     | AclEditorObjectFlags.EditEffective,
+                                     | AclEditorObjectFlags.EditEffective
+                                     | AclEditorObjectFlags.OwnerElevationRequired,
             PageType = pageType,
             MapGenericAccess = MapFileSystemGenericAccess,
+            GenericMapping = new AclEditorGenericMapping
+            {
+                GenericRead = FileGenericRead,
+                GenericWrite = FileGenericWrite,
+                GenericExecute = FileGenericExecute,
+                GenericAll = FileAllAccess
+            },
+            ResourceObjectType = AclEditorResourceObjectType.FileObject,
             SecondarySecurity = CreateShareAclEditorRequest(),
             EmptySecurityDescriptorFactory = static () => new RawSecurityDescriptor(
                 ControlFlags.DiscretionaryAclPresent,
