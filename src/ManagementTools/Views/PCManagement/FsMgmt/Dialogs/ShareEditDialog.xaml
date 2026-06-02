@@ -47,7 +47,8 @@
                         <TextBox
                             x:Name="FolderPathBox"
                             Grid.Column="0"
-                            PlaceholderText="{x:Bind LocalizedStrings.FsMgmt_FolderPath_Placeholder}" />
+                            PlaceholderText="{x:Bind LocalizedStrings.FsMgmt_FolderPath_Placeholder}"
+                            TextChanged="FolderPathBox_TextChanged" />
                         <Button
                             x:Name="BrowseButton"
                             Grid.Column="1"

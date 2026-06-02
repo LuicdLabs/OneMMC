@@ -202,6 +202,9 @@
   <data name="FsMgmt_Validation_ShareNameRequired" xml:space="preserve">
     <value>Enter a share name before continuing.</value>
   </data>
+  <data name="FsMgmt_Validation_FolderPathInvalid" xml:space="preserve">
+    <value>The folder path must be a valid Windows path, such as C:\Share or \\server\share.</value>
+  </data>
   <data name="FsMgmt_Open" xml:space="preserve">
     <value>Open</value>
   </data>

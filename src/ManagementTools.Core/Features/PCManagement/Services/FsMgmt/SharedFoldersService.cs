@@ -512,9 +512,33 @@ public sealed class SharedFoldersService
         if (requirePath)
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(definition.Path);
+            if (!IsValidWindowsPath(definition.Path))
+            {
+                throw new ArgumentException("The folder path must be a valid Windows path (e.g. C:\\Share or \\\\server\\share).", nameof(definition));
+            }
         }
 
         ArgumentException.ThrowIfNullOrWhiteSpace(definition.Name);
+    }
+
+    private static bool IsValidWindowsPath(string path)
+    {
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            return false;
+        }
+
+        if (path.Length >= 3 && char.IsLetter(path[0]) && path[1] == ':' && (path[2] == '\\' || path[2] == '/'))
+        {
+            return true;
+        }
+
+        if ((path.StartsWith(@"\\", StringComparison.Ordinal) || path.StartsWith("//", StringComparison.Ordinal)) && path.Length > 2)
+        {
+            return true;
+        }
+
+        return false;
     }
 
     private static SharedFolderShareType GetShareType(uint nativeType)

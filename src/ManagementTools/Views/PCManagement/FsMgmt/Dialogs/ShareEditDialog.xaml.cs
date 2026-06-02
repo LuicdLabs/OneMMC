@@ -108,6 +108,7 @@ public sealed partial class ShareEditDialog : ContentDialog
         UpdateUserLimitState();
         UpdateOfflineState();
         UpdatePermissionsState();
+        UpdatePathDependentState();
     }
 
     private void ConfigureReadOnlyState()
@@ -164,6 +165,49 @@ public sealed partial class ShareEditDialog : ContentDialog
         UpdateDisplayedSharePath();
     }
 
+    private void FolderPathBox_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        UpdatePathDependentState();
+    }
+
+    private void UpdatePathDependentState()
+    {
+        bool hasPath = !string.IsNullOrWhiteSpace(FolderPathBox.Text);
+        SetPermissionsPanelEnabled(hasPath);
+        IsPrimaryButtonEnabled = hasPath;
+    }
+
+    private void SetPermissionsPanelEnabled(bool enabled)
+    {
+        foreach (UIElement child in PermissionsPanel.Children)
+        {
+            if (child is Control control)
+            {
+                control.IsEnabled = enabled;
+            }
+        }
+    }
+
+    private static bool IsValidWindowsPath(string path)
+    {
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            return false;
+        }
+
+        if (path.Length >= 3 && char.IsLetter(path[0]) && path[1] == ':' && (path[2] == '\\' || path[2] == '/'))
+        {
+            return true;
+        }
+
+        if ((path.StartsWith(@"\\", StringComparison.Ordinal) || path.StartsWith("//", StringComparison.Ordinal)) && path.Length > 2)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
     private void UserLimitRadio_Checked(object sender, RoutedEventArgs e)
     {
         UpdateUserLimitState();
@@ -211,6 +255,12 @@ public sealed partial class ShareEditDialog : ContentDialog
         if (string.IsNullOrWhiteSpace(FolderPathBox.Text))
         {
             ShowValidation(LocalizedStrings.FsMgmt_Validation_FolderPathRequired);
+            return false;
+        }
+
+        if (!IsValidWindowsPath(FolderPathBox.Text.Trim()))
+        {
+            ShowValidation(LocalizedStrings.FsMgmt_Validation_FolderPathInvalid);
             return false;
         }
 

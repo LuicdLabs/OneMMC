@@ -202,6 +202,9 @@
   <data name="FsMgmt_Validation_ShareNameRequired" xml:space="preserve">
     <value>繼續前請輸入共用名稱。</value>
   </data>
+  <data name="FsMgmt_Validation_FolderPathInvalid" xml:space="preserve">
+    <value>資料夾路徑必須是有效的 Windows 路徑，例如 C:\共用 或 \\server\share。</value>
+  </data>
   <data name="FsMgmt_Open" xml:space="preserve">
     <value>開啟</value>
   </data>

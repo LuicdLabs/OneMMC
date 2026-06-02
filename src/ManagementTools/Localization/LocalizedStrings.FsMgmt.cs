@@ -42,6 +42,7 @@ public partial class LocalizedStrings
     public string FsMgmt_AdminShare_Info => GetResource(ResourceFileNames.FsMgmt, "FsMgmt_AdminShare_Info");
     public string FsMgmt_Validation_FolderPathRequired => GetResource(ResourceFileNames.FsMgmt, "FsMgmt_Validation_FolderPathRequired");
     public string FsMgmt_Validation_ShareNameRequired => GetResource(ResourceFileNames.FsMgmt, "FsMgmt_Validation_ShareNameRequired");
+    public string FsMgmt_Validation_FolderPathInvalid => GetResource(ResourceFileNames.FsMgmt, "FsMgmt_Validation_FolderPathInvalid");
     public string FsMgmt_Open => GetResource(ResourceFileNames.FsMgmt, "FsMgmt_Open");
     public string FsMgmt_StopSharing => GetResource(ResourceFileNames.FsMgmt, "FsMgmt_StopSharing");
     public string FsMgmt_Properties => GetResource(ResourceFileNames.FsMgmt, "FsMgmt_Properties");
