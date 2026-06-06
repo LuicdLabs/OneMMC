@@ -141,9 +141,6 @@
   <data name="SecPol_SoftwareRestriction_Header" xml:space="preserve">
     <value>Software Restriction Policies</value>
   </data>
-  <data name="SecPol_AppLocker_Header" xml:space="preserve">
-    <value>AppLocker</value>
-  </data>
   <data name="SecPol_IPSecurity_Header" xml:space="preserve">
     <value>IP Security Policies on Local Computer</value>
   </data>

@@ -16,7 +16,6 @@ namespace ManagementTools.Localization
         public string SecPol_NetworkListManager_Description => GetResource(ResourceFileNames.SecPol, "SecPol_NetworkListManager_Description");
         public string SecPol_PublicKeyPolicies_Header => GetResource(ResourceFileNames.SecPol, "SecPol_PublicKeyPolicies_Header");
         public string SecPol_SoftwareRestriction_Header => GetResource(ResourceFileNames.SecPol, "SecPol_SoftwareRestriction_Header");
-        public string SecPol_AppLocker_Header => GetResource(ResourceFileNames.SecPol, "SecPol_AppLocker_Header");
         public string SecPol_IPSecurity_Header => GetResource(ResourceFileNames.SecPol, "SecPol_IPSecurity_Header");
         public string SecPol_IPSecurity_Description => GetResource(ResourceFileNames.SecPol, "SecPol_IPSecurity_Description");
         public string SecPol_SystemAudit_Header => GetResource(ResourceFileNames.SecPol, "SecPol_SystemAudit_Header");

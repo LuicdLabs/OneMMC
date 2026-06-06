@@ -81,16 +81,6 @@
                     </controls:SettingsCard.HeaderIcon>
                 </controls:SettingsCard>
 
-                <!--  AppLocker  -->
-                <controls:SettingsCard
-                    Click="AppLocker_Click"
-                    Header="{x:Bind LocalizedStrings.SecPol_AppLocker_Header}"
-                    IsClickEnabled="True">
-                    <controls:SettingsCard.HeaderIcon>
-                        <FontIcon Glyph="&#xF0EF;" />
-                    </controls:SettingsCard.HeaderIcon>
-                </controls:SettingsCard>
-
                 <!--  IP Security Policies on Local Computer  -->
                 <controls:SettingsCard
                     Click="IPSecurity_Click"

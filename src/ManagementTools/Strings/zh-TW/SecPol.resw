@@ -66,9 +66,6 @@
   <data name="SecPol_SoftwareRestriction_Header" xml:space="preserve">
     <value>軟體限制原則</value>
   </data>
-  <data name="SecPol_AppLocker_Header" xml:space="preserve">
-    <value>AppLocker</value>
-  </data>
   <data name="SecPol_IPSecurity_Header" xml:space="preserve">
     <value>本機電腦上的 IP 安全性原則</value>
   </data>

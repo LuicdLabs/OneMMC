@@ -51,13 +51,6 @@ public sealed partial class LocalSecurityPolicyPage : Page
 		Frame.Navigate(typeof(SoftwareRestrictionPage), null, new SlideNavigationTransitionInfo() { Effect = SlideNavigationTransitionEffect.FromRight });
 	}
 
-	private void AppLocker_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
-	{
-		ManagementTools.Services.Logging.UiLogger.LogDebug("[LocalSecurityPolicyPage] Navigating to AppLocker");
-		BreadcrumbNavigationService.AddBreadcrumb(LocalizedStrings.SecPol_AppLocker_Header, typeof(AppLockerPage));
-		Frame.Navigate(typeof(AppLockerPage), null, new SlideNavigationTransitionInfo() { Effect = SlideNavigationTransitionEffect.FromRight });
-	}
-
 	private void IPSecurity_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
 	{
 		ManagementTools.Services.Logging.UiLogger.LogDebug("[LocalSecurityPolicyPage] Navigating to IP Security");
