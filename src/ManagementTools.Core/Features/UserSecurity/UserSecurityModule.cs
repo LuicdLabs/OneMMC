@@ -26,6 +26,7 @@ internal static class UserSecurityModule
         services.AddTransient<LocalPoliciesViewModel>();
         services.AddTransient<NetworkListManagerViewModel>();
         services.AddTransient<NetworkListPolicyService>();
+        services.AddTransient<IPSecurityStaticPolicyNativeClient>();
         services.AddTransient<IPSecurityStaticPolicyStoreService>();
         services.AddTransient<IPSecurityStaticPolicyCommandExecutor>();
         services.AddTransient<IPSecurityStaticPolicyMutationService>();

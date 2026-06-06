@@ -4,12 +4,12 @@ using ManagementTools.Core.Features.UserSecurity.Models.SecPol.IPSecurity;
 namespace ManagementTools.Core.Features.UserSecurity.Services.SecPol.IPSecurity;
 
 /// <summary>
-/// Validates legacy static IPsec mutations and builds unquoted tokens suitable for
-/// <see cref="System.Diagnostics.ProcessStartInfo.ArgumentList"/>.
+/// Validates legacy static IPsec mutations and builds policy-script tokens consumed by
+/// <see cref="IPSecurityStaticPolicyNativeClient"/>.
 /// </summary>
 /// <remarks>
-/// This type is side-effect free. It never starts <c>netsh.exe</c>, changes a policy store, or logs command values.
-/// Returned lists contain the complete arguments after the executable name, beginning with <c>ipsec static</c>.
+/// This type is side-effect free. It never opens the policy store, changes a policy store, or logs command values.
+/// Returned lists begin with <c>ipsec static</c> and are converted into native policy-script lines at execution time.
 /// </remarks>
 public static class IPSecurityStaticPolicyCommandBuilder
 {
@@ -17,7 +17,7 @@ public static class IPSecurityStaticPolicyCommandBuilder
 
     /// <summary>Builds an <c>add policy</c> command.</summary>
     /// <param name="options">The policy options.</param>
-    /// <returns>The validated netsh argument tokens.</returns>
+    /// <returns>The validated policy-script argument tokens.</returns>
     public static IReadOnlyList<string> BuildAddPolicy(IPSecurityPolicyCommandOptions options)
     {
         ArgumentNullException.ThrowIfNull(options);
@@ -40,7 +40,7 @@ public static class IPSecurityStaticPolicyCommandBuilder
 
     /// <summary>Builds a <c>set policy</c> command.</summary>
     /// <param name="options">The policy changes.</param>
-    /// <returns>The validated netsh argument tokens.</returns>
+    /// <returns>The validated policy-script argument tokens.</returns>
     public static IReadOnlyList<string> BuildSetPolicy(IPSecurityPolicyCommandOptions options)
     {
         ArgumentNullException.ThrowIfNull(options);
@@ -75,7 +75,7 @@ public static class IPSecurityStaticPolicyCommandBuilder
     /// <summary>Builds a command that assigns or unassigns one policy.</summary>
     /// <param name="policyName">The policy name.</param>
     /// <param name="isAssigned">Whether the policy should be assigned.</param>
-    /// <returns>The validated netsh argument tokens.</returns>
+    /// <returns>The validated policy-script argument tokens.</returns>
     public static IReadOnlyList<string> BuildAssignPolicy(string policyName, bool isAssigned)
     {
         ValidateName(policyName, nameof(policyName));
@@ -87,7 +87,7 @@ public static class IPSecurityStaticPolicyCommandBuilder
 
     /// <summary>Builds a command that deletes one policy and its rules.</summary>
     /// <param name="policyName">The policy name.</param>
-    /// <returns>The validated netsh argument tokens.</returns>
+    /// <returns>The validated policy-script argument tokens.</returns>
     public static IReadOnlyList<string> BuildDeletePolicy(string policyName)
     {
         ValidateName(policyName, nameof(policyName));
@@ -98,7 +98,7 @@ public static class IPSecurityStaticPolicyCommandBuilder
 
     /// <summary>Builds an <c>add filterlist</c> command.</summary>
     /// <param name="options">The filter-list options.</param>
-    /// <returns>The validated netsh argument tokens.</returns>
+    /// <returns>The validated policy-script argument tokens.</returns>
     public static IReadOnlyList<string> BuildAddFilterList(IPSecurityFilterListCommandOptions options)
     {
         ArgumentNullException.ThrowIfNull(options);
@@ -114,7 +114,7 @@ public static class IPSecurityStaticPolicyCommandBuilder
 
     /// <summary>Builds a <c>set filterlist</c> command.</summary>
     /// <param name="options">The filter-list changes.</param>
-    /// <returns>The validated netsh argument tokens.</returns>
+    /// <returns>The validated policy-script argument tokens.</returns>
     public static IReadOnlyList<string> BuildSetFilterList(IPSecurityFilterListCommandOptions options)
     {
         ArgumentNullException.ThrowIfNull(options);
@@ -132,7 +132,7 @@ public static class IPSecurityStaticPolicyCommandBuilder
 
     /// <summary>Builds a command that deletes one filter list and its filters.</summary>
     /// <param name="filterListName">The filter-list name.</param>
-    /// <returns>The validated netsh argument tokens.</returns>
+    /// <returns>The validated policy-script argument tokens.</returns>
     public static IReadOnlyList<string> BuildDeleteFilterList(string filterListName)
     {
         ValidateName(filterListName, nameof(filterListName));
@@ -143,7 +143,7 @@ public static class IPSecurityStaticPolicyCommandBuilder
 
     /// <summary>Builds an <c>add filter</c> command.</summary>
     /// <param name="options">The filter options.</param>
-    /// <returns>The validated netsh argument tokens.</returns>
+    /// <returns>The validated policy-script argument tokens.</returns>
     public static IReadOnlyList<string> BuildAddFilter(IPSecurityFilterCommandOptions options)
     {
         ValidateFilter(options, allowDescription: true);
@@ -153,8 +153,8 @@ public static class IPSecurityStaticPolicyCommandBuilder
     }
 
     /// <summary>Builds a command that deletes one exact-match filter.</summary>
-    /// <param name="options">The exact filter identity. A description is not accepted because netsh does not use it for matching.</param>
-    /// <returns>The validated netsh argument tokens.</returns>
+    /// <param name="options">The exact filter identity. A description is not accepted because the store does not use it for matching.</param>
+    /// <returns>The validated policy-script argument tokens.</returns>
     public static IReadOnlyList<string> BuildDeleteFilter(IPSecurityFilterCommandOptions options)
     {
         ValidateFilter(options, allowDescription: false);
@@ -163,7 +163,7 @@ public static class IPSecurityStaticPolicyCommandBuilder
 
     /// <summary>Builds an <c>add filteraction</c> command.</summary>
     /// <param name="options">The filter-action options.</param>
-    /// <returns>The validated netsh argument tokens.</returns>
+    /// <returns>The validated policy-script argument tokens.</returns>
     public static IReadOnlyList<string> BuildAddFilterAction(IPSecurityFilterActionCommandOptions options)
     {
         ArgumentNullException.ThrowIfNull(options);
@@ -183,7 +183,7 @@ public static class IPSecurityStaticPolicyCommandBuilder
 
     /// <summary>Builds a <c>set filteraction</c> command.</summary>
     /// <param name="options">The filter-action changes.</param>
-    /// <returns>The validated netsh argument tokens.</returns>
+    /// <returns>The validated policy-script argument tokens.</returns>
     public static IReadOnlyList<string> BuildSetFilterAction(IPSecurityFilterActionCommandOptions options)
     {
         ArgumentNullException.ThrowIfNull(options);
@@ -207,7 +207,7 @@ public static class IPSecurityStaticPolicyCommandBuilder
 
     /// <summary>Builds a command that deletes one filter action.</summary>
     /// <param name="filterActionName">The filter-action name.</param>
-    /// <returns>The validated netsh argument tokens.</returns>
+    /// <returns>The validated policy-script argument tokens.</returns>
     public static IReadOnlyList<string> BuildDeleteFilterAction(string filterActionName)
     {
         ValidateName(filterActionName, nameof(filterActionName));
@@ -218,7 +218,7 @@ public static class IPSecurityStaticPolicyCommandBuilder
 
     /// <summary>Builds an <c>add rule</c> command.</summary>
     /// <param name="options">The rule options.</param>
-    /// <returns>The validated netsh argument tokens.</returns>
+    /// <returns>The validated policy-script argument tokens.</returns>
     public static IReadOnlyList<string> BuildAddRule(IPSecurityRuleCommandOptions options)
     {
         ValidateRuleOptions(options, isCreate: true);
@@ -233,7 +233,7 @@ public static class IPSecurityStaticPolicyCommandBuilder
 
     /// <summary>Builds a <c>set rule</c> command.</summary>
     /// <param name="options">The rule changes.</param>
-    /// <returns>The validated netsh argument tokens.</returns>
+    /// <returns>The validated policy-script argument tokens.</returns>
     public static IReadOnlyList<string> BuildSetRule(IPSecurityRuleCommandOptions options)
     {
         ValidateRuleOptions(options, isCreate: false);
@@ -257,7 +257,7 @@ public static class IPSecurityStaticPolicyCommandBuilder
     /// <summary>Builds a command that deletes one named rule from one policy.</summary>
     /// <param name="policyName">The owning policy name.</param>
     /// <param name="ruleName">The rule name.</param>
-    /// <returns>The validated netsh argument tokens.</returns>
+    /// <returns>The validated policy-script argument tokens.</returns>
     public static IReadOnlyList<string> BuildDeleteRule(string policyName, string ruleName)
     {
         ValidateName(policyName, nameof(policyName));

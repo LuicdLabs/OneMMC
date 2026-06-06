@@ -1,35 +1,40 @@
-using System.ComponentModel;
-using System.Diagnostics;
 using System.Globalization;
-using System.ServiceProcess;
 using System.Text;
+using ManagementTools.Core.Abstractions.Services;
 using ManagementTools.Core.Features.UserSecurity.Models.SecPol.IPSecurity;
+using ManagementTools.Core.Features.UserSecurity.Services.SecPol.Native;
 using Microsoft.Extensions.Logging;
 
 namespace ManagementTools.Core.Features.UserSecurity.Services.SecPol.IPSecurity;
 
 /// <summary>
-/// Reads the legacy static local IPsec policy store through the supported <c>netsh ipsec dump</c> surface.
+/// Reads the legacy static local IPsec policy store through <c>polstore.dll</c>.
 /// </summary>
 /// <remarks>
-/// The legacy local IPsec store has no supported managed API, and its registry values contain private
-/// binary object graphs. Calling the documented Windows command is the narrow exception to the project's
-/// normal no-shelling-out rule and avoids unsafe direct registry parsing or writes.
+/// The legacy local IPsec store has no supported managed API. The documented <c>IPSecExportPolicies</c>
+/// export from <c>polstore.dll</c> returns the same policy script format produced by the deprecated
+/// <c>netsh ipsec dump</c> command, which this service parses into typed models.
 /// </remarks>
 public sealed class IPSecurityStaticPolicyStoreService
 {
-    private const string NetshExecutableName = "netsh.exe";
-    private const string ErrorPrefix = "ERR IPsec[";
-
     private readonly ILogger<IPSecurityStaticPolicyStoreService> _logger;
+    private readonly IPSecurityStaticPolicyNativeClient _nativeClient;
+    private readonly IAdminService _adminService;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="IPSecurityStaticPolicyStoreService"/> class.
     /// </summary>
     /// <param name="logger">The logger instance.</param>
-    public IPSecurityStaticPolicyStoreService(ILogger<IPSecurityStaticPolicyStoreService> logger)
+    /// <param name="nativeClient">The legacy IPsec policy native client.</param>
+    /// <param name="adminService">The administrator service.</param>
+    public IPSecurityStaticPolicyStoreService(
+        ILogger<IPSecurityStaticPolicyStoreService> logger,
+        IPSecurityStaticPolicyNativeClient nativeClient,
+        IAdminService adminService)
     {
         _logger = logger;
+        _nativeClient = nativeClient;
+        _adminService = adminService;
     }
 
     /// <summary>
@@ -38,69 +43,50 @@ public sealed class IPSecurityStaticPolicyStoreService
     /// <returns>A typed snapshot of policies, shared filter lists, and shared filter actions.</returns>
     public IPSecurityStaticStoreSnapshot LoadSnapshot()
     {
-        if (!IsPolicyAgentServiceAvailable())
+        if (!IPSecurityPolicyNativeMethods.IsAvailable)
         {
             _logger.LogWarning(
-                "The IPsec Policy Agent service is not running. " +
-                "Returning an empty snapshot for the legacy static IPsec policy store.");
+                "The legacy IPsec policy store APIs are not available on this system. " +
+                "Returning an empty snapshot.");
             return new IPSecurityStaticStoreSnapshot();
         }
 
-        NetshResult dumpResult = RunNetsh(["ipsec", "dump"]);
-        string dumpOutput = $"{dumpResult.StandardOutput}\n{dumpResult.StandardError}";
-        if (dumpOutput.Contains(ErrorPrefix, StringComparison.OrdinalIgnoreCase))
+        string? policyScript = _nativeClient.TryExportPolicyScript(out int errorCode);
+        if (policyScript is null)
         {
-            if (dumpOutput.Contains("ERR IPsec[05073]", StringComparison.OrdinalIgnoreCase))
+            if (IPSecurityPolicyNativeMethods.IsStoreOpenFailure(errorCode))
             {
-                LogFailure("dump", dumpResult);
-                _logger.LogWarning(
-                    "The local IPsec policy store could not be opened (ERR IPsec[05073]). Returning an empty snapshot.");
-                return new IPSecurityStaticStoreSnapshot();
+                throw new UnauthorizedAccessException($"The local IPsec policy store could not be opened (native error 0x{errorCode:X8}).");
             }
 
-            LogFailure("dump", dumpResult);
-            throw new InvalidOperationException("The local IPsec policy store could not be read.");
-        }
+            // ERROR_INVALID_DATA (0xD) from IPSecExportPolicies usually indicates a permission error when not running as admin,
+            // or an empty policy store when elevated.
+            if (errorCode == 0x0000000D)
+            {
+                if (!_adminService.IsRunningAsAdmin)
+                {
+                    throw new UnauthorizedAccessException($"The local IPsec policy store could not be exported due to insufficient privileges (native error 0x{errorCode:X8}).");
+                }
 
-        if (dumpResult.ExitCode != 0)
-        {
-            LogFailure("dump", dumpResult);
-            throw new InvalidOperationException("The local IPsec policy store could not be read.");
-        }
+                _logger.LogInformation(
+                    "The local IPsec policy store export failed with native error 0x{ErrorCode:X8}. " +
+                    "Attempting to read directly from the registry.",
+                    errorCode);
+                return LoadFromRegistry();
+            }
 
-        if (!string.IsNullOrWhiteSpace(dumpResult.StandardOutput))
-        {
-            return ParseDump(dumpResult.StandardOutput);
-        }
-
-        NetshResult probeResult = RunNetsh(["ipsec", "static", "show", "all", "format=list", "wide=yes"]);
-        string probeOutput = $"{probeResult.StandardOutput}\n{probeResult.StandardError}";
-        if (probeOutput.Contains(ErrorPrefix, StringComparison.OrdinalIgnoreCase))
-        {
-            LogFailure("static show all", probeResult);
             _logger.LogWarning(
-                "The local IPsec policy store could not be opened via 'show all'. Returning an empty snapshot.");
+                "The legacy IPsec policy store export failed with native error 0x{ErrorCode:X8}.",
+                errorCode);
+            throw new InvalidOperationException("The local IPsec policy store could not be read.");
+        }
+
+        if (string.IsNullOrWhiteSpace(policyScript))
+        {
             return new IPSecurityStaticStoreSnapshot();
         }
 
-        return new IPSecurityStaticStoreSnapshot();
-    }
-
-    private static bool IsPolicyAgentServiceAvailable()
-    {
-        try
-        {
-            using var controller = new ServiceController("PolicyAgent");
-            return controller.Status == ServiceControllerStatus.Running;
-        }
-        catch (InvalidOperationException)
-        {
-            return false;
-        }
-        catch (Win32Exception)
-        {
-            return false;
-        }
+        return ParseDump(policyScript);
     }
 
     internal static IPSecurityStaticStoreSnapshot ParseDump(string dump)
@@ -166,6 +152,86 @@ public sealed class IPSecurityStaticPolicyStoreService
                 .OrderBy(static filterAction => filterAction.Name, StringComparer.CurrentCultureIgnoreCase)
                 .ToList()
         };
+    }
+
+    private IPSecurityStaticStoreSnapshot LoadFromRegistry()
+    {
+        try
+        {
+            using var localKey = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Policies\Microsoft\Windows\IPSec\Policy\Local");
+            if (localKey is null)
+            {
+                return new IPSecurityStaticStoreSnapshot();
+            }
+
+            string activePolicyPath = localKey.GetValue("ActivePolicy") as string ?? string.Empty;
+
+            List<IPSecurityPolicyDefinition> policies = [];
+            List<IPSecurityFilterListDefinition> filterLists = [];
+            List<IPSecurityFilterActionDefinition> filterActions = [];
+
+            foreach (string subKeyName in localKey.GetSubKeyNames())
+            {
+                using var subKey = localKey.OpenSubKey(subKeyName);
+                if (subKey is null) continue;
+
+                string className = subKey.GetValue("className") as string ?? string.Empty;
+                string ipsecName = subKey.GetValue("ipsecName") as string ?? string.Empty;
+                string description = subKey.GetValue("description") as string ?? string.Empty;
+
+                if (string.IsNullOrWhiteSpace(ipsecName))
+                {
+                    ipsecName = subKey.GetValue("name") as string ?? subKeyName;
+                }
+
+                if (className.Equals("ipsecPolicy", StringComparison.OrdinalIgnoreCase))
+                {
+                    bool isAssigned = false;
+                    if (!string.IsNullOrEmpty(activePolicyPath))
+                    {
+                        if (activePolicyPath.EndsWith(subKeyName, StringComparison.OrdinalIgnoreCase))
+                        {
+                            isAssigned = true;
+                        }
+                    }
+
+                    policies.Add(new IPSecurityPolicyDefinition
+                    {
+                        Name = ipsecName,
+                        Description = description,
+                        IsAssigned = isAssigned
+                    });
+                }
+                else if (className.Equals("ipsecFilter", StringComparison.OrdinalIgnoreCase))
+                {
+                    filterLists.Add(new IPSecurityFilterListDefinition
+                    {
+                        Name = ipsecName,
+                        Description = description
+                    });
+                }
+                else if (className.Equals("ipsecNegotiationPolicy", StringComparison.OrdinalIgnoreCase))
+                {
+                    filterActions.Add(new IPSecurityFilterActionDefinition
+                    {
+                        Name = ipsecName,
+                        Description = description
+                    });
+                }
+            }
+
+            return new IPSecurityStaticStoreSnapshot
+            {
+                Policies = policies.OrderBy(p => p.Name, StringComparer.CurrentCultureIgnoreCase).ToList(),
+                FilterLists = filterLists.OrderBy(f => f.Name, StringComparer.CurrentCultureIgnoreCase).ToList(),
+                FilterActions = filterActions.OrderBy(f => f.Name, StringComparer.CurrentCultureIgnoreCase).ToList()
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to read legacy IPsec policy store from registry.");
+            return new IPSecurityStaticStoreSnapshot();
+        }
     }
 
     private static void ParsePolicy(ParsedArguments arguments, IDictionary<string, PolicyBuilder> policies)
@@ -553,40 +619,6 @@ public sealed class IPSecurityStaticPolicyStoreService
         return -1;
     }
 
-    private NetshResult RunNetsh(IReadOnlyList<string> arguments)
-    {
-        var startInfo = new ProcessStartInfo
-        {
-            FileName = NetshExecutableName,
-            CreateNoWindow = true,
-            UseShellExecute = false,
-            RedirectStandardOutput = true,
-            RedirectStandardError = true
-        };
-
-        foreach (string argument in arguments)
-        {
-            startInfo.ArgumentList.Add(argument);
-        }
-
-        using Process process = Process.Start(startInfo)
-            ?? throw new InvalidOperationException("The Windows IPsec policy command could not be started.");
-        Task<string> standardOutputTask = process.StandardOutput.ReadToEndAsync();
-        Task<string> standardErrorTask = process.StandardError.ReadToEndAsync();
-        process.WaitForExit();
-        Task.WaitAll(standardOutputTask, standardErrorTask);
-
-        return new NetshResult(process.ExitCode, standardOutputTask.Result, standardErrorTask.Result);
-    }
-
-    private void LogFailure(string operation, NetshResult result)
-    {
-        _logger.LogWarning(
-            "The legacy IPsec policy command {Operation} failed with exit code {ExitCode}. Output and error text were omitted because the command may contain policy secrets.",
-            operation,
-            result.ExitCode);
-    }
-
     private sealed class ParsedArguments
     {
         private readonly Dictionary<string, List<string>> _values = new(StringComparer.OrdinalIgnoreCase);
@@ -869,6 +901,4 @@ public sealed class IPSecurityStaticPolicyStoreService
             };
         }
     }
-
-    private readonly record struct NetshResult(int ExitCode, string StandardOutput, string StandardError);
 }

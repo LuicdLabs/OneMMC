@@ -1,4 +1,3 @@
-using System.Diagnostics;
 using Microsoft.Extensions.Logging;
 
 namespace ManagementTools.Core.Features.UserSecurity.Services.SecPol.IPSecurity;
@@ -7,16 +6,12 @@ namespace ManagementTools.Core.Features.UserSecurity.Services.SecPol.IPSecurity;
 /// Executes validated mutation commands against the legacy static local IPsec policy store.
 /// </summary>
 /// <remarks>
-/// The legacy policy store has no supported managed write API. This executor is intentionally
-/// limited to the documented <c>netsh ipsec static add/set/delete</c> surface and never logs
-/// command arguments or command output because those values may contain pre-shared keys.
+/// The legacy policy store has no supported managed write API. This executor applies validated
+/// policy-script lines through <c>polstore.dll</c> and never logs command arguments because those
+/// values may contain pre-shared keys.
 /// </remarks>
 public sealed class IPSecurityStaticPolicyCommandExecutor
 {
-    private const string NetshExecutableName = "netsh.exe";
-    private const string ErrorPrefix = "ERR IPsec[";
-    private const string StoreOpenError = "ERR IPsec[05073]";
-
     private static readonly HashSet<string> AllowedVerbs =
         new(StringComparer.OrdinalIgnoreCase) { "add", "set", "delete" };
 
@@ -24,68 +19,56 @@ public sealed class IPSecurityStaticPolicyCommandExecutor
         new(StringComparer.OrdinalIgnoreCase) { "policy", "filterlist", "filter", "filteraction", "rule" };
 
     private readonly ILogger<IPSecurityStaticPolicyCommandExecutor> _logger;
+    private readonly IPSecurityStaticPolicyNativeClient _nativeClient;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="IPSecurityStaticPolicyCommandExecutor"/> class.
     /// </summary>
     /// <param name="logger">The logger instance.</param>
-    public IPSecurityStaticPolicyCommandExecutor(ILogger<IPSecurityStaticPolicyCommandExecutor> logger)
+    /// <param name="nativeClient">The legacy IPsec policy native client.</param>
+    public IPSecurityStaticPolicyCommandExecutor(
+        ILogger<IPSecurityStaticPolicyCommandExecutor> logger,
+        IPSecurityStaticPolicyNativeClient nativeClient)
     {
         _logger = logger;
+        _nativeClient = nativeClient;
     }
 
     /// <summary>
     /// Executes a validated legacy static IPsec mutation command.
     /// </summary>
     /// <param name="arguments">
-    /// Individual <c>netsh</c> argument tokens beginning with <c>ipsec static</c> and followed
-    /// by an <c>add</c>, <c>set</c>, or <c>delete</c> operation.
+    /// Individual policy-script tokens beginning with <c>ipsec static</c> and followed by an
+    /// <c>add</c>, <c>set</c>, or <c>delete</c> operation.
     /// </param>
     /// <param name="cancellationToken">A token used to cancel the command.</param>
     /// <returns>A task that completes when the command succeeds.</returns>
     /// <exception cref="ArgumentException">The command is outside the allowed mutation surface.</exception>
     /// <exception cref="UnauthorizedAccessException">The local IPsec policy store cannot be opened.</exception>
     /// <exception cref="InvalidOperationException">The command fails.</exception>
-    internal async Task ExecuteAsync(
+    internal Task ExecuteAsync(
         IReadOnlyList<string> arguments,
         CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         ValidateCommand(arguments);
 
-        var startInfo = new ProcessStartInfo
+        try
         {
-            FileName = NetshExecutableName,
-            CreateNoWindow = true,
-            UseShellExecute = false,
-            RedirectStandardOutput = true,
-            RedirectStandardError = true
-        };
-
-        foreach (string argument in arguments)
+            _nativeClient.ImportPolicyCommand(arguments);
+        }
+        catch (UnauthorizedAccessException)
         {
-            startInfo.ArgumentList.Add(argument);
+            LogFailure(arguments);
+            throw;
+        }
+        catch (InvalidOperationException)
+        {
+            LogFailure(arguments);
+            throw;
         }
 
-        using Process process = Process.Start(startInfo)
-            ?? throw new InvalidOperationException("The Windows IPsec policy command could not be started.");
-        Task<string> standardOutputTask = process.StandardOutput.ReadToEndAsync(cancellationToken);
-        Task<string> standardErrorTask = process.StandardError.ReadToEndAsync(cancellationToken);
-
-        await process.WaitForExitAsync(cancellationToken);
-        await Task.WhenAll(standardOutputTask, standardErrorTask);
-
-        string output = $"{standardOutputTask.Result}\n{standardErrorTask.Result}";
-        if (output.Contains(StoreOpenError, StringComparison.OrdinalIgnoreCase))
-        {
-            LogFailure(arguments, process.ExitCode);
-            throw new UnauthorizedAccessException("The local IPsec policy store could not be opened.");
-        }
-
-        if (process.ExitCode != 0 || output.Contains(ErrorPrefix, StringComparison.OrdinalIgnoreCase))
-        {
-            LogFailure(arguments, process.ExitCode);
-            throw new InvalidOperationException("The Windows IPsec policy command failed.");
-        }
+        return Task.CompletedTask;
     }
 
     private static void ValidateCommand(IReadOnlyList<string> arguments)
@@ -109,12 +92,11 @@ public sealed class IPSecurityStaticPolicyCommandExecutor
         }
     }
 
-    private void LogFailure(IReadOnlyList<string> arguments, int exitCode)
+    private void LogFailure(IReadOnlyList<string> arguments)
     {
         _logger.LogWarning(
-            "The legacy IPsec static {Verb} {ObjectKind} command failed with exit code {ExitCode}. Arguments and output were omitted because the command may contain policy secrets.",
+            "The legacy IPsec static {Verb} {ObjectKind} command failed. Arguments and output were omitted because the command may contain policy secrets.",
             arguments[2],
-            arguments[3],
-            exitCode);
+            arguments[3]);
     }
 }
