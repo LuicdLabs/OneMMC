@@ -50,16 +50,6 @@
                     </controls:SettingsCard.HeaderIcon>
                 </controls:SettingsCard>
 
-                <!--  Windows Defender Firewall with Advanced Security (Local Group Policy Object)  -->
-                <controls:SettingsCard
-                    Click="WindowsFirewall_Click"
-                    Header="{x:Bind LocalizedStrings.SecPol_Firewall_Header}"
-                    IsClickEnabled="True">
-                    <controls:SettingsCard.HeaderIcon>
-                        <FontIcon Glyph="&#xE704;" />
-                    </controls:SettingsCard.HeaderIcon>
-                </controls:SettingsCard>
-
                 <!--  Network List Manager Policies  -->
                 <controls:SettingsCard
                     Click="NetworkListManager_Click"

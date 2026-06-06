@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<UserControl
+    x:Class="ManagementTools.Views.UserSecurity.SecPol.IPSecurity.Editors.IPSecuritySecurityMethodsEditorControl"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <StackPanel Spacing="12">
+        <TextBlock
+            x:Name="HeaderTextBlock"
+            FontSize="18"
+            FontWeight="SemiBold"
+            TextWrapping="Wrap" />
+
+        <ListView
+            x:Name="MethodsListView"
+            AutomationProperties.Name="{x:Bind Header, Mode=OneTime}"
+            ItemsSource="{x:Bind Methods}"
+            MaxHeight="160"
+            MinHeight="96"
+            SelectionChanged="MethodsListView_SelectionChanged"
+            SelectionMode="Single">
+            <ListView.ItemTemplate>
+                <DataTemplate>
+                    <TextBlock
+                        Text="{Binding}"
+                        TextWrapping="WrapWholeWords" />
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+
+        <CommandBar
+            Background="Transparent"
+            DefaultLabelPosition="Right">
+            <AppBarButton
+                x:Name="MoveUpButton"
+                Click="MoveUpButton_Click"
+                Label="{x:Bind LocalizedStrings.IPSec_Editor_MoveUp}">
+                <AppBarButton.Icon>
+                    <FontIcon Glyph="&#xE70E;" />
+                </AppBarButton.Icon>
+            </AppBarButton>
+            <AppBarButton
+                x:Name="MoveDownButton"
+                Click="MoveDownButton_Click"
+                Label="{x:Bind LocalizedStrings.IPSec_Editor_MoveDown}">
+                <AppBarButton.Icon>
+                    <FontIcon Glyph="&#xE70D;" />
+                </AppBarButton.Icon>
+            </AppBarButton>
+            <AppBarButton
+                x:Name="DeleteButton"
+                Click="DeleteButton_Click"
+                Label="{x:Bind LocalizedStrings.Common_DeleteButton}">
+                <AppBarButton.Icon>
+                    <SymbolIcon Symbol="Delete" />
+                </AppBarButton.Icon>
+            </AppBarButton>
+        </CommandBar>
+
+        <Grid
+            x:Name="MainModePanel"
+            ColumnSpacing="16"
+            RowSpacing="12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <ComboBox
+                x:Name="MainEncryptionComboBox"
+                Header="{x:Bind LocalizedStrings.IPSec_Editor_EncryptionAlgorithm}" />
+            <ComboBox
+                x:Name="MainHashComboBox"
+                Grid.Column="1"
+                Header="{x:Bind LocalizedStrings.IPSec_Editor_HashAlgorithm}" />
+            <ComboBox
+                x:Name="DiffieHellmanGroupComboBox"
+                Grid.Column="2"
+                Header="{x:Bind LocalizedStrings.IPSec_Editor_DiffieHellmanGroup}" />
+        </Grid>
+
+        <Grid
+            x:Name="QuickModePanel"
+            ColumnSpacing="16"
+            RowSpacing="12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <ComboBox
+                x:Name="QuickMethodTypeComboBox"
+                Header="{x:Bind LocalizedStrings.IPSec_Editor_SecurityMethodType}"
+                SelectionChanged="QuickMethodTypeComboBox_SelectionChanged" />
+            <ComboBox
+                x:Name="EspEncryptionComboBox"
+                Grid.Column="1"
+                Header="{x:Bind LocalizedStrings.IPSec_Editor_EspEncryption}" />
+            <ComboBox
+                x:Name="EspAuthenticationComboBox"
+                Grid.Row="1"
+                Header="{x:Bind LocalizedStrings.IPSec_Editor_EspAuthentication}" />
+            <ComboBox
+                x:Name="AhHashComboBox"
+                Grid.Row="1"
+                Grid.Column="1"
+                Header="{x:Bind LocalizedStrings.IPSec_Editor_AhHash}" />
+            <NumberBox
+                x:Name="LifetimeKilobytesNumberBox"
+                Grid.Row="2"
+                Header="{x:Bind LocalizedStrings.IPSec_Editor_LifetimeKilobytes}"
+                Minimum="1"
+                SpinButtonPlacementMode="Compact" />
+            <NumberBox
+                x:Name="LifetimeSecondsNumberBox"
+                Grid.Row="2"
+                Grid.Column="1"
+                Header="{x:Bind LocalizedStrings.IPSec_Editor_LifetimeSeconds}"
+                Minimum="1"
+                SpinButtonPlacementMode="Compact" />
+        </Grid>
+
+        <Button
+            Click="AddMethodButton_Click"
+            Content="{x:Bind LocalizedStrings.IPSec_Editor_AddSecurityMethod}"
+            HorizontalAlignment="Left" />
+    </StackPanel>
+</UserControl>

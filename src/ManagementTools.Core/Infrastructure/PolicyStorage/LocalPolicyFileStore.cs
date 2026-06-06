@@ -42,6 +42,22 @@ public sealed class LocalPolicyFileStore
     }
 
     /// <summary>
+    /// Loads the local Registry.pol snapshot for the requested policy scope.
+    /// </summary>
+    /// <param name="isUser">True for user policy; false for machine policy.</param>
+    /// <returns>The loaded snapshot, or an empty snapshot when the file does not exist.</returns>
+    public PolFile LoadSnapshot(bool isUser)
+    {
+        string policyFilePath = GetPolicyFilePath(isUser);
+        if (!File.Exists(policyFilePath))
+        {
+            return new PolFile();
+        }
+
+        return PolFile.Load(policyFilePath);
+    }
+
+    /// <summary>
     /// Checks whether the local Registry.pol file is writable for the requested scope.
     /// </summary>
     /// <param name="isUser">True for user policy; false for machine policy.</param>

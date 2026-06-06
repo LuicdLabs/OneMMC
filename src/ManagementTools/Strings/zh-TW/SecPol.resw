@@ -54,9 +54,6 @@
   <data name="SecPol_LocalPolicies_Description" xml:space="preserve">
     <value>稽核、使用者權限指派和安全性選項原則</value>
   </data>
-  <data name="SecPol_Firewall_Header" xml:space="preserve">
-    <value>具有進階安全性的 Windows Defender 防火牆 (本機群組原則物件)</value>
-  </data>
   <data name="SecPol_NetworkListManager_Header" xml:space="preserve">
     <value>網路清單管理員原則</value>
   </data>
@@ -666,5 +663,1418 @@
   </data>
   <data name="NetworkListManager_NetworkIconDialog_PreviewLabel" xml:space="preserve">
     <value>目前圖示</value>
+  </data>
+  <data name="SRP_Section_SecurityLevels" xml:space="preserve">
+    <value>安全性層級</value>
+  </data>
+  <data name="SRP_Section_AdditionalRules" xml:space="preserve">
+    <value>其他規則</value>
+  </data>
+  <data name="SRP_Section_Enforcement" xml:space="preserve">
+    <value>強制執行</value>
+  </data>
+  <data name="SRP_Section_DesignatedFileTypes" xml:space="preserve">
+    <value>指定的檔案類型</value>
+  </data>
+  <data name="SRP_Section_TrustedPublishers" xml:space="preserve">
+    <value>信任的發行者</value>
+  </data>
+  <data name="SRP_SecurityLevel_Disallowed" xml:space="preserve">
+    <value>不允許</value>
+  </data>
+  <data name="SRP_SecurityLevel_BasicUser" xml:space="preserve">
+    <value>基本使用者</value>
+  </data>
+  <data name="SRP_SecurityLevel_Unrestricted" xml:space="preserve">
+    <value>不受限制</value>
+  </data>
+  <data name="SRP_SecurityLevel_Disallowed_Description" xml:space="preserve">
+    <value>不論使用者的存取權限為何，軟體都不會執行。</value>
+  </data>
+  <data name="SRP_SecurityLevel_BasicUser_Description" xml:space="preserve">
+    <value>允許程式以不具系統管理員存取權限的使用者身分執行。</value>
+  </data>
+  <data name="SRP_SecurityLevel_Unrestricted_Description" xml:space="preserve">
+    <value>軟體存取權限取決於使用者的存取權限。</value>
+  </data>
+  <data name="SRP_RuleKind_Path" xml:space="preserve">
+    <value>路徑規則</value>
+  </data>
+  <data name="SRP_RuleKind_Hash" xml:space="preserve">
+    <value>雜湊規則</value>
+  </data>
+  <data name="SRP_RuleKind_Certificate" xml:space="preserve">
+    <value>憑證規則</value>
+  </data>
+  <data name="SRP_RuleKind_NetworkZone" xml:space="preserve">
+    <value>網路區域規則</value>
+  </data>
+  <data name="SRP_RuleKind_Unknown" xml:space="preserve">
+    <value>未知規則</value>
+  </data>
+  <data name="SRP_Error_RuleUnsupportedForEdit" xml:space="preserve">
+    <value>這個規則類型目前無法編輯。</value>
+  </data>
+  <data name="SRP_Error_CertificateRuleUnsupportedForCreate" xml:space="preserve">
+    <value>憑證規則的政策儲存格式確認前，暫不提供建立功能。</value>
+  </data>
+  <data name="SRP_Error_CertificateRuleInvalid" xml:space="preserve">
+    <value>請選取憑證檔或具有 Authenticode 簽章的檔案。</value>
+  </data>
+  <data name="SRP_Error_NetworkZoneInvalid" xml:space="preserve">
+    <value>請選擇有效的網路區域。</value>
+  </data>
+  <data name="SRP_Status_PolicyCreated" xml:space="preserve">
+    <value>已建立軟體限制原則。</value>
+  </data>
+  <data name="SRP_Status_PolicyDeleted" xml:space="preserve">
+    <value>已刪除軟體限制原則。</value>
+  </data>
+  <data name="SRP_Status_PolicySaved" xml:space="preserve">
+    <value>已儲存軟體限制原則。</value>
+  </data>
+  <data name="SRP_Status_RuleSaved" xml:space="preserve">
+    <value>已儲存規則。</value>
+  </data>
+  <data name="SRP_Status_RuleDeleted" xml:space="preserve">
+    <value>已刪除規則。</value>
+  </data>
+  <data name="SRP_NoPolicyDefined" xml:space="preserve">
+    <value>尚未定義軟體限制原則</value>
+  </data>
+  <data name="SRP_NoPolicyDefined_Description" xml:space="preserve">
+    <value>請先建立新的軟體限制原則，再設定安全性層級、強制執行、檔案類型、信任的發行者或其他規則。</value>
+  </data>
+  <data name="SRP_DefaultMarker" xml:space="preserve">
+    <value>預設</value>
+  </data>
+  <data name="SRP_DefaultMarker_Format" xml:space="preserve">
+    <value>{0} ({1})</value>
+  </data>
+  <data name="SRP_NoAdditionalRules" xml:space="preserve">
+    <value>沒有其他規則</value>
+  </data>
+  <data name="SRP_NoDesignatedFileTypes" xml:space="preserve">
+    <value>沒有指定的檔案類型</value>
+  </data>
+  <data name="SRP_DesignatedFileType_Setting" xml:space="preserve">
+    <value>可執行檔案類型</value>
+  </data>
+  <data name="SRP_Enforcement_DefaultSecurityLevel" xml:space="preserve">
+    <value>預設安全性層級</value>
+  </data>
+  <data name="SRP_Enforcement_UserScope" xml:space="preserve">
+    <value>將軟體限制原則套用至下列使用者</value>
+  </data>
+  <data name="SRP_Enforcement_FileScope" xml:space="preserve">
+    <value>將軟體限制原則套用至下列檔案</value>
+  </data>
+  <data name="SRP_Enforcement_CertificateRules" xml:space="preserve">
+    <value>憑證規則</value>
+  </data>
+  <data name="SRP_UserScope_AllUsers" xml:space="preserve">
+    <value>所有使用者</value>
+  </data>
+  <data name="SRP_UserScope_AllExceptAdministrators" xml:space="preserve">
+    <value>除本機系統管理員以外的所有使用者</value>
+  </data>
+  <data name="SRP_FileScope_ExecutableFilesOnly" xml:space="preserve">
+    <value>除了程式庫以外的所有軟體檔案</value>
+  </data>
+  <data name="SRP_FileScope_AllSoftwareFiles" xml:space="preserve">
+    <value>所有軟體檔案</value>
+  </data>
+  <data name="SRP_TrustedPublishers_Management" xml:space="preserve">
+    <value>信任的發行者管理</value>
+  </data>
+  <data name="SRP_TrustedPublishers_DefineSettings" xml:space="preserve">
+    <value>定義這些原則設定</value>
+  </data>
+  <data name="SRP_TrustedPublishers_PublisherRevocation" xml:space="preserve">
+    <value>發行者憑證撤銷檢查</value>
+  </data>
+  <data name="SRP_TrustedPublishers_TimestampRevocation" xml:space="preserve">
+    <value>時間戳記憑證撤銷檢查</value>
+  </data>
+  <data name="SRP_TrustedPublishers_AdditionalChecks" xml:space="preserve">
+    <value>簽章驗證期間的其他檢查</value>
+  </data>
+  <data name="SRP_PublisherScope_EndUsers" xml:space="preserve">
+    <value>一般使用者</value>
+  </data>
+  <data name="SRP_PublisherScope_LocalAdministrators" xml:space="preserve">
+    <value>本機電腦系統管理員</value>
+  </data>
+  <data name="SRP_PublisherScope_EnterpriseAdministrators" xml:space="preserve">
+    <value>企業系統管理員</value>
+  </data>
+  <data name="SRP_PublisherScope_EndUsers_Option" xml:space="preserve">
+    <value>允許所有系統管理員與使用者管理使用者自己的受信任發行者</value>
+  </data>
+  <data name="SRP_PublisherScope_LocalAdministrators_Option" xml:space="preserve">
+    <value>僅允許所有系統管理員管理受信任的發行者</value>
+  </data>
+  <data name="SRP_PublisherScope_EnterpriseAdministrators_Option" xml:space="preserve">
+    <value>僅允許企業系統管理員管理受信任的發行者</value>
+  </data>
+  <data name="SRP_TrustedPublishers_PublisherRevocation_Option" xml:space="preserve">
+    <value>確認發行者憑證未被撤銷 (建議)</value>
+  </data>
+  <data name="SRP_TrustedPublishers_TimestampRevocation_Option" xml:space="preserve">
+    <value>確認時間戳記憑證未被撤銷</value>
+  </data>
+  <data name="SRP_Command_NewPolicy" xml:space="preserve">
+    <value>新增軟體限制原則</value>
+  </data>
+  <data name="SRP_Command_DeletePolicy" xml:space="preserve">
+    <value>刪除軟體限制原則</value>
+  </data>
+  <data name="SRP_Command_SetAsDefault" xml:space="preserve">
+    <value>設為預設值</value>
+  </data>
+  <data name="SRP_Command_NewPathRule" xml:space="preserve">
+    <value>新增路徑規則</value>
+  </data>
+  <data name="SRP_Command_NewHashRule" xml:space="preserve">
+    <value>新增雜湊規則</value>
+  </data>
+  <data name="SRP_Command_NewCertificateRule" xml:space="preserve">
+    <value>新增憑證規則</value>
+  </data>
+  <data name="SRP_Command_NewNetworkZoneRule" xml:space="preserve">
+    <value>新增網路區域規則</value>
+  </data>
+  <data name="SRP_ListHeader_Name" xml:space="preserve">
+    <value>名稱</value>
+  </data>
+  <data name="SRP_ListHeader_Setting" xml:space="preserve">
+    <value>安全性設定</value>
+  </data>
+  <data name="SRP_ListHeader_Type" xml:space="preserve">
+    <value>類型</value>
+  </data>
+  <data name="SRP_ListHeader_SecurityLevel" xml:space="preserve">
+    <value>安全性層級</value>
+  </data>
+  <data name="SRP_ListHeader_Description" xml:space="preserve">
+    <value>描述</value>
+  </data>
+  <data name="SRP_ListHeader_LastModified" xml:space="preserve">
+    <value>上次修改日期</value>
+  </data>
+  <data name="SRP_Dialog_EditEnforcement_Title" xml:space="preserve">
+    <value>強制執行內容</value>
+  </data>
+  <data name="SRP_Dialog_EditFileTypes_Title" xml:space="preserve">
+    <value>指定檔案類型內容</value>
+  </data>
+  <data name="SRP_Dialog_EditTrustedPublishers_Title" xml:space="preserve">
+    <value>信任的發行者內容</value>
+  </data>
+  <data name="SRP_Dialog_EditRule_Title" xml:space="preserve">
+    <value>規則內容</value>
+  </data>
+  <data name="SRP_Dialog_DeletePolicy_Title" xml:space="preserve">
+    <value>刪除軟體限制原則</value>
+  </data>
+  <data name="SRP_Dialog_DeletePolicy_Message" xml:space="preserve">
+    <value>這會從本機原則儲存區移除軟體限制原則。</value>
+  </data>
+  <data name="SRP_Dialog_DeleteRule_Title" xml:space="preserve">
+    <value>刪除規則</value>
+  </data>
+  <data name="SRP_Dialog_DeleteRule_Message" xml:space="preserve">
+    <value>要刪除選取的規則嗎?</value>
+  </data>
+  <data name="SRP_Dialog_SetDefaultSecurityLevel_Title" xml:space="preserve">
+    <value>設定預設安全性層級</value>
+  </data>
+  <data name="SRP_Dialog_SetDefaultSecurityLevel_MessageFormat" xml:space="preserve">
+    <value>要將 {0} 設為預設安全性層級嗎?</value>
+  </data>
+  <data name="SRP_Dialog_RuleDetails_TitleFormat" xml:space="preserve">
+    <value>{0} 內容</value>
+  </data>
+  <data name="SRP_Field_Path" xml:space="preserve">
+    <value>路徑</value>
+  </data>
+  <data name="SRP_Field_HashFile" xml:space="preserve">
+    <value>要計算雜湊的檔案</value>
+  </data>
+  <data name="SRP_Field_CertificateFile" xml:space="preserve">
+    <value>憑證或已簽署檔案</value>
+  </data>
+  <data name="SRP_Field_NetworkZone" xml:space="preserve">
+    <value>網路區域</value>
+  </data>
+  <data name="SRP_Field_SecurityLevel" xml:space="preserve">
+    <value>安全性層級</value>
+  </data>
+  <data name="SRP_Field_Description" xml:space="preserve">
+    <value>描述</value>
+  </data>
+  <data name="SRP_Field_DesignatedFileTypes" xml:space="preserve">
+    <value>檔案類型</value>
+  </data>
+  <data name="SRP_Field_FileExtension" xml:space="preserve">
+    <value>副檔名</value>
+  </data>
+  <data name="SRP_ListHeader_Extension" xml:space="preserve">
+    <value>副檔名</value>
+  </data>
+  <data name="SRP_ListHeader_FileType" xml:space="preserve">
+    <value>檔案類型</value>
+  </data>
+  <data name="SRP_FileTypeFallback_Format" xml:space="preserve">
+    <value>{0} 檔案</value>
+  </data>
+  <data name="SRP_Help_DesignatedFileTypes" xml:space="preserve">
+    <value>每行輸入一個副檔名，不含前面的句點。</value>
+  </data>
+  <data name="SRP_Help_DesignatedFileTypes_AddRemove" xml:space="preserve">
+    <value>下列檔案類型會定義哪些檔案被視為可執行程式碼。若要新增檔案類型，請輸入副檔名，然後按一下 [新增]。</value>
+  </data>
+  <data name="SRP_Help_TrustedPublishers" xml:space="preserve">
+    <value>指定受信任的發行者 (Authenticode) 原則選項。</value>
+  </data>
+  <data name="SRP_Dialog_SelectPathFile_Title" xml:space="preserve">
+    <value>選取路徑規則檔案</value>
+  </data>
+  <data name="SRP_Dialog_SelectPathFolder_Title" xml:space="preserve">
+    <value>選取路徑規則資料夾</value>
+  </data>
+  <data name="SRP_Dialog_SelectHashFile_Title" xml:space="preserve">
+    <value>選取要計算雜湊的檔案</value>
+  </data>
+  <data name="SRP_Dialog_SelectCertificateFile_Title" xml:space="preserve">
+    <value>選取憑證或已簽署檔案</value>
+  </data>
+  <data name="SRP_FileDialog_AllFiles" xml:space="preserve">
+    <value>所有檔案</value>
+  </data>
+  <data name="SRP_FileDialog_CertificateFiles" xml:space="preserve">
+    <value>憑證檔</value>
+  </data>
+  <data name="SRP_FileDialog_SignedFiles" xml:space="preserve">
+    <value>已簽署檔案</value>
+  </data>
+  <data name="SRP_Browse_File" xml:space="preserve">
+    <value>瀏覽檔案</value>
+  </data>
+  <data name="SRP_Browse_Folder" xml:space="preserve">
+    <value>瀏覽資料夾</value>
+  </data>
+  <data name="SRP_NetworkZone_LocalComputer" xml:space="preserve">
+    <value>本機電腦</value>
+  </data>
+  <data name="SRP_NetworkZone_LocalComputer_Description" xml:space="preserve">
+    <value>這個區域包含位於您本機電腦上的網站。</value>
+  </data>
+  <data name="SRP_NetworkZone_LocalIntranet" xml:space="preserve">
+    <value>近端內部網路</value>
+  </data>
+  <data name="SRP_NetworkZone_LocalIntranet_Description" xml:space="preserve">
+    <value>這個區域包含您組織內部網路上的所有網站。</value>
+  </data>
+  <data name="SRP_NetworkZone_TrustedSites" xml:space="preserve">
+    <value>信任的網站</value>
+  </data>
+  <data name="SRP_NetworkZone_TrustedSites_Description" xml:space="preserve">
+    <value>這個區域包含您信任不會損害電腦或資料的網站。</value>
+  </data>
+  <data name="SRP_NetworkZone_Internet" xml:space="preserve">
+    <value>網際網路</value>
+  </data>
+  <data name="SRP_NetworkZone_Internet_Description" xml:space="preserve">
+    <value>這個區域包含您尚未放入其他區域的所有網站。</value>
+  </data>
+  <data name="SRP_NetworkZone_RestrictedSites" xml:space="preserve">
+    <value>受限制的網站</value>
+  </data>
+  <data name="SRP_NetworkZone_RestrictedSites_Description" xml:space="preserve">
+    <value>這個區域包含可能損害您電腦或資料的網站。</value>
+  </data>
+  <data name="SRP_CertificateValid" xml:space="preserve">
+    <value>有效</value>
+  </data>
+  <data name="SRP_CertificateExpiredOrNotYetValid" xml:space="preserve">
+    <value>已到期或尚未生效</value>
+  </data>
+  <data name="SRP_IntendedPurposes_All" xml:space="preserve">
+    <value>全部</value>
+  </data>
+  <data name="SRP_Detail_RuleKind" xml:space="preserve">
+    <value>規則類型</value>
+  </data>
+  <data name="SRP_Detail_SecurityLevel" xml:space="preserve">
+    <value>安全性層級</value>
+  </data>
+  <data name="SRP_Detail_CertificateRulesEnabled" xml:space="preserve">
+    <value>憑證規則已啟用</value>
+  </data>
+  <data name="SRP_Detail_Subject" xml:space="preserve">
+    <value>主體</value>
+  </data>
+  <data name="SRP_Detail_Issuer" xml:space="preserve">
+    <value>簽發者</value>
+  </data>
+  <data name="SRP_Detail_SerialNumber" xml:space="preserve">
+    <value>序號</value>
+  </data>
+  <data name="SRP_Detail_Thumbprint" xml:space="preserve">
+    <value>指紋</value>
+  </data>
+  <data name="SRP_Detail_ValidFrom" xml:space="preserve">
+    <value>有效起始日</value>
+  </data>
+  <data name="SRP_Detail_ValidTo" xml:space="preserve">
+    <value>有效截止日</value>
+  </data>
+  <data name="SRP_Detail_IntendedPurposes" xml:space="preserve">
+    <value>預定用途</value>
+  </data>
+  <data name="SRP_Detail_FriendlyName" xml:space="preserve">
+    <value>易記名稱</value>
+  </data>
+  <data name="SRP_Detail_Status" xml:space="preserve">
+    <value>狀態</value>
+  </data>
+  <data name="SRP_Detail_StoragePath" xml:space="preserve">
+    <value>原則儲存路徑</value>
+  </data>
+  <data name="SRP_Detail_LastModified" xml:space="preserve">
+    <value>上次修改時間</value>
+  </data>
+  <data name="SRP_Detail_Description" xml:space="preserve">
+    <value>描述</value>
+  </data>
+  <data name="SRP_Detail_RawData" xml:space="preserve">
+    <value>原始憑證資料</value>
+  </data>
+  <data name="PKP_Node_EncryptingFileSystem" xml:space="preserve">
+    <value>加密檔案系統</value>
+  </data>
+  <data name="PKP_Node_EncryptingFileSystem_Description" xml:space="preserve">
+    <value>加密檔案系統原則的資料復原代理人憑證。</value>
+  </data>
+  <data name="PKP_Node_DataProtection" xml:space="preserve">
+    <value>資料保護</value>
+  </data>
+  <data name="PKP_Node_DataProtection_Description" xml:space="preserve">
+    <value>本機群組原則中的資料保護復原代理人憑證。</value>
+  </data>
+  <data name="PKP_Node_BitLockerDriveEncryption" xml:space="preserve">
+    <value>BitLocker 磁碟機加密</value>
+  </data>
+  <data name="PKP_Node_BitLockerDriveEncryption_Description" xml:space="preserve">
+    <value>本機群組原則中的 BitLocker 資料復原代理人憑證。</value>
+  </data>
+  <data name="PKP_Node_CertificateEnrollmentPolicy" xml:space="preserve">
+    <value>憑證服務用戶端 - 憑證註冊原則</value>
+  </data>
+  <data name="PKP_Node_CertificateEnrollmentPolicy_Description" xml:space="preserve">
+    <value>本機憑證註冊原則伺服器設定。</value>
+  </data>
+  <data name="PKP_Node_CertificatePathValidation" xml:space="preserve">
+    <value>憑證路徑驗證設定</value>
+  </data>
+  <data name="PKP_Node_CertificatePathValidation_Description" xml:space="preserve">
+    <value>憑證鏈結、根憑證更新與群組原則憑證存放區設定。</value>
+  </data>
+  <data name="PKP_Node_CertificateAutoEnrollment" xml:space="preserve">
+    <value>憑證服務用戶端 - 自動註冊</value>
+  </data>
+  <data name="PKP_Node_CertificateAutoEnrollment_Description" xml:space="preserve">
+    <value>本機憑證自動註冊原則狀態。</value>
+  </data>
+  <data name="PKP_Column_Name" xml:space="preserve">
+    <value>名稱</value>
+  </data>
+  <data name="PKP_Column_IssuedTo" xml:space="preserve">
+    <value>發給</value>
+  </data>
+  <data name="PKP_Column_IssuedBy" xml:space="preserve">
+    <value>發行者</value>
+  </data>
+  <data name="PKP_Column_ExpirationDate" xml:space="preserve">
+    <value>到期日</value>
+  </data>
+  <data name="PKP_Column_IntendedPurposes" xml:space="preserve">
+    <value>預期用途</value>
+  </data>
+  <data name="PKP_Column_FriendlyName" xml:space="preserve">
+    <value>易記名稱</value>
+  </data>
+  <data name="PKP_Column_Status" xml:space="preserve">
+    <value>狀態</value>
+  </data>
+  <data name="PKP_Column_CertificateTemplate" xml:space="preserve">
+    <value>憑證範本</value>
+  </data>
+  <data name="PKP_Column_Setting" xml:space="preserve">
+    <value>設定</value>
+  </data>
+  <data name="PKP_Command_Properties" xml:space="preserve">
+    <value>內容</value>
+  </data>
+  <data name="PKP_Command_ViewCertificate" xml:space="preserve">
+    <value>檢視憑證</value>
+  </data>
+  <data name="PKP_Command_AddRecoveryAgent" xml:space="preserve">
+    <value>新增復原代理程式</value>
+  </data>
+  <data name="PKP_Dialog_DeleteRecoveryAgent_Title" xml:space="preserve">
+    <value>刪除復原代理程式</value>
+  </data>
+  <data name="PKP_Dialog_DeleteRecoveryAgent_MessageFormat" xml:space="preserve">
+    <value>要刪除選取的復原代理程式憑證 ({0}) 嗎?</value>
+  </data>
+  <data name="PKP_Dialog_SelectRecoveryAgentCertificate_Title" xml:space="preserve">
+    <value>選取復原代理程式憑證</value>
+  </data>
+  <data name="PKP_FileDialog_CertificateFiles" xml:space="preserve">
+    <value>憑證檔案</value>
+  </data>
+  <data name="PKP_FileDialog_AllFiles" xml:space="preserve">
+    <value>所有檔案</value>
+  </data>
+  <data name="PKP_Dialog_PolicyProperties_TitleFormat" xml:space="preserve">
+    <value>{0} 內容</value>
+  </data>
+  <data name="PKP_Dialog_CertificateDetails_TitleFormat" xml:space="preserve">
+    <value>憑證詳細資料 - {0}</value>
+  </data>
+  <data name="PKP_NoRecoveryAgents" xml:space="preserve">
+    <value>未設定復原代理人</value>
+  </data>
+  <data name="PKP_GroupPolicyStorePath_Format" xml:space="preserve">
+    <value>群組原則存放區: {0}</value>
+  </data>
+  <data name="PKP_StoreReadFailed" xml:space="preserve">
+    <value>無法讀取原則存放區</value>
+  </data>
+  <data name="PKP_CertificateBlobUnavailable" xml:space="preserve">
+    <value>無法取得憑證詳細資料</value>
+  </data>
+  <data name="PKP_RecoveryAgent_CertificateNotSuitable_Efs" xml:space="preserve">
+    <value>此憑證不適用於加密檔案系統復原。</value>
+  </data>
+  <data name="PKP_RecoveryAgent_CertificateNotSuitable_DataRecovery" xml:space="preserve">
+    <value>此憑證不適用於資料復原代理人用途。</value>
+  </data>
+  <data name="PKP_RecoveryAgent_SingleCertificateLimit" xml:space="preserve">
+    <value>無法新增超過一張資料復原代理人憑證。</value>
+  </data>
+  <data name="PKP_CertificateValid" xml:space="preserve">
+    <value>有效</value>
+  </data>
+  <data name="PKP_CertificateExpiredOrNotYetValid" xml:space="preserve">
+    <value>已到期或尚未生效</value>
+  </data>
+  <data name="PKP_IntendedPurposes_All" xml:space="preserve">
+    <value>所有應用程式原則</value>
+  </data>
+  <data name="PKP_NotConfigured" xml:space="preserve">
+    <value>尚未設定</value>
+  </data>
+  <data name="PKP_EnrollmentPolicyServer" xml:space="preserve">
+    <value>註冊原則伺服器</value>
+  </data>
+  <data name="PKP_EnrollmentPolicyCmdletBacked" xml:space="preserve">
+    <value>未偵測到本機原則伺服器。啟用此原則即可新增本機憑證註冊原則伺服器。</value>
+  </data>
+  <data name="PKP_PathValidation_AiaRetrieval" xml:space="preserve">
+    <value>路徑驗證期間允許發行者憑證 (AIA) 擷取</value>
+  </data>
+  <data name="PKP_PathValidation_RootAutoUpdate" xml:space="preserve">
+    <value>自動更新信任的根憑證</value>
+  </data>
+  <data name="PKP_PathValidation_DisallowedAutoUpdate" xml:space="preserve">
+    <value>自動更新不允許的憑證</value>
+  </data>
+  <data name="PKP_PathValidation_TrustedRoots" xml:space="preserve">
+    <value>信任的根憑證授權單位</value>
+  </data>
+  <data name="PKP_PathValidation_TrustedPublishers" xml:space="preserve">
+    <value>信任的發行者</value>
+  </data>
+  <data name="PKP_PathValidation_IntermediateCas" xml:space="preserve">
+    <value>中繼憑證授權單位</value>
+  </data>
+  <data name="PKP_PathValidation_ChainEnginePolicySource" xml:space="preserve">
+    <value>鏈結引擎原則來源</value>
+  </data>
+  <data name="PKP_PathValidation_AuthRootPolicySource" xml:space="preserve">
+    <value>AuthRoot 原則來源</value>
+  </data>
+  <data name="PKP_PathValidation_Tab_Stores" xml:space="preserve">
+    <value>存放區</value>
+  </data>
+  <data name="PKP_PathValidation_Tab_TrustedPublishers" xml:space="preserve">
+    <value>信任的發行者</value>
+  </data>
+  <data name="PKP_PathValidation_Tab_NetworkRetrieval" xml:space="preserve">
+    <value>網路擷取</value>
+  </data>
+  <data name="PKP_PathValidation_Tab_Revocation" xml:space="preserve">
+    <value>撤銷</value>
+  </data>
+  <data name="PKP_PathValidation_DefineSettings" xml:space="preserve">
+    <value>定義這些原則設定</value>
+  </data>
+  <data name="PKP_PathValidation_Stores_Help" xml:space="preserve">
+    <value>指定使用者信任根憑證授權單位 (CA) 憑證與對等信任憑證的規則。</value>
+  </data>
+  <data name="PKP_PathValidation_TrustedPublishers_Help" xml:space="preserve">
+    <value>指定信任的發行者 (Authenticode) 原則選項。</value>
+  </data>
+  <data name="PKP_PathValidation_NetworkRetrieval_Help" xml:space="preserve">
+    <value>指定從網路擷取驗證資料的選項。</value>
+  </data>
+  <data name="PKP_PathValidation_Revocation_Help" xml:space="preserve">
+    <value>指定在撤銷檢查期間使用 CRL 與 OCSP 回應程式的原則選項。</value>
+  </data>
+  <data name="PKP_PathValidation_StoresDefined" xml:space="preserve">
+    <value>存放區原則設定</value>
+  </data>
+  <data name="PKP_PathValidation_TrustedPublishersDefined" xml:space="preserve">
+    <value>信任的發行者原則設定</value>
+  </data>
+  <data name="PKP_PathValidation_NetworkRetrievalDefined" xml:space="preserve">
+    <value>網路擷取原則設定</value>
+  </data>
+  <data name="PKP_PathValidation_RevocationDefined" xml:space="preserve">
+    <value>撤銷原則設定</value>
+  </data>
+  <data name="PKP_PathValidation_AllowUserTrustedRoots" xml:space="preserve">
+    <value>允許使用者信任的根 CA 用於驗證憑證</value>
+  </data>
+  <data name="PKP_PathValidation_AllowPeerTrust" xml:space="preserve">
+    <value>允許使用者信任對等信任憑證</value>
+  </data>
+  <data name="PKP_PathValidation_SelectCertificatePurposes" xml:space="preserve">
+    <value>選取憑證用途</value>
+  </data>
+  <data name="PKP_PathValidation_PeerTrustPurposes" xml:space="preserve">
+    <value>對等信任憑證用途</value>
+  </data>
+  <data name="PKP_PathValidation_RootStoresMode" xml:space="preserve">
+    <value>用戶端電腦可以信任的根 CA</value>
+  </data>
+  <data name="PKP_PathValidation_ThirdPartyAndEnterpriseRoots" xml:space="preserve">
+    <value>協力廠商根 CA 與企業根 CA</value>
+  </data>
+  <data name="PKP_PathValidation_OnlyEnterpriseRoots" xml:space="preserve">
+    <value>只有企業根 CA</value>
+  </data>
+  <data name="PKP_PathValidation_UpnConstraints" xml:space="preserve">
+    <value>CA 也必須符合使用者主要名稱條件約束</value>
+  </data>
+  <data name="PKP_PathValidation_TrustedPublisherManagement" xml:space="preserve">
+    <value>信任的發行者管理</value>
+  </data>
+  <data name="PKP_PathValidation_PublisherScope_EndUsers" xml:space="preserve">
+    <value>允許所有系統管理員和使用者管理使用者自己的信任發行者</value>
+  </data>
+  <data name="PKP_PathValidation_PublisherScope_LocalAdministrators" xml:space="preserve">
+    <value>只允許本機系統管理員管理信任的發行者</value>
+  </data>
+  <data name="PKP_PathValidation_PublisherScope_EnterpriseAdministrators" xml:space="preserve">
+    <value>只允許企業系統管理員管理信任的發行者</value>
+  </data>
+  <data name="PKP_PathValidation_TrustedPublisherRevocation" xml:space="preserve">
+    <value>確認發行者憑證尚未被撤銷</value>
+  </data>
+  <data name="PKP_PathValidation_TrustedTimestampRevocation" xml:space="preserve">
+    <value>確認時間戳記憑證尚未被撤銷</value>
+  </data>
+  <data name="PKP_PathValidation_UrlRetrievalTimeout" xml:space="preserve">
+    <value>預設 URL 擷取逾時 (秒)</value>
+  </data>
+  <data name="PKP_PathValidation_PathRetrievalTimeout" xml:space="preserve">
+    <value>預設路徑驗證累計擷取逾時 (秒)</value>
+  </data>
+  <data name="PKP_PathValidation_CrossCertInterval" xml:space="preserve">
+    <value>交叉憑證下載間隔 (小時)</value>
+  </data>
+  <data name="PKP_PathValidation_PreferCrlBeforeOcsp" xml:space="preserve">
+    <value>優先使用 CRL 而非 OCSP 回應</value>
+  </data>
+  <data name="PKP_PathValidation_CachedOcspThreshold" xml:space="preserve">
+    <value>快取 OCSP 回應臨界值</value>
+  </data>
+  <data name="PKP_PathValidation_ExtendRevocationLifetime" xml:space="preserve">
+    <value>允許 CRL 與 OCSP 回應在其有效期後仍視為有效</value>
+  </data>
+  <data name="PKP_PathValidation_RevocationExtensionHours" xml:space="preserve">
+    <value>有效期延長期間 (小時)</value>
+  </data>
+  <data name="PKP_PathValidation_AddPurpose" xml:space="preserve">
+    <value>新增</value>
+  </data>
+  <data name="PKP_PathValidation_DeletePurpose" xml:space="preserve">
+    <value>刪除</value>
+  </data>
+  <data name="PKP_PathValidation_CustomOidPlaceholder" xml:space="preserve">
+    <value>OID 或應用程式原則名稱</value>
+  </data>
+  <data name="PKP_CertificateCount_Format" xml:space="preserve">
+    <value>{0} 張憑證</value>
+  </data>
+  <data name="PKP_Registry_RawValue_Format" xml:space="preserve">
+    <value>登錄值: {0}</value>
+  </data>
+  <data name="PKP_AutoEnrollmentCmdletBacked" xml:space="preserve">
+    <value>未偵測到本機自動註冊登錄值。完整編輯應使用 Windows PKI 自動註冊 API。</value>
+  </data>
+  <data name="PKP_EnrollmentPolicy_ConfigurationModel" xml:space="preserve">
+    <value>設定模式</value>
+  </data>
+  <data name="PKP_EnrollmentPolicy_TabTitle" xml:space="preserve">
+    <value>註冊原則</value>
+  </data>
+  <data name="PKP_EnrollmentPolicy_Help" xml:space="preserve">
+    <value>Windows 用戶端將使用憑證註冊原則的預設設定。若要啟用憑證註冊原則的進階設定，請將上方下拉式選單變更為 [已啟用]。</value>
+  </data>
+  <data name="PKP_EnrollmentPolicy_Servers" xml:space="preserve">
+    <value>原則伺服器</value>
+  </data>
+  <data name="PKP_EnrollmentPolicy_ServerDetail_Format" xml:space="preserve">
+    <value>原則伺服器: {0}</value>
+  </data>
+  <data name="PKP_EnrollmentPolicy_ServerDetailValue_Format" xml:space="preserve">
+    <value>URI: {0}; 驗證: {1}; 成本: {2}; 旗標: {3}</value>
+  </data>
+  <data name="PKP_EnrollmentPolicy_ServerName" xml:space="preserve">
+    <value>易記名稱</value>
+  </data>
+  <data name="PKP_EnrollmentPolicy_ServerUrl" xml:space="preserve">
+    <value>原則伺服器 URI</value>
+  </data>
+  <data name="PKP_EnrollmentPolicy_ServerPolicyId" xml:space="preserve">
+    <value>原則識別碼</value>
+  </data>
+  <data name="PKP_EnrollmentPolicy_ServerAuthentication" xml:space="preserve">
+    <value>驗證類型</value>
+  </data>
+  <data name="PKP_EnrollmentPolicy_ServerCost" xml:space="preserve">
+    <value>成本</value>
+  </data>
+  <data name="PKP_EnrollmentPolicy_ServerOptions" xml:space="preserve">
+    <value>伺服器選項</value>
+  </data>
+  <data name="PKP_EnrollmentPolicy_ServerAutoEnrollment" xml:space="preserve">
+    <value>啟用此原則伺服器以進行憑證自動註冊</value>
+  </data>
+  <data name="PKP_EnrollmentPolicy_ServerUseClientId" xml:space="preserve">
+    <value>將用戶端識別資料傳送至原則伺服器</value>
+  </data>
+  <data name="PKP_EnrollmentPolicy_ServerAllowUntrustedCa" xml:space="preserve">
+    <value>允許來自不受信任憑證授權單位的憑證</value>
+  </data>
+  <data name="PKP_EnrollmentPolicy_ServerEditor_AddTitle" xml:space="preserve">
+    <value>新增原則伺服器</value>
+  </data>
+  <data name="PKP_EnrollmentPolicy_ServerEditor_EditTitle" xml:space="preserve">
+    <value>編輯原則伺服器</value>
+  </data>
+  <data name="PKP_EnrollmentPolicy_ServerValidation_UrlRequired" xml:space="preserve">
+    <value>請輸入原則伺服器 URI。</value>
+  </data>
+  <data name="PKP_EnrollmentPolicy_ServerValidation_DuplicateUrl" xml:space="preserve">
+    <value>已存在使用此 URI 的原則伺服器。</value>
+  </data>
+  <data name="PKP_EnrollmentPolicy_Auth_Anonymous" xml:space="preserve">
+    <value>匿名</value>
+  </data>
+  <data name="PKP_EnrollmentPolicy_Auth_Kerberos" xml:space="preserve">
+    <value>Kerberos</value>
+  </data>
+  <data name="PKP_EnrollmentPolicy_Auth_UserName" xml:space="preserve">
+    <value>使用者名稱和密碼</value>
+  </data>
+  <data name="PKP_EnrollmentPolicy_Auth_ClientCertificate" xml:space="preserve">
+    <value>用戶端憑證</value>
+  </data>
+  <data name="PKP_EnrollmentPolicy_NoServers" xml:space="preserve">
+    <value>未設定憑證註冊原則伺服器</value>
+  </data>
+  <data name="PKP_EnrollmentPolicy_ServerCount" xml:space="preserve">
+    <value>原則伺服器數量</value>
+  </data>
+  <data name="PKP_EnrollmentPolicy_PolicySource" xml:space="preserve">
+    <value>原則來源</value>
+  </data>
+  <data name="PKP_AutoEnrollment_ConfigurationModel" xml:space="preserve">
+    <value>設定模式</value>
+  </data>
+  <data name="PKP_AutoEnrollment_TabTitle" xml:space="preserve">
+    <value>註冊原則設定</value>
+  </data>
+  <data name="PKP_AutoEnrollment_Help" xml:space="preserve">
+    <value>自動註冊使用者與電腦憑證。</value>
+  </data>
+  <data name="PKP_AutoEnrollment_RenewExpired" xml:space="preserve">
+    <value>更新到期憑證、更新擱置憑證並移除撤銷的憑證</value>
+  </data>
+  <data name="PKP_AutoEnrollment_UpdateTemplates" xml:space="preserve">
+    <value>更新使用憑證範本的憑證</value>
+  </data>
+  <data name="PKP_AutoEnrollment_ExpirationNotifications" xml:space="preserve">
+    <value>到期通知百分比</value>
+  </data>
+  <data name="PKP_AutoEnrollment_BalloonNotifications" xml:space="preserve">
+    <value>通知訊息</value>
+  </data>
+  <data name="PKP_AutoEnrollment_StoreNames" xml:space="preserve">
+    <value>憑證存放區</value>
+  </data>
+  <data name="PKP_AutoEnrollment_PolicySource" xml:space="preserve">
+    <value>原則來源</value>
+  </data>
+  <data name="PKP_AutoEnrollment_RawValue_Format" xml:space="preserve">
+    <value>登錄值: {0}</value>
+  </data>
+  <data name="PKP_Efs_Tab_General" xml:space="preserve">
+    <value>一般</value>
+  </data>
+  <data name="PKP_Efs_Tab_Certificates" xml:space="preserve">
+    <value>憑證</value>
+  </data>
+  <data name="PKP_Efs_Tab_Cache" xml:space="preserve">
+    <value>快取</value>
+  </data>
+  <data name="PKP_Efs_FileEncryption" xml:space="preserve">
+    <value>使用加密檔案系統進行檔案加密</value>
+  </data>
+  <data name="PKP_Efs_FileEncryption_NotDefined" xml:space="preserve">
+    <value>未定義</value>
+  </data>
+  <data name="PKP_Efs_FileEncryption_Allow" xml:space="preserve">
+    <value>允許</value>
+  </data>
+  <data name="PKP_Efs_FileEncryption_DontAllow" xml:space="preserve">
+    <value>不允許</value>
+  </data>
+  <data name="PKP_Efs_EllipticCurveCryptography" xml:space="preserve">
+    <value>橢圓曲線密碼編譯</value>
+  </data>
+  <data name="PKP_Efs_Ecc_Allow" xml:space="preserve">
+    <value>允許</value>
+  </data>
+  <data name="PKP_Efs_Ecc_Require" xml:space="preserve">
+    <value>需要</value>
+  </data>
+  <data name="PKP_Efs_Ecc_DontAllow" xml:space="preserve">
+    <value>不允許</value>
+  </data>
+  <data name="PKP_Efs_Options" xml:space="preserve">
+    <value>選項</value>
+  </data>
+  <data name="PKP_Efs_EncryptDocumentsFolder" xml:space="preserve">
+    <value>加密使用者文件資料夾的內容</value>
+  </data>
+  <data name="PKP_Efs_RequireSmartCard" xml:space="preserve">
+    <value>EFS 需要智慧卡</value>
+  </data>
+  <data name="PKP_Efs_CreateSmartCardUserKey" xml:space="preserve">
+    <value>從智慧卡私密金鑰建立可快取的使用者金鑰</value>
+  </data>
+  <data name="PKP_Efs_KeyBackupNotifications" xml:space="preserve">
+    <value>建立或變更使用者金鑰時顯示金鑰備份通知</value>
+  </data>
+  <data name="PKP_Efs_TemplateName" xml:space="preserve">
+    <value>自動憑證要求的 EFS 範本</value>
+  </data>
+  <data name="PKP_Efs_SelfSignedCertificates" xml:space="preserve">
+    <value>自我簽署憑證</value>
+  </data>
+  <data name="PKP_Efs_AllowSelfSigned" xml:space="preserve">
+    <value>允許自我簽署憑證</value>
+  </data>
+  <data name="PKP_Efs_RsaKeySize" xml:space="preserve">
+    <value>RSA 金鑰大小</value>
+  </data>
+  <data name="PKP_Efs_EccKeySize" xml:space="preserve">
+    <value>ECC 金鑰大小</value>
+  </data>
+  <data name="PKP_Efs_ClearCacheWhen" xml:space="preserve">
+    <value>清除快取的時機</value>
+  </data>
+  <data name="PKP_Efs_ClearCacheOnTimeout" xml:space="preserve">
+    <value>快取逾時發生</value>
+  </data>
+  <data name="PKP_Efs_CacheTimeout" xml:space="preserve">
+    <value>快取逾時</value>
+  </data>
+  <data name="PKP_Efs_ClearCacheOnLock" xml:space="preserve">
+    <value>使用者鎖定工作站</value>
+  </data>
+  <data name="PKP_Efs_Minutes" xml:space="preserve">
+    <value>分鐘</value>
+  </data>
+  <data name="PKP_Efs_PolicySource" xml:space="preserve">
+    <value>原則來源</value>
+  </data>
+  <data name="PKP_Detail_Subject" xml:space="preserve">
+    <value>主體</value>
+  </data>
+  <data name="PKP_Detail_Issuer" xml:space="preserve">
+    <value>簽發者</value>
+  </data>
+  <data name="PKP_Detail_SerialNumber" xml:space="preserve">
+    <value>序號</value>
+  </data>
+  <data name="PKP_Detail_Thumbprint" xml:space="preserve">
+    <value>指紋</value>
+  </data>
+  <data name="PKP_Detail_ValidFrom" xml:space="preserve">
+    <value>有效起始日</value>
+  </data>
+  <data name="PKP_Detail_ValidTo" xml:space="preserve">
+    <value>有效截止日</value>
+  </data>
+  <data name="PKP_Detail_IntendedPurposes" xml:space="preserve">
+    <value>預期用途</value>
+  </data>
+  <data name="PKP_Detail_FriendlyName" xml:space="preserve">
+    <value>易記名稱</value>
+  </data>
+  <data name="PKP_Detail_Status" xml:space="preserve">
+    <value>狀態</value>
+  </data>
+  <data name="PKP_Detail_CertificateTemplate" xml:space="preserve">
+    <value>憑證範本</value>
+  </data>
+  <data name="PKP_Detail_SignatureAlgorithm" xml:space="preserve">
+    <value>簽章演算法</value>
+  </data>
+  <data name="PKP_Detail_PublicKeyAlgorithm" xml:space="preserve">
+    <value>公開金鑰演算法</value>
+  </data>
+  <data name="PKP_Detail_PublicKeySize" xml:space="preserve">
+    <value>公開金鑰大小</value>
+  </data>
+  <data name="PKP_Detail_PublicKeySize_Format" xml:space="preserve">
+    <value>{0} 位元</value>
+  </data>
+  <data name="PKP_Detail_Store" xml:space="preserve">
+    <value>原則存放區</value>
+  </data>
+  <data name="IPSec_Column_Name" xml:space="preserve">
+    <value>名稱</value>
+  </data>
+  <data name="IPSec_Column_Description" xml:space="preserve">
+    <value>描述</value>
+  </data>
+  <data name="IPSec_Column_PolicyAssigned" xml:space="preserve">
+    <value>已指派原則</value>
+  </data>
+  <data name="IPSec_Column_LastModified" xml:space="preserve">
+    <value>上次修改時間</value>
+  </data>
+  <data name="IPSec_Column_Source" xml:space="preserve">
+    <value>來源</value>
+  </data>
+  <data name="IPSec_Command_ViewDetails" xml:space="preserve">
+    <value>檢視詳細資料</value>
+  </data>
+  <data name="IPSec_Dialog_Details_TitleFormat" xml:space="preserve">
+    <value>{0} 詳細資料</value>
+  </data>
+  <data name="IPSec_PageDescription" xml:space="preserve">
+    <value>瀏覽儲存在此電腦上的舊版靜態 IP 安全性原則、共用 IP 篩選器清單與共用篩選器動作。</value>
+  </data>
+  <data name="IPSec_PolicyAgentService" xml:space="preserve">
+    <value>IPsec 原則代理程式</value>
+  </data>
+  <data name="IPSec_ServiceStatus_Format" xml:space="preserve">
+    <value>{0}; 啟動類型: {1}</value>
+  </data>
+  <data name="IPSec_ServiceStatus_Unavailable" xml:space="preserve">
+    <value>無法讀取 IPsec 原則代理程式服務狀態。</value>
+  </data>
+  <data name="IPSec_ServiceStatus_Running" xml:space="preserve">
+    <value>執行中</value>
+  </data>
+  <data name="IPSec_ServiceStatus_Stopped" xml:space="preserve">
+    <value>已停止</value>
+  </data>
+  <data name="IPSec_ServiceStatus_Paused" xml:space="preserve">
+    <value>已暫停</value>
+  </data>
+  <data name="IPSec_ServiceStatus_StartPending" xml:space="preserve">
+    <value>正在啟動</value>
+  </data>
+  <data name="IPSec_ServiceStatus_StopPending" xml:space="preserve">
+    <value>正在停止</value>
+  </data>
+  <data name="IPSec_ServiceStart_Automatic" xml:space="preserve">
+    <value>自動</value>
+  </data>
+  <data name="IPSec_ServiceStart_Manual" xml:space="preserve">
+    <value>手動</value>
+  </data>
+  <data name="IPSec_ServiceStart_Disabled" xml:space="preserve">
+    <value>已停用</value>
+  </data>
+  <data name="IPSec_NoLegacyPolicies" xml:space="preserve">
+    <value>未設定舊版本機 IP 安全性原則</value>
+  </data>
+  <data name="IPSec_LegacyStore_NotPresent" xml:space="preserve">
+    <value>舊版本機 IPsec 原則存放區不存在。</value>
+  </data>
+  <data name="IPSec_LegacyStore_Empty" xml:space="preserve">
+    <value>舊版本機 IPsec 原則存放區沒有可讀取的原則項目。</value>
+  </data>
+  <data name="IPSec_LegacyStore_AccessDenied" xml:space="preserve">
+    <value>舊版 IPsec 原則存放區存取遭拒</value>
+  </data>
+  <data name="IPSec_LegacyStore_ReadFailed" xml:space="preserve">
+    <value>無法讀取舊版 IPsec 原則存放區</value>
+  </data>
+  <data name="IPSec_RegistryValueCount_Format" xml:space="preserve">
+    <value>{0} 個登錄值</value>
+  </data>
+  <data name="IPSec_NoConnectionSecurityRules" xml:space="preserve">
+    <value>未偵測到連線安全性規則</value>
+  </data>
+  <data name="IPSec_ConnectionSecurityProvider_Description" xml:space="preserve">
+    <value>新版連線安全性規則提供者未傳回任何規則。</value>
+  </data>
+  <data name="IPSec_ConnectionSecurity_AccessDenied" xml:space="preserve">
+    <value>連線安全性規則存取遭拒</value>
+  </data>
+  <data name="IPSec_ConnectionSecurityProvider_Unavailable" xml:space="preserve">
+    <value>連線安全性規則提供者無法使用</value>
+  </data>
+  <data name="IPSec_ConnectionSecurityState_Format" xml:space="preserve">
+    <value>{0}; 輸入: {1}; 輸出: {2}; 模式: {3}</value>
+  </data>
+  <data name="IPSec_UnnamedPolicy" xml:space="preserve">
+    <value>未命名的 IPsec 原則</value>
+  </data>
+  <data name="IPSec_Security_None" xml:space="preserve">
+    <value>無</value>
+  </data>
+  <data name="IPSec_Security_Request" xml:space="preserve">
+    <value>要求</value>
+  </data>
+  <data name="IPSec_Security_Require" xml:space="preserve">
+    <value>需要</value>
+  </data>
+  <data name="IPSec_Mode_Transport" xml:space="preserve">
+    <value>傳輸</value>
+  </data>
+  <data name="IPSec_Mode_Tunnel" xml:space="preserve">
+    <value>通道</value>
+  </data>
+  <data name="IPSec_RowKind_LegacyPolicy" xml:space="preserve">
+    <value>舊版 IPsec 原則</value>
+  </data>
+  <data name="IPSec_RowKind_ConnectionSecurityRule" xml:space="preserve">
+    <value>連線安全性規則</value>
+  </data>
+  <data name="IPSec_RowKind_Information" xml:space="preserve">
+    <value>資訊</value>
+  </data>
+  <data name="IPSec_Detail_RowKind" xml:space="preserve">
+    <value>列類型</value>
+  </data>
+  <data name="IPSec_Detail_Name" xml:space="preserve">
+    <value>名稱</value>
+  </data>
+  <data name="IPSec_Detail_Description" xml:space="preserve">
+    <value>描述</value>
+  </data>
+  <data name="IPSec_Detail_PolicyAssigned" xml:space="preserve">
+    <value>已指派原則</value>
+  </data>
+  <data name="IPSec_Detail_LastModified" xml:space="preserve">
+    <value>上次修改時間</value>
+  </data>
+  <data name="IPSec_Detail_Source" xml:space="preserve">
+    <value>來源</value>
+  </data>
+  <data name="IPSec_Detail_Summary" xml:space="preserve">
+    <value>摘要</value>
+  </data>
+  <data name="IPSec_Detail_RegistryValues" xml:space="preserve">
+    <value>登錄值</value>
+  </data>
+  <data name="IPSec_Section_Policies" xml:space="preserve">
+    <value>IP 安全性原則</value>
+  </data>
+  <data name="IPSec_Section_FilterLists" xml:space="preserve">
+    <value>IP 篩選器清單</value>
+  </data>
+  <data name="IPSec_Section_FilterActions" xml:space="preserve">
+    <value>篩選器動作</value>
+  </data>
+  <data name="IPSec_Column_FilterCount" xml:space="preserve">
+    <value>篩選器</value>
+  </data>
+  <data name="IPSec_Column_Action" xml:space="preserve">
+    <value>動作</value>
+  </data>
+  <data name="IPSec_Column_SecurityMethods" xml:space="preserve">
+    <value>安全性方法</value>
+  </data>
+  <data name="IPSec_Empty_Policies" xml:space="preserve">
+    <value>此電腦未儲存任何 IP 安全性原則。</value>
+  </data>
+  <data name="IPSec_Empty_FilterLists" xml:space="preserve">
+    <value>此電腦未儲存任何共用 IP 篩選器清單。</value>
+  </data>
+  <data name="IPSec_Empty_FilterActions" xml:space="preserve">
+    <value>此電腦未儲存任何共用篩選器動作。</value>
+  </data>
+  <data name="IPSec_Value_Yes" xml:space="preserve">
+    <value>是</value>
+  </data>
+  <data name="IPSec_Value_No" xml:space="preserve">
+    <value>否</value>
+  </data>
+  <data name="IPSec_FilterAction_Permit" xml:space="preserve">
+    <value>允許</value>
+  </data>
+  <data name="IPSec_FilterAction_Block" xml:space="preserve">
+    <value>封鎖</value>
+  </data>
+  <data name="IPSec_FilterAction_Negotiate" xml:space="preserve">
+    <value>交涉安全性</value>
+  </data>
+  <data name="IPSec_RuleCount_Format" xml:space="preserve">
+    <value>{0} 個規則</value>
+  </data>
+  <data name="IPSec_FilterCount_Format" xml:space="preserve">
+    <value>{0} 個篩選器</value>
+  </data>
+  <data name="IPSec_SecurityMethodCount_Format" xml:space="preserve">
+    <value>{0} 個方法</value>
+  </data>
+  <data name="IPSec_RowKind_Policy" xml:space="preserve">
+    <value>IP 安全性原則</value>
+  </data>
+  <data name="IPSec_RowKind_FilterList" xml:space="preserve">
+    <value>IP 篩選器清單</value>
+  </data>
+  <data name="IPSec_RowKind_FilterAction" xml:space="preserve">
+    <value>篩選器動作</value>
+  </data>
+  <data name="IPSec_Detail_Rules" xml:space="preserve">
+    <value>規則</value>
+  </data>
+  <data name="IPSec_Detail_MasterPfs" xml:space="preserve">
+    <value>主金鑰完全轉寄密碼</value>
+  </data>
+  <data name="IPSec_Detail_QuickModeSessions" xml:space="preserve">
+    <value>每個主要模式的快速模式工作階段</value>
+  </data>
+  <data name="IPSec_Detail_MainModeLifetime" xml:space="preserve">
+    <value>主要模式存留期 (分鐘)</value>
+  </data>
+  <data name="IPSec_Detail_DefaultResponseRule" xml:space="preserve">
+    <value>預設回應規則</value>
+  </data>
+  <data name="IPSec_Detail_PollingInterval" xml:space="preserve">
+    <value>原則輪詢間隔 (分鐘)</value>
+  </data>
+  <data name="IPSec_Detail_SecurityMethods" xml:space="preserve">
+    <value>安全性方法</value>
+  </data>
+  <data name="IPSec_Detail_FilterCount" xml:space="preserve">
+    <value>篩選器數目</value>
+  </data>
+  <data name="IPSec_Detail_Filters" xml:space="preserve">
+    <value>篩選器</value>
+  </data>
+  <data name="IPSec_Detail_Action" xml:space="preserve">
+    <value>動作</value>
+  </data>
+  <data name="IPSec_Detail_QuickModePfs" xml:space="preserve">
+    <value>工作階段金鑰完全轉寄密碼</value>
+  </data>
+  <data name="IPSec_Detail_AcceptUnsecuredInbound" xml:space="preserve">
+    <value>接受不安全的輸入通訊</value>
+  </data>
+  <data name="IPSec_Detail_AllowUnsecuredFallback" xml:space="preserve">
+    <value>允許回復為不安全的通訊</value>
+  </data>
+  <data name="IPSec_Editor_ValidationInvalid" xml:space="preserve">
+    <value>請檢查 IPsec 設定，並修正無效或缺少的值。</value>
+  </data>
+  <data name="IPSec_Editor_Assigned" xml:space="preserve">
+    <value>將此原則指派給本機電腦</value>
+  </data>
+  <data name="IPSec_Editor_DefaultResponseRule" xml:space="preserve">
+    <value>啟用預設回應規則</value>
+  </data>
+  <data name="IPSec_Editor_MasterPfs" xml:space="preserve">
+    <value>使用主金鑰完全轉送密碼</value>
+  </data>
+  <data name="IPSec_Editor_QuickModeSessions" xml:space="preserve">
+    <value>每個主要模式的快速模式工作階段數</value>
+  </data>
+  <data name="IPSec_Editor_MainModeLifetime" xml:space="preserve">
+    <value>主要模式存留期 (分鐘)</value>
+  </data>
+  <data name="IPSec_Editor_PollingInterval" xml:space="preserve">
+    <value>原則輪詢間隔 (分鐘)</value>
+  </data>
+  <data name="IPSec_Editor_MainModeMethods" xml:space="preserve">
+    <value>主要模式安全性方法</value>
+  </data>
+  <data name="IPSec_Editor_MethodsHelp" xml:space="preserve">
+    <value>請依喜好順序輸入安全性方法，每行一個。</value>
+  </data>
+  <data name="IPSec_Editor_Filters" xml:space="preserve">
+    <value>IP 篩選器</value>
+  </data>
+  <data name="IPSec_Editor_AddFilterTitle" xml:space="preserve">
+    <value>新增 IP 篩選器</value>
+  </data>
+  <data name="IPSec_Editor_EditFilterTitle" xml:space="preserve">
+    <value>編輯 IP 篩選器</value>
+  </data>
+  <data name="IPSec_Editor_FilterSummaryFormat" xml:space="preserve">
+    <value>{0} 到 {1}；{2}；連接埠 {3} 到 {4}</value>
+  </data>
+  <data name="IPSec_Editor_SourceAddress" xml:space="preserve">
+    <value>來源位址</value>
+  </data>
+  <data name="IPSec_Editor_DestinationAddress" xml:space="preserve">
+    <value>目的地位址</value>
+  </data>
+  <data name="IPSec_Editor_SourceMask" xml:space="preserve">
+    <value>來源遮罩或前置詞</value>
+  </data>
+  <data name="IPSec_Editor_DestinationMask" xml:space="preserve">
+    <value>目的地遮罩或前置詞</value>
+  </data>
+  <data name="IPSec_Editor_Protocol" xml:space="preserve">
+    <value>通訊協定</value>
+  </data>
+  <data name="IPSec_Editor_Mirrored" xml:space="preserve">
+    <value>建立鏡像篩選器</value>
+  </data>
+  <data name="IPSec_Editor_SourcePort" xml:space="preserve">
+    <value>來源連接埠 (0 代表任何連接埠)</value>
+  </data>
+  <data name="IPSec_Editor_DestinationPort" xml:space="preserve">
+    <value>目的地連接埠 (0 代表任何連接埠)</value>
+  </data>
+  <data name="IPSec_Editor_FilterAction" xml:space="preserve">
+    <value>篩選器動作</value>
+  </data>
+  <data name="IPSec_Editor_QuickModePfs" xml:space="preserve">
+    <value>使用工作階段金鑰完全轉送密碼</value>
+  </data>
+  <data name="IPSec_Editor_AcceptUnsecuredInbound" xml:space="preserve">
+    <value>接受不安全的輸入通訊</value>
+  </data>
+  <data name="IPSec_Editor_AllowUnsecuredFallback" xml:space="preserve">
+    <value>允許回復為不安全的通訊</value>
+  </data>
+  <data name="IPSec_Editor_QuickModeMethods" xml:space="preserve">
+    <value>快速模式安全性方法</value>
+  </data>
+  <data name="IPSec_Editor_EncryptionAlgorithm" xml:space="preserve">
+    <value>加密演算法</value>
+  </data>
+  <data name="IPSec_Editor_HashAlgorithm" xml:space="preserve">
+    <value>雜湊演算法</value>
+  </data>
+  <data name="IPSec_Editor_DiffieHellmanGroup" xml:space="preserve">
+    <value>Diffie-Hellman 群組</value>
+  </data>
+  <data name="IPSec_Editor_SecurityMethodType" xml:space="preserve">
+    <value>安全性方法類型</value>
+  </data>
+  <data name="IPSec_Editor_EspEncryption" xml:space="preserve">
+    <value>ESP 加密</value>
+  </data>
+  <data name="IPSec_Editor_EspAuthentication" xml:space="preserve">
+    <value>ESP 驗證</value>
+  </data>
+  <data name="IPSec_Editor_AhHash" xml:space="preserve">
+    <value>AH 完整性</value>
+  </data>
+  <data name="IPSec_Editor_LifetimeKilobytes" xml:space="preserve">
+    <value>存留期 (KB)</value>
+  </data>
+  <data name="IPSec_Editor_LifetimeSeconds" xml:space="preserve">
+    <value>存留期 (秒)</value>
+  </data>
+  <data name="IPSec_Editor_AddSecurityMethod" xml:space="preserve">
+    <value>新增安全性方法</value>
+  </data>
+  <data name="IPSec_Editor_Algorithm_3DES" xml:space="preserve">
+    <value>3DES</value>
+  </data>
+  <data name="IPSec_Editor_Algorithm_DES" xml:space="preserve">
+    <value>DES</value>
+  </data>
+  <data name="IPSec_Editor_Algorithm_None" xml:space="preserve">
+    <value>無</value>
+  </data>
+  <data name="IPSec_Editor_Algorithm_SHA1" xml:space="preserve">
+    <value>SHA1</value>
+  </data>
+  <data name="IPSec_Editor_Algorithm_MD5" xml:space="preserve">
+    <value>MD5</value>
+  </data>
+  <data name="IPSec_Editor_DhGroup_DH2048" xml:space="preserve">
+    <value>高 (DH2048)</value>
+  </data>
+  <data name="IPSec_Editor_DhGroup_Medium" xml:space="preserve">
+    <value>中 (2)</value>
+  </data>
+  <data name="IPSec_Editor_DhGroup_Low" xml:space="preserve">
+    <value>低 (1)</value>
+  </data>
+  <data name="IPSec_Editor_MethodType_ESP" xml:space="preserve">
+    <value>ESP</value>
+  </data>
+  <data name="IPSec_Editor_MethodType_AH" xml:space="preserve">
+    <value>AH</value>
+  </data>
+  <data name="IPSec_Editor_MethodType_AH_ESP" xml:space="preserve">
+    <value>AH + ESP</value>
+  </data>
+  <data name="IPSec_Editor_RuleFilterList" xml:space="preserve">
+    <value>IP 篩選器清單</value>
+  </data>
+  <data name="IPSec_Editor_RuleFilterAction" xml:space="preserve">
+    <value>篩選器動作</value>
+  </data>
+  <data name="IPSec_Editor_ConnectionType" xml:space="preserve">
+    <value>連線類型</value>
+  </data>
+  <data name="IPSec_Editor_ConnectionAll" xml:space="preserve">
+    <value>所有網路連線</value>
+  </data>
+  <data name="IPSec_Editor_ConnectionLan" xml:space="preserve">
+    <value>區域網路 (LAN)</value>
+  </data>
+  <data name="IPSec_Editor_ConnectionDialUp" xml:space="preserve">
+    <value>遠端存取</value>
+  </data>
+  <data name="IPSec_Editor_RuleActive" xml:space="preserve">
+    <value>啟用此規則</value>
+  </data>
+  <data name="IPSec_Editor_Tunnel" xml:space="preserve">
+    <value>IPsec 通道</value>
+  </data>
+  <data name="IPSec_Editor_TunnelEndpoint" xml:space="preserve">
+    <value>通道端點</value>
+  </data>
+  <data name="IPSec_Editor_AuthenticationMethods" xml:space="preserve">
+    <value>驗證方法 (依喜好順序)</value>
+  </data>
+  <data name="IPSec_Editor_AuthenticationKind" xml:space="preserve">
+    <value>驗證方法</value>
+  </data>
+  <data name="IPSec_Editor_AuthenticationKerberos" xml:space="preserve">
+    <value>Active Directory 預設值 (Kerberos V5)</value>
+  </data>
+  <data name="IPSec_Editor_AuthenticationCertificate" xml:space="preserve">
+    <value>憑證授權單位</value>
+  </data>
+  <data name="IPSec_Editor_AuthenticationPsk" xml:space="preserve">
+    <value>預先共用金鑰</value>
+  </data>
+  <data name="IPSec_Editor_CertificateAuthorityName" xml:space="preserve">
+    <value>根憑證授權單位名稱</value>
+  </data>
+  <data name="IPSec_Editor_CertificateMapping" xml:space="preserve">
+    <value>啟用憑證對應至帳戶</value>
+  </data>
+  <data name="IPSec_Editor_ExcludeCertificateAuthorityName" xml:space="preserve">
+    <value>從要求中排除憑證授權單位名稱</value>
+  </data>
+  <data name="IPSec_Editor_PreSharedKey" xml:space="preserve">
+    <value>預先共用金鑰</value>
+  </data>
+  <data name="IPSec_Editor_PskReentryRequired" xml:space="preserve">
+    <value>現有預先共用金鑰已遮蔽。儲存此規則前必須重新輸入。</value>
+  </data>
+  <data name="IPSec_Editor_PskConfigured" xml:space="preserve">
+    <value>已設定預先共用金鑰，且不會顯示其內容。</value>
+  </data>
+  <data name="IPSec_Editor_AddOrReplaceAuthentication" xml:space="preserve">
+    <value>新增或取代驗證方法</value>
+  </data>
+  <data name="IPSec_Editor_MoveUp" xml:space="preserve">
+    <value>上移</value>
+  </data>
+  <data name="IPSec_Editor_MoveDown" xml:space="preserve">
+    <value>下移</value>
+  </data>
+  <data name="IPSec_Command_New" xml:space="preserve">
+    <value>新增</value>
+  </data>
+  <data name="IPSec_Command_Edit" xml:space="preserve">
+    <value>編輯</value>
+  </data>
+  <data name="IPSec_Command_Delete" xml:space="preserve">
+    <value>刪除</value>
+  </data>
+  <data name="IPSec_Command_Assign" xml:space="preserve">
+    <value>指派</value>
+  </data>
+  <data name="IPSec_Command_Unassign" xml:space="preserve">
+    <value>取消指派</value>
+  </data>
+  <data name="IPSec_Command_AddRule" xml:space="preserve">
+    <value>新增規則</value>
+  </data>
+  <data name="IPSec_Command_EditRule" xml:space="preserve">
+    <value>編輯規則</value>
+  </data>
+  <data name="IPSec_Command_DeleteRule" xml:space="preserve">
+    <value>刪除規則</value>
+  </data>
+  <data name="IPSec_Command_ManageRules" xml:space="preserve">
+    <value>管理規則</value>
+  </data>
+  <data name="IPSec_DeleteConfirm_Title" xml:space="preserve">
+    <value>確認刪除</value>
+  </data>
+  <data name="IPSec_DeletePolicy_MessageFormat" xml:space="preserve">
+    <value>要刪除 IP 安全性原則「{0}」及其所有規則嗎？</value>
+  </data>
+  <data name="IPSec_DeleteFilterList_MessageFormat" xml:space="preserve">
+    <value>要刪除 IP 篩選器清單「{0}」及其所有篩選器嗎？</value>
+  </data>
+  <data name="IPSec_DeleteFilterAction_MessageFormat" xml:space="preserve">
+    <value>要刪除篩選器動作「{0}」嗎？</value>
+  </data>
+  <data name="IPSec_DeleteRule_MessageFormat" xml:space="preserve">
+    <value>要刪除規則「{0}」嗎？</value>
+  </data>
+  <data name="IPSec_Dialog_CreatePolicy_Title" xml:space="preserve">
+    <value>建立 IP 安全性原則</value>
+  </data>
+  <data name="IPSec_Dialog_EditPolicy_TitleFormat" xml:space="preserve">
+    <value>編輯 IP 安全性原則：{0}</value>
+  </data>
+  <data name="IPSec_Dialog_CreateFilterList_Title" xml:space="preserve">
+    <value>建立 IP 篩選器清單</value>
+  </data>
+  <data name="IPSec_Dialog_EditFilterList_TitleFormat" xml:space="preserve">
+    <value>編輯 IP 篩選器清單：{0}</value>
+  </data>
+  <data name="IPSec_Dialog_CreateFilterAction_Title" xml:space="preserve">
+    <value>建立篩選器動作</value>
+  </data>
+  <data name="IPSec_Dialog_EditFilterAction_TitleFormat" xml:space="preserve">
+    <value>編輯篩選器動作：{0}</value>
+  </data>
+  <data name="IPSec_Dialog_CreateRule_TitleFormat" xml:space="preserve">
+    <value>為 {0} 建立規則</value>
+  </data>
+  <data name="IPSec_Dialog_EditRule_TitleFormat" xml:space="preserve">
+    <value>編輯規則：{0}</value>
   </data>
 </root>

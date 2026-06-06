@@ -81,6 +81,7 @@
         <PackageReference Include="System.Drawing.Common" />
         <PackageReference Include="System.DirectoryServices.AccountManagement" />
         <PackageReference Include="System.IO.FileSystem.AccessControl" />
+        <PackageReference Include="System.Windows.Extensions" />
       </ItemGroup>
       <ItemGroup>
         <ProjectReference Include="..\ManagementTools.Core\ManagementTools.Core.csproj" />

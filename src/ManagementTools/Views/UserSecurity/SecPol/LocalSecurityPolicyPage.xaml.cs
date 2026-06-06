@@ -30,13 +30,6 @@ public sealed partial class LocalSecurityPolicyPage : Page
 		Frame.Navigate(typeof(LocalPoliciesPage), null, new SlideNavigationTransitionInfo() { Effect = SlideNavigationTransitionEffect.FromRight });
 	}
 
-	private void WindowsFirewall_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
-	{
-		ManagementTools.Services.Logging.UiLogger.LogDebug("[LocalSecurityPolicyPage] Navigating to Windows Firewall");
-		BreadcrumbNavigationService.AddBreadcrumb(LocalizedStrings.SecPol_Firewall_Header, typeof(WindowsFirewallSecurityPage));
-		Frame.Navigate(typeof(WindowsFirewallSecurityPage), null, new SlideNavigationTransitionInfo() { Effect = SlideNavigationTransitionEffect.FromRight });
-	}
-
 	private void NetworkListManager_Click(object sender, Microsoft.UI.Xaml.RoutedEventArgs e)
 	{
 		ManagementTools.Services.Logging.UiLogger.LogDebug("[LocalSecurityPolicyPage] Navigating to Network List Manager");
