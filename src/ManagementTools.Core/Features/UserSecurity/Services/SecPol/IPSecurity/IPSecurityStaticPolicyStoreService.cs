@@ -86,7 +86,59 @@ public sealed class IPSecurityStaticPolicyStoreService
             return new IPSecurityStaticStoreSnapshot();
         }
 
-        return ParseDump(policyScript);
+        // The export script carries no last-modified time or current assignment state, so enrich the
+        // parsed policies with that metadata from the registry store (the only source for whenChanged).
+        return MergeRegistryMetadata(ParseDump(policyScript));
+    }
+
+    /// <summary>
+    /// Overlays registry-only metadata (assignment state and <c>whenChanged</c> last-modified time)
+    /// onto policies parsed from the export script, matching by policy name.
+    /// </summary>
+    private IPSecurityStaticStoreSnapshot MergeRegistryMetadata(IPSecurityStaticStoreSnapshot parsed)
+    {
+        IPSecurityStaticStoreSnapshot registry = LoadFromRegistry();
+        if (registry.Policies.Count == 0)
+        {
+            return parsed;
+        }
+
+        Dictionary<string, IPSecurityPolicyDefinition> registryByName = new(StringComparer.OrdinalIgnoreCase);
+        foreach (IPSecurityPolicyDefinition registryPolicy in registry.Policies)
+        {
+            registryByName[registryPolicy.Name] = registryPolicy;
+        }
+
+        return new IPSecurityStaticStoreSnapshot
+        {
+            Policies = parsed.Policies
+                .Select(policy => registryByName.TryGetValue(policy.Name, out IPSecurityPolicyDefinition? match)
+                    ? WithRegistryMetadata(policy, match)
+                    : policy)
+                .ToList(),
+            FilterLists = parsed.FilterLists,
+            FilterActions = parsed.FilterActions
+        };
+    }
+
+    private static IPSecurityPolicyDefinition WithRegistryMetadata(
+        IPSecurityPolicyDefinition policy,
+        IPSecurityPolicyDefinition registry)
+    {
+        return new IPSecurityPolicyDefinition
+        {
+            Name = policy.Name,
+            Description = string.IsNullOrEmpty(policy.Description) ? registry.Description : policy.Description,
+            IsAssigned = registry.IsAssigned,
+            UseMasterPerfectForwardSecrecy = policy.UseMasterPerfectForwardSecrecy,
+            QuickModeSessionsPerMainMode = policy.QuickModeSessionsPerMainMode,
+            MainModeLifetimeMinutes = policy.MainModeLifetimeMinutes,
+            IsDefaultResponseRuleActive = policy.IsDefaultResponseRuleActive,
+            PollingIntervalMinutes = policy.PollingIntervalMinutes,
+            MainModeSecurityMethods = policy.MainModeSecurityMethods,
+            Rules = policy.Rules,
+            LastModifiedTime = registry.LastModifiedTime
+        };
     }
 
     internal static IPSecurityStaticStoreSnapshot ParseDump(string dump)
@@ -199,7 +251,8 @@ public sealed class IPSecurityStaticPolicyStoreService
                     {
                         Name = ipsecName,
                         Description = description,
-                        IsAssigned = isAssigned
+                        IsAssigned = isAssigned,
+                        LastModifiedTime = ReadWhenChanged(subKey)
                     });
                 }
                 else if (className.Equals("ipsecFilter", StringComparison.OrdinalIgnoreCase))
@@ -232,6 +285,25 @@ public sealed class IPSecurityStaticPolicyStoreService
             _logger.LogWarning(ex, "Failed to read legacy IPsec policy store from registry.");
             return new IPSecurityStaticStoreSnapshot();
         }
+    }
+
+    /// <summary>
+    /// Reads an IPsec policy object's <c>whenChanged</c> value (Unix seconds, stored as either a
+    /// <c>REG_DWORD</c> or a numeric <c>REG_SZ</c>) and converts it to a <see cref="DateTimeOffset"/>.
+    /// </summary>
+    private static DateTimeOffset? ReadWhenChanged(Microsoft.Win32.RegistryKey key)
+    {
+        object? raw = key.GetValue("whenChanged");
+        long seconds = raw switch
+        {
+            int value => value,
+            long value => value,
+            uint value => value,
+            string text when long.TryParse(text, NumberStyles.Integer, CultureInfo.InvariantCulture, out long parsed) => parsed,
+            _ => 0
+        };
+
+        return seconds > 0 ? DateTimeOffset.FromUnixTimeSeconds(seconds) : null;
     }
 
     private static void ParsePolicy(ParsedArguments arguments, IDictionary<string, PolicyBuilder> policies)

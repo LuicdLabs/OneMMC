@@ -2035,6 +2035,12 @@
   <data name="IPSec_Command_ManageRules" xml:space="preserve">
     <value>管理規則</value>
   </data>
+  <data name="IPSec_Command_ManageFiltersActions" xml:space="preserve">
+    <value>管理 IP 篩選器清單和篩選器動作</value>
+  </data>
+  <data name="IPSec_Dialog_ManageFiltersActions_Title" xml:space="preserve">
+    <value>管理 IP 篩選器清單和篩選器動作</value>
+  </data>
   <data name="IPSec_DeleteConfirm_Title" xml:space="preserve">
     <value>確認刪除</value>
   </data>

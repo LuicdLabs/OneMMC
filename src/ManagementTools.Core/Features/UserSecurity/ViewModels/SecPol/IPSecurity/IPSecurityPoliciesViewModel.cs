@@ -37,26 +37,6 @@ public sealed partial class IPSecurityPoliciesViewModel : ObservableObject
         _mutationService = mutationService;
         _logger = logger;
         _adminService = adminService;
-
-        Sections =
-        [
-            new IPSecuritySectionItem
-            {
-                Kind = IPSecuritySectionKind.Policies,
-                DisplayName = GetString(IPSecurityPolicyKeys.SectionPolicies)
-            },
-            new IPSecuritySectionItem
-            {
-                Kind = IPSecuritySectionKind.FilterLists,
-                DisplayName = GetString(IPSecurityPolicyKeys.SectionFilterLists)
-            },
-            new IPSecuritySectionItem
-            {
-                Kind = IPSecuritySectionKind.FilterActions,
-                DisplayName = GetString(IPSecurityPolicyKeys.SectionFilterActions)
-            }
-        ];
-        SelectedSection = Sections[0];
     }
 
     /// <summary>
@@ -65,20 +45,9 @@ public sealed partial class IPSecurityPoliciesViewModel : ObservableObject
     public event EventHandler? AdminPermissionRequired;
 
     /// <summary>
-    /// Gets the navigation sections.
-    /// </summary>
-    public ObservableCollection<IPSecuritySectionItem> Sections { get; }
-
-    /// <summary>
-    /// Gets the visible rows for the selected section.
+    /// Gets the visible policy rows.
     /// </summary>
     public ObservableCollection<IPSecurityPolicyRow> Items { get; } = [];
-
-    /// <summary>
-    /// Gets or sets the selected navigation section.
-    /// </summary>
-    [ObservableProperty]
-    public partial IPSecuritySectionItem SelectedSection { get; set; }
 
     /// <summary>
     /// Gets or sets the selected policy row.
@@ -134,44 +103,26 @@ public sealed partial class IPSecurityPoliciesViewModel : ObservableObject
         _snapshot.FilterActions.Select(static row => row.Name).ToArray();
 
     /// <summary>
-    /// Gets a value indicating whether the selected section has no matching rows.
+    /// Gets the shared filter-list definitions, for the manage filter lists and filter actions dialog.
+    /// </summary>
+    public IReadOnlyList<IPSecurityFilterListDefinition> FilterLists =>
+        _snapshot.FilterLists.Select(static row => row.FilterList).OfType<IPSecurityFilterListDefinition>().ToArray();
+
+    /// <summary>
+    /// Gets the shared filter-action definitions, for the manage filter lists and filter actions dialog.
+    /// </summary>
+    public IReadOnlyList<IPSecurityFilterActionDefinition> FilterActions =>
+        _snapshot.FilterActions.Select(static row => row.FilterAction).OfType<IPSecurityFilterActionDefinition>().ToArray();
+
+    /// <summary>
+    /// Gets a value indicating whether the policy list has no matching rows.
     /// </summary>
     public bool IsEmpty => !IsLoading && !HasError && Items.Count == 0;
 
     /// <summary>
-    /// Gets the localized selected section title.
+    /// Gets the localized empty-state message.
     /// </summary>
-    public string CurrentSectionTitle => SelectedSection.DisplayName;
-
-    /// <summary>
-    /// Gets the localized third-column heading for the selected section.
-    /// </summary>
-    public string ThirdColumnHeader => SelectedSection.Kind switch
-    {
-        IPSecuritySectionKind.FilterLists => GetString(IPSecurityPolicyKeys.ColumnFilterCount),
-        IPSecuritySectionKind.FilterActions => GetString(IPSecurityPolicyKeys.ColumnAction),
-        _ => GetString(IPSecurityPolicyKeys.ColumnPolicyAssigned)
-    };
-
-    /// <summary>
-    /// Gets the localized fourth-column heading for the selected section.
-    /// </summary>
-    public string FourthColumnHeader => SelectedSection.Kind switch
-    {
-        IPSecuritySectionKind.FilterActions => GetString(IPSecurityPolicyKeys.ColumnSecurityMethods),
-        IPSecuritySectionKind.FilterLists => string.Empty,
-        _ => GetString(IPSecurityPolicyKeys.ColumnLastModified)
-    };
-
-    /// <summary>
-    /// Gets the localized empty-state message for the selected section.
-    /// </summary>
-    public string EmptyMessage => SelectedSection.Kind switch
-    {
-        IPSecuritySectionKind.FilterLists => GetString(IPSecurityPolicyKeys.EmptyFilterLists),
-        IPSecuritySectionKind.FilterActions => GetString(IPSecurityPolicyKeys.EmptyFilterActions),
-        _ => GetString(IPSecurityPolicyKeys.EmptyPolicies)
-    };
+    public string EmptyMessage => GetString(IPSecurityPolicyKeys.EmptyPolicies);
 
     /// <summary>
     /// Gets or sets a value indicating whether policies are loading.
@@ -375,7 +326,7 @@ public sealed partial class IPSecurityPoliciesViewModel : ObservableObject
         Items.Clear();
         SelectedPolicy = null;
 
-        IEnumerable<IPSecurityPolicyRow> rows = GetCurrentRows();
+        IEnumerable<IPSecurityPolicyRow> rows = _snapshot.Policies;
         if (!string.IsNullOrWhiteSpace(FilterText))
         {
             rows = rows.Where(row =>
@@ -397,28 +348,9 @@ public sealed partial class IPSecurityPoliciesViewModel : ObservableObject
         NotifyEmptyStateChanged();
     }
 
-    private IReadOnlyList<IPSecurityPolicyRow> GetCurrentRows()
-    {
-        return SelectedSection.Kind switch
-        {
-            IPSecuritySectionKind.FilterLists => _snapshot.FilterLists,
-            IPSecuritySectionKind.FilterActions => _snapshot.FilterActions,
-            _ => _snapshot.Policies
-        };
-    }
-
     partial void OnFilterTextChanged(string value)
     {
         ApplyFilter();
-    }
-
-    partial void OnSelectedSectionChanged(IPSecuritySectionItem value)
-    {
-        ApplyFilter();
-        OnPropertyChanged(nameof(CurrentSectionTitle));
-        OnPropertyChanged(nameof(ThirdColumnHeader));
-        OnPropertyChanged(nameof(FourthColumnHeader));
-        OnPropertyChanged(nameof(EmptyMessage));
     }
 
     partial void OnSelectedPolicyChanged(IPSecurityPolicyRow? value)

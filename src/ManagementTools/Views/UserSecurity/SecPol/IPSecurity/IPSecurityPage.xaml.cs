@@ -4,6 +4,7 @@ using ManagementTools.Core.Features.UserSecurity.ViewModels.SecPol.IPSecurity;
 using ManagementTools.Helpers;
 using ManagementTools.Localization;
 using ManagementTools.Views.UserSecurity.SecPol.IPSecurity.Editors;
+using ManagementTools.Views.UserSecurity.SecPol.IPSecurity.Manage;
 using ManagementTools.Views.UserSecurity.SecPol.IPSecurity.Rules;
 using Microsoft.Extensions.Logging;
 using Microsoft.UI.Xaml;
@@ -120,6 +121,21 @@ public sealed partial class IPSecurityPage : Page
         await ViewModel.RefreshAsync();
     }
 
+    private async void ManageFiltersActionsButton_Click(object sender, RoutedEventArgs e)
+    {
+        var manager = new IPSecurityManageListsActionsControl(
+            ViewModel.FilterLists,
+            ViewModel.FilterActions,
+            ViewModel.AddFilterListWithFiltersAsync,
+            ViewModel.SetFilterListWithFiltersAsync,
+            ViewModel.DeleteFilterListAsync,
+            ViewModel.AddFilterActionAsync,
+            ViewModel.SetFilterActionAsync,
+            ViewModel.DeleteFilterActionAsync);
+        _ = await manager.ShowDialogAsync(XamlRoot);
+        await ViewModel.RefreshAsync();
+    }
+
     private async void PolicyListView_DoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
     {
         await EditSelectedItemAsync();
@@ -146,56 +162,31 @@ public sealed partial class IPSecurityPage : Page
 
     private Task CreateCurrentSectionItemAsync()
     {
-        return ViewModel.SelectedSection.Kind switch
-        {
-            IPSecuritySectionKind.FilterLists => ShowFilterListEditorAsync(IPSecurityEditorMode.Create),
-            IPSecuritySectionKind.FilterActions => ShowFilterActionEditorAsync(IPSecurityEditorMode.Create),
-            _ => ShowPolicyEditorAsync(IPSecurityEditorMode.Create)
-        };
+        return ShowPolicyEditorAsync(IPSecurityEditorMode.Create);
     }
 
     private Task EditSelectedItemAsync()
     {
-        return ViewModel.SelectedPolicy switch
-        {
-            { Policy: not null } row => ShowPolicyEditorAsync(IPSecurityEditorMode.Edit, row.Policy),
-            { FilterList: not null } row => ShowFilterListEditorAsync(IPSecurityEditorMode.Edit, row.FilterList),
-            { FilterAction: not null } row => ShowFilterActionEditorAsync(IPSecurityEditorMode.Edit, row.FilterAction),
-            _ => Task.CompletedTask
-        };
+        return ViewModel.SelectedPolicy is { Policy: not null } row
+            ? ShowPolicyEditorAsync(IPSecurityEditorMode.Edit, row.Policy)
+            : Task.CompletedTask;
     }
 
     private async Task DeleteSelectedItemAsync()
     {
         IPSecurityPolicyRow? row = ViewModel.SelectedPolicy;
-        if (row is null)
+        if (row?.Policy is null)
         {
             return;
         }
 
-        string message = row.Kind switch
-        {
-            IPSecurityPolicyRowKind.FilterList => Format(LocalizedStrings.IPSec_DeleteFilterList_MessageFormat, row.Name),
-            IPSecurityPolicyRowKind.FilterAction => Format(LocalizedStrings.IPSec_DeleteFilterAction_MessageFormat, row.Name),
-            _ => Format(LocalizedStrings.IPSec_DeletePolicy_MessageFormat, row.Name)
-        };
+        string message = Format(LocalizedStrings.IPSec_DeletePolicy_MessageFormat, row.Name);
         if (!await ShowDeleteConfirmationAsync(message))
         {
             return;
         }
 
-        switch (row.Kind)
-        {
-            case IPSecurityPolicyRowKind.FilterList:
-                await ViewModel.DeleteFilterListAsync(row.Name);
-                break;
-            case IPSecurityPolicyRowKind.FilterAction:
-                await ViewModel.DeleteFilterActionAsync(row.Name);
-                break;
-            default:
-                await ViewModel.DeletePolicyAsync(row.Name);
-                break;
-        }
+        await ViewModel.DeletePolicyAsync(row.Name);
     }
 
     private async Task ShowPolicyEditorAsync(
@@ -222,60 +213,6 @@ public sealed partial class IPSecurityPage : Page
         else
         {
             await ViewModel.SetPolicyAsync(result);
-        }
-    }
-
-    private async Task ShowFilterListEditorAsync(
-        IPSecurityEditorMode mode,
-        IPSecurityFilterListDefinition? filterList = null)
-    {
-        var editor = new IPSecurityFilterListEditorControl(mode, filterList);
-        IPSecurityFilterListEditorResult? result = null;
-        string title = mode == IPSecurityEditorMode.Create
-            ? LocalizedStrings.IPSec_Dialog_CreateFilterList_Title
-            : Format(LocalizedStrings.IPSec_Dialog_EditFilterList_TitleFormat, filterList!.Name);
-
-        if (await ShowEditorAsync(title, editor, () => editor.TryBuildResult(out result))
-            != WindowDialogResult.Primary
-            || result is null)
-        {
-            return;
-        }
-
-        if (mode == IPSecurityEditorMode.Create)
-        {
-            await ViewModel.AddFilterListWithFiltersAsync(result.Options, result.Filters);
-        }
-        else
-        {
-            await ViewModel.SetFilterListWithFiltersAsync(filterList!, result.Options, result.Filters);
-        }
-    }
-
-    private async Task ShowFilterActionEditorAsync(
-        IPSecurityEditorMode mode,
-        IPSecurityFilterActionDefinition? filterAction = null)
-    {
-        var editor = new IPSecurityFilterActionEditorControl(mode, filterAction);
-        IPSecurityFilterActionCommandOptions? result = null;
-        string title = mode == IPSecurityEditorMode.Create
-            ? LocalizedStrings.IPSec_Dialog_CreateFilterAction_Title
-            : Format(LocalizedStrings.IPSec_Dialog_EditFilterAction_TitleFormat, filterAction!.Name);
-
-        if (await ShowEditorAsync(title, editor, () => editor.TryBuildResult(out result))
-            != WindowDialogResult.Primary
-            || result is null)
-        {
-            return;
-        }
-
-        if (mode == IPSecurityEditorMode.Create)
-        {
-            await ViewModel.AddFilterActionAsync(result);
-        }
-        else
-        {
-            await ViewModel.SetFilterActionAsync(result);
         }
     }
 

@@ -2061,6 +2061,12 @@ Default on Server editions: Success.</value>
   <data name="IPSec_Command_ManageRules" xml:space="preserve">
     <value>Manage rules</value>
   </data>
+  <data name="IPSec_Command_ManageFiltersActions" xml:space="preserve">
+    <value>Manage IP filter lists and filter actions</value>
+  </data>
+  <data name="IPSec_Dialog_ManageFiltersActions_Title" xml:space="preserve">
+    <value>Manage IP filter lists and filter actions</value>
+  </data>
   <data name="IPSec_DeleteConfirm_Title" xml:space="preserve">
     <value>Confirm deletion</value>
   </data>

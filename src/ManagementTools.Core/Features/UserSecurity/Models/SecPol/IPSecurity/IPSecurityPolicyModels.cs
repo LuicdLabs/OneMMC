@@ -1,33 +1,6 @@
 namespace ManagementTools.Core.Features.UserSecurity.Models.SecPol.IPSecurity;
 
 /// <summary>
-/// Sections shown in the IP Security Policies navigation tree.
-/// </summary>
-public enum IPSecuritySectionKind
-{
-    /// <summary>Static IP Security Policies.</summary>
-    Policies,
-
-    /// <summary>Shared IP filter lists.</summary>
-    FilterLists,
-
-    /// <summary>Shared IP filter actions.</summary>
-    FilterActions
-}
-
-/// <summary>
-/// A navigation item shown in the IP Security Policies tree.
-/// </summary>
-public sealed class IPSecuritySectionItem
-{
-    /// <summary>The section represented by the item.</summary>
-    public required IPSecuritySectionKind Kind { get; init; }
-
-    /// <summary>The localized section name.</summary>
-    public required string DisplayName { get; init; }
-}
-
-/// <summary>
 /// Row categories shown on the IP Security Policies page.
 /// </summary>
 public enum IPSecurityPolicyRowKind
@@ -163,6 +136,13 @@ public sealed class IPSecurityPolicyDefinition
 
     /// <summary>The rules owned by this policy.</summary>
     public IReadOnlyList<IPSecurityRuleDefinition> Rules { get; init; } = [];
+
+    /// <summary>
+    /// The time the policy object was last modified, read from the registry store's
+    /// <c>whenChanged</c> value. <see langword="null"/> when unavailable (for example, when the
+    /// data comes only from the netsh-style export, which carries no last-modified field).
+    /// </summary>
+    public DateTimeOffset? LastModifiedTime { get; init; }
 }
 
 /// <summary>

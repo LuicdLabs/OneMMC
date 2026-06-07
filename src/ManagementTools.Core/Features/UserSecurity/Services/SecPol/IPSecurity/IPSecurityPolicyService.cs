@@ -48,6 +48,7 @@ public sealed class IPSecurityPolicyService
             Name = policy.Name,
             Description = policy.Description,
             PolicyAssigned = FormatBoolean(policy.IsAssigned),
+            LastModified = FormatLastModified(policy.LastModifiedTime),
             Summary = rulesSummary,
             Policy = policy,
             Details =
@@ -152,6 +153,13 @@ public sealed class IPSecurityPolicyService
     private static string FormatBoolean(bool value)
     {
         return GetString(value ? IPSecurityPolicyKeys.ValueYes : IPSecurityPolicyKeys.ValueNo);
+    }
+
+    private static string FormatLastModified(DateTimeOffset? lastModified)
+    {
+        return lastModified is { } value
+            ? value.LocalDateTime.ToString(CultureInfo.CurrentCulture)
+            : string.Empty;
     }
 
     private static string FormatInteger(int value)

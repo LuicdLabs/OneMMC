@@ -347,6 +347,7 @@ namespace ManagementTools.Localization
         public string IPSec_Command_EditRule => GetResource(ResourceFileNames.SecPol, IPSecurityPolicyKeys.CommandEditRule);
         public string IPSec_Command_DeleteRule => GetResource(ResourceFileNames.SecPol, IPSecurityPolicyKeys.CommandDeleteRule);
         public string IPSec_Command_ManageRules => GetResource(ResourceFileNames.SecPol, IPSecurityPolicyKeys.CommandManageRules);
+        public string IPSec_Command_ManageFiltersActions => GetResource(ResourceFileNames.SecPol, IPSecurityPolicyKeys.CommandManageFiltersActions);
         public string IPSec_DeleteConfirm_Title => GetResource(ResourceFileNames.SecPol, IPSecurityPolicyKeys.DeleteConfirmTitle);
         public string IPSec_DeletePolicy_MessageFormat => GetResource(ResourceFileNames.SecPol, IPSecurityPolicyKeys.DeletePolicyMessageFormat);
         public string IPSec_DeleteFilterList_MessageFormat => GetResource(ResourceFileNames.SecPol, IPSecurityPolicyKeys.DeleteFilterListMessageFormat);
@@ -360,6 +361,7 @@ namespace ManagementTools.Localization
         public string IPSec_Dialog_EditFilterAction_TitleFormat => GetResource(ResourceFileNames.SecPol, IPSecurityPolicyKeys.DialogEditFilterActionTitleFormat);
         public string IPSec_Dialog_CreateRule_TitleFormat => GetResource(ResourceFileNames.SecPol, IPSecurityPolicyKeys.DialogCreateRuleTitleFormat);
         public string IPSec_Dialog_EditRule_TitleFormat => GetResource(ResourceFileNames.SecPol, IPSecurityPolicyKeys.DialogEditRuleTitleFormat);
+        public string IPSec_Dialog_ManageFiltersActions_Title => GetResource(ResourceFileNames.SecPol, IPSecurityPolicyKeys.DialogManageFiltersActionsTitle);
 
         // Network List Manager Policies
         public string NetworkListManager_UnidentifiedNetworks_Header => GetResource(ResourceFileNames.SecPol, NetworkListManagerKeys.UnidentifiedNetworksHeader);

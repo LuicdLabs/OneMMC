@@ -694,6 +694,8 @@ public static class IPSecurityPolicyKeys
     public const string CommandEditRule = "IPSec_Command_EditRule";
     public const string CommandDeleteRule = "IPSec_Command_DeleteRule";
     public const string CommandManageRules = "IPSec_Command_ManageRules";
+    public const string CommandManageFiltersActions = "IPSec_Command_ManageFiltersActions";
+    public const string DialogManageFiltersActionsTitle = "IPSec_Dialog_ManageFiltersActions_Title";
     public const string DeleteConfirmTitle = "IPSec_DeleteConfirm_Title";
     public const string DeletePolicyMessageFormat = "IPSec_DeletePolicy_MessageFormat";
     public const string DeleteFilterListMessageFormat = "IPSec_DeleteFilterList_MessageFormat";
