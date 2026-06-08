@@ -1,5 +1,3 @@
-using System.ComponentModel;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
 using ManagementTools.Core.Features.UserSecurity.Services.SecPol.Native;
 using Microsoft.Extensions.Logging;
@@ -12,17 +10,17 @@ namespace ManagementTools.Core.Features.UserSecurity.Services.SecPol.IPSecurity;
 /// </summary>
 /// <remarks>
 /// <para>
-/// Mutations with complete, verified struct layouts are performed by calling
-/// <c>IPSecCreate*Data</c>, <c>IPSecSet*Data</c>, and <c>IPSecDelete*Data</c>
+/// Filter list and filter action mutations with complete, verified struct layouts are performed
+/// by calling <c>IPSecCreate*Data</c>, <c>IPSecSet*Data</c>, and <c>IPSecDelete*Data</c>
 /// from <c>polstore.dll</c> with <c>IPSEC_REGISTRY_PROVIDER = 0</c>.
 /// The struct memory layouts were verified against the Windows 11 build of polstore.dll by
 /// enumerating objects created via <c>netsh ipsec static</c> and inspecting the in-memory
 /// representation returned by the enum APIs.
 /// </para>
 /// <para>
-/// Incremental policy, filter, and rule command lines use the official <c>netsh.exe</c> path.
-/// <c>IPSecImportPolicies</c> imports exported policy files and returns
-/// <c>ERROR_INVALID_PARAMETER</c> for these command-line mutations.
+/// Policy, filter, and rule mutations are applied via the native
+/// <c>IPSecImportPolicies</c> API, which accepts the same script-line format used by
+/// <c>netsh ipsec static</c>. No external processes are spawned.
 /// </para>
 /// <para>
 /// Name-to-GUID resolution is achieved by enumerating all objects of a type and matching
@@ -80,7 +78,7 @@ public sealed class IPSecurityStaticPolicyCommandExecutor
     /// <exception cref="ArgumentException">The command is outside the allowed mutation surface.</exception>
     /// <exception cref="UnauthorizedAccessException">The local IPsec policy store cannot be opened.</exception>
     /// <exception cref="InvalidOperationException">The command fails.</exception>
-    internal async Task ExecuteAsync(
+    internal Task ExecuteAsync(
         IReadOnlyList<string> arguments,
         CancellationToken cancellationToken = default)
     {
@@ -89,10 +87,10 @@ public sealed class IPSecurityStaticPolicyCommandExecutor
 
         string verb = arguments[2];
         string objectKind = arguments[3];
-        if (RequiresNetshExecution(objectKind))
+        if (RequiresImportPoliciesExecution(objectKind))
         {
-            await ExecuteNetshAsync(arguments, cancellationToken);
-            return;
+            ExecuteViaImportPolicies(arguments);
+            return Task.CompletedTask;
         }
 
         Dictionary<string, string> parameters = ParseParameters(arguments, startIndex: 4);
@@ -127,6 +125,8 @@ public sealed class IPSecurityStaticPolicyCommandExecutor
         {
             IPSecurityPolicyNativeMethods.CloseStore(hStore);
         }
+
+        return Task.CompletedTask;
     }
 
     private void DispatchCommand(IntPtr hStore, string verb, string objectKind, Dictionary<string, string> parameters)
@@ -418,64 +418,38 @@ public sealed class IPSecurityStaticPolicyCommandExecutor
 
     // ===== Helpers =====
 
-    private static bool RequiresNetshExecution(string objectKind)
+    private static bool RequiresImportPoliciesExecution(string objectKind)
     {
         return objectKind.Equals("policy", StringComparison.OrdinalIgnoreCase)
             || objectKind.Equals("filter", StringComparison.OrdinalIgnoreCase)
             || objectKind.Equals("rule", StringComparison.OrdinalIgnoreCase);
     }
 
-    private async Task ExecuteNetshAsync(
-        IReadOnlyList<string> arguments,
-        CancellationToken cancellationToken)
+    /// <summary>
+    /// Applies a policy/filter/rule mutation via the native <c>IPSecImportPolicies</c> API
+    /// in <c>polstore.dll</c>, which accepts the same script-line format that
+    /// <c>netsh ipsec static</c> uses internally.
+    /// </summary>
+    private void ExecuteViaImportPolicies(IReadOnlyList<string> arguments)
     {
-        try
+        string scriptLine = IPSecurityStaticPolicyNativeClient.BuildPolicyScriptLine(arguments);
+
+        if (!IPSecurityPolicyNativeMethods.TryOpenRegistryStore(out IntPtr hStore, out int openError))
         {
-            using Process process = new()
-            {
-                StartInfo = new ProcessStartInfo
-                {
-                    FileName = "netsh.exe",
-                    UseShellExecute = false,
-                    CreateNoWindow = true,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    StandardOutputEncoding = System.Text.Encoding.UTF8,
-                    StandardErrorEncoding = System.Text.Encoding.UTF8
-                }
-            };
-
-            foreach (string argument in arguments)
-            {
-                process.StartInfo.ArgumentList.Add(argument);
-            }
-
-            process.Start();
-            Task<string> outputTask = process.StandardOutput.ReadToEndAsync(cancellationToken);
-            Task<string> errorTask = process.StandardError.ReadToEndAsync(cancellationToken);
-
-            await process.WaitForExitAsync(cancellationToken);
-            string output = await outputTask;
-            string error = await errorTask;
-
-            if (process.ExitCode == 0)
-            {
-                return;
-            }
-
-            if (IsAccessDeniedFailure(process.ExitCode, output, error))
+            if (IPSecurityPolicyNativeMethods.IsStoreOpenFailure(openError) || openError == 5)
             {
                 throw new UnauthorizedAccessException(
                     "The local IPsec policy store cannot be modified because the operation requires elevation.");
             }
 
             throw new InvalidOperationException(
-                $"The legacy IPsec policy {arguments[2]} {arguments[3]} command failed with exit code {process.ExitCode}.");
+                $"Failed to open the legacy IPsec policy store (native error 0x{openError:X8}).");
         }
-        catch (Win32Exception ex)
+
+        try
         {
-            LogFailure(arguments);
-            throw new InvalidOperationException("Failed to launch netsh.exe.", ex);
+            int hr = IPSecurityPolicyNativeMethods.ImportPolicies(hStore, scriptLine);
+            ThrowOnError(hr, $"{arguments[2]} {arguments[3]}");
         }
         catch (UnauthorizedAccessException)
         {
@@ -487,21 +461,10 @@ public sealed class IPSecurityStaticPolicyCommandExecutor
             LogFailure(arguments);
             throw;
         }
-    }
-
-    private static bool IsAccessDeniedFailure(int exitCode, string output, string error)
-    {
-        return exitCode == 5
-            || ContainsAccessDeniedText(output)
-            || ContainsAccessDeniedText(error);
-    }
-
-    private static bool ContainsAccessDeniedText(string text)
-    {
-        return text.Contains("elevation", StringComparison.OrdinalIgnoreCase)
-            || text.Contains("Access is denied", StringComparison.OrdinalIgnoreCase)
-            || text.Contains("Unable to open Policy Store", StringComparison.OrdinalIgnoreCase)
-            || text.Contains("IPsec[05073]", StringComparison.OrdinalIgnoreCase);
+        finally
+        {
+            IPSecurityPolicyNativeMethods.CloseStore(hStore);
+        }
     }
 
     private static Guid ResolveNegPolAction(string action)
