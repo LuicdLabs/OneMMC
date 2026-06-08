@@ -115,7 +115,10 @@ public sealed class IPSecurityStaticPolicyNativeClient
             return token;
         }
 
-        return $"{key}=\"{value.Replace("\"", "\\\"", StringComparison.Ordinal)}\"";
+        string escapedValue = value
+            .Replace("\\", "\\\\", StringComparison.Ordinal)
+            .Replace("\"", "\\\"", StringComparison.Ordinal);
+        return $"{key}=\"{escapedValue}\"";
     }
 
     private static Exception MapOpenFailure(int errorCode)
