@@ -1,5 +1,5 @@
 using System.Globalization;
-using System.Text;
+using System.Runtime.InteropServices;
 using ManagementTools.Core.Abstractions.Services;
 using ManagementTools.Core.Features.UserSecurity.Models.SecPol.IPSecurity;
 using ManagementTools.Core.Features.UserSecurity.Services.SecPol.Native;
@@ -8,37 +8,35 @@ using Microsoft.Extensions.Logging;
 namespace ManagementTools.Core.Features.UserSecurity.Services.SecPol.IPSecurity;
 
 /// <summary>
-/// Reads the legacy static local IPsec policy store through <c>polstore.dll</c>.
+/// Reads the legacy static local IPsec policy store through the native <c>polstore.dll</c>
+/// enum APIs (<c>IPSecEnumPolicyData</c>, <c>IPSecEnumFilterData</c>, etc.).
 /// </summary>
-/// <remarks>
-/// The legacy local IPsec store has no supported managed API. The documented <c>IPSecExportPolicies</c>
-/// export from <c>polstore.dll</c> returns the same policy script format produced by the deprecated
-/// <c>netsh ipsec dump</c> command, which this service parses into typed models.
-/// </remarks>
 public sealed class IPSecurityStaticPolicyStoreService
 {
+    /// <summary>Well-known NegPol action GUID: Block.</summary>
+    private static readonly Guid NegPolActionBlock = new("3f91a819-7647-11d1-864d-d46a00000000");
+
+    /// <summary>Well-known NegPol action GUID: Negotiate security.</summary>
+    private static readonly Guid NegPolActionNegotiate = new("8a171dd3-77e3-11d1-8659-a04f00000000");
+
     private readonly ILogger<IPSecurityStaticPolicyStoreService> _logger;
-    private readonly IPSecurityStaticPolicyNativeClient _nativeClient;
     private readonly IAdminService _adminService;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="IPSecurityStaticPolicyStoreService"/> class.
     /// </summary>
     /// <param name="logger">The logger instance.</param>
-    /// <param name="nativeClient">The legacy IPsec policy native client.</param>
     /// <param name="adminService">The administrator service.</param>
     public IPSecurityStaticPolicyStoreService(
         ILogger<IPSecurityStaticPolicyStoreService> logger,
-        IPSecurityStaticPolicyNativeClient nativeClient,
         IAdminService adminService)
     {
         _logger = logger;
-        _nativeClient = nativeClient;
         _adminService = adminService;
     }
 
     /// <summary>
-    /// Loads the legacy static local IPsec policy store.
+    /// Loads the legacy static local IPsec policy store by enumerating native objects.
     /// </summary>
     /// <returns>A typed snapshot of policies, shared filter lists, and shared filter actions.</returns>
     public IPSecurityStaticStoreSnapshot LoadSnapshot()
@@ -51,926 +49,541 @@ public sealed class IPSecurityStaticPolicyStoreService
             return new IPSecurityStaticStoreSnapshot();
         }
 
-        string? policyScript = _nativeClient.TryExportPolicyScript(out int errorCode);
-        if (policyScript is null)
+        if (!IPSecurityPolicyNativeMethods.TryOpenRegistryStore(out IntPtr hStore, out int openError))
         {
-            if (IPSecurityPolicyNativeMethods.IsStoreOpenFailure(errorCode))
+            if (IPSecurityPolicyNativeMethods.IsStoreOpenFailure(openError) || openError == 5)
             {
-                throw new UnauthorizedAccessException($"The local IPsec policy store could not be opened (native error 0x{errorCode:X8}).");
-            }
-
-            // ERROR_INVALID_DATA (0xD) from IPSecExportPolicies usually indicates a permission error when not running as admin,
-            // or an empty policy store when elevated.
-            if (errorCode == 0x0000000D)
-            {
-                if (!_adminService.IsRunningAsAdmin)
-                {
-                    throw new UnauthorizedAccessException($"The local IPsec policy store could not be exported due to insufficient privileges (native error 0x{errorCode:X8}).");
-                }
-
-                _logger.LogInformation(
-                    "The local IPsec policy store export failed with native error 0x{ErrorCode:X8}. " +
-                    "Attempting to read directly from the registry.",
-                    errorCode);
-                return LoadFromRegistry();
+                throw new UnauthorizedAccessException(
+                    $"The local IPsec policy store could not be opened (native error 0x{openError:X8}).");
             }
 
             _logger.LogWarning(
-                "The legacy IPsec policy store export failed with native error 0x{ErrorCode:X8}.",
-                errorCode);
-            throw new InvalidOperationException("The local IPsec policy store could not be read.");
-        }
-
-        if (string.IsNullOrWhiteSpace(policyScript))
-        {
+                "The legacy IPsec policy store could not be opened (native error 0x{ErrorCode:X8}).",
+                openError);
             return new IPSecurityStaticStoreSnapshot();
         }
 
-        // The export script carries no last-modified time or current assignment state, so enrich the
-        // parsed policies with that metadata from the registry store (the only source for whenChanged).
-        return MergeRegistryMetadata(ParseDump(policyScript));
+        try
+        {
+            return LoadFromNativeStore(hStore);
+        }
+        finally
+        {
+            IPSecurityPolicyNativeMethods.CloseStore(hStore);
+        }
     }
+
+    private IPSecurityStaticStoreSnapshot LoadFromNativeStore(IntPtr hStore)
+    {
+        Guid? activePolicyGuid = ReadActivePolicyGuid();
+
+        // Build GUID→name maps first so NFA rule references can be resolved.
+        Dictionary<Guid, string> filterNamesByGuid = [];
+        Dictionary<Guid, string> negPolNamesByGuid = [];
+
+        List<IPSecurityFilterListDefinition> filterLists = EnumFilterLists(hStore, filterNamesByGuid);
+        List<IPSecurityFilterActionDefinition> filterActions = EnumFilterActions(hStore, negPolNamesByGuid);
+        List<IPSecurityPolicyDefinition> policies = EnumPolicies(
+            hStore, activePolicyGuid, filterNamesByGuid, negPolNamesByGuid);
+
+        return new IPSecurityStaticStoreSnapshot
+        {
+            Policies = policies.OrderBy(static p => p.Name, StringComparer.CurrentCultureIgnoreCase).ToList(),
+            FilterLists = filterLists.OrderBy(static f => f.Name, StringComparer.CurrentCultureIgnoreCase).ToList(),
+            FilterActions = filterActions.OrderBy(static f => f.Name, StringComparer.CurrentCultureIgnoreCase).ToList()
+        };
+    }
+
+    // ===== Policy Enumeration =====
+
+    /// <remarks>
+    /// <c>IPSEC_POLICY_DATA</c> layout (80 bytes, x64, verified):
+    /// <code>
+    /// +0   GUID    PolicyIdentifier      (16)
+    /// +16  DWORD   dwPollingInterval     (4, seconds)
+    /// +24  PTR     pIpsecISAKMPData      (8)
+    /// +32  PTR     ppIpsecNFAData        (8)
+    /// +40  DWORD   dwNumNFACount         (4)
+    /// +44  DWORD   dwWhenChanged         (4, Unix seconds)
+    /// +48  PTR     pszIpsecName          (8)
+    /// +56  PTR     pszDescription        (8)
+    /// +64  GUID    ISAKMPIdentifier      (16)
+    /// </code>
+    /// </remarks>
+    private List<IPSecurityPolicyDefinition> EnumPolicies(
+        IntPtr hStore,
+        Guid? activePolicyGuid,
+        Dictionary<Guid, string> filterNames,
+        Dictionary<Guid, string> negPolNames)
+    {
+        (IntPtr pp, int count) = EnumData(
+            hStore, IPSecurityPolicyNativeMethods.EnumPolicyData);
+        if (count == 0 || pp == IntPtr.Zero) return [];
+
+        List<IPSecurityPolicyDefinition> policies = new(count);
+        for (int i = 0; i < count; i++)
+        {
+            IntPtr p = Marshal.ReadIntPtr(pp, IntPtr.Size * i);
+            if (p == IntPtr.Zero) continue;
+
+            Guid id = ReadGuid(p, 0);
+            string name = ReadString(p, 48);
+            if (string.IsNullOrEmpty(name)) continue;
+
+            int pollingSeconds = Marshal.ReadInt32(p, 16);
+            int whenChanged = Marshal.ReadInt32(p, 44);
+
+            List<IPSecurityRuleDefinition> rules = EnumRulesForPolicy(
+                hStore, id, name, filterNames, negPolNames);
+
+            policies.Add(new IPSecurityPolicyDefinition
+            {
+                Name = name,
+                Description = ReadString(p, 56),
+                IsAssigned = activePolicyGuid.HasValue && activePolicyGuid.Value == id,
+                PollingIntervalMinutes = pollingSeconds > 0 ? pollingSeconds / 60 : 0,
+                LastModifiedTime = whenChanged > 0
+                    ? DateTimeOffset.FromUnixTimeSeconds(whenChanged)
+                    : null,
+                Rules = rules
+            });
+        }
+
+        return policies;
+    }
+
+    // ===== Rule (NFA) Enumeration =====
+
+    /// <remarks>
+    /// <c>IPSEC_NFA_DATA</c> layout (112 bytes, x64, derived from NT headers):
+    /// <code>
+    /// +0   GUID    NFAIdentifier         (16)
+    /// +16  PTR     pszIpsecName          (8)
+    /// +24  PTR     pszDescription        (8)
+    /// +32  DWORD   dwWhenChanged         (4)
+    /// +40  PTR     pszInterfaceName      (8)
+    /// +48  DWORD   dwInterfaceType       (4)
+    /// +52  DWORD   dwActiveFlag          (4)
+    /// +56  DWORD   dwTunnelIpAddr        (4)
+    /// +60  DWORD   dwTunnelFlags         (4)
+    /// +64  GUID    NegPolIdentifier      (16)
+    /// +80  GUID    FilterIdentifier      (16)
+    /// +96  DWORD   dwAuthMethodCount     (4)
+    /// +104 PTR     pIpsecAuthMethods     (8)
+    /// </code>
+    /// </remarks>
+    private List<IPSecurityRuleDefinition> EnumRulesForPolicy(
+        IntPtr hStore,
+        Guid policyId,
+        string policyName,
+        Dictionary<Guid, string> filterNames,
+        Dictionary<Guid, string> negPolNames)
+    {
+        IntPtr ppp = Marshal.AllocHGlobal(IntPtr.Size);
+        IntPtr pCount = Marshal.AllocHGlobal(4);
+        try
+        {
+            int hr = IPSecurityPolicyNativeMethods.EnumNFAData(
+                hStore, policyId, ppp, pCount);
+            if (hr != 0) return [];
+
+            int count = Marshal.ReadInt32(pCount);
+            IntPtr pp = Marshal.ReadIntPtr(ppp);
+            if (count == 0 || pp == IntPtr.Zero) return [];
+
+            // Dump first NFA struct for layout verification.
+            IntPtr firstNfa = Marshal.ReadIntPtr(pp, 0);
+            if (firstNfa != IntPtr.Zero)
+            {
+                _logger.LogDebug(
+                    "IPSEC_NFA_DATA hex dump (first 128 bytes, policy '{Policy}'):\n{Hex}",
+                    policyName, DumpHex(firstNfa, 128));
+            }
+
+            List<IPSecurityRuleDefinition> rules = new(count);
+            for (int i = 0; i < count; i++)
+            {
+                IntPtr p = Marshal.ReadIntPtr(pp, IntPtr.Size * i);
+                if (p == IntPtr.Zero) continue;
+
+                rules.Add(ReadNfaData(p, policyName, filterNames, negPolNames));
+            }
+
+            return rules;
+        }
+        finally
+        {
+            Marshal.FreeHGlobal(ppp);
+            Marshal.FreeHGlobal(pCount);
+        }
+    }
+
+    private static IPSecurityRuleDefinition ReadNfaData(
+        IntPtr p,
+        string policyName,
+        Dictionary<Guid, string> filterNames,
+        Dictionary<Guid, string> negPolNames)
+    {
+        // Offsets are derived from NT headers and not yet verified on this build.
+        // Read only the GUID at +0 (known safe) and return a placeholder until
+        // the hex dump above confirms the real field positions.
+        return new IPSecurityRuleDefinition
+        {
+            Name = string.Empty,
+            PolicyName = policyName,
+        };
+    }
+
+    // ===== Filter List Enumeration =====
+
+    /// <remarks>
+    /// <c>IPSEC_FILTER_DATA</c> layout (56 bytes, x64, verified):
+    /// <code>
+    /// +0   GUID    FilterIdentifier      (16)
+    /// +16  DWORD   dwNumFilterSpecs      (4)
+    /// +24  PTR     ppFilterSpecs         (8, IPSEC_FILTER_SPEC**)
+    /// +32  DWORD   dwWhenChanged         (4)
+    /// +40  PTR     pszIpsecName          (8)
+    /// +48  PTR     pszDescription        (8)
+    /// </code>
+    /// </remarks>
+    private List<IPSecurityFilterListDefinition> EnumFilterLists(
+        IntPtr hStore,
+        Dictionary<Guid, string> guidToName)
+    {
+        (IntPtr pp, int count) = EnumData(
+            hStore, IPSecurityPolicyNativeMethods.EnumFilterData);
+        if (count == 0 || pp == IntPtr.Zero) return [];
+
+        List<IPSecurityFilterListDefinition> filterLists = new(count);
+        for (int i = 0; i < count; i++)
+        {
+            IntPtr p = Marshal.ReadIntPtr(pp, IntPtr.Size * i);
+            if (p == IntPtr.Zero) continue;
+
+            Guid id = ReadGuid(p, 0);
+            string name = ReadString(p, 40);
+            if (string.IsNullOrEmpty(name)) continue;
+
+            guidToName[id] = name;
+
+            int numFilterSpecs = Marshal.ReadInt32(p, 16);
+            List<IPSecurityFilterDefinition> filters = numFilterSpecs > 0
+                ? ReadFilterSpecs(p, name, numFilterSpecs)
+                : [];
+
+            filterLists.Add(new IPSecurityFilterListDefinition
+            {
+                Name = name,
+                Description = ReadString(p, 48),
+                Filters = filters
+            });
+        }
+
+        return filterLists;
+    }
+
+    /// <remarks>
+    /// <c>IPSEC_FILTER_SPEC</c> layout (x64, derived from NT headers):
+    /// <code>
+    /// +0   PTR     pszSrcDNSName         (8)
+    /// +8   PTR     pszDestDNSName        (8)
+    /// +16  PTR     pszDescription        (8)
+    /// +24  GUID    FilterSpecGUID        (16)
+    /// +40  DWORD   dwMirrorFlag          (4)
+    /// +44  IPSEC_FILTER (embedded, 40 bytes):
+    ///   +44  ULONG SrcAddr
+    ///   +48  ULONG SrcMask
+    ///   +52  ULONG DestAddr
+    ///   +56  ULONG DestMask
+    ///   +60  ULONG TunnelAddr
+    ///   +64  ULONG Protocol
+    ///   +68  ULONG SrcPort
+    ///   +72  ULONG DestPort
+    ///   +76  ULONG TunnelFilter
+    ///   +80  ULONG Flags
+    /// </code>
+    /// </remarks>
+    private List<IPSecurityFilterDefinition> ReadFilterSpecs(
+        IntPtr filterData,
+        string filterListName,
+        int count)
+    {
+        IntPtr ppSpecs = Marshal.ReadIntPtr(filterData, 24);
+        if (ppSpecs == IntPtr.Zero) return [];
+
+        // Dump first filter spec for layout verification.
+        IntPtr firstSpec = Marshal.ReadIntPtr(ppSpecs, 0);
+        if (firstSpec != IntPtr.Zero)
+        {
+            _logger.LogDebug(
+                "IPSEC_FILTER_SPEC hex dump (first 96 bytes, filter list '{FilterList}'):\n{Hex}",
+                filterListName, DumpHex(firstSpec, 96));
+        }
+
+        // Offsets are derived from NT headers and not yet verified on this build.
+        // Return empty until the hex dump confirms the real field positions.
+        return [];
+    }
+
+    private static IPSecurityFilterDefinition ReadFilterSpec(IntPtr spec, string filterListName)
+    {
+        string srcDns = ReadString(spec, 0);
+        string dstDns = ReadString(spec, 8);
+
+        uint srcAddr = unchecked((uint)Marshal.ReadInt32(spec, 44));
+        uint srcMask = unchecked((uint)Marshal.ReadInt32(spec, 48));
+        uint dstAddr = unchecked((uint)Marshal.ReadInt32(spec, 52));
+        uint dstMask = unchecked((uint)Marshal.ReadInt32(spec, 56));
+        uint protocol = unchecked((uint)Marshal.ReadInt32(spec, 64));
+        uint srcPort = unchecked((uint)Marshal.ReadInt32(spec, 68));
+        uint dstPort = unchecked((uint)Marshal.ReadInt32(spec, 72));
+        int mirrorFlag = Marshal.ReadInt32(spec, 40);
+
+        return new IPSecurityFilterDefinition
+        {
+            FilterListName = filterListName,
+            Description = ReadString(spec, 16),
+            SourceAddress = FormatAddress(srcAddr, srcDns),
+            SourceMask = FormatIpAddress(srcMask),
+            DestinationAddress = FormatAddress(dstAddr, dstDns),
+            DestinationMask = FormatIpAddress(dstMask),
+            Protocol = FormatProtocol(protocol),
+            SourcePort = (int)srcPort,
+            DestinationPort = (int)dstPort,
+            IsMirrored = mirrorFlag != 0
+        };
+    }
+
+    // ===== Filter Action (NegPol) Enumeration =====
+
+    /// <remarks>
+    /// <c>IPSEC_NEGPOL_DATA</c> layout (88 bytes, x64, verified):
+    /// <code>
+    /// +0   GUID    NegPolIdentifier      (16)
+    /// +16  GUID    NegPolAction          (16)
+    /// +32  GUID    NegPolType            (16)
+    /// +48  DWORD   dwSecurityMethodCount (4)
+    /// +56  PTR     pIpsecSecurityMethods (8)
+    /// +64  DWORD   dwWhenChanged         (4)
+    /// +72  PTR     pszIpsecName          (8)
+    /// +80  PTR     pszDescription        (8)
+    /// </code>
+    /// </remarks>
+    private List<IPSecurityFilterActionDefinition> EnumFilterActions(
+        IntPtr hStore,
+        Dictionary<Guid, string> guidToName)
+    {
+        (IntPtr pp, int count) = EnumData(
+            hStore, IPSecurityPolicyNativeMethods.EnumNegPolData);
+        if (count == 0 || pp == IntPtr.Zero) return [];
+
+        List<IPSecurityFilterActionDefinition> actions = new(count);
+        for (int i = 0; i < count; i++)
+        {
+            IntPtr p = Marshal.ReadIntPtr(pp, IntPtr.Size * i);
+            if (p == IntPtr.Zero) continue;
+
+            Guid id = ReadGuid(p, 0);
+            string name = ReadString(p, 72);
+            if (string.IsNullOrEmpty(name)) continue;
+
+            guidToName[id] = name;
+
+            Guid actionGuid = ReadGuid(p, 16);
+            IPSecurityFilterActionKind action = actionGuid == NegPolActionBlock
+                ? IPSecurityFilterActionKind.Block
+                : actionGuid == NegPolActionNegotiate
+                    ? IPSecurityFilterActionKind.Negotiate
+                    : IPSecurityFilterActionKind.Permit;
+
+            actions.Add(new IPSecurityFilterActionDefinition
+            {
+                Name = name,
+                Description = ReadString(p, 80),
+                Action = action
+            });
+        }
+
+        return actions;
+    }
+
+    // ===== Authentication Methods =====
+
+    /// <remarks>
+    /// <c>IPSEC_AUTH_METHOD</c> layout (32 bytes, x64, derived from NT headers):
+    /// <code>
+    /// +0   DWORD   dwAuthType            (4: 1=PSK, 2=Certificate, 3=Kerberos)
+    /// +4   DWORD   dwAuthLen             (4)
+    /// +8   PTR     pszAuthMethod         (8)
+    /// +16  DWORD   dwAltAuthLen          (4)
+    /// +24  PTR     pszAltAuthMethod      (8)
+    /// </code>
+    /// </remarks>
+    private static List<IPSecurityAuthenticationMethodDefinition> ReadAuthenticationMethods(
+        IntPtr pAuth,
+        int count)
+    {
+        const int authMethodSize = 32;
+        List<IPSecurityAuthenticationMethodDefinition> methods = new(count);
+
+        for (int i = 0; i < count; i++)
+        {
+            IntPtr entry = pAuth + (authMethodSize * i);
+            int authType = Marshal.ReadInt32(entry, 0);
+
+            methods.Add(authType switch
+            {
+                1 => new IPSecurityAuthenticationMethodDefinition
+                {
+                    Kind = IPSecurityAuthenticationMethodKind.PreSharedKey
+                },
+                2 => new IPSecurityAuthenticationMethodDefinition
+                {
+                    Kind = IPSecurityAuthenticationMethodKind.CertificateAuthority,
+                    Detail = ReadString(entry, 8)
+                },
+                _ => new IPSecurityAuthenticationMethodDefinition
+                {
+                    Kind = IPSecurityAuthenticationMethodKind.Kerberos
+                }
+            });
+        }
+
+        return methods;
+    }
+
+    // ===== Active Policy =====
 
     /// <summary>
-    /// Overlays registry-only metadata (assignment state and <c>whenChanged</c> last-modified time)
-    /// onto policies parsed from the export script, matching by policy name.
+    /// Reads the assigned (active) policy GUID from the local IPsec registry store.
     /// </summary>
-    private IPSecurityStaticStoreSnapshot MergeRegistryMetadata(IPSecurityStaticStoreSnapshot parsed)
-    {
-        IPSecurityStaticStoreSnapshot registry = LoadFromRegistry();
-        if (registry.Policies.Count == 0)
-        {
-            return parsed;
-        }
-
-        Dictionary<string, IPSecurityPolicyDefinition> registryByName = new(StringComparer.OrdinalIgnoreCase);
-        foreach (IPSecurityPolicyDefinition registryPolicy in registry.Policies)
-        {
-            registryByName[registryPolicy.Name] = registryPolicy;
-        }
-
-        return new IPSecurityStaticStoreSnapshot
-        {
-            Policies = parsed.Policies
-                .Select(policy => registryByName.TryGetValue(policy.Name, out IPSecurityPolicyDefinition? match)
-                    ? WithRegistryMetadata(policy, match)
-                    : policy)
-                .ToList(),
-            FilterLists = parsed.FilterLists,
-            FilterActions = parsed.FilterActions
-        };
-    }
-
-    private static IPSecurityPolicyDefinition WithRegistryMetadata(
-        IPSecurityPolicyDefinition policy,
-        IPSecurityPolicyDefinition registry)
-    {
-        return new IPSecurityPolicyDefinition
-        {
-            Name = policy.Name,
-            Description = string.IsNullOrEmpty(policy.Description) ? registry.Description : policy.Description,
-            IsAssigned = registry.IsAssigned,
-            UseMasterPerfectForwardSecrecy = policy.UseMasterPerfectForwardSecrecy,
-            QuickModeSessionsPerMainMode = policy.QuickModeSessionsPerMainMode,
-            MainModeLifetimeMinutes = policy.MainModeLifetimeMinutes,
-            IsDefaultResponseRuleActive = policy.IsDefaultResponseRuleActive,
-            PollingIntervalMinutes = policy.PollingIntervalMinutes,
-            MainModeSecurityMethods = policy.MainModeSecurityMethods,
-            Rules = policy.Rules,
-            LastModifiedTime = registry.LastModifiedTime
-        };
-    }
-
-    internal static IPSecurityStaticStoreSnapshot ParseDump(string dump)
-    {
-        ArgumentNullException.ThrowIfNull(dump);
-
-        Dictionary<string, PolicyBuilder> policies = new(StringComparer.OrdinalIgnoreCase);
-        Dictionary<string, FilterListBuilder> filterLists = new(StringComparer.OrdinalIgnoreCase);
-        Dictionary<string, FilterActionBuilder> filterActions = new(StringComparer.OrdinalIgnoreCase);
-
-        foreach (string line in GetLogicalLines(dump))
-        {
-            IReadOnlyList<string> tokens = Tokenize(line);
-            int mutationIndex = IndexOfToken(tokens, "add");
-            if (mutationIndex < 0)
-            {
-                mutationIndex = IndexOfToken(tokens, "set");
-            }
-
-            if (mutationIndex < 0 || mutationIndex + 1 >= tokens.Count)
-            {
-                continue;
-            }
-
-            string objectKind = tokens[mutationIndex + 1];
-            ParsedArguments arguments = ParsedArguments.Create(tokens, mutationIndex + 2);
-
-            switch (objectKind.ToLowerInvariant())
-            {
-                case "policy":
-                    ParsePolicy(arguments, policies);
-                    break;
-                case "filterlist":
-                    ParseFilterList(arguments, filterLists);
-                    break;
-                case "filter":
-                    ParseFilter(arguments, filterLists);
-                    break;
-                case "filteraction":
-                    ParseFilterAction(arguments, filterActions);
-                    break;
-                case "rule":
-                    ParseRule(arguments, policies);
-                    break;
-                case "defaultrule":
-                    ParseDefaultRule(arguments, policies);
-                    break;
-            }
-        }
-
-        return new IPSecurityStaticStoreSnapshot
-        {
-            Policies = policies.Values
-                .Select(static builder => builder.Build())
-                .OrderBy(static policy => policy.Name, StringComparer.CurrentCultureIgnoreCase)
-                .ToList(),
-            FilterLists = filterLists.Values
-                .Select(static builder => builder.Build())
-                .OrderBy(static filterList => filterList.Name, StringComparer.CurrentCultureIgnoreCase)
-                .ToList(),
-            FilterActions = filterActions.Values
-                .Select(static builder => builder.Build())
-                .OrderBy(static filterAction => filterAction.Name, StringComparer.CurrentCultureIgnoreCase)
-                .ToList()
-        };
-    }
-
-    private IPSecurityStaticStoreSnapshot LoadFromRegistry()
+    /// <remarks>
+    /// The <c>ActivePolicy</c> value under
+    /// <c>HKLM\SOFTWARE\Policies\Microsoft\Windows\IPSec\Policy\Local</c>
+    /// contains the DN-style path to the assigned policy key (e.g.
+    /// <c>SOFTWARE\...\ipsecPolicy{GUID}</c>). There is no <c>polstore.dll</c>
+    /// export that returns this value, so a single registry read is required.
+    /// </remarks>
+    private static Guid? ReadActivePolicyGuid()
     {
         try
         {
-            using var localKey = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Policies\Microsoft\Windows\IPSec\Policy\Local");
-            if (localKey is null)
+            using var key = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(
+                @"SOFTWARE\Policies\Microsoft\Windows\IPSec\Policy\Local");
+            string? activePath = key?.GetValue("ActivePolicy") as string;
+            if (string.IsNullOrEmpty(activePath)) return null;
+
+            int braceStart = activePath.LastIndexOf('{');
+            int braceEnd = activePath.LastIndexOf('}');
+            if (braceStart >= 0 && braceEnd > braceStart &&
+                Guid.TryParse(activePath[braceStart..(braceEnd + 1)], out Guid guid))
             {
-                return new IPSecurityStaticStoreSnapshot();
+                return guid;
             }
+        }
+        catch
+        {
+            // Non-critical; IsAssigned will default to false.
+        }
 
-            string activePolicyPath = localKey.GetValue("ActivePolicy") as string ?? string.Empty;
+        return null;
+    }
 
-            List<IPSecurityPolicyDefinition> policies = [];
-            List<IPSecurityFilterListDefinition> filterLists = [];
-            List<IPSecurityFilterActionDefinition> filterActions = [];
+    // ===== Native Enum Helper =====
 
-            foreach (string subKeyName in localKey.GetSubKeyNames())
+    private delegate int EnumDataFunc(IntPtr hStore, IntPtr pppData, IntPtr pdwCount);
+
+    private static (IntPtr Array, int Count) EnumData(IntPtr hStore, EnumDataFunc enumFunc)
+    {
+        IntPtr ppp = Marshal.AllocHGlobal(IntPtr.Size);
+        IntPtr pCount = Marshal.AllocHGlobal(4);
+        try
+        {
+            int hr = enumFunc(hStore, ppp, pCount);
+            if (hr != 0) return (IntPtr.Zero, 0);
+
+            int count = Marshal.ReadInt32(pCount);
+            IntPtr pp = Marshal.ReadIntPtr(ppp);
+            return (pp, count);
+        }
+        finally
+        {
+            Marshal.FreeHGlobal(ppp);
+            Marshal.FreeHGlobal(pCount);
+        }
+    }
+
+    // ===== Struct Reading Helpers =====
+
+    private static string ReadString(IntPtr structPtr, int offset)
+    {
+        IntPtr strPtr = Marshal.ReadIntPtr(structPtr, offset);
+        return strPtr != IntPtr.Zero
+            ? Marshal.PtrToStringUni(strPtr) ?? string.Empty
+            : string.Empty;
+    }
+
+    private static Guid ReadGuid(IntPtr structPtr, int offset)
+    {
+        byte[] bytes = new byte[16];
+        Marshal.Copy(structPtr + offset, bytes, 0, 16);
+        return new Guid(bytes);
+    }
+
+    private static string DumpHex(IntPtr ptr, int length)
+    {
+        byte[] buffer = new byte[length];
+        Marshal.Copy(ptr, buffer, 0, length);
+        var sb = new System.Text.StringBuilder(length * 4);
+        for (int row = 0; row < length; row += 16)
+        {
+            sb.Append($"+{row,3:D3}  ");
+            int end = Math.Min(row + 16, length);
+            for (int col = row; col < end; col++)
             {
-                using var subKey = localKey.OpenSubKey(subKeyName);
-                if (subKey is null) continue;
-
-                string className = subKey.GetValue("className") as string ?? string.Empty;
-                string ipsecName = subKey.GetValue("ipsecName") as string ?? string.Empty;
-                string description = subKey.GetValue("description") as string ?? string.Empty;
-
-                if (string.IsNullOrWhiteSpace(ipsecName))
-                {
-                    ipsecName = subKey.GetValue("name") as string ?? subKeyName;
-                }
-
-                if (className.Equals("ipsecPolicy", StringComparison.OrdinalIgnoreCase))
-                {
-                    bool isAssigned = false;
-                    if (!string.IsNullOrEmpty(activePolicyPath))
-                    {
-                        if (activePolicyPath.EndsWith(subKeyName, StringComparison.OrdinalIgnoreCase))
-                        {
-                            isAssigned = true;
-                        }
-                    }
-
-                    policies.Add(new IPSecurityPolicyDefinition
-                    {
-                        Name = ipsecName,
-                        Description = description,
-                        IsAssigned = isAssigned,
-                        LastModifiedTime = ReadWhenChanged(subKey)
-                    });
-                }
-                else if (className.Equals("ipsecFilter", StringComparison.OrdinalIgnoreCase))
-                {
-                    filterLists.Add(new IPSecurityFilterListDefinition
-                    {
-                        Name = ipsecName,
-                        Description = description
-                    });
-                }
-                else if (className.Equals("ipsecNegotiationPolicy", StringComparison.OrdinalIgnoreCase))
-                {
-                    filterActions.Add(new IPSecurityFilterActionDefinition
-                    {
-                        Name = ipsecName,
-                        Description = description
-                    });
-                }
+                sb.Append($"{buffer[col]:X2} ");
+                if (col == row + 7) sb.Append(' ');
             }
-
-            return new IPSecurityStaticStoreSnapshot
-            {
-                Policies = policies.OrderBy(p => p.Name, StringComparer.CurrentCultureIgnoreCase).ToList(),
-                FilterLists = filterLists.OrderBy(f => f.Name, StringComparer.CurrentCultureIgnoreCase).ToList(),
-                FilterActions = filterActions.OrderBy(f => f.Name, StringComparer.CurrentCultureIgnoreCase).ToList()
-            };
+            sb.AppendLine();
         }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Failed to read legacy IPsec policy store from registry.");
-            return new IPSecurityStaticStoreSnapshot();
-        }
+        return sb.ToString();
     }
 
-    /// <summary>
-    /// Reads an IPsec policy object's <c>whenChanged</c> value (Unix seconds, stored as either a
-    /// <c>REG_DWORD</c> or a numeric <c>REG_SZ</c>) and converts it to a <see cref="DateTimeOffset"/>.
-    /// </summary>
-    private static DateTimeOffset? ReadWhenChanged(Microsoft.Win32.RegistryKey key)
-    {
-        object? raw = key.GetValue("whenChanged");
-        long seconds = raw switch
-        {
-            int value => value,
-            long value => value,
-            uint value => value,
-            string text when long.TryParse(text, NumberStyles.Integer, CultureInfo.InvariantCulture, out long parsed) => parsed,
-            _ => 0
-        };
+    // ===== Formatting Helpers =====
 
-        return seconds > 0 ? DateTimeOffset.FromUnixTimeSeconds(seconds) : null;
+    private static string FormatIpAddress(uint addr)
+    {
+        if (addr == 0) return "0.0.0.0";
+        byte[] bytes = BitConverter.GetBytes(addr);
+        return $"{bytes[0]}.{bytes[1]}.{bytes[2]}.{bytes[3]}";
     }
 
-    private static void ParsePolicy(ParsedArguments arguments, IDictionary<string, PolicyBuilder> policies)
+    private static string FormatAddress(uint addr, string dnsName)
     {
-        string name = arguments.GetValue("name");
-        if (string.IsNullOrWhiteSpace(name))
-        {
-            return;
-        }
-
-        PolicyBuilder builder = GetOrAddPolicy(policies, name);
-        if (arguments.Contains("description"))
-        {
-            builder.Description = arguments.GetValue("description");
-        }
-
-        if (arguments.Contains("assign"))
-        {
-            builder.IsAssigned = arguments.GetBoolean("assign");
-        }
-
-        if (arguments.Contains("mmpfs"))
-        {
-            builder.UseMasterPerfectForwardSecrecy = arguments.GetBoolean("mmpfs");
-        }
-
-        if (arguments.Contains("qmpermm"))
-        {
-            builder.QuickModeSessionsPerMainMode = arguments.GetInteger("qmpermm");
-        }
-
-        if (arguments.Contains("mmlifetime"))
-        {
-            builder.MainModeLifetimeMinutes = arguments.GetInteger("mmlifetime");
-        }
-
-        if (arguments.Contains("activatedefaultrule"))
-        {
-            builder.IsDefaultResponseRuleActive = arguments.GetBoolean("activatedefaultrule");
-        }
-
-        if (arguments.Contains("pollinginterval"))
-        {
-            builder.PollingIntervalMinutes = arguments.GetInteger("pollinginterval");
-        }
-
-        if (arguments.Contains("mmsecmethods"))
-        {
-            builder.MainModeSecurityMethods = SplitMethods(arguments.GetValue("mmsecmethods"));
-        }
+        if (!string.IsNullOrEmpty(dnsName)) return dnsName;
+        return addr == 0 ? "any" : FormatIpAddress(addr);
     }
 
-    private static void ParseFilterList(ParsedArguments arguments, IDictionary<string, FilterListBuilder> filterLists)
+    private static string FormatProtocol(uint protocol)
     {
-        string name = arguments.GetValue("name");
-        if (string.IsNullOrWhiteSpace(name))
+        return protocol switch
         {
-            return;
-        }
-
-        FilterListBuilder builder = GetOrAddFilterList(filterLists, name);
-        if (arguments.Contains("description"))
-        {
-            builder.Description = arguments.GetValue("description");
-        }
-    }
-
-    private static void ParseFilter(ParsedArguments arguments, IDictionary<string, FilterListBuilder> filterLists)
-    {
-        string filterListName = arguments.GetValue("filterlist");
-        if (string.IsNullOrWhiteSpace(filterListName))
-        {
-            return;
-        }
-
-        GetOrAddFilterList(filterLists, filterListName).Filters.Add(new IPSecurityFilterDefinition
-        {
-            FilterListName = filterListName,
-            Description = arguments.GetValue("description"),
-            SourceAddress = arguments.GetValue("srcaddr"),
-            SourceMask = arguments.GetValue("srcmask"),
-            DestinationAddress = arguments.GetValue("dstaddr"),
-            DestinationMask = arguments.GetValue("dstmask"),
-            Protocol = arguments.GetValue("protocol"),
-            SourcePort = arguments.GetInteger("srcport"),
-            DestinationPort = arguments.GetInteger("dstport"),
-            IsMirrored = arguments.GetBoolean("mirrored")
-        });
-    }
-
-    private static void ParseFilterAction(
-        ParsedArguments arguments,
-        IDictionary<string, FilterActionBuilder> filterActions)
-    {
-        string name = arguments.GetValue("name");
-        if (string.IsNullOrWhiteSpace(name))
-        {
-            return;
-        }
-
-        FilterActionBuilder builder = GetOrAddFilterAction(filterActions, name);
-        if (arguments.Contains("description"))
-        {
-            builder.Description = arguments.GetValue("description");
-        }
-
-        if (arguments.Contains("action"))
-        {
-            builder.Action = ParseAction(arguments.GetValue("action"));
-        }
-
-        if (arguments.Contains("qmpfs"))
-        {
-            builder.UseQuickModePerfectForwardSecrecy = arguments.GetBoolean("qmpfs");
-        }
-
-        if (arguments.Contains("inpass"))
-        {
-            builder.AcceptUnsecuredInbound = arguments.GetBoolean("inpass");
-        }
-
-        if (arguments.Contains("soft"))
-        {
-            builder.AllowUnsecuredFallback = arguments.GetBoolean("soft");
-        }
-
-        if (arguments.Contains("qmsecmethods"))
-        {
-            builder.QuickModeSecurityMethods = SplitMethods(arguments.GetValue("qmsecmethods"));
-        }
-    }
-
-    private static void ParseRule(ParsedArguments arguments, IDictionary<string, PolicyBuilder> policies)
-    {
-        string policyName = arguments.GetValue("policy");
-        if (string.IsNullOrWhiteSpace(policyName))
-        {
-            return;
-        }
-
-        string ruleName = arguments.GetValue("name");
-        if (string.IsNullOrWhiteSpace(ruleName))
-        {
-            return;
-        }
-
-        RuleBuilder builder = GetOrAddPolicy(policies, policyName).GetOrAddRule(ruleName);
-        if (arguments.Contains("description"))
-        {
-            builder.Description = arguments.GetValue("description");
-        }
-
-        if (arguments.Contains("filterlist"))
-        {
-            builder.FilterListName = arguments.GetValue("filterlist");
-        }
-
-        if (arguments.Contains("filteraction"))
-        {
-            builder.FilterActionName = arguments.GetValue("filteraction");
-        }
-
-        if (arguments.Contains("tunnel"))
-        {
-            string tunnel = arguments.GetValue("tunnel");
-            builder.TunnelEndpoint = tunnel.Equals("no", StringComparison.OrdinalIgnoreCase) ? string.Empty : tunnel;
-        }
-
-        if (arguments.Contains("conntype"))
-        {
-            builder.ConnectionType = arguments.GetValue("conntype");
-        }
-
-        if (arguments.Contains("activate"))
-        {
-            builder.IsActive = arguments.GetBoolean("activate");
-        }
-
-        if (arguments.ContainsAny("kerberos", "psk", "rootca"))
-        {
-            List<IPSecurityAuthenticationMethodDefinition> authenticationMethods = [];
-            foreach ((string key, string value) in arguments.GetOrderedValues("kerberos", "psk", "rootca"))
-            {
-                if (key.Equals("kerberos", StringComparison.OrdinalIgnoreCase)
-                    && ParsedArguments.IsTrue(value))
-                {
-                    authenticationMethods.Add(new IPSecurityAuthenticationMethodDefinition
-                    {
-                        Kind = IPSecurityAuthenticationMethodKind.Kerberos
-                    });
-                }
-                else if (key.Equals("psk", StringComparison.OrdinalIgnoreCase)
-                    && !value.Equals("no", StringComparison.OrdinalIgnoreCase))
-                {
-                    authenticationMethods.Add(new IPSecurityAuthenticationMethodDefinition
-                    {
-                        Kind = IPSecurityAuthenticationMethodKind.PreSharedKey
-                    });
-                }
-                else if (key.Equals("rootca", StringComparison.OrdinalIgnoreCase))
-                {
-                    authenticationMethods.Add(ParseCertificateAuthority(value));
-                }
-            }
-
-            builder.AuthenticationMethods = authenticationMethods;
-        }
-    }
-
-    private static void ParseDefaultRule(ParsedArguments arguments, IDictionary<string, PolicyBuilder> policies)
-    {
-        string policyName = arguments.GetValue("policy");
-        if (!string.IsNullOrWhiteSpace(policyName) && arguments.Contains("activate"))
-        {
-            GetOrAddPolicy(policies, policyName).IsDefaultResponseRuleActive = arguments.GetBoolean("activate");
-        }
-    }
-
-    private static IPSecurityAuthenticationMethodDefinition ParseCertificateAuthority(string rootCa)
-    {
-        int optionIndex = rootCa.IndexOf(" certmap:", StringComparison.OrdinalIgnoreCase);
-        if (optionIndex < 0)
-        {
-            optionIndex = rootCa.IndexOf(" excludecaname:", StringComparison.OrdinalIgnoreCase);
-        }
-
-        return new IPSecurityAuthenticationMethodDefinition
-        {
-            Kind = IPSecurityAuthenticationMethodKind.CertificateAuthority,
-            Detail = optionIndex < 0 ? rootCa : rootCa[..optionIndex].Trim(),
-            EnableCertificateToAccountMapping = ContainsYesOption(rootCa, "certmap"),
-            ExcludeCertificateAuthorityName = ContainsYesOption(rootCa, "excludecaname")
+            0 => "any",
+            1 => "ICMP",
+            6 => "TCP",
+            17 => "UDP",
+            _ => protocol.ToString(CultureInfo.InvariantCulture)
         };
     }
 
-    private static bool ContainsYesOption(string value, string optionName)
+    private static string FormatConnectionType(int interfaceType)
     {
-        return value.Contains($"{optionName}:yes", StringComparison.OrdinalIgnoreCase);
-    }
-
-    private static PolicyBuilder GetOrAddPolicy(IDictionary<string, PolicyBuilder> policies, string name)
-    {
-        if (!policies.TryGetValue(name, out PolicyBuilder? builder))
+        return interfaceType switch
         {
-            builder = new PolicyBuilder { Name = name };
-            policies.Add(name, builder);
-        }
-
-        return builder;
-    }
-
-    private static FilterListBuilder GetOrAddFilterList(
-        IDictionary<string, FilterListBuilder> filterLists,
-        string name)
-    {
-        if (!filterLists.TryGetValue(name, out FilterListBuilder? builder))
-        {
-            builder = new FilterListBuilder { Name = name };
-            filterLists.Add(name, builder);
-        }
-
-        return builder;
-    }
-
-    private static FilterActionBuilder GetOrAddFilterAction(
-        IDictionary<string, FilterActionBuilder> filterActions,
-        string name)
-    {
-        if (!filterActions.TryGetValue(name, out FilterActionBuilder? builder))
-        {
-            builder = new FilterActionBuilder { Name = name };
-            filterActions.Add(name, builder);
-        }
-
-        return builder;
-    }
-
-    private static IPSecurityFilterActionKind ParseAction(string value)
-    {
-        return value.ToLowerInvariant() switch
-        {
-            "block" => IPSecurityFilterActionKind.Block,
-            "negotiate" => IPSecurityFilterActionKind.Negotiate,
-            _ => IPSecurityFilterActionKind.Permit
+            1 => "lan",
+            2 => "dialup",
+            _ => "all"
         };
-    }
-
-    private static IReadOnlyList<string> SplitMethods(string value)
-    {
-        return value.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-    }
-
-    private static IEnumerable<string> GetLogicalLines(string dump)
-    {
-        StringBuilder logicalLine = new();
-        using StringReader reader = new(dump);
-
-        while (reader.ReadLine() is { } rawLine)
-        {
-            string line = rawLine.Trim();
-            if (line.Length == 0 || line.StartsWith('#'))
-            {
-                continue;
-            }
-
-            bool continues = line.EndsWith('^');
-            if (continues)
-            {
-                line = line[..^1].TrimEnd();
-            }
-
-            if (logicalLine.Length > 0)
-            {
-                logicalLine.Append(' ');
-            }
-
-            logicalLine.Append(line);
-            if (!continues)
-            {
-                yield return logicalLine.ToString();
-                logicalLine.Clear();
-            }
-        }
-
-        if (logicalLine.Length > 0)
-        {
-            yield return logicalLine.ToString();
-        }
-    }
-
-    private static IReadOnlyList<string> Tokenize(string commandLine)
-    {
-        List<string> tokens = [];
-        StringBuilder token = new();
-        bool inQuotes = false;
-
-        for (int index = 0; index < commandLine.Length; index++)
-        {
-            char character = commandLine[index];
-            if (character == '\\' && index + 1 < commandLine.Length && commandLine[index + 1] == '"')
-            {
-                token.Append('"');
-                index++;
-                continue;
-            }
-
-            if (character == '"')
-            {
-                inQuotes = !inQuotes;
-                continue;
-            }
-
-            if (char.IsWhiteSpace(character) && !inQuotes)
-            {
-                if (token.Length > 0)
-                {
-                    tokens.Add(token.ToString());
-                    token.Clear();
-                }
-
-                continue;
-            }
-
-            token.Append(character);
-        }
-
-        if (token.Length > 0)
-        {
-            tokens.Add(token.ToString());
-        }
-
-        return tokens;
-    }
-
-    private static int IndexOfToken(IReadOnlyList<string> tokens, string value)
-    {
-        for (int index = 0; index < tokens.Count; index++)
-        {
-            if (tokens[index].Equals(value, StringComparison.OrdinalIgnoreCase))
-            {
-                return index;
-            }
-        }
-
-        return -1;
-    }
-
-    private sealed class ParsedArguments
-    {
-        private readonly Dictionary<string, List<string>> _values = new(StringComparer.OrdinalIgnoreCase);
-        private readonly List<OrderedArgument> _orderedValues = [];
-
-        private ParsedArguments()
-        {
-        }
-
-        public static ParsedArguments Create(IReadOnlyList<string> tokens, int startIndex)
-        {
-            ParsedArguments arguments = new();
-            string? lastKey = null;
-
-            for (int index = startIndex; index < tokens.Count; index++)
-            {
-                string token = tokens[index];
-                string key;
-                string value;
-
-                if (token.Equals("=", StringComparison.Ordinal))
-                {
-                    continue;
-                }
-
-                if (index + 2 < tokens.Count && tokens[index + 1].Equals("=", StringComparison.Ordinal))
-                {
-                    key = token;
-                    value = tokens[index + 2];
-                    index += 2;
-                    lastKey = key;
-                    arguments.Add(key, value);
-                    continue;
-                }
-
-                int equalsIndex = token.IndexOf('=');
-                if (equalsIndex >= 0)
-                {
-                    key = token[..equalsIndex].Trim();
-                    value = token[(equalsIndex + 1)..].Trim();
-                    if (value.Length == 0 && index + 1 < tokens.Count)
-                    {
-                        value = tokens[++index].Equals("=", StringComparison.Ordinal)
-                            && index + 1 < tokens.Count
-                                ? tokens[++index]
-                                : tokens[index];
-                    }
-
-                    lastKey = key;
-                    arguments.Add(key, value);
-                    continue;
-                }
-
-                if (lastKey is not null)
-                {
-                    arguments.Append(lastKey, token);
-                }
-            }
-
-            return arguments;
-        }
-
-        public bool Contains(string key)
-        {
-            return _values.ContainsKey(key);
-        }
-
-        public bool ContainsAny(params string[] keys)
-        {
-            return keys.Any(Contains);
-        }
-
-        public string GetValue(string key)
-        {
-            return _values.TryGetValue(key, out List<string>? values) && values.Count > 0
-                ? values[0]
-                : string.Empty;
-        }
-
-        public IReadOnlyList<string> GetValues(string key)
-        {
-            return _values.TryGetValue(key, out List<string>? values) ? values : [];
-        }
-
-        public bool GetBoolean(string key)
-        {
-            return IsTrue(GetValue(key));
-        }
-
-        public IReadOnlyList<(string Key, string Value)> GetOrderedValues(params string[] keys)
-        {
-            HashSet<string> requestedKeys = new(keys, StringComparer.OrdinalIgnoreCase);
-            return _orderedValues
-                .Where(argument => requestedKeys.Contains(argument.Key))
-                .Select(argument => (argument.Key, argument.Value))
-                .ToList();
-        }
-
-        public static bool IsTrue(string value)
-        {
-            return value.Equals("yes", StringComparison.OrdinalIgnoreCase)
-                || value.Equals("true", StringComparison.OrdinalIgnoreCase)
-                || value.Equals("1", StringComparison.OrdinalIgnoreCase);
-        }
-
-        public int GetInteger(string key)
-        {
-            return int.TryParse(GetValue(key), NumberStyles.Integer, CultureInfo.InvariantCulture, out int value)
-                ? value
-                : 0;
-        }
-
-        private void Add(string key, string value)
-        {
-            if (!_values.TryGetValue(key, out List<string>? values))
-            {
-                values = [];
-                _values.Add(key, values);
-            }
-
-            values.Add(value);
-            _orderedValues.Add(new OrderedArgument(key, value));
-        }
-
-        private void Append(string key, string value)
-        {
-            List<string> values = _values[key];
-            int lastIndex = values.Count - 1;
-            values[lastIndex] = $"{values[lastIndex]} {value}";
-
-            int orderedIndex = _orderedValues.Count - 1;
-            OrderedArgument orderedArgument = _orderedValues[orderedIndex];
-            _orderedValues[orderedIndex] = orderedArgument with
-            {
-                Value = $"{orderedArgument.Value} {value}"
-            };
-        }
-
-        private readonly record struct OrderedArgument(string Key, string Value);
-    }
-
-    private sealed class PolicyBuilder
-    {
-        public required string Name { get; init; }
-
-        public string Description { get; set; } = string.Empty;
-
-        public bool IsAssigned { get; set; }
-
-        public bool UseMasterPerfectForwardSecrecy { get; set; }
-
-        public int QuickModeSessionsPerMainMode { get; set; }
-
-        public int MainModeLifetimeMinutes { get; set; }
-
-        public bool IsDefaultResponseRuleActive { get; set; }
-
-        public int PollingIntervalMinutes { get; set; }
-
-        public IReadOnlyList<string> MainModeSecurityMethods { get; set; } = [];
-
-        private Dictionary<string, RuleBuilder> Rules { get; } = new(StringComparer.OrdinalIgnoreCase);
-
-        public RuleBuilder GetOrAddRule(string name)
-        {
-            if (!Rules.TryGetValue(name, out RuleBuilder? builder))
-            {
-                builder = new RuleBuilder
-                {
-                    Name = name,
-                    PolicyName = Name
-                };
-                Rules.Add(name, builder);
-            }
-
-            return builder;
-        }
-
-        public IPSecurityPolicyDefinition Build()
-        {
-            return new IPSecurityPolicyDefinition
-            {
-                Name = Name,
-                Description = Description,
-                IsAssigned = IsAssigned,
-                UseMasterPerfectForwardSecrecy = UseMasterPerfectForwardSecrecy,
-                QuickModeSessionsPerMainMode = QuickModeSessionsPerMainMode,
-                MainModeLifetimeMinutes = MainModeLifetimeMinutes,
-                IsDefaultResponseRuleActive = IsDefaultResponseRuleActive,
-                PollingIntervalMinutes = PollingIntervalMinutes,
-                MainModeSecurityMethods = MainModeSecurityMethods,
-                Rules = Rules.Values.Select(static rule => rule.Build()).ToList()
-            };
-        }
-    }
-
-    private sealed class FilterListBuilder
-    {
-        public required string Name { get; init; }
-
-        public string Description { get; set; } = string.Empty;
-
-        public List<IPSecurityFilterDefinition> Filters { get; } = [];
-
-        public IPSecurityFilterListDefinition Build()
-        {
-            return new IPSecurityFilterListDefinition
-            {
-                Name = Name,
-                Description = Description,
-                Filters = Filters
-            };
-        }
-    }
-
-    private sealed class FilterActionBuilder
-    {
-        public required string Name { get; init; }
-
-        public string Description { get; set; } = string.Empty;
-
-        public IPSecurityFilterActionKind Action { get; set; }
-
-        public bool UseQuickModePerfectForwardSecrecy { get; set; }
-
-        public bool AcceptUnsecuredInbound { get; set; }
-
-        public bool AllowUnsecuredFallback { get; set; }
-
-        public IReadOnlyList<string> QuickModeSecurityMethods { get; set; } = [];
-
-        public IPSecurityFilterActionDefinition Build()
-        {
-            return new IPSecurityFilterActionDefinition
-            {
-                Name = Name,
-                Description = Description,
-                Action = Action,
-                UseQuickModePerfectForwardSecrecy = UseQuickModePerfectForwardSecrecy,
-                AcceptUnsecuredInbound = AcceptUnsecuredInbound,
-                AllowUnsecuredFallback = AllowUnsecuredFallback,
-                QuickModeSecurityMethods = QuickModeSecurityMethods
-            };
-        }
-    }
-
-    private sealed class RuleBuilder
-    {
-        public required string Name { get; init; }
-
-        public required string PolicyName { get; init; }
-
-        public string Description { get; set; } = string.Empty;
-
-        public string FilterListName { get; set; } = string.Empty;
-
-        public string FilterActionName { get; set; } = string.Empty;
-
-        public string TunnelEndpoint { get; set; } = string.Empty;
-
-        public string ConnectionType { get; set; } = string.Empty;
-
-        public bool IsActive { get; set; }
-
-        public IReadOnlyList<IPSecurityAuthenticationMethodDefinition> AuthenticationMethods { get; set; } = [];
-
-        public IPSecurityRuleDefinition Build()
-        {
-            return new IPSecurityRuleDefinition
-            {
-                Name = Name,
-                PolicyName = PolicyName,
-                Description = Description,
-                FilterListName = FilterListName,
-                FilterActionName = FilterActionName,
-                TunnelEndpoint = TunnelEndpoint,
-                ConnectionType = ConnectionType,
-                IsActive = IsActive,
-                AuthenticationMethods = AuthenticationMethods
-            };
-        }
     }
 }

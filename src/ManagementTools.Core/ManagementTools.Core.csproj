@@ -4,6 +4,7 @@
     <TargetPlatformMinVersion>10.0.19041.0</TargetPlatformMinVersion>
     <RootNamespace>ManagementTools.Core</RootNamespace>
     <UseWinUI>true</UseWinUI>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <WinUISDKReferences>false</WinUISDKReferences>
     <!-- ManagementTools is not NativeAOT; enabling WinUI in Core triggers MVVM Toolkit WinRT/AOT guidance for existing ViewModels. -->
     <NoWarn>$(NoWarn);MVVMTK0045</NoWarn>
