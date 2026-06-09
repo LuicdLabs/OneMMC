@@ -127,7 +127,7 @@ public sealed class IPSecurityStaticPolicyCommandExecutor
     private static void DeletePolicy(IntPtr policyStore, Dictionary<string, string> parameters)
     {
         string policyName = GetRequired(parameters, "name");
-        (Guid policyId, _) = FindPolicyByName(policyStore, policyName);
+        (Guid policyId, IntPtr policyPtr) = FindPolicyByName(policyStore, policyName);
         if (policyId == Guid.Empty)
         {
             return;
@@ -135,7 +135,7 @@ public sealed class IPSecurityStaticPolicyCommandExecutor
 
         IgnoreUnassignFailure(policyStore, policyId);
         DeleteAllRules(policyStore, policyId);
-        ThrowOnError(IPSecurityPolicyNativeMethods.DeletePolicyData(policyStore, policyId), "delete policy");
+        ThrowOnError(IPSecurityPolicyNativeMethods.DeletePolicyData(policyStore, policyPtr), "delete policy");
     }
 
     private static void DeleteAllRules(IntPtr policyStore, Guid policyId)
@@ -160,8 +160,7 @@ public sealed class IPSecurityStaticPolicyCommandExecutor
                     continue;
                 }
 
-                Guid nfaId = ReadGuid(p, 8);
-                ThrowOnError(IPSecurityPolicyNativeMethods.DeleteNFAData(policyStore, policyId, nfaId), "delete rule");
+                ThrowOnError(IPSecurityPolicyNativeMethods.DeleteNFAData(policyStore, policyId, p), "delete rule");
             }
         }
         finally

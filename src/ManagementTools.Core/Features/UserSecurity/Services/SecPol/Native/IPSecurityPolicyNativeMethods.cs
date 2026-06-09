@@ -56,11 +56,11 @@ internal static class IPSecurityPolicyNativeMethods
     private static IPSecStoreDataDelegate? _setISAKMPData;
     private static IPSecSetNFADataDelegate? _setNFAData;
 
-    // Delete APIs
-    private static IPSecDeleteByGuidDelegate? _deletePolicyData;
-    private static IPSecDeleteByGuidDelegate? _deleteFilterData;
-    private static IPSecDeleteByGuidDelegate? _deleteNegPolData;
-    private static IPSecDeleteByGuidDelegate? _deleteISAKMPData;
+    // Delete APIs — native functions take a pointer to the full data struct, not a bare GUID.
+    private static IPSecStoreDataDelegate? _deletePolicyData;
+    private static IPSecStoreDataDelegate? _deleteFilterData;
+    private static IPSecStoreDataDelegate? _deleteNegPolData;
+    private static IPSecStoreDataDelegate? _deleteISAKMPData;
     private static IPSecDeleteNFADataDelegate? _deleteNFAData;
 
     // Assign/Unassign
@@ -217,34 +217,34 @@ internal static class IPSecurityPolicyNativeMethods
 
     // ===== Delete APIs =====
 
-    internal static int DeletePolicyData(IntPtr policyStore, Guid policyIdentifier)
+    internal static int DeletePolicyData(IntPtr policyStore, IntPtr pPolicyData)
     {
         EnsureLoaded();
-        return _deletePolicyData!(policyStore, policyIdentifier);
+        return _deletePolicyData!(policyStore, pPolicyData);
     }
 
-    internal static int DeleteFilterData(IntPtr policyStore, Guid filterIdentifier)
+    internal static int DeleteFilterData(IntPtr policyStore, IntPtr pFilterData)
     {
         EnsureLoaded();
-        return _deleteFilterData!(policyStore, filterIdentifier);
+        return _deleteFilterData!(policyStore, pFilterData);
     }
 
-    internal static int DeleteNegPolData(IntPtr policyStore, Guid negPolIdentifier)
+    internal static int DeleteNegPolData(IntPtr policyStore, IntPtr pNegPolData)
     {
         EnsureLoaded();
-        return _deleteNegPolData!(policyStore, negPolIdentifier);
+        return _deleteNegPolData!(policyStore, pNegPolData);
     }
 
-    internal static int DeleteISAKMPData(IntPtr policyStore, Guid isakmpIdentifier)
+    internal static int DeleteISAKMPData(IntPtr policyStore, IntPtr pISAKMPData)
     {
         EnsureLoaded();
-        return _deleteISAKMPData!(policyStore, isakmpIdentifier);
+        return _deleteISAKMPData!(policyStore, pISAKMPData);
     }
 
-    internal static int DeleteNFAData(IntPtr policyStore, Guid policyIdentifier, Guid nfaIdentifier)
+    internal static int DeleteNFAData(IntPtr policyStore, Guid policyIdentifier, IntPtr pNfaData)
     {
         EnsureLoaded();
-        return _deleteNFAData!(policyStore, policyIdentifier, nfaIdentifier);
+        return _deleteNFAData!(policyStore, policyIdentifier, pNfaData);
     }
 
     // ===== Assign/Unassign =====
@@ -338,11 +338,12 @@ internal static class IPSecurityPolicyNativeMethods
             _setISAKMPData = LoadDelegate<IPSecStoreDataDelegate>("IPSecSetISAKMPData");
             _setNFAData = LoadDelegate<IPSecSetNFADataDelegate>("IPSecSetNFAData");
 
-            // Delete
-            _deletePolicyData = LoadDelegate<IPSecDeleteByGuidDelegate>("IPSecDeletePolicyData");
-            _deleteFilterData = LoadDelegate<IPSecDeleteByGuidDelegate>("IPSecDeleteFilterData");
-            _deleteNegPolData = LoadDelegate<IPSecDeleteByGuidDelegate>("IPSecDeleteNegPolData");
-            _deleteISAKMPData = LoadDelegate<IPSecDeleteByGuidDelegate>("IPSecDeleteISAKMPData");
+            // Delete — native delete functions take the same (HANDLE, P<STRUCT>) signature
+            // as create/set, except IPSecDeleteNFAData which adds a policy GUID.
+            _deletePolicyData = LoadDelegate<IPSecStoreDataDelegate>("IPSecDeletePolicyData");
+            _deleteFilterData = LoadDelegate<IPSecStoreDataDelegate>("IPSecDeleteFilterData");
+            _deleteNegPolData = LoadDelegate<IPSecStoreDataDelegate>("IPSecDeleteNegPolData");
+            _deleteISAKMPData = LoadDelegate<IPSecStoreDataDelegate>("IPSecDeleteISAKMPData");
             _deleteNFAData = LoadDelegate<IPSecDeleteNFADataDelegate>("IPSecDeleteNFAData");
 
             // Assign
@@ -399,13 +400,9 @@ internal static class IPSecurityPolicyNativeMethods
     [UnmanagedFunctionPointer(CallingConvention.Winapi)]
     private delegate int IPSecSetNFADataDelegate(IntPtr policyStore, Guid policyIdentifier, IntPtr pData);
 
-    /// <summary>Signature for IPSecDelete{Policy|Filter|NegPol|ISAKMP}Data.</summary>
+    /// <summary>Signature for IPSecDeleteNFAData (requires policy GUID + NFA struct pointer).</summary>
     [UnmanagedFunctionPointer(CallingConvention.Winapi)]
-    private delegate int IPSecDeleteByGuidDelegate(IntPtr policyStore, Guid identifier);
-
-    /// <summary>Signature for IPSecDeleteNFAData (requires policy + NFA GUID).</summary>
-    [UnmanagedFunctionPointer(CallingConvention.Winapi)]
-    private delegate int IPSecDeleteNFADataDelegate(IntPtr policyStore, Guid policyIdentifier, Guid nfaIdentifier);
+    private delegate int IPSecDeleteNFADataDelegate(IntPtr policyStore, Guid policyIdentifier, IntPtr pNfaData);
 
     /// <summary>Signature for IPSecAssignPolicy / IPSecUnassignPolicy.</summary>
     [UnmanagedFunctionPointer(CallingConvention.Winapi)]
