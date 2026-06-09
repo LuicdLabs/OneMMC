@@ -2,6 +2,7 @@ using System.Net;
 using System.Runtime.InteropServices;
 using ManagementTools.Core.Features.UserSecurity.Services.SecPol.Native;
 using Microsoft.Extensions.Logging;
+using Microsoft.Win32;
 
 namespace ManagementTools.Core.Features.UserSecurity.Services.SecPol.IPSecurity;
 
@@ -111,11 +112,11 @@ public sealed class IPSecurityStaticPolicyCommandExecutor
     private static void AddPolicy(IntPtr store, Dictionary<string, string> parameters)
     {
         string name = GetRequired(parameters, "name");
-        string? description = GetOptional(parameters, "description");
+        string description = GetOptional(parameters, "description") ?? string.Empty;
         int pollingMinutes = GetOptionalInt(parameters, "pollinginterval") ?? 180;
         bool assign = GetOptionalBool(parameters, "assign") ?? false;
 
-        (Guid isakmpGuid, IntPtr pIsakmp) = CloneIsakmp(store);
+        (Guid isakmpGuid, IntPtr pIsakmp) = GetFirstIsakmp(store);
         Guid policyGuid = Guid.NewGuid();
 
         const int size = 80;
@@ -143,22 +144,19 @@ public sealed class IPSecurityStaticPolicyCommandExecutor
         }
         finally
         {
-            IPSecurityPolicyNativeMethods.FreeISAKMPData(pIsakmp);
-            FreeIfNotZero(pDesc);
+            Marshal.FreeHGlobal(pDesc);
             Marshal.FreeHGlobal(pName);
             Marshal.FreeHGlobal(pData);
         }
 
-        // Verify the policy was persisted.
-        (_, IntPtr verifyPtr) = FindPolicyByName(store, name);
-        if (verifyPtr == IntPtr.Zero)
-        {
-            throw new InvalidOperationException(
-                $"IPSecCreatePolicyData returned success but the policy '{name}' " +
-                "was not found when re-enumerated. The IPSEC_POLICY_DATA struct " +
-                $"may have missing or invalid fields. Policy GUID: {policyGuid}, " +
-                $"ISAKMP GUID: {isakmpGuid}, pIpsecISAKMPData: 0x{pIsakmp:X}.");
-        }
+        // polstore.dll omits ipsecNFAReference and description when the struct has
+        // no NFAs and an empty description.  EnumPolicyData requires these values
+        // to exist in order to parse the entry, so we write them directly.
+        EnsurePolicyRegistryValues(policyGuid, description, isakmpGuid);
+
+        // Remove orphaned ipsecPolicy registry keys left by earlier failed attempts.
+        // These cause secpol.msc to fail with ERROR_NO_DATA (0x800700E8).
+        CleanOrphanedPolicyRegistryKeys(store);
 
         if (assign)
         {
@@ -248,6 +246,8 @@ public sealed class IPSecurityStaticPolicyCommandExecutor
             int hr = IPSecurityPolicyNativeMethods.EnumNFAData(store, policyId, ppp, pCount);
             if (hr != 0)
             {
+                // ERROR_NO_DATA (0xE8) means the policy has no NFA references.
+                if (hr == 0xE8) return;
                 ThrowOnError(hr, "enumerate policy rules");
             }
 
@@ -971,22 +971,10 @@ public sealed class IPSecurityStaticPolicyCommandExecutor
     }
 
     /// <summary>
-    /// Clones an existing ISAKMP object with a new GUID via <c>IPSecCreateISAKMPData</c>.
-    /// Each new policy requires its own ISAKMP entry; reusing another policy's ISAKMP
-    /// leaves the new policy orphaned in the store.
+    /// Returns the GUID and store-owned pointer of the first ISAKMP in the store.
+    /// The returned pointer is owned by the store; the caller must NOT free it.
     /// </summary>
-    /// <remarks>
-    /// The <c>IPSEC_ISAKMP_DATA</c> struct layout is not publicly documented.
-    /// The struct is treated as an opaque blob: we copy a generous number of bytes
-    /// from a store-owned instance, replace only the 16-byte GUID at offset 0,
-    /// and let <c>IPSecCreateISAKMPData</c> persist the rest unchanged.
-    /// </remarks>
-    /// <summary>
-    /// Clones an existing ISAKMP object with a new GUID via <c>IPSecCopyISAKMPData</c>
-    /// and <c>IPSecCreateISAKMPData</c>. The caller must free the returned pointer
-    /// with <see cref="IPSecurityPolicyNativeMethods.FreeISAKMPData"/> after use.
-    /// </summary>
-    private static (Guid Guid, IntPtr Ptr) CloneIsakmp(IntPtr store)
+    private static (Guid Guid, IntPtr Ptr) GetFirstIsakmp(IntPtr store)
     {
         IntPtr ppp = Marshal.AllocHGlobal(IntPtr.Size);
         IntPtr pCount = Marshal.AllocHGlobal(sizeof(int));
@@ -1002,39 +990,113 @@ public sealed class IPSecurityStaticPolicyCommandExecutor
 
             int count = Marshal.ReadInt32(pCount);
             IntPtr pp = Marshal.ReadIntPtr(ppp);
-            IntPtr source = IntPtr.Zero;
             for (int i = 0; i < count; i++)
             {
                 IntPtr p = Marshal.ReadIntPtr(pp, IntPtr.Size * i);
-                if (p != IntPtr.Zero) { source = p; break; }
+                if (p != IntPtr.Zero)
+                {
+                    Guid guid = ReadGuid(p, 0);
+                    return (guid, p);
+                }
             }
 
-            if (source == IntPtr.Zero)
-            {
-                throw new InvalidOperationException(
-                    "Cannot create a policy: no ISAKMP objects exist in the store. " +
-                    "Create an initial policy using the Windows IP Security Policy snap-in first.");
-            }
-
-            int copyHr = IPSecurityPolicyNativeMethods.CopyISAKMPData(source, out IntPtr pClone);
-            ThrowOnError(copyHr, "copy ISAKMP template");
-
-            Guid newGuid = Guid.NewGuid();
-            WriteGuid(pClone, 0, newGuid);
-
-            int createHr = IPSecurityPolicyNativeMethods.CreateISAKMPData(store, pClone);
-            if (createHr != 0)
-            {
-                IPSecurityPolicyNativeMethods.FreeISAKMPData(pClone);
-                ThrowOnError(createHr, "create ISAKMP for new policy");
-            }
-
-            return (newGuid, pClone);
+            throw new InvalidOperationException(
+                "Cannot create a policy: no ISAKMP objects exist in the store. " +
+                "Create an initial policy using the Windows IP Security Policy snap-in first.");
         }
         finally
         {
             Marshal.FreeHGlobal(ppp);
             Marshal.FreeHGlobal(pCount);
+        }
+    }
+
+    // ===== Struct Helpers =====
+
+    // ===== Registry Helpers =====
+
+    private const string PolicyStoreRegistryPath =
+        @"SOFTWARE\Policies\Microsoft\Windows\IPSec\Policy\Local";
+
+    /// <summary>
+    /// Writes registry values that <c>IPSecCreatePolicyData</c> omits when the struct
+    /// has no NFA references or description. Without these values, <c>EnumPolicyData</c>
+    /// silently skips the entry and <c>secpol.msc</c> fails with <c>ERROR_NO_DATA</c>.
+    /// </summary>
+    private static void EnsurePolicyRegistryValues(Guid policyGuid, string description, Guid isakmpGuid)
+    {
+        string keyPath = $@"{PolicyStoreRegistryPath}\ipsecPolicy{{{policyGuid}}}";
+        using RegistryKey? key = Registry.LocalMachine.OpenSubKey(keyPath, writable: true);
+        if (key is null) return;
+
+        if (key.GetValue("ipsecNFAReference") is null)
+        {
+            key.SetValue("ipsecNFAReference", Array.Empty<string>(), RegistryValueKind.MultiString);
+        }
+
+        if (key.GetValue("description") is null)
+        {
+            key.SetValue("description", description, RegistryValueKind.String);
+        }
+
+        if (key.GetValue("ipsecOwnersReference") is null)
+        {
+            key.SetValue("ipsecOwnersReference", Array.Empty<string>(), RegistryValueKind.MultiString);
+        }
+
+        if (key.GetValue("ipsecISAKMPReference") is null)
+        {
+            string isakmpRef = $@"{PolicyStoreRegistryPath}\ipsecISAKMPPolicy{{{isakmpGuid}}}";
+            key.SetValue("ipsecISAKMPReference", isakmpRef, RegistryValueKind.String);
+        }
+    }
+
+    /// <summary>
+    /// Removes orphaned <c>ipsecPolicy{...}</c> registry keys that were created by
+    /// earlier failed attempts and are not recognized by <c>EnumPolicyData</c>.
+    /// </summary>
+    internal static void CleanOrphanedPolicyRegistryKeys(IntPtr store)
+    {
+        using RegistryKey? baseKey = Registry.LocalMachine.OpenSubKey(PolicyStoreRegistryPath, writable: true);
+        if (baseKey is null) return;
+
+        HashSet<string> knownGuids = [];
+        IntPtr ppp = Marshal.AllocHGlobal(IntPtr.Size);
+        IntPtr pCount = Marshal.AllocHGlobal(sizeof(int));
+        try
+        {
+            int hr = IPSecurityPolicyNativeMethods.EnumPolicyData(store, ppp, pCount);
+            if (hr == 0)
+            {
+                int count = Marshal.ReadInt32(pCount);
+                IntPtr pp = Marshal.ReadIntPtr(ppp);
+                for (int i = 0; i < count; i++)
+                {
+                    IntPtr p = Marshal.ReadIntPtr(pp, IntPtr.Size * i);
+                    if (p == IntPtr.Zero) continue;
+                    Guid id = ReadGuid(p, 0);
+                    knownGuids.Add(id.ToString("B").ToLowerInvariant());
+                }
+            }
+        }
+        finally
+        {
+            Marshal.FreeHGlobal(ppp);
+            Marshal.FreeHGlobal(pCount);
+        }
+
+        foreach (string keyName in baseKey.GetSubKeyNames())
+        {
+            if (!keyName.StartsWith("ipsecPolicy{", StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            string guidPart = keyName["ipsecPolicy".Length..].ToLowerInvariant();
+            if (!knownGuids.Contains(guidPart))
+            {
+                baseKey.DeleteSubKeyTree(keyName, throwOnMissingSubKey: false);
+            }
         }
     }
 
