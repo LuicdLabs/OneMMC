@@ -115,7 +115,7 @@ public sealed class IPSecurityStaticPolicyCommandExecutor
         int pollingMinutes = GetOptionalInt(parameters, "pollinginterval") ?? 180;
         bool assign = GetOptionalBool(parameters, "assign") ?? false;
 
-        Guid isakmpGuid = GetFirstIsakmpGuid(store);
+        (Guid isakmpGuid, IntPtr pIsakmp) = CloneIsakmp(store);
         Guid policyGuid = Guid.NewGuid();
 
         const int size = 80;
@@ -127,18 +127,37 @@ public sealed class IPSecurityStaticPolicyCommandExecutor
             unsafe { NativeMemory.Clear((void*)pData, size); }
             WriteGuid(pData, 0, policyGuid);
             Marshal.WriteInt32(pData, 16, pollingMinutes * 60);
+            Marshal.WriteIntPtr(pData, 24, pIsakmp);
             Marshal.WriteInt32(pData, 44, CurrentUnixSeconds());
             Marshal.WriteIntPtr(pData, 48, pName);
             Marshal.WriteIntPtr(pData, 56, pDesc);
             WriteGuid(pData, 64, isakmpGuid);
 
-            ThrowOnError(IPSecurityPolicyNativeMethods.CreatePolicyData(store, pData), "add policy");
+            int hr = IPSecurityPolicyNativeMethods.CreatePolicyData(store, pData);
+            if (hr != 0)
+            {
+                throw new InvalidOperationException(
+                    $"IPSecCreatePolicyData failed with native error 0x{hr:X8}. " +
+                    $"Policy GUID: {policyGuid}, ISAKMP GUID: {isakmpGuid}.");
+            }
         }
         finally
         {
+            IPSecurityPolicyNativeMethods.FreeISAKMPData(pIsakmp);
             FreeIfNotZero(pDesc);
             Marshal.FreeHGlobal(pName);
             Marshal.FreeHGlobal(pData);
+        }
+
+        // Verify the policy was persisted.
+        (_, IntPtr verifyPtr) = FindPolicyByName(store, name);
+        if (verifyPtr == IntPtr.Zero)
+        {
+            throw new InvalidOperationException(
+                $"IPSecCreatePolicyData returned success but the policy '{name}' " +
+                "was not found when re-enumerated. The IPSEC_POLICY_DATA struct " +
+                $"may have missing or invalid fields. Policy GUID: {policyGuid}, " +
+                $"ISAKMP GUID: {isakmpGuid}, pIpsecISAKMPData: 0x{pIsakmp:X}.");
         }
 
         if (assign)
@@ -951,7 +970,23 @@ public sealed class IPSecurityStaticPolicyCommandExecutor
         ThrowOnError(deleteFunc(store, ptr), $"delete {objectKind}");
     }
 
-    private static Guid GetFirstIsakmpGuid(IntPtr store)
+    /// <summary>
+    /// Clones an existing ISAKMP object with a new GUID via <c>IPSecCreateISAKMPData</c>.
+    /// Each new policy requires its own ISAKMP entry; reusing another policy's ISAKMP
+    /// leaves the new policy orphaned in the store.
+    /// </summary>
+    /// <remarks>
+    /// The <c>IPSEC_ISAKMP_DATA</c> struct layout is not publicly documented.
+    /// The struct is treated as an opaque blob: we copy a generous number of bytes
+    /// from a store-owned instance, replace only the 16-byte GUID at offset 0,
+    /// and let <c>IPSecCreateISAKMPData</c> persist the rest unchanged.
+    /// </remarks>
+    /// <summary>
+    /// Clones an existing ISAKMP object with a new GUID via <c>IPSecCopyISAKMPData</c>
+    /// and <c>IPSecCreateISAKMPData</c>. The caller must free the returned pointer
+    /// with <see cref="IPSecurityPolicyNativeMethods.FreeISAKMPData"/> after use.
+    /// </summary>
+    private static (Guid Guid, IntPtr Ptr) CloneIsakmp(IntPtr store)
     {
         IntPtr ppp = Marshal.AllocHGlobal(IntPtr.Size);
         IntPtr pCount = Marshal.AllocHGlobal(sizeof(int));
@@ -967,18 +1002,34 @@ public sealed class IPSecurityStaticPolicyCommandExecutor
 
             int count = Marshal.ReadInt32(pCount);
             IntPtr pp = Marshal.ReadIntPtr(ppp);
+            IntPtr source = IntPtr.Zero;
             for (int i = 0; i < count; i++)
             {
                 IntPtr p = Marshal.ReadIntPtr(pp, IntPtr.Size * i);
-                if (p != IntPtr.Zero)
-                {
-                    return ReadGuid(p, 0);
-                }
+                if (p != IntPtr.Zero) { source = p; break; }
             }
 
-            throw new InvalidOperationException(
-                "Cannot create a policy: no ISAKMP objects exist in the store. " +
-                "Create an initial policy using the Windows IP Security Policy snap-in first.");
+            if (source == IntPtr.Zero)
+            {
+                throw new InvalidOperationException(
+                    "Cannot create a policy: no ISAKMP objects exist in the store. " +
+                    "Create an initial policy using the Windows IP Security Policy snap-in first.");
+            }
+
+            int copyHr = IPSecurityPolicyNativeMethods.CopyISAKMPData(source, out IntPtr pClone);
+            ThrowOnError(copyHr, "copy ISAKMP template");
+
+            Guid newGuid = Guid.NewGuid();
+            WriteGuid(pClone, 0, newGuid);
+
+            int createHr = IPSecurityPolicyNativeMethods.CreateISAKMPData(store, pClone);
+            if (createHr != 0)
+            {
+                IPSecurityPolicyNativeMethods.FreeISAKMPData(pClone);
+                ThrowOnError(createHr, "create ISAKMP for new policy");
+            }
+
+            return (newGuid, pClone);
         }
         finally
         {

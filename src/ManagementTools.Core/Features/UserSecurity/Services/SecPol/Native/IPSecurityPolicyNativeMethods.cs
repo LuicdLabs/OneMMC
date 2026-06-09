@@ -63,6 +63,12 @@ internal static class IPSecurityPolicyNativeMethods
     private static IPSecStoreDataDelegate? _deleteISAKMPData;
     private static IPSecDeleteNFADataDelegate? _deleteNFAData;
 
+    // Copy APIs — deep-copy a store-owned struct into a caller-owned allocation.
+    private static IPSecCopyDataDelegate? _copyISAKMPData;
+
+    // Free APIs — release a caller-owned struct returned by a Copy API.
+    private static IPSecFreeDataDelegate? _freeISAKMPData;
+
     // Assign/Unassign
     private static IPSecAssignPolicyDelegate? _assignPolicy;
     private static IPSecAssignPolicyDelegate? _unassignPolicy;
@@ -247,6 +253,22 @@ internal static class IPSecurityPolicyNativeMethods
         return _deleteNFAData!(policyStore, policyIdentifier, pNfaData);
     }
 
+    // ===== Copy/Free =====
+
+    internal static int CopyISAKMPData(IntPtr pSource, out IntPtr ppDest)
+    {
+        EnsureLoaded();
+        return _copyISAKMPData!(pSource, out ppDest);
+    }
+
+    internal static void FreeISAKMPData(IntPtr pData)
+    {
+        if (pData != IntPtr.Zero && TryEnsureLoaded())
+        {
+            _freeISAKMPData!(pData);
+        }
+    }
+
     // ===== Assign/Unassign =====
 
     internal static int AssignPolicy(IntPtr policyStore, Guid policyIdentifier)
@@ -346,6 +368,10 @@ internal static class IPSecurityPolicyNativeMethods
             _deleteISAKMPData = LoadDelegate<IPSecStoreDataDelegate>("IPSecDeleteISAKMPData");
             _deleteNFAData = LoadDelegate<IPSecDeleteNFADataDelegate>("IPSecDeleteNFAData");
 
+            // Copy/Free
+            _copyISAKMPData = LoadDelegate<IPSecCopyDataDelegate>("IPSecCopyISAKMPData");
+            _freeISAKMPData = LoadDelegate<IPSecFreeDataDelegate>("IPSecFreeISAKMPData");
+
             // Assign
             _assignPolicy = LoadDelegate<IPSecAssignPolicyDelegate>("IPSecAssignPolicy");
             _unassignPolicy = LoadDelegate<IPSecAssignPolicyDelegate>("IPSecUnassignPolicy");
@@ -403,6 +429,14 @@ internal static class IPSecurityPolicyNativeMethods
     /// <summary>Signature for IPSecDeleteNFAData (requires policy GUID + NFA struct pointer).</summary>
     [UnmanagedFunctionPointer(CallingConvention.Winapi)]
     private delegate int IPSecDeleteNFADataDelegate(IntPtr policyStore, Guid policyIdentifier, IntPtr pNfaData);
+
+    /// <summary>Signature for IPSecCopy{ISAKMP|Policy|Filter|NegPol}Data.</summary>
+    [UnmanagedFunctionPointer(CallingConvention.Winapi)]
+    private delegate int IPSecCopyDataDelegate(IntPtr pSource, out IntPtr ppDest);
+
+    /// <summary>Signature for IPSecFree{ISAKMP|Policy|Filter|NegPol}Data.</summary>
+    [UnmanagedFunctionPointer(CallingConvention.Winapi)]
+    private delegate void IPSecFreeDataDelegate(IntPtr pData);
 
     /// <summary>Signature for IPSecAssignPolicy / IPSecUnassignPolicy.</summary>
     [UnmanagedFunctionPointer(CallingConvention.Winapi)]
