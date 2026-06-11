@@ -154,6 +154,12 @@ public sealed class IPSecurityStaticPolicyCommandExecutor
         // to exist in order to parse the entry, so we write them directly.
         EnsurePolicyRegistryValues(policyGuid, description, isakmpGuid);
 
+        // Create a default response rule (NFA + NegPol) for the new policy.
+        // Native tools (secpol.msc wizard, netsh) always create this rule.
+        // Without it, IPSecEnumNFAData returns ERROR_NO_DATA (0x800700E8)
+        // and secpol.msc cannot open the policy properties.
+        CreateDefaultResponseRule(store, policyGuid);
+
         // Remove orphaned ipsecPolicy registry keys left by earlier failed attempts.
         // These cause secpol.msc to fail with ERROR_NO_DATA (0x800700E8).
         CleanOrphanedPolicyRegistryKeys(store);
@@ -236,6 +242,79 @@ public sealed class IPSecurityStaticPolicyCommandExecutor
         DeleteAllRules(store, policyId);
         ThrowOnError(IPSecurityPolicyNativeMethods.DeletePolicyData(store, policyPtr), "delete policy");
     }
+
+    /// <summary>
+    /// Creates a default response rule (NFA + NegPol) for a newly created policy.
+    /// This matches the native behavior of secpol.msc and netsh, which always create
+    /// this rule so that <c>IPSecEnumNFAData</c> does not return <c>ERROR_NO_DATA</c>.
+    /// </summary>
+    /// <remarks>
+    /// The NegPol and NFA are written directly to the registry because
+    /// <c>IPSecCreateNegPolData</c> requires in-memory security method structs whose
+    /// layout is undocumented and differs from the serialized <c>ipsecData</c> blob format.
+    /// The binary blobs used here are byte-identical to those produced by secpol.msc.
+    /// </remarks>
+    private static void CreateDefaultResponseRule(IntPtr store, Guid policyGuid)
+    {
+        Guid negPolGuid = Guid.NewGuid();
+        Guid nfaGuid = Guid.NewGuid();
+
+        string negPolKeyPath = $@"{PolicyStoreRegistryPath}\ipsecNegotiationPolicy{{{negPolGuid}}}";
+        string nfaKeyPath = $@"{PolicyStoreRegistryPath}\ipsecNFA{{{nfaGuid}}}";
+        string policyKeyPath = $@"{PolicyStoreRegistryPath}\ipsecPolicy{{{policyGuid}}}";
+
+        int whenChanged = CurrentUnixSeconds();
+
+        // Write the NegPol (filter action) with Negotiate action and default security methods.
+        using (RegistryKey negPolKey = Registry.LocalMachine.CreateSubKey(negPolKeyPath))
+        {
+            negPolKey.SetValue("className", "ipsecNegotiationPolicy", RegistryValueKind.String);
+            negPolKey.SetValue("name", $"ipsecNegotiationPolicy{{{negPolGuid}}}", RegistryValueKind.String);
+            negPolKey.SetValue("ipsecID", $"{{{negPolGuid}}}", RegistryValueKind.String);
+            negPolKey.SetValue("ipsecNegotiationPolicyAction", "{8a171dd3-77e3-11d1-8659-a04f00000000}", RegistryValueKind.String);
+            negPolKey.SetValue("ipsecNegotiationPolicyType", "{62f49e13-6c37-11d1-864c-14a300000000}", RegistryValueKind.String);
+            negPolKey.SetValue("ipsecDataType", 0x100, RegistryValueKind.DWord);
+            negPolKey.SetValue("ipsecData", DefaultNegPolIpsecData, RegistryValueKind.Binary);
+            negPolKey.SetValue("whenChanged", whenChanged, RegistryValueKind.DWord);
+            negPolKey.SetValue("ipsecOwnersReference", new[] { nfaKeyPath }, RegistryValueKind.MultiString);
+        }
+
+        // Write the NFA (rule) with Kerberos authentication and no filter (default response).
+        using (RegistryKey nfaKey = Registry.LocalMachine.CreateSubKey(nfaKeyPath))
+        {
+            nfaKey.SetValue("className", "ipsecNFA", RegistryValueKind.String);
+            nfaKey.SetValue("name", $"ipsecNFA{{{nfaGuid}}}", RegistryValueKind.String);
+            nfaKey.SetValue("ipsecID", $"{{{nfaGuid}}}", RegistryValueKind.String);
+            nfaKey.SetValue("ipsecDataType", 0x100, RegistryValueKind.DWord);
+            nfaKey.SetValue("ipsecData", DefaultNfaKerberosIpsecData, RegistryValueKind.Binary);
+            nfaKey.SetValue("ipsecNegotiationPolicyReference", negPolKeyPath, RegistryValueKind.String);
+            nfaKey.SetValue("whenChanged", whenChanged, RegistryValueKind.DWord);
+            nfaKey.SetValue("ipsecOwnersReference", new[] { policyKeyPath }, RegistryValueKind.MultiString);
+        }
+
+        // Update the policy's ipsecNFAReference to include the new NFA.
+        using (RegistryKey? policyKey = Registry.LocalMachine.OpenSubKey(policyKeyPath, writable: true))
+        {
+            if (policyKey is not null)
+            {
+                policyKey.SetValue("ipsecNFAReference", new[] { nfaKeyPath }, RegistryValueKind.MultiString);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Default <c>ipsecData</c> blob for a NegPol with Negotiate action and 2 standard
+    /// security methods. 185 bytes, byte-identical to secpol.msc output.
+    /// </summary>
+    private static readonly byte[] DefaultNegPolIpsecData = Convert.FromHexString(
+        "B920DC80C82ED111A89E00A0248D3021A4000000020000000000000000000000000000000000000001000000030000000200000002000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100000002000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000");
+
+    /// <summary>
+    /// Default <c>ipsecData</c> blob for an NFA with a single Kerberos authentication method.
+    /// 115 bytes, byte-identical to the NFA created by secpol.msc's wizard.
+    /// </summary>
+    private static readonly byte[] DefaultNfaKerberosIpsecData = Convert.FromHexString(
+        "00ACBB118D49D111863900A0248D30212A0000000100000005000000020000000000FDFFFFFF0200000000000000000000000000000000000200000000000101010101010101010101010101010101000000050000000000000001010101010101010101010101010102010000000000000000");
 
     private static void DeleteAllRules(IntPtr store, Guid policyId)
     {
