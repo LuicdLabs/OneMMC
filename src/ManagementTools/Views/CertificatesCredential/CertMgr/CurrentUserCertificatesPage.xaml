@@ -21,7 +21,7 @@
             <Setter Property="Padding" Value="8" />
         </Style>
         <Style x:Key="CertificateMenuFlyoutPresenterStyle" TargetType="MenuFlyoutPresenter">
-            <Setter Property="MinWidth" Value="320" />
+            <Setter Property="MinWidth" Value="120" />
         </Style>
     </Page.Resources>
 

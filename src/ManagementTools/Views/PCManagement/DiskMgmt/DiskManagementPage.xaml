@@ -57,9 +57,6 @@
                                     Click="InitializeDiskButton_Click"
                                     Tag="{x:Bind}"
                                     Text="{Binding DiskMgmt_InitializeDisk, Source={StaticResource LocalizedStrings}}">
-                                    <MenuFlyoutItem.Icon>
-                                        <FontIcon Glyph="&#xE74E;" />
-                                    </MenuFlyoutItem.Icon>
                                 </MenuFlyoutItem>
                                 <MenuFlyoutItem
                                     Click="CreateSimpleVolumeButton_Click"
@@ -90,17 +87,11 @@
                                     Click="SetDiskReadOnlyButton_Click"
                                     Tag="{x:Bind}"
                                     Text="{Binding DiskMgmt_SetReadOnly, Source={StaticResource LocalizedStrings}}">
-                                    <MenuFlyoutItem.Icon>
-                                        <FontIcon Glyph="&#xE8A6;" />
-                                    </MenuFlyoutItem.Icon>
                                 </MenuFlyoutItem>
                                 <MenuFlyoutItem
                                     Click="ClearDiskReadOnlyButton_Click"
                                     Tag="{x:Bind}"
                                     Text="{Binding DiskMgmt_ClearReadOnly, Source={StaticResource LocalizedStrings}}">
-                                    <MenuFlyoutItem.Icon>
-                                        <FontIcon Glyph="&#xE8A5;" />
-                                    </MenuFlyoutItem.Icon>
                                 </MenuFlyoutItem>
                                 <MenuFlyoutSeparator />
                                 <MenuFlyoutItem
