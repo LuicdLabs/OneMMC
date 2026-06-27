@@ -45,6 +45,16 @@ public sealed class IPSecurityStaticPolicyCommandExecutor
         cancellationToken.ThrowIfCancellationRequested();
         ValidateCommand(arguments);
 
+        // A new policy must reference an ISAKMP (main-mode) object. On a machine where the
+        // Windows IP Security Policy snap-in has never created one, the store is empty and
+        // policy creation is impossible. Seed a default ISAKMP into the registry *before*
+        // opening the store so the first EnumISAKMPData call inside AddPolicy observes it.
+        if (arguments[2].Equals("add", StringComparison.OrdinalIgnoreCase)
+            && arguments[3].Equals("policy", StringComparison.OrdinalIgnoreCase))
+        {
+            EnsureDefaultIsakmp();
+        }
+
         if (!IPSecurityPolicyNativeMethods.TryOpenRegistryStore(out IntPtr store, out int errorCode))
         {
             ThrowOpenStoreFailure(errorCode);
@@ -315,6 +325,26 @@ public sealed class IPSecurityStaticPolicyCommandExecutor
     /// </summary>
     private static readonly byte[] DefaultNfaKerberosIpsecData = Convert.FromHexString(
         "00ACBB118D49D111863900A0248D30212A0000000100000005000000020000000000FDFFFFFF0200000000000000000000000000000000000200000000000101010101010101010101010101010101000000050000000000000001010101010101010101010101010102010000000000000000");
+
+    /// <summary>
+    /// Default <c>ipsecData</c> blob for a main-mode ISAKMP policy with the standard set of
+    /// key-exchange security methods (8-hour main-mode lifetime). 213 bytes, byte-identical to
+    /// the ISAKMP object secpol.msc / netsh create for a new policy.
+    /// </summary>
+    /// <remarks>
+    /// The ISAKMP's own identifier is embedded as a little-endian GUID at offset +20. It must be
+    /// overwritten with a fresh GUID for each created object; see <see cref="EnsureDefaultIsakmp"/>.
+    /// </remarks>
+    private static readonly byte[] DefaultIsakmpIpsecData = Convert.FromHexString(
+        "B820DC80C82ED111A89E00A0248D3021C00000005269771AF17F2343B4ABB967A6EFEB6A" +
+        "000000000000000000000000000000000000000080700000000000000000000000000000" +
+        "000000000000000002000000000000000300000040000000080000000200000040000000" +
+        "000000000000000000000000000000000000000002000000000000000000000080700000" +
+        "000000000000000003000000400000000800000002000000400000000000000000000000" +
+        "0000000004000000000000000200000000000000000000008070000000000000" + "00");
+
+    /// <summary>Byte offset of the embedded ISAKMP identifier GUID within <see cref="DefaultIsakmpIpsecData"/>.</summary>
+    private const int IsakmpDataGuidOffset = 20;
 
     private static void DeleteAllRules(IntPtr store, Guid policyId)
     {
@@ -1080,8 +1110,8 @@ public sealed class IPSecurityStaticPolicyCommandExecutor
             }
 
             throw new InvalidOperationException(
-                "Cannot create a policy: no ISAKMP objects exist in the store. " +
-                "Create an initial policy using the Windows IP Security Policy snap-in first.");
+                "Cannot create a policy: no ISAKMP objects exist in the store and the default " +
+                "ISAKMP could not be enumerated after being seeded.");
         }
         finally
         {
@@ -1096,6 +1126,88 @@ public sealed class IPSecurityStaticPolicyCommandExecutor
 
     private const string PolicyStoreRegistryPath =
         @"SOFTWARE\Policies\Microsoft\Windows\IPSec\Policy\Local";
+
+    /// <summary>
+    /// Ensures the local store contains at least one ISAKMP (main-mode) object, creating a
+    /// default one when the store is empty. Every legacy IPsec policy must reference an ISAKMP;
+    /// secpol.msc creates one implicitly, but a machine where the snap-in has never run has none,
+    /// which is why policy creation previously failed across machines.
+    /// </summary>
+    /// <remarks>
+    /// The ISAKMP is written directly to the registry — like the default response rule — because
+    /// <c>IPSecCreateISAKMPData</c> requires an in-memory <c>CRYPTO_BUNDLE</c> security-method
+    /// struct whose layout is undocumented and differs from the serialized <c>ipsecData</c> blob.
+    /// The blob written here is byte-identical to the one secpol.msc / netsh produce, with only the
+    /// embedded identifier GUID replaced. Writing it before the store is opened guarantees the first
+    /// <c>IPSecEnumISAKMPData</c> call observes it.
+    /// </remarks>
+    private static void EnsureDefaultIsakmp()
+    {
+        if (HasAnyIsakmp())
+        {
+            return;
+        }
+
+        Guid isakmpGuid = Guid.NewGuid();
+        byte[] ipsecData = (byte[])DefaultIsakmpIpsecData.Clone();
+        // The blob stores the identifier as a little-endian GUID, which is exactly the byte
+        // order Guid.ToByteArray() produces.
+        isakmpGuid.ToByteArray().CopyTo(ipsecData, IsakmpDataGuidOffset);
+
+        string keyPath = $@"{PolicyStoreRegistryPath}\ipsecISAKMPPolicy{{{isakmpGuid}}}";
+        using RegistryKey isakmpKey = Registry.LocalMachine.CreateSubKey(keyPath);
+        isakmpKey.SetValue("className", "ipsecISAKMPPolicy", RegistryValueKind.String);
+        isakmpKey.SetValue("name", $"ipsecISAKMPPolicy{{{isakmpGuid}}}", RegistryValueKind.String);
+        isakmpKey.SetValue("ipsecID", $"{{{isakmpGuid}}}", RegistryValueKind.String);
+        isakmpKey.SetValue("ipsecDataType", 0x100, RegistryValueKind.DWord);
+        isakmpKey.SetValue("ipsecData", ipsecData, RegistryValueKind.Binary);
+        isakmpKey.SetValue("whenChanged", CurrentUnixSeconds(), RegistryValueKind.DWord);
+        // The owners reference is populated as policies are linked; an empty multi-string is the
+        // valid initial state and does not prevent enumeration or secpol.msc from opening it.
+        isakmpKey.SetValue("ipsecOwnersReference", Array.Empty<string>(), RegistryValueKind.MultiString);
+    }
+
+    /// <summary>
+    /// Returns whether the local store already contains at least one enumerable ISAKMP object.
+    /// </summary>
+    private static bool HasAnyIsakmp()
+    {
+        if (!IPSecurityPolicyNativeMethods.TryOpenRegistryStore(out IntPtr store, out _))
+        {
+            // Treat an unreadable store as "no ISAKMP"; the subsequent open in ExecuteAsync
+            // surfaces the real open failure with the correct exception type.
+            return false;
+        }
+
+        IntPtr ppp = Marshal.AllocHGlobal(IntPtr.Size);
+        IntPtr pCount = Marshal.AllocHGlobal(sizeof(int));
+        try
+        {
+            int hr = IPSecurityPolicyNativeMethods.EnumISAKMPData(store, ppp, pCount);
+            if (hr != 0)
+            {
+                return false;
+            }
+
+            int count = Marshal.ReadInt32(pCount);
+            IntPtr pp = Marshal.ReadIntPtr(ppp);
+            for (int i = 0; i < count; i++)
+            {
+                if (Marshal.ReadIntPtr(pp, IntPtr.Size * i) != IntPtr.Zero)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+        finally
+        {
+            Marshal.FreeHGlobal(ppp);
+            Marshal.FreeHGlobal(pCount);
+            IPSecurityPolicyNativeMethods.CloseStore(store);
+        }
+    }
 
     /// <summary>
     /// Writes registry values that <c>IPSecCreatePolicyData</c> omits when the struct

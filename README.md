@@ -49,7 +49,7 @@ A modern Windows system management suite built with WinUI 3, designed as a strea
     - Desktop development with C++
     - WinUI application development
     - .NET desktop development
-- [.NET 9 Runtime](https://dotnet.microsoft.com/en-us/download/dotnet/9.0)
+- [.NET 10 Runtime](https://dotnet.microsoft.com/en-us/download/dotnet/10.0)
 - [Windows App SDK Runtime](https://learn.microsoft.com/en-us/windows/apps/windows-app-sdk/downloads)
 
 ### Debugging
