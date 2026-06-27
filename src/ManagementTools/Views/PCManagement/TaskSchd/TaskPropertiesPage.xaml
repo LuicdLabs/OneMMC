@@ -1,0 +1,505 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+    TaskPropertiesPage — properties of a single scheduled task.
+
+    Navigated to from TaskSchedulerPage when a task in the list is double-tapped
+    (or via the Properties command). The hosting shell (NavigationView) supplies the
+    Back button and breadcrumb, so this page has no Back button of its own.
+
+    NOTE: This page currently renders MOCK / SAMPLE data only.
+    TODO(TaskScheduler): bind to a real task model loaded from the Task Scheduler 2.0
+    COM API (Schedule.Service / ITaskService) or Microsoft.Win32.TaskScheduler, and
+    migrate every user-facing string to ResourceKeys / .resw (en-US, zh-TW).
+-->
+<Page
+	x:Class="ManagementTools.Views.PCManagement.TaskPropertiesPage"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:cwuc="using:CommunityToolkit.WinUI.Controls"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:localization="using:ManagementTools.Localization"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	mc:Ignorable="d">
+
+	<Page.Resources>
+		<localization:LocalizedStrings x:Key="LocalizedStrings" />
+
+		<!--  Bold title shown above each section (General, Triggers, …)  -->
+		<Style
+			x:Key="SectionHeaderStyle"
+			BasedOn="{StaticResource BodyStrongTextBlockStyle}"
+			TargetType="TextBlock">
+			<Setter Property="Margin" Value="2,16,0,4" />
+		</Style>
+
+		<!--  Secondary (subtitle) text inside trigger/action rows  -->
+		<Style x:Key="SecondaryTextStyle" TargetType="TextBlock">
+			<Setter Property="Foreground" Value="{ThemeResource TextFillColorSecondaryBrush}" />
+			<Setter Property="FontSize" Value="12" />
+		</Style>
+
+		<!--  Borderless icon button used for inline row actions (edit / delete / move)  -->
+		<Style x:Key="RowIconButtonStyle" TargetType="Button">
+			<Setter Property="Background" Value="Transparent" />
+			<Setter Property="BorderThickness" Value="0" />
+			<Setter Property="Padding" Value="7" />
+			<Setter Property="MinWidth" Value="0" />
+			<Setter Property="VerticalAlignment" Value="Center" />
+		</Style>
+	</Page.Resources>
+
+	<Grid>
+		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto" />
+			<RowDefinition Height="*" />
+		</Grid.RowDefinitions>
+
+		<!--  CommandBar: Enabled toggle | Run | Apply | More  -->
+		<CommandBar Grid.Row="0" DefaultLabelPosition="Right">
+			<!--
+				Whole-task Enabled switch.
+				TODO(TaskScheduler): two-way bind IsOn to IRegisteredTask.Enabled.
+			-->
+			<AppBarElementContainer VerticalContentAlignment="Center">
+				<ToggleSwitch
+					Margin="0,0,8,0"
+					IsOn="True"
+					OffContent="Disabled"
+					OnContent="Enabled" />
+			</AppBarElementContainer>
+			<!--  TODO(TaskScheduler): run the task now (IRegisteredTask.Run).  -->
+			<AppBarButton Icon="Play" Label="Run" />
+			<!--  Apply (Save glyph E74E). TODO(TaskScheduler): persist edits via ITaskFolder.RegisterTaskDefinition.  -->
+			<AppBarButton Label="Apply">
+				<AppBarButton.Icon>
+					<FontIcon Glyph="&#xE74E;" />
+				</AppBarButton.Icon>
+			</AppBarButton>
+			<AppBarButton Label="More" LabelPosition="Collapsed">
+				<AppBarButton.Icon>
+					<FontIcon Glyph="&#xE712;" />
+				</AppBarButton.Icon>
+			</AppBarButton>
+		</CommandBar>
+
+		<ScrollViewer Grid.Row="1">
+			<StackPanel
+				Padding="24,8,24,24"
+				HorizontalAlignment="Stretch"
+				Spacing="4">
+
+				<!--  ====================  GENERAL  ====================  -->
+				<TextBlock Style="{StaticResource SectionHeaderStyle}" Text="General" />
+
+				<!--
+					Edit opens a Name + Description editor. TODO(TaskScheduler).
+					GeneralCard.Description is overwritten in code-behind with the selected task's name.
+				-->
+				<cwuc:SettingsCard
+					x:Name="GeneralCard"
+					Description="MicrosoftEdgeUpdateTaskMachineCore{803AE248-C5EB-4140-9298-DB990F75210D} — Keeps your Microsoft software up to date. If disabled or stopped, your Microsoft software will not be kept up to date."
+					Header="General">
+					<cwuc:SettingsCard.HeaderIcon>
+						<FontIcon Glyph="&#xE713;" />
+					</cwuc:SettingsCard.HeaderIcon>
+					<Button Content="Edit" MinWidth="120" />
+				</cwuc:SettingsCard>
+
+				<cwuc:SettingsCard Description="Microsoft Corporation" Header="Author">
+					<cwuc:SettingsCard.HeaderIcon>
+						<FontIcon Glyph="&#xE77B;" />
+					</cwuc:SettingsCard.HeaderIcon>
+					<Button Content="Copy" MinWidth="120" />
+				</cwuc:SettingsCard>
+
+				<cwuc:SettingsCard Description="\" Header="Location">
+					<cwuc:SettingsCard.HeaderIcon>
+						<FontIcon Glyph="&#xE8B7;" />
+					</cwuc:SettingsCard.HeaderIcon>
+					<Button Content="Copy" MinWidth="120" />
+				</cwuc:SettingsCard>
+
+				<!--  Configure for: compatibility dropdown.  -->
+				<cwuc:SettingsCard Header="Configure for:">
+					<cwuc:SettingsCard.HeaderIcon>
+						<FontIcon Glyph="&#xE977;" />
+					</cwuc:SettingsCard.HeaderIcon>
+					<ComboBox MinWidth="280" SelectedIndex="2">
+						<ComboBoxItem Content="Windows 10" />
+						<ComboBoxItem Content="Windows® 7, Windows Server™ 2008 R2" />
+						<ComboBoxItem Content="Windows Vista™, Windows Server™ 2008" />
+					</ComboBox>
+				</cwuc:SettingsCard>
+
+				<!--  ====================  SECURITY OPTIONS  ====================  -->
+				<TextBlock Style="{StaticResource SectionHeaderStyle}" Text="Security options" />
+
+				<cwuc:SettingsExpander
+					Description="User"
+					Header="When running the task, use the following user account:"
+					IsExpanded="True">
+					<cwuc:SettingsExpander.HeaderIcon>
+						<FontIcon Glyph="&#xE72E;" />
+					</cwuc:SettingsExpander.HeaderIcon>
+
+					<!--
+						Change User or Group should open an Object Picker dialog (see doc/011422.png).
+						TODO(TaskScheduler): show the picker and write back the chosen principal as
+						DOMAIN\Name (objects: User, Group, Built-in security principal). No-op for now.
+					-->
+					<Button Content="Change User or Group" />
+
+					<cwuc:SettingsExpander.Items>
+						<cwuc:SettingsCard ContentAlignment="Left">
+							<StackPanel Spacing="8">
+								<RadioButton
+									Content="Run only when user is logged on"
+									GroupName="SecurityRunMode"
+									IsChecked="True" />
+								<RadioButton Content="Run whether user is logged on or not" GroupName="SecurityRunMode" />
+								<!--  Sub-option, only relevant for the second radio. Disabled here to match state.  -->
+								<CheckBox
+									Margin="28,0,0,0"
+									Content="Do not store password. The task will only have access on local computer resources."
+									IsEnabled="False" />
+							</StackPanel>
+						</cwuc:SettingsCard>
+
+						<cwuc:SettingsCard Header="Run with highest privileges">
+							<ToggleSwitch
+								IsOn="True"
+								OffContent="Off"
+								OnContent="On" />
+						</cwuc:SettingsCard>
+					</cwuc:SettingsExpander.Items>
+				</cwuc:SettingsExpander>
+
+				<!--  ====================  TRIGGERS  ====================  -->
+				<TextBlock Style="{StaticResource SectionHeaderStyle}" Text="Triggers" />
+
+				<cwuc:SettingsExpander Header="Triggers" IsExpanded="True">
+					<cwuc:SettingsExpander.HeaderIcon>
+						<FontIcon Glyph="&#xE823;" />
+					</cwuc:SettingsExpander.HeaderIcon>
+					<!--  TODO(TaskScheduler): open the New Trigger editor.  -->
+					<Button Content="New" />
+					<cwuc:SettingsExpander.Items>
+						<!--  Trigger row = enabled toggle + title/subtitle + edit/delete.  -->
+						<cwuc:SettingsCard>
+							<cwuc:SettingsCard.Header>
+								<StackPanel
+									VerticalAlignment="Center"
+									Orientation="Horizontal"
+									Spacing="14">
+									<ToggleSwitch
+										MinWidth="0"
+										IsOn="True"
+										OffContent=""
+										OnContent="" />
+									<StackPanel VerticalAlignment="Center">
+										<TextBlock Text="At log on" />
+										<TextBlock Style="{StaticResource SecondaryTextStyle}" Text="At log on of any user" />
+									</StackPanel>
+								</StackPanel>
+							</cwuc:SettingsCard.Header>
+							<StackPanel Orientation="Horizontal" Spacing="2">
+								<Button Style="{StaticResource RowIconButtonStyle}" ToolTipService.ToolTip="Edit">
+									<FontIcon FontSize="16" Glyph="&#xE70F;" />
+								</Button>
+								<Button Style="{StaticResource RowIconButtonStyle}" ToolTipService.ToolTip="Delete">
+									<FontIcon FontSize="16" Glyph="&#xE74D;" />
+								</Button>
+							</StackPanel>
+						</cwuc:SettingsCard>
+
+						<cwuc:SettingsCard>
+							<cwuc:SettingsCard.Header>
+								<StackPanel
+									VerticalAlignment="Center"
+									Orientation="Horizontal"
+									Spacing="14">
+									<ToggleSwitch
+										MinWidth="0"
+										IsOn="False"
+										OffContent=""
+										OnContent="" />
+									<StackPanel VerticalAlignment="Center">
+										<TextBlock Text="Daily" />
+										<TextBlock Style="{StaticResource SecondaryTextStyle}" Text="At 23:01 every day" />
+									</StackPanel>
+								</StackPanel>
+							</cwuc:SettingsCard.Header>
+							<StackPanel Orientation="Horizontal" Spacing="2">
+								<Button Style="{StaticResource RowIconButtonStyle}" ToolTipService.ToolTip="Edit">
+									<FontIcon FontSize="16" Glyph="&#xE70F;" />
+								</Button>
+								<Button Style="{StaticResource RowIconButtonStyle}" ToolTipService.ToolTip="Delete">
+									<FontIcon FontSize="16" Glyph="&#xE74D;" />
+								</Button>
+							</StackPanel>
+						</cwuc:SettingsCard>
+					</cwuc:SettingsExpander.Items>
+				</cwuc:SettingsExpander>
+
+				<!--  ====================  ACTIONS  ====================  -->
+				<TextBlock Style="{StaticResource SectionHeaderStyle}" Text="Actions" />
+
+				<cwuc:SettingsExpander Header="Actions" IsExpanded="True">
+					<cwuc:SettingsExpander.HeaderIcon>
+						<FontIcon Glyph="&#xE768;" />
+					</cwuc:SettingsExpander.HeaderIcon>
+					<!--  TODO(TaskScheduler): open the New Action editor.  -->
+					<Button Content="New" />
+					<cwuc:SettingsExpander.Items>
+						<!--  Action row = title/subtitle + move-up/down + edit/delete.  -->
+						<cwuc:SettingsCard Description="C:\Program Files (x86)\Microsoft\EdgeUpdate\MicrosoftEdgeUpdate.exe /c" Header="Start a program">
+							<StackPanel Orientation="Horizontal" Spacing="2">
+								<Button Style="{StaticResource RowIconButtonStyle}" ToolTipService.ToolTip="Move up">
+									<FontIcon FontSize="16" Glyph="&#xE70E;" />
+								</Button>
+								<Button Style="{StaticResource RowIconButtonStyle}" ToolTipService.ToolTip="Move down">
+									<FontIcon FontSize="16" Glyph="&#xE70D;" />
+								</Button>
+								<Button Style="{StaticResource RowIconButtonStyle}" ToolTipService.ToolTip="Edit">
+									<FontIcon FontSize="16" Glyph="&#xE70F;" />
+								</Button>
+								<Button Style="{StaticResource RowIconButtonStyle}" ToolTipService.ToolTip="Delete">
+									<FontIcon FontSize="16" Glyph="&#xE74D;" />
+								</Button>
+							</StackPanel>
+						</cwuc:SettingsCard>
+
+						<cwuc:SettingsCard Description="test title message" Header="Display a message (deprecated)">
+							<StackPanel Orientation="Horizontal" Spacing="2">
+								<Button Style="{StaticResource RowIconButtonStyle}" ToolTipService.ToolTip="Move up">
+									<FontIcon FontSize="16" Glyph="&#xE70E;" />
+								</Button>
+								<Button Style="{StaticResource RowIconButtonStyle}" ToolTipService.ToolTip="Move down">
+									<FontIcon FontSize="16" Glyph="&#xE70D;" />
+								</Button>
+								<Button Style="{StaticResource RowIconButtonStyle}" ToolTipService.ToolTip="Edit">
+									<FontIcon FontSize="16" Glyph="&#xE70F;" />
+								</Button>
+								<Button Style="{StaticResource RowIconButtonStyle}" ToolTipService.ToolTip="Delete">
+									<FontIcon FontSize="16" Glyph="&#xE74D;" />
+								</Button>
+							</StackPanel>
+						</cwuc:SettingsCard>
+
+						<cwuc:SettingsCard Description="noreply@google.com test subject" Header="Send an e-mail (deprecated)">
+							<StackPanel Orientation="Horizontal" Spacing="2">
+								<Button Style="{StaticResource RowIconButtonStyle}" ToolTipService.ToolTip="Move up">
+									<FontIcon FontSize="16" Glyph="&#xE70E;" />
+								</Button>
+								<Button Style="{StaticResource RowIconButtonStyle}" ToolTipService.ToolTip="Move down">
+									<FontIcon FontSize="16" Glyph="&#xE70D;" />
+								</Button>
+								<Button Style="{StaticResource RowIconButtonStyle}" ToolTipService.ToolTip="Edit">
+									<FontIcon FontSize="16" Glyph="&#xE70F;" />
+								</Button>
+								<Button Style="{StaticResource RowIconButtonStyle}" ToolTipService.ToolTip="Delete">
+									<FontIcon FontSize="16" Glyph="&#xE74D;" />
+								</Button>
+							</StackPanel>
+						</cwuc:SettingsCard>
+					</cwuc:SettingsExpander.Items>
+				</cwuc:SettingsExpander>
+
+				<!--  ====================  CONDITIONS  ====================  -->
+				<TextBlock Style="{StaticResource SectionHeaderStyle}" Text="Conditions" />
+
+				<!--  Idle  -->
+				<cwuc:SettingsExpander Header="Idle" IsExpanded="True">
+					<cwuc:SettingsExpander.HeaderIcon>
+						<FontIcon Glyph="&#xE769;" />
+					</cwuc:SettingsExpander.HeaderIcon>
+					<ToggleSwitch
+						IsOn="True"
+						OffContent="Off"
+						OnContent="On" />
+					<cwuc:SettingsExpander.Items>
+						<!--  Editable ComboBox: 1/5/10/15/30 minutes, 1 hour.  -->
+						<cwuc:SettingsCard Header="Start the task only if the computer is idle for:">
+							<ComboBox
+								MinWidth="170"
+								IsEditable="True"
+								Text="10 minutes">
+								<ComboBoxItem Content="1 minute" />
+								<ComboBoxItem Content="5 minutes" />
+								<ComboBoxItem Content="10 minutes" />
+								<ComboBoxItem Content="15 minutes" />
+								<ComboBoxItem Content="30 minutes" />
+								<ComboBoxItem Content="1 hour" />
+							</ComboBox>
+						</cwuc:SettingsCard>
+						<!--  Editable ComboBox: Do not wait, 1/5/10/15/30 minutes, 1/2 hours.  -->
+						<cwuc:SettingsCard Header="Wait for idle for:">
+							<ComboBox
+								MinWidth="170"
+								IsEditable="True"
+								Text="1 hour">
+								<ComboBoxItem Content="Do not wait" />
+								<ComboBoxItem Content="1 minute" />
+								<ComboBoxItem Content="5 minutes" />
+								<ComboBoxItem Content="10 minutes" />
+								<ComboBoxItem Content="15 minutes" />
+								<ComboBoxItem Content="30 minutes" />
+								<ComboBoxItem Content="1 hour" />
+								<ComboBoxItem Content="2 hours" />
+							</ComboBox>
+						</cwuc:SettingsCard>
+						<cwuc:SettingsCard ContentAlignment="Left">
+							<StackPanel Spacing="6">
+								<CheckBox Content="Stop if the computer ceases to be idle" IsChecked="True" />
+								<CheckBox Margin="28,0,0,0" Content="Restart if the idle state resumes" />
+							</StackPanel>
+						</cwuc:SettingsCard>
+					</cwuc:SettingsExpander.Items>
+				</cwuc:SettingsExpander>
+
+				<!--  Power  -->
+				<cwuc:SettingsExpander
+					Description="Start the task only if the computer is on AC power"
+					Header="Power"
+					IsExpanded="True">
+					<cwuc:SettingsExpander.HeaderIcon>
+						<FontIcon Glyph="&#xE945;" />
+					</cwuc:SettingsExpander.HeaderIcon>
+					<ToggleSwitch
+						IsOn="False"
+						OffContent="Off"
+						OnContent="On" />
+					<cwuc:SettingsExpander.Items>
+						<!--  Disabled to mirror the screenshot's state; bind IsEnabled to the AC-power condition later.  -->
+						<cwuc:SettingsCard ContentAlignment="Left">
+							<CheckBox
+								Content="Stop if the computer switches to battery power"
+								IsChecked="True"
+								IsEnabled="False" />
+						</cwuc:SettingsCard>
+						<cwuc:SettingsCard ContentAlignment="Left">
+							<CheckBox Content="Wake the computer to run this task" />
+						</cwuc:SettingsCard>
+					</cwuc:SettingsExpander.Items>
+				</cwuc:SettingsExpander>
+
+				<!--  Network  -->
+				<cwuc:SettingsExpander Header="Network" IsExpanded="True">
+					<cwuc:SettingsExpander.HeaderIcon>
+						<FontIcon Glyph="&#xE839;" />
+					</cwuc:SettingsExpander.HeaderIcon>
+					<ToggleSwitch
+						IsOn="True"
+						OffContent="Off"
+						OnContent="On" />
+					<cwuc:SettingsExpander.Items>
+						<!--  Dropdown. TODO(TaskScheduler): populate from defined network profiles + "Any connection".  -->
+						<cwuc:SettingsCard Header="Start only if the following network connection is available:">
+							<ComboBox MinWidth="170" SelectedIndex="0">
+								<ComboBoxItem Content="Any connection" />
+							</ComboBox>
+						</cwuc:SettingsCard>
+					</cwuc:SettingsExpander.Items>
+				</cwuc:SettingsExpander>
+
+				<!--  ====================  SETTINGS  ====================  -->
+				<TextBlock Style="{StaticResource SectionHeaderStyle}" Text="Settings" />
+
+				<cwuc:SettingsExpander Header="Settings" IsExpanded="True">
+					<cwuc:SettingsExpander.HeaderIcon>
+						<FontIcon Glyph="&#xE713;" />
+					</cwuc:SettingsExpander.HeaderIcon>
+					<cwuc:SettingsExpander.Items>
+						<cwuc:SettingsCard ContentAlignment="Left">
+							<CheckBox Content="Allow task to be run on demand" IsChecked="True" />
+						</cwuc:SettingsCard>
+						<cwuc:SettingsCard ContentAlignment="Left">
+							<CheckBox Content="Run task as soon as possible after a scheduled start is missed" IsChecked="True" />
+						</cwuc:SettingsCard>
+
+						<!--  Restart-on-failure: header is the enabling CheckBox; combo disabled to match unchecked state.  -->
+						<cwuc:SettingsCard>
+							<cwuc:SettingsCard.Header>
+								<CheckBox Content="If the task fails, restart every:" />
+							</cwuc:SettingsCard.Header>
+							<ComboBox
+								MinWidth="170"
+								IsEditable="True"
+								IsEnabled="False"
+								Text="1 minute">
+								<ComboBoxItem Content="1 minute" />
+								<ComboBoxItem Content="5 minutes" />
+								<ComboBoxItem Content="10 minutes" />
+								<ComboBoxItem Content="15 minutes" />
+								<ComboBoxItem Content="30 minutes" />
+								<ComboBoxItem Content="1 hour" />
+								<ComboBoxItem Content="2 hours" />
+							</ComboBox>
+						</cwuc:SettingsCard>
+						<!--  Sub-option of the row above (NumberBox with inline spin buttons).  -->
+						<cwuc:SettingsCard Header="Attempt to restart up to times">
+							<NumberBox
+								MinWidth="120"
+								IsEnabled="False"
+								Maximum="999"
+								Minimum="0"
+								SpinButtonPlacementMode="Inline"
+								Value="3" />
+						</cwuc:SettingsCard>
+
+						<!--  Stop if runs longer than: editable ComboBox.  -->
+						<cwuc:SettingsCard>
+							<cwuc:SettingsCard.Header>
+								<CheckBox Content="Stop the task if it runs longer than:" IsChecked="True" />
+							</cwuc:SettingsCard.Header>
+							<ComboBox
+								MinWidth="170"
+								IsEditable="True"
+								Text="3 days">
+								<ComboBoxItem Content="1 hour" />
+								<ComboBoxItem Content="2 hours" />
+								<ComboBoxItem Content="4 hours" />
+								<ComboBoxItem Content="8 hours" />
+								<ComboBoxItem Content="12 hours" />
+								<ComboBoxItem Content="1 day" />
+								<ComboBoxItem Content="3 days" />
+							</ComboBox>
+						</cwuc:SettingsCard>
+
+						<cwuc:SettingsCard ContentAlignment="Left">
+							<CheckBox Content="If the running task does not end when requested, force it to stop" IsChecked="True" />
+						</cwuc:SettingsCard>
+
+						<!--  Delete-after: editable ComboBox; disabled to match unchecked state.  -->
+						<cwuc:SettingsCard>
+							<cwuc:SettingsCard.Header>
+								<CheckBox Content="If the task is not scheduled to run again, delete it after" />
+							</cwuc:SettingsCard.Header>
+							<ComboBox
+								MinWidth="170"
+								IsEditable="True"
+								IsEnabled="False"
+								Text="30 days">
+								<ComboBoxItem Content="Immediately" />
+								<ComboBoxItem Content="30 days" />
+								<ComboBoxItem Content="90 days" />
+								<ComboBoxItem Content="180 days" />
+								<ComboBoxItem Content="365 days" />
+							</ComboBox>
+						</cwuc:SettingsCard>
+
+						<!--  Multiple-instances rule: Dropdown.  -->
+						<cwuc:SettingsCard Header="If the task is already running, then the following rule applies:">
+							<ComboBox MinWidth="240" SelectedIndex="1">
+								<ComboBoxItem Content="Do not start a new instance" />
+								<ComboBoxItem Content="Run a new instance in parallel" />
+								<ComboBoxItem Content="Queue a new instance" />
+								<ComboBoxItem Content="Stop the existing instance" />
+							</ComboBox>
+						</cwuc:SettingsCard>
+					</cwuc:SettingsExpander.Items>
+				</cwuc:SettingsExpander>
+			</StackPanel>
+		</ScrollViewer>
+	</Grid>
+</Page>
