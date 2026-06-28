@@ -31,6 +31,21 @@ public sealed partial class TaskSchedulerPage : Page
 	private bool _selectedTaskEnabled = true;
 	private bool _selectedTaskRunning;
 
+	/// <summary>
+	/// True when any node in <see cref="LibraryTreeView"/> is selected.
+	/// Drives the IsEnabled binding for folder-scoped menu items (New folder / Import Task).
+	/// Every node — including the root "Task Scheduler Library" — represents a valid folder
+	/// target for both operations.
+	/// </summary>
+	public bool IsTreeNodeSelected { get; private set; }
+
+	/// <summary>
+	/// True when a non-root node is selected in <see cref="LibraryTreeView"/>.
+	/// Drives the IsEnabled binding for Delete folder: the root "Task Scheduler Library"
+	/// node is not a user-created folder and must not be deleted.
+	/// </summary>
+	public bool IsNonRootTreeNodeSelected { get; private set; }
+
 	public TaskSchedulerPage()
 	{
 		InitializeComponent();
@@ -75,12 +90,30 @@ public sealed partial class TaskSchedulerPage : Page
 		library.Children.Add(new TreeViewNode { Content = "Microsoft" });
 		library.Children.Add(new TreeViewNode { Content = "SoftLanding" });
 		LibraryTreeView.RootNodes.Add(library);
+
+		// Select the root by default so the folder-scoped commands (New folder / Import Task)
+		// reflect the visible selection on first load. Programmatic selection does not raise
+		// ItemInvoked, so update the menu state explicitly here.
+		LibraryTreeView.SelectedNode = library;
+		UpdateFolderSelectionState(library);
 	}
 
 	// Selecting a folder node should load that folder's tasks into the list.
 	// TODO(TaskScheduler): enumerate the selected ITaskFolder's registered tasks.
 	private void LibraryTreeView_ItemInvoked(TreeView sender, TreeViewItemInvokedEventArgs args)
+		=> UpdateFolderSelectionState(sender.SelectedNode);
+
+	/// <summary>
+	/// Recomputes the IsEnabled state of the folder-scoped menu items from the selected node
+	/// and refreshes the x:Bind one-way bindings.
+	/// </summary>
+	private void UpdateFolderSelectionState(TreeViewNode? selected)
 	{
+		// Any node enables New folder / Import Task.
+		IsTreeNodeSelected = selected is not null;
+		// Only non-root nodes enable Delete folder — the root node has no parent.
+		IsNonRootTreeNodeSelected = selected?.Parent is not null;
+		Bindings.Update();
 	}
 
 	// Double-tapping a task in the list opens its properties page.

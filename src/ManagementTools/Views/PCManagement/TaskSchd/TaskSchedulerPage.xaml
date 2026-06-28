@@ -106,18 +106,37 @@
 						</MenuFlyoutItem>
 						<MenuFlyoutSeparator />
 						<!--
-							Folder-scoped actions. TODO(TaskScheduler): enable/disable these based on the
-							currently selected TreeView folder node (a folder must be selected to create a
-							sub-folder or import a task into it).
+							Folder-scoped actions: enabled whenever any node (including the root
+							"Task Scheduler Library" node) is selected in LibraryTreeView, because
+							every node represents a folder that can contain sub-folders or imported
+							tasks. IsEnabled is bound to IsTreeNodeSelected, which is set in
+							code-behind via LibraryTreeView_ItemInvoked.
 						-->
-						<MenuFlyoutItem Text="New folder">
+						<MenuFlyoutItem
+							IsEnabled="{x:Bind IsTreeNodeSelected, Mode=OneWay}"
+							Text="New folder">
 							<MenuFlyoutItem.Icon>
 								<FontIcon Glyph="&#xE8F4;" />
 							</MenuFlyoutItem.Icon>
 						</MenuFlyoutItem>
-						<MenuFlyoutItem Text="Import Task...">
+						<MenuFlyoutItem
+							IsEnabled="{x:Bind IsTreeNodeSelected, Mode=OneWay}"
+							Text="Import Task...">
 							<MenuFlyoutItem.Icon>
 								<FontIcon Glyph="&#xE8B5;" />
+							</MenuFlyoutItem.Icon>
+						</MenuFlyoutItem>
+						<!--
+							Delete folder is disabled for the root "Task Scheduler Library" node
+							because that node is not a deletable user-created folder.
+							IsEnabled is bound to IsNonRootTreeNodeSelected, which is true only
+							when a non-root node is selected in LibraryTreeView.
+						-->
+						<MenuFlyoutItem
+							IsEnabled="{x:Bind IsNonRootTreeNodeSelected, Mode=OneWay}"
+							Text="Delete folder">
+							<MenuFlyoutItem.Icon>
+								<FontIcon Glyph="&#xE74D;" />
 							</MenuFlyoutItem.Icon>
 						</MenuFlyoutItem>
 						<!--  TODO(TaskScheduler): launch the legacy taskschd.msc snap-in.  -->
