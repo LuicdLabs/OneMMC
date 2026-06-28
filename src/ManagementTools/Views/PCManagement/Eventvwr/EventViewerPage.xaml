@@ -82,7 +82,7 @@
             <!--  Left Panel: TreeView  -->
             <Border
                 Grid.Column="0"
-                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderBrush="Transparent"
                 BorderThickness="0,0,1,0">
                 <TreeView
                     x:Name="EventLogTreeView"

@@ -42,9 +42,9 @@ public sealed partial class TaskPropertiesPage : Page
 		// Build the (mock) action rows, then seed their move-button enabled states.
 		Actions = new ObservableCollection<TaskActionItem>
 		{
-			new(Actions_MoveUp, Actions_MoveDown, "Start a program", @"C:\Program Files (x86)\Microsoft\EdgeUpdate\MicrosoftEdgeUpdate.exe /c"),
-			new(Actions_MoveUp, Actions_MoveDown, "Display a message (deprecated)", "test title message"),
-			new(Actions_MoveUp, Actions_MoveDown, "Send an e-mail (deprecated)", "noreply@google.com test subject"),
+			new(Actions_MoveUp, Actions_MoveDown, Actions_Edit, "Start a program", @"C:\Program Files (x86)\Microsoft\EdgeUpdate\MicrosoftEdgeUpdate.exe /c"),
+			new(Actions_MoveUp, Actions_MoveDown, Actions_Edit, "Display a message (deprecated)", "test title message"),
+			new(Actions_MoveUp, Actions_MoveDown, Actions_Edit, "Send an e-mail (deprecated)", "noreply@google.com test subject"),
 		};
 		UpdateActionMoveStates();
 
@@ -224,6 +224,88 @@ public sealed partial class TaskPropertiesPage : Page
 			GeneralNameText.Text = task.Name;
 		}
 	}
+
+	/// <summary>
+	/// Triggers &gt; "New": opens the <see cref="NewTriggerDialog"/> in create mode
+	/// (Title "Create a New Trigger").
+	/// </summary>
+	private async void NewTriggerButton_Click(object sender, RoutedEventArgs e) =>
+		await ShowTriggerDialogAsync(null);
+
+	/// <summary>
+	/// A trigger row's Edit button: opens the <see cref="NewTriggerDialog"/> in edit mode
+	/// (Title "Edit Trigger") for the row's trigger type, carried in the button's <c>Tag</c>.
+	/// </summary>
+	/// <remarks>
+	/// The sample rows are static XAML, so the type travels in <c>Tag</c>; a real, data-bound
+	/// Triggers list would pass the row's model instead (as the Actions list does via x:Bind).
+	/// </remarks>
+	private async void TriggerEdit_Click(object sender, RoutedEventArgs e)
+	{
+		var kind = Enum.Parse<TriggerEditKind>((string)((FrameworkElement)sender).Tag);
+		await ShowTriggerDialogAsync(kind);
+	}
+
+	/// <summary>
+	/// Shows the trigger editor. A <c>null</c> <paramref name="editKind"/> means create a new trigger;
+	/// otherwise the dialog opens in edit mode pre-selected to that trigger type.
+	/// </summary>
+	/// <remarks>
+	/// TODO(TaskScheduler): on a Primary result, build the matching ITrigger from the dialog and add it
+	/// to (create) or update it in (edit) the task's ITriggerCollection. The dialog collects sample data only.
+	/// </remarks>
+	private async Task ShowTriggerDialogAsync(TriggerEditKind? editKind)
+	{
+		var dialog = new NewTriggerDialog(editKind)
+		{
+			XamlRoot = this.XamlRoot,
+			RequestedTheme = App.CurrentTheme,
+		};
+
+		ContentDialogResult result = await dialog.ShowAsync().AsTask();
+		if (result == ContentDialogResult.Primary)
+		{
+			// TODO(TaskScheduler): persist the created/edited trigger. No-op prototype.
+		}
+	}
+
+	/// <summary>
+	/// Actions &gt; "New": opens the <see cref="NewActionDialog"/> in create mode
+	/// (Title "Create a New Action").
+	/// </summary>
+	private async void NewActionButton_Click(object sender, RoutedEventArgs e) =>
+		await ShowActionDialogAsync(null);
+
+	/// <summary>
+	/// An action row's Edit button: opens the <see cref="NewActionDialog"/> in edit mode
+	/// (Title "Edit Action") for <paramref name="item"/>. Delegated here from
+	/// <see cref="TaskActionItem.Edit"/> the same way Move up/down are routed back to the page.
+	/// </summary>
+	private async void Actions_Edit(TaskActionItem item) =>
+		await ShowActionDialogAsync(item);
+
+	/// <summary>
+	/// Shows the action editor. A <c>null</c> <paramref name="actionToEdit"/> means create a new
+	/// action; otherwise the dialog opens in edit mode pre-selected to that action's type.
+	/// </summary>
+	/// <remarks>
+	/// TODO(TaskScheduler): on a Primary result, build the matching IAction from the dialog and add it
+	/// to (create) or update it in (edit) the task's IActionCollection. The dialog collects sample data only.
+	/// </remarks>
+	private async Task ShowActionDialogAsync(TaskActionItem? actionToEdit)
+	{
+		var dialog = new NewActionDialog(actionToEdit)
+		{
+			XamlRoot = this.XamlRoot,
+			RequestedTheme = App.CurrentTheme,
+		};
+
+		ContentDialogResult result = await dialog.ShowAsync().AsTask();
+		if (result == ContentDialogResult.Primary)
+		{
+			// TODO(TaskScheduler): persist the created/edited action. No-op prototype.
+		}
+	}
 }
 
 /// <summary>
@@ -235,11 +317,13 @@ public sealed partial class TaskActionItem : ObservableObject
 {
 	private readonly Action<TaskActionItem> _moveUp;
 	private readonly Action<TaskActionItem> _moveDown;
+	private readonly Action<TaskActionItem> _edit;
 
-	public TaskActionItem(Action<TaskActionItem> moveUp, Action<TaskActionItem> moveDown, string header, string description)
+	public TaskActionItem(Action<TaskActionItem> moveUp, Action<TaskActionItem> moveDown, Action<TaskActionItem> edit, string header, string description)
 	{
 		_moveUp = moveUp;
 		_moveDown = moveDown;
+		_edit = edit;
 		Header = header;
 		Description = description;
 	}
@@ -263,4 +347,7 @@ public sealed partial class TaskActionItem : ObservableObject
 
 	/// <summary>Invoked by the row's "Move down" button (x:Bind event binding).</summary>
 	public void MoveDown() => _moveDown(this);
+
+	/// <summary>Invoked by the row's "Edit" button (x:Bind event binding); opens the action editor for this row.</summary>
+	public void Edit() => _edit(this);
 }

@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+    NewEventFilterContent — body of the "New Event Filter" editor reached from
+    NewTriggerDialog ("On an event" > Custom > "New Event Filter..."). It is hosted as the
+    Content of a ModalDialogWindow (a real top-level Window), because a ContentDialog cannot
+    open a second ContentDialog on the same window. The hosting window supplies the OK / Cancel
+    buttons, so this UserControl only provides the filter form.
+
+    NOTE: MOCK / SAMPLE data only. The Filter and XML tabs mirror the Windows Event Viewer filter
+    dialog, but nothing is parsed or executed.
+
+    TODO(TaskScheduler): build the event-query XPath from these fields (Filter tab) — or read it
+    verbatim (XML tab) — and hand it back as IEventTrigger.Subscription. Populate the Event logs /
+    Event sources / Task category / Keywords drop-downs from the real channels (EvtOpenChannelEnum /
+    EvtOpenPublisherEnum) and migrate all strings to ResourceKeys / .resw.
+-->
+<UserControl
+	x:Class="ManagementTools.Views.PCManagement.NewEventFilterContent"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	mc:Ignorable="d">
+
+	<UserControl.Resources>
+		<!--  Fixed-width inline label so the form fields align under one another.  -->
+		<Style x:Key="InlineLabelStyle" TargetType="TextBlock">
+			<Setter Property="VerticalAlignment" Value="Center" />
+			<Setter Property="Width" Value="100" />
+		</Style>
+		<!--  Secondary (hint) text for the helper / instruction lines.  -->
+		<Style x:Key="SecondaryTextStyle" TargetType="TextBlock">
+			<Setter Property="Foreground" Value="{ThemeResource TextFillColorSecondaryBrush}" />
+			<Setter Property="TextWrapping" Value="Wrap" />
+		</Style>
+	</UserControl.Resources>
+
+	<Grid MinWidth="460">
+		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto" />
+			<RowDefinition Height="*" />
+		</Grid.RowDefinitions>
+
+		<!--  Filter / XML tabs (SelectorBar per project convention, not Pivot/TabControl).  -->
+		<SelectorBar
+			x:Name="FilterXmlSelector"
+			Grid.Row="0"
+			SelectionChanged="FilterXmlSelector_SelectionChanged">
+			<SelectorBarItem x:Name="FilterTabItem" Text="Filter" />
+			<SelectorBarItem x:Name="XmlTabItem" Text="XML" />
+		</SelectorBar>
+
+		<ScrollViewer
+			Grid.Row="1"
+			Margin="0,8,0,0"
+			VerticalScrollBarVisibility="Auto">
+			<Grid>
+				<!--  ================================ Filter tab ================================  -->
+				<StackPanel x:Name="FilterTabPanel" Spacing="12">
+					<StackPanel Orientation="Horizontal" Spacing="8">
+						<TextBlock Style="{StaticResource InlineLabelStyle}" Text="Logged:" />
+						<ComboBox
+							x:Name="LoggedCombo"
+							Width="260"
+							SelectedIndex="0">
+							<ComboBoxItem Content="Any time" />
+							<ComboBoxItem Content="Last hour" />
+							<ComboBoxItem Content="Last 12 hours" />
+							<ComboBoxItem Content="Last 24 hours" />
+							<ComboBoxItem Content="Last 7 days" />
+							<ComboBoxItem Content="Last 30 days" />
+							<ComboBoxItem Content="Custom range..." />
+						</ComboBox>
+					</StackPanel>
+
+					<!--  Event level is multi-select, so checkboxes (none checked = all levels).  -->
+					<StackPanel Orientation="Horizontal" Spacing="8">
+						<TextBlock Style="{StaticResource InlineLabelStyle}" Text="Event level:" />
+						<StackPanel Orientation="Horizontal" Spacing="16">
+							<CheckBox Content="Critical" />
+							<CheckBox Content="Warning" />
+							<CheckBox Content="Verbose" />
+						</StackPanel>
+					</StackPanel>
+					<StackPanel
+						Margin="108,0,0,0"
+						Orientation="Horizontal"
+						Spacing="16">
+						<CheckBox Content="Error" />
+						<CheckBox Content="Information" />
+					</StackPanel>
+
+					<!--  By log / By source are mutually exclusive; each enables its own picker (handled in code-behind).  -->
+					<RadioButtons
+						x:Name="EventScopeRadios"
+						MaxColumns="2"
+						SelectionChanged="EventScope_SelectionChanged">
+						<x:String>By log</x:String>
+						<x:String>By source</x:String>
+					</RadioButtons>
+
+					<StackPanel Orientation="Horizontal" Spacing="8">
+						<TextBlock Style="{StaticResource InlineLabelStyle}" Text="Event logs:" />
+						<ComboBox
+							x:Name="EventLogsCombo"
+							Width="320"
+							PlaceholderText="Select event logs" />
+					</StackPanel>
+					<StackPanel Orientation="Horizontal" Spacing="8">
+						<TextBlock Style="{StaticResource InlineLabelStyle}" Text="Event sources:" />
+						<ComboBox
+							x:Name="EventSourcesCombo"
+							Width="320"
+							PlaceholderText="Select event sources" />
+					</StackPanel>
+
+					<TextBlock Style="{StaticResource SecondaryTextStyle}" Text="Includes/Excludes Event IDs: Enter ID numbers and/or ID ranges separated by commas. To exclude criteria, type a minus sign first. For example 1,3,5-99,-76" />
+					<TextBox x:Name="EventIdsBox" PlaceholderText="&lt;All Event IDs&gt;" />
+
+					<StackPanel Orientation="Horizontal" Spacing="8">
+						<TextBlock Style="{StaticResource InlineLabelStyle}" Text="Task category:" />
+						<ComboBox x:Name="TaskCategoryCombo" Width="320" />
+					</StackPanel>
+					<StackPanel Orientation="Horizontal" Spacing="8">
+						<TextBlock Style="{StaticResource InlineLabelStyle}" Text="Keywords:" />
+						<ComboBox x:Name="KeywordsCombo" Width="320" />
+					</StackPanel>
+					<StackPanel Orientation="Horizontal" Spacing="8">
+						<TextBlock Style="{StaticResource InlineLabelStyle}" Text="User:" />
+						<TextBox
+							x:Name="FilterUserBox"
+							Width="320"
+							PlaceholderText="&lt;All Users&gt;" />
+					</StackPanel>
+					<StackPanel Orientation="Horizontal" Spacing="8">
+						<TextBlock Style="{StaticResource InlineLabelStyle}" Text="Computer(s):" />
+						<TextBox
+							x:Name="FilterComputerBox"
+							Width="320"
+							PlaceholderText="&lt;All Computers&gt;" />
+					</StackPanel>
+
+					<Button
+						x:Name="ClearFilterButton"
+						HorizontalAlignment="Right"
+						Click="ClearFilter_Click"
+						Content="Clear" />
+				</StackPanel>
+
+				<!--  ================================= XML tab =================================  -->
+				<StackPanel
+					x:Name="XmlTabPanel"
+					Spacing="12"
+					Visibility="Collapsed">
+					<TextBlock Style="{StaticResource SecondaryTextStyle}" Text="To provide an event filter in XPath form, click the &quot;Edit query manually&quot; checkbox below." />
+					<!--  Read-only until "Edit query manually" is checked; then it holds a hand-written XPath query.  -->
+					<TextBox
+						x:Name="XmlQueryBox"
+						Height="320"
+						AcceptsReturn="True"
+						FontFamily="Consolas"
+						IsReadOnly="True"
+						IsSpellCheckEnabled="False"
+						TextWrapping="Wrap" />
+					<CheckBox
+						x:Name="EditQueryManuallyCheckBox"
+						Checked="OnEditQueryManuallyChanged"
+						Content="Edit query manually"
+						Unchecked="OnEditQueryManuallyChanged" />
+				</StackPanel>
+			</Grid>
+		</ScrollViewer>
+	</Grid>
+</UserControl>

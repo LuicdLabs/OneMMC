@@ -218,8 +218,12 @@
 					<cwuc:SettingsExpander.HeaderIcon>
 						<FontIcon Glyph="&#xE823;" />
 					</cwuc:SettingsExpander.HeaderIcon>
-					<!--  TODO(TaskScheduler): open the New Trigger editor.  -->
-					<Button Content="New" MinWidth="120"/>
+					<!--  Opens NewTriggerDialog (UI prototype). TODO(TaskScheduler): back it with a real trigger-creation flow.  -->
+					<Button
+						x:Name="NewTriggerButton"
+						MinWidth="120"
+						Click="NewTriggerButton_Click"
+						Content="New" />
 					<cwuc:SettingsExpander.Items>
 						<!--  Trigger row = enabled toggle + title/subtitle + edit/delete.  -->
 						<cwuc:SettingsCard>
@@ -240,7 +244,12 @@
 								</StackPanel>
 							</cwuc:SettingsCard.Header>
 							<StackPanel Orientation="Horizontal" Spacing="2">
-								<Button Style="{StaticResource RowIconButtonStyle}" ToolTipService.ToolTip="Edit">
+								<!--  Opens NewTriggerDialog in edit mode ("Edit Trigger"); Tag carries the trigger type (a real bound list would pass the row's model).  -->
+								<Button
+									Click="TriggerEdit_Click"
+									Style="{StaticResource RowIconButtonStyle}"
+									Tag="AtLogOn"
+									ToolTipService.ToolTip="Edit">
 									<FontIcon FontSize="16" Glyph="&#xE70F;" />
 								</Button>
 								<Button Style="{StaticResource RowIconButtonStyle}" ToolTipService.ToolTip="Delete">
@@ -267,7 +276,12 @@
 								</StackPanel>
 							</cwuc:SettingsCard.Header>
 							<StackPanel Orientation="Horizontal" Spacing="2">
-								<Button Style="{StaticResource RowIconButtonStyle}" ToolTipService.ToolTip="Edit">
+								<!--  Opens NewTriggerDialog in edit mode ("Edit Trigger"); Tag carries the trigger type (a real bound list would pass the row's model).  -->
+								<Button
+									Click="TriggerEdit_Click"
+									Style="{StaticResource RowIconButtonStyle}"
+									Tag="Daily"
+									ToolTipService.ToolTip="Edit">
 									<FontIcon FontSize="16" Glyph="&#xE70F;" />
 								</Button>
 								<Button Style="{StaticResource RowIconButtonStyle}" ToolTipService.ToolTip="Delete">
@@ -288,8 +302,12 @@
 					<cwuc:SettingsExpander.HeaderIcon>
 						<FontIcon Glyph="&#xE768;" />
 					</cwuc:SettingsExpander.HeaderIcon>
-					<!--  TODO(TaskScheduler): open the New Action editor.  -->
-					<Button Content="New" MinWidth="120" />
+					<!--  Opens NewActionDialog in create mode ("Create a New Action"). TODO(TaskScheduler): add the built IAction to the task.  -->
+					<Button
+						x:Name="NewActionButton"
+						MinWidth="120"
+						Click="NewActionButton_Click"
+						Content="New" />
 					<cwuc:SettingsExpander.ItemTemplate>
 						<!--
 							Action row = title/subtitle + move-up/down + edit/delete.
@@ -314,7 +332,11 @@
 										ToolTipService.ToolTip="Move down">
 										<FontIcon FontSize="16" Glyph="&#xE70D;" />
 									</Button>
-									<Button Style="{StaticResource RowIconButtonStyle}" ToolTipService.ToolTip="Edit">
+									<!--  Opens NewActionDialog in edit mode ("Edit Action") for this row.  -->
+									<Button
+										Click="{x:Bind Edit}"
+										Style="{StaticResource RowIconButtonStyle}"
+										ToolTipService.ToolTip="Edit">
 										<FontIcon FontSize="16" Glyph="&#xE70F;" />
 									</Button>
 									<Button Style="{StaticResource RowIconButtonStyle}" ToolTipService.ToolTip="Delete">

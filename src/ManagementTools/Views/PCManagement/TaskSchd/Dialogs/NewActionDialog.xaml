@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+    NewActionDialog — UI prototype for the "New Action" / "Edit Action" editor of a modern
+    taskschd.msc replacement. Opened from TaskPropertiesPage's Actions > "New" command (create
+    mode, Title = "Create a New Action") and from each action row's Edit button (edit mode,
+    Title = "Edit Action"). The mode is chosen by the constructor overload, not in XAML.
+
+    NOTE: This dialog renders MOCK / SAMPLE data only. The "Action" drop-down reveals the matching
+    Settings panel; nothing is registered with Task Scheduler. Native WinUI controls are used instead
+    of re-creating the legacy Win32 "New Action" chrome (the beside-field labels of taskschd are
+    replaced with the WinUI label-above-field idiom already used by CreateTaskDialog).
+
+    Action <-> Task Scheduler 2.0 IAction map (for the real implementation):
+      * Start a program            -> IExecAction      (Path, Arguments, WorkingDirectory)
+      * Send an e-mail (deprecated)-> IEmailAction     (From/To/Subject/Body/Attachments/Server) — TASK_ACTION_EMAIL
+      * Display a message (deprec.) -> IShowMessageAction (Title, MessageBody) — TASK_ACTION_SHOW_MESSAGE
+    The e-mail and message actions are deprecated by Windows and unsupported on modern OS builds, but
+    are kept here for parity with taskschd.msc so existing tasks that use them remain editable.
+
+    TODO(TaskScheduler): replace this prototype with a real editor:
+      * Build the matching IAction via the Task Scheduler 2.0 COM API (or Microsoft.Win32.TaskScheduler)
+        from the selected panel and add it to / update it in the task's IActionCollection.
+      * In edit mode, populate every field from the existing IAction (see the code-behind TODO) instead
+        of only pre-selecting the action type.
+      * Move every user-facing string below to ResourceKeys / .resw (en-US, zh-TW) and bind via
+        x:Uid / LocalizedStrings, as required by the project conventions.
+      * Wire the Browse buttons to a real FileOpenPicker initialized with the owning window's HWND.
+-->
+<ContentDialog
+	x:Class="ManagementTools.Views.PCManagement.NewActionDialog"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	Title="Create a New Action"
+	CloseButtonText="Cancel"
+	DefaultButton="Primary"
+	PrimaryButtonText="OK"
+	Style="{StaticResource DefaultContentDialogStyle}"
+	mc:Ignorable="d">
+
+	<ContentDialog.Resources>
+		<!--  Bold section header ("Settings").  -->
+		<Style
+			x:Key="SectionHeaderStyle"
+			BasedOn="{StaticResource BodyStrongTextBlockStyle}"
+			TargetType="TextBlock">
+			<Setter Property="Margin" Value="0,6,0,0" />
+		</Style>
+		<!--  Secondary (hint) text for the instruction line and per-action deprecation notes.  -->
+		<Style x:Key="SecondaryTextStyle" TargetType="TextBlock">
+			<Setter Property="Foreground" Value="{ThemeResource TextFillColorSecondaryBrush}" />
+			<Setter Property="TextWrapping" Value="Wrap" />
+		</Style>
+	</ContentDialog.Resources>
+
+	<Grid MinWidth="480" MaxWidth="560">
+		<ScrollViewer MaxHeight="520" VerticalScrollBarVisibility="Auto">
+			<StackPanel Padding="2" Spacing="14">
+
+				<!--  Validation feedback (e.g. missing Program/script). Shown by the Closing handler.  -->
+				<InfoBar
+					x:Name="ValidationInfoBar"
+					IsClosable="True"
+					IsOpen="False"
+					Severity="Error" />
+
+				<TextBlock Style="{StaticResource SecondaryTextStyle}" Text="You must specify what action this task will perform." />
+
+				<!--
+					Action kind. The selected index drives which Settings panel below is visible
+					(see ActionComboBox_SelectionChanged in the code-behind). Keep this item order
+					in sync with that switch and with the Action* index constants in the code-behind.
+				-->
+				<Grid ColumnSpacing="8">
+					<Grid.ColumnDefinitions>
+						<ColumnDefinition Width="Auto" />
+						<ColumnDefinition Width="*" />
+					</Grid.ColumnDefinitions>
+					<TextBlock
+						Grid.Column="0"
+						VerticalAlignment="Center"
+						Text="Action:" />
+					<ComboBox
+						x:Name="ActionComboBox"
+						Grid.Column="1"
+						HorizontalAlignment="Stretch"
+						SelectionChanged="ActionComboBox_SelectionChanged">
+						<ComboBoxItem Content="Start a program" />
+						<ComboBoxItem Content="Send an e-mail (deprecated)" />
+						<ComboBoxItem Content="Display a message (deprecated)" />
+					</ComboBox>
+				</Grid>
+
+				<!--  ================================= Settings ================================  -->
+				<TextBlock Style="{StaticResource SectionHeaderStyle}" Text="Settings" />
+
+				<!--  Start a program (IExecAction): program/script (+ Browse), arguments, start-in folder.  -->
+				<StackPanel
+					x:Name="StartProgramPanel"
+					Spacing="10"
+					Visibility="Collapsed">
+					<StackPanel Spacing="4">
+						<TextBlock Text="Program/script" />
+						<Grid ColumnSpacing="8">
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="*" />
+								<ColumnDefinition Width="Auto" />
+							</Grid.ColumnDefinitions>
+							<TextBox
+								x:Name="ProgramScriptBox"
+								Grid.Column="0"
+								PlaceholderText="Example: C:\Docs\Public\example.exe" />
+							<Button
+								Grid.Column="1"
+								Click="BrowseProgram_Click"
+								Content="Browse..." />
+						</Grid>
+					</StackPanel>
+					<StackPanel Spacing="4">
+						<TextBlock Text="Add arguments (optional):" />
+						<TextBox x:Name="ArgumentsBox" />
+					</StackPanel>
+					<StackPanel Spacing="4">
+						<TextBlock Text="Start in (optional):" />
+						<TextBox x:Name="StartInBox" />
+					</StackPanel>
+				</StackPanel>
+
+				<!--  Send an e-mail (IEmailAction, deprecated): legacy SMTP fields kept for parity with taskschd.msc.  -->
+				<StackPanel
+					x:Name="SendEmailPanel"
+					Spacing="10"
+					Visibility="Collapsed">
+					<StackPanel Spacing="4">
+						<TextBlock Text="From:" />
+						<TextBox x:Name="EmailFromBox" />
+					</StackPanel>
+					<StackPanel Spacing="4">
+						<TextBlock Text="To:" />
+						<TextBox x:Name="EmailToBox" />
+					</StackPanel>
+					<StackPanel Spacing="4">
+						<TextBlock Text="Subject:" />
+						<TextBox x:Name="EmailSubjectBox" />
+					</StackPanel>
+					<StackPanel Spacing="4">
+						<TextBlock Text="Text:" />
+						<TextBox
+							x:Name="EmailTextBox"
+							AcceptsReturn="True"
+							MaxHeight="100"
+							TextWrapping="Wrap" />
+					</StackPanel>
+					<StackPanel Spacing="4">
+						<TextBlock Text="Attachment:" />
+						<Grid ColumnSpacing="8">
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="*" />
+								<ColumnDefinition Width="Auto" />
+							</Grid.ColumnDefinitions>
+							<TextBox x:Name="EmailAttachmentBox" Grid.Column="0" />
+							<Button
+								Grid.Column="1"
+								Click="BrowseAttachment_Click"
+								Content="Browse..." />
+						</Grid>
+					</StackPanel>
+					<StackPanel Spacing="4">
+						<TextBlock Text="SMTP server:" />
+						<TextBox x:Name="EmailSmtpBox" />
+					</StackPanel>
+				</StackPanel>
+
+				<!--  Display a message (IShowMessageAction, deprecated): title + message shown in a desktop message box.  -->
+				<StackPanel
+					x:Name="DisplayMessagePanel"
+					Spacing="10"
+					Visibility="Collapsed">
+					<TextBlock Style="{StaticResource SecondaryTextStyle}" Text="This action displays a message box on the desktop." />
+					<StackPanel Spacing="4">
+						<TextBlock Text="Title:" />
+						<TextBox x:Name="MessageTitleBox" />
+					</StackPanel>
+					<StackPanel Spacing="4">
+						<TextBlock Text="Message:" />
+						<TextBox
+							x:Name="MessageBodyBox"
+							AcceptsReturn="True"
+							MaxHeight="140"
+							TextWrapping="Wrap" />
+					</StackPanel>
+				</StackPanel>
+
+			</StackPanel>
+		</ScrollViewer>
+	</Grid>
+</ContentDialog>
