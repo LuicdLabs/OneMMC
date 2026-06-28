@@ -110,7 +110,7 @@
 							"Task Scheduler Library" node) is selected in LibraryTreeView, because
 							every node represents a folder that can contain sub-folders or imported
 							tasks. IsEnabled is bound to IsTreeNodeSelected, which is set in
-							code-behind via LibraryTreeView_ItemInvoked.
+							code-behind via LibraryTreeView_SelectionChanged.
 						-->
 						<MenuFlyoutItem
 							IsEnabled="{x:Bind IsTreeNodeSelected, Mode=OneWay}"
@@ -168,7 +168,7 @@
 					AllowDrop="False"
 					CanDrag="False"
 					CanReorderItems="False"
-					ItemInvoked="LibraryTreeView_ItemInvoked"
+					SelectionChanged="LibraryTreeView_SelectionChanged"
 					SelectionMode="Single">
 					<TreeView.ItemContainerStyle>
 						<Style TargetType="TreeViewItem">

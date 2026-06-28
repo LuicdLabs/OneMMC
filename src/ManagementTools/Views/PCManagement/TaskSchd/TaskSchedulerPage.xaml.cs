@@ -1,4 +1,6 @@
 using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using ManagementTools.Services;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -18,7 +20,7 @@ namespace ManagementTools.Views.PCManagement;
 /// DI under Core/Features per the project's MVVM conventions, and move all user-facing
 /// strings to ResourceKeys / .resw (en-US, zh-TW).
 /// </remarks>
-public sealed partial class TaskSchedulerPage : Page
+public sealed partial class TaskSchedulerPage : Page, INotifyPropertyChanged
 {
 	/// <summary>Sample tasks shown in the list. TODO(TaskScheduler): enumerate the selected folder's registered tasks.</summary>
 	public ObservableCollection<ScheduledTaskSample> SampleTasks { get; } =
@@ -31,20 +33,46 @@ public sealed partial class TaskSchedulerPage : Page
 	private bool _selectedTaskEnabled = true;
 	private bool _selectedTaskRunning;
 
+	private bool _isTreeNodeSelected;
+	private bool _isNonRootTreeNodeSelected;
+
 	/// <summary>
 	/// True when any node in <see cref="LibraryTreeView"/> is selected.
 	/// Drives the IsEnabled binding for folder-scoped menu items (New folder / Import Task).
 	/// Every node — including the root "Task Scheduler Library" — represents a valid folder
 	/// target for both operations.
 	/// </summary>
-	public bool IsTreeNodeSelected { get; private set; }
+	public bool IsTreeNodeSelected
+	{
+		get => _isTreeNodeSelected;
+		private set => SetField(ref _isTreeNodeSelected, value);
+	}
 
 	/// <summary>
 	/// True when a non-root node is selected in <see cref="LibraryTreeView"/>.
 	/// Drives the IsEnabled binding for Delete folder: the root "Task Scheduler Library"
 	/// node is not a user-created folder and must not be deleted.
 	/// </summary>
-	public bool IsNonRootTreeNodeSelected { get; private set; }
+	public bool IsNonRootTreeNodeSelected
+	{
+		get => _isNonRootTreeNodeSelected;
+		private set => SetField(ref _isNonRootTreeNodeSelected, value);
+	}
+
+	/// <summary>Raised when a bindable property changes, so the x:Bind OneWay IsEnabled bindings refresh.</summary>
+	public event PropertyChangedEventHandler? PropertyChanged;
+
+	/// <summary>Assigns <paramref name="field"/> and raises <see cref="PropertyChanged"/> only when the value changes.</summary>
+	private void SetField(ref bool field, bool value, [CallerMemberName] string? propertyName = null)
+	{
+		if (field == value)
+		{
+			return;
+		}
+
+		field = value;
+		PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+	}
 
 	public TaskSchedulerPage()
 	{
@@ -91,16 +119,18 @@ public sealed partial class TaskSchedulerPage : Page
 		library.Children.Add(new TreeViewNode { Content = "SoftLanding" });
 		LibraryTreeView.RootNodes.Add(library);
 
-		// Select the root by default so the folder-scoped commands (New folder / Import Task)
-		// reflect the visible selection on first load. Programmatic selection does not raise
-		// ItemInvoked, so update the menu state explicitly here.
+		// Select the root by default so the folder-scoped commands reflect the visible
+		// selection on first load. Setting SelectedNode raises SelectionChanged, but call the
+		// updater explicitly too to guarantee the initial state regardless of event timing.
 		LibraryTreeView.SelectedNode = library;
 		UpdateFolderSelectionState(library);
 	}
 
-	// Selecting a folder node should load that folder's tasks into the list.
+	// Selecting a folder node updates the folder-scoped command state and should load that
+	// folder's tasks into the list. SelectionChanged (not ItemInvoked) is used so SelectedNode
+	// is already current here, and so keyboard/programmatic selection is covered too.
 	// TODO(TaskScheduler): enumerate the selected ITaskFolder's registered tasks.
-	private void LibraryTreeView_ItemInvoked(TreeView sender, TreeViewItemInvokedEventArgs args)
+	private void LibraryTreeView_SelectionChanged(TreeView sender, TreeViewSelectionChangedEventArgs args)
 		=> UpdateFolderSelectionState(sender.SelectedNode);
 
 	/// <summary>
@@ -111,9 +141,11 @@ public sealed partial class TaskSchedulerPage : Page
 	{
 		// Any node enables New folder / Import Task.
 		IsTreeNodeSelected = selected is not null;
-		// Only non-root nodes enable Delete folder — the root node has no parent.
-		IsNonRootTreeNodeSelected = selected?.Parent is not null;
-		Bindings.Update();
+		// Only non-root nodes enable Delete folder. Do NOT test selected.Parent here:
+		// despite the docs stating a root node's Parent is null, TreeView.RootNodes.Add
+		// reparents nodes onto an internal hidden root, so the visible "Task Scheduler
+		// Library" node reports a non-null Parent. Test membership in RootNodes instead.
+		IsNonRootTreeNodeSelected = selected is not null && !LibraryTreeView.RootNodes.Contains(selected);
 	}
 
 	// Double-tapping a task in the list opens its properties page.
