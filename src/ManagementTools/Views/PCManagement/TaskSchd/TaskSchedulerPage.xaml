@@ -40,9 +40,10 @@
 
 		<!--  CommandBar  -->
 		<CommandBar Grid.Row="0" DefaultLabelPosition="Right">
-			<!--  TODO(TaskScheduler): open the Create Basic/Create Task wizard.  -->
+			<!--  Opens CreateTaskDialog (UI prototype). TODO(TaskScheduler): back it with a real creation flow.  -->
 			<AppBarButton
 				x:Name="CreateTaskButton"
+				Click="CreateTaskButton_Click"
 				Icon="Add"
 				Label="Create Task" />
 			<!--  TODO(TaskScheduler): re-enumerate the selected folder's tasks.  -->

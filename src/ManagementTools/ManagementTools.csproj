@@ -94,8 +94,8 @@
         <Folder Include="Views\PCManagement\FsMgmt\" />
         <Folder Include="Views\PCManagement\DevMgmt\" />
         <Folder Include="Views\PCManagement\LusrMgr\Dialogs\" />
-        <Folder Include="Views\PCManagement\TaskSchd\" />
         <Folder Include="Views\PCManagement\PerfMon\" />
+        <Folder Include="Views\PCManagement\TaskSchd\Dialogs\" />
         <Folder Include="Views\SystemManagement\ComExp\" />
         <Folder Include="Views\SystemManagement\TPM\" />
         <Folder Include="Views\SystemManagement\WF\Dialogs\" />

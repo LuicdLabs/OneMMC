@@ -44,6 +44,28 @@ public sealed partial class TaskSchedulerPage : Page
 	private void OnThemeChanged(ElementTheme theme) => this.RequestedTheme = theme;
 
 	/// <summary>
+	/// Opens the <see cref="CreateTaskDialog"/> prototype.
+	/// TODO(TaskScheduler): on a Primary result, build an ITaskDefinition from the dialog's
+	/// trigger + action selections and register it in the currently selected ITaskFolder. The
+	/// dialog only collects sample data today, so no task is created.
+	/// </summary>
+	private async void CreateTaskButton_Click(object sender, RoutedEventArgs e)
+	{
+		var dialog = new CreateTaskDialog
+		{
+			XamlRoot = this.XamlRoot,
+			RequestedTheme = App.CurrentTheme,
+		};
+
+		ContentDialogResult result = await dialog.ShowAsync().AsTask();
+		if (result == ContentDialogResult.Primary)
+		{
+			// TODO(TaskScheduler): register the task using dialog.TaskName / dialog.TaskDescription
+			// and the selected trigger/action. No-op in this UI prototype.
+		}
+	}
+
+	/// <summary>
 	/// Builds the sample folder hierarchy.
 	/// TODO(TaskScheduler): populate from the real ITaskFolder tree under "\" (Task Scheduler Library).
 	/// </summary>

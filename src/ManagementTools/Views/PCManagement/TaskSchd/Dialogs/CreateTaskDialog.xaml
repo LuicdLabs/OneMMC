@@ -1,0 +1,454 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+    CreateTaskDialog — UI prototype for the "Create a Task" flow of a modern taskschd.msc
+    replacement. Opened from TaskSchedulerPage's "Create Task" command.
+
+    NOTE: This dialog renders MOCK / SAMPLE data only. It collects the user's selections in
+    plain controls but performs NO real work — nothing is registered with Task Scheduler.
+    It demonstrates the conditional layout (the Trigger and Action drop-downs each reveal a
+    different settings panel) using native WinUI controls rather than re-creating the legacy
+    Win32 wizard chrome.
+
+    TODO(TaskScheduler): replace this prototype with a real creation flow:
+      * Build an ITaskDefinition via the Task Scheduler 2.0 COM API (Schedule.Service /
+        ITaskService) — or Microsoft.Win32.TaskScheduler — from the selected trigger + action,
+        then register it (RegisterTaskDefinition) in the currently selected ITaskFolder.
+      * Move every user-facing string below to ResourceKeys / .resw (en-US, zh-TW) and bind via
+        x:Uid / LocalizedStrings, as required by the project conventions.
+      * Wire the Browse buttons to a real file picker (FileOpenPicker initialized with the
+        owning window's HWND) and the event Log/Source drop-downs to the real event-log channels.
+-->
+<ContentDialog
+	x:Class="ManagementTools.Views.PCManagement.CreateTaskDialog"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	Title="Create a Task"
+	CloseButtonText="Cancel"
+	DefaultButton="Primary"
+	PrimaryButtonText="Add"
+	Style="{StaticResource DefaultContentDialogStyle}"
+	mc:Ignorable="d">
+
+	<ContentDialog.Resources>
+		<!--  Bold section header ("Task Information", "Trigger", "Action").  -->
+		<Style
+			x:Key="SectionHeaderStyle"
+			BasedOn="{StaticResource BodyStrongTextBlockStyle}"
+			TargetType="TextBlock">
+			<Setter Property="Margin" Value="0,6,0,0" />
+		</Style>
+		<!--  Fixed-width inline label so beside-field labels (Start:, Recur every:, …) align.  -->
+		<Style x:Key="InlineLabelStyle" TargetType="TextBlock">
+			<Setter Property="VerticalAlignment" Value="Center" />
+			<Setter Property="Width" Value="92" />
+		</Style>
+	</ContentDialog.Resources>
+
+	<Grid MinWidth="480" MaxWidth="560">
+		<ScrollViewer MaxHeight="540" VerticalScrollBarVisibility="Auto">
+			<StackPanel Padding="2" Spacing="14">
+
+				<!--  Validation feedback (e.g. missing task name). Shown by the Closing handler.  -->
+				<InfoBar
+					x:Name="ValidationInfoBar"
+					IsClosable="True"
+					IsOpen="False"
+					Severity="Error" />
+
+				<!--  ============================ Task Information ============================  -->
+				<TextBlock Style="{StaticResource SectionHeaderStyle}" Text="Task Information" />
+
+				<StackPanel Spacing="4">
+					<TextBlock Text="Name" />
+					<TextBox x:Name="NameBox" PlaceholderText="Enter a name for the task" />
+				</StackPanel>
+
+				<StackPanel Spacing="4">
+					<TextBlock Text="Description" />
+					<TextBox
+						x:Name="DescriptionBox"
+						AcceptsReturn="True"
+						MaxHeight="80"
+						TextWrapping="Wrap" />
+				</StackPanel>
+
+				<!--  ================================ Trigger ================================  -->
+				<TextBlock Style="{StaticResource SectionHeaderStyle}" Text="Trigger" />
+				<TextBlock Text="When do you want the task to start?" />
+
+				<!--
+					Trigger kind. The selected index drives which settings panel below is visible
+					(see TriggerComboBox_SelectionChanged in the code-behind). Keep this item order
+					in sync with that switch.
+				-->
+				<ComboBox
+					x:Name="TriggerComboBox"
+					HorizontalAlignment="Stretch"
+					SelectionChanged="TriggerComboBox_SelectionChanged">
+					<ComboBoxItem Content="Daily" />
+					<ComboBoxItem Content="Weekly" />
+					<ComboBoxItem Content="Monthly" />
+					<ComboBoxItem Content="One time" />
+					<ComboBoxItem Content="When the computer starts" />
+					<ComboBoxItem Content="When I log on" />
+					<ComboBoxItem Content="When a specific event is logged" />
+				</ComboBox>
+
+				<!--  Daily: start date/time + recur-every-N-days.  -->
+				<StackPanel
+					x:Name="DailyPanel"
+					Spacing="10"
+					Visibility="Collapsed">
+					<!--
+						Start date/time + time-zone synchronization. This same block is repeated by the
+						Weekly / Monthly / One time panels because all four are time-based triggers; a real
+						implementation would share a single ITrigger.StartBoundary editor here.
+					-->
+					<StackPanel Orientation="Horizontal" Spacing="8">
+						<TextBlock Style="{StaticResource InlineLabelStyle}" Text="Start:" />
+						<CalendarDatePicker PlaceholderText="Pick a date" />
+						<TimePicker />
+					</StackPanel>
+					<CheckBox Content="Synchronize across time zones" />
+					<StackPanel Orientation="Horizontal" Spacing="8">
+						<TextBlock Style="{StaticResource InlineLabelStyle}" Text="Recur every:" />
+						<NumberBox
+							Width="120"
+							Minimum="1"
+							SpinButtonPlacementMode="Compact"
+							Value="1" />
+						<TextBlock VerticalAlignment="Center" Text="days" />
+					</StackPanel>
+				</StackPanel>
+
+				<!--  Weekly: start + recur-every-N-weeks + day-of-week checkboxes.  -->
+				<StackPanel
+					x:Name="WeeklyPanel"
+					Spacing="10"
+					Visibility="Collapsed">
+					<StackPanel Orientation="Horizontal" Spacing="8">
+						<TextBlock Style="{StaticResource InlineLabelStyle}" Text="Start:" />
+						<CalendarDatePicker PlaceholderText="Pick a date" />
+						<TimePicker />
+					</StackPanel>
+					<CheckBox Content="Synchronize across time zones" />
+					<StackPanel Orientation="Horizontal" Spacing="8">
+						<TextBlock Style="{StaticResource InlineLabelStyle}" Text="Recur every:" />
+						<NumberBox
+							Width="120"
+							Minimum="1"
+							SpinButtonPlacementMode="Compact"
+							Value="1" />
+						<TextBlock VerticalAlignment="Center" Text="weeks on:" />
+					</StackPanel>
+					<!--  Days of the week, 4 per row.  -->
+					<Grid ColumnSpacing="16" RowSpacing="8">
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="*" />
+							<ColumnDefinition Width="*" />
+							<ColumnDefinition Width="*" />
+							<ColumnDefinition Width="*" />
+						</Grid.ColumnDefinitions>
+						<Grid.RowDefinitions>
+							<RowDefinition Height="Auto" />
+							<RowDefinition Height="Auto" />
+						</Grid.RowDefinitions>
+						<CheckBox
+							Grid.Row="0"
+							Grid.Column="0"
+							Content="Sunday" />
+						<CheckBox
+							Grid.Row="0"
+							Grid.Column="1"
+							Content="Monday" />
+						<CheckBox
+							Grid.Row="0"
+							Grid.Column="2"
+							Content="Tuesday" />
+						<CheckBox
+							Grid.Row="0"
+							Grid.Column="3"
+							Content="Wednesday" />
+						<CheckBox
+							Grid.Row="1"
+							Grid.Column="0"
+							Content="Thursday" />
+						<CheckBox
+							Grid.Row="1"
+							Grid.Column="1"
+							Content="Friday" />
+						<CheckBox
+							Grid.Row="1"
+							Grid.Column="2"
+							Content="Saturday" />
+					</Grid>
+				</StackPanel>
+
+				<!--  Monthly: start + month selection + (Days | On) schedule.  -->
+				<StackPanel
+					x:Name="MonthlyPanel"
+					Spacing="10"
+					Visibility="Collapsed">
+					<StackPanel Orientation="Horizontal" Spacing="8">
+						<TextBlock Style="{StaticResource InlineLabelStyle}" Text="Start:" />
+						<CalendarDatePicker PlaceholderText="Pick a date" />
+						<TimePicker />
+					</StackPanel>
+					<CheckBox Content="Synchronize across time zones" />
+
+					<!--
+						Months / Days are multi-select. WinUI has no multi-select ComboBox, so the idiomatic
+						pattern is a DropDownButton whose Flyout hosts a ListView/GridView in Multiple
+						selection mode (which renders selection checkmarks). TODO(TaskScheduler): reflect the
+						chosen items back into the button's Content.
+					-->
+					<StackPanel Orientation="Horizontal" Spacing="8">
+						<TextBlock Style="{StaticResource InlineLabelStyle}" Text="Months:" />
+						<DropDownButton Content="Select months">
+							<DropDownButton.Flyout>
+								<Flyout>
+									<ListView
+										Width="220"
+										MaxHeight="260"
+										ItemsSource="{x:Bind Months}"
+										SelectionMode="Multiple" />
+								</Flyout>
+							</DropDownButton.Flyout>
+						</DropDownButton>
+					</StackPanel>
+
+					<!--  Choose between specific days of the month or an ordinal weekday ("On").  -->
+					<RadioButtons
+						x:Name="MonthlyScheduleMode"
+						MaxColumns="2"
+						SelectionChanged="MonthlyScheduleMode_SelectionChanged">
+						<x:String>Days</x:String>
+						<x:String>On</x:String>
+					</RadioButtons>
+
+					<StackPanel Orientation="Horizontal" Spacing="8">
+						<TextBlock Style="{StaticResource InlineLabelStyle}" Text="Days:" />
+						<DropDownButton x:Name="MonthlyDaysDropDown" Content="Select days">
+							<DropDownButton.Flyout>
+								<Flyout>
+									<GridView
+										Width="300"
+										MaxHeight="240"
+										ItemsSource="{x:Bind MonthDays}"
+										SelectionMode="Multiple" />
+								</Flyout>
+							</DropDownButton.Flyout>
+						</DropDownButton>
+					</StackPanel>
+
+					<StackPanel Orientation="Horizontal" Spacing="8">
+						<TextBlock Style="{StaticResource InlineLabelStyle}" Text="On:" />
+						<!--
+							Simplified to single-select ComboBoxes for the prototype; the real dialog lets you
+							pick multiple occurrences and weekdays. TODO(TaskScheduler): make these multi-select.
+						-->
+						<ComboBox
+							x:Name="MonthlyOccurrenceCombo"
+							Width="140"
+							PlaceholderText="Occurrence">
+							<ComboBoxItem Content="First" />
+							<ComboBoxItem Content="Second" />
+							<ComboBoxItem Content="Third" />
+							<ComboBoxItem Content="Fourth" />
+							<ComboBoxItem Content="Last" />
+						</ComboBox>
+						<ComboBox
+							x:Name="MonthlyWeekdayCombo"
+							Width="150"
+							PlaceholderText="Day of week">
+							<ComboBoxItem Content="Sunday" />
+							<ComboBoxItem Content="Monday" />
+							<ComboBoxItem Content="Tuesday" />
+							<ComboBoxItem Content="Wednesday" />
+							<ComboBoxItem Content="Thursday" />
+							<ComboBoxItem Content="Friday" />
+							<ComboBoxItem Content="Saturday" />
+						</ComboBox>
+					</StackPanel>
+				</StackPanel>
+
+				<!--  One time: start date/time only.  -->
+				<StackPanel
+					x:Name="OneTimePanel"
+					Spacing="10"
+					Visibility="Collapsed">
+					<StackPanel Orientation="Horizontal" Spacing="8">
+						<TextBlock Style="{StaticResource InlineLabelStyle}" Text="Start:" />
+						<CalendarDatePicker PlaceholderText="Pick a date" />
+						<TimePicker />
+					</StackPanel>
+					<CheckBox Content="Synchronize across time zones" />
+				</StackPanel>
+
+				<!--  Shown for "When the computer starts" and "When I log on": no extra settings.  -->
+				<StackPanel x:Name="TriggerNoSettingsPanel" Visibility="Collapsed">
+					<TextBlock
+						Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+						Text="This trigger has no additional settings."
+						TextWrapping="Wrap" />
+				</StackPanel>
+
+				<!--  When a specific event is logged: pick log, source and event id.  -->
+				<StackPanel
+					x:Name="EventPanel"
+					Spacing="10"
+					Visibility="Collapsed">
+					<StackPanel Orientation="Horizontal" Spacing="8">
+						<TextBlock Style="{StaticResource InlineLabelStyle}" Text="Log:" />
+						<!--  TODO(TaskScheduler): populate from the real event-log channels (EvtOpenChannelEnum).  -->
+						<ComboBox
+							x:Name="EventLogCombo"
+							Width="320"
+							PlaceholderText="Select a log">
+							<ComboBoxItem Content="Application" />
+							<ComboBoxItem Content="Security" />
+							<ComboBoxItem Content="Setup" />
+							<ComboBoxItem Content="System" />
+						</ComboBox>
+					</StackPanel>
+					<StackPanel Orientation="Horizontal" Spacing="8">
+						<TextBlock Style="{StaticResource InlineLabelStyle}" Text="Source:" />
+						<!--  TODO(TaskScheduler): populate sources for the selected log.  -->
+						<ComboBox
+							x:Name="EventSourceCombo"
+							Width="320"
+							PlaceholderText="Select a source">
+							<ComboBoxItem Content="Application Error" />
+							<ComboBoxItem Content="Service Control Manager" />
+							<ComboBoxItem Content="Winlogon" />
+						</ComboBox>
+					</StackPanel>
+					<StackPanel Orientation="Horizontal" Spacing="8">
+						<TextBlock Style="{StaticResource InlineLabelStyle}" Text="Event ID:" />
+						<TextBox
+							x:Name="EventIdBox"
+							Width="160"
+							PlaceholderText="e.g. 127" />
+					</StackPanel>
+				</StackPanel>
+
+				<!--  ================================= Action ================================  -->
+				<TextBlock Style="{StaticResource SectionHeaderStyle}" Text="Action" />
+				<TextBlock Text="What action do you want the task to perform?" />
+
+				<!--
+					Action kind. The selected index drives which settings panel below is visible
+					(see ActionComboBox_SelectionChanged in the code-behind). Keep this item order
+					in sync with that switch.
+				-->
+				<ComboBox
+					x:Name="ActionComboBox"
+					HorizontalAlignment="Stretch"
+					SelectionChanged="ActionComboBox_SelectionChanged">
+					<ComboBoxItem Content="Start a program" />
+					<ComboBoxItem Content="Send an e-mail (deprecated)" />
+					<ComboBoxItem Content="Display a message (deprecated)" />
+				</ComboBox>
+
+				<!--  Start a program: program/script (+ Browse), arguments, start-in folder.  -->
+				<StackPanel
+					x:Name="StartProgramPanel"
+					Spacing="10"
+					Visibility="Collapsed">
+					<StackPanel Spacing="4">
+						<TextBlock Text="Program/script" />
+						<Grid ColumnSpacing="8">
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="*" />
+								<ColumnDefinition Width="Auto" />
+							</Grid.ColumnDefinitions>
+							<TextBox
+								x:Name="ProgramScriptBox"
+								Grid.Column="0"
+								PlaceholderText="Example: C:\Docs\Public\example.exe" />
+							<Button
+								Grid.Column="1"
+								Click="BrowseProgram_Click"
+								Content="Browse..." />
+						</Grid>
+					</StackPanel>
+					<StackPanel Spacing="4">
+						<TextBlock Text="Add arguments (optional):" />
+						<TextBox x:Name="ArgumentsBox" />
+					</StackPanel>
+					<StackPanel Spacing="4">
+						<TextBlock Text="Start in (optional):" />
+						<TextBox x:Name="StartInBox" />
+					</StackPanel>
+				</StackPanel>
+
+				<!--  Send an e-mail (deprecated): legacy SMTP fields kept for parity with taskschd.msc.  -->
+				<StackPanel
+					x:Name="SendEmailPanel"
+					Spacing="10"
+					Visibility="Collapsed">
+					<StackPanel Spacing="4">
+						<TextBlock Text="From:" />
+						<TextBox x:Name="EmailFromBox" />
+					</StackPanel>
+					<StackPanel Spacing="4">
+						<TextBlock Text="To:" />
+						<TextBox x:Name="EmailToBox" />
+					</StackPanel>
+					<StackPanel Spacing="4">
+						<TextBlock Text="Subject:" />
+						<TextBox x:Name="EmailSubjectBox" />
+					</StackPanel>
+					<StackPanel Spacing="4">
+						<TextBlock Text="Text:" />
+						<TextBox
+							x:Name="EmailTextBox"
+							AcceptsReturn="True"
+							MaxHeight="100"
+							TextWrapping="Wrap" />
+					</StackPanel>
+					<StackPanel Spacing="4">
+						<TextBlock Text="Attachment:" />
+						<Grid ColumnSpacing="8">
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="*" />
+								<ColumnDefinition Width="Auto" />
+							</Grid.ColumnDefinitions>
+							<TextBox x:Name="EmailAttachmentBox" Grid.Column="0" />
+							<Button
+								Grid.Column="1"
+								Click="BrowseAttachment_Click"
+								Content="Browse..." />
+						</Grid>
+					</StackPanel>
+					<StackPanel Spacing="4">
+						<TextBlock Text="SMTP server:" />
+						<TextBox x:Name="EmailSmtpBox" />
+					</StackPanel>
+				</StackPanel>
+
+				<!--  Display a message (deprecated): title + message shown in a desktop message box.  -->
+				<StackPanel
+					x:Name="DisplayMessagePanel"
+					Spacing="10"
+					Visibility="Collapsed">
+					<StackPanel Spacing="4">
+						<TextBlock Text="Title:" />
+						<TextBox x:Name="MessageTitleBox" />
+					</StackPanel>
+					<StackPanel Spacing="4">
+						<TextBlock Text="Message:" />
+						<TextBox
+							x:Name="MessageBodyBox"
+							AcceptsReturn="True"
+							MaxHeight="140"
+							TextWrapping="Wrap" />
+					</StackPanel>
+				</StackPanel>
+
+			</StackPanel>
+		</ScrollViewer>
+	</Grid>
+</ContentDialog>
