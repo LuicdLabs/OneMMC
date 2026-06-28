@@ -226,6 +226,75 @@ public sealed partial class TaskPropertiesPage : Page
 	}
 
 	/// <summary>
+	/// General &gt; "Edit": opens a <see cref="ContentDialog"/> that lets the user edit the
+	/// task's Name and Description fields.
+	/// </summary>
+	/// <remarks>
+	/// TODO(TaskScheduler): on Primary result, write the new name and description back to the
+	/// task definition (ITaskDefinition.RegistrationInfo) and call
+	/// ITaskFolder.RegisterTaskDefinition to persist the change. Prototype only.
+	/// </remarks>
+	private async void GeneralEdit_Click(object sender, RoutedEventArgs e)
+	{
+		// Build the editor content: Name TextBox + Description TextBox.
+		var nameBox = new TextBox
+		{
+			Header = "Name",
+			Text = GeneralNameText.Text,
+			PlaceholderText = "Task name",
+		};
+		var descBox = new TextBox
+		{
+			Header = "Description",
+			Text = GeneralDescriptionText.Text,
+			PlaceholderText = "Task description",
+			AcceptsReturn = true,
+			TextWrapping = TextWrapping.Wrap,
+			MinHeight = 80,
+		};
+		var panel = new StackPanel { Spacing = 12 };
+		panel.Children.Add(nameBox);
+		panel.Children.Add(descBox);
+
+		var dialog = new ContentDialog
+		{
+			Title = "Edit General Information",
+			Content = panel,
+			PrimaryButtonText = "OK",
+			CloseButtonText = "Cancel",
+			DefaultButton = ContentDialogButton.Primary,
+            Style = Application.Current.Resources["DefaultContentDialogStyle"] as Style,
+            XamlRoot = this.XamlRoot,
+			RequestedTheme = App.CurrentTheme,
+		};
+
+		ContentDialogResult result = await dialog.ShowAsync().AsTask();
+		if (result == ContentDialogResult.Primary)
+		{
+			// TODO(TaskScheduler): persist Name / Description to the real task definition.
+			GeneralNameText.Text = nameBox.Text;
+			GeneralDescriptionText.Text = descBox.Text;
+		}
+	}
+
+	/// <summary>Author &gt; "Copy": copies the author value to the clipboard.</summary>
+	private void AuthorCopy_Click(object sender, RoutedEventArgs e) =>
+		// TODO(TaskScheduler): copy from the real task's RegistrationInfo.Author.
+		CopyToClipboard(AuthorCard.Description?.ToString() ?? string.Empty);
+
+	/// <summary>Location &gt; "Copy": copies the task path to the clipboard.</summary>
+	private void LocationCopy_Click(object sender, RoutedEventArgs e) =>
+		// TODO(TaskScheduler): copy from the real task's Path (IRegisteredTask.Path).
+		CopyToClipboard(LocationCard.Description?.ToString() ?? string.Empty);
+
+	private static void CopyToClipboard(string text)
+	{
+		var package = new Windows.ApplicationModel.DataTransfer.DataPackage();
+		package.SetText(text);
+		Windows.ApplicationModel.DataTransfer.Clipboard.SetContent(package);
+	}
+
+	/// <summary>
 	/// Triggers &gt; "New": opens the <see cref="NewTriggerDialog"/> in create mode
 	/// (Title "Create a New Trigger").
 	/// </summary>
@@ -336,11 +405,11 @@ public sealed partial class TaskActionItem : ObservableObject
 
 	/// <summary>True while this action is not the first one, so "Move up" is enabled.</summary>
 	[ObservableProperty]
-	private bool _canMoveUp;
+	public partial bool CanMoveUp { get; set; }
 
 	/// <summary>True while this action is not the last one, so "Move down" is enabled.</summary>
 	[ObservableProperty]
-	private bool _canMoveDown;
+	public partial bool CanMoveDown { get; set; }
 
 	/// <summary>Invoked by the row's "Move up" button (x:Bind event binding).</summary>
 	public void MoveUp() => _moveUp(this);

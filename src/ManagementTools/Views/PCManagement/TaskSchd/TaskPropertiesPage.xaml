@@ -134,21 +134,21 @@
 								TextWrapping="Wrap" />
 						</StackPanel>
 					</cwuc:SettingsCard.Description>
-					<Button Content="Edit" MinWidth="120" />
+					<Button Click="GeneralEdit_Click" Content="Edit" MinWidth="120" />
 				</cwuc:SettingsCard>
 
-				<cwuc:SettingsCard Description="Microsoft Corporation" Header="Author">
+				<cwuc:SettingsCard x:Name="AuthorCard" Description="Microsoft Corporation" Header="Author">
 					<cwuc:SettingsCard.HeaderIcon>
 						<FontIcon Glyph="&#xE77B;" />
 					</cwuc:SettingsCard.HeaderIcon>
-					<Button Content="Copy" MinWidth="120" />
+					<Button Click="AuthorCopy_Click" Content="Copy" MinWidth="120" />
 				</cwuc:SettingsCard>
 
-				<cwuc:SettingsCard Description="\" Header="Location">
+				<cwuc:SettingsCard x:Name="LocationCard" Description="\" Header="Location">
 					<cwuc:SettingsCard.HeaderIcon>
 						<FontIcon Glyph="&#xE8B7;" />
 					</cwuc:SettingsCard.HeaderIcon>
-					<Button Content="Copy" MinWidth="120" />
+					<Button Click="LocationCopy_Click" Content="Copy" MinWidth="120" />
 				</cwuc:SettingsCard>
 
 				<!--  Configure for: compatibility dropdown.  -->
