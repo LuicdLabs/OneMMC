@@ -3,20 +3,13 @@
     CreateTaskDialog — UI prototype for the "Create a Task" flow of a modern taskschd.msc
     replacement. Opened from TaskSchedulerPage's "Create Task" command.
 
-    NOTE: This dialog renders MOCK / SAMPLE data only. It collects the user's selections in
-    plain controls but performs NO real work — nothing is registered with Task Scheduler.
-    It demonstrates the conditional layout (the Trigger and Action drop-downs each reveal a
-    different settings panel) using native WinUI controls rather than re-creating the legacy
-    Win32 wizard chrome.
+    Streamlined create flow: collects a name/description, one trigger and one action, and builds a
+    CreateTaskResult that TaskSchedulerPage registers via ITaskSchedulerService. The full per-tab
+    editor (all triggers/actions/conditions/settings) lives on the task Properties page.
 
-    TODO(TaskScheduler): replace this prototype with a real creation flow:
-      * Build an ITaskDefinition via the Task Scheduler 2.0 COM API (Schedule.Service /
-        ITaskService) — or Microsoft.Win32.TaskScheduler — from the selected trigger + action,
-        then register it (RegisterTaskDefinition) in the currently selected ITaskFolder.
-      * Move every user-facing string below to ResourceKeys / .resw (en-US, zh-TW) and bind via
-        x:Uid / LocalizedStrings, as required by the project conventions.
-      * Wire the Browse buttons to a real file picker (FileOpenPicker initialized with the
-        owning window's HWND) and the event Log/Source drop-downs to the real event-log channels.
+    Note: the schedule date/time pickers are visual here; schedule triggers default their
+    StartBoundary to "now" and are refined on the Properties page. The Months/Days multi-selects
+    are likewise refined there.
 -->
 <ContentDialog
 	x:Class="ManagementTools.Views.PCManagement.CreateTaskDialog"

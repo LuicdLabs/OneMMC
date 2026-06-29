@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="TaskSchd_LibraryRoot" xml:space="preserve"><value>Task Scheduler Library</value></data>
+  <data name="TaskSchd_State_Ready" xml:space="preserve"><value>Ready</value></data>
+  <data name="TaskSchd_State_Running" xml:space="preserve"><value>Running</value></data>
+  <data name="TaskSchd_State_Disabled" xml:space="preserve"><value>Disabled</value></data>
+  <data name="TaskSchd_State_Queued" xml:space="preserve"><value>Queued</value></data>
+  <data name="TaskSchd_State_Unknown" xml:space="preserve"><value>Unknown</value></data>
+  <data name="TaskSchd_StatusLineFormat" xml:space="preserve"><value>{0} | Next run time: {1}</value></data>
+  <data name="TaskSchd_NextRunNever" xml:space="preserve"><value>Next run time: N/A</value></data>
+  <data name="TaskSchd_LastRunNever" xml:space="preserve"><value>Never</value></data>
+  <data name="TaskSchd_Column_Name" xml:space="preserve"><value>Name</value></data>
+  <data name="TaskSchd_Column_Status" xml:space="preserve"><value>Status</value></data>
+  <data name="TaskSchd_Column_Triggers" xml:space="preserve"><value>Triggers</value></data>
+  <data name="TaskSchd_Column_NextRun" xml:space="preserve"><value>Next Run Time</value></data>
+  <data name="TaskSchd_Column_LastRun" xml:space="preserve"><value>Last Run Time</value></data>
+  <data name="TaskSchd_Column_LastResult" xml:space="preserve"><value>Last Run Result</value></data>
+  <data name="TaskSchd_Column_Author" xml:space="preserve"><value>Author</value></data>
+  <data name="TaskSchd_Command_CreateTask" xml:space="preserve"><value>Create Task</value></data>
+  <data name="TaskSchd_Command_Run" xml:space="preserve"><value>Run</value></data>
+  <data name="TaskSchd_Command_End" xml:space="preserve"><value>End</value></data>
+  <data name="TaskSchd_Command_Enable" xml:space="preserve"><value>Enable</value></data>
+  <data name="TaskSchd_Command_Disable" xml:space="preserve"><value>Disable</value></data>
+  <data name="TaskSchd_Command_Delete" xml:space="preserve"><value>Delete</value></data>
+  <data name="TaskSchd_Command_Properties" xml:space="preserve"><value>Properties</value></data>
+  <data name="TaskSchd_Command_Refresh" xml:space="preserve"><value>Refresh</value></data>
+  <data name="TaskSchd_Command_NewFolder" xml:space="preserve"><value>New Folder</value></data>
+  <data name="TaskSchd_Command_DeleteFolder" xml:space="preserve"><value>Delete Folder</value></data>
+  <data name="TaskSchd_Command_ImportTask" xml:space="preserve"><value>Import Task...</value></data>
+  <data name="TaskSchd_Command_ExportTask" xml:space="preserve"><value>Export...</value></data>
+  <data name="TaskSchd_Command_ConnectComputer" xml:space="preserve"><value>Connect to Another Computer...</value></data>
+  <data name="TaskSchd_Command_EnableAllHistory" xml:space="preserve"><value>Enable All Tasks History</value></data>
+  <data name="TaskSchd_Command_DisableAllHistory" xml:space="preserve"><value>Disable All Tasks History</value></data>
+  <data name="TaskSchd_Command_More" xml:space="preserve"><value>More</value></data>
+  <data name="TaskSchd_Tab_General" xml:space="preserve"><value>General</value></data>
+  <data name="TaskSchd_Tab_Triggers" xml:space="preserve"><value>Triggers</value></data>
+  <data name="TaskSchd_Tab_Actions" xml:space="preserve"><value>Actions</value></data>
+  <data name="TaskSchd_Tab_Conditions" xml:space="preserve"><value>Conditions</value></data>
+  <data name="TaskSchd_Tab_Settings" xml:space="preserve"><value>Settings</value></data>
+  <data name="TaskSchd_Tab_History" xml:space="preserve"><value>History</value></data>
+  <data name="TaskSchd_General_Name" xml:space="preserve"><value>Name</value></data>
+  <data name="TaskSchd_General_Location" xml:space="preserve"><value>Location</value></data>
+  <data name="TaskSchd_General_Author" xml:space="preserve"><value>Author</value></data>
+  <data name="TaskSchd_General_Description" xml:space="preserve"><value>Description</value></data>
+  <data name="TaskSchd_General_SecurityOptions" xml:space="preserve"><value>Security options</value></data>
+  <data name="TaskSchd_General_RunAsAccount" xml:space="preserve"><value>When running the task, use the following user account:</value></data>
+  <data name="TaskSchd_General_ChangeUser" xml:space="preserve"><value>Change User or Group...</value></data>
+  <data name="TaskSchd_General_RunOnlyLoggedOn" xml:space="preserve"><value>Run only when user is logged on</value></data>
+  <data name="TaskSchd_General_RunWhetherLoggedOn" xml:space="preserve"><value>Run whether user is logged on or not</value></data>
+  <data name="TaskSchd_General_DoNotStorePassword" xml:space="preserve"><value>Do not store password. The task will only have access to local computer resources.</value></data>
+  <data name="TaskSchd_General_RunHighestPrivileges" xml:space="preserve"><value>Run with highest privileges</value></data>
+  <data name="TaskSchd_General_Hidden" xml:space="preserve"><value>Hidden</value></data>
+  <data name="TaskSchd_General_ConfigureFor" xml:space="preserve"><value>Configure for:</value></data>
+  <data name="TaskSchd_Trigger_OnSchedule" xml:space="preserve"><value>On a schedule</value></data>
+  <data name="TaskSchd_Trigger_AtLogon" xml:space="preserve"><value>At log on</value></data>
+  <data name="TaskSchd_Trigger_AtStartup" xml:space="preserve"><value>At startup</value></data>
+  <data name="TaskSchd_Trigger_OnIdle" xml:space="preserve"><value>On idle</value></data>
+  <data name="TaskSchd_Trigger_OnEvent" xml:space="preserve"><value>On an event</value></data>
+  <data name="TaskSchd_Trigger_AtCreation" xml:space="preserve"><value>At task creation/modification</value></data>
+  <data name="TaskSchd_Trigger_OnConnect" xml:space="preserve"><value>On connection to user session</value></data>
+  <data name="TaskSchd_Trigger_OnDisconnect" xml:space="preserve"><value>On disconnect from user session</value></data>
+  <data name="TaskSchd_Trigger_OnLock" xml:space="preserve"><value>On workstation lock</value></data>
+  <data name="TaskSchd_Trigger_OnUnlock" xml:space="preserve"><value>On workstation unlock</value></data>
+  <data name="TaskSchd_Schedule_OneTime" xml:space="preserve"><value>One time</value></data>
+  <data name="TaskSchd_Schedule_Daily" xml:space="preserve"><value>Daily</value></data>
+  <data name="TaskSchd_Schedule_Weekly" xml:space="preserve"><value>Weekly</value></data>
+  <data name="TaskSchd_Schedule_Monthly" xml:space="preserve"><value>Monthly</value></data>
+  <data name="TaskSchd_TriggerCol_Details" xml:space="preserve"><value>Details</value></data>
+  <data name="TaskSchd_TriggerCol_Status" xml:space="preserve"><value>Status</value></data>
+  <data name="TaskSchd_Trigger_New" xml:space="preserve"><value>New...</value></data>
+  <data name="TaskSchd_Trigger_Edit" xml:space="preserve"><value>Edit...</value></data>
+  <data name="TaskSchd_Trigger_Delete" xml:space="preserve"><value>Delete</value></data>
+  <data name="TaskSchd_Trigger_BeginLabel" xml:space="preserve"><value>Begin the task:</value></data>
+  <data name="TaskSchd_Trigger_Delay" xml:space="preserve"><value>Delay task for:</value></data>
+  <data name="TaskSchd_Trigger_RandomDelay" xml:space="preserve"><value>Delay task for up to (random delay):</value></data>
+  <data name="TaskSchd_Trigger_RepeatEvery" xml:space="preserve"><value>Repeat task every:</value></data>
+  <data name="TaskSchd_Trigger_ForDuration" xml:space="preserve"><value>for a duration of:</value></data>
+  <data name="TaskSchd_Trigger_StopAllAtEnd" xml:space="preserve"><value>Stop all running tasks at end of repetition duration</value></data>
+  <data name="TaskSchd_Trigger_StopIfLonger" xml:space="preserve"><value>Stop task if it runs longer than:</value></data>
+  <data name="TaskSchd_Trigger_Activate" xml:space="preserve"><value>Activate:</value></data>
+  <data name="TaskSchd_Trigger_Expire" xml:space="preserve"><value>Expire:</value></data>
+  <data name="TaskSchd_Trigger_SyncTimeZones" xml:space="preserve"><value>Synchronize across time zones</value></data>
+  <data name="TaskSchd_Trigger_Enabled" xml:space="preserve"><value>Enabled</value></data>
+  <data name="TaskSchd_TriggerSummary_AtLogon" xml:space="preserve"><value>At log on of {0}</value></data>
+  <data name="TaskSchd_TriggerSummary_AtStartup" xml:space="preserve"><value>At system startup</value></data>
+  <data name="TaskSchd_TriggerSummary_DailyFormat" xml:space="preserve"><value>At {0} every {1} day(s)</value></data>
+  <data name="TaskSchd_TriggerSummary_WeeklyFormat" xml:space="preserve"><value>At {0} every {1} week(s) on {2}</value></data>
+  <data name="TaskSchd_TriggerSummary_OneTimeFormat" xml:space="preserve"><value>At {0}</value></data>
+  <data name="TaskSchd_Action_StartProgram" xml:space="preserve"><value>Start a program</value></data>
+  <data name="TaskSchd_Action_SendEmail" xml:space="preserve"><value>Send an e-mail (deprecated)</value></data>
+  <data name="TaskSchd_Action_DisplayMessage" xml:space="preserve"><value>Display a message (deprecated)</value></data>
+  <data name="TaskSchd_ActionCol_Details" xml:space="preserve"><value>Details</value></data>
+  <data name="TaskSchd_Action_New" xml:space="preserve"><value>New...</value></data>
+  <data name="TaskSchd_Action_Edit" xml:space="preserve"><value>Edit...</value></data>
+  <data name="TaskSchd_Action_Delete" xml:space="preserve"><value>Delete</value></data>
+  <data name="TaskSchd_Action_MoveUp" xml:space="preserve"><value>Move Up</value></data>
+  <data name="TaskSchd_Action_MoveDown" xml:space="preserve"><value>Move Down</value></data>
+  <data name="TaskSchd_Action_ProgramScript" xml:space="preserve"><value>Program/script:</value></data>
+  <data name="TaskSchd_Action_AddArguments" xml:space="preserve"><value>Add arguments (optional):</value></data>
+  <data name="TaskSchd_Action_StartIn" xml:space="preserve"><value>Start in (optional):</value></data>
+  <data name="TaskSchd_Action_Browse" xml:space="preserve"><value>Browse...</value></data>
+  <data name="TaskSchd_Action_EmailFrom" xml:space="preserve"><value>From:</value></data>
+  <data name="TaskSchd_Action_EmailTo" xml:space="preserve"><value>To:</value></data>
+  <data name="TaskSchd_Action_EmailSubject" xml:space="preserve"><value>Subject:</value></data>
+  <data name="TaskSchd_Action_EmailText" xml:space="preserve"><value>Text:</value></data>
+  <data name="TaskSchd_Action_EmailAttachment" xml:space="preserve"><value>Attachment:</value></data>
+  <data name="TaskSchd_Action_EmailServer" xml:space="preserve"><value>SMTP server:</value></data>
+  <data name="TaskSchd_Action_MessageTitle" xml:space="preserve"><value>Title:</value></data>
+  <data name="TaskSchd_Action_MessageBody" xml:space="preserve"><value>Message:</value></data>
+  <data name="TaskSchd_Conditions_Idle" xml:space="preserve"><value>Idle</value></data>
+  <data name="TaskSchd_Conditions_Power" xml:space="preserve"><value>Power</value></data>
+  <data name="TaskSchd_Conditions_Network" xml:space="preserve"><value>Network</value></data>
+  <data name="TaskSchd_Conditions_StartIfIdle" xml:space="preserve"><value>Start the task only if the computer is idle for:</value></data>
+  <data name="TaskSchd_Conditions_WaitForIdle" xml:space="preserve"><value>Wait for idle for:</value></data>
+  <data name="TaskSchd_Conditions_StopIfNotIdle" xml:space="preserve"><value>Stop if the computer ceases to be idle</value></data>
+  <data name="TaskSchd_Conditions_RestartOnIdle" xml:space="preserve"><value>Restart if the idle state resumes</value></data>
+  <data name="TaskSchd_Conditions_StartOnAcPower" xml:space="preserve"><value>Start the task only if the computer is on AC power</value></data>
+  <data name="TaskSchd_Conditions_StopOnBattery" xml:space="preserve"><value>Stop if the computer switches to battery power</value></data>
+  <data name="TaskSchd_Conditions_WakeToRun" xml:space="preserve"><value>Wake the computer to run this task</value></data>
+  <data name="TaskSchd_Conditions_StartIfNetwork" xml:space="preserve"><value>Start only if the following network connection is available:</value></data>
+  <data name="TaskSchd_Conditions_AnyConnection" xml:space="preserve"><value>Any connection</value></data>
+  <data name="TaskSchd_Settings_AllowDemandStart" xml:space="preserve"><value>Allow task to be run on demand</value></data>
+  <data name="TaskSchd_Settings_StartWhenAvailable" xml:space="preserve"><value>Run task as soon as possible after a scheduled start is missed</value></data>
+  <data name="TaskSchd_Settings_RestartOnFailure" xml:space="preserve"><value>If the task fails, restart every:</value></data>
+  <data name="TaskSchd_Settings_RestartInterval" xml:space="preserve"><value>Restart every:</value></data>
+  <data name="TaskSchd_Settings_RestartCount" xml:space="preserve"><value>Attempt to restart up to:</value></data>
+  <data name="TaskSchd_Settings_StopIfLonger" xml:space="preserve"><value>Stop the task if it runs longer than:</value></data>
+  <data name="TaskSchd_Settings_ForceStop" xml:space="preserve"><value>If the running task does not end when requested, force it to stop</value></data>
+  <data name="TaskSchd_Settings_DeleteAfter" xml:space="preserve"><value>If the task is not scheduled to run again, delete it after:</value></data>
+  <data name="TaskSchd_Settings_InstanceRule" xml:space="preserve"><value>If the task is already running, then the following rule applies:</value></data>
+  <data name="TaskSchd_Instance_Parallel" xml:space="preserve"><value>Run a new instance in parallel</value></data>
+  <data name="TaskSchd_Instance_Queue" xml:space="preserve"><value>Queue a new instance</value></data>
+  <data name="TaskSchd_Instance_IgnoreNew" xml:space="preserve"><value>Do not start a new instance</value></data>
+  <data name="TaskSchd_Instance_StopExisting" xml:space="preserve"><value>Stop the existing instance</value></data>
+  <data name="TaskSchd_Dialog_CreateTask" xml:space="preserve"><value>Create Task</value></data>
+  <data name="TaskSchd_Dialog_NewTrigger" xml:space="preserve"><value>New Trigger</value></data>
+  <data name="TaskSchd_Dialog_EditTrigger" xml:space="preserve"><value>Edit Trigger</value></data>
+  <data name="TaskSchd_Dialog_NewAction" xml:space="preserve"><value>New Action</value></data>
+  <data name="TaskSchd_Dialog_EditAction" xml:space="preserve"><value>Edit Action</value></data>
+  <data name="TaskSchd_Dialog_NewEventFilter" xml:space="preserve"><value>New Event Filter</value></data>
+  <data name="TaskSchd_Dialog_ConnectComputer" xml:space="preserve"><value>Connect to Another Computer</value></data>
+  <data name="TaskSchd_Button_Ok" xml:space="preserve"><value>OK</value></data>
+  <data name="TaskSchd_Button_Cancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="TaskSchd_Button_Apply" xml:space="preserve"><value>Apply</value></data>
+  <data name="TaskSchd_Validation_NameRequired" xml:space="preserve"><value>You must enter a name for the task.</value></data>
+  <data name="TaskSchd_Validation_ProgramRequired" xml:space="preserve"><value>You must specify a program or script to run.</value></data>
+  <data name="TaskSchd_Validation_DurationGreaterThanInterval" xml:space="preserve"><value>The repetition duration must be greater than the repetition interval.</value></data>
+  <data name="TaskSchd_Validation_EndAfterStart" xml:space="preserve"><value>The expiration time must be later than the activation time.</value></data>
+  <data name="TaskSchd_Validation_EventLogRequired" xml:space="preserve"><value>You must specify an event log and source.</value></data>
+  <data name="TaskSchd_Validation_UserRequired" xml:space="preserve"><value>You must select a user or group.</value></data>
+  <data name="TaskSchd_Validation_TriggerRequired" xml:space="preserve"><value>You must specify at least one trigger, or set the task to run on demand.</value></data>
+  <data name="TaskSchd_Validation_ActionRequired" xml:space="preserve"><value>You must specify at least one action.</value></data>
+  <data name="TaskSchd_Confirm_DeleteTaskFormat" xml:space="preserve"><value>Do you want to delete the task '{0}'?</value></data>
+  <data name="TaskSchd_Confirm_DeleteFolderFormat" xml:space="preserve"><value>Do you want to delete the folder '{0}'?</value></data>
+  <data name="TaskSchd_Confirm_RunTaskFormat" xml:space="preserve"><value>Do you want to run the task '{0}' now?</value></data>
+  <data name="TaskSchd_Error_OperationFailed" xml:space="preserve"><value>The Task Scheduler operation failed: {0}</value></data>
+  <data name="TaskSchd_Error_AccessDenied" xml:space="preserve"><value>This operation requires administrator privileges.</value></data>
+  <data name="TaskSchd_History_Disabled" xml:space="preserve"><value>Task history is currently disabled. Enable All Tasks History to record task events.</value></data>
+  <data name="TaskSchd_History_EnablePrompt" xml:space="preserve"><value>Enabling all tasks history turns on the Task Scheduler operational log for the whole computer. Continue?</value></data>
+  <data name="TaskSchd_History_ColLevel" xml:space="preserve"><value>Level</value></data>
+  <data name="TaskSchd_History_ColDate" xml:space="preserve"><value>Date and Time</value></data>
+  <data name="TaskSchd_History_ColEvent" xml:space="preserve"><value>Event ID</value></data>
+  <data name="TaskSchd_History_ColCategory" xml:space="preserve"><value>Task Category</value></data>
+  <data name="TaskSchd_Connect_LocalComputer" xml:space="preserve"><value>Local Computer</value></data>
+  <data name="TaskSchd_Connect_AnotherComputer" xml:space="preserve"><value>Another computer:</value></data>
+  <data name="TaskSchd_Connect_ComputerLabel" xml:space="preserve"><value>Computer:</value></data>
+  <data name="TaskSchd_NewFolder_Name" xml:space="preserve"><value>Enter the name of the new folder:</value></data>
+  <data name="TaskSchd_Command_Security" xml:space="preserve"><value>Security...</value></data>
+</root>

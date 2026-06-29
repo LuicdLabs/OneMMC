@@ -6,13 +6,10 @@
     open a second ContentDialog on the same window. The hosting window supplies the OK / Cancel
     buttons, so this UserControl only provides the filter form.
 
-    NOTE: MOCK / SAMPLE data only. The Filter and XML tabs mirror the Windows Event Viewer filter
-    dialog, but nothing is parsed or executed.
-
-    TODO(TaskScheduler): build the event-query XPath from these fields (Filter tab) — or read it
-    verbatim (XML tab) — and hand it back as IEventTrigger.Subscription. Populate the Event logs /
-    Event sources / Task category / Keywords drop-downs from the real channels (EvtOpenChannelEnum /
-    EvtOpenPublisherEnum) and migrate all strings to ResourceKeys / .resw.
+    The Filter and XML tabs mirror the Windows Event Viewer filter dialog. BuildQuery() turns the
+    Filter-tab fields into an Event Log QueryList (via EventXPathBuilder) — or returns the hand-written
+    query from the XML tab — to use as IEventTrigger.Subscription. The Event logs drop-down is
+    populated from the real channels (EventLogSession.GetLogNames()).
 -->
 <UserControl
 	x:Class="ManagementTools.Views.PCManagement.NewEventFilterContent"
@@ -77,17 +74,17 @@
 					<StackPanel Orientation="Horizontal" Spacing="8">
 						<TextBlock Style="{StaticResource InlineLabelStyle}" Text="Event level:" />
 						<StackPanel Orientation="Horizontal" Spacing="16">
-							<CheckBox Content="Critical" />
-							<CheckBox Content="Warning" />
-							<CheckBox Content="Verbose" />
+							<CheckBox x:Name="CriticalCheck" Content="Critical" />
+							<CheckBox x:Name="WarningCheck" Content="Warning" />
+							<CheckBox x:Name="VerboseCheck" Content="Verbose" />
 						</StackPanel>
 					</StackPanel>
 					<StackPanel
 						Margin="108,0,0,0"
 						Orientation="Horizontal"
 						Spacing="16">
-						<CheckBox Content="Error" />
-						<CheckBox Content="Information" />
+						<CheckBox x:Name="ErrorCheck" Content="Error" />
+						<CheckBox x:Name="InfoCheck" Content="Information" />
 					</StackPanel>
 
 					<!--  By log / By source are mutually exclusive; each enables its own picker (handled in code-behind).  -->

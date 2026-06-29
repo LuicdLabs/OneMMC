@@ -1,220 +1,330 @@
-using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
-using ManagementTools.Services;
+using System;
+using System.IO;
+using System.Threading.Tasks;
+using ManagementTools.Core.Features.PCManagement.Models.TaskSchd;
+using ManagementTools.Core.Features.PCManagement.Services.EventViewer;
+using ManagementTools.Core.Features.PCManagement.Services.TaskSchd;
+using ManagementTools.Core.Features.PCManagement.ViewModels.TaskSchd;
+using ManagementTools.Core.Localization;
+using ManagementTools.Helpers;
+using ManagementTools.Localization;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media.Animation;
+using WinRT.Interop;
 
 namespace ManagementTools.Views.PCManagement;
 
 /// <summary>
-/// UI prototype for a modern Task Scheduler (taskschd.msc) replacement.
+/// Main Task Scheduler screen (taskschd.msc replacement), bound to <see cref="TaskSchedulerViewModel"/>.
 /// </summary>
-/// <remarks>
-/// Everything in this file is MOCK / SAMPLE data used to demonstrate the final UI.
-/// TODO(TaskScheduler): replace the sample collections and the inline event handlers
-/// with a real ViewModel + service backed by the Task Scheduler 2.0 COM API
-/// (Schedule.Service / ITaskService) or Microsoft.Win32.TaskScheduler, registered via
-/// DI under Core/Features per the project's MVVM conventions, and move all user-facing
-/// strings to ResourceKeys / .resw (en-US, zh-TW).
-/// </remarks>
-public sealed partial class TaskSchedulerPage : Page, INotifyPropertyChanged
+public sealed partial class TaskSchedulerPage : Page
 {
-	/// <summary>Sample tasks shown in the list. TODO(TaskScheduler): enumerate the selected folder's registered tasks.</summary>
-	public ObservableCollection<ScheduledTaskSample> SampleTasks { get; } =
-	[
-		new("MicrosoftEdgeUpdateTaskMachineCore", "Running | Next run time: 2026/6/28 04:18:03"),
-		new("OneDrive Reporting Task", "Ready | Next run time: 2026/6/27 23:01:27"),
-	];
+    public TaskSchedulerViewModel ViewModel { get; } = App.GetRequiredService<TaskSchedulerViewModel>();
+    public LocalizedStrings LocalizedStrings { get; } = LocalizedStrings.Instance;
 
-	// Mock toggle states for the single Disable/Enable and Run/End buttons.
-	private bool _selectedTaskEnabled = true;
-	private bool _selectedTaskRunning;
+    private readonly IFileDialogService _fileDialog = App.GetRequiredService<IFileDialogService>();
 
-	private bool _isTreeNodeSelected;
-	private bool _isNonRootTreeNodeSelected;
+    public TaskSchedulerPage()
+    {
+        InitializeComponent();
+        this.RequestedTheme = App.CurrentTheme;
+        App.ThemeChanged += OnThemeChanged;
+        ViewModel.AdminPermissionRequired += OnAdminPermissionRequired;
+        ViewModel.PropertyChanged += ViewModel_PropertyChanged;
+        Loaded += OnLoaded;
+        Unloaded += OnUnloaded;
+    }
 
-	/// <summary>
-	/// True when any node in <see cref="LibraryTreeView"/> is selected.
-	/// Drives the IsEnabled binding for folder-scoped menu items (New folder / Import Task).
-	/// Every node — including the root "Task Scheduler Library" — represents a valid folder
-	/// target for both operations.
-	/// </summary>
-	public bool IsTreeNodeSelected
-	{
-		get => _isTreeNodeSelected;
-		private set => SetField(ref _isTreeNodeSelected, value);
-	}
+    private static nint OwnerHwnd => App.MainWindowInstance is null ? 0 : WindowNative.GetWindowHandle(App.MainWindowInstance);
 
-	/// <summary>
-	/// True when a non-root node is selected in <see cref="LibraryTreeView"/>.
-	/// Drives the IsEnabled binding for Delete folder: the root "Task Scheduler Library"
-	/// node is not a user-created folder and must not be deleted.
-	/// </summary>
-	public bool IsNonRootTreeNodeSelected
-	{
-		get => _isNonRootTreeNodeSelected;
-		private set => SetField(ref _isNonRootTreeNodeSelected, value);
-	}
+    private string L(string key) => LocalizationProvider.Current.GetString(ResourceFileNames.TaskSchd, key);
 
-	/// <summary>Raised when a bindable property changes, so the x:Bind OneWay IsEnabled bindings refresh.</summary>
-	public event PropertyChangedEventHandler? PropertyChanged;
+    private async void OnLoaded(object sender, RoutedEventArgs e)
+    {
+        if (ViewModel.RootFolders.Count == 0)
+        {
+            await ViewModel.LoadAsync();
+        }
+        await RefreshHistoryMenuLabelAsync();
+    }
 
-	/// <summary>Assigns <paramref name="field"/> and raises <see cref="PropertyChanged"/> only when the value changes.</summary>
-	private void SetField(ref bool field, bool value, [CallerMemberName] string? propertyName = null)
-	{
-		if (field == value)
-		{
-			return;
-		}
+    private void OnUnloaded(object sender, RoutedEventArgs e)
+    {
+        App.ThemeChanged -= OnThemeChanged;
+        ViewModel.AdminPermissionRequired -= OnAdminPermissionRequired;
+        ViewModel.PropertyChanged -= ViewModel_PropertyChanged;
+    }
 
-		field = value;
-		PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-	}
+    private void OnThemeChanged(ElementTheme theme) => this.RequestedTheme = theme;
 
-	public TaskSchedulerPage()
-	{
-		InitializeComponent();
-		this.RequestedTheme = App.CurrentTheme;
-		App.ThemeChanged += OnThemeChanged;
-		this.Unloaded += (_, _) => App.ThemeChanged -= OnThemeChanged;
+    private async void OnAdminPermissionRequired() =>
+        await AdminDialogHelper.ShowAdminRequiredDialogAsync(this.XamlRoot);
 
-		BuildSampleTree();
-	}
+    private void ViewModel_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is nameof(ViewModel.SelectedTask) or nameof(ViewModel.IsSelectedTaskEnabled) or nameof(ViewModel.IsSelectedTaskRunning))
+        {
+            UpdateToggleButtons();
+        }
+    }
 
-	private void OnThemeChanged(ElementTheme theme) => this.RequestedTheme = theme;
+    private void UpdateToggleButtons()
+    {
+        var enabled = ViewModel.IsSelectedTaskEnabled;
+        DisableEnableIcon.Glyph = enabled ? "" : "";
+        DisableEnableButton.Label = enabled ? L(TaskSchdKeys.CommandDisable) : L(TaskSchdKeys.CommandEnable);
 
-	/// <summary>
-	/// Opens the <see cref="CreateTaskDialog"/> prototype.
-	/// TODO(TaskScheduler): on a Primary result, build an ITaskDefinition from the dialog's
-	/// trigger + action selections and register it in the currently selected ITaskFolder. The
-	/// dialog only collects sample data today, so no task is created.
-	/// </summary>
-	private async void CreateTaskButton_Click(object sender, RoutedEventArgs e)
-	{
-		var dialog = new CreateTaskDialog
-		{
-			XamlRoot = this.XamlRoot,
-			RequestedTheme = App.CurrentTheme,
-		};
+        var running = ViewModel.IsSelectedTaskRunning;
+        RunEndIcon.Glyph = running ? "" : "";
+        RunEndMenuItem.Text = running ? L(TaskSchdKeys.CommandEnd) : L(TaskSchdKeys.CommandRun);
+    }
 
-		ContentDialogResult result = await dialog.ShowAsync().AsTask();
-		if (result == ContentDialogResult.Primary)
-		{
-			// TODO(TaskScheduler): register the task using dialog.TaskName / dialog.TaskDescription
-			// and the selected trigger/action. No-op in this UI prototype.
-		}
-	}
+    private async void LibraryTreeView_SelectionChanged(TreeView sender, TreeViewSelectionChangedEventArgs args)
+    {
+        if (sender.SelectedItem is TaskFolderItem folder)
+        {
+            await ViewModel.SelectFolderAsync(folder);
+        }
+    }
 
-	/// <summary>
-	/// Builds the sample folder hierarchy.
-	/// TODO(TaskScheduler): populate from the real ITaskFolder tree under "\" (Task Scheduler Library).
-	/// </summary>
-	private void BuildSampleTree()
-	{
-		var library = new TreeViewNode { Content = "Task Scheduler Library", IsExpanded = true };
-		library.Children.Add(new TreeViewNode { Content = "Microsoft" });
-		library.Children.Add(new TreeViewNode { Content = "SoftLanding" });
-		LibraryTreeView.RootNodes.Add(library);
+    private void SearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
+    {
+        if (args.Reason == AutoSuggestionBoxTextChangeReason.UserInput)
+        {
+            ViewModel.ApplyFilter(sender.Text);
+        }
+    }
 
-		// Select the root by default so the folder-scoped commands reflect the visible
-		// selection on first load. Setting SelectedNode raises SelectionChanged, but call the
-		// updater explicitly too to guarantee the initial state regardless of event timing.
-		LibraryTreeView.SelectedNode = library;
-		UpdateFolderSelectionState(library);
-	}
+    private void TasksListView_DoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
+    {
+        if ((e.OriginalSource as FrameworkElement)?.DataContext is TaskListItem task)
+        {
+            OpenTaskProperties(task);
+        }
+    }
 
-	// Selecting a folder node updates the folder-scoped command state and should load that
-	// folder's tasks into the list. SelectionChanged (not ItemInvoked) is used so SelectedNode
-	// is already current here, and so keyboard/programmatic selection is covered too.
-	// TODO(TaskScheduler): enumerate the selected ITaskFolder's registered tasks.
-	private void LibraryTreeView_SelectionChanged(TreeView sender, TreeViewSelectionChangedEventArgs args)
-		=> UpdateFolderSelectionState(sender.SelectedNode);
+    private void PropertiesButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (ViewModel.SelectedTask is { } task)
+        {
+            OpenTaskProperties(task);
+        }
+    }
 
-	/// <summary>
-	/// Recomputes the IsEnabled state of the folder-scoped menu items from the selected node
-	/// and refreshes the x:Bind one-way bindings.
-	/// </summary>
-	private void UpdateFolderSelectionState(TreeViewNode? selected)
-	{
-		// Any node enables New folder / Import Task.
-		IsTreeNodeSelected = selected is not null;
-		// Only non-root nodes enable Delete folder. Do NOT test selected.Parent here:
-		// despite the docs stating a root node's Parent is null, TreeView.RootNodes.Add
-		// reparents nodes onto an internal hidden root, so the visible "Task Scheduler
-		// Library" node reports a non-null Parent. Test membership in RootNodes instead.
-		IsNonRootTreeNodeSelected = selected is not null && !LibraryTreeView.RootNodes.Contains(selected);
-	}
+    private void OpenTaskProperties(TaskListItem task)
+    {
+        BreadcrumbNavigationService.AddBreadcrumb(task.Name, typeof(TaskPropertiesPage), task.Path);
+        Frame.Navigate(typeof(TaskPropertiesPage), task.Path, new SlideNavigationTransitionInfo { Effect = SlideNavigationTransitionEffect.FromRight });
+    }
 
-	// Double-tapping a task in the list opens its properties page.
-	private void TasksListView_DoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
-	{
-		ScheduledTaskSample? task = (e.OriginalSource as FrameworkElement)?.DataContext as ScheduledTaskSample
-			?? TasksListView.SelectedItem as ScheduledTaskSample;
-		if (task is not null)
-		{
-			OpenTaskProperties(task);
-		}
-	}
+    private async void CreateTaskButton_Click(object sender, RoutedEventArgs e)
+    {
+        var dialog = new CreateTaskDialog
+        {
+            XamlRoot = this.XamlRoot,
+            RequestedTheme = App.CurrentTheme,
+        };
 
-	// The Properties command opens the selected task's properties page.
-	private void PropertiesButton_Click(object sender, RoutedEventArgs e)
-	{
-		if (TasksListView.SelectedItem is ScheduledTaskSample task)
-		{
-			OpenTaskProperties(task);
-		}
-	}
+        if (await dialog.ShowAsync() == ContentDialogResult.Primary && dialog.Result is { } result)
+        {
+            await ViewModel.CreateTaskAsync(result.TaskName, result.Definition, result.Password);
+        }
+    }
 
-	/// <summary>
-	/// Navigates to <see cref="TaskPropertiesPage"/> for the given task, using the shell's
-	/// breadcrumb so the hosting NavigationView shows a Back button.
-	/// </summary>
-	private void OpenTaskProperties(ScheduledTaskSample task)
-	{
-		// TODO(TaskScheduler): pass a real task identifier/model instead of the sample, and use a
-		// localized breadcrumb prefix (e.g. ResourceKeys) around the task name.
-		BreadcrumbNavigationService.AddBreadcrumb(task.Name, typeof(TaskPropertiesPage), task);
-		Frame.Navigate(
-			typeof(TaskPropertiesPage),
-			task,
-			new SlideNavigationTransitionInfo { Effect = SlideNavigationTransitionEffect.FromRight });
-	}
+    private async void DisableEnableButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (ViewModel.IsSelectedTaskEnabled)
+        {
+            await ViewModel.DisableTaskCommand.ExecuteAsync(null);
+        }
+        else
+        {
+            await ViewModel.EnableTaskCommand.ExecuteAsync(null);
+        }
+        UpdateToggleButtons();
+    }
 
-	/// <summary>
-	/// Disable/Enable is a single toggle button: it swaps glyph (Disable E769 / Enable E768) and label.
-	/// TODO(TaskScheduler): set IRegisteredTask.Enabled on the selected task.
-	/// </summary>
-	private void DisableEnableButton_Click(object sender, RoutedEventArgs e)
-	{
-		_selectedTaskEnabled = !_selectedTaskEnabled;
-		DisableEnableIcon.Glyph = _selectedTaskEnabled ? "" : "";
-		DisableEnableButton.Label = _selectedTaskEnabled ? "Disable" : "Enable";
-	}
+    private async void RunEndMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        if (ViewModel.IsSelectedTaskRunning)
+        {
+            await ViewModel.StopTaskCommand.ExecuteAsync(null);
+        }
+        else
+        {
+            await ViewModel.RunTaskCommand.ExecuteAsync(null);
+        }
+        UpdateToggleButtons();
+    }
 
-	/// <summary>
-	/// Run/End is a single toggle menu item: it swaps glyph (Run E768 / End E71A) and text.
-	/// TODO(TaskScheduler): IRegisteredTask.Run(null) to start, or IRunningTask.Stop() to end.
-	/// </summary>
-	private void RunEndMenuItem_Click(object sender, RoutedEventArgs e)
-	{
-		_selectedTaskRunning = !_selectedTaskRunning;
-		RunEndIcon.Glyph = _selectedTaskRunning ? "" : "";
-		RunEndMenuItem.Text = _selectedTaskRunning ? "End" : "Run";
-	}
+    private async void DeleteTask_Click(object sender, RoutedEventArgs e)
+    {
+        if (ViewModel.SelectedTask is not { } task)
+        {
+            return;
+        }
+        if (await ConfirmAsync(string.Format(L(TaskSchdKeys.ConfirmDeleteTaskFormat), task.Name)))
+        {
+            await ViewModel.DeleteTaskCommand.ExecuteAsync(null);
+        }
+    }
 
-	// TODO(TaskScheduler): launch the legacy taskschd.msc snap-in. No-op in the UI prototype.
-	private void OpenLegacyTaskScheduler_Click(object sender, RoutedEventArgs e)
-	{
-	}
-}
+    private async void ExportTask_Click(object sender, RoutedEventArgs e)
+    {
+        if (ViewModel.SelectedTask is not { } task)
+        {
+            return;
+        }
 
-/// <summary>Sample row model for the task list. TODO(TaskScheduler): replace with a real task model.</summary>
-public sealed class ScheduledTaskSample(string name, string statusLine)
-{
-	public string Name { get; } = name;
+        var xml = await ViewModel.ExportSelectedTaskXmlAsync();
+        if (string.IsNullOrEmpty(xml))
+        {
+            return;
+        }
 
-	public string StatusLine { get; } = statusLine;
+        var path = await _fileDialog.SaveFileAsync(
+            OwnerHwnd,
+            "XML Files\0*.xml\0All Files\0*.*\0",
+            title: L(TaskSchdKeys.CommandExportTask),
+            defaultExtension: ".xml",
+            suggestedFileName: task.Name + ".xml");
+
+        if (!string.IsNullOrEmpty(path))
+        {
+            await File.WriteAllTextAsync(path, xml);
+        }
+    }
+
+    private async void ImportTask_Click(object sender, RoutedEventArgs e)
+    {
+        var path = await _fileDialog.OpenFileAsync(OwnerHwnd, "XML Files\0*.xml\0All Files\0*.*\0", title: L(TaskSchdKeys.CommandImportTask));
+        if (string.IsNullOrEmpty(path))
+        {
+            return;
+        }
+
+        var xml = await File.ReadAllTextAsync(path);
+        var defaultName = Path.GetFileNameWithoutExtension(path);
+        var name = await PromptTextAsync(L(TaskSchdKeys.CommandImportTask), L(TaskSchdKeys.GeneralName), defaultName);
+        if (!string.IsNullOrWhiteSpace(name))
+        {
+            await ViewModel.ImportTaskAsync(name, xml);
+        }
+    }
+
+    private async void NewFolder_Click(object sender, RoutedEventArgs e)
+    {
+        var name = await PromptTextAsync(L(TaskSchdKeys.CommandNewFolder), L(TaskSchdKeys.NewFolderName), string.Empty);
+        if (!string.IsNullOrWhiteSpace(name))
+        {
+            await ViewModel.CreateFolderAsync(name);
+        }
+    }
+
+    private async void ConnectComputer_Click(object sender, RoutedEventArgs e)
+    {
+        var server = await PromptTextAsync(L(TaskSchdKeys.DialogConnectComputer), L(TaskSchdKeys.ConnectComputerLabel), string.Empty);
+        var connection = string.IsNullOrWhiteSpace(server)
+            ? TaskSchedulerConnection.Local
+            : new TaskSchedulerConnection { Server = server.Trim() };
+        await ViewModel.ConnectAsync(connection);
+    }
+
+    private async void SecurityTask_Click(object sender, RoutedEventArgs e)
+    {
+        if (ViewModel.SelectedTask is not { } task)
+        {
+            return;
+        }
+
+        var service = App.GetRequiredService<ITaskSchedulerService>();
+        try
+        {
+            // DACL + OWNER + GROUP
+            var sddl = await service.GetTaskSecurityDescriptorAsync(task.Path, 0x1 | 0x2 | 0x4) ?? string.Empty;
+            var edited = await PromptTextAsync(L(TaskSchdKeys.CommandSecurity), "SDDL", sddl, multiline: true);
+            if (edited is not null && !string.Equals(edited, sddl, StringComparison.Ordinal))
+            {
+                await service.SetTaskSecurityDescriptorAsync(task.Path, edited);
+            }
+        }
+        catch (Exception ex) when (App.GetRequiredService<IAdminService>().IsPermissionError(ex))
+        {
+            await AdminDialogHelper.ShowAdminRequiredDialogAsync(this.XamlRoot);
+        }
+    }
+
+    private async void ToggleAllHistory_Click(object sender, RoutedEventArgs e)
+    {
+        var history = App.GetRequiredService<TaskHistoryService>();
+        try
+        {
+            var enabled = history.IsHistoryEnabled();
+            if (!enabled && !await ConfirmAsync(L(TaskSchdKeys.HistoryEnablePrompt)))
+            {
+                return;
+            }
+            await history.SetHistoryEnabledAsync(!enabled);
+            await RefreshHistoryMenuLabelAsync();
+        }
+        catch (Exception ex) when (App.GetRequiredService<IAdminService>().IsPermissionError(ex))
+        {
+            await AdminDialogHelper.ShowAdminRequiredDialogAsync(this.XamlRoot);
+        }
+    }
+
+    private async Task RefreshHistoryMenuLabelAsync()
+    {
+        try
+        {
+            var history = App.GetRequiredService<TaskHistoryService>();
+            var enabled = await Task.Run(history.IsHistoryEnabled);
+            HistoryToggleMenuItem.Text = enabled ? L(TaskSchdKeys.CommandDisableAllHistory) : L(TaskSchdKeys.CommandEnableAllHistory);
+        }
+        catch
+        {
+            // Leave the default label if the channel cannot be queried.
+        }
+    }
+
+    private async Task<bool> ConfirmAsync(string message)
+    {
+        var dialog = new ContentDialog
+        {
+            Title = L(TaskSchdKeys.DialogCreateTask),
+            Content = message,
+            PrimaryButtonText = L(TaskSchdKeys.ButtonOk),
+            CloseButtonText = L(TaskSchdKeys.ButtonCancel),
+            DefaultButton = ContentDialogButton.Primary,
+            XamlRoot = this.XamlRoot,
+            RequestedTheme = App.CurrentTheme,
+        };
+        return await dialog.ShowAsync() == ContentDialogResult.Primary;
+    }
+
+    private async Task<string?> PromptTextAsync(string title, string label, string initial, bool multiline = false)
+    {
+        var box = new TextBox
+        {
+            Header = label,
+            Text = initial,
+            AcceptsReturn = multiline,
+            TextWrapping = multiline ? TextWrapping.Wrap : TextWrapping.NoWrap,
+            MinWidth = 360,
+            Height = multiline ? 160 : double.NaN,
+        };
+        var dialog = new ContentDialog
+        {
+            Title = title,
+            Content = box,
+            PrimaryButtonText = L(TaskSchdKeys.ButtonOk),
+            CloseButtonText = L(TaskSchdKeys.ButtonCancel),
+            DefaultButton = ContentDialogButton.Primary,
+            XamlRoot = this.XamlRoot,
+            RequestedTheme = App.CurrentTheme,
+        };
+        return await dialog.ShowAsync() == ContentDialogResult.Primary ? box.Text : null;
+    }
 }

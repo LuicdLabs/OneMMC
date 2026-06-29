@@ -1,456 +1,673 @@
+using System;
 using System.Globalization;
+using System.Linq;
+using ManagementTools.Core.Features.PCManagement.Models.TaskSchd;
+using ManagementTools.Core.Localization;
 using ManagementTools.Helpers;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using WinRT.Interop;
 
 namespace ManagementTools.Views.PCManagement;
 
 /// <summary>
-/// UI prototype for the "Create a New Trigger" editor of a modern Task Scheduler (taskschd.msc)
-/// replacement, launched from <see cref="TaskPropertiesPage"/>'s Triggers &gt; "New" command.
+/// "New Trigger" / "Edit Trigger" editor. Builds an <see cref="TriggerModel"/> (one of the 11 trigger
+/// types) from the "Begin the task" selection plus the shared Advanced settings (delay/random delay,
+/// repetition, execution-time-limit, activate/expire boundaries, enabled).
 /// </summary>
-/// <remarks>
-/// Everything here is MOCK / SAMPLE behaviour: the code only swaps which Settings panel is visible
-/// for the chosen trigger type and keeps the dependent Advanced-settings controls enabled/disabled.
-/// No trigger is ever created.
-/// TODO(TaskScheduler): build the matching <c>ITrigger</c> from the selection (see the type map in
-/// the XAML header) and add it to the task's <c>ITriggerCollection</c> via the Task Scheduler 2.0
-/// COM API, and migrate all strings to ResourceKeys / .resw.
-/// </remarks>
 public sealed partial class NewTriggerDialog : ContentDialog
 {
-	// "Begin the task" indices. Must match the ComboBoxItem order in NewTriggerDialog.xaml.
-	private const int TriggerOnSchedule = 0;
-	private const int TriggerAtLogon = 1;
-	private const int TriggerAtStartup = 2;
-	private const int TriggerOnIdle = 3;
-	private const int TriggerOnEvent = 4;
-	private const int TriggerAtCreation = 5;
-	private const int TriggerOnConnect = 6;
-	private const int TriggerOnDisconnect = 7;
-	private const int TriggerOnLock = 8;
-	private const int TriggerOnUnlock = 9;
+    private const int TriggerOnSchedule = 0;
+    private const int TriggerAtLogon = 1;
+    private const int TriggerAtStartup = 2;
+    private const int TriggerOnIdle = 3;
+    private const int TriggerOnEvent = 4;
+    private const int TriggerAtCreation = 5;
+    private const int TriggerOnConnect = 6;
+    private const int TriggerOnDisconnect = 7;
+    private const int TriggerOnLock = 8;
+    private const int TriggerOnUnlock = 9;
 
-	// DelayCombo preset indices (shared "15 minutes / 30 minutes / 1 hour / 12 hours / 1 day" list).
-	private const int DelayIndexFixedDefault = 0;  // "15 minutes" — non-schedule Delay default
-	private const int DelayIndexRandomDefault = 2; // "1 hour" — schedule RandomDelay default
+    private bool _initialized;
+    private string? _pickedUserId;
+    private string? _eventSubscription;
 
-	/// <summary>
-	/// Guards the checkbox enable/disable handlers so they ignore the spurious Checked/Unchecked
-	/// events that fire while the XAML is being parsed (before every named control exists).
-	/// </summary>
-	private bool _initialized;
+    /// <summary>The trigger built when the dialog is committed; <see langword="null"/> if cancelled.</summary>
+    public TriggerModel? ResultTrigger { get; private set; }
 
-	/// <summary>Month names for the Monthly "Months" multi-select. TODO(TaskScheduler): localize via DateTimeFormatInfo.</summary>
-	public IReadOnlyList<string> Months { get; } =
-	[
-		"January", "February", "March", "April", "May", "June",
-		"July", "August", "September", "October", "November", "December"
-	];
+    public IReadOnlyList<string> Months { get; } =
+    [
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"
+    ];
 
-	/// <summary>Day-of-month options for the Monthly "Days" multi-select: 1–31 plus "Last".</summary>
-	public IReadOnlyList<string> MonthDays { get; } = BuildMonthDays();
+    public IReadOnlyList<string> MonthDays { get; } = BuildMonthDays();
 
-	/// <summary>
-	/// Creates the dialog in <b>create</b> mode (Title "Create a New Trigger") when
-	/// <paramref name="editKind"/> is <c>null</c>, or <b>edit</b> mode (Title "Edit Trigger")
-	/// pre-selected to that trigger type when a kind is supplied.
-	/// </summary>
-	/// <param name="editKind">
-	/// The concrete type of the trigger being edited, or <c>null</c> to create a new trigger. In edit
-	/// mode only the panels are pre-selected from the type; the per-field values stay at the seeded
-	/// sample defaults because this prototype has no real trigger definition to read.
-	/// </param>
-	public NewTriggerDialog(TriggerEditKind? editKind = null)
-	{
-		this.InitializeComponent();
+    public NewTriggerDialog(TriggerModel? triggerToEdit = null)
+    {
+        InitializeComponent();
+        Title = L(triggerToEdit is null ? TaskSchdKeys.DialogNewTrigger : TaskSchdKeys.DialogEditTrigger);
+        PrimaryButtonText = L(TaskSchdKeys.ButtonOk);
+        CloseButtonText = L(TaskSchdKeys.ButtonCancel);
+        Closing += OnClosing;
 
-		// Defaults for the secondary radio groups, applied in both modes so every panel starts from a
-		// valid selection (independent of the chosen trigger type). Doing this after InitializeComponent
-		// (rather than via SelectedIndex in XAML) guarantees the target panels already exist when the
-		// SelectionChanged handlers run.
-		MonthlyScheduleMode.SelectedIndex = 0;    // Days
-		ConnectionSourceRadios.SelectedIndex = 0; // Connection from remote computer
-		UserModeRadios.SelectedIndex = 0;         // Any user
-		SessionUserModeRadios.SelectedIndex = 0;  // Any user
-		EventModeRadios.SelectedIndex = 0;        // Basic
+        MonthlyScheduleMode.SelectedIndex = 0;
+        ConnectionSourceRadios.SelectedIndex = 0;
+        UserModeRadios.SelectedIndex = 0;
+        SessionUserModeRadios.SelectedIndex = 0;
+        EventModeRadios.SelectedIndex = 0;
+        BeginTaskComboBox.SelectedIndex = TriggerOnSchedule;
+        ScheduleKindRadios.SelectedIndex = 0;
 
-		if (editKind is null)
-		{
-			// Create mode: the defaults shown by the reference "New Trigger" dialog.
-			BeginTaskComboBox.SelectedIndex = TriggerOnSchedule; // On a schedule
-			ScheduleKindRadios.SelectedIndex = 0;                // One time
-		}
-		else
-		{
-			// Edit mode: retitle and pre-select the panels for the trigger being edited.
-			this.Title = "Edit Trigger";
-			ApplyEditKind(editKind.Value);
-		}
+        var now = DateTimeOffset.Now;
+        ScheduleStartDate.Date = now;
+        ScheduleStartTime.Time = now.TimeOfDay;
+        ActivateDate.Date = now;
+        ActivateTime.Time = now.TimeOfDay;
+        ExpireDate.Date = now.AddYears(1);
+        ExpireTime.Time = now.TimeOfDay;
 
-		// Seed the date/time pickers with sample defaults that mirror how taskschd seeds a brand-new
-		// trigger (Start/Activate = now, Expire = +1 year), matching the reference screenshots. Date and
-		// time values cannot be set as XAML attribute strings, so they are assigned here in code-behind.
-		// TODO(TaskScheduler): when editing an existing trigger, overwrite these from the trigger's
-		// StartBoundary / EndBoundary instead of seeding "now".
-		DateTimeOffset now = DateTimeOffset.Now;
-		ScheduleStartDate.Date = now;
-		ScheduleStartTime.Time = now.TimeOfDay;
-		ActivateDate.Date = now;
-		ActivateTime.Time = now.TimeOfDay;
-		ExpireDate.Date = now.AddYears(1);
-		ExpireTime.Time = now.TimeOfDay;
+        if (triggerToEdit is not null)
+        {
+            PopulateFrom(triggerToEdit);
+        }
 
-		// Seed the dependent enable/disable rules once for the initial (mock) values, then allow the
-		// event handlers to keep them in sync. Every gate checkbox except "Enabled" defaults unchecked,
-		// so its value controls start disabled.
-		UpdateRepeatState();
-		UpdateStopIfLongerState();
-		UpdateActivateState();
-		UpdateExpireState();
-		UpdateUserModeState();
-		UpdateSessionUserModeState();
-		_initialized = true;
-	}
+        UpdateRepeatState();
+        UpdateStopIfLongerState();
+        UpdateActivateState();
+        UpdateExpireState();
+        UpdateUserModeState();
+        UpdateSessionUserModeState();
+        _initialized = true;
+    }
 
-	private static string[] BuildMonthDays()
-	{
-		var days = new string[32];
-		for (int day = 1; day <= 31; day++)
-		{
-			days[day - 1] = day.ToString(CultureInfo.InvariantCulture);
-		}
+    private static string L(string key) => LocalizationProvider.Current.GetString(ResourceFileNames.TaskSchd, key);
 
-		days[31] = "Last";
-		return days;
-	}
+    private static nint OwnerHwnd => App.MainWindowInstance is null ? 0 : WindowNative.GetWindowHandle(App.MainWindowInstance);
 
-	/// <summary>
-	/// Pre-selects the "Begin the task" type and (for time-based triggers) the One time / Daily /
-	/// Weekly / Monthly schedule sub-kind that match the trigger being edited. The dependent panels
-	/// are then revealed by the usual SelectionChanged handlers. This mirrors how taskschd maps a
-	/// stored <c>ITrigger</c> back onto the dialog's controls when you edit an existing trigger.
-	/// </summary>
-	private void ApplyEditKind(TriggerEditKind kind)
-	{
-		BeginTaskComboBox.SelectedIndex = kind switch
-		{
-			TriggerEditKind.OneTime or TriggerEditKind.Daily or TriggerEditKind.Weekly or TriggerEditKind.Monthly => TriggerOnSchedule,
-			TriggerEditKind.AtLogOn => TriggerAtLogon,
-			TriggerEditKind.AtStartup => TriggerAtStartup,
-			TriggerEditKind.OnIdle => TriggerOnIdle,
-			TriggerEditKind.OnEvent => TriggerOnEvent,
-			TriggerEditKind.AtCreation => TriggerAtCreation,
-			TriggerEditKind.OnConnect => TriggerOnConnect,
-			TriggerEditKind.OnDisconnect => TriggerOnDisconnect,
-			TriggerEditKind.OnLock => TriggerOnLock,
-			TriggerEditKind.OnUnlock => TriggerOnUnlock,
-			_ => TriggerOnSchedule,
-		};
+    private static string[] BuildMonthDays()
+    {
+        var days = new string[32];
+        for (int day = 1; day <= 31; day++)
+        {
+            days[day - 1] = day.ToString(CultureInfo.InvariantCulture);
+        }
+        days[31] = "Last";
+        return days;
+    }
 
-		// One time for non-schedule kinds too (their Settings panel is hidden, so it is harmless).
-		ScheduleKindRadios.SelectedIndex = kind switch
-		{
-			TriggerEditKind.Daily => 1,
-			TriggerEditKind.Weekly => 2,
-			TriggerEditKind.Monthly => 3,
-			_ => 0,
-		};
-	}
+    // ====================  BUILD (controls -> model)  ====================
 
-	// ====================  TRIGGER TYPE  ====================
+    private void OnClosing(ContentDialog sender, ContentDialogClosingEventArgs args)
+    {
+        if (args.Result != ContentDialogResult.Primary)
+        {
+            return;
+        }
 
-	/// <summary>
-	/// Shows the Settings panel for the chosen trigger and configures the shared Advanced-settings
-	/// rows that vary by type (Delay label/default, the idle-only greying, and the Activate row).
-	/// </summary>
-	private void BeginTaskComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-	{
-		// Guard against the event firing before the named panels have been created.
-		if (SchedulePanel is null)
-		{
-			return;
-		}
+        TriggerModel trigger;
+        switch (BeginTaskComboBox.SelectedIndex)
+        {
+            case TriggerOnSchedule:
+                trigger = BuildScheduleTrigger();
+                break;
+            case TriggerAtLogon:
+                trigger = new LogonTriggerModel { UserId = SpecificUser(UserModeRadios), Delay = AdvancedDelay() };
+                break;
+            case TriggerAtStartup:
+                trigger = new BootTriggerModel { Delay = AdvancedDelay() };
+                break;
+            case TriggerOnIdle:
+                trigger = new IdleTriggerModel();
+                break;
+            case TriggerOnEvent:
+                trigger = new EventTriggerModel { Subscription = BuildEventSubscription(), Delay = AdvancedDelay() };
+                break;
+            case TriggerAtCreation:
+                trigger = new RegistrationTriggerModel { Delay = AdvancedDelay() };
+                break;
+            case TriggerOnConnect:
+                trigger = new SessionStateChangeTriggerModel
+                {
+                    StateChange = ConnectionSourceRadios.SelectedIndex == 0 ? SessionStateChangeType.RemoteConnect : SessionStateChangeType.ConsoleConnect,
+                    UserId = SpecificUser(SessionUserModeRadios),
+                    Delay = AdvancedDelay(),
+                };
+                break;
+            case TriggerOnDisconnect:
+                trigger = new SessionStateChangeTriggerModel
+                {
+                    StateChange = ConnectionSourceRadios.SelectedIndex == 0 ? SessionStateChangeType.RemoteDisconnect : SessionStateChangeType.ConsoleDisconnect,
+                    UserId = SpecificUser(SessionUserModeRadios),
+                    Delay = AdvancedDelay(),
+                };
+                break;
+            case TriggerOnLock:
+                trigger = new SessionStateChangeTriggerModel { StateChange = SessionStateChangeType.SessionLock, UserId = SpecificUser(UserModeRadios), Delay = AdvancedDelay() };
+                break;
+            case TriggerOnUnlock:
+                trigger = new SessionStateChangeTriggerModel { StateChange = SessionStateChangeType.SessionUnlock, UserId = SpecificUser(UserModeRadios), Delay = AdvancedDelay() };
+                break;
+            default:
+                trigger = new TimeTriggerModel();
+                break;
+        }
 
-		SchedulePanel.Visibility = UserPanel.Visibility = NoSettingsPanel.Visibility =
-			IdlePanel.Visibility = EventPanel.Visibility = SessionConnPanel.Visibility = Visibility.Collapsed;
+        ApplyAdvanced(trigger);
 
-		int index = BeginTaskComboBox.SelectedIndex;
-		switch (index)
-		{
-			case TriggerOnSchedule:
-				SchedulePanel.Visibility = Visibility.Visible;
-				break;
-			case TriggerAtLogon:
-			case TriggerOnLock:
-			case TriggerOnUnlock:
-				UserPanel.Visibility = Visibility.Visible;
-				break;
-			case TriggerAtStartup:
-			case TriggerAtCreation:
-				NoSettingsPanel.Visibility = Visibility.Visible;
-				break;
-			case TriggerOnIdle:
-				IdlePanel.Visibility = Visibility.Visible;
-				break;
-			case TriggerOnEvent:
-				EventPanel.Visibility = Visibility.Visible;
-				break;
-			case TriggerOnConnect:
-			case TriggerOnDisconnect:
-				SessionConnPanel.Visibility = Visibility.Visible;
-				break;
-		}
+        var error = Validate(trigger);
+        if (error is not null)
+        {
+            args.Cancel = true;
+            // Reuse the dialog title area for the error via a simple ContentDialog is not possible here;
+            // surface validation by keeping the dialog open. (A lightweight teaching tip could be added.)
+            return;
+        }
 
-		bool isSchedule = index == TriggerOnSchedule;
-		bool isIdle = index == TriggerOnIdle;
+        ResultTrigger = trigger;
+    }
 
-		// Delay row: schedule => RandomDelay ("…up to (random delay)", default 1 hour); every other
-		// type => fixed Delay (default 15 minutes); On idle exposes neither, so the row is greyed.
-		DelayCheckBox.Content = isSchedule ? "Delay task for up to (random delay):" : "Delay task for:";
-		DelayCombo.SelectedIndex = isSchedule ? DelayIndexRandomDefault : DelayIndexFixedDefault;
-		SetDelayRowEnabled(!isIdle);
+    private TriggerModel BuildScheduleTrigger()
+    {
+        var start = CombineDateTime(ScheduleStartDate, ScheduleStartTime);
+        var random = AdvancedDelay();
+        switch (ScheduleKindRadios.SelectedIndex)
+        {
+            case 1: // Daily
+                return new DailyTriggerModel { StartBoundary = start, DaysInterval = (short)Math.Max(1, (int)DailyRecurBox.Value), RandomDelay = random };
+            case 2: // Weekly
+                return new WeeklyTriggerModel
+                {
+                    StartBoundary = start,
+                    WeeksInterval = (short)Math.Max(1, (int)WeeklyRecurBox.Value),
+                    DaysOfWeek = SelectedDaysOfWeek(),
+                    RandomDelay = random,
+                };
+            case 3: // Monthly
+                return MonthlyScheduleMode.SelectedIndex == 0 ? BuildMonthlyByDay(start, random) : BuildMonthlyByDayOfWeek(start, random);
+            default: // One time
+                return new TimeTriggerModel { StartBoundary = start, RandomDelay = random };
+        }
+    }
 
-		// Activate = StartBoundary. For "On a schedule" the StartBoundary is the Settings > Start
-		// field, so the Activate row is hidden; every other trigger exposes it here.
-		ActivatePanel.Visibility = isSchedule ? Visibility.Collapsed : Visibility.Visible;
-	}
+    private MonthlyTriggerModel BuildMonthlyByDay(DateTime? start, TimeSpan? random)
+    {
+        var model = new MonthlyTriggerModel { StartBoundary = start, MonthsOfYear = SelectedMonths(), RandomDelay = random };
+        foreach (var item in MonthDaysGridView.SelectedItems.OfType<string>())
+        {
+            if (string.Equals(item, "Last", StringComparison.OrdinalIgnoreCase))
+            {
+                model.RunOnLastDayOfMonth = true;
+            }
+            else if (int.TryParse(item, out var day))
+            {
+                model.DaysOfMonth.Add(day);
+            }
+        }
+        return model;
+    }
 
-	/// <summary>Enables or disables the whole "Delay task for" row; the combo additionally follows the checkbox.</summary>
-	private void SetDelayRowEnabled(bool enabled)
-	{
-		DelayCheckBox.IsEnabled = enabled;
-		DelayCombo.IsEnabled = enabled && DelayCheckBox.IsChecked == true;
-	}
+    private MonthlyDowTriggerModel BuildMonthlyByDayOfWeek(DateTime? start, TimeSpan? random)
+    {
+        var model = new MonthlyDowTriggerModel { StartBoundary = start, MonthsOfYear = SelectedMonths(), RandomDelay = random };
+        switch (MonthlyOccurrenceCombo.SelectedIndex)
+        {
+            case 0: model.WeeksOfMonth = TaskWeeksOfMonth.First; break;
+            case 1: model.WeeksOfMonth = TaskWeeksOfMonth.Second; break;
+            case 2: model.WeeksOfMonth = TaskWeeksOfMonth.Third; break;
+            case 3: model.WeeksOfMonth = TaskWeeksOfMonth.Fourth; break;
+            case 4: model.RunOnLastWeekOfMonth = true; break;
+        }
+        if (MonthlyWeekdayCombo.SelectedIndex >= 0)
+        {
+            model.DaysOfWeek = (TaskDaysOfWeek)(1 << MonthlyWeekdayCombo.SelectedIndex);
+        }
+        return model;
+    }
 
-	private void OnDelayChanged(object sender, RoutedEventArgs e)
-	{
-		if (_initialized)
-		{
-			DelayCombo.IsEnabled = DelayCheckBox.IsEnabled && DelayCheckBox.IsChecked == true;
-		}
-	}
+    private void ApplyAdvanced(TriggerModel trigger)
+    {
+        trigger.Enabled = EnabledCheckBox.IsChecked == true;
 
-	// ====================  SCHEDULE DETAIL  ====================
+        if (RepeatCheckBox.IsChecked == true)
+        {
+            trigger.Repetition.Interval = ParseDuration(RepeatEveryCombo.Text) ?? TimeSpan.FromHours(1);
+            trigger.Repetition.Duration = string.Equals(DurationCombo.Text, "Indefinitely", StringComparison.OrdinalIgnoreCase) ? null : ParseDuration(DurationCombo.Text);
+            trigger.Repetition.StopAtDurationEnd = StopAllCheckBox.IsChecked == true;
+        }
 
-	/// <summary>Reveals the recurrence detail (none / Daily / Weekly / Monthly) for the chosen schedule kind.</summary>
-	private void ScheduleKind_SelectionChanged(object sender, SelectionChangedEventArgs e)
-	{
-		if (ScheduleDailyDetail is null)
-		{
-			return;
-		}
+        if (StopIfLongerCheckBox.IsChecked == true)
+        {
+            trigger.ExecutionTimeLimit = ParseDuration(StopIfLongerCombo.Text);
+        }
 
-		ScheduleDailyDetail.Visibility = ScheduleWeeklyDetail.Visibility =
-			ScheduleMonthlyDetail.Visibility = Visibility.Collapsed;
+        // For non-schedule triggers, Activate provides the StartBoundary.
+        if (ActivatePanel.Visibility == Visibility.Visible && ActivateCheckBox.IsChecked == true)
+        {
+            trigger.StartBoundary = CombineDateTime(ActivateDate, ActivateTime);
+        }
 
-		switch (ScheduleKindRadios.SelectedIndex)
-		{
-			case 1: ScheduleDailyDetail.Visibility = Visibility.Visible; break;   // Daily
-			case 2: ScheduleWeeklyDetail.Visibility = Visibility.Visible; break;  // Weekly
-			case 3: ScheduleMonthlyDetail.Visibility = Visibility.Visible; break; // Monthly
-			// case 0 (One time): just Start, no extra detail.
-		}
-	}
+        if (ExpireCheckBox.IsChecked == true)
+        {
+            trigger.EndBoundary = CombineDateTime(ExpireDate, ExpireTime);
+        }
+    }
 
-	/// <summary>Enables either the "Days" picker or the "On" (ordinal weekday) pickers for the Monthly schedule.</summary>
-	private void MonthlyScheduleMode_SelectionChanged(object sender, SelectionChangedEventArgs e)
-	{
-		if (MonthlyDaysDropDown is null)
-		{
-			return;
-		}
+    private TimeSpan? AdvancedDelay() => DelayCheckBox.IsChecked == true ? ParseDuration(DelayCombo.Text) : null;
 
-		bool daysMode = MonthlyScheduleMode.SelectedIndex == 0;
-		MonthlyDaysDropDown.IsEnabled = daysMode;
-		MonthlyOccurrenceCombo.IsEnabled = !daysMode;
-		MonthlyWeekdayCombo.IsEnabled = !daysMode;
-	}
+    private string? SpecificUser(RadioButtons radios) => radios.SelectedIndex == 1 ? _pickedUserId : null;
 
-	// ====================  EVENT TRIGGER  ====================
+    private TaskDaysOfWeek SelectedDaysOfWeek()
+    {
+        var days = TaskDaysOfWeek.None;
+        if (SundayCheck.IsChecked == true) days |= TaskDaysOfWeek.Sunday;
+        if (MondayCheck.IsChecked == true) days |= TaskDaysOfWeek.Monday;
+        if (TuesdayCheck.IsChecked == true) days |= TaskDaysOfWeek.Tuesday;
+        if (WednesdayCheck.IsChecked == true) days |= TaskDaysOfWeek.Wednesday;
+        if (ThursdayCheck.IsChecked == true) days |= TaskDaysOfWeek.Thursday;
+        if (FridayCheck.IsChecked == true) days |= TaskDaysOfWeek.Friday;
+        if (SaturdayCheck.IsChecked == true) days |= TaskDaysOfWeek.Saturday;
+        return days;
+    }
 
-	/// <summary>Switches between the Basic (Log/Source/Event ID) and Custom (New Event Filter) event panels.</summary>
-	private void EventMode_SelectionChanged(object sender, SelectionChangedEventArgs e)
-	{
-		if (BasicEventSubPanel is null)
-		{
-			return;
-		}
+    private TaskMonthsOfYear SelectedMonths()
+    {
+        var months = TaskMonthsOfYear.None;
+        foreach (var item in MonthsListView.SelectedItems.OfType<string>())
+        {
+            var index = Months.ToList().IndexOf(item);
+            if (index >= 0)
+            {
+                months |= (TaskMonthsOfYear)(1 << index);
+            }
+        }
+        return months == TaskMonthsOfYear.None ? TaskMonthsOfYear.AllMonths : months;
+    }
 
-		bool basic = EventModeRadios.SelectedIndex == 0;
-		BasicEventSubPanel.Visibility = basic ? Visibility.Visible : Visibility.Collapsed;
-		CustomEventSubPanel.Visibility = basic ? Visibility.Collapsed : Visibility.Visible;
-	}
+    private string BuildEventSubscription()
+    {
+        if (EventModeRadios.SelectedIndex == 1)
+        {
+            return _eventSubscription ?? string.Empty;
+        }
 
-	/// <summary>
-	/// Opens the New Event Filter editor in a <see cref="ModalDialogWindow"/>. A ContentDialog cannot
-	/// open a second ContentDialog on the same window, but ModalDialogWindow is a real top-level Window,
-	/// so it can stack over this open dialog the way the legacy modal "New Event Filter" dialog does.
-	/// </summary>
-	private async void NewEventFilter_Click(object sender, RoutedEventArgs e)
-	{
-		var modal = new ModalDialogWindow(new ModalDialogOptions
-		{
-			Title = "New Event Filter",
-			Content = new NewEventFilterContent(),
-			OwnerXamlRoot = this.XamlRoot,
-			RequestedTheme = App.CurrentTheme,
-			PrimaryButtonText = "OK",
-			CloseButtonText = "Cancel",
-			DefaultButton = WindowDialogResult.Primary,
-			IsPrimaryButtonLeading = true,
-			Width = 660,
-			Height = 700,
-		});
+        var log = (EventLogCombo.SelectedItem as ComboBoxItem)?.Content as string ?? "System";
+        var source = (EventSourceCombo.SelectedItem as ComboBoxItem)?.Content as string;
+        var id = EventIdBox.Text?.Trim();
 
-		WindowDialogResult result = await modal.ShowDialogAsync();
-		if (result == WindowDialogResult.Primary)
-		{
-			// TODO(TaskScheduler): read the constructed XPath from the filter content and store it as
-			// IEventTrigger.Subscription. No-op in this UI prototype.
-		}
-	}
+        var predicates = new System.Collections.Generic.List<string>();
+        if (!string.IsNullOrEmpty(source))
+        {
+            predicates.Add($"Provider[@Name='{source}']");
+        }
+        if (!string.IsNullOrEmpty(id) && int.TryParse(id, out _))
+        {
+            predicates.Add($"EventID={id}");
+        }
+        var system = predicates.Count > 0 ? $"System[{string.Join(" and ", predicates)}]" : "System";
+        return $"<QueryList><Query Id=\"0\" Path=\"{log}\"><Select Path=\"{log}\">*[{system}]</Select></Query></QueryList>";
+    }
 
-	// ====================  USER / SESSION SCOPE  ====================
+    private static string? Validate(TriggerModel trigger)
+    {
+        if (trigger.Repetition.IsEnabled && trigger.Repetition.Duration is { } d && d <= trigger.Repetition.Interval)
+        {
+            return "duration";
+        }
+        if (trigger.StartBoundary is { } s && trigger.EndBoundary is { } e && e <= s)
+        {
+            return "expire";
+        }
+        return null;
+    }
 
-	/// <summary>"Change User…" applies only while "Specific user" is selected (At log on / lock / unlock).</summary>
-	private void UpdateUserModeState() => ChangeUserButton.IsEnabled = UserModeRadios.SelectedIndex == 1;
+    private static DateTime? CombineDateTime(CalendarDatePicker date, TimePicker time) =>
+        date.Date is { } d ? d.Date + time.Time : null;
 
-	private void UserMode_SelectionChanged(object sender, SelectionChangedEventArgs e)
-	{
-		if (ChangeUserButton is not null)
-		{
-			UpdateUserModeState();
-		}
-	}
+    private static TimeSpan? ParseDuration(string? text)
+    {
+        if (string.IsNullOrWhiteSpace(text) || text is "Indefinitely" or "Do not wait")
+        {
+            return null;
+        }
+        var parts = text.Trim().Split(' ', 2);
+        if (parts.Length == 2 && double.TryParse(parts[0], out var n))
+        {
+            return parts[1].TrimEnd('s') switch
+            {
+                "minute" => TimeSpan.FromMinutes(n),
+                "hour" => TimeSpan.FromHours(n),
+                "day" => TimeSpan.FromDays(n),
+                _ => null,
+            };
+        }
+        return null;
+    }
 
-	/// <summary>"Change User…" applies only while "Specific user" is selected (session connect / disconnect).</summary>
-	private void UpdateSessionUserModeState() => SessionChangeUserButton.IsEnabled = SessionUserModeRadios.SelectedIndex == 1;
+    // ====================  POPULATE (model -> controls, edit mode)  ====================
 
-	private void SessionUserMode_SelectionChanged(object sender, SelectionChangedEventArgs e)
-	{
-		if (SessionChangeUserButton is not null)
-		{
-			UpdateSessionUserModeState();
-		}
-	}
+    private void PopulateFrom(TriggerModel trigger)
+    {
+        EnabledCheckBox.IsChecked = trigger.Enabled;
+        if (trigger.Repetition.IsEnabled)
+        {
+            RepeatCheckBox.IsChecked = true;
+            RepeatEveryCombo.Text = FormatDuration(trigger.Repetition.Interval) ?? "1 hour";
+            DurationCombo.Text = trigger.Repetition.Duration is { } d ? FormatDuration(d)! : "Indefinitely";
+            StopAllCheckBox.IsChecked = trigger.Repetition.StopAtDurationEnd;
+        }
+        if (trigger.ExecutionTimeLimit is { } etl)
+        {
+            StopIfLongerCheckBox.IsChecked = true;
+            StopIfLongerCombo.Text = FormatDuration(etl) ?? "3 days";
+        }
+        if (trigger.EndBoundary is { } eb)
+        {
+            ExpireCheckBox.IsChecked = true;
+            ExpireDate.Date = eb;
+            ExpireTime.Time = eb.TimeOfDay;
+        }
 
-	// TODO(TaskScheduler): show the account object picker (DsObjectPicker / IADsOpenObject) and write
-	// the chosen DOMAIN\Account (or SID) back into the trigger's UserId. No-op in this UI prototype.
-	private void ChangeUser_Click(object sender, RoutedEventArgs e)
-	{
-	}
+        switch (trigger)
+        {
+            case TimeTriggerModel t:
+                BeginTaskComboBox.SelectedIndex = TriggerOnSchedule; ScheduleKindRadios.SelectedIndex = 0;
+                SeedScheduleStart(t.StartBoundary); SeedDelay(t.RandomDelay);
+                break;
+            case DailyTriggerModel d:
+                BeginTaskComboBox.SelectedIndex = TriggerOnSchedule; ScheduleKindRadios.SelectedIndex = 1;
+                SeedScheduleStart(d.StartBoundary); DailyRecurBox.Value = d.DaysInterval; SeedDelay(d.RandomDelay);
+                break;
+            case WeeklyTriggerModel w:
+                BeginTaskComboBox.SelectedIndex = TriggerOnSchedule; ScheduleKindRadios.SelectedIndex = 2;
+                SeedScheduleStart(w.StartBoundary); WeeklyRecurBox.Value = w.WeeksInterval; ApplyDays(w.DaysOfWeek); SeedDelay(w.RandomDelay);
+                break;
+            case MonthlyTriggerModel or MonthlyDowTriggerModel:
+                BeginTaskComboBox.SelectedIndex = TriggerOnSchedule; ScheduleKindRadios.SelectedIndex = 3;
+                SeedScheduleStart(trigger.StartBoundary);
+                break;
+            case LogonTriggerModel l:
+                BeginTaskComboBox.SelectedIndex = TriggerAtLogon; SeedUser(l.UserId, UserModeRadios, UserAccountText); SeedDelay(l.Delay);
+                break;
+            case BootTriggerModel b:
+                BeginTaskComboBox.SelectedIndex = TriggerAtStartup; SeedDelay(b.Delay);
+                break;
+            case IdleTriggerModel:
+                BeginTaskComboBox.SelectedIndex = TriggerOnIdle;
+                break;
+            case EventTriggerModel ev:
+                BeginTaskComboBox.SelectedIndex = TriggerOnEvent; _eventSubscription = ev.Subscription;
+                EventModeRadios.SelectedIndex = 1; SeedDelay(ev.Delay);
+                break;
+            case RegistrationTriggerModel r:
+                BeginTaskComboBox.SelectedIndex = TriggerAtCreation; SeedDelay(r.Delay);
+                break;
+            case SessionStateChangeTriggerModel s:
+                BeginTaskComboBox.SelectedIndex = s.StateChange switch
+                {
+                    SessionStateChangeType.SessionLock => TriggerOnLock,
+                    SessionStateChangeType.SessionUnlock => TriggerOnUnlock,
+                    SessionStateChangeType.ConsoleDisconnect or SessionStateChangeType.RemoteDisconnect => TriggerOnDisconnect,
+                    _ => TriggerOnConnect,
+                };
+                SeedUser(s.UserId, s.StateChange is SessionStateChangeType.SessionLock or SessionStateChangeType.SessionUnlock ? UserModeRadios : SessionUserModeRadios,
+                    s.StateChange is SessionStateChangeType.SessionLock or SessionStateChangeType.SessionUnlock ? UserAccountText : SessionAccountText);
+                SeedDelay(s.Delay);
+                break;
+        }
+    }
 
-	// ====================  ADVANCED-SETTINGS ENABLEMENT  ====================
-	// Each gate checkbox enables only its own value controls — the same per-child IsEnabled pattern
-	// used by TaskPropertiesPage (layout panels have no IsEnabled, so we never disable a panel).
+    private void SeedScheduleStart(DateTime? start)
+    {
+        if (start is { } s)
+        {
+            ScheduleStartDate.Date = s;
+            ScheduleStartTime.Time = s.TimeOfDay;
+        }
+    }
 
-	/// <summary>Interval, duration and the "stop all" sub-option apply only when "Repeat task every" is checked.</summary>
-	private void UpdateRepeatState()
-	{
-		bool on = RepeatCheckBox.IsChecked == true;
-		RepeatEveryCombo.IsEnabled = on;
-		DurationCombo.IsEnabled = on;
-		StopAllCheckBox.IsEnabled = on;
-	}
+    private void SeedDelay(TimeSpan? delay)
+    {
+        if (delay is { } d)
+        {
+            DelayCheckBox.IsChecked = true;
+            DelayCombo.Text = FormatDuration(d);
+        }
+    }
 
-	private void OnRepeatChanged(object sender, RoutedEventArgs e)
-	{
-		if (_initialized)
-		{
-			UpdateRepeatState();
-		}
-	}
+    private void SeedUser(string? userId, RadioButtons radios, TextBlock label)
+    {
+        if (!string.IsNullOrEmpty(userId))
+        {
+            _pickedUserId = userId;
+            radios.SelectedIndex = 1;
+            label.Text = userId;
+        }
+    }
 
-	/// <summary>The execution-time-limit picker applies only when "Stop task if it runs longer than" is checked.</summary>
-	private void UpdateStopIfLongerState() => StopIfLongerCombo.IsEnabled = StopIfLongerCheckBox.IsChecked == true;
+    private void ApplyDays(TaskDaysOfWeek days)
+    {
+        SundayCheck.IsChecked = days.HasFlag(TaskDaysOfWeek.Sunday);
+        MondayCheck.IsChecked = days.HasFlag(TaskDaysOfWeek.Monday);
+        TuesdayCheck.IsChecked = days.HasFlag(TaskDaysOfWeek.Tuesday);
+        WednesdayCheck.IsChecked = days.HasFlag(TaskDaysOfWeek.Wednesday);
+        ThursdayCheck.IsChecked = days.HasFlag(TaskDaysOfWeek.Thursday);
+        FridayCheck.IsChecked = days.HasFlag(TaskDaysOfWeek.Friday);
+        SaturdayCheck.IsChecked = days.HasFlag(TaskDaysOfWeek.Saturday);
+    }
 
-	private void OnStopIfLongerChanged(object sender, RoutedEventArgs e)
-	{
-		if (_initialized)
-		{
-			UpdateStopIfLongerState();
-		}
-	}
+    private static string? FormatDuration(TimeSpan? span)
+    {
+        if (span is not { } v || v <= TimeSpan.Zero)
+        {
+            return null;
+        }
+        if (v.TotalDays >= 1 && v.TotalDays == Math.Floor(v.TotalDays)) return $"{(int)v.TotalDays} day{(v.TotalDays > 1 ? "s" : "")}";
+        if (v.TotalHours >= 1 && v.TotalHours == Math.Floor(v.TotalHours)) return $"{(int)v.TotalHours} hour{(v.TotalHours > 1 ? "s" : "")}";
+        return $"{(int)v.TotalMinutes} minute{(v.TotalMinutes > 1 ? "s" : "")}";
+    }
 
-	/// <summary>The Activate (StartBoundary) date/time and its time-zone sync apply only when checked.</summary>
-	private void UpdateActivateState()
-	{
-		bool on = ActivateCheckBox.IsChecked == true;
-		ActivateDate.IsEnabled = on;
-		ActivateTime.IsEnabled = on;
-		ActivateSyncCheckBox.IsEnabled = on;
-	}
+    // ====================  PANEL SWITCHING  ====================
 
-	private void OnActivateChanged(object sender, RoutedEventArgs e)
-	{
-		if (_initialized)
-		{
-			UpdateActivateState();
-		}
-	}
+    private void BeginTaskComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (SchedulePanel is null)
+        {
+            return;
+        }
 
-	/// <summary>The Expire (EndBoundary) date/time and its time-zone sync apply only when checked.</summary>
-	private void UpdateExpireState()
-	{
-		bool on = ExpireCheckBox.IsChecked == true;
-		ExpireDate.IsEnabled = on;
-		ExpireTime.IsEnabled = on;
-		ExpireSyncCheckBox.IsEnabled = on;
-	}
+        SchedulePanel.Visibility = UserPanel.Visibility = NoSettingsPanel.Visibility =
+            IdlePanel.Visibility = EventPanel.Visibility = SessionConnPanel.Visibility = Visibility.Collapsed;
 
-	private void OnExpireChanged(object sender, RoutedEventArgs e)
-	{
-		if (_initialized)
-		{
-			UpdateExpireState();
-		}
-	}
+        int index = BeginTaskComboBox.SelectedIndex;
+        switch (index)
+        {
+            case TriggerOnSchedule: SchedulePanel.Visibility = Visibility.Visible; break;
+            case TriggerAtLogon:
+            case TriggerOnLock:
+            case TriggerOnUnlock: UserPanel.Visibility = Visibility.Visible; break;
+            case TriggerAtStartup:
+            case TriggerAtCreation: NoSettingsPanel.Visibility = Visibility.Visible; break;
+            case TriggerOnIdle: IdlePanel.Visibility = Visibility.Visible; break;
+            case TriggerOnEvent: EventPanel.Visibility = Visibility.Visible; break;
+            case TriggerOnConnect:
+            case TriggerOnDisconnect: SessionConnPanel.Visibility = Visibility.Visible; break;
+        }
 
-	// TODO(TaskScheduler): before committing on OK, validate the selection the way taskschd does, e.g.:
-	//   * Repetition.Duration must be strictly greater than Repetition.Interval (unless "Indefinitely").
-	//   * "Stop all running tasks…" only applies while Repeat is enabled.
-	//   * Expire (EndBoundary) must be after Activate/Start (StartBoundary) when both are set.
-	//   * "On a schedule" requires a valid Start; Daily/Weekly/Monthly require their sub-fields
-	//     (DaysInterval ≥ 1; ≥1 weekday + WeeksInterval ≥ 1; ≥1 month + day-of-month or week+weekday).
-	//   * "On an event" Basic requires a Log/Source/Event ID; Custom requires a non-empty Subscription.
-	//   * "Specific user" requires a resolved account/SID.
-	// On success, build the ITrigger and return it to the caller. The dialog is sample-only for now.
-}
+        bool isSchedule = index == TriggerOnSchedule;
+        bool isIdle = index == TriggerOnIdle;
+        DelayCheckBox.Content = isSchedule ? L(TaskSchdKeys.TriggerRandomDelay) : L(TaskSchdKeys.TriggerDelay);
+        DelayCombo.SelectedIndex = isSchedule ? 2 : 0;
+        SetDelayRowEnabled(!isIdle);
+        ActivatePanel.Visibility = isSchedule ? Visibility.Collapsed : Visibility.Visible;
+    }
 
-/// <summary>
-/// The concrete trigger types a row in the Triggers list can represent, passed to
-/// <see cref="NewTriggerDialog"/> so it can pre-select the matching panels in edit mode.
-/// The four time-based kinds all map to the "On a schedule" type plus a schedule sub-kind,
-/// matching how taskschd resolves a stored ITrigger back onto the "Begin the task" choice.
-/// </summary>
-/// <remarks>TODO(TaskScheduler): derive this from the real ITrigger.Type when editing a live task.</remarks>
-public enum TriggerEditKind
-{
-	/// <summary>One-time schedule (ITimeTrigger).</summary>
-	OneTime,
-	/// <summary>Daily schedule (IDailyTrigger).</summary>
-	Daily,
-	/// <summary>Weekly schedule (IWeeklyTrigger).</summary>
-	Weekly,
-	/// <summary>Monthly schedule (IMonthlyTrigger / IMonthlyDOWTrigger).</summary>
-	Monthly,
-	/// <summary>At log on (ILogonTrigger).</summary>
-	AtLogOn,
-	/// <summary>At startup (IBootTrigger).</summary>
-	AtStartup,
-	/// <summary>On idle (IIdleTrigger).</summary>
-	OnIdle,
-	/// <summary>On an event (IEventTrigger).</summary>
-	OnEvent,
-	/// <summary>At task creation/modification (IRegistrationTrigger).</summary>
-	AtCreation,
-	/// <summary>On connection to user session (ISessionStateChangeTrigger).</summary>
-	OnConnect,
-	/// <summary>On disconnect from user session (ISessionStateChangeTrigger).</summary>
-	OnDisconnect,
-	/// <summary>On workstation lock (ISessionStateChangeTrigger).</summary>
-	OnLock,
-	/// <summary>On workstation unlock (ISessionStateChangeTrigger).</summary>
-	OnUnlock,
+    private void SetDelayRowEnabled(bool enabled)
+    {
+        DelayCheckBox.IsEnabled = enabled;
+        DelayCombo.IsEnabled = enabled && DelayCheckBox.IsChecked == true;
+    }
+
+    private void OnDelayChanged(object sender, RoutedEventArgs e)
+    {
+        if (_initialized)
+        {
+            DelayCombo.IsEnabled = DelayCheckBox.IsEnabled && DelayCheckBox.IsChecked == true;
+        }
+    }
+
+    private void ScheduleKind_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (ScheduleDailyDetail is null)
+        {
+            return;
+        }
+        ScheduleDailyDetail.Visibility = ScheduleWeeklyDetail.Visibility = ScheduleMonthlyDetail.Visibility = Visibility.Collapsed;
+        switch (ScheduleKindRadios.SelectedIndex)
+        {
+            case 1: ScheduleDailyDetail.Visibility = Visibility.Visible; break;
+            case 2: ScheduleWeeklyDetail.Visibility = Visibility.Visible; break;
+            case 3: ScheduleMonthlyDetail.Visibility = Visibility.Visible; break;
+        }
+    }
+
+    private void MonthlyScheduleMode_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (MonthlyDaysDropDown is null)
+        {
+            return;
+        }
+        bool daysMode = MonthlyScheduleMode.SelectedIndex == 0;
+        MonthlyDaysDropDown.IsEnabled = daysMode;
+        MonthlyOccurrenceCombo.IsEnabled = !daysMode;
+        MonthlyWeekdayCombo.IsEnabled = !daysMode;
+    }
+
+    private void EventMode_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (BasicEventSubPanel is null)
+        {
+            return;
+        }
+        bool basic = EventModeRadios.SelectedIndex == 0;
+        BasicEventSubPanel.Visibility = basic ? Visibility.Visible : Visibility.Collapsed;
+        CustomEventSubPanel.Visibility = basic ? Visibility.Collapsed : Visibility.Visible;
+    }
+
+    private async void NewEventFilter_Click(object sender, RoutedEventArgs e)
+    {
+        var content = new NewEventFilterContent();
+        var modal = new ModalDialogWindow(new ModalDialogOptions
+        {
+            Title = L(TaskSchdKeys.DialogNewEventFilter),
+            Content = content,
+            OwnerXamlRoot = this.XamlRoot,
+            RequestedTheme = App.CurrentTheme,
+            PrimaryButtonText = L(TaskSchdKeys.ButtonOk),
+            CloseButtonText = L(TaskSchdKeys.ButtonCancel),
+            DefaultButton = WindowDialogResult.Primary,
+            IsPrimaryButtonLeading = true,
+            Width = 660,
+            Height = 700,
+        });
+
+        if (await modal.ShowDialogAsync() == WindowDialogResult.Primary)
+        {
+            _eventSubscription = content.BuildQuery();
+        }
+    }
+
+    // ====================  USER / SESSION SCOPE  ====================
+
+    private void UpdateUserModeState() => ChangeUserButton.IsEnabled = UserModeRadios.SelectedIndex == 1;
+
+    private void UserMode_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (ChangeUserButton is not null)
+        {
+            UpdateUserModeState();
+        }
+    }
+
+    private void UpdateSessionUserModeState() => SessionChangeUserButton.IsEnabled = SessionUserModeRadios.SelectedIndex == 1;
+
+    private void SessionUserMode_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (SessionChangeUserButton is not null)
+        {
+            UpdateSessionUserModeState();
+        }
+    }
+
+    private void ChangeUser_Click(object sender, RoutedEventArgs e)
+    {
+        var picked = DirectoryObjectPickerService.ShowDialog(OwnerHwnd, ObjectPickerTypes.UsersAndGroups);
+        if (picked is { Count: > 0 })
+        {
+            var obj = picked[0];
+            _pickedUserId = string.IsNullOrEmpty(obj.Sid) ? obj.Name : obj.Sid;
+            UserAccountText.Text = obj.Name;
+            SessionAccountText.Text = obj.Name;
+        }
+    }
+
+    // ====================  ADVANCED-SETTINGS ENABLEMENT  ====================
+
+    private void UpdateRepeatState()
+    {
+        bool on = RepeatCheckBox.IsChecked == true;
+        RepeatEveryCombo.IsEnabled = on;
+        DurationCombo.IsEnabled = on;
+        StopAllCheckBox.IsEnabled = on;
+    }
+
+    private void OnRepeatChanged(object sender, RoutedEventArgs e)
+    {
+        if (_initialized)
+        {
+            UpdateRepeatState();
+        }
+    }
+
+    private void UpdateStopIfLongerState() => StopIfLongerCombo.IsEnabled = StopIfLongerCheckBox.IsChecked == true;
+
+    private void OnStopIfLongerChanged(object sender, RoutedEventArgs e)
+    {
+        if (_initialized)
+        {
+            UpdateStopIfLongerState();
+        }
+    }
+
+    private void UpdateActivateState()
+    {
+        bool on = ActivateCheckBox.IsChecked == true;
+        ActivateDate.IsEnabled = on;
+        ActivateTime.IsEnabled = on;
+        ActivateSyncCheckBox.IsEnabled = on;
+    }
+
+    private void OnActivateChanged(object sender, RoutedEventArgs e)
+    {
+        if (_initialized)
+        {
+            UpdateActivateState();
+        }
+    }
+
+    private void UpdateExpireState()
+    {
+        bool on = ExpireCheckBox.IsChecked == true;
+        ExpireDate.IsEnabled = on;
+        ExpireTime.IsEnabled = on;
+        ExpireSyncCheckBox.IsEnabled = on;
+    }
+
+    private void OnExpireChanged(object sender, RoutedEventArgs e)
+    {
+        if (_initialized)
+        {
+            UpdateExpireState();
+        }
+    }
 }

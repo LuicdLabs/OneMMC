@@ -1,422 +1,791 @@
+using System;
 using System.Collections.ObjectModel;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
+using ManagementTools.Core.Features.PCManagement.Models.TaskSchd;
+using ManagementTools.Core.Features.PCManagement.Services.EventViewer;
+using ManagementTools.Core.Features.PCManagement.Services.TaskSchd;
+using ManagementTools.Core.Localization;
+using ManagementTools.Helpers;
+using ManagementTools.Localization;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
+using Windows.ApplicationModel.DataTransfer;
+using WinRT.Interop;
 
 namespace ManagementTools.Views.PCManagement;
 
 /// <summary>
-/// Properties of a single scheduled task. Navigated to from <see cref="TaskSchedulerPage"/>
-/// when a task is double-tapped (or via the Properties command).
+/// Editor for a single scheduled task. Loads the real definition via <see cref="ITaskSchedulerService"/>,
+/// populates the General/Security/TaskTriggers/Actions/Conditions/Settings/History sections, and writes the
+/// edits back by re-registering the task.
 /// </summary>
-/// <remarks>
-/// MOCK / SAMPLE data only. TODO(TaskScheduler): load the selected task's definition from
-/// the Task Scheduler 2.0 COM API (Schedule.Service / ITaskService) or
-/// Microsoft.Win32.TaskScheduler, expose it through a ViewModel, and move all user-facing
-/// strings to ResourceKeys / .resw (en-US, zh-TW).
-/// </remarks>
 public sealed partial class TaskPropertiesPage : Page
 {
-	/// <summary>
-	/// Guards the conditional-enablement handlers so they ignore the spurious
-	/// Toggled/Checked/Unchecked events that fire while the XAML is being parsed
-	/// (before every named control exists). Set once the initial state is applied.
-	/// </summary>
-	private bool _conditionalStatesInitialized;
+    private readonly ITaskSchedulerService _service = App.GetRequiredService<ITaskSchedulerService>();
+    private readonly TaskHistoryService _history = App.GetRequiredService<TaskHistoryService>();
 
-	/// <summary>
-	/// The ordered list of actions shown in the Actions expander. Order is priority:
-	/// the topmost action runs first. Bound to the expander's <c>ItemsSource</c>.
-	/// </summary>
-	/// <remarks>MOCK data. TODO(TaskScheduler): populate from the task's IActionCollection.</remarks>
-	public ObservableCollection<TaskActionItem> Actions { get; }
+    public LocalizedStrings LocalizedStrings { get; } = LocalizedStrings.Instance;
 
-	public TaskPropertiesPage()
-	{
-		InitializeComponent();
-		this.RequestedTheme = App.CurrentTheme;
-		App.ThemeChanged += OnThemeChanged;
-		this.Unloaded += (_, _) => App.ThemeChanged -= OnThemeChanged;
+    public ObservableCollection<TriggerRowItem> TaskTriggers { get; } = [];
+    public ObservableCollection<ActionRowItem> Actions { get; } = [];
+    public ObservableCollection<HistoryRowItem> History { get; } = [];
 
-		// Build the (mock) action rows, then seed their move-button enabled states.
-		Actions = new ObservableCollection<TaskActionItem>
-		{
-			new(Actions_MoveUp, Actions_MoveDown, Actions_Edit, "Start a program", @"C:\Program Files (x86)\Microsoft\EdgeUpdate\MicrosoftEdgeUpdate.exe /c"),
-			new(Actions_MoveUp, Actions_MoveDown, Actions_Edit, "Display a message (deprecated)", "test title message"),
-			new(Actions_MoveUp, Actions_MoveDown, Actions_Edit, "Send an e-mail (deprecated)", "noreply@google.com test subject"),
-		};
-		UpdateActionMoveStates();
+    private string? _taskPath;
+    private TaskDefinitionModel _definition = new();
+    private bool _initialized;
 
-		// Apply the dependent enable/disable rules once for the initial (mock) values so the
-		// declared states are consistent, then allow the event handlers to keep them in sync.
-		UpdateSecurityRunModeState();
-		UpdateIdleState();
-		UpdatePowerState();
-		UpdateNetworkState();
-		UpdateRestartOnFailureState();
-		UpdateStopIfRunsLongerState();
-		UpdateDeleteAfterState();
-		_conditionalStatesInitialized = true;
-	}
+    public TaskPropertiesPage()
+    {
+        InitializeComponent();
+        this.RequestedTheme = App.CurrentTheme;
+        App.ThemeChanged += OnThemeChanged;
+        Unloaded += (_, _) => App.ThemeChanged -= OnThemeChanged;
+    }
 
-	private void OnThemeChanged(ElementTheme theme) => this.RequestedTheme = theme;
+    private void OnThemeChanged(ElementTheme theme) => this.RequestedTheme = theme;
 
-	// ====================  CONDITIONAL ENABLEMENT  ====================
-	// These rules mirror the dependencies enforced by the Windows Task Scheduler property sheet:
-	// child controls are only interactive while their governing toggle / checkbox / radio is set.
+    private static nint OwnerHwnd => App.MainWindowInstance is null ? 0 : WindowNative.GetWindowHandle(App.MainWindowInstance);
 
-	/// <summary>"Do not store password" applies only when the task runs whether or not the user is logged on.</summary>
-	private void UpdateSecurityRunModeState() =>
-		DoNotStorePasswordCheckBox.IsEnabled = RunWhetherLoggedOnRadio.IsChecked == true;
+    private static string L(string key) => LocalizationProvider.Current.GetString(ResourceFileNames.TaskSchd, key);
 
-	/// <summary>
-	/// While the Idle condition is off, every idle sub-option is disabled. While it is on, the
-	/// "Restart if the idle state resumes" option additionally requires "Stop if the computer ceases to be idle".
-	/// </summary>
-	private void UpdateIdleState()
-	{
-		bool idleOn = IdleToggle.IsOn;
-		IdleStartComboBox.IsEnabled = idleOn;
-		IdleWaitComboBox.IsEnabled = idleOn;
-		IdleStopCeasesCheckBox.IsEnabled = idleOn;
-		IdleRestartResumesCheckBox.IsEnabled = idleOn && IdleStopCeasesCheckBox.IsChecked == true;
-	}
+    protected override async void OnNavigatedTo(NavigationEventArgs e)
+    {
+        base.OnNavigatedTo(e);
+        if (e.Parameter is string taskPath && !string.IsNullOrEmpty(taskPath))
+        {
+            _taskPath = taskPath;
+            await LoadAsync();
+        }
+    }
 
-	/// <summary>"Stop if the computer switches to battery power" applies only while the AC-power condition is on.</summary>
-	private void UpdatePowerState() =>
-		StopOnBatteryCheckBox.IsEnabled = PowerToggle.IsOn;
+    private async Task LoadAsync()
+    {
+        if (_taskPath is null)
+        {
+            return;
+        }
 
-	/// <summary>The network-connection picker applies only while the Network condition is on.</summary>
-	private void UpdateNetworkState() =>
-		NetworkComboBox.IsEnabled = NetworkToggle.IsOn;
+        try
+        {
+            var info = await _service.GetTaskInfoAsync(_taskPath);
+            _definition = await _service.GetTaskDefinitionAsync(_taskPath);
+            PopulateFromDefinition(_definition, info);
+            await LoadHistoryAsync();
+        }
+        catch (Exception ex) when (App.GetRequiredService<IAdminService>().IsPermissionError(ex))
+        {
+            await AdminDialogHelper.ShowAdminRequiredDialogAsync(this.XamlRoot);
+        }
+        catch (Exception)
+        {
+            // Leave defaults if the task cannot be read.
+        }
+    }
 
-	/// <summary>The restart interval and retry count apply only when restart-on-failure is enabled.</summary>
-	private void UpdateRestartOnFailureState()
-	{
-		bool enabled = RestartOnFailureCheckBox.IsChecked == true;
-		RestartIntervalComboBox.IsEnabled = enabled;
-		RestartCountNumberBox.IsEnabled = enabled;
-	}
+    private void PopulateFromDefinition(TaskDefinitionModel def, TaskInfo info)
+    {
+        _initialized = false;
 
-	/// <summary>The execution-time-limit picker applies only when "Stop the task if it runs longer than" is checked.</summary>
-	private void UpdateStopIfRunsLongerState() =>
-		StopIfRunsLongerComboBox.IsEnabled = StopIfRunsLongerCheckBox.IsChecked == true;
+        GeneralNameText.Text = info.Name;
+        GeneralDescriptionText.Text = def.RegistrationInfo.Description ?? string.Empty;
+        AuthorCard.Description = def.RegistrationInfo.Author ?? string.Empty;
+        LocationCard.Description = info.FolderPath;
+        ConfigureForCombo.SelectedIndex = CompatibilityToIndex(def.Settings.Compatibility);
+        EnabledToggle.IsOn = info.Enabled;
+        HideMenuItem.IsChecked = def.Settings.Hidden;
 
-	/// <summary>The deletion-delay picker applies only when "delete it after" is checked.</summary>
-	private void UpdateDeleteAfterState() =>
-		DeleteAfterComboBox.IsEnabled = DeleteAfterCheckBox.IsChecked == true;
+        // Security / principal
+        var principal = def.Principal;
+        AccountText.Text = principal.DisplayName ?? principal.UserId ?? principal.GroupId ?? string.Empty;
+        RunWhetherLoggedOnRadio.IsChecked = principal.RunWhetherLoggedOn;
+        RunOnlyLoggedOnRadio.IsChecked = !principal.RunWhetherLoggedOn;
+        DoNotStorePasswordCheckBox.IsChecked = principal.LogonType == TaskLogonType.S4U;
+        HighestPrivilegesToggle.IsOn = principal.RunLevel == TaskRunLevel.HighestAvailable;
 
-	private void OnSecurityRunModeChanged(object sender, RoutedEventArgs e)
-	{
-		if (_conditionalStatesInitialized)
-		{
-			UpdateSecurityRunModeState();
-		}
-	}
+        // TaskTriggers / actions
+        TaskTriggers.Clear();
+        foreach (var t in def.Triggers)
+        {
+            TaskTriggers.Add(new TriggerRowItem(t));
+        }
+        Actions.Clear();
+        foreach (var a in def.Actions)
+        {
+            Actions.Add(new ActionRowItem(a));
+        }
+        RefreshActionMoveFlags();
 
-	private void OnIdleToggled(object sender, RoutedEventArgs e)
-	{
-		if (_conditionalStatesInitialized)
-		{
-			UpdateIdleState();
-		}
-	}
+        // Conditions
+        var s = def.Settings;
+        IdleToggle.IsOn = s.RunOnlyIfIdle;
+        IdleStartComboBox.Text = FormatDuration(s.IdleSettings.IdleDuration) ?? "10 minutes";
+        IdleWaitComboBox.Text = FormatDuration(s.IdleSettings.WaitTimeout) ?? "1 hour";
+        IdleStopCeasesCheckBox.IsChecked = s.IdleSettings.StopOnIdleEnd;
+        IdleRestartResumesCheckBox.IsChecked = s.IdleSettings.RestartOnIdle;
+        PowerToggle.IsOn = s.DisallowStartIfOnBatteries;
+        StopOnBatteryCheckBox.IsChecked = s.StopIfGoingOnBatteries;
+        WakeToRunCheckBox.IsChecked = s.WakeToRun;
+        NetworkToggle.IsOn = s.RunOnlyIfNetworkAvailable;
 
-	private void OnIdleStopCeasesChanged(object sender, RoutedEventArgs e)
-	{
-		if (_conditionalStatesInitialized)
-		{
-			UpdateIdleState();
-		}
-	}
+        // Settings
+        AllowDemandStartCheckBox.IsChecked = s.AllowDemandStart;
+        StartWhenAvailableCheckBox.IsChecked = s.StartWhenAvailable;
+        RestartOnFailureCheckBox.IsChecked = s.RestartCount > 0;
+        RestartIntervalComboBox.Text = FormatDuration(s.RestartInterval) ?? "1 minute";
+        RestartCountNumberBox.Value = s.RestartCount > 0 ? s.RestartCount : 3;
+        StopIfRunsLongerCheckBox.IsChecked = s.ExecutionTimeLimit is not null;
+        StopIfRunsLongerComboBox.Text = FormatDuration(s.ExecutionTimeLimit) ?? "3 days";
+        ForceStopCheckBox.IsChecked = s.AllowHardTerminate;
+        DeleteAfterCheckBox.IsChecked = s.DeleteExpiredTaskAfter is not null;
+        DeleteAfterComboBox.Text = FormatDuration(s.DeleteExpiredTaskAfter) ?? "30 days";
+        InstancesCombo.SelectedIndex = (int)s.MultipleInstances;
 
-	private void OnPowerToggled(object sender, RoutedEventArgs e)
-	{
-		if (_conditionalStatesInitialized)
-		{
-			UpdatePowerState();
-		}
-	}
+        _initialized = true;
+        UpdateAllConditionalStates();
+    }
 
-	private void OnNetworkToggled(object sender, RoutedEventArgs e)
-	{
-		if (_conditionalStatesInitialized)
-		{
-			UpdateNetworkState();
-		}
-	}
+    private async Task LoadHistoryAsync()
+    {
+        History.Clear();
+        var enabled = _history.IsHistoryEnabled();
+        HistoryDisabledInfoBar.IsOpen = !enabled;
+        if (!enabled || _taskPath is null)
+        {
+            return;
+        }
 
-	private void OnRestartOnFailureChanged(object sender, RoutedEventArgs e)
-	{
-		if (_conditionalStatesInitialized)
-		{
-			UpdateRestartOnFailureState();
-		}
-	}
+        try
+        {
+            var events = await _history.ReadTaskHistoryAsync(_taskPath, 100);
+            foreach (var ev in events)
+            {
+                History.Add(new HistoryRowItem(
+                    $"{ev.LevelDisplayName} — {ev.TaskCategory}",
+                    $"{ev.TimeCreated:g} | {L(TaskSchdKeys.HistoryColEvent)} {ev.EventId}"));
+            }
+        }
+        catch (Exception)
+        {
+            // History is best-effort.
+        }
+    }
 
-	private void OnStopIfRunsLongerChanged(object sender, RoutedEventArgs e)
-	{
-		if (_conditionalStatesInitialized)
-		{
-			UpdateStopIfRunsLongerState();
-		}
-	}
+    // ----- Command bar -----
 
-	private void OnDeleteAfterChanged(object sender, RoutedEventArgs e)
-	{
-		if (_conditionalStatesInitialized)
-		{
-			UpdateDeleteAfterState();
-		}
-	}
+    private async void EnabledToggle_Toggled(object sender, RoutedEventArgs e)
+    {
+        if (!_initialized || _taskPath is null)
+        {
+            return;
+        }
+        try
+        {
+            await _service.SetTaskEnabledAsync(_taskPath, EnabledToggle.IsOn);
+        }
+        catch (Exception ex) when (App.GetRequiredService<IAdminService>().IsPermissionError(ex))
+        {
+            await AdminDialogHelper.ShowAdminRequiredDialogAsync(this.XamlRoot);
+        }
+    }
 
-	// ====================  ACTIONS REORDERING  ====================
-	// Order is priority: index 0 runs first. Move up/down shift an action one slot;
-	// the buttons at the list ends are disabled via CanMoveUp / CanMoveDown.
+    private async void RunButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (_taskPath is null)
+        {
+            return;
+        }
+        try
+        {
+            await _service.RunTaskAsync(_taskPath);
+        }
+        catch (Exception ex) when (App.GetRequiredService<IAdminService>().IsPermissionError(ex))
+        {
+            await AdminDialogHelper.ShowAdminRequiredDialogAsync(this.XamlRoot);
+        }
+    }
 
-	/// <summary>Moves the given action one position earlier (higher priority).</summary>
-	private void Actions_MoveUp(TaskActionItem item)
-	{
-		int index = Actions.IndexOf(item);
-		if (index > 0)
-		{
-			Actions.Move(index, index - 1);
-			UpdateActionMoveStates();
-		}
-	}
+    private async void ApplyButton_Click(object sender, RoutedEventArgs e) => await SaveAsync();
 
-	/// <summary>Moves the given action one position later (lower priority).</summary>
-	private void Actions_MoveDown(TaskActionItem item)
-	{
-		int index = Actions.IndexOf(item);
-		if (index >= 0 && index < Actions.Count - 1)
-		{
-			Actions.Move(index, index + 1);
-			UpdateActionMoveStates();
-		}
-	}
+    private async Task SaveAsync()
+    {
+        if (_taskPath is null)
+        {
+            return;
+        }
 
-	/// <summary>Refreshes each action's move-button enabled state after the order changes.</summary>
-	private void UpdateActionMoveStates()
-	{
-		for (int i = 0; i < Actions.Count; i++)
-		{
-			Actions[i].CanMoveUp = i > 0;
-			Actions[i].CanMoveDown = i < Actions.Count - 1;
-		}
-	}
+        BuildDefinitionFromControls();
+        var (folderPath, name) = SplitPath(_taskPath);
+        try
+        {
+            await _service.RegisterTaskAsync(folderPath, name, _definition);
+        }
+        catch (Exception ex) when (App.GetRequiredService<IAdminService>().IsPermissionError(ex))
+        {
+            await AdminDialogHelper.ShowAdminRequiredDialogAsync(this.XamlRoot);
+        }
+        catch (Exception ex)
+        {
+            await ShowMessageAsync(string.Format(L(TaskSchdKeys.ErrorOperationFailed), ex.Message));
+        }
+    }
 
-	/// <summary>
-	/// Receives the task that was opened from the list and reflects its identity in the UI.
-	/// </summary>
-	protected override void OnNavigatedTo(NavigationEventArgs e)
-	{
-		base.OnNavigatedTo(e);
+    private void BuildDefinitionFromControls()
+    {
+        var def = _definition;
+        def.RegistrationInfo.Description = GeneralDescriptionText.Text;
+        def.Settings.Compatibility = IndexToCompatibility(ConfigureForCombo.SelectedIndex);
+        def.Settings.Hidden = HideMenuItem.IsChecked;
 
-		// e.Parameter is null when returning here via a breadcrumb (parameters are not retained
-		// in history); keep the default sample content in that case.
-		if (e.Parameter is ScheduledTaskSample task)
-		{
-			// TODO(TaskScheduler): populate every field from the real task definition. For now
-			// only the General Name line is updated so the navigation reflects the selection;
-			// the Description keeps its sample text.
-			GeneralNameText.Text = task.Name;
-		}
-	}
+        // Principal
+        var runWhether = RunWhetherLoggedOnRadio.IsChecked == true;
+        def.Principal.RunLevel = HighestPrivilegesToggle.IsOn ? TaskRunLevel.HighestAvailable : TaskRunLevel.LeastPrivilege;
+        if (string.IsNullOrEmpty(def.Principal.GroupId))
+        {
+            def.Principal.LogonType = runWhether
+                ? (DoNotStorePasswordCheckBox.IsChecked == true ? TaskLogonType.S4U : TaskLogonType.Password)
+                : TaskLogonType.InteractiveToken;
+        }
 
-	/// <summary>
-	/// General &gt; "Edit": opens a <see cref="ContentDialog"/> that lets the user edit the
-	/// task's Name and Description fields.
-	/// </summary>
-	/// <remarks>
-	/// TODO(TaskScheduler): on Primary result, write the new name and description back to the
-	/// task definition (ITaskDefinition.RegistrationInfo) and call
-	/// ITaskFolder.RegisterTaskDefinition to persist the change. Prototype only.
-	/// </remarks>
-	private async void GeneralEdit_Click(object sender, RoutedEventArgs e)
-	{
-		// Build the editor content: Name TextBox + Description TextBox.
-		var nameBox = new TextBox
-		{
-			Header = "Name",
-			Text = GeneralNameText.Text,
-			PlaceholderText = "Task name",
-		};
-		var descBox = new TextBox
-		{
-			Header = "Description",
-			Text = GeneralDescriptionText.Text,
-			PlaceholderText = "Task description",
-			AcceptsReturn = true,
-			TextWrapping = TextWrapping.Wrap,
-			MinHeight = 80,
-		};
-		var panel = new StackPanel { Spacing = 12 };
-		panel.Children.Add(nameBox);
-		panel.Children.Add(descBox);
+        // TaskTriggers / actions are kept in sync by the row collections.
+        def.Triggers.Clear();
+        foreach (var t in TaskTriggers)
+        {
+            def.Triggers.Add(t.Model);
+        }
+        def.Actions.Clear();
+        foreach (var a in Actions)
+        {
+            def.Actions.Add(a.Model);
+        }
 
-		var dialog = new ContentDialog
-		{
-			Title = "Edit General Information",
-			Content = panel,
-			PrimaryButtonText = "OK",
-			CloseButtonText = "Cancel",
-			DefaultButton = ContentDialogButton.Primary,
-            Style = Application.Current.Resources["DefaultContentDialogStyle"] as Style,
+        // Conditions
+        var s = def.Settings;
+        s.RunOnlyIfIdle = IdleToggle.IsOn;
+        s.IdleSettings.IdleDuration = ParseDuration(IdleStartComboBox.Text);
+        s.IdleSettings.WaitTimeout = ParseDuration(IdleWaitComboBox.Text);
+        s.IdleSettings.StopOnIdleEnd = IdleStopCeasesCheckBox.IsChecked == true;
+        s.IdleSettings.RestartOnIdle = IdleRestartResumesCheckBox.IsChecked == true;
+        s.DisallowStartIfOnBatteries = PowerToggle.IsOn;
+        s.StopIfGoingOnBatteries = StopOnBatteryCheckBox.IsChecked == true;
+        s.WakeToRun = WakeToRunCheckBox.IsChecked == true;
+        s.RunOnlyIfNetworkAvailable = NetworkToggle.IsOn;
+
+        // Settings
+        s.AllowDemandStart = AllowDemandStartCheckBox.IsChecked == true;
+        s.StartWhenAvailable = StartWhenAvailableCheckBox.IsChecked == true;
+        if (RestartOnFailureCheckBox.IsChecked == true)
+        {
+            s.RestartInterval = ParseDuration(RestartIntervalComboBox.Text) ?? TimeSpan.FromMinutes(1);
+            s.RestartCount = (int)RestartCountNumberBox.Value;
+        }
+        else
+        {
+            s.RestartInterval = null;
+            s.RestartCount = 0;
+        }
+        s.ExecutionTimeLimit = StopIfRunsLongerCheckBox.IsChecked == true ? ParseDuration(StopIfRunsLongerComboBox.Text) : null;
+        s.AllowHardTerminate = ForceStopCheckBox.IsChecked == true;
+        s.DeleteExpiredTaskAfter = DeleteAfterCheckBox.IsChecked == true ? (ParseDuration(DeleteAfterComboBox.Text) ?? TimeSpan.FromDays(30)) : null;
+        s.MultipleInstances = (TaskInstancesPolicy)InstancesCombo.SelectedIndex;
+    }
+
+    private async void ExportMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        if (_taskPath is null)
+        {
+            return;
+        }
+        try
+        {
+            var xml = await _service.ExportTaskAsync(_taskPath);
+            var fileDialog = App.GetRequiredService<IFileDialogService>();
+            var path = await fileDialog.SaveFileAsync(OwnerHwnd, "XML Files\0*.xml\0All Files\0*.*\0", title: L(TaskSchdKeys.CommandExportTask), defaultExtension: ".xml", suggestedFileName: GeneralNameText.Text + ".xml");
+            if (!string.IsNullOrEmpty(path))
+            {
+                await File.WriteAllTextAsync(path, xml);
+            }
+        }
+        catch (Exception ex) when (App.GetRequiredService<IAdminService>().IsPermissionError(ex))
+        {
+            await AdminDialogHelper.ShowAdminRequiredDialogAsync(this.XamlRoot);
+        }
+    }
+
+    private async void DeleteMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        if (_taskPath is null)
+        {
+            return;
+        }
+        if (!await ConfirmAsync(string.Format(L(TaskSchdKeys.ConfirmDeleteTaskFormat), GeneralNameText.Text)))
+        {
+            return;
+        }
+        try
+        {
+            await _service.DeleteTaskAsync(_taskPath);
+            if (Frame.CanGoBack)
+            {
+                Frame.GoBack();
+            }
+        }
+        catch (Exception ex) when (App.GetRequiredService<IAdminService>().IsPermissionError(ex))
+        {
+            await AdminDialogHelper.ShowAdminRequiredDialogAsync(this.XamlRoot);
+        }
+    }
+
+    private async void SecurityMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        if (_taskPath is null)
+        {
+            return;
+        }
+        try
+        {
+            var sddl = await _service.GetTaskSecurityDescriptorAsync(_taskPath, 0x1 | 0x2 | 0x4) ?? string.Empty;
+            var edited = await PromptTextAsync(L(TaskSchdKeys.CommandSecurity), "SDDL", sddl, multiline: true);
+            if (edited is not null && !string.Equals(edited, sddl, StringComparison.Ordinal))
+            {
+                await _service.SetTaskSecurityDescriptorAsync(_taskPath, edited);
+            }
+        }
+        catch (Exception ex) when (App.GetRequiredService<IAdminService>().IsPermissionError(ex))
+        {
+            await AdminDialogHelper.ShowAdminRequiredDialogAsync(this.XamlRoot);
+        }
+    }
+
+    // ----- General edit / copy -----
+
+    private async void GeneralEdit_Click(object sender, RoutedEventArgs e)
+    {
+        var nameBox = new TextBox { Header = L(TaskSchdKeys.GeneralName), Text = GeneralNameText.Text, MinWidth = 360 };
+        var descBox = new TextBox { Header = L(TaskSchdKeys.GeneralDescription), Text = GeneralDescriptionText.Text, AcceptsReturn = true, TextWrapping = TextWrapping.Wrap, Height = 120, Margin = new Thickness(0, 8, 0, 0) };
+        var panel = new StackPanel();
+        panel.Children.Add(nameBox);
+        panel.Children.Add(descBox);
+        var dialog = new ContentDialog
+        {
+            Title = L(TaskSchdKeys.TabGeneral),
+            Content = panel,
+            PrimaryButtonText = L(TaskSchdKeys.ButtonOk),
+            CloseButtonText = L(TaskSchdKeys.ButtonCancel),
+            DefaultButton = ContentDialogButton.Primary,
             XamlRoot = this.XamlRoot,
-			RequestedTheme = App.CurrentTheme,
-		};
+            RequestedTheme = App.CurrentTheme,
+        };
+        if (await dialog.ShowAsync() == ContentDialogResult.Primary)
+        {
+            GeneralDescriptionText.Text = descBox.Text;
+        }
+    }
 
-		ContentDialogResult result = await dialog.ShowAsync().AsTask();
-		if (result == ContentDialogResult.Primary)
-		{
-			// TODO(TaskScheduler): persist Name / Description to the real task definition.
-			GeneralNameText.Text = nameBox.Text;
-			GeneralDescriptionText.Text = descBox.Text;
-		}
-	}
+    private void AuthorCopy_Click(object sender, RoutedEventArgs e) => CopyToClipboard(AuthorCard.Description?.ToString());
 
-	/// <summary>Author &gt; "Copy": copies the author value to the clipboard.</summary>
-	private void AuthorCopy_Click(object sender, RoutedEventArgs e) =>
-		// TODO(TaskScheduler): copy from the real task's RegistrationInfo.Author.
-		CopyToClipboard(AuthorCard.Description?.ToString() ?? string.Empty);
+    private void LocationCopy_Click(object sender, RoutedEventArgs e) => CopyToClipboard(LocationCard.Description?.ToString());
 
-	/// <summary>Location &gt; "Copy": copies the task path to the clipboard.</summary>
-	private void LocationCopy_Click(object sender, RoutedEventArgs e) =>
-		// TODO(TaskScheduler): copy from the real task's Path (IRegisteredTask.Path).
-		CopyToClipboard(LocationCard.Description?.ToString() ?? string.Empty);
+    private static void CopyToClipboard(string? text)
+    {
+        if (string.IsNullOrEmpty(text))
+        {
+            return;
+        }
+        var package = new DataPackage();
+        package.SetText(text);
+        Clipboard.SetContent(package);
+    }
 
-	private static void CopyToClipboard(string text)
-	{
-		var package = new Windows.ApplicationModel.DataTransfer.DataPackage();
-		package.SetText(text);
-		Windows.ApplicationModel.DataTransfer.Clipboard.SetContent(package);
-	}
+    private void ChangeUser_Click(object sender, RoutedEventArgs e)
+    {
+        var picked = DirectoryObjectPickerService.ShowDialog(OwnerHwnd, ObjectPickerTypes.UsersAndGroups);
+        if (picked is { Count: > 0 })
+        {
+            var obj = picked[0];
+            _definition.Principal.UserId = string.IsNullOrEmpty(obj.Sid) ? obj.Name : obj.Sid;
+            _definition.Principal.DisplayName = obj.Name;
+            _definition.Principal.GroupId = string.Equals(obj.ObjectClass, "group", StringComparison.OrdinalIgnoreCase) ? obj.Sid : null;
+            AccountText.Text = obj.Name;
+        }
+    }
 
-	/// <summary>
-	/// Triggers &gt; "New": opens the <see cref="NewTriggerDialog"/> in create mode
-	/// (Title "Create a New Trigger").
-	/// </summary>
-	private async void NewTriggerButton_Click(object sender, RoutedEventArgs e) =>
-		await ShowTriggerDialogAsync(null);
+    // ----- TaskTriggers -----
 
-	/// <summary>
-	/// A trigger row's Edit button: opens the <see cref="NewTriggerDialog"/> in edit mode
-	/// (Title "Edit Trigger") for the row's trigger type, carried in the button's <c>Tag</c>.
-	/// </summary>
-	/// <remarks>
-	/// The sample rows are static XAML, so the type travels in <c>Tag</c>; a real, data-bound
-	/// Triggers list would pass the row's model instead (as the Actions list does via x:Bind).
-	/// </remarks>
-	private async void TriggerEdit_Click(object sender, RoutedEventArgs e)
-	{
-		var kind = Enum.Parse<TriggerEditKind>((string)((FrameworkElement)sender).Tag);
-		await ShowTriggerDialogAsync(kind);
-	}
+    private async void NewTriggerButton_Click(object sender, RoutedEventArgs e)
+    {
+        var dialog = new NewTriggerDialog { XamlRoot = this.XamlRoot, RequestedTheme = App.CurrentTheme };
+        if (await dialog.ShowAsync() == ContentDialogResult.Primary && dialog.ResultTrigger is { } trigger)
+        {
+            TaskTriggers.Add(new TriggerRowItem(trigger));
+        }
+    }
 
-	/// <summary>
-	/// Shows the trigger editor. A <c>null</c> <paramref name="editKind"/> means create a new trigger;
-	/// otherwise the dialog opens in edit mode pre-selected to that trigger type.
-	/// </summary>
-	/// <remarks>
-	/// TODO(TaskScheduler): on a Primary result, build the matching ITrigger from the dialog and add it
-	/// to (create) or update it in (edit) the task's ITriggerCollection. The dialog collects sample data only.
-	/// </remarks>
-	private async Task ShowTriggerDialogAsync(TriggerEditKind? editKind)
-	{
-		var dialog = new NewTriggerDialog(editKind)
-		{
-			XamlRoot = this.XamlRoot,
-			RequestedTheme = App.CurrentTheme,
-		};
+    private async void TriggerEdit_Click(object sender, RoutedEventArgs e)
+    {
+        if ((sender as FrameworkElement)?.Tag is not TriggerRowItem row)
+        {
+            return;
+        }
+        var dialog = new NewTriggerDialog(row.Model) { XamlRoot = this.XamlRoot, RequestedTheme = App.CurrentTheme };
+        if (await dialog.ShowAsync() == ContentDialogResult.Primary && dialog.ResultTrigger is { } trigger)
+        {
+            var index = TaskTriggers.IndexOf(row);
+            if (index >= 0)
+            {
+                TaskTriggers[index] = new TriggerRowItem(trigger);
+            }
+        }
+    }
 
-		ContentDialogResult result = await dialog.ShowAsync().AsTask();
-		if (result == ContentDialogResult.Primary)
-		{
-			// TODO(TaskScheduler): persist the created/edited trigger. No-op prototype.
-		}
-	}
+    private void TriggerDelete_Click(object sender, RoutedEventArgs e)
+    {
+        if ((sender as FrameworkElement)?.Tag is TriggerRowItem row)
+        {
+            TaskTriggers.Remove(row);
+        }
+    }
 
-	/// <summary>
-	/// Actions &gt; "New": opens the <see cref="NewActionDialog"/> in create mode
-	/// (Title "Create a New Action").
-	/// </summary>
-	private async void NewActionButton_Click(object sender, RoutedEventArgs e) =>
-		await ShowActionDialogAsync(null);
+    // ----- Actions -----
 
-	/// <summary>
-	/// An action row's Edit button: opens the <see cref="NewActionDialog"/> in edit mode
-	/// (Title "Edit Action") for <paramref name="item"/>. Delegated here from
-	/// <see cref="TaskActionItem.Edit"/> the same way Move up/down are routed back to the page.
-	/// </summary>
-	private async void Actions_Edit(TaskActionItem item) =>
-		await ShowActionDialogAsync(item);
+    private async void NewActionButton_Click(object sender, RoutedEventArgs e)
+    {
+        var dialog = new NewActionDialog { XamlRoot = this.XamlRoot, RequestedTheme = App.CurrentTheme };
+        if (await dialog.ShowAsync() == ContentDialogResult.Primary && dialog.ResultAction is { } action)
+        {
+            Actions.Add(new ActionRowItem(action));
+            RefreshActionMoveFlags();
+        }
+    }
 
-	/// <summary>
-	/// Shows the action editor. A <c>null</c> <paramref name="actionToEdit"/> means create a new
-	/// action; otherwise the dialog opens in edit mode pre-selected to that action's type.
-	/// </summary>
-	/// <remarks>
-	/// TODO(TaskScheduler): on a Primary result, build the matching IAction from the dialog and add it
-	/// to (create) or update it in (edit) the task's IActionCollection. The dialog collects sample data only.
-	/// </remarks>
-	private async Task ShowActionDialogAsync(TaskActionItem? actionToEdit)
-	{
-		var dialog = new NewActionDialog(actionToEdit)
-		{
-			XamlRoot = this.XamlRoot,
-			RequestedTheme = App.CurrentTheme,
-		};
+    private async void ActionEdit_Click(object sender, RoutedEventArgs e)
+    {
+        if ((sender as FrameworkElement)?.Tag is not ActionRowItem row)
+        {
+            return;
+        }
+        var dialog = new NewActionDialog(row.Model) { XamlRoot = this.XamlRoot, RequestedTheme = App.CurrentTheme };
+        if (await dialog.ShowAsync() == ContentDialogResult.Primary && dialog.ResultAction is { } action)
+        {
+            var index = Actions.IndexOf(row);
+            if (index >= 0)
+            {
+                Actions[index] = new ActionRowItem(action);
+                RefreshActionMoveFlags();
+            }
+        }
+    }
 
-		ContentDialogResult result = await dialog.ShowAsync().AsTask();
-		if (result == ContentDialogResult.Primary)
-		{
-			// TODO(TaskScheduler): persist the created/edited action. No-op prototype.
-		}
-	}
+    private void ActionDelete_Click(object sender, RoutedEventArgs e)
+    {
+        if ((sender as FrameworkElement)?.Tag is ActionRowItem row)
+        {
+            Actions.Remove(row);
+            RefreshActionMoveFlags();
+        }
+    }
+
+    private void ActionMoveUp_Click(object sender, RoutedEventArgs e) => MoveAction((sender as FrameworkElement)?.Tag as ActionRowItem, -1);
+
+    private void ActionMoveDown_Click(object sender, RoutedEventArgs e) => MoveAction((sender as FrameworkElement)?.Tag as ActionRowItem, +1);
+
+    private void MoveAction(ActionRowItem? row, int delta)
+    {
+        if (row is null)
+        {
+            return;
+        }
+        var index = Actions.IndexOf(row);
+        var target = index + delta;
+        if (index >= 0 && target >= 0 && target < Actions.Count)
+        {
+            Actions.Move(index, target);
+            RefreshActionMoveFlags();
+        }
+    }
+
+    private void RefreshActionMoveFlags()
+    {
+        for (int i = 0; i < Actions.Count; i++)
+        {
+            Actions[i].CanMoveUp = i > 0;
+            Actions[i].CanMoveDown = i < Actions.Count - 1;
+        }
+    }
+
+    // ----- Conditional enablement -----
+
+    private void OnSecurityRunModeChanged(object sender, RoutedEventArgs e)
+    {
+        if (DoNotStorePasswordCheckBox is not null)
+        {
+            DoNotStorePasswordCheckBox.IsEnabled = RunWhetherLoggedOnRadio.IsChecked == true;
+        }
+    }
+
+    private void OnIdleToggled(object sender, RoutedEventArgs e) => UpdateIdleState();
+
+    private void OnIdleStopCeasesChanged(object sender, RoutedEventArgs e) => UpdateIdleState();
+
+    private void OnPowerToggled(object sender, RoutedEventArgs e) => UpdatePowerState();
+
+    private void OnNetworkToggled(object sender, RoutedEventArgs e) => UpdateNetworkState();
+
+    private void OnRestartOnFailureChanged(object sender, RoutedEventArgs e) => UpdateRestartState();
+
+    private void OnStopIfRunsLongerChanged(object sender, RoutedEventArgs e) => UpdateStopIfLongerState();
+
+    private void OnDeleteAfterChanged(object sender, RoutedEventArgs e) => UpdateDeleteAfterState();
+
+    private void UpdateAllConditionalStates()
+    {
+        OnSecurityRunModeChanged(this, new RoutedEventArgs());
+        UpdateIdleState();
+        UpdatePowerState();
+        UpdateNetworkState();
+        UpdateRestartState();
+        UpdateStopIfLongerState();
+        UpdateDeleteAfterState();
+    }
+
+    private void UpdateIdleState()
+    {
+        if (IdleToggle is null ||
+            IdleStartComboBox is null ||
+            IdleWaitComboBox is null ||
+            IdleStopCeasesCheckBox is null ||
+            IdleRestartResumesCheckBox is null)
+        {
+            return;
+        }
+        var on = IdleToggle.IsOn;
+        IdleStartComboBox.IsEnabled = on;
+        IdleWaitComboBox.IsEnabled = on;
+        IdleStopCeasesCheckBox.IsEnabled = on;
+        IdleRestartResumesCheckBox.IsEnabled = on && IdleStopCeasesCheckBox.IsChecked == true;
+    }
+
+    private void UpdatePowerState()
+    {
+        if (PowerToggle is null || StopOnBatteryCheckBox is null)
+        {
+            return;
+        }
+        StopOnBatteryCheckBox.IsEnabled = PowerToggle.IsOn;
+    }
+
+    private void UpdateNetworkState()
+    {
+        if (NetworkToggle is null || NetworkComboBox is null)
+        {
+            return;
+        }
+        NetworkComboBox.IsEnabled = NetworkToggle.IsOn;
+    }
+
+    private void UpdateRestartState()
+    {
+        if (RestartOnFailureCheckBox is null ||
+            RestartIntervalComboBox is null ||
+            RestartCountNumberBox is null)
+        {
+            return;
+        }
+        var on = RestartOnFailureCheckBox.IsChecked == true;
+        RestartIntervalComboBox.IsEnabled = on;
+        RestartCountNumberBox.IsEnabled = on;
+    }
+
+    private void UpdateStopIfLongerState()
+    {
+        if (StopIfRunsLongerCheckBox is null || StopIfRunsLongerComboBox is null)
+        {
+            return;
+        }
+        StopIfRunsLongerComboBox.IsEnabled = StopIfRunsLongerCheckBox.IsChecked == true;
+    }
+
+    private void UpdateDeleteAfterState()
+    {
+        if (DeleteAfterCheckBox is null || DeleteAfterComboBox is null)
+        {
+            return;
+        }
+        DeleteAfterComboBox.IsEnabled = DeleteAfterCheckBox.IsChecked == true;
+    }
+
+    // ----- Small dialog helpers -----
+
+    private async Task ShowMessageAsync(string message)
+    {
+        var dialog = new ContentDialog
+        {
+            Title = L(TaskSchdKeys.TabGeneral),
+            Content = message,
+            CloseButtonText = L(TaskSchdKeys.ButtonOk),
+            XamlRoot = this.XamlRoot,
+            RequestedTheme = App.CurrentTheme,
+        };
+        await dialog.ShowAsync();
+    }
+
+    private async Task<bool> ConfirmAsync(string message)
+    {
+        var dialog = new ContentDialog
+        {
+            Title = L(TaskSchdKeys.CommandDelete),
+            Content = message,
+            PrimaryButtonText = L(TaskSchdKeys.ButtonOk),
+            CloseButtonText = L(TaskSchdKeys.ButtonCancel),
+            DefaultButton = ContentDialogButton.Primary,
+            XamlRoot = this.XamlRoot,
+            RequestedTheme = App.CurrentTheme,
+        };
+        return await dialog.ShowAsync() == ContentDialogResult.Primary;
+    }
+
+    private async Task<string?> PromptTextAsync(string title, string label, string initial, bool multiline = false)
+    {
+        var box = new TextBox
+        {
+            Header = label,
+            Text = initial,
+            AcceptsReturn = multiline,
+            TextWrapping = multiline ? TextWrapping.Wrap : TextWrapping.NoWrap,
+            MinWidth = 360,
+            Height = multiline ? 160 : double.NaN,
+        };
+        var dialog = new ContentDialog
+        {
+            Title = title,
+            Content = box,
+            PrimaryButtonText = L(TaskSchdKeys.ButtonOk),
+            CloseButtonText = L(TaskSchdKeys.ButtonCancel),
+            DefaultButton = ContentDialogButton.Primary,
+            XamlRoot = this.XamlRoot,
+            RequestedTheme = App.CurrentTheme,
+        };
+        return await dialog.ShowAsync() == ContentDialogResult.Primary ? box.Text : null;
+    }
+
+    // ----- Helpers -----
+
+    private static (string folderPath, string name) SplitPath(string fullPath)
+    {
+        var trimmed = fullPath.TrimEnd('\\');
+        var index = trimmed.LastIndexOf('\\');
+        return index <= 0 ? ("\\", trimmed.TrimStart('\\')) : (trimmed[..index], trimmed[(index + 1)..]);
+    }
+
+    private static int CompatibilityToIndex(TaskCompatibility c) => c switch
+    {
+        TaskCompatibility.V2 => 0,
+        TaskCompatibility.V2_1 => 1,
+        TaskCompatibility.V2_2 => 2,
+        TaskCompatibility.V2_3 => 5,
+        _ => 5,
+    };
+
+    private static TaskCompatibility IndexToCompatibility(int index) => index switch
+    {
+        0 => TaskCompatibility.V2,
+        1 => TaskCompatibility.V2_1,
+        2 => TaskCompatibility.V2_2,
+        _ => TaskCompatibility.V2_3,
+    };
+
+    private static TimeSpan? ParseDuration(string? text)
+    {
+        if (string.IsNullOrWhiteSpace(text) || text is "Do not wait" or "Immediately")
+        {
+            return null;
+        }
+
+        var parts = text.Trim().Split(' ', 2);
+        if (parts.Length == 2 && double.TryParse(parts[0], out var n))
+        {
+            return parts[1].TrimEnd('s') switch
+            {
+                "minute" => TimeSpan.FromMinutes(n),
+                "hour" => TimeSpan.FromHours(n),
+                "day" => TimeSpan.FromDays(n),
+                _ => null,
+            };
+        }
+        return null;
+    }
+
+    private static string? FormatDuration(TimeSpan? span)
+    {
+        if (span is not { } v || v <= TimeSpan.Zero)
+        {
+            return null;
+        }
+        if (v.TotalDays >= 1 && v.TotalDays == Math.Floor(v.TotalDays))
+        {
+            return $"{(int)v.TotalDays} day{(v.TotalDays > 1 ? "s" : string.Empty)}";
+        }
+        if (v.TotalHours >= 1 && v.TotalHours == Math.Floor(v.TotalHours))
+        {
+            return $"{(int)v.TotalHours} hour{(v.TotalHours > 1 ? "s" : string.Empty)}";
+        }
+        return $"{(int)v.TotalMinutes} minute{(v.TotalMinutes > 1 ? "s" : string.Empty)}";
+    }
 }
 
-/// <summary>
-/// A single row in the Actions list. Its position in the owning collection is its
-/// priority (top = runs first). Move requests are delegated back to the page.
-/// </summary>
-/// <remarks>MOCK model. TODO(TaskScheduler): replace with a model derived from IAction.</remarks>
-public sealed partial class TaskActionItem : ObservableObject
+/// <summary>A bindable trigger row in the TaskTriggers list.</summary>
+public sealed partial class TriggerRowItem
 {
-	private readonly Action<TaskActionItem> _moveUp;
-	private readonly Action<TaskActionItem> _moveDown;
-	private readonly Action<TaskActionItem> _edit;
+    public TriggerModel Model { get; }
 
-	public TaskActionItem(Action<TaskActionItem> moveUp, Action<TaskActionItem> moveDown, Action<TaskActionItem> edit, string header, string description)
-	{
-		_moveUp = moveUp;
-		_moveDown = moveDown;
-		_edit = edit;
-		Header = header;
-		Description = description;
-	}
+    public string TypeName { get; }
 
-	/// <summary>Action title shown as the card header (e.g. "Start a program").</summary>
-	public string Header { get; }
+    public string Summary { get; }
 
-	/// <summary>Action detail shown as the card description (command line, message, …).</summary>
-	public string Description { get; }
+    public TriggerRowItem(TriggerModel model)
+    {
+        Model = model;
+        TypeName = TaskScheduleDescriptions.TriggerTypeName(model);
+        Summary = TaskScheduleDescriptions.TriggerSummary(model);
+    }
+}
 
-	/// <summary>True while this action is not the first one, so "Move up" is enabled.</summary>
-	[ObservableProperty]
-	public partial bool CanMoveUp { get; set; }
+/// <summary>A bindable action row in the Actions list.</summary>
+public sealed partial class ActionRowItem : ObservableObject
+{
+    [ObservableProperty]
+    public partial bool CanMoveUp { get; set; }
 
-	/// <summary>True while this action is not the last one, so "Move down" is enabled.</summary>
-	[ObservableProperty]
-	public partial bool CanMoveDown { get; set; }
+    [ObservableProperty]
+    public partial bool CanMoveDown { get; set; }
 
-	/// <summary>Invoked by the row's "Move up" button (x:Bind event binding).</summary>
-	public void MoveUp() => _moveUp(this);
+    public ActionModel Model { get; }
 
-	/// <summary>Invoked by the row's "Move down" button (x:Bind event binding).</summary>
-	public void MoveDown() => _moveDown(this);
+    public string TypeName { get; }
 
-	/// <summary>Invoked by the row's "Edit" button (x:Bind event binding); opens the action editor for this row.</summary>
-	public void Edit() => _edit(this);
+    public string Summary { get; }
+
+    public ActionRowItem(ActionModel model)
+    {
+        Model = model;
+        TypeName = TaskScheduleDescriptions.ActionTypeName(model);
+        Summary = TaskScheduleDescriptions.ActionSummary(model);
+    }
+}
+
+/// <summary>A bindable history row.</summary>
+public sealed class HistoryRowItem
+{
+    public string Title { get; }
+
+    public string Detail { get; }
+
+    public HistoryRowItem(string title, string detail)
+    {
+        Title = title;
+        Detail = detail;
+    }
 }

@@ -24,6 +24,7 @@ public static class ResourceFileNames
     public const string FsMgmt = "FsMgmt";
     public const string PrintManagement = "PrintManagement";
     public const string WF = "WF";
+    public const string TaskSchd = "TaskSchd";
 }
 
 /// <summary>
@@ -1171,5 +1172,213 @@ public static class EventViewerKeys
 
     // Load more
     public const string LoadMore = "EventViewer_LoadMore";
+}
+
+/// <summary>
+/// Resource key constants for the Task Scheduler (taskschd.msc) feature.
+/// </summary>
+public static class TaskSchdKeys
+{
+    // Tree / navigation
+    public const string LibraryRoot = "TaskSchd_LibraryRoot";
+
+    // Task states
+    public const string StateReady = "TaskSchd_State_Ready";
+    public const string StateRunning = "TaskSchd_State_Running";
+    public const string StateDisabled = "TaskSchd_State_Disabled";
+    public const string StateQueued = "TaskSchd_State_Queued";
+    public const string StateUnknown = "TaskSchd_State_Unknown";
+
+    // List status line / columns
+    public const string StatusLineFormat = "TaskSchd_StatusLineFormat";       // "{0} | Next run time: {1}"
+    public const string NextRunNever = "TaskSchd_NextRunNever";
+    public const string LastRunNever = "TaskSchd_LastRunNever";
+    public const string ColumnName = "TaskSchd_Column_Name";
+    public const string ColumnStatus = "TaskSchd_Column_Status";
+    public const string ColumnTriggers = "TaskSchd_Column_Triggers";
+    public const string ColumnNextRun = "TaskSchd_Column_NextRun";
+    public const string ColumnLastRun = "TaskSchd_Column_LastRun";
+    public const string ColumnLastResult = "TaskSchd_Column_LastResult";
+    public const string ColumnAuthor = "TaskSchd_Column_Author";
+
+    // Commands
+    public const string CommandCreateTask = "TaskSchd_Command_CreateTask";
+    public const string CommandRun = "TaskSchd_Command_Run";
+    public const string CommandEnd = "TaskSchd_Command_End";
+    public const string CommandEnable = "TaskSchd_Command_Enable";
+    public const string CommandDisable = "TaskSchd_Command_Disable";
+    public const string CommandDelete = "TaskSchd_Command_Delete";
+    public const string CommandProperties = "TaskSchd_Command_Properties";
+    public const string CommandRefresh = "TaskSchd_Command_Refresh";
+    public const string CommandNewFolder = "TaskSchd_Command_NewFolder";
+    public const string CommandDeleteFolder = "TaskSchd_Command_DeleteFolder";
+    public const string CommandImportTask = "TaskSchd_Command_ImportTask";
+    public const string CommandExportTask = "TaskSchd_Command_ExportTask";
+    public const string CommandConnectComputer = "TaskSchd_Command_ConnectComputer";
+    public const string CommandEnableAllHistory = "TaskSchd_Command_EnableAllHistory";
+    public const string CommandDisableAllHistory = "TaskSchd_Command_DisableAllHistory";
+    public const string CommandMore = "TaskSchd_Command_More";
+
+    // Property tabs
+    public const string TabGeneral = "TaskSchd_Tab_General";
+    public const string TabTriggers = "TaskSchd_Tab_Triggers";
+    public const string TabActions = "TaskSchd_Tab_Actions";
+    public const string TabConditions = "TaskSchd_Tab_Conditions";
+    public const string TabSettings = "TaskSchd_Tab_Settings";
+    public const string TabHistory = "TaskSchd_Tab_History";
+
+    // General tab
+    public const string GeneralName = "TaskSchd_General_Name";
+    public const string GeneralLocation = "TaskSchd_General_Location";
+    public const string GeneralAuthor = "TaskSchd_General_Author";
+    public const string GeneralDescription = "TaskSchd_General_Description";
+    public const string GeneralSecurityOptions = "TaskSchd_General_SecurityOptions";
+    public const string GeneralRunAsAccount = "TaskSchd_General_RunAsAccount";
+    public const string GeneralChangeUser = "TaskSchd_General_ChangeUser";
+    public const string GeneralRunOnlyLoggedOn = "TaskSchd_General_RunOnlyLoggedOn";
+    public const string GeneralRunWhetherLoggedOn = "TaskSchd_General_RunWhetherLoggedOn";
+    public const string GeneralDoNotStorePassword = "TaskSchd_General_DoNotStorePassword";
+    public const string GeneralRunHighestPrivileges = "TaskSchd_General_RunHighestPrivileges";
+    public const string GeneralHidden = "TaskSchd_General_Hidden";
+    public const string GeneralConfigureFor = "TaskSchd_General_ConfigureFor";
+
+    // Trigger type display names
+    public const string TriggerOnSchedule = "TaskSchd_Trigger_OnSchedule";
+    public const string TriggerAtLogon = "TaskSchd_Trigger_AtLogon";
+    public const string TriggerAtStartup = "TaskSchd_Trigger_AtStartup";
+    public const string TriggerOnIdle = "TaskSchd_Trigger_OnIdle";
+    public const string TriggerOnEvent = "TaskSchd_Trigger_OnEvent";
+    public const string TriggerAtCreation = "TaskSchd_Trigger_AtCreation";
+    public const string TriggerOnConnect = "TaskSchd_Trigger_OnConnect";
+    public const string TriggerOnDisconnect = "TaskSchd_Trigger_OnDisconnect";
+    public const string TriggerOnLock = "TaskSchd_Trigger_OnLock";
+    public const string TriggerOnUnlock = "TaskSchd_Trigger_OnUnlock";
+    public const string ScheduleOneTime = "TaskSchd_Schedule_OneTime";
+    public const string ScheduleDaily = "TaskSchd_Schedule_Daily";
+    public const string ScheduleWeekly = "TaskSchd_Schedule_Weekly";
+    public const string ScheduleMonthly = "TaskSchd_Schedule_Monthly";
+
+    // Trigger editor labels
+    public const string TriggerColDetails = "TaskSchd_TriggerCol_Details";
+    public const string TriggerColStatus = "TaskSchd_TriggerCol_Status";
+    public const string TriggerNew = "TaskSchd_Trigger_New";
+    public const string TriggerEdit = "TaskSchd_Trigger_Edit";
+    public const string TriggerDelete = "TaskSchd_Trigger_Delete";
+    public const string TriggerBeginLabel = "TaskSchd_Trigger_BeginLabel";
+    public const string TriggerDelay = "TaskSchd_Trigger_Delay";
+    public const string TriggerRandomDelay = "TaskSchd_Trigger_RandomDelay";
+    public const string TriggerRepeatEvery = "TaskSchd_Trigger_RepeatEvery";
+    public const string TriggerForDuration = "TaskSchd_Trigger_ForDuration";
+    public const string TriggerStopAllAtEnd = "TaskSchd_Trigger_StopAllAtEnd";
+    public const string TriggerStopIfLonger = "TaskSchd_Trigger_StopIfLonger";
+    public const string TriggerActivate = "TaskSchd_Trigger_Activate";
+    public const string TriggerExpire = "TaskSchd_Trigger_Expire";
+    public const string TriggerSyncTimeZones = "TaskSchd_Trigger_SyncTimeZones";
+    public const string TriggerEnabled = "TaskSchd_Trigger_Enabled";
+    public const string TriggerSummaryAtLogon = "TaskSchd_TriggerSummary_AtLogon";
+    public const string TriggerSummaryAtStartup = "TaskSchd_TriggerSummary_AtStartup";
+    public const string TriggerSummaryDailyFormat = "TaskSchd_TriggerSummary_DailyFormat";
+    public const string TriggerSummaryWeeklyFormat = "TaskSchd_TriggerSummary_WeeklyFormat";
+    public const string TriggerSummaryOneTimeFormat = "TaskSchd_TriggerSummary_OneTimeFormat";
+
+    // Action type display names + fields
+    public const string ActionStartProgram = "TaskSchd_Action_StartProgram";
+    public const string ActionSendEmail = "TaskSchd_Action_SendEmail";
+    public const string ActionDisplayMessage = "TaskSchd_Action_DisplayMessage";
+    public const string ActionColDetails = "TaskSchd_ActionCol_Details";
+    public const string ActionNew = "TaskSchd_Action_New";
+    public const string ActionEdit = "TaskSchd_Action_Edit";
+    public const string ActionDelete = "TaskSchd_Action_Delete";
+    public const string ActionMoveUp = "TaskSchd_Action_MoveUp";
+    public const string ActionMoveDown = "TaskSchd_Action_MoveDown";
+    public const string ActionProgramScript = "TaskSchd_Action_ProgramScript";
+    public const string ActionAddArguments = "TaskSchd_Action_AddArguments";
+    public const string ActionStartIn = "TaskSchd_Action_StartIn";
+    public const string ActionBrowse = "TaskSchd_Action_Browse";
+    public const string ActionEmailFrom = "TaskSchd_Action_EmailFrom";
+    public const string ActionEmailTo = "TaskSchd_Action_EmailTo";
+    public const string ActionEmailSubject = "TaskSchd_Action_EmailSubject";
+    public const string ActionEmailText = "TaskSchd_Action_EmailText";
+    public const string ActionEmailAttachment = "TaskSchd_Action_EmailAttachment";
+    public const string ActionEmailServer = "TaskSchd_Action_EmailServer";
+    public const string ActionMessageTitle = "TaskSchd_Action_MessageTitle";
+    public const string ActionMessageBody = "TaskSchd_Action_MessageBody";
+
+    // Conditions tab
+    public const string ConditionsIdle = "TaskSchd_Conditions_Idle";
+    public const string ConditionsPower = "TaskSchd_Conditions_Power";
+    public const string ConditionsNetwork = "TaskSchd_Conditions_Network";
+    public const string ConditionsStartIfIdle = "TaskSchd_Conditions_StartIfIdle";
+    public const string ConditionsWaitForIdle = "TaskSchd_Conditions_WaitForIdle";
+    public const string ConditionsStopIfNotIdle = "TaskSchd_Conditions_StopIfNotIdle";
+    public const string ConditionsRestartOnIdle = "TaskSchd_Conditions_RestartOnIdle";
+    public const string ConditionsStartOnAcPower = "TaskSchd_Conditions_StartOnAcPower";
+    public const string ConditionsStopOnBattery = "TaskSchd_Conditions_StopOnBattery";
+    public const string ConditionsWakeToRun = "TaskSchd_Conditions_WakeToRun";
+    public const string ConditionsStartIfNetwork = "TaskSchd_Conditions_StartIfNetwork";
+    public const string ConditionsAnyConnection = "TaskSchd_Conditions_AnyConnection";
+
+    // Settings tab
+    public const string SettingsAllowDemandStart = "TaskSchd_Settings_AllowDemandStart";
+    public const string SettingsStartWhenAvailable = "TaskSchd_Settings_StartWhenAvailable";
+    public const string SettingsRestartOnFailure = "TaskSchd_Settings_RestartOnFailure";
+    public const string SettingsRestartInterval = "TaskSchd_Settings_RestartInterval";
+    public const string SettingsRestartCount = "TaskSchd_Settings_RestartCount";
+    public const string SettingsStopIfLonger = "TaskSchd_Settings_StopIfLonger";
+    public const string SettingsForceStop = "TaskSchd_Settings_ForceStop";
+    public const string SettingsDeleteAfter = "TaskSchd_Settings_DeleteAfter";
+    public const string SettingsInstanceRule = "TaskSchd_Settings_InstanceRule";
+    public const string InstanceParallel = "TaskSchd_Instance_Parallel";
+    public const string InstanceQueue = "TaskSchd_Instance_Queue";
+    public const string InstanceIgnoreNew = "TaskSchd_Instance_IgnoreNew";
+    public const string InstanceStopExisting = "TaskSchd_Instance_StopExisting";
+
+    // Dialog titles / buttons
+    public const string DialogCreateTask = "TaskSchd_Dialog_CreateTask";
+    public const string DialogNewTrigger = "TaskSchd_Dialog_NewTrigger";
+    public const string DialogEditTrigger = "TaskSchd_Dialog_EditTrigger";
+    public const string DialogNewAction = "TaskSchd_Dialog_NewAction";
+    public const string DialogEditAction = "TaskSchd_Dialog_EditAction";
+    public const string DialogNewEventFilter = "TaskSchd_Dialog_NewEventFilter";
+    public const string DialogConnectComputer = "TaskSchd_Dialog_ConnectComputer";
+    public const string ButtonOk = "TaskSchd_Button_Ok";
+    public const string ButtonCancel = "TaskSchd_Button_Cancel";
+    public const string ButtonApply = "TaskSchd_Button_Apply";
+
+    // Validation
+    public const string ValidationNameRequired = "TaskSchd_Validation_NameRequired";
+    public const string ValidationProgramRequired = "TaskSchd_Validation_ProgramRequired";
+    public const string ValidationDurationGreaterThanInterval = "TaskSchd_Validation_DurationGreaterThanInterval";
+    public const string ValidationEndAfterStart = "TaskSchd_Validation_EndAfterStart";
+    public const string ValidationEventLogRequired = "TaskSchd_Validation_EventLogRequired";
+    public const string ValidationUserRequired = "TaskSchd_Validation_UserRequired";
+    public const string ValidationTriggerRequired = "TaskSchd_Validation_TriggerRequired";
+    public const string ValidationActionRequired = "TaskSchd_Validation_ActionRequired";
+
+    // Confirmations / messages
+    public const string ConfirmDeleteTaskFormat = "TaskSchd_Confirm_DeleteTaskFormat";
+    public const string ConfirmDeleteFolderFormat = "TaskSchd_Confirm_DeleteFolderFormat";
+    public const string ConfirmRunTaskFormat = "TaskSchd_Confirm_RunTaskFormat";
+    public const string ErrorOperationFailed = "TaskSchd_Error_OperationFailed";
+    public const string ErrorAccessDenied = "TaskSchd_Error_AccessDenied";
+
+    // History tab
+    public const string HistoryDisabled = "TaskSchd_History_Disabled";
+    public const string HistoryEnablePrompt = "TaskSchd_History_EnablePrompt";
+    public const string HistoryColLevel = "TaskSchd_History_ColLevel";
+    public const string HistoryColDate = "TaskSchd_History_ColDate";
+    public const string HistoryColEvent = "TaskSchd_History_ColEvent";
+    public const string HistoryColCategory = "TaskSchd_History_ColCategory";
+
+    // Connect to another computer
+    public const string ConnectLocalComputer = "TaskSchd_Connect_LocalComputer";
+    public const string ConnectAnotherComputer = "TaskSchd_Connect_AnotherComputer";
+    public const string ConnectComputerLabel = "TaskSchd_Connect_ComputerLabel";
+
+    // New folder
+    public const string NewFolderName = "TaskSchd_NewFolder_Name";
+
+    // Security (SDDL/ACL)
+    public const string CommandSecurity = "TaskSchd_Command_Security";
 }
 

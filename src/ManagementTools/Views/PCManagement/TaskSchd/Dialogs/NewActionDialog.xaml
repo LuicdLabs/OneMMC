@@ -5,26 +5,15 @@
     mode, Title = "Create a New Action") and from each action row's Edit button (edit mode,
     Title = "Edit Action"). The mode is chosen by the constructor overload, not in XAML.
 
-    NOTE: This dialog renders MOCK / SAMPLE data only. The "Action" drop-down reveals the matching
-    Settings panel; nothing is registered with Task Scheduler. Native WinUI controls are used instead
-    of re-creating the legacy Win32 "New Action" chrome (the beside-field labels of taskschd are
-    replaced with the WinUI label-above-field idiom already used by CreateTaskDialog).
+    The "Action" drop-down reveals the matching Settings panel; the code-behind builds the matching
+    ActionModel (Exec / Email / Message) on OK and returns it via ResultAction.
 
-    Action <-> Task Scheduler 2.0 IAction map (for the real implementation):
+    Action <-> Task Scheduler 2.0 IAction map:
       * Start a program            -> IExecAction      (Path, Arguments, WorkingDirectory)
-      * Send an e-mail (deprecated)-> IEmailAction     (From/To/Subject/Body/Attachments/Server) — TASK_ACTION_EMAIL
-      * Display a message (deprec.) -> IShowMessageAction (Title, MessageBody) — TASK_ACTION_SHOW_MESSAGE
-    The e-mail and message actions are deprecated by Windows and unsupported on modern OS builds, but
-    are kept here for parity with taskschd.msc so existing tasks that use them remain editable.
-
-    TODO(TaskScheduler): replace this prototype with a real editor:
-      * Build the matching IAction via the Task Scheduler 2.0 COM API (or Microsoft.Win32.TaskScheduler)
-        from the selected panel and add it to / update it in the task's IActionCollection.
-      * In edit mode, populate every field from the existing IAction (see the code-behind TODO) instead
-        of only pre-selecting the action type.
-      * Move every user-facing string below to ResourceKeys / .resw (en-US, zh-TW) and bind via
-        x:Uid / LocalizedStrings, as required by the project conventions.
-      * Wire the Browse buttons to a real FileOpenPicker initialized with the owning window's HWND.
+      * Send an e-mail (deprecated)-> IEmailAction     (From/To/Subject/Body/Attachments/Server)
+      * Display a message (deprec.) -> IShowMessageAction (Title, MessageBody)
+    The e-mail and message actions are deprecated by Windows but kept for parity with taskschd.msc so
+    existing tasks that use them remain editable.
 -->
 <ContentDialog
 	x:Class="ManagementTools.Views.PCManagement.NewActionDialog"

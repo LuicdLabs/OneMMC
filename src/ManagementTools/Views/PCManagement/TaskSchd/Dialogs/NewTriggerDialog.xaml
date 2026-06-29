@@ -5,11 +5,9 @@
     mode, Title = "Create a New Trigger") and from each trigger row's Edit button (edit mode,
     Title = "Edit Trigger"). The mode is chosen by the constructor parameter, not in XAML.
 
-    NOTE: This dialog renders MOCK / SAMPLE data only. It mirrors the structure of the legacy
-    Win32 "New Trigger" dialog (Begin the task -> per-type Settings + a shared Advanced settings
-    block) using native WinUI controls instead of re-creating the Win32 chrome. It collects the
-    user's selections in plain controls but performs NO real work — nothing is registered with
-    Task Scheduler.
+    Mirrors the legacy Win32 "New Trigger" dialog (Begin the task -> per-type Settings + a shared
+    Advanced settings block) using native WinUI controls. The code-behind builds the matching
+    TriggerModel (one of the 11 trigger types) on OK and returns it via ResultTrigger.
 
     Layout fidelity notes (verified against doc/NewTriggerDialog/*.png):
       * "Begin the task" picks the trigger type; the matching Settings panel is revealed and the
@@ -180,30 +178,37 @@
 								<RowDefinition Height="Auto" />
 							</Grid.RowDefinitions>
 							<CheckBox
+								x:Name="SundayCheck"
 								Grid.Row="0"
 								Grid.Column="0"
 								Content="Sunday" />
 							<CheckBox
+								x:Name="MondayCheck"
 								Grid.Row="0"
 								Grid.Column="1"
 								Content="Monday" />
 							<CheckBox
+								x:Name="TuesdayCheck"
 								Grid.Row="0"
 								Grid.Column="2"
 								Content="Tuesday" />
 							<CheckBox
+								x:Name="WednesdayCheck"
 								Grid.Row="0"
 								Grid.Column="3"
 								Content="Wednesday" />
 							<CheckBox
+								x:Name="ThursdayCheck"
 								Grid.Row="1"
 								Grid.Column="0"
 								Content="Thursday" />
 							<CheckBox
+								x:Name="FridayCheck"
 								Grid.Row="1"
 								Grid.Column="1"
 								Content="Friday" />
 							<CheckBox
+								x:Name="SaturdayCheck"
 								Grid.Row="1"
 								Grid.Column="2"
 								Content="Saturday" />
@@ -227,6 +232,7 @@
 								<DropDownButton.Flyout>
 									<Flyout>
 										<ListView
+											x:Name="MonthsListView"
 											Width="220"
 											MaxHeight="260"
 											ItemsSource="{x:Bind Months}"
@@ -251,6 +257,7 @@
 								<DropDownButton.Flyout>
 									<Flyout>
 										<GridView
+											x:Name="MonthDaysGridView"
 											Width="300"
 											MaxHeight="240"
 											ItemsSource="{x:Bind MonthDays}"
@@ -309,9 +316,9 @@
 					</RadioButtons>
 					<StackPanel Orientation="Horizontal" Spacing="12">
 						<TextBlock
+							x:Name="UserAccountText"
 							VerticalAlignment="Center"
-							Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-							Text="DESKTOP-24OTD2R\User" />
+							Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
 						<!--  Change User... is enabled only while "Specific user" is selected (managed in code-behind).  -->
 						<Button
 							x:Name="ChangeUserButton"
@@ -402,9 +409,9 @@
 					</RadioButtons>
 					<StackPanel Orientation="Horizontal" Spacing="12">
 						<TextBlock
+							x:Name="SessionAccountText"
 							VerticalAlignment="Center"
-							Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-							Text="DESKTOP-24OTD2R\User" />
+							Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
 						<Button
 							x:Name="SessionChangeUserButton"
 							Click="ChangeUser_Click"

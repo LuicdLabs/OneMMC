@@ -1,13 +1,8 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <!--
-    TaskSchedulerPage — UI prototype for a modern taskschd.msc replacement (main view).
-
-    NOTE: This page currently renders MOCK / SAMPLE data only. Every value, list item,
-    toggle state and string below is hardcoded to demonstrate the final UI.
-    TODO(TaskScheduler): wire to a real ViewModel + service (Task Scheduler 2.0 COM API:
-    Schedule.Service / ITaskService, or Microsoft.Win32.TaskScheduler) under Core/Features
-    following the project's MVVM + DI conventions, and migrate all user-facing strings to
-    ResourceKeys / .resw (en-US, zh-TW). Double-tapping a task opens TaskPropertiesPage.
+    TaskSchedulerPage — modern taskschd.msc replacement (main view).
+    Bound to TaskSchedulerViewModel (Core) over the native Task Scheduler 2.0 COM backend.
+    Double-tapping a task opens TaskPropertiesPage.
 -->
 <Page
 	x:Class="ManagementTools.Views.PCManagement.TaskSchedulerPage"
@@ -19,6 +14,7 @@
 	xmlns:local="using:ManagementTools.Views.PCManagement"
 	xmlns:localization="using:ManagementTools.Localization"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:vm="using:ManagementTools.Core.Features.PCManagement.ViewModels.TaskSchd"
 	mc:Ignorable="d">
 
 	<Page.Resources>
@@ -40,113 +36,119 @@
 
 		<!--  CommandBar  -->
 		<CommandBar Grid.Row="0" DefaultLabelPosition="Right">
-			<!--  Opens CreateTaskDialog (UI prototype). TODO(TaskScheduler): back it with a real creation flow.  -->
 			<AppBarButton
 				x:Name="CreateTaskButton"
 				Click="CreateTaskButton_Click"
 				Icon="Add"
-				Label="Create Task" />
-			<!--  TODO(TaskScheduler): re-enumerate the selected folder's tasks.  -->
-			<AppBarButton Icon="Refresh" Label="Refresh" />
+				Label="{x:Bind LocalizedStrings.TaskSchd_Command_CreateTask}" />
+			<AppBarButton
+				Command="{x:Bind ViewModel.RefreshCommand}"
+				Icon="Refresh"
+				Label="{x:Bind LocalizedStrings.TaskSchd_Command_Refresh}" />
 			<AppBarSeparator />
 
-			<!--
-				Disable / Enable is ONE toggle button (glyph + label swap in code-behind).
-				Disable glyph E769, Enable glyph E768. Enabled only when a task is selected.
-			-->
+			<!--  Disable / Enable: single toggle (glyph + label swap in code-behind).  -->
 			<AppBarButton
 				x:Name="DisableEnableButton"
 				Click="DisableEnableButton_Click"
-				IsEnabled="{x:Bind TasksListView.SelectedItem, Converter={StaticResource NullToBoolConverter}, Mode=OneWay}"
-				Label="Disable">
+				IsEnabled="{x:Bind ViewModel.HasSelectedTask, Mode=OneWay}"
+				Label="{x:Bind LocalizedStrings.TaskSchd_Command_Disable}">
 				<AppBarButton.Icon>
 					<FontIcon x:Name="DisableEnableIcon" Glyph="&#xE769;" />
 				</AppBarButton.Icon>
 			</AppBarButton>
 
-			<!--  Properties (glyph E90F): opens TaskPropertiesPage for the selected task.  -->
 			<AppBarButton
 				x:Name="PropertiesButton"
 				Click="PropertiesButton_Click"
-				IsEnabled="{x:Bind TasksListView.SelectedItem, Converter={StaticResource NullToBoolConverter}, Mode=OneWay}"
-				Label="Properties">
+				IsEnabled="{x:Bind ViewModel.HasSelectedTask, Mode=OneWay}"
+				Label="{x:Bind LocalizedStrings.TaskSchd_Command_Properties}">
 				<AppBarButton.Icon>
 					<FontIcon Glyph="&#xE90F;" />
 				</AppBarButton.Icon>
 			</AppBarButton>
 
-			<!--  More (glyph E712): MenuFlyout with task / folder actions.  -->
-			<AppBarButton Label="More" LabelPosition="Collapsed">
+			<AppBarButton Label="{x:Bind LocalizedStrings.TaskSchd_Command_More}" LabelPosition="Collapsed">
 				<AppBarButton.Icon>
 					<FontIcon Glyph="&#xE712;" />
 				</AppBarButton.Icon>
 				<AppBarButton.Flyout>
 					<MenuFlyout>
-						<!--  Run / End toggle (Run glyph E768, End glyph E71A). Needs a selected task.  -->
 						<MenuFlyoutItem
 							x:Name="RunEndMenuItem"
 							Click="RunEndMenuItem_Click"
-							IsEnabled="{x:Bind TasksListView.SelectedItem, Converter={StaticResource NullToBoolConverter}, Mode=OneWay}"
-							Text="Run">
+							IsEnabled="{x:Bind ViewModel.HasSelectedTask, Mode=OneWay}"
+							Text="{x:Bind LocalizedStrings.TaskSchd_Command_Run}">
 							<MenuFlyoutItem.Icon>
 								<FontIcon x:Name="RunEndIcon" Glyph="&#xE768;" />
 							</MenuFlyoutItem.Icon>
 						</MenuFlyoutItem>
-						<!--  TODO(TaskScheduler): export the selected task definition to XML.  -->
-						<MenuFlyoutItem IsEnabled="{x:Bind TasksListView.SelectedItem, Converter={StaticResource NullToBoolConverter}, Mode=OneWay}" Text="Export">
+						<MenuFlyoutItem
+							Click="ExportTask_Click"
+							IsEnabled="{x:Bind ViewModel.HasSelectedTask, Mode=OneWay}"
+							Text="{x:Bind LocalizedStrings.TaskSchd_Command_ExportTask}">
 							<MenuFlyoutItem.Icon>
 								<FontIcon Glyph="&#xEDE1;" />
 							</MenuFlyoutItem.Icon>
 						</MenuFlyoutItem>
-						<!--  TODO(TaskScheduler): delete the selected task (confirm via ContentDialog first).  -->
-						<MenuFlyoutItem IsEnabled="{x:Bind TasksListView.SelectedItem, Converter={StaticResource NullToBoolConverter}, Mode=OneWay}" Text="Delete">
+						<MenuFlyoutItem
+							Click="SecurityTask_Click"
+							IsEnabled="{x:Bind ViewModel.HasSelectedTask, Mode=OneWay}"
+							Text="{x:Bind LocalizedStrings.TaskSchd_Command_Security}">
+							<MenuFlyoutItem.Icon>
+								<FontIcon Glyph="&#xE72E;" />
+							</MenuFlyoutItem.Icon>
+						</MenuFlyoutItem>
+						<MenuFlyoutItem
+							Click="DeleteTask_Click"
+							IsEnabled="{x:Bind ViewModel.HasSelectedTask, Mode=OneWay}"
+							Text="{x:Bind LocalizedStrings.TaskSchd_Command_Delete}">
 							<MenuFlyoutItem.Icon>
 								<FontIcon Glyph="&#xE74D;" />
 							</MenuFlyoutItem.Icon>
 						</MenuFlyoutItem>
 						<MenuFlyoutSeparator />
-						<!--
-							Folder-scoped actions: enabled whenever any node (including the root
-							"Task Scheduler Library" node) is selected in LibraryTreeView, because
-							every node represents a folder that can contain sub-folders or imported
-							tasks. IsEnabled is bound to IsTreeNodeSelected, which is set in
-							code-behind via LibraryTreeView_SelectionChanged.
-						-->
 						<MenuFlyoutItem
-							IsEnabled="{x:Bind IsTreeNodeSelected, Mode=OneWay}"
-							Text="New folder">
+							Click="NewFolder_Click"
+							IsEnabled="{x:Bind ViewModel.IsFolderSelected, Mode=OneWay}"
+							Text="{x:Bind LocalizedStrings.TaskSchd_Command_NewFolder}">
 							<MenuFlyoutItem.Icon>
 								<FontIcon Glyph="&#xE8F4;" />
 							</MenuFlyoutItem.Icon>
 						</MenuFlyoutItem>
 						<MenuFlyoutItem
-							IsEnabled="{x:Bind IsTreeNodeSelected, Mode=OneWay}"
-							Text="Import Task...">
+							Click="ImportTask_Click"
+							IsEnabled="{x:Bind ViewModel.IsFolderSelected, Mode=OneWay}"
+							Text="{x:Bind LocalizedStrings.TaskSchd_Command_ImportTask}">
 							<MenuFlyoutItem.Icon>
 								<FontIcon Glyph="&#xE8B5;" />
 							</MenuFlyoutItem.Icon>
 						</MenuFlyoutItem>
-						<!--
-							Delete folder is disabled for the root "Task Scheduler Library" node
-							because that node is not a deletable user-created folder.
-							IsEnabled is bound to IsNonRootTreeNodeSelected, which is true only
-							when a non-root node is selected in LibraryTreeView.
-						-->
 						<MenuFlyoutItem
-							IsEnabled="{x:Bind IsNonRootTreeNodeSelected, Mode=OneWay}"
-							Text="Delete folder">
+							Command="{x:Bind ViewModel.DeleteFolderCommand}"
+							IsEnabled="{x:Bind ViewModel.IsNonRootFolderSelected, Mode=OneWay}"
+							Text="{x:Bind LocalizedStrings.TaskSchd_Command_DeleteFolder}">
 							<MenuFlyoutItem.Icon>
 								<FontIcon Glyph="&#xE74D;" />
 							</MenuFlyoutItem.Icon>
 						</MenuFlyoutItem>
-						<!--  TODO(TaskScheduler): launch the legacy taskschd.msc snap-in.  -->
-						<MenuFlyoutItem Click="OpenLegacyTaskScheduler_Click" Text="Open Legacy Task Scheduler" />
+						<MenuFlyoutSeparator />
+						<MenuFlyoutItem Click="ConnectComputer_Click" Text="{x:Bind LocalizedStrings.TaskSchd_Command_ConnectComputer}">
+							<MenuFlyoutItem.Icon>
+								<FontIcon Glyph="&#xE968;" />
+							</MenuFlyoutItem.Icon>
+						</MenuFlyoutItem>
+						<MenuFlyoutItem x:Name="HistoryToggleMenuItem" Click="ToggleAllHistory_Click" Text="{x:Bind LocalizedStrings.TaskSchd_Command_EnableAllHistory}">
+							<MenuFlyoutItem.Icon>
+								<FontIcon Glyph="&#xE81C;" />
+							</MenuFlyoutItem.Icon>
+						</MenuFlyoutItem>
 					</MenuFlyout>
 				</AppBarButton.Flyout>
 			</AppBarButton>
 		</CommandBar>
 
-		<!--  Content: TreeView | ContentSizer | (Search + Task list)  -->
+		<!--  Content: TreeView | ContentSizer | task list  -->
 		<Grid Grid.Row="1">
 			<Grid.ColumnDefinitions>
 				<ColumnDefinition Width="Auto" />
@@ -154,7 +156,6 @@
 				<ColumnDefinition Width="*" MinWidth="320" />
 			</Grid.ColumnDefinitions>
 
-			<!--  Left: folder tree (Task Scheduler Library)  -->
 			<Border
 				x:Name="TreePanel"
 				Grid.Column="0"
@@ -162,14 +163,22 @@
 				MinWidth="200"
 				BorderBrush="Transparent"
 				BorderThickness="0,0,1,0">
-				<!--  TODO(TaskScheduler): populate RootNodes from ITaskFolder hierarchy under "\".  -->
 				<TreeView
 					x:Name="LibraryTreeView"
 					AllowDrop="False"
 					CanDrag="False"
 					CanReorderItems="False"
+					ItemsSource="{x:Bind ViewModel.RootFolders}"
 					SelectionChanged="LibraryTreeView_SelectionChanged"
 					SelectionMode="Single">
+					<TreeView.ItemTemplate>
+						<DataTemplate x:DataType="vm:TaskFolderItem">
+							<TreeViewItem
+								Content="{x:Bind Name}"
+								IsExpanded="{x:Bind IsRoot}"
+								ItemsSource="{x:Bind Children}" />
+						</DataTemplate>
+					</TreeView.ItemTemplate>
 					<TreeView.ItemContainerStyle>
 						<Style TargetType="TreeViewItem">
 							<Setter Property="MinHeight" Value="36" />
@@ -178,41 +187,40 @@
 				</TreeView>
 			</Border>
 
-			<!--  Resizer for the tree panel (CommunityToolkit ContentSizer)  -->
 			<cwuc:ContentSizer
 				Grid.Column="1"
 				Width="12"
 				TargetControl="{x:Bind TreePanel}" />
 
-			<!--  Right: search + task list  -->
 			<Grid Grid.Column="2">
 				<Grid.RowDefinitions>
 					<RowDefinition Height="Auto" />
 					<RowDefinition Height="*" />
 				</Grid.RowDefinitions>
 
-				<!--  TODO(TaskScheduler): filter the task list by the typed query.  -->
 				<AutoSuggestBox
+					x:Name="SearchBox"
 					Grid.Row="0"
 					Margin="12,12,12,8"
 					PlaceholderText="Search"
-					QueryIcon="Find" />
+					QueryIcon="Find"
+					TextChanged="SearchBox_TextChanged" />
 
-				<!--  Task list. Double-tap a task to open its properties (TaskPropertiesPage).  -->
 				<ListView
 					x:Name="TasksListView"
 					Grid.Row="1"
 					Margin="12,0,12,12"
 					DoubleTapped="TasksListView_DoubleTapped"
-					ItemsSource="{x:Bind SampleTasks}"
+					ItemsSource="{x:Bind ViewModel.Tasks, Mode=OneWay}"
+					SelectedItem="{x:Bind ViewModel.SelectedTask, Mode=TwoWay}"
 					SelectionMode="Single">
 					<ListView.ItemTemplate>
-						<DataTemplate x:DataType="local:ScheduledTaskSample">
+						<DataTemplate x:DataType="vm:TaskListItem">
 							<StackPanel Padding="4,8" Spacing="2">
-								<TextBlock Style="{StaticResource BodyStrongTextBlockStyle}" Text="{x:Bind Name}" />
+								<TextBlock Style="{StaticResource BodyStrongTextBlockStyle}" Text="{x:Bind Name, Mode=OneWay}" />
 								<TextBlock
 									Style="{StaticResource SecondaryTextStyle}"
-									Text="{x:Bind StatusLine}"
+									Text="{x:Bind StatusLine, Mode=OneWay}"
 									TextTrimming="CharacterEllipsis" />
 							</StackPanel>
 						</DataTemplate>
