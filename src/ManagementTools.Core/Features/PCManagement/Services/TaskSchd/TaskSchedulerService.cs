@@ -207,6 +207,17 @@ public sealed class TaskSchedulerService : ITaskSchedulerService, IDisposable
             service.GetFolder(NormalizeFolder(parentPath), out var parent);
             try
             {
+                // ITaskFolder::DeleteFolder returns ERROR_DIR_NOT_EMPTY (0x80070091) for a folder that
+                // still contains tasks or subfolders, so recursively empty it first (matching MMC).
+                parent.GetFolder(name, out var target);
+                try
+                {
+                    EmptyFolder(target);
+                }
+                finally
+                {
+                    TaskSchedulerCom.Release(target);
+                }
                 parent.DeleteFolder(name, TaskSchedulerCom.NoFlags);
             }
             finally
@@ -321,6 +332,58 @@ public sealed class TaskSchedulerService : ITaskSchedulerService, IDisposable
         {
             TaskSchedulerCom.Release(registered);
             TaskSchedulerCom.Release(folder);
+        }
+    }
+
+    /// <summary>Recursively deletes every task and subfolder inside <paramref name="folder"/>, leaving it empty.</summary>
+    /// <remarks>Always invoked on the STA thread. The COM collections returned by GetFolders/GetTasks are
+    /// snapshots, so deleting by name through the live <paramref name="folder"/> while iterating is safe.</remarks>
+    private static void EmptyFolder(ITaskFolder folder)
+    {
+        // Subfolders first (depth-first): each must be emptied before it can be deleted.
+        folder.GetFolders(TaskSchedulerCom.NoFlags, out var subFolders);
+        try
+        {
+            for (int i = 1; i <= subFolders.Count; i++)
+            {
+                subFolders.get_Item(i, out var child);
+                try
+                {
+                    var childName = child.Name;
+                    EmptyFolder(child);
+                    folder.DeleteFolder(childName, TaskSchedulerCom.NoFlags);
+                }
+                finally
+                {
+                    TaskSchedulerCom.Release(child);
+                }
+            }
+        }
+        finally
+        {
+            TaskSchedulerCom.Release(subFolders);
+        }
+
+        // Then the tasks (include hidden, otherwise the folder would still report as non-empty).
+        folder.GetTasks(TaskSchedulerCom.TaskEnumHidden, out var tasks);
+        try
+        {
+            for (int i = 1; i <= tasks.Count; i++)
+            {
+                tasks.get_Item(i, out var task);
+                try
+                {
+                    folder.DeleteTask(task.Name, TaskSchedulerCom.NoFlags);
+                }
+                finally
+                {
+                    TaskSchedulerCom.Release(task);
+                }
+            }
+        }
+        finally
+        {
+            TaskSchedulerCom.Release(tasks);
         }
     }
 

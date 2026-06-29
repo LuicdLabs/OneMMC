@@ -92,14 +92,6 @@
 							</MenuFlyoutItem.Icon>
 						</MenuFlyoutItem>
 						<MenuFlyoutItem
-							Click="SecurityTask_Click"
-							IsEnabled="{x:Bind ViewModel.HasSelectedTask, Mode=OneWay}"
-							Text="{x:Bind LocalizedStrings.TaskSchd_Command_Security}">
-							<MenuFlyoutItem.Icon>
-								<FontIcon Glyph="&#xE72E;" />
-							</MenuFlyoutItem.Icon>
-						</MenuFlyoutItem>
-						<MenuFlyoutItem
 							Click="DeleteTask_Click"
 							IsEnabled="{x:Bind ViewModel.HasSelectedTask, Mode=OneWay}"
 							Text="{x:Bind LocalizedStrings.TaskSchd_Command_Delete}">
@@ -125,7 +117,7 @@
 							</MenuFlyoutItem.Icon>
 						</MenuFlyoutItem>
 						<MenuFlyoutItem
-							Command="{x:Bind ViewModel.DeleteFolderCommand}"
+							Click="DeleteFolder_Click"
 							IsEnabled="{x:Bind ViewModel.IsNonRootFolderSelected, Mode=OneWay}"
 							Text="{x:Bind LocalizedStrings.TaskSchd_Command_DeleteFolder}">
 							<MenuFlyoutItem.Icon>
@@ -163,27 +155,27 @@
 				MinWidth="200"
 				BorderBrush="Transparent"
 				BorderThickness="0,0,1,0">
+				<!--
+					Explicit TreeViewNode hierarchy (RootNodes built in code-behind), matching the
+					other management trees in this app (RSoP, GpEdit, SecPol). The data-bound
+					ItemsSource + TreeViewItem-template approach corrupts single-selection visuals,
+					so the node content is a plain template bound to TreeViewNode.Content.
+				-->
 				<TreeView
 					x:Name="LibraryTreeView"
 					AllowDrop="False"
-					CanDrag="False"
+					CanDragItems="False"
 					CanReorderItems="False"
-					ItemsSource="{x:Bind ViewModel.RootFolders}"
+					ItemInvoked="LibraryTreeView_ItemInvoked"
 					SelectionChanged="LibraryTreeView_SelectionChanged"
 					SelectionMode="Single">
 					<TreeView.ItemTemplate>
-						<DataTemplate x:DataType="vm:TaskFolderItem">
-							<TreeViewItem
-								Content="{x:Bind Name}"
-								IsExpanded="{x:Bind IsRoot}"
-								ItemsSource="{x:Bind Children}" />
+						<DataTemplate>
+							<Grid MinHeight="36">
+								<TextBlock VerticalAlignment="Center" Text="{Binding Content.Name}" />
+							</Grid>
 						</DataTemplate>
 					</TreeView.ItemTemplate>
-					<TreeView.ItemContainerStyle>
-						<Style TargetType="TreeViewItem">
-							<Setter Property="MinHeight" Value="36" />
-						</Style>
-					</TreeView.ItemContainerStyle>
 				</TreeView>
 			</Border>
 

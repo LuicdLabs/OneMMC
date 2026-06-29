@@ -42,9 +42,9 @@ public sealed class PrincipalModel
     /// <summary>Privileges required by the task (IPrincipal2 RequiredPrivileges).</summary>
     public IList<string> RequiredPrivileges { get; set; } = new List<string>();
 
-    /// <summary>True when the task is configured to run whether or not the user is logged on (password/S4U).</summary>
+    /// <summary>True when the task runs whether or not the user is logged on (password/S4U/group/service).</summary>
     public bool RunWhetherLoggedOn =>
-        LogonType is TaskLogonType.Password or TaskLogonType.S4U or TaskLogonType.InteractiveTokenOrPassword or TaskLogonType.ServiceAccount;
+        LogonType is TaskLogonType.Password or TaskLogonType.S4U or TaskLogonType.InteractiveTokenOrPassword or TaskLogonType.ServiceAccount or TaskLogonType.Group;
 }
 
 /// <summary>Idle-condition settings (mirrors <c>IIdleSettings</c>).</summary>

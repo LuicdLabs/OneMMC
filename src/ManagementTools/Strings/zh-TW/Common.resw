@@ -132,6 +132,15 @@
   <data name="Common_SaveButton" xml:space="preserve">
     <value>儲存</value>
   </data>
+  <data name="Common_DontSaveButton" xml:space="preserve">
+    <value>不儲存</value>
+  </data>
+  <data name="Common_UnsavedChanges_Title" xml:space="preserve">
+    <value>尚未儲存的變更</value>
+  </data>
+  <data name="Common_UnsavedChanges_Message" xml:space="preserve">
+    <value>您有尚未儲存的變更。離開前要儲存嗎？</value>
+  </data>
   <data name="Common_CreateButton" xml:space="preserve">
     <value>建立</value>
   </data>

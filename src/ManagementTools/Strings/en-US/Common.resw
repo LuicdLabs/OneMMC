@@ -132,6 +132,15 @@
   <data name="Common_SaveButton" xml:space="preserve">
     <value>Save</value>
   </data>
+  <data name="Common_DontSaveButton" xml:space="preserve">
+    <value>Don't Save</value>
+  </data>
+  <data name="Common_UnsavedChanges_Title" xml:space="preserve">
+    <value>Unsaved changes</value>
+  </data>
+  <data name="Common_UnsavedChanges_Message" xml:space="preserve">
+    <value>You have unsaved changes. Do you want to save them before leaving?</value>
+  </data>
   <data name="Common_CreateButton" xml:space="preserve">
     <value>Create</value>
   </data>

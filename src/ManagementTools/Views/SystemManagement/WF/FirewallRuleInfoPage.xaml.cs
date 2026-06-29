@@ -47,6 +47,12 @@ public sealed partial class FirewallRuleInfoPage : Page
     private bool _isPopulatingRuleUi;
     private bool _isSynchronizingProtocolNumber;
 
+    // Unsaved-changes guard: set when the user edits the rule (Rule.PropertyChanged outside of load /
+    // system-refresh), cleared on load and after a successful Apply; prompts on back-navigation.
+    private FirewallRuleModel? _trackedRule;
+    private bool _hasUnsavedChanges;
+    private bool _bypassNavGuard;
+
     public FirewallRuleInfoPage()
     {
         _logger = App.GetRequiredService<ILogger<FirewallRuleInfoPage>>();
@@ -68,6 +74,7 @@ public sealed partial class FirewallRuleInfoPage : Page
         {
             _connectionSecurityRule = connectionSecurityRule;
             Rule = CreateFirewallRuleModel(connectionSecurityRule);
+            TrackRuleChanges(Rule);
             RestoreRuleAvailabilityUi();
             _isPopulatingRuleUi = true;
             try
@@ -83,6 +90,7 @@ public sealed partial class FirewallRuleInfoPage : Page
             }
 
             UpdateDisableButton();
+            _hasUnsavedChanges = false;
             return;
         }
 
@@ -90,6 +98,7 @@ public sealed partial class FirewallRuleInfoPage : Page
         {
             _connectionSecurityRule = null;
             Rule = rule;
+            TrackRuleChanges(Rule);
             RestoreRuleAvailabilityUi();
             _isPopulatingRuleUi = true;
             try
@@ -105,6 +114,7 @@ public sealed partial class FirewallRuleInfoPage : Page
 
             UpdateDisableButton();
             ApplyPredefinedRuleUI(rule);
+            _hasUnsavedChanges = false;
         }
     }
 
@@ -112,7 +122,70 @@ public sealed partial class FirewallRuleInfoPage : Page
     {
         _firewallChangeSubscription?.Dispose();
         _firewallChangeSubscription = null;
+        if (_trackedRule is not null)
+        {
+            _trackedRule.PropertyChanged -= OnRulePropertyChanged;
+            _trackedRule = null;
+        }
         Unloaded -= OnUnloaded;
+    }
+
+    // ----- Unsaved-changes guard -----
+
+    private void TrackRuleChanges(FirewallRuleModel rule)
+    {
+        if (ReferenceEquals(_trackedRule, rule))
+        {
+            return;
+        }
+        if (_trackedRule is not null)
+        {
+            _trackedRule.PropertyChanged -= OnRulePropertyChanged;
+        }
+        _trackedRule = rule;
+        _trackedRule.PropertyChanged += OnRulePropertyChanged;
+    }
+
+    private void OnRulePropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        // Ignore programmatic edits made while loading the page or refreshing from a system change.
+        if (!_isPopulatingRuleUi && !_isRefreshingFromSystemChange)
+        {
+            _hasUnsavedChanges = true;
+        }
+    }
+
+    protected override void OnNavigatingFrom(NavigatingCancelEventArgs e)
+    {
+        base.OnNavigatingFrom(e);
+        if (_bypassNavGuard || !_hasUnsavedChanges)
+        {
+            return;
+        }
+        e.Cancel = true;
+        _ = ResolveUnsavedChangesAsync(e.NavigationMode, e.SourcePageType, e.Parameter);
+    }
+
+    private async Task ResolveUnsavedChangesAsync(NavigationMode mode, Type? sourcePageType, object? parameter)
+    {
+        var choice = await UnsavedChangesPrompt.ShowAsync(this.XamlRoot);
+        if (choice == UnsavedChangesChoice.Cancel)
+        {
+            return;
+        }
+        if (choice == UnsavedChangesChoice.Save && !await SaveAsync())
+        {
+            return; // save failed (e.g. needs elevation or validation) — stay on the page
+        }
+        _bypassNavGuard = true;
+        if (mode == NavigationMode.Back && Frame.CanGoBack)
+        {
+            Frame.GoBack();
+        }
+        else if (sourcePageType is not null)
+        {
+            Frame.Navigate(sourcePageType, parameter);
+        }
     }
 
     private void InitializeAllowIfSecureState()
@@ -544,23 +617,26 @@ public sealed partial class FirewallRuleInfoPage : Page
             Rule.Compartments = string.Empty;
     }
 
-    private async void ApplyButton_Click(object sender, RoutedEventArgs e)
+    private async void ApplyButton_Click(object sender, RoutedEventArgs e) => await SaveAsync();
+
+    /// <summary>Applies the pending edits to the firewall/connection-security rule. Returns true on success.</summary>
+    private async Task<bool> SaveAsync()
     {
         var adminService = App.GetRequiredService<ManagementTools.Core.Abstractions.Services.IAdminService>();
         if (!adminService.IsRunningAsAdmin)
         {
             await ManagementTools.Helpers.AdminDialogHelper.ShowAdminRequiredDialogAsync(this.XamlRoot);
-            return;
+            return false;
         }
 
         if (!await CommitProtocolNumberBeforeApplyAsync())
         {
-            return;
+            return false;
         }
 
         if (!await ValidateRuleBeforeApplyAsync())
         {
-            return;
+            return false;
         }
 
         SetApplyInProgress(true);
@@ -572,17 +648,18 @@ public sealed partial class FirewallRuleInfoPage : Page
                 UpdateConnectionSecurityRuleFromUi();
                 var connectionSecurityService = App.GetRequiredService<ConnectionSecurityService>();
                 await Task.Run(() => connectionSecurityService.UpdateRule(_connectionSecurityRule));
+                _hasUnsavedChanges = false;
+                return true;
             }
             catch (Exception ex)
             {
                 await ShowErrorDialogAsync(LocalizedStrings.WF_Error_UpdateConnectionSecurityRule, ex.Message);
+                return false;
             }
             finally
             {
                 SetApplyInProgress(false);
             }
-
-            return;
         }
 
         Rule.Action = Rule.ConnectionAction == FirewallConnectionAction.Block
@@ -609,10 +686,13 @@ public sealed partial class FirewallRuleInfoPage : Page
             });
             Rule.OriginalName = ruleToApply.OriginalName;
             await RefreshRuleStatusFromSystemChangeAsync(includeMutableState: true);
+            _hasUnsavedChanges = false;
+            return true;
         }
         catch (Exception ex)
         {
             await ShowErrorDialogAsync(LocalizedStrings.WF_Error_UpdateRule, ex.Message);
+            return false;
         }
         finally
         {

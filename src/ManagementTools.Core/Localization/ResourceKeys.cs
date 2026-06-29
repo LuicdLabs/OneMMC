@@ -896,6 +896,13 @@ public static class CommonKeys
     public const string AdminRequired_Message = "Common_AdminRequired_Message";
     public const string AccessDenied_Generic = "Common_AccessDenied_Generic";
 
+    // Unsaved-changes guard (prompted on back-navigation when a page has pending edits)
+    public const string UnsavedChangesTitle = "Common_UnsavedChanges_Title";
+    public const string UnsavedChangesMessage = "Common_UnsavedChanges_Message";
+    public const string SaveButton = "Common_SaveButton";
+    public const string DontSaveButton = "Common_DontSaveButton";
+    public const string CancelButton = "Common_CancelButton";
+
     // Count messages
     public const string CountItem_Singular = "Common_CountItem_Singular";
     public const string CountItem_Plural = "Common_CountItem_Plural";

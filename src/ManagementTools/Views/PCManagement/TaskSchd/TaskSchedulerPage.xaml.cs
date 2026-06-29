@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Specialized;
 using System.IO;
 using System.Threading.Tasks;
 using ManagementTools.Core.Features.PCManagement.Models.TaskSchd;
@@ -26,6 +27,10 @@ public sealed partial class TaskSchedulerPage : Page
 
     private readonly IFileDialogService _fileDialog = App.GetRequiredService<IFileDialogService>();
 
+    // Guards the programmatic root-node selection (in RebuildTree) so it does not re-enter the
+    // SelectionChanged handler and trigger a redundant folder load.
+    private bool _suppressTreeSelection;
+
     public TaskSchedulerPage()
     {
         InitializeComponent();
@@ -33,6 +38,7 @@ public sealed partial class TaskSchedulerPage : Page
         App.ThemeChanged += OnThemeChanged;
         ViewModel.AdminPermissionRequired += OnAdminPermissionRequired;
         ViewModel.PropertyChanged += ViewModel_PropertyChanged;
+        ViewModel.RootFolders.CollectionChanged += OnRootFoldersChanged;
         Loaded += OnLoaded;
         Unloaded += OnUnloaded;
     }
@@ -47,6 +53,7 @@ public sealed partial class TaskSchedulerPage : Page
         {
             await ViewModel.LoadAsync();
         }
+        RebuildTree();
         await RefreshHistoryMenuLabelAsync();
     }
 
@@ -55,7 +62,12 @@ public sealed partial class TaskSchedulerPage : Page
         App.ThemeChanged -= OnThemeChanged;
         ViewModel.AdminPermissionRequired -= OnAdminPermissionRequired;
         ViewModel.PropertyChanged -= ViewModel_PropertyChanged;
+        ViewModel.RootFolders.CollectionChanged -= OnRootFoldersChanged;
     }
+
+    // The view model owns the folder data; whenever it rebuilds the tree (load, folder create/delete,
+    // connect), mirror it into the TreeView's explicit node hierarchy.
+    private void OnRootFoldersChanged(object? sender, NotifyCollectionChangedEventArgs e) => RebuildTree();
 
     private void OnThemeChanged(ElementTheme theme) => this.RequestedTheme = theme;
 
@@ -81,12 +93,71 @@ public sealed partial class TaskSchedulerPage : Page
         RunEndMenuItem.Text = running ? L(TaskSchdKeys.CommandEnd) : L(TaskSchdKeys.CommandRun);
     }
 
+    /// <summary>Rebuilds the explicit TreeView node hierarchy from the view model's folder tree.</summary>
+    private void RebuildTree()
+    {
+        LibraryTreeView.RootNodes.Clear();
+        foreach (var folder in ViewModel.RootFolders)
+        {
+            LibraryTreeView.RootNodes.Add(BuildTreeNode(folder));
+        }
+
+        // Show the root as selected so it matches the task list the view model loads on startup,
+        // without re-entering SelectionChanged (which would reload the same folder).
+        if (LibraryTreeView.RootNodes.Count > 0)
+        {
+            _suppressTreeSelection = true;
+            LibraryTreeView.SelectedNode = LibraryTreeView.RootNodes[0];
+            _suppressTreeSelection = false;
+        }
+    }
+
+    private static TreeViewNode BuildTreeNode(TaskFolderItem folder)
+    {
+        var node = new TreeViewNode { Content = folder, IsExpanded = folder.IsRoot };
+        foreach (var child in folder.Children)
+        {
+            node.Children.Add(BuildTreeNode(child));
+        }
+        return node;
+    }
+
     private async void LibraryTreeView_SelectionChanged(TreeView sender, TreeViewSelectionChangedEventArgs args)
     {
-        if (sender.SelectedItem is TaskFolderItem folder)
+        if (_suppressTreeSelection || args.AddedItems.Count == 0)
         {
-            await ViewModel.SelectFolderAsync(folder);
+            return;
         }
+        if (ResolveFolder(args.AddedItems[0]) is { } folder)
+        {
+            await SelectFolderAsync(folder);
+        }
+    }
+
+    private async void LibraryTreeView_ItemInvoked(TreeView sender, TreeViewItemInvokedEventArgs args)
+    {
+        if (ResolveFolder(args.InvokedItem) is { } folder)
+        {
+            await SelectFolderAsync(folder);
+        }
+    }
+
+    // Selection (AddedItems) and invocation (InvokedItem) yield a TreeViewNode for explicit-node
+    // trees; tolerate a bare data item as well so the handler is robust to either binding mode.
+    private static TaskFolderItem? ResolveFolder(object? item) => item switch
+    {
+        TreeViewNode { Content: TaskFolderItem folder } => folder,
+        TaskFolderItem folder => folder,
+        _ => null,
+    };
+
+    private async Task SelectFolderAsync(TaskFolderItem folder)
+    {
+        if (ReferenceEquals(ViewModel.SelectedFolder, folder))
+        {
+            return;
+        }
+        await ViewModel.SelectFolderAsync(folder);
     }
 
     private void SearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
@@ -171,6 +242,18 @@ public sealed partial class TaskSchedulerPage : Page
         }
     }
 
+    private async void DeleteFolder_Click(object sender, RoutedEventArgs e)
+    {
+        if (ViewModel.SelectedFolder is not { IsRoot: false } folder)
+        {
+            return;
+        }
+        if (await ConfirmAsync(string.Format(L(TaskSchdKeys.ConfirmDeleteFolderFormat), folder.Name)))
+        {
+            await ViewModel.DeleteFolderCommand.ExecuteAsync(null);
+        }
+    }
+
     private async void ExportTask_Click(object sender, RoutedEventArgs e)
     {
         if (ViewModel.SelectedTask is not { } task)
@@ -232,30 +315,6 @@ public sealed partial class TaskSchedulerPage : Page
         await ViewModel.ConnectAsync(connection);
     }
 
-    private async void SecurityTask_Click(object sender, RoutedEventArgs e)
-    {
-        if (ViewModel.SelectedTask is not { } task)
-        {
-            return;
-        }
-
-        var service = App.GetRequiredService<ITaskSchedulerService>();
-        try
-        {
-            // DACL + OWNER + GROUP
-            var sddl = await service.GetTaskSecurityDescriptorAsync(task.Path, 0x1 | 0x2 | 0x4) ?? string.Empty;
-            var edited = await PromptTextAsync(L(TaskSchdKeys.CommandSecurity), "SDDL", sddl, multiline: true);
-            if (edited is not null && !string.Equals(edited, sddl, StringComparison.Ordinal))
-            {
-                await service.SetTaskSecurityDescriptorAsync(task.Path, edited);
-            }
-        }
-        catch (Exception ex) when (App.GetRequiredService<IAdminService>().IsPermissionError(ex))
-        {
-            await AdminDialogHelper.ShowAdminRequiredDialogAsync(this.XamlRoot);
-        }
-    }
-
     private async void ToggleAllHistory_Click(object sender, RoutedEventArgs e)
     {
         var history = App.GetRequiredService<TaskHistoryService>();
@@ -298,6 +357,7 @@ public sealed partial class TaskSchedulerPage : Page
             PrimaryButtonText = L(TaskSchdKeys.ButtonOk),
             CloseButtonText = L(TaskSchdKeys.ButtonCancel),
             DefaultButton = ContentDialogButton.Primary,
+            Style = Application.Current.Resources["DefaultContentDialogStyle"] as Style,
             XamlRoot = this.XamlRoot,
             RequestedTheme = App.CurrentTheme,
         };
@@ -322,6 +382,7 @@ public sealed partial class TaskSchedulerPage : Page
             PrimaryButtonText = L(TaskSchdKeys.ButtonOk),
             CloseButtonText = L(TaskSchdKeys.ButtonCancel),
             DefaultButton = ContentDialogButton.Primary,
+            Style = Application.Current.Resources["DefaultContentDialogStyle"] as Style,
             XamlRoot = this.XamlRoot,
             RequestedTheme = App.CurrentTheme,
         };

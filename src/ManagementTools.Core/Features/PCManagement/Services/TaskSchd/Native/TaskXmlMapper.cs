@@ -19,8 +19,8 @@ internal static class TaskXmlMapper
 {
     private static readonly XNamespace Ns = "http://schemas.microsoft.com/windows/2004/02/mit/task";
 
-    // Schema version attribute <-> compatibility level. We author 1.4 (Windows 10) by default; existing
-    // tasks keep whatever version they declared because RawXml is preserved for exact round-trips.
+    // Schema version attribute <-> compatibility level. New tasks author 1.4 (Windows 10) by default;
+    // existing task versions are recomputed from the selected "Configure for" value and supported fields.
     private const string DefaultVersion = "1.4";
 
     private static readonly string[] DayNames =
@@ -47,7 +47,7 @@ internal static class TaskXmlMapper
         }
 
         var principalId = string.IsNullOrEmpty(def.Principal.Id) ? "Author" : def.Principal.Id;
-        task.Add(new XElement(Ns + "Principals", SerializePrincipal(def.Principal, principalId)));
+        task.Add(new XElement(Ns + "Principals", SerializePrincipal(def.Principal, principalId, def.Settings.Compatibility)));
         task.Add(SerializeSettings(def.Settings));
         task.Add(SerializeActions(def.Actions, principalId));
 
@@ -69,7 +69,7 @@ internal static class TaskXmlMapper
         return e;
     }
 
-    private static XElement SerializePrincipal(PrincipalModel p, string id)
+    private static XElement SerializePrincipal(PrincipalModel p, string id, TaskCompatibility compatibility)
     {
         var e = new XElement(Ns + "Principal", new XAttribute("id", id));
         if (!string.IsNullOrEmpty(p.UserId))
@@ -80,6 +80,8 @@ internal static class TaskXmlMapper
         {
             e.Add(new XElement(Ns + "GroupId", p.GroupId));
         }
+        // <DisplayName> requires schema version 1.2; the 1.1 validator rejects it. Every task this
+        // editor emits is already clamped to >= 1.2 (see MinVersionForFeatures), so it is always safe.
         AddIf(e, "DisplayName", p.DisplayName);
         if (p.LogonType != TaskLogonType.None && string.IsNullOrEmpty(p.GroupId))
         {
@@ -91,7 +93,7 @@ internal static class TaskXmlMapper
         {
             e.Add(new XElement(Ns + "RunLevel", "HighestAvailable"));
         }
-        if (p.RequiredPrivileges.Count > 0)
+        if (p.RequiredPrivileges.Count > 0 && SupportsWindows7Compatibility(compatibility))
         {
             e.Add(new XElement(Ns + "RequiredPrivileges", p.RequiredPrivileges.Select(pr => new XElement(Ns + "Privilege", pr))));
         }
@@ -122,11 +124,15 @@ internal static class TaskXmlMapper
         e.Add(new XElement(Ns + "Enabled", XmlBool(s.Enabled)));
         e.Add(new XElement(Ns + "Hidden", XmlBool(s.Hidden)));
         e.Add(new XElement(Ns + "RunOnlyIfIdle", XmlBool(s.RunOnlyIfIdle)));
-        if (s.DisallowStartOnRemoteAppSession)
+        // DisallowStartOnRemoteAppSession and UseUnifiedSchedulingEngine are ITaskSettings2 elements that
+        // the schema only accepts at version 1.3 (Windows 8 / Server 2012) and above — the 1.2 (Windows 7)
+        // validator rejects them. Emit them only when the user targets Windows 8+, and bump the version
+        // accordingly in MinVersionForFeatures.
+        if (s.DisallowStartOnRemoteAppSession && SupportsWindows8Compatibility(s.Compatibility))
         {
             e.Add(new XElement(Ns + "DisallowStartOnRemoteAppSession", XmlBool(true)));
         }
-        if (s.UseUnifiedSchedulingEngine)
+        if (s.UseUnifiedSchedulingEngine && SupportsWindows8Compatibility(s.Compatibility))
         {
             e.Add(new XElement(Ns + "UseUnifiedSchedulingEngine", XmlBool(true)));
         }
@@ -887,32 +893,58 @@ internal static class TaskXmlMapper
     };
 
     /// <summary>
-    /// Picks the <c>&lt;Task version&gt;</c> to emit: never below the original (preserved) version, the
-    /// version implied by the "Configure for" compatibility, or the minimum the features in use require.
-    /// Emitting too low a version causes the scheduler to reject the XML as malformed (SCHED_E_MALFORMEDXML).
+    /// Picks the <c>&lt;Task version&gt;</c> to emit. The "Configure for" compatibility chooses the target
+    /// version (so lowering it actually takes effect); it is then clamped up only to the minimum the
+    /// features in use require — emitting too low a version is rejected as malformed (SCHED_E_MALFORMEDXML).
+    /// The original schema version is preserved only when it is newer than the compatibility enum can
+    /// express (1.5+), so we never silently downgrade/strip elements from a newer task.
     /// </summary>
     private static string ResolveVersion(TaskDefinitionModel def)
     {
-        var version = MaxVersion(def.SchemaVersion ?? "1.0", VersionForCompatibility(def.Settings.Compatibility));
-        return MaxVersion(version, MinVersionForFeatures(def));
+        var target = VersionForCompatibility(def.Settings.Compatibility);
+        if (VersionValue(def.SchemaVersion ?? "1.0") > VersionValue("1.4"))
+        {
+            target = MaxVersion(target, def.SchemaVersion!);
+        }
+        return MaxVersion(target, MinVersionForFeatures(def));
     }
 
     private static string MinVersionForFeatures(TaskDefinitionModel def)
     {
-        // Modern baseline; bump for elements introduced in later schema revisions.
+        // 1.2 (Windows Vista / Server 2008) is the practical baseline: the Task Scheduler service rejects
+        // the standard settings this editor always emits — MultipleInstancesPolicy, AllowStartOnDemand,
+        // AllowHardTerminate, StartWhenAvailable, RunOnlyIfNetworkAvailable — at version 1.1, and there are
+        // no 1.1 tasks in practice. (Verified empirically against the live service via RegisterTask with
+        // TASK_VALIDATE_ONLY.) Choosing "Windows Vista" therefore resolves to 1.2, not 1.1.
         var version = "1.2";
-        if (def.Settings.DisallowStartOnRemoteAppSession || def.Settings.UseUnifiedSchedulingEngine)
+        if (def.Principal.RequiredPrivileges.Count > 0 && SupportsWindows7Compatibility(def.Settings.Compatibility))
         {
+            // <RequiredPrivileges> (IPrincipal2) is Windows 7 / Server 2008 R2 = version 1.3.
+            version = MaxVersion(version, "1.3");
+        }
+        if ((def.Settings.DisallowStartOnRemoteAppSession || def.Settings.UseUnifiedSchedulingEngine) &&
+            SupportsWindows8Compatibility(def.Settings.Compatibility))
+        {
+            // ITaskSettings2 fields (DisallowStartOnRemoteAppSession, UseUnifiedSchedulingEngine) are only
+            // valid at 1.3 (Windows 8 / Server 2012); the 1.2 validator rejects them. When the user chooses
+            // Windows 7 or earlier, SerializeSettings omits them so the lower compatibility stays reachable.
             version = MaxVersion(version, "1.3");
         }
         if (def.Settings.MaintenanceSettings is not null || def.Settings.Volatile)
         {
-            version = MaxVersion(version, "1.5");
+            // <MaintenanceSettings> and <Volatile> (ITaskSettings3) require 1.4 (Windows 8.1 / Windows 10).
+            version = MaxVersion(version, "1.4");
         }
         return version;
     }
 
     private static string MaxVersion(string a, string b) => VersionValue(a) >= VersionValue(b) ? a : b;
+
+    private static bool SupportsWindows7Compatibility(TaskCompatibility compatibility) =>
+        compatibility >= TaskCompatibility.V2_1;
+
+    private static bool SupportsWindows8Compatibility(TaskCompatibility compatibility) =>
+        compatibility >= TaskCompatibility.V2_2;
 
     private static int VersionValue(string version)
     {
@@ -922,12 +954,16 @@ internal static class TaskXmlMapper
         return (major * 100) + minor;
     }
 
+    // The "Configure for" level maps to the <Task version> the service round-trips back to the SAME
+    // TASK_COMPATIBILITY (which is what taskschd.msc reads to label the task). Verified against the live
+    // service: 1.2->V2 (Vista), 1.3->V2_1 (Win7), 1.4->V2_2 (Win8). The earlier table was off by one, so
+    // both Vista and Windows 7 collapsed onto 1.2 and Windows 7 showed up as Windows Vista.
     private static string VersionForCompatibility(TaskCompatibility c) => c switch
     {
         TaskCompatibility.At or TaskCompatibility.V1 => "1.0",
-        TaskCompatibility.V2 => "1.1",
-        TaskCompatibility.V2_1 => "1.2",
-        TaskCompatibility.V2_2 => "1.3",
+        TaskCompatibility.V2 => "1.2",
+        TaskCompatibility.V2_1 => "1.3",
+        TaskCompatibility.V2_2 => "1.4",
         TaskCompatibility.V2_3 => "1.4",
         _ => DefaultVersion,
     };
@@ -935,9 +971,8 @@ internal static class TaskXmlMapper
     private static TaskCompatibility CompatibilityForVersion(string? version) => version switch
     {
         "1.0" => TaskCompatibility.V1,
-        "1.1" => TaskCompatibility.V2,
-        "1.2" => TaskCompatibility.V2_1,
-        "1.3" => TaskCompatibility.V2_2,
+        "1.1" or "1.2" => TaskCompatibility.V2,
+        "1.3" => TaskCompatibility.V2_1,
         "1.4" or "1.5" or "1.6" or "1.7" => TaskCompatibility.V2_3,
         _ => TaskCompatibility.V2,
     };

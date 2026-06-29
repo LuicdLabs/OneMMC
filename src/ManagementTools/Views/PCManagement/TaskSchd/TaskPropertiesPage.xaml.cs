@@ -38,6 +38,11 @@ public sealed partial class TaskPropertiesPage : Page
     private TaskDefinitionModel _definition = new();
     private bool _initialized;
 
+    // Serialized snapshot of the task as last loaded/saved; compared against the current control state
+    // to detect unsaved edits. _bypassNavGuard lets the guard re-issue the navigation it cancelled.
+    private string? _baselineXml;
+    private bool _bypassNavGuard;
+
     public TaskPropertiesPage()
     {
         InitializeComponent();
@@ -105,6 +110,7 @@ public sealed partial class TaskPropertiesPage : Page
         RunOnlyLoggedOnRadio.IsChecked = !principal.RunWhetherLoggedOn;
         DoNotStorePasswordCheckBox.IsChecked = principal.LogonType == TaskLogonType.S4U;
         HighestPrivilegesToggle.IsOn = principal.RunLevel == TaskRunLevel.HighestAvailable;
+        UpdatePrincipalModeForGroup(!string.IsNullOrEmpty(principal.GroupId));
 
         // TaskTriggers / actions
         TaskTriggers.Clear();
@@ -146,6 +152,11 @@ public sealed partial class TaskPropertiesPage : Page
 
         _initialized = true;
         UpdateAllConditionalStates();
+
+        // Snapshot the just-loaded state (round-tripped through the controls) as the clean baseline
+        // for unsaved-changes detection.
+        BuildDefinitionFromControls();
+        _baselineXml = _service.SerializeToXml(_definition);
     }
 
     private async Task LoadHistoryAsync()
@@ -210,11 +221,11 @@ public sealed partial class TaskPropertiesPage : Page
 
     private async void ApplyButton_Click(object sender, RoutedEventArgs e) => await SaveAsync();
 
-    private async Task SaveAsync()
+    private async Task<bool> SaveAsync()
     {
         if (_taskPath is null)
         {
-            return;
+            return false;
         }
 
         BuildDefinitionFromControls();
@@ -222,15 +233,65 @@ public sealed partial class TaskPropertiesPage : Page
         try
         {
             await _service.RegisterTaskAsync(folderPath, name, _definition);
+            _baselineXml = _service.SerializeToXml(_definition);
+            return true;
         }
         catch (Exception ex) when (App.GetRequiredService<IAdminService>().IsPermissionError(ex))
         {
             await AdminDialogHelper.ShowAdminRequiredDialogAsync(this.XamlRoot);
+            return false;
         }
         catch (Exception ex)
         {
             await ShowMessageAsync(string.Format(L(TaskSchdKeys.ErrorOperationFailed), ex.Message));
+            return false;
         }
+    }
+
+    // ----- Unsaved-changes guard -----
+
+    protected override void OnNavigatingFrom(NavigatingCancelEventArgs e)
+    {
+        base.OnNavigatingFrom(e);
+        if (_bypassNavGuard || !HasUnsavedChanges())
+        {
+            return;
+        }
+        e.Cancel = true;
+        _ = ResolveUnsavedChangesAsync(e.NavigationMode, e.SourcePageType, e.Parameter);
+    }
+
+    private async Task ResolveUnsavedChangesAsync(NavigationMode mode, Type? sourcePageType, object? parameter)
+    {
+        var choice = await UnsavedChangesPrompt.ShowAsync(this.XamlRoot);
+        if (choice == UnsavedChangesChoice.Cancel)
+        {
+            return;
+        }
+        if (choice == UnsavedChangesChoice.Save && !await SaveAsync())
+        {
+            return; // save failed (e.g. needs elevation) — stay on the page
+        }
+        _bypassNavGuard = true;
+        if (mode == NavigationMode.Back && Frame.CanGoBack)
+        {
+            Frame.GoBack();
+        }
+        else if (sourcePageType is not null)
+        {
+            Frame.Navigate(sourcePageType, parameter);
+        }
+    }
+
+    /// <summary>True when the current control state no longer matches the loaded/saved snapshot.</summary>
+    private bool HasUnsavedChanges()
+    {
+        if (!_initialized || _baselineXml is null)
+        {
+            return false;
+        }
+        BuildDefinitionFromControls();
+        return !string.Equals(_service.SerializeToXml(_definition), _baselineXml, StringComparison.Ordinal);
     }
 
     private void BuildDefinitionFromControls()
@@ -339,27 +400,6 @@ public sealed partial class TaskPropertiesPage : Page
         }
     }
 
-    private async void SecurityMenuItem_Click(object sender, RoutedEventArgs e)
-    {
-        if (_taskPath is null)
-        {
-            return;
-        }
-        try
-        {
-            var sddl = await _service.GetTaskSecurityDescriptorAsync(_taskPath, 0x1 | 0x2 | 0x4) ?? string.Empty;
-            var edited = await PromptTextAsync(L(TaskSchdKeys.CommandSecurity), "SDDL", sddl, multiline: true);
-            if (edited is not null && !string.Equals(edited, sddl, StringComparison.Ordinal))
-            {
-                await _service.SetTaskSecurityDescriptorAsync(_taskPath, edited);
-            }
-        }
-        catch (Exception ex) when (App.GetRequiredService<IAdminService>().IsPermissionError(ex))
-        {
-            await AdminDialogHelper.ShowAdminRequiredDialogAsync(this.XamlRoot);
-        }
-    }
-
     // ----- General edit / copy -----
 
     private async void GeneralEdit_Click(object sender, RoutedEventArgs e)
@@ -376,6 +416,7 @@ public sealed partial class TaskPropertiesPage : Page
             PrimaryButtonText = L(TaskSchdKeys.ButtonOk),
             CloseButtonText = L(TaskSchdKeys.ButtonCancel),
             DefaultButton = ContentDialogButton.Primary,
+            Style = Application.Current.Resources["DefaultContentDialogStyle"] as Style,
             XamlRoot = this.XamlRoot,
             RequestedTheme = App.CurrentTheme,
         };
@@ -403,14 +444,52 @@ public sealed partial class TaskPropertiesPage : Page
     private void ChangeUser_Click(object sender, RoutedEventArgs e)
     {
         var picked = DirectoryObjectPickerService.ShowDialog(OwnerHwnd, ObjectPickerTypes.UsersAndGroups);
-        if (picked is { Count: > 0 })
+        if (picked is not { Count: > 0 })
         {
-            var obj = picked[0];
-            _definition.Principal.UserId = string.IsNullOrEmpty(obj.Sid) ? obj.Name : obj.Sid;
-            _definition.Principal.DisplayName = obj.Name;
-            _definition.Principal.GroupId = string.Equals(obj.ObjectClass, "group", StringComparison.OrdinalIgnoreCase) ? obj.Sid : null;
-            AccountText.Text = obj.Name;
+            return;
         }
+
+        var obj = picked[0];
+        var id = string.IsNullOrEmpty(obj.Sid) ? obj.Name : obj.Sid;
+        var isGroup = string.Equals(obj.ObjectClass, "group", StringComparison.OrdinalIgnoreCase);
+        var principal = _definition.Principal;
+
+        // UserId and GroupId are mutually exclusive in the task schema. Emitting both — which the
+        // previous code did for a group — makes RegisterTaskDefinition fail with a malformed-XML
+        // error such as "(23,31):GroupId:S-1-5-32-544". Set exactly one, and use the Group logon
+        // type for groups (they run via group membership, with no stored password).
+        if (isGroup)
+        {
+            principal.GroupId = id;
+            principal.UserId = null;
+            principal.LogonType = TaskLogonType.Group;
+        }
+        else
+        {
+            principal.UserId = id;
+            principal.GroupId = null;
+            if (principal.LogonType == TaskLogonType.Group)
+            {
+                principal.LogonType = TaskLogonType.InteractiveToken;
+            }
+        }
+
+        principal.DisplayName = obj.Name;
+        AccountText.Text = obj.Name;
+        UpdatePrincipalModeForGroup(isGroup);
+    }
+
+    // A group principal always runs "whether the user is logged on or not" via group membership and
+    // takes no password, so force that mode and disable the run-only and password options for groups.
+    private void UpdatePrincipalModeForGroup(bool isGroup)
+    {
+        if (isGroup)
+        {
+            RunWhetherLoggedOnRadio.IsChecked = true;
+            RunOnlyLoggedOnRadio.IsChecked = false;
+        }
+        RunOnlyLoggedOnRadio.IsEnabled = !isGroup;
+        DoNotStorePasswordCheckBox.IsEnabled = !isGroup && RunWhetherLoggedOnRadio.IsChecked == true;
     }
 
     // ----- TaskTriggers -----
@@ -626,6 +705,7 @@ public sealed partial class TaskPropertiesPage : Page
             Title = L(TaskSchdKeys.TabGeneral),
             Content = message,
             CloseButtonText = L(TaskSchdKeys.ButtonOk),
+            Style = Application.Current.Resources["DefaultContentDialogStyle"] as Style,
             XamlRoot = this.XamlRoot,
             RequestedTheme = App.CurrentTheme,
         };
@@ -641,6 +721,7 @@ public sealed partial class TaskPropertiesPage : Page
             PrimaryButtonText = L(TaskSchdKeys.ButtonOk),
             CloseButtonText = L(TaskSchdKeys.ButtonCancel),
             DefaultButton = ContentDialogButton.Primary,
+            Style = Application.Current.Resources["DefaultContentDialogStyle"] as Style,
             XamlRoot = this.XamlRoot,
             RequestedTheme = App.CurrentTheme,
         };
@@ -665,6 +746,7 @@ public sealed partial class TaskPropertiesPage : Page
             PrimaryButtonText = L(TaskSchdKeys.ButtonOk),
             CloseButtonText = L(TaskSchdKeys.ButtonCancel),
             DefaultButton = ContentDialogButton.Primary,
+            Style = Application.Current.Resources["DefaultContentDialogStyle"] as Style,
             XamlRoot = this.XamlRoot,
             RequestedTheme = App.CurrentTheme,
         };
@@ -680,20 +762,19 @@ public sealed partial class TaskPropertiesPage : Page
         return index <= 0 ? ("\\", trimmed.TrimStart('\\')) : (trimmed[..index], trimmed[(index + 1)..]);
     }
 
+    // The "Configure for" combo has three items: Windows Vista/2008 (V2), Windows 7/2008 R2 (V2_1),
+    // and Windows 10 (V2_3). Compatibility levels at or above Windows 8 collapse onto "Windows 10".
     private static int CompatibilityToIndex(TaskCompatibility c) => c switch
     {
-        TaskCompatibility.V2 => 0,
+        TaskCompatibility.At or TaskCompatibility.V1 or TaskCompatibility.V2 => 0,
         TaskCompatibility.V2_1 => 1,
-        TaskCompatibility.V2_2 => 2,
-        TaskCompatibility.V2_3 => 5,
-        _ => 5,
+        _ => 2,
     };
 
     private static TaskCompatibility IndexToCompatibility(int index) => index switch
     {
         0 => TaskCompatibility.V2,
         1 => TaskCompatibility.V2_1,
-        2 => TaskCompatibility.V2_2,
         _ => TaskCompatibility.V2_3,
     };
 
@@ -737,7 +818,7 @@ public sealed partial class TaskPropertiesPage : Page
 }
 
 /// <summary>A bindable trigger row in the TaskTriggers list.</summary>
-public sealed partial class TriggerRowItem
+public sealed partial class TriggerRowItem : ObservableObject
 {
     public TriggerModel Model { get; }
 
@@ -745,12 +826,35 @@ public sealed partial class TriggerRowItem
 
     public string Summary { get; }
 
+    /// <summary>Localized "Enabled" label shown on the row toggle when it is on.</summary>
+    public string OnLabel { get; } = Localize(TaskSchdKeys.TriggerEnabled);
+
+    /// <summary>Localized "Disabled" label shown on the row toggle when it is off.</summary>
+    public string OffLabel { get; } = Localize(TaskSchdKeys.StateDisabled);
+
     public TriggerRowItem(TriggerModel model)
     {
         Model = model;
         TypeName = TaskScheduleDescriptions.TriggerTypeName(model);
         Summary = TaskScheduleDescriptions.TriggerSummary(model);
     }
+
+    /// <summary>Whether this trigger is enabled; bound two-way to the row toggle and saved to the model.</summary>
+    public bool Enabled
+    {
+        get => Model.Enabled;
+        set
+        {
+            if (Model.Enabled != value)
+            {
+                Model.Enabled = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    private static string Localize(string key) =>
+        LocalizationProvider.Current.GetString(ResourceFileNames.TaskSchd, key);
 }
 
 /// <summary>A bindable action row in the Actions list.</summary>

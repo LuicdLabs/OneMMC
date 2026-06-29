@@ -75,13 +75,6 @@
 								<FontIcon Glyph="&#xEDE1;" />
 							</MenuFlyoutItem.Icon>
 						</MenuFlyoutItem>
-						<MenuFlyoutItem
-							Click="SecurityMenuItem_Click"
-							Text="{x:Bind LocalizedStrings.TaskSchd_Command_Security}">
-							<MenuFlyoutItem.Icon>
-								<FontIcon Glyph="&#xE72E;" />
-							</MenuFlyoutItem.Icon>
-						</MenuFlyoutItem>
 						<MenuFlyoutSeparator />
 						<MenuFlyoutItem
 							x:Name="DeleteMenuItem"
@@ -145,13 +138,12 @@
 					<cwuc:SettingsCard.HeaderIcon>
 						<FontIcon Glyph="&#xE7F8;" />
 					</cwuc:SettingsCard.HeaderIcon>
-					<ComboBox x:Name="ConfigureForCombo" MinWidth="280" SelectedIndex="5">
-						<ComboBoxItem Content="Windows Vista, Windows Server 2008" />
-						<ComboBoxItem Content="Windows 7, Windows Server 2008 R2" />
-						<ComboBoxItem Content="Windows 8, Windows Server 2012" />
+					<!--  "Configure for" compatibility. taskschd.msc on Windows 10/11 offers exactly these
+					      three levels; the index maps to TaskCompatibility (V2 / V2_1 / V2_3) in code-behind.  -->
+					<ComboBox x:Name="ConfigureForCombo" MinWidth="280" SelectedIndex="2">
+						<ComboBoxItem Content="Windows Vista™, Windows Server™ 2008" />
+						<ComboBoxItem Content="Windows® 7, Windows Server™ 2008 R2" />
 						<ComboBoxItem Content="Windows 10" />
-						<ComboBoxItem Content="Windows Server 2016" />
-						<ComboBoxItem Content="Windows 10 / 11" />
 					</ComboBox>
 				</cwuc:SettingsCard>
 
@@ -215,7 +207,18 @@
 					<cwuc:SettingsExpander.ItemTemplate>
 						<DataTemplate x:DataType="local:TriggerRowItem">
 							<cwuc:SettingsCard Description="{x:Bind Summary}" Header="{x:Bind TypeName}">
-								<StackPanel Orientation="Horizontal" Spacing="2">
+								<StackPanel
+									VerticalAlignment="Center"
+									Orientation="Horizontal"
+									Spacing="2">
+									<!--  Per-trigger enable/disable, persisted to the trigger's Enabled element on save.  -->
+									<ToggleSwitch
+										MinWidth="0"
+										Margin="0,0,8,0"
+										VerticalAlignment="Center"
+										IsOn="{x:Bind Enabled, Mode=TwoWay}"
+										OffContent="{x:Bind OffLabel}"
+										OnContent="{x:Bind OnLabel}" />
 									<Button
 										Click="TriggerEdit_Click"
 										Style="{StaticResource RowIconButtonStyle}"
