@@ -1366,7 +1366,10 @@ public static class TaskSchdKeys
     public const string ConfirmDeleteTaskFormat = "TaskSchd_Confirm_DeleteTaskFormat";
     public const string ConfirmDeleteFolderFormat = "TaskSchd_Confirm_DeleteFolderFormat";
     public const string ConfirmRunTaskFormat = "TaskSchd_Confirm_RunTaskFormat";
+    public const string ConfirmDeleteTrigger = "TaskSchd_Confirm_DeleteTrigger";
+    public const string ConfirmDeleteAction = "TaskSchd_Confirm_DeleteAction";
     public const string ErrorOperationFailed = "TaskSchd_Error_OperationFailed";
+    public const string ErrorTaskFailedFormat = "TaskSchd_Error_TaskFailedFormat";
     public const string ErrorAccessDenied = "TaskSchd_Error_AccessDenied";
 
     // History tab

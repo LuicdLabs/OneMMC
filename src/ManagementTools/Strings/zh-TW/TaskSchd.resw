@@ -193,7 +193,10 @@
   <data name="TaskSchd_Confirm_DeleteTaskFormat" xml:space="preserve"><value>您要刪除工作 '{0}' 嗎?</value></data>
   <data name="TaskSchd_Confirm_DeleteFolderFormat" xml:space="preserve"><value>您要刪除資料夾 '{0}' 嗎?</value></data>
   <data name="TaskSchd_Confirm_RunTaskFormat" xml:space="preserve"><value>您要立即執行工作 '{0}' 嗎?</value></data>
+  <data name="TaskSchd_Confirm_DeleteTrigger" xml:space="preserve"><value>您要刪除選取的觸發程序嗎?</value></data>
+  <data name="TaskSchd_Confirm_DeleteAction" xml:space="preserve"><value>您要刪除選取的動作嗎?</value></data>
   <data name="TaskSchd_Error_OperationFailed" xml:space="preserve"><value>工作排程器作業失敗: {0}</value></data>
+  <data name="TaskSchd_Error_TaskFailedFormat" xml:space="preserve"><value>工作 {0} 發生錯誤。錯誤訊息: 回報的錯誤如下: {1}</value></data>
   <data name="TaskSchd_Error_AccessDenied" xml:space="preserve"><value>此作業需要系統管理員權限。</value></data>
   <data name="TaskSchd_History_Disabled" xml:space="preserve"><value>工作歷程記錄目前已停用。請啟用所有工作歷程記錄以記錄工作事件。</value></data>
   <data name="TaskSchd_History_EnablePrompt" xml:space="preserve"><value>啟用所有工作歷程記錄會為整部電腦開啟工作排程器操作記錄檔。要繼續嗎?</value></data>

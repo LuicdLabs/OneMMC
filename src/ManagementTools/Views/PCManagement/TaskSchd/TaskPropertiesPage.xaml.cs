@@ -23,7 +23,7 @@ namespace ManagementTools.Views.PCManagement;
 /// populates the General/Security/TaskTriggers/Actions/Conditions/Settings/History sections, and writes the
 /// edits back by re-registering the task.
 /// </summary>
-public sealed partial class TaskPropertiesPage : Page
+public sealed partial class TaskPropertiesPage : Page, IUnsavedChangesGuard
 {
     private readonly ITaskSchedulerService _service = App.GetRequiredService<ITaskSchedulerService>();
     private readonly TaskHistoryService _history = App.GetRequiredService<TaskHistoryService>();
@@ -37,6 +37,10 @@ public sealed partial class TaskPropertiesPage : Page
     private string? _taskPath;
     private TaskDefinitionModel _definition = new();
     private bool _initialized;
+
+    // The named network profiles offered by the Conditions "Network" picker (index 0 of the combo is the
+    // synthetic "Any connection" entry, so a combo index i maps to _networkProfiles[i - 1]).
+    private readonly List<NetworkProfile> _networkProfiles = [];
 
     // Serialized snapshot of the task as last loaded/saved; compared against the current control state
     // to detect unsaved edits. _bypassNavGuard lets the guard re-issue the navigation it cancelled.
@@ -136,6 +140,8 @@ public sealed partial class TaskPropertiesPage : Page
         StopOnBatteryCheckBox.IsChecked = s.StopIfGoingOnBatteries;
         WakeToRunCheckBox.IsChecked = s.WakeToRun;
         NetworkToggle.IsOn = s.RunOnlyIfNetworkAvailable;
+        PopulateNetworkProfiles();
+        SelectNetworkProfile(s.NetworkSettings);
 
         // Settings
         AllowDemandStartCheckBox.IsChecked = s.AllowDemandStart;
@@ -243,7 +249,7 @@ public sealed partial class TaskPropertiesPage : Page
         }
         catch (Exception ex)
         {
-            await ShowMessageAsync(string.Format(L(TaskSchdKeys.ErrorOperationFailed), ex.Message));
+            await ShowMessageAsync(TaskSchedulerErrorFormatter.Describe(ex, GeneralNameText.Text));
             return false;
         }
     }
@@ -253,7 +259,7 @@ public sealed partial class TaskPropertiesPage : Page
     protected override void OnNavigatingFrom(NavigatingCancelEventArgs e)
     {
         base.OnNavigatingFrom(e);
-        if (_bypassNavGuard || !HasUnsavedChanges())
+        if (_bypassNavGuard || !HasUnsavedChanges)
         {
             return;
         }
@@ -263,14 +269,9 @@ public sealed partial class TaskPropertiesPage : Page
 
     private async Task ResolveUnsavedChangesAsync(NavigationMode mode, Type? sourcePageType, object? parameter)
     {
-        var choice = await UnsavedChangesPrompt.ShowAsync(this.XamlRoot);
-        if (choice == UnsavedChangesChoice.Cancel)
+        if (!await ConfirmLeaveAsync())
         {
-            return;
-        }
-        if (choice == UnsavedChangesChoice.Save && !await SaveAsync())
-        {
-            return; // save failed (e.g. needs elevation) — stay on the page
+            return; // cancelled or save failed (e.g. needs elevation) — stay on the page
         }
         _bypassNavGuard = true;
         if (mode == NavigationMode.Back && Frame.CanGoBack)
@@ -284,15 +285,39 @@ public sealed partial class TaskPropertiesPage : Page
     }
 
     /// <summary>True when the current control state no longer matches the loaded/saved snapshot.</summary>
-    private bool HasUnsavedChanges()
+    public bool HasUnsavedChanges
     {
-        if (!_initialized || _baselineXml is null)
+        get
+        {
+            if (!_initialized || _baselineXml is null)
+            {
+                return false;
+            }
+            BuildDefinitionFromControls();
+            return !string.Equals(_service.SerializeToXml(_definition), _baselineXml, StringComparison.Ordinal);
+        }
+    }
+
+    /// <summary>
+    /// Shared resolution used by both the page's own back-navigation guard and the shell's breadcrumb /
+    /// navigation-pane / window-close guards: prompt, save when chosen, and report whether to proceed.
+    /// </summary>
+    public async Task<bool> ConfirmLeaveAsync()
+    {
+        var choice = await UnsavedChangesPrompt.ShowAsync(this.XamlRoot);
+        if (choice == UnsavedChangesChoice.Cancel)
         {
             return false;
         }
-        BuildDefinitionFromControls();
-        return !string.Equals(_service.SerializeToXml(_definition), _baselineXml, StringComparison.Ordinal);
+        if (choice == UnsavedChangesChoice.Save && !await SaveAsync())
+        {
+            return false; // save failed (e.g. needs elevation) — stay on the page
+        }
+        return true;
     }
+
+    /// <summary>Skips the next <see cref="OnNavigatingFrom"/> prompt; the shell already resolved the edits.</summary>
+    public void SuppressNextNavigationGuard() => _bypassNavGuard = true;
 
     private void BuildDefinitionFromControls()
     {
@@ -334,6 +359,7 @@ public sealed partial class TaskPropertiesPage : Page
         s.StopIfGoingOnBatteries = StopOnBatteryCheckBox.IsChecked == true;
         s.WakeToRun = WakeToRunCheckBox.IsChecked == true;
         s.RunOnlyIfNetworkAvailable = NetworkToggle.IsOn;
+        s.NetworkSettings = BuildNetworkSettings();
 
         // Settings
         s.AllowDemandStart = AllowDemandStartCheckBox.IsChecked == true;
@@ -520,9 +546,10 @@ public sealed partial class TaskPropertiesPage : Page
         }
     }
 
-    private void TriggerDelete_Click(object sender, RoutedEventArgs e)
+    private async void TriggerDelete_Click(object sender, RoutedEventArgs e)
     {
-        if ((sender as FrameworkElement)?.Tag is TriggerRowItem row)
+        if ((sender as FrameworkElement)?.Tag is TriggerRowItem row &&
+            await ConfirmAsync(L(TaskSchdKeys.ConfirmDeleteTrigger)))
         {
             TaskTriggers.Remove(row);
         }
@@ -558,9 +585,10 @@ public sealed partial class TaskPropertiesPage : Page
         }
     }
 
-    private void ActionDelete_Click(object sender, RoutedEventArgs e)
+    private async void ActionDelete_Click(object sender, RoutedEventArgs e)
     {
-        if ((sender as FrameworkElement)?.Tag is ActionRowItem row)
+        if ((sender as FrameworkElement)?.Tag is ActionRowItem row &&
+            await ConfirmAsync(L(TaskSchdKeys.ConfirmDeleteAction)))
         {
             Actions.Remove(row);
             RefreshActionMoveFlags();
@@ -663,6 +691,71 @@ public sealed partial class TaskPropertiesPage : Page
             return;
         }
         NetworkComboBox.IsEnabled = NetworkToggle.IsOn;
+    }
+
+    // ----- Network profiles -----
+
+    /// <summary>Fills the network picker with "Any connection" followed by the named network profiles.</summary>
+    private void PopulateNetworkProfiles()
+    {
+        _networkProfiles.Clear();
+        _networkProfiles.AddRange(NetworkProfileProvider.GetProfiles());
+        RefreshNetworkComboItems();
+    }
+
+    private void RefreshNetworkComboItems()
+    {
+        var items = new List<string> { L(TaskSchdKeys.ConditionsAnyConnection) };
+        items.AddRange(_networkProfiles.Select(p => p.Name));
+        NetworkComboBox.ItemsSource = items;
+    }
+
+    /// <summary>Selects the combo entry matching the saved network settings (or "Any connection").</summary>
+    private void SelectNetworkProfile(NetworkSettingsModel? net)
+    {
+        if (net is null || (net.Id is null && string.IsNullOrEmpty(net.Name)))
+        {
+            NetworkComboBox.SelectedIndex = 0;
+            return;
+        }
+
+        var index = -1;
+        if (net.Id is { } id)
+        {
+            index = _networkProfiles.FindIndex(p => p.Id == id);
+        }
+        if (index < 0 && !string.IsNullOrEmpty(net.Name))
+        {
+            index = _networkProfiles.FindIndex(p => string.Equals(p.Name, net.Name, StringComparison.OrdinalIgnoreCase));
+        }
+
+        // The saved profile is no longer enumerable (e.g. that network has not been seen recently); keep
+        // it selectable so re-saving the task does not silently drop the user's choice.
+        if (index < 0 && !string.IsNullOrEmpty(net.Name))
+        {
+            _networkProfiles.Add(new NetworkProfile(net.Id ?? Guid.Empty, net.Name));
+            RefreshNetworkComboItems();
+            index = _networkProfiles.Count - 1;
+        }
+
+        NetworkComboBox.SelectedIndex = index >= 0 ? index + 1 : 0;
+    }
+
+    /// <summary>Builds the network settings from the picker: a specific profile, or <see langword="null"/> for "Any connection".</summary>
+    private NetworkSettingsModel? BuildNetworkSettings()
+    {
+        var index = NetworkComboBox.SelectedIndex;
+        if (!NetworkToggle.IsOn || index <= 0 || index - 1 >= _networkProfiles.Count)
+        {
+            return null;
+        }
+
+        var profile = _networkProfiles[index - 1];
+        return new NetworkSettingsModel
+        {
+            Id = profile.Id == Guid.Empty ? null : profile.Id,
+            Name = profile.Name,
+        };
     }
 
     private void UpdateRestartState()

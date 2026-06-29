@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+    CustomRangeDialog — opened from the New Event Filter "Logged" picker when the user chooses
+    "Custom range…". Lets the user bound the filter by a From/To range; each side is either an open
+    bound (First Event / Last Event) or a specific "Events On" date and time. The OK button is gated
+    on validation (From must be earlier than To), and the caller reverts the Logged selection when the
+    dialog is cancelled.
+-->
+<ContentDialog
+	x:Class="ManagementTools.Views.PCManagement.CustomRangeDialog"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	Title="Custom Range"
+	mc:Ignorable="d"
+	CloseButtonText="Cancel"
+	DefaultButton="Primary"
+	PrimaryButtonText="OK">
+
+	<Grid MinWidth="380" RowSpacing="14">
+		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto" />
+			<RowDefinition Height="Auto" />
+			<RowDefinition Height="Auto" />
+			<RowDefinition Height="Auto" />
+		</Grid.RowDefinitions>
+
+		<TextBlock
+			Grid.Row="0"
+			Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+			Text="Enter a custom date range for your filter."
+			TextWrapping="Wrap" />
+
+		<!--  From bound  -->
+		<StackPanel
+			Grid.Row="1"
+			Orientation="Horizontal"
+			Spacing="8">
+			<TextBlock
+				Width="44"
+				VerticalAlignment="Center"
+				Text="From:" />
+			<ComboBox
+				x:Name="FromModeCombo"
+				Width="118"
+				SelectionChanged="Mode_SelectionChanged">
+				<ComboBoxItem Content="First Event" />
+				<ComboBoxItem Content="Events On" />
+			</ComboBox>
+			<CalendarDatePicker x:Name="FromDate" MinWidth="132" />
+			<TimePicker x:Name="FromTime" ClockIdentifier="24HourClock" />
+		</StackPanel>
+
+		<!--  To bound  -->
+		<StackPanel
+			Grid.Row="2"
+			Orientation="Horizontal"
+			Spacing="8">
+			<TextBlock
+				Width="44"
+				VerticalAlignment="Center"
+				Text="To:" />
+			<ComboBox
+				x:Name="ToModeCombo"
+				Width="118"
+				SelectionChanged="Mode_SelectionChanged">
+				<ComboBoxItem Content="Last Event" />
+				<ComboBoxItem Content="Events On" />
+			</ComboBox>
+			<CalendarDatePicker x:Name="ToDate" MinWidth="132" />
+			<TimePicker x:Name="ToTime" ClockIdentifier="24HourClock" />
+		</StackPanel>
+
+		<InfoBar
+			x:Name="ValidationBar"
+			Grid.Row="3"
+			IsClosable="False"
+			IsOpen="False"
+			Severity="Error" />
+	</Grid>
+</ContentDialog>

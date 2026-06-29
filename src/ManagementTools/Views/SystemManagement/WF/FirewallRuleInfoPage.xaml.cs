@@ -28,7 +28,7 @@ using Microsoft.UI.Xaml.Navigation;
 
 namespace ManagementTools.Views;
 
-public sealed partial class FirewallRuleInfoPage : Page
+public sealed partial class FirewallRuleInfoPage : Page, IUnsavedChangesGuard
 {
     private const int NetFwAuthenticateNone = 0;
     private const int NetFwAuthenticateNoEncapsulation = 1;
@@ -158,7 +158,7 @@ public sealed partial class FirewallRuleInfoPage : Page
     protected override void OnNavigatingFrom(NavigatingCancelEventArgs e)
     {
         base.OnNavigatingFrom(e);
-        if (_bypassNavGuard || !_hasUnsavedChanges)
+        if (_bypassNavGuard || !HasUnsavedChanges)
         {
             return;
         }
@@ -166,16 +166,35 @@ public sealed partial class FirewallRuleInfoPage : Page
         _ = ResolveUnsavedChangesAsync(e.NavigationMode, e.SourcePageType, e.Parameter);
     }
 
-    private async Task ResolveUnsavedChangesAsync(NavigationMode mode, Type? sourcePageType, object? parameter)
+    /// <summary>Gets a value indicating whether the rule has edits that leaving would discard.</summary>
+    public bool HasUnsavedChanges => _hasUnsavedChanges;
+
+    /// <summary>
+    /// Shared resolution used by both the page's own back-navigation guard and the shell's breadcrumb /
+    /// navigation-pane / window-close guards: prompt, save when chosen, and report whether to proceed.
+    /// </summary>
+    public async Task<bool> ConfirmLeaveAsync()
     {
         var choice = await UnsavedChangesPrompt.ShowAsync(this.XamlRoot);
         if (choice == UnsavedChangesChoice.Cancel)
         {
-            return;
+            return false;
         }
         if (choice == UnsavedChangesChoice.Save && !await SaveAsync())
         {
-            return; // save failed (e.g. needs elevation or validation) — stay on the page
+            return false; // save failed (e.g. needs elevation or validation) — stay on the page
+        }
+        return true;
+    }
+
+    /// <summary>Skips the next <see cref="OnNavigatingFrom"/> prompt; the shell already resolved the edits.</summary>
+    public void SuppressNextNavigationGuard() => _bypassNavGuard = true;
+
+    private async Task ResolveUnsavedChangesAsync(NavigationMode mode, Type? sourcePageType, object? parameter)
+    {
+        if (!await ConfirmLeaveAsync())
+        {
+            return; // cancelled or save failed (e.g. needs elevation or validation) — stay on the page
         }
         _bypassNavGuard = true;
         if (mode == NavigationMode.Back && Frame.CanGoBack)

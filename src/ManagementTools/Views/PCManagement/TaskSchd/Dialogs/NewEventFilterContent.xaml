@@ -6,16 +6,18 @@
     open a second ContentDialog on the same window. The hosting window supplies the OK / Cancel
     buttons, so this UserControl only provides the filter form.
 
-    The Filter and XML tabs mirror the Windows Event Viewer filter dialog. BuildQuery() turns the
-    Filter-tab fields into an Event Log QueryList (via EventXPathBuilder) — or returns the hand-written
-    query from the XML tab — to use as IEventTrigger.Subscription. The Event logs drop-down is
-    populated from the real channels (EventLogSession.GetLogNames()).
+    The Filter and XML tabs mirror the Windows Event Viewer / Task Scheduler event filter. Rather than
+    cloning the cramped Win32 layout, the multi-select pickers (Event logs / Event sources / Keywords)
+    are Fluent DropDownButtons that open a checkbox flyout, and the Logged picker opens the Custom Range
+    dialog. BuildQuery() turns the Filter-tab fields into an Event Log QueryList (via EventXPathBuilder)
+    — or returns the hand-written query from the XML tab — for use as IEventTrigger.Subscription.
 -->
 <UserControl
 	x:Class="ManagementTools.Views.PCManagement.NewEventFilterContent"
 	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:local="using:ManagementTools.Views.PCManagement"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
 	mc:Ignorable="d">
 
@@ -23,13 +25,22 @@
 		<!--  Fixed-width inline label so the form fields align under one another.  -->
 		<Style x:Key="InlineLabelStyle" TargetType="TextBlock">
 			<Setter Property="VerticalAlignment" Value="Center" />
-			<Setter Property="Width" Value="100" />
+			<Setter Property="Width" Value="96" />
 		</Style>
 		<!--  Secondary (hint) text for the helper / instruction lines.  -->
 		<Style x:Key="SecondaryTextStyle" TargetType="TextBlock">
 			<Setter Property="Foreground" Value="{ThemeResource TextFillColorSecondaryBrush}" />
 			<Setter Property="TextWrapping" Value="Wrap" />
 		</Style>
+		<!--  Consistent width/alignment for the three multi-select drop-down pickers.  -->
+		<Style x:Key="PickerDropDownStyle" TargetType="DropDownButton">
+			<Setter Property="Width" Value="320" />
+			<Setter Property="HorizontalContentAlignment" Value="Stretch" />
+		</Style>
+
+		<DataTemplate x:Key="CheckableItemTemplate" x:DataType="local:CheckableItem">
+			<CheckBox Content="{x:Bind Name}" IsChecked="{x:Bind IsChecked, Mode=TwoWay}" />
+		</DataTemplate>
 	</UserControl.Resources>
 
 	<Grid MinWidth="460">
@@ -53,20 +64,21 @@
 			VerticalScrollBarVisibility="Auto">
 			<Grid>
 				<!--  ================================ Filter tab ================================  -->
-				<StackPanel x:Name="FilterTabPanel" Spacing="12">
+				<StackPanel x:Name="FilterTabPanel" Spacing="14">
 					<StackPanel Orientation="Horizontal" Spacing="8">
 						<TextBlock Style="{StaticResource InlineLabelStyle}" Text="Logged:" />
 						<ComboBox
 							x:Name="LoggedCombo"
-							Width="260"
-							SelectedIndex="0">
+							Width="316"
+							SelectedIndex="0"
+							SelectionChanged="LoggedCombo_SelectionChanged">
 							<ComboBoxItem Content="Any time" />
 							<ComboBoxItem Content="Last hour" />
 							<ComboBoxItem Content="Last 12 hours" />
 							<ComboBoxItem Content="Last 24 hours" />
 							<ComboBoxItem Content="Last 7 days" />
 							<ComboBoxItem Content="Last 30 days" />
-							<ComboBoxItem Content="Custom range..." />
+							<ComboBoxItem x:Name="CustomRangeActionItem" Content="Custom range..." />
 						</ComboBox>
 					</StackPanel>
 
@@ -80,35 +92,62 @@
 						</StackPanel>
 					</StackPanel>
 					<StackPanel
-						Margin="108,0,0,0"
+						Margin="104,-4,0,0"
 						Orientation="Horizontal"
 						Spacing="16">
 						<CheckBox x:Name="ErrorCheck" Content="Error" />
 						<CheckBox x:Name="InfoCheck" Content="Information" />
 					</StackPanel>
 
-					<!--  By log / By source are mutually exclusive; each enables its own picker (handled in code-behind).  -->
-					<RadioButtons
-						x:Name="EventScopeRadios"
-						MaxColumns="2"
-						SelectionChanged="EventScope_SelectionChanged">
-						<x:String>By log</x:String>
-						<x:String>By source</x:String>
-					</RadioButtons>
+					<!--  By log / By source are mutually exclusive; each enables its own picker.  -->
+					<StackPanel Orientation="Horizontal" Spacing="8">
+						<TextBlock Style="{StaticResource InlineLabelStyle}" Text="" />
+						<RadioButtons
+							x:Name="EventScopeRadios"
+							MaxColumns="2"
+							SelectionChanged="EventScope_SelectionChanged">
+							<x:String>By log</x:String>
+							<x:String>By source</x:String>
+						</RadioButtons>
+					</StackPanel>
 
 					<StackPanel Orientation="Horizontal" Spacing="8">
 						<TextBlock Style="{StaticResource InlineLabelStyle}" Text="Event logs:" />
-						<ComboBox
-							x:Name="EventLogsCombo"
-							Width="320"
-							PlaceholderText="Select event logs" />
+						<DropDownButton x:Name="EventLogsDropDown" Style="{StaticResource PickerDropDownStyle}">
+							<TextBlock
+								x:Name="EventLogsSummary"
+								Text="&lt;Select event logs&gt;"
+								TextTrimming="CharacterEllipsis" />
+							<DropDownButton.Flyout>
+								<Flyout Closed="EventLogsFlyout_Closed" Placement="Bottom">
+									<TreeView
+										x:Name="EventLogsTree"
+										Width="360"
+										Height="320"
+										SelectionMode="Multiple" />
+								</Flyout>
+							</DropDownButton.Flyout>
+						</DropDownButton>
 					</StackPanel>
+
 					<StackPanel Orientation="Horizontal" Spacing="8">
 						<TextBlock Style="{StaticResource InlineLabelStyle}" Text="Event sources:" />
-						<ComboBox
-							x:Name="EventSourcesCombo"
-							Width="320"
-							PlaceholderText="Select event sources" />
+						<DropDownButton x:Name="EventSourcesDropDown" Style="{StaticResource PickerDropDownStyle}">
+							<TextBlock
+								x:Name="EventSourcesSummary"
+								Text="&lt;All Event Sources&gt;"
+								TextTrimming="CharacterEllipsis" />
+							<DropDownButton.Flyout>
+								<Flyout Closed="EventSourcesFlyout_Closed" Placement="Bottom">
+									<ListView
+										x:Name="EventSourcesList"
+										Width="320"
+										Height="320"
+										ItemTemplate="{StaticResource CheckableItemTemplate}"
+										SelectionMode="None" />
+								</Flyout>
+							</DropDownButton.Flyout>
+						</DropDownButton>
 					</StackPanel>
 
 					<TextBlock Style="{StaticResource SecondaryTextStyle}" Text="Includes/Excludes Event IDs: Enter ID numbers and/or ID ranges separated by commas. To exclude criteria, type a minus sign first. For example 1,3,5-99,-76" />
@@ -116,24 +155,45 @@
 
 					<StackPanel Orientation="Horizontal" Spacing="8">
 						<TextBlock Style="{StaticResource InlineLabelStyle}" Text="Task category:" />
-						<ComboBox x:Name="TaskCategoryCombo" Width="320" />
+						<ComboBox
+							x:Name="TaskCategoryCombo"
+							Width="316"
+							IsEditable="True"
+							PlaceholderText="&lt;All Task Categories&gt;" />
 					</StackPanel>
+
 					<StackPanel Orientation="Horizontal" Spacing="8">
 						<TextBlock Style="{StaticResource InlineLabelStyle}" Text="Keywords:" />
-						<ComboBox x:Name="KeywordsCombo" Width="320" />
+						<DropDownButton x:Name="KeywordsDropDown" Style="{StaticResource PickerDropDownStyle}">
+							<TextBlock
+								x:Name="KeywordsSummary"
+								Text="&lt;All Keywords&gt;"
+								TextTrimming="CharacterEllipsis" />
+							<DropDownButton.Flyout>
+								<Flyout Closed="KeywordsFlyout_Closed" Placement="Bottom">
+									<ListView
+										x:Name="KeywordsList"
+										Width="320"
+										Height="296"
+										ItemTemplate="{StaticResource CheckableItemTemplate}"
+										SelectionMode="None" />
+								</Flyout>
+							</DropDownButton.Flyout>
+						</DropDownButton>
 					</StackPanel>
+
 					<StackPanel Orientation="Horizontal" Spacing="8">
 						<TextBlock Style="{StaticResource InlineLabelStyle}" Text="User:" />
 						<TextBox
 							x:Name="FilterUserBox"
-							Width="320"
+							Width="316"
 							PlaceholderText="&lt;All Users&gt;" />
 					</StackPanel>
 					<StackPanel Orientation="Horizontal" Spacing="8">
 						<TextBlock Style="{StaticResource InlineLabelStyle}" Text="Computer(s):" />
 						<TextBox
 							x:Name="FilterComputerBox"
-							Width="320"
+							Width="316"
 							PlaceholderText="&lt;All Computers&gt;" />
 					</StackPanel>
 

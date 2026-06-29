@@ -390,12 +390,8 @@
 						Toggled="OnNetworkToggled" />
 					<cwuc:SettingsExpander.Items>
 						<cwuc:SettingsCard Header="{x:Bind LocalizedStrings.TaskSchd_Conditions_StartIfNetwork}">
-							<ComboBox
-								x:Name="NetworkComboBox"
-								MinWidth="170"
-								SelectedIndex="0">
-								<ComboBoxItem Content="{x:Bind LocalizedStrings.TaskSchd_Conditions_AnyConnection}" />
-							</ComboBox>
+							<!--  Items are populated in code-behind: "Any connection" plus the named network profiles.  -->
+							<ComboBox x:Name="NetworkComboBox" MinWidth="170" />
 						</cwuc:SettingsCard>
 					</cwuc:SettingsExpander.Items>
 				</cwuc:SettingsExpander>

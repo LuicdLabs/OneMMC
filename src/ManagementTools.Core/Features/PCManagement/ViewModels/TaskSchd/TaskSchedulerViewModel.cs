@@ -307,7 +307,7 @@ public sealed partial class TaskSchedulerViewModel : ObservableObject
         catch (Exception ex)
         {
             _logger.LogError(ex, "[TaskSchedulerViewModel] Operation failed.");
-            LastError = LocalizeFormat(TaskSchdKeys.ErrorOperationFailed, ex.Message);
+            LastError = TaskSchedulerErrorFormatter.Describe(ex);
         }
         finally
         {

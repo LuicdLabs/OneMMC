@@ -53,6 +53,10 @@ namespace ManagementTools
         private int? _windowHeight;
         private bool _isProgrammaticSelectionChange;
 
+        // Set once the unsaved-changes guard has approved closing, so the re-entrant Close() that follows
+        // does not prompt a second time.
+        private bool _forceClose;
+
         public void NavigateToPage(int index)
         {
             if (contentFrame == null) return;
@@ -138,6 +142,7 @@ namespace ManagementTools
 
             RestoreWindowPlacement();
             AppWindow.Changed += AppWindow_Changed;
+            AppWindow.Closing += AppWindow_Closing;
             Closed += MainWindow_Closed;
 
             BreadcrumbNavigationService.Init(NavigationViewControl, MainBreadcrumb, contentFrame!);
@@ -291,17 +296,27 @@ namespace ManagementTools
             }
         }
 
-        private void NavigationView_ItemInvoked(NavigationView sender, NavigationViewItemInvokedEventArgs args)
+        private async void NavigationView_ItemInvoked(NavigationView sender, NavigationViewItemInvokedEventArgs args)
         {
             if (_isProgrammaticSelectionChange)
             {
                 return;
             }
 
+            // The NavigationView moves SelectedItem to the invoked item after this handler runs; capture
+            // the current selection so it can be restored when the unsaved-changes guard cancels.
+            var previousSelection = NavigationViewControl.SelectedItem;
+
             if (args.IsSettingsInvoked)
             {
                 if (contentFrame?.Content is SettingsPage)
                 {
+                    return;
+                }
+
+                if (!await EnsureSafeToLeaveCurrentPageAsync())
+                {
+                    RestoreNavSelection(previousSelection);
                     return;
                 }
 
@@ -326,11 +341,78 @@ namespace ManagementTools
                     return;
                 }
 
+                if (!await EnsureSafeToLeaveCurrentPageAsync())
+                {
+                    RestoreNavSelection(previousSelection);
+                    return;
+                }
+
                 string pageTitle = GetPageTitleFromTag(tag);
                 BreadcrumbNavigationService.ClearBreadcrumbs();
                 BreadcrumbNavigationService.AddBreadcrumb(pageTitle, targetPageType);
                 ViewModel.NavigateToPageCommand.Execute(tag);
                 UpdateBackButtonState();
+            }
+        }
+
+        /// <summary>
+        /// Asks the current page (when it guards unsaved edits) to resolve them before the shell mutates
+        /// navigation state. Returns <see langword="true"/> when navigation may proceed.
+        /// </summary>
+        private async Task<bool> EnsureSafeToLeaveCurrentPageAsync()
+        {
+            if (contentFrame?.Content is IUnsavedChangesGuard guard && guard.HasUnsavedChanges)
+            {
+                if (!await guard.ConfirmLeaveAsync())
+                {
+                    return false;
+                }
+
+                // The shell drives the navigation next, so suppress the page's own OnNavigatingFrom prompt.
+                guard.SuppressNextNavigationGuard();
+            }
+
+            return true;
+        }
+
+        // Re-selects a navigation-pane item without re-triggering navigation (used to undo the visual
+        // selection move when the unsaved-changes guard cancels a pane switch).
+        private void RestoreNavSelection(object? selection)
+        {
+            if (NavigationViewControl is null)
+            {
+                return;
+            }
+
+            _isProgrammaticSelectionChange = true;
+            try
+            {
+                NavigationViewControl.SelectedItem = selection;
+            }
+            finally
+            {
+                _isProgrammaticSelectionChange = false;
+            }
+        }
+
+        private async void AppWindow_Closing(AppWindow sender, AppWindowClosingEventArgs args)
+        {
+            if (_forceClose)
+            {
+                return;
+            }
+
+            if (contentFrame?.Content is IUnsavedChangesGuard guard && guard.HasUnsavedChanges)
+            {
+                // Cancel synchronously: the event args are only honored before the handler first awaits.
+                args.Cancel = true;
+
+                if (await guard.ConfirmLeaveAsync())
+                {
+                    guard.SuppressNextNavigationGuard();
+                    _forceClose = true;
+                    Close();
+                }
             }
         }
 
@@ -401,13 +483,25 @@ namespace ManagementTools
             }
         }
 
-        private void MainBreadcrumb_ItemClicked(BreadcrumbBar sender, BreadcrumbBarItemClickedEventArgs args)
+        private async void MainBreadcrumb_ItemClicked(BreadcrumbBar sender, BreadcrumbBarItemClickedEventArgs args)
         {
-            if (args.Index < BreadcrumbNavigationService.BreadCrumbs.Count - 1)
+            if (args.Index >= BreadcrumbNavigationService.BreadCrumbs.Count - 1)
             {
-                var crumb = (BreadcrumbNavigationService.Breadcrumb)args.Item;
-                BreadcrumbNavigationService.NavigateFromBreadcrumb(crumb.Page, args.Index, crumb.Parameter);
+                return;
             }
+
+            // Capture the click target before awaiting — the event args are only valid synchronously.
+            var crumb = (BreadcrumbNavigationService.Breadcrumb)args.Item;
+            var index = args.Index;
+
+            // Resolve unsaved edits first so the breadcrumb trail is only truncated when the user actually
+            // leaves the page; cancelling here leaves the breadcrumb (and current page) untouched.
+            if (!await EnsureSafeToLeaveCurrentPageAsync())
+            {
+                return;
+            }
+
+            BreadcrumbNavigationService.NavigateFromBreadcrumb(crumb.Page, index, crumb.Parameter);
         }
 
         private void ContentFrame_Navigated(object sender, NavigationEventArgs e)

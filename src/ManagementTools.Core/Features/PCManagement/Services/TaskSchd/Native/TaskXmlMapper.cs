@@ -57,58 +57,58 @@ internal static class TaskXmlMapper
 
     private static XElement SerializeRegistrationInfo(RegistrationInfoModel r)
     {
-        var e = new XElement(Ns + "RegistrationInfo");
-        AddIf(e, "Date", r.Date is { } d ? d.ToString("yyyy-MM-ddTHH:mm:ss", CultureInfo.InvariantCulture) : null);
-        AddIf(e, "Author", r.Author);
-        AddIf(e, "Version", r.Version);
-        AddIf(e, "Description", r.Description);
-        AddIf(e, "Documentation", r.Documentation);
-        AddIf(e, "URI", r.Uri);
-        AddIf(e, "Source", r.Source);
-        AddIf(e, "SecurityDescriptor", r.SecurityDescriptorSddl);
-        return e;
+        var registrationInfo = new XElement(Ns + "RegistrationInfo");
+        AddIf(registrationInfo, "Date", r.Date is { } d ? d.ToString("yyyy-MM-ddTHH:mm:ss", CultureInfo.InvariantCulture) : null);
+        AddIf(registrationInfo, "Author", r.Author);
+        AddIf(registrationInfo, "Version", r.Version);
+        AddIf(registrationInfo, "Description", r.Description);
+        AddIf(registrationInfo, "Documentation", r.Documentation);
+        AddIf(registrationInfo, "URI", r.Uri);
+        AddIf(registrationInfo, "Source", r.Source);
+        AddIf(registrationInfo, "SecurityDescriptor", r.SecurityDescriptorSddl);
+        return registrationInfo;
     }
 
     private static XElement SerializePrincipal(PrincipalModel p, string id, TaskCompatibility compatibility)
     {
-        var e = new XElement(Ns + "Principal", new XAttribute("id", id));
+        var principal = new XElement(Ns + "Principal", new XAttribute("id", id));
         if (!string.IsNullOrEmpty(p.UserId))
         {
-            e.Add(new XElement(Ns + "UserId", p.UserId));
+            principal.Add(new XElement(Ns + "UserId", p.UserId));
         }
         if (!string.IsNullOrEmpty(p.GroupId))
         {
-            e.Add(new XElement(Ns + "GroupId", p.GroupId));
+            principal.Add(new XElement(Ns + "GroupId", p.GroupId));
         }
         // <DisplayName> requires schema version 1.2; the 1.1 validator rejects it. Every task this
         // editor emits is already clamped to >= 1.2 (see MinVersionForFeatures), so it is always safe.
-        AddIf(e, "DisplayName", p.DisplayName);
+        AddIf(principal, "DisplayName", p.DisplayName);
         if (p.LogonType != TaskLogonType.None && string.IsNullOrEmpty(p.GroupId))
         {
-            e.Add(new XElement(Ns + "LogonType", LogonTypeToXml(p.LogonType)));
+            principal.Add(new XElement(Ns + "LogonType", LogonTypeToXml(p.LogonType)));
         }
         // Only emit RunLevel when elevated; LeastPrivilege is the schema default and real tasks omit it
         // (group principals in particular reject an explicit LeastPrivilege RunLevel).
         if (p.RunLevel == TaskRunLevel.HighestAvailable)
         {
-            e.Add(new XElement(Ns + "RunLevel", "HighestAvailable"));
+            principal.Add(new XElement(Ns + "RunLevel", "HighestAvailable"));
         }
         if (p.RequiredPrivileges.Count > 0 && SupportsWindows7Compatibility(compatibility))
         {
-            e.Add(new XElement(Ns + "RequiredPrivileges", p.RequiredPrivileges.Select(pr => new XElement(Ns + "Privilege", pr))));
+            principal.Add(new XElement(Ns + "RequiredPrivileges", p.RequiredPrivileges.Select(pr => new XElement(Ns + "Privilege", pr))));
         }
-        return e;
+        return principal;
     }
 
     private static XElement SerializeSettings(TaskSettingsModel s)
     {
-        var e = new XElement(Ns + "Settings");
-        e.Add(new XElement(Ns + "MultipleInstancesPolicy", s.MultipleInstances.ToString()));
-        e.Add(new XElement(Ns + "DisallowStartIfOnBatteries", XmlBool(s.DisallowStartIfOnBatteries)));
-        e.Add(new XElement(Ns + "StopIfGoingOnBatteries", XmlBool(s.StopIfGoingOnBatteries)));
-        e.Add(new XElement(Ns + "AllowHardTerminate", XmlBool(s.AllowHardTerminate)));
-        e.Add(new XElement(Ns + "StartWhenAvailable", XmlBool(s.StartWhenAvailable)));
-        e.Add(new XElement(Ns + "RunOnlyIfNetworkAvailable", XmlBool(s.RunOnlyIfNetworkAvailable)));
+        var settings = new XElement(Ns + "Settings");
+        settings.Add(new XElement(Ns + "MultipleInstancesPolicy", s.MultipleInstances.ToString()));
+        settings.Add(new XElement(Ns + "DisallowStartIfOnBatteries", XmlBool(s.DisallowStartIfOnBatteries)));
+        settings.Add(new XElement(Ns + "StopIfGoingOnBatteries", XmlBool(s.StopIfGoingOnBatteries)));
+        settings.Add(new XElement(Ns + "AllowHardTerminate", XmlBool(s.AllowHardTerminate)));
+        settings.Add(new XElement(Ns + "StartWhenAvailable", XmlBool(s.StartWhenAvailable)));
+        settings.Add(new XElement(Ns + "RunOnlyIfNetworkAvailable", XmlBool(s.RunOnlyIfNetworkAvailable)));
 
         if (s.RunOnlyIfIdle || s.IdleSettings.StopOnIdleEnd || s.IdleSettings.RestartOnIdle || s.IdleSettings.IdleDuration is not null)
         {
@@ -117,76 +117,76 @@ internal static class TaskXmlMapper
             AddIf(idle, "WaitTimeout", DurationOrNull(s.IdleSettings.WaitTimeout));
             idle.Add(new XElement(Ns + "StopOnIdleEnd", XmlBool(s.IdleSettings.StopOnIdleEnd)));
             idle.Add(new XElement(Ns + "RestartOnIdle", XmlBool(s.IdleSettings.RestartOnIdle)));
-            e.Add(idle);
+            settings.Add(idle);
         }
 
-        e.Add(new XElement(Ns + "AllowStartOnDemand", XmlBool(s.AllowDemandStart)));
-        e.Add(new XElement(Ns + "Enabled", XmlBool(s.Enabled)));
-        e.Add(new XElement(Ns + "Hidden", XmlBool(s.Hidden)));
-        e.Add(new XElement(Ns + "RunOnlyIfIdle", XmlBool(s.RunOnlyIfIdle)));
+        settings.Add(new XElement(Ns + "AllowStartOnDemand", XmlBool(s.AllowDemandStart)));
+        settings.Add(new XElement(Ns + "Enabled", XmlBool(s.Enabled)));
+        settings.Add(new XElement(Ns + "Hidden", XmlBool(s.Hidden)));
+        settings.Add(new XElement(Ns + "RunOnlyIfIdle", XmlBool(s.RunOnlyIfIdle)));
         // DisallowStartOnRemoteAppSession and UseUnifiedSchedulingEngine are ITaskSettings2 elements that
         // the schema only accepts at version 1.3 (Windows 8 / Server 2012) and above — the 1.2 (Windows 7)
         // validator rejects them. Emit them only when the user targets Windows 8+, and bump the version
         // accordingly in MinVersionForFeatures.
         if (s.DisallowStartOnRemoteAppSession && SupportsWindows8Compatibility(s.Compatibility))
         {
-            e.Add(new XElement(Ns + "DisallowStartOnRemoteAppSession", XmlBool(true)));
+            settings.Add(new XElement(Ns + "DisallowStartOnRemoteAppSession", XmlBool(true)));
         }
         if (s.UseUnifiedSchedulingEngine && SupportsWindows8Compatibility(s.Compatibility))
         {
-            e.Add(new XElement(Ns + "UseUnifiedSchedulingEngine", XmlBool(true)));
+            settings.Add(new XElement(Ns + "UseUnifiedSchedulingEngine", XmlBool(true)));
         }
-        e.Add(new XElement(Ns + "WakeToRun", XmlBool(s.WakeToRun)));
-        e.Add(new XElement(Ns + "ExecutionTimeLimit", DurationOrZero(s.ExecutionTimeLimit)));
+        settings.Add(new XElement(Ns + "WakeToRun", XmlBool(s.WakeToRun)));
+        settings.Add(new XElement(Ns + "ExecutionTimeLimit", DurationOrZero(s.ExecutionTimeLimit)));
         if (s.DeleteExpiredTaskAfter is { } del)
         {
-            e.Add(new XElement(Ns + "DeleteExpiredTaskAfter", DurationString(del)));
+            settings.Add(new XElement(Ns + "DeleteExpiredTaskAfter", DurationString(del)));
         }
-        e.Add(new XElement(Ns + "Priority", s.Priority.ToString(CultureInfo.InvariantCulture)));
+        settings.Add(new XElement(Ns + "Priority", s.Priority.ToString(CultureInfo.InvariantCulture)));
         if (s.Volatile)
         {
-            e.Add(new XElement(Ns + "Volatile", XmlBool(true)));
+            settings.Add(new XElement(Ns + "Volatile", XmlBool(true)));
         }
 
         if (s.RestartCount > 0 && s.RestartInterval is { } ri)
         {
-            e.Add(new XElement(Ns + "RestartOnFailure",
+            settings.Add(new XElement(Ns + "RestartOnFailure",
                 new XElement(Ns + "Interval", DurationString(ri)),
                 new XElement(Ns + "Count", s.RestartCount.ToString(CultureInfo.InvariantCulture))));
         }
 
         if (s.NetworkSettings is { } net && (net.Id is not null || !string.IsNullOrEmpty(net.Name)))
         {
-            var n = new XElement(Ns + "NetworkSettings");
-            AddIf(n, "Name", net.Name);
+            var networkSettings = new XElement(Ns + "NetworkSettings");
+            AddIf(networkSettings, "Name", net.Name);
             if (net.Id is { } id)
             {
-                n.Add(new XElement(Ns + "Id", id.ToString("B").ToUpperInvariant()));
+                networkSettings.Add(new XElement(Ns + "Id", id.ToString("B").ToUpperInvariant()));
             }
-            e.Add(n);
+            settings.Add(networkSettings);
         }
 
         if (s.MaintenanceSettings is { } m && (m.Period is not null || m.Deadline is not null))
         {
-            var ms = new XElement(Ns + "MaintenanceSettings");
-            AddIf(ms, "Period", DurationOrNull(m.Period));
-            AddIf(ms, "Deadline", DurationOrNull(m.Deadline));
+            var maintenance = new XElement(Ns + "MaintenanceSettings");
+            AddIf(maintenance, "Period", DurationOrNull(m.Period));
+            AddIf(maintenance, "Deadline", DurationOrNull(m.Deadline));
             if (m.Exclusive)
             {
-                ms.Add(new XElement(Ns + "Exclusive", XmlBool(true)));
+                maintenance.Add(new XElement(Ns + "Exclusive", XmlBool(true)));
             }
-            e.Add(ms);
+            settings.Add(maintenance);
         }
 
-        return e;
+        return settings;
     }
 
     private static XElement SerializeActions(IEnumerable<ActionModel> actions, string context)
     {
-        var e = new XElement(Ns + "Actions", new XAttribute("Context", context));
+        var actionsElement = new XElement(Ns + "Actions", new XAttribute("Context", context));
         foreach (var a in actions)
         {
-            e.Add(a switch
+            actionsElement.Add(a switch
             {
                 ExecActionModel x => ExecXml(x),
                 ComHandlerActionModel c => ComHandlerXml(c),
@@ -195,63 +195,63 @@ internal static class TaskXmlMapper
                 _ => throw new NotSupportedException($"Unknown action type {a.Type}."),
             });
         }
-        return e;
+        return actionsElement;
     }
 
     private static XElement ExecXml(ExecActionModel x)
     {
-        var e = new XElement(Ns + "Exec");
+        var exec = new XElement(Ns + "Exec");
         if (!string.IsNullOrEmpty(x.Id))
         {
-            e.Add(new XAttribute("id", x.Id));
+            exec.Add(new XAttribute("id", x.Id));
         }
-        e.Add(new XElement(Ns + "Command", x.Path));
-        AddIf(e, "Arguments", x.Arguments);
-        AddIf(e, "WorkingDirectory", x.WorkingDirectory);
-        return e;
+        exec.Add(new XElement(Ns + "Command", x.Path));
+        AddIf(exec, "Arguments", x.Arguments);
+        AddIf(exec, "WorkingDirectory", x.WorkingDirectory);
+        return exec;
     }
 
     private static XElement ComHandlerXml(ComHandlerActionModel c)
     {
-        var e = new XElement(Ns + "ComHandler", new XElement(Ns + "ClassId", c.ClassId.ToString("B").ToUpperInvariant()));
-        AddIf(e, "Data", c.Data);
-        return e;
+        var comHandler = new XElement(Ns + "ComHandler", new XElement(Ns + "ClassId", c.ClassId.ToString("B").ToUpperInvariant()));
+        AddIf(comHandler, "Data", c.Data);
+        return comHandler;
     }
 
     private static XElement EmailXml(EmailActionModel m)
     {
-        var e = new XElement(Ns + "SendEmail");
-        AddIf(e, "Server", m.Server);
-        AddIf(e, "Subject", m.Subject);
-        AddIf(e, "To", m.To);
-        AddIf(e, "Cc", m.Cc);
-        AddIf(e, "Bcc", m.Bcc);
-        AddIf(e, "ReplyTo", m.ReplyTo);
-        AddIf(e, "From", m.From);
-        AddIf(e, "Body", m.Body);
+        var sendEmail = new XElement(Ns + "SendEmail");
+        AddIf(sendEmail, "Server", m.Server);
+        AddIf(sendEmail, "Subject", m.Subject);
+        AddIf(sendEmail, "To", m.To);
+        AddIf(sendEmail, "Cc", m.Cc);
+        AddIf(sendEmail, "Bcc", m.Bcc);
+        AddIf(sendEmail, "ReplyTo", m.ReplyTo);
+        AddIf(sendEmail, "From", m.From);
+        AddIf(sendEmail, "Body", m.Body);
         if (m.Attachments.Count > 0)
         {
-            e.Add(new XElement(Ns + "Attachments", m.Attachments.Select(a => new XElement(Ns + "File", a))));
+            sendEmail.Add(new XElement(Ns + "Attachments", m.Attachments.Select(a => new XElement(Ns + "File", a))));
         }
         if (m.Headers.Count > 0)
         {
-            e.Add(new XElement(Ns + "HeaderFields", m.Headers.Select(h =>
+            sendEmail.Add(new XElement(Ns + "HeaderFields", m.Headers.Select(h =>
                 new XElement(Ns + "HeaderField", new XElement(Ns + "Name", h.Key), new XElement(Ns + "Value", h.Value)))));
         }
-        return e;
+        return sendEmail;
     }
 
     private static XElement ShowMessageXml(ShowMessageActionModel s)
     {
-        var e = new XElement(Ns + "ShowMessage");
-        AddIf(e, "Title", s.Title);
-        AddIf(e, "Body", s.MessageBody);
-        return e;
+        var showMessage = new XElement(Ns + "ShowMessage");
+        AddIf(showMessage, "Title", s.Title);
+        AddIf(showMessage, "Body", s.MessageBody);
+        return showMessage;
     }
 
     private static XElement SerializeTrigger(TriggerModel t)
     {
-        XElement e = t switch
+        XElement triggerElement = t switch
         {
             BootTriggerModel b => new XElement(Ns + "BootTrigger", DelayElement(b.Delay)),
             LogonTriggerModel l => new XElement(Ns + "LogonTrigger", UserIdElement(l.UserId), DelayElement(l.Delay)),
@@ -271,26 +271,26 @@ internal static class TaskXmlMapper
         // ExecutionTimeLimit, Repetition). Prepend those that belong before the type-specific content.
         if (!string.IsNullOrEmpty(t.Id))
         {
-            e.SetAttributeValue("id", t.Id);
+            triggerElement.SetAttributeValue("id", t.Id);
         }
-        PrependCommon(e, t);
-        return e;
+        PrependCommon(triggerElement, t);
+        return triggerElement;
     }
 
-    private static void PrependCommon(XElement e, TriggerModel t)
+    private static void PrependCommon(XElement triggerElement, TriggerModel t)
     {
         // Build the common children then insert them in schema order at the front (after any attributes).
         var common = new List<XElement>();
         if (t.Repetition.IsEnabled)
         {
-            var rep = new XElement(Ns + "Repetition",
+            var repetition = new XElement(Ns + "Repetition",
                 new XElement(Ns + "Interval", DurationString(t.Repetition.Interval!.Value)));
             if (t.Repetition.Duration is { } dur)
             {
-                rep.Add(new XElement(Ns + "Duration", DurationString(dur)));
+                repetition.Add(new XElement(Ns + "Duration", DurationString(dur)));
             }
-            rep.Add(new XElement(Ns + "StopAtDurationEnd", XmlBool(t.Repetition.StopAtDurationEnd)));
-            common.Add(rep);
+            repetition.Add(new XElement(Ns + "StopAtDurationEnd", XmlBool(t.Repetition.StopAtDurationEnd)));
+            common.Add(repetition);
         }
         if (t.ExecutionTimeLimit is { } etl)
         {
@@ -309,7 +309,7 @@ internal static class TaskXmlMapper
         // BEFORE the type-specific schedule content, so add them at the front in reverse build order.
         for (int i = common.Count - 1; i >= 0; i--)
         {
-            e.AddFirst(common[i]);
+            triggerElement.AddFirst(common[i]);
         }
     }
 
@@ -323,13 +323,13 @@ internal static class TaskXmlMapper
             MonthlyDowTriggerModel md => md.RandomDelay,
             _ => null,
         };
-        var e = new XElement(Ns + "CalendarTrigger");
-        e.Add(schedule);
+        var calendar = new XElement(Ns + "CalendarTrigger");
+        calendar.Add(schedule);
         if (random is { } r)
         {
-            e.Add(new XElement(Ns + "RandomDelay", DurationString(r)));
+            calendar.Add(new XElement(Ns + "RandomDelay", DurationString(r)));
         }
-        return e;
+        return calendar;
     }
 
     private static XElement DailyScheduleXml(DailyTriggerModel d) =>
@@ -348,8 +348,8 @@ internal static class TaskXmlMapper
         {
             days.Add(new XElement(Ns + "Day", "Last"));
         }
-        var e = new XElement(Ns + "ScheduleByMonth", days, new XElement(Ns + "Months", MonthElements(m.MonthsOfYear)));
-        return e;
+        var scheduleByMonth = new XElement(Ns + "ScheduleByMonth", days, new XElement(Ns + "Months", MonthElements(m.MonthsOfYear)));
+        return scheduleByMonth;
     }
 
     private static XElement MonthlyDowScheduleXml(MonthlyDowTriggerModel md)
@@ -363,27 +363,27 @@ internal static class TaskXmlMapper
 
     private static XElement EventTriggerXml(EventTriggerModel ev)
     {
-        var e = new XElement(Ns + "EventTrigger");
-        e.Add(new XElement(Ns + "Subscription", ev.Subscription ?? string.Empty));
+        var eventTrigger = new XElement(Ns + "EventTrigger");
+        eventTrigger.Add(new XElement(Ns + "Subscription", ev.Subscription ?? string.Empty));
         if (ev.Delay is { } d)
         {
-            e.Add(new XElement(Ns + "Delay", DurationString(d)));
+            eventTrigger.Add(new XElement(Ns + "Delay", DurationString(d)));
         }
         if (ev.ValueQueries.Count > 0)
         {
-            e.Add(new XElement(Ns + "ValueQueries", ev.ValueQueries.Select(v =>
+            eventTrigger.Add(new XElement(Ns + "ValueQueries", ev.ValueQueries.Select(v =>
                 new XElement(Ns + "Value", new XAttribute("name", v.Key), v.Value))));
         }
-        return e;
+        return eventTrigger;
     }
 
     private static XElement SessionTriggerXml(SessionStateChangeTriggerModel ss)
     {
-        var e = new XElement(Ns + "SessionStateChangeTrigger");
-        e.Add(UserIdElement(ss.UserId));
-        e.Add(DelayElement(ss.Delay));
-        e.Add(new XElement(Ns + "StateChange", ss.StateChange.ToString()));
-        return e;
+        var session = new XElement(Ns + "SessionStateChangeTrigger");
+        session.Add(UserIdElement(ss.UserId));
+        session.Add(DelayElement(ss.Delay));
+        session.Add(new XElement(Ns + "StateChange", ss.StateChange.ToString()));
+        return session;
     }
 
     private static XElement? DelayElement(TimeSpan? delay) =>
@@ -579,19 +579,19 @@ internal static class TaskXmlMapper
         return model;
     }
 
-    private static TriggerModel? ParseTrigger(XElement e)
+    private static TriggerModel? ParseTrigger(XElement element)
     {
-        var name = e.Name.LocalName;
+        var name = element.Name.LocalName;
         TriggerModel model = name switch
         {
-            "BootTrigger" => new BootTriggerModel { Delay = ParseDuration(e.Element(Ns + "Delay")?.Value) },
-            "LogonTrigger" => new LogonTriggerModel { UserId = e.Element(Ns + "UserId")?.Value, Delay = ParseDuration(e.Element(Ns + "Delay")?.Value) },
-            "RegistrationTrigger" => new RegistrationTriggerModel { Delay = ParseDuration(e.Element(Ns + "Delay")?.Value) },
+            "BootTrigger" => new BootTriggerModel { Delay = ParseDuration(element.Element(Ns + "Delay")?.Value) },
+            "LogonTrigger" => new LogonTriggerModel { UserId = element.Element(Ns + "UserId")?.Value, Delay = ParseDuration(element.Element(Ns + "Delay")?.Value) },
+            "RegistrationTrigger" => new RegistrationTriggerModel { Delay = ParseDuration(element.Element(Ns + "Delay")?.Value) },
             "IdleTrigger" => new IdleTriggerModel(),
-            "TimeTrigger" => new TimeTriggerModel { RandomDelay = ParseDuration(e.Element(Ns + "RandomDelay")?.Value) },
-            "EventTrigger" => ParseEventTrigger(e),
-            "SessionStateChangeTrigger" => ParseSessionTrigger(e),
-            "CalendarTrigger" => ParseCalendarTrigger(e),
+            "TimeTrigger" => new TimeTriggerModel { RandomDelay = ParseDuration(element.Element(Ns + "RandomDelay")?.Value) },
+            "EventTrigger" => ParseEventTrigger(element),
+            "SessionStateChangeTrigger" => ParseSessionTrigger(element),
+            "CalendarTrigger" => ParseCalendarTrigger(element),
             _ => null!,
         };
 
@@ -600,40 +600,40 @@ internal static class TaskXmlMapper
             return null;
         }
 
-        ApplyCommonTrigger(model, e);
+        ApplyCommonTrigger(model, element);
         return model;
     }
 
-    private static void ApplyCommonTrigger(TriggerModel model, XElement e)
+    private static void ApplyCommonTrigger(TriggerModel model, XElement element)
     {
-        model.Id = e.Attribute("id")?.Value;
-        model.Enabled = ParseBool(e.Element(Ns + "Enabled")?.Value, true);
-        model.StartBoundary = ParseDate(e.Element(Ns + "StartBoundary")?.Value);
-        model.EndBoundary = ParseDate(e.Element(Ns + "EndBoundary")?.Value);
-        model.ExecutionTimeLimit = ParseDuration(e.Element(Ns + "ExecutionTimeLimit")?.Value);
-        var rep = e.Element(Ns + "Repetition");
-        if (rep is not null)
+        model.Id = element.Attribute("id")?.Value;
+        model.Enabled = ParseBool(element.Element(Ns + "Enabled")?.Value, true);
+        model.StartBoundary = ParseDate(element.Element(Ns + "StartBoundary")?.Value);
+        model.EndBoundary = ParseDate(element.Element(Ns + "EndBoundary")?.Value);
+        model.ExecutionTimeLimit = ParseDuration(element.Element(Ns + "ExecutionTimeLimit")?.Value);
+        var repetition = element.Element(Ns + "Repetition");
+        if (repetition is not null)
         {
             model.Repetition = new RepetitionModel
             {
-                Interval = ParseDuration(rep.Element(Ns + "Interval")?.Value),
-                Duration = ParseDuration(rep.Element(Ns + "Duration")?.Value),
-                StopAtDurationEnd = ParseBool(rep.Element(Ns + "StopAtDurationEnd")?.Value, false),
+                Interval = ParseDuration(repetition.Element(Ns + "Interval")?.Value),
+                Duration = ParseDuration(repetition.Element(Ns + "Duration")?.Value),
+                StopAtDurationEnd = ParseBool(repetition.Element(Ns + "StopAtDurationEnd")?.Value, false),
             };
         }
     }
 
-    private static EventTriggerModel ParseEventTrigger(XElement e)
+    private static EventTriggerModel ParseEventTrigger(XElement element)
     {
         var model = new EventTriggerModel
         {
-            Subscription = e.Element(Ns + "Subscription")?.Value,
-            Delay = ParseDuration(e.Element(Ns + "Delay")?.Value),
+            Subscription = element.Element(Ns + "Subscription")?.Value,
+            Delay = ParseDuration(element.Element(Ns + "Delay")?.Value),
         };
-        var vq = e.Element(Ns + "ValueQueries");
-        if (vq is not null)
+        var valueQueries = element.Element(Ns + "ValueQueries");
+        if (valueQueries is not null)
         {
-            foreach (var v in vq.Elements(Ns + "Value"))
+            foreach (var v in valueQueries.Elements(Ns + "Value"))
             {
                 var key = v.Attribute("name")?.Value;
                 if (!string.IsNullOrEmpty(key))
@@ -645,18 +645,18 @@ internal static class TaskXmlMapper
         return model;
     }
 
-    private static SessionStateChangeTriggerModel ParseSessionTrigger(XElement e) => new()
+    private static SessionStateChangeTriggerModel ParseSessionTrigger(XElement element) => new()
     {
-        UserId = e.Element(Ns + "UserId")?.Value,
-        Delay = ParseDuration(e.Element(Ns + "Delay")?.Value),
-        StateChange = Enum.TryParse<SessionStateChangeType>(e.Element(Ns + "StateChange")?.Value, out var sc) ? sc : SessionStateChangeType.ConsoleConnect,
+        UserId = element.Element(Ns + "UserId")?.Value,
+        Delay = ParseDuration(element.Element(Ns + "Delay")?.Value),
+        StateChange = Enum.TryParse<SessionStateChangeType>(element.Element(Ns + "StateChange")?.Value, out var sc) ? sc : SessionStateChangeType.ConsoleConnect,
     };
 
-    private static TriggerModel ParseCalendarTrigger(XElement e)
+    private static TriggerModel ParseCalendarTrigger(XElement element)
     {
-        var random = ParseDuration(e.Element(Ns + "RandomDelay")?.Value);
+        var random = ParseDuration(element.Element(Ns + "RandomDelay")?.Value);
 
-        if (e.Element(Ns + "ScheduleByDay") is { } byDay)
+        if (element.Element(Ns + "ScheduleByDay") is { } byDay)
         {
             return new DailyTriggerModel
             {
@@ -664,7 +664,7 @@ internal static class TaskXmlMapper
                 RandomDelay = random,
             };
         }
-        if (e.Element(Ns + "ScheduleByWeek") is { } byWeek)
+        if (element.Element(Ns + "ScheduleByWeek") is { } byWeek)
         {
             return new WeeklyTriggerModel
             {
@@ -673,7 +673,7 @@ internal static class TaskXmlMapper
                 RandomDelay = random,
             };
         }
-        if (e.Element(Ns + "ScheduleByMonth") is { } byMonth)
+        if (element.Element(Ns + "ScheduleByMonth") is { } byMonth)
         {
             var daysEl = byMonth.Element(Ns + "DaysOfMonth");
             var days = daysEl?.Elements(Ns + "Day").Select(x => x.Value).ToList() ?? [];
@@ -685,7 +685,7 @@ internal static class TaskXmlMapper
                 RandomDelay = random,
             };
         }
-        if (e.Element(Ns + "ScheduleByMonthDayOfWeek") is { } byMdow)
+        if (element.Element(Ns + "ScheduleByMonthDayOfWeek") is { } byMdow)
         {
             var (weeks, last) = ParseWeeks(byMdow.Element(Ns + "Weeks"));
             return new MonthlyDowTriggerModel
@@ -702,54 +702,54 @@ internal static class TaskXmlMapper
         return new DailyTriggerModel { RandomDelay = random };
     }
 
-    private static ActionModel? ParseAction(XElement e) => e.Name.LocalName switch
+    private static ActionModel? ParseAction(XElement element) => element.Name.LocalName switch
     {
         "Exec" => new ExecActionModel
         {
-            Id = e.Attribute("id")?.Value,
-            Path = e.Element(Ns + "Command")?.Value ?? string.Empty,
-            Arguments = e.Element(Ns + "Arguments")?.Value,
-            WorkingDirectory = e.Element(Ns + "WorkingDirectory")?.Value,
+            Id = element.Attribute("id")?.Value,
+            Path = element.Element(Ns + "Command")?.Value ?? string.Empty,
+            Arguments = element.Element(Ns + "Arguments")?.Value,
+            WorkingDirectory = element.Element(Ns + "WorkingDirectory")?.Value,
         },
         "ComHandler" => new ComHandlerActionModel
         {
-            Id = e.Attribute("id")?.Value,
-            ClassId = Guid.TryParse(e.Element(Ns + "ClassId")?.Value, out var g) ? g : Guid.Empty,
-            Data = e.Element(Ns + "Data")?.Value,
+            Id = element.Attribute("id")?.Value,
+            ClassId = Guid.TryParse(element.Element(Ns + "ClassId")?.Value, out var g) ? g : Guid.Empty,
+            Data = element.Element(Ns + "Data")?.Value,
         },
-        "SendEmail" => ParseEmail(e),
+        "SendEmail" => ParseEmail(element),
         "ShowMessage" => new ShowMessageActionModel
         {
-            Id = e.Attribute("id")?.Value,
-            Title = e.Element(Ns + "Title")?.Value,
-            MessageBody = e.Element(Ns + "Body")?.Value,
+            Id = element.Attribute("id")?.Value,
+            Title = element.Element(Ns + "Title")?.Value,
+            MessageBody = element.Element(Ns + "Body")?.Value,
         },
         _ => null,
     };
 
-    private static EmailActionModel ParseEmail(XElement e)
+    private static EmailActionModel ParseEmail(XElement element)
     {
         var model = new EmailActionModel
         {
-            Id = e.Attribute("id")?.Value,
-            Server = e.Element(Ns + "Server")?.Value,
-            Subject = e.Element(Ns + "Subject")?.Value,
-            To = e.Element(Ns + "To")?.Value,
-            Cc = e.Element(Ns + "Cc")?.Value,
-            Bcc = e.Element(Ns + "Bcc")?.Value,
-            ReplyTo = e.Element(Ns + "ReplyTo")?.Value,
-            From = e.Element(Ns + "From")?.Value,
-            Body = e.Element(Ns + "Body")?.Value,
+            Id = element.Attribute("id")?.Value,
+            Server = element.Element(Ns + "Server")?.Value,
+            Subject = element.Element(Ns + "Subject")?.Value,
+            To = element.Element(Ns + "To")?.Value,
+            Cc = element.Element(Ns + "Cc")?.Value,
+            Bcc = element.Element(Ns + "Bcc")?.Value,
+            ReplyTo = element.Element(Ns + "ReplyTo")?.Value,
+            From = element.Element(Ns + "From")?.Value,
+            Body = element.Element(Ns + "Body")?.Value,
         };
-        var att = e.Element(Ns + "Attachments");
-        if (att is not null)
+        var attachments = element.Element(Ns + "Attachments");
+        if (attachments is not null)
         {
-            foreach (var f in att.Elements(Ns + "File"))
+            foreach (var f in attachments.Elements(Ns + "File"))
             {
                 model.Attachments.Add(f.Value);
             }
         }
-        var headers = e.Element(Ns + "HeaderFields");
+        var headers = element.Element(Ns + "HeaderFields");
         if (headers is not null)
         {
             foreach (var h in headers.Elements(Ns + "HeaderField"))
@@ -764,16 +764,16 @@ internal static class TaskXmlMapper
         return model;
     }
 
-    private static TaskDaysOfWeek ParseDaysOfWeek(XElement? e)
+    private static TaskDaysOfWeek ParseDaysOfWeek(XElement? element)
     {
         var result = TaskDaysOfWeek.None;
-        if (e is null)
+        if (element is null)
         {
             return result;
         }
         for (int i = 0; i < DayNames.Length; i++)
         {
-            if (e.Element(Ns + DayNames[i]) is not null)
+            if (element.Element(Ns + DayNames[i]) is not null)
             {
                 result |= (TaskDaysOfWeek)(1 << i);
             }
@@ -781,16 +781,16 @@ internal static class TaskXmlMapper
         return result;
     }
 
-    private static TaskMonthsOfYear ParseMonths(XElement? e)
+    private static TaskMonthsOfYear ParseMonths(XElement? element)
     {
         var result = TaskMonthsOfYear.None;
-        if (e is null)
+        if (element is null)
         {
             return result;
         }
         for (int i = 0; i < MonthNames.Length; i++)
         {
-            if (e.Element(Ns + MonthNames[i]) is not null)
+            if (element.Element(Ns + MonthNames[i]) is not null)
             {
                 result |= (TaskMonthsOfYear)(1 << i);
             }
@@ -798,15 +798,15 @@ internal static class TaskXmlMapper
         return result;
     }
 
-    private static (TaskWeeksOfMonth weeks, bool last) ParseWeeks(XElement? e)
+    private static (TaskWeeksOfMonth weeks, bool last) ParseWeeks(XElement? element)
     {
         var weeks = TaskWeeksOfMonth.None;
         var last = false;
-        if (e is null)
+        if (element is null)
         {
             return (weeks, last);
         }
-        foreach (var w in e.Elements(Ns + "Week"))
+        foreach (var w in element.Elements(Ns + "Week"))
         {
             if (string.Equals(w.Value, "Last", StringComparison.OrdinalIgnoreCase))
             {

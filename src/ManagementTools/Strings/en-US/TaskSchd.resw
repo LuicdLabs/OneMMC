@@ -193,7 +193,10 @@
   <data name="TaskSchd_Confirm_DeleteTaskFormat" xml:space="preserve"><value>Do you want to delete the task '{0}'?</value></data>
   <data name="TaskSchd_Confirm_DeleteFolderFormat" xml:space="preserve"><value>Do you want to delete the folder '{0}'?</value></data>
   <data name="TaskSchd_Confirm_RunTaskFormat" xml:space="preserve"><value>Do you want to run the task '{0}' now?</value></data>
+  <data name="TaskSchd_Confirm_DeleteTrigger" xml:space="preserve"><value>Do you want to delete the selected trigger?</value></data>
+  <data name="TaskSchd_Confirm_DeleteAction" xml:space="preserve"><value>Do you want to delete the selected action?</value></data>
   <data name="TaskSchd_Error_OperationFailed" xml:space="preserve"><value>The Task Scheduler operation failed: {0}</value></data>
+  <data name="TaskSchd_Error_TaskFailedFormat" xml:space="preserve"><value>An error has occurred for task {0}. Error message: The following error was reported: {1}</value></data>
   <data name="TaskSchd_Error_AccessDenied" xml:space="preserve"><value>This operation requires administrator privileges.</value></data>
   <data name="TaskSchd_History_Disabled" xml:space="preserve"><value>Task history is currently disabled. Enable All Tasks History to record task events.</value></data>
   <data name="TaskSchd_History_EnablePrompt" xml:space="preserve"><value>Enabling all tasks history turns on the Task Scheduler operational log for the whole computer. Continue?</value></data>
