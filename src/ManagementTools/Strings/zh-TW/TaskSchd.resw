@@ -182,6 +182,8 @@
   <data name="TaskSchd_Button_Ok" xml:space="preserve"><value>確定</value></data>
   <data name="TaskSchd_Button_Cancel" xml:space="preserve"><value>取消</value></data>
   <data name="TaskSchd_Button_Apply" xml:space="preserve"><value>套用</value></data>
+  <data name="TaskSchd_Button_NewEventFilter" xml:space="preserve"><value>新增事件篩選器...</value></data>
+  <data name="TaskSchd_Button_EditEventFilter" xml:space="preserve"><value>編輯事件篩選器...</value></data>
   <data name="TaskSchd_Validation_NameRequired" xml:space="preserve"><value>您必須輸入工作的名稱。</value></data>
   <data name="TaskSchd_Validation_ProgramRequired" xml:space="preserve"><value>您必須指定要執行的程式或指令碼。</value></data>
   <data name="TaskSchd_Validation_DurationGreaterThanInterval" xml:space="preserve"><value>重複的持續時間必須大於重複的間隔。</value></data>

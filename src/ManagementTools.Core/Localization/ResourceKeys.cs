@@ -1351,6 +1351,8 @@ public static class TaskSchdKeys
     public const string ButtonOk = "TaskSchd_Button_Ok";
     public const string ButtonCancel = "TaskSchd_Button_Cancel";
     public const string ButtonApply = "TaskSchd_Button_Apply";
+    public const string ButtonNewEventFilter = "TaskSchd_Button_NewEventFilter";
+    public const string ButtonEditEventFilter = "TaskSchd_Button_EditEventFilter";
 
     // Validation
     public const string ValidationNameRequired = "TaskSchd_Validation_NameRequired";

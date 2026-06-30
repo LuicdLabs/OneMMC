@@ -99,19 +99,13 @@
 						<CheckBox x:Name="InfoCheck" Content="Information" />
 					</StackPanel>
 
-					<!--  By log / By source are mutually exclusive; each enables its own picker.  -->
 					<StackPanel Orientation="Horizontal" Spacing="8">
-						<TextBlock Style="{StaticResource InlineLabelStyle}" Text="" />
-						<RadioButtons
-							x:Name="EventScopeRadios"
-							MaxColumns="2"
-							SelectionChanged="EventScope_SelectionChanged">
-							<x:String>By log</x:String>
-							<x:String>By source</x:String>
-						</RadioButtons>
-					</StackPanel>
-
-					<StackPanel Orientation="Horizontal" Spacing="8">
+						<RadioButton
+							x:Name="ByLogRadio"
+							GroupName="EventScope"
+							Checked="EventScopeRadio_Checked"
+							Content="By log"
+							Width="96" />
 						<TextBlock Style="{StaticResource InlineLabelStyle}" Text="Event logs:" />
 						<DropDownButton x:Name="EventLogsDropDown" Style="{StaticResource PickerDropDownStyle}">
 							<TextBlock
@@ -131,6 +125,12 @@
 					</StackPanel>
 
 					<StackPanel Orientation="Horizontal" Spacing="8">
+						<RadioButton
+							x:Name="BySourceRadio"
+							GroupName="EventScope"
+							Checked="EventScopeRadio_Checked"
+							Content="By source"
+							Width="96" />
 						<TextBlock Style="{StaticResource InlineLabelStyle}" Text="Event sources:" />
 						<DropDownButton x:Name="EventSourcesDropDown" Style="{StaticResource PickerDropDownStyle}">
 							<TextBlock
@@ -226,6 +226,7 @@
 						FontFamily="Consolas"
 						IsReadOnly="True"
 						IsSpellCheckEnabled="False"
+						TextChanged="XmlQueryBox_TextChanged"
 						TextWrapping="Wrap" />
 					<CheckBox
 						x:Name="EditQueryManuallyCheckBox"

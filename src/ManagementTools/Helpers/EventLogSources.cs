@@ -51,6 +51,29 @@ internal static class EventLogSources
     }
 
     /// <summary>
+    /// Whether <paramref name="channel"/> can be used in an event-subscription query. Analytic and Debug
+    /// ("direct") channels cannot: a <c>QueryList</c> <c>Select</c> over one makes the Task Scheduler
+    /// service reject the task with <c>ERROR_NOT_SUPPORTED</c> ("The request is not supported") when the
+    /// trigger is saved. The New Event Filter log tree omits them, matching taskschd.msc / Event Viewer,
+    /// which hide Analytic and Debug logs by default. The classic Windows logs are always subscribable and
+    /// are added by the caller regardless of this probe.
+    /// </summary>
+    public static bool IsSubscribableChannel(string channel)
+    {
+        try
+        {
+            using var config = new EventLogConfiguration(channel);
+            return config.LogType is EventLogType.Administrative or EventLogType.Operational;
+        }
+        catch (Exception)
+        {
+            // Cannot read the channel config (access denied, missing manifest, …): exclude it so a
+            // subscription over it cannot fail the save.
+            return false;
+        }
+    }
+
+    /// <summary>
     /// Maps raw channel names to their localized display names (e.g. "HardwareEvents" → "Hardware Events"),
     /// the way taskschd.msc / Event Viewer present them. Only the classic logs carry a friendly display
     /// name; modern manifest channels (e.g. "Microsoft-Windows-Kernel-Acpi/Diagnostic") are shown by their

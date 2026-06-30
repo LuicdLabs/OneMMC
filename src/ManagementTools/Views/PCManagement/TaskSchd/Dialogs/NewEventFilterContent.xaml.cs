@@ -76,16 +76,36 @@ public sealed partial class NewEventFilterContent : UserControl
     private object? _lastLoggedSelection;
     private bool _suppressLoggedChange;
 
-    public NewEventFilterContent()
+    public NewEventFilterContent() : this(null)
+    {
+    }
+
+    /// <summary>
+    /// Creates the editor, optionally pre-loaded with an existing subscription. When
+    /// <paramref name="initialQuery"/> is supplied (edit mode), it is shown verbatim on the XML tab with
+    /// "Edit query manually" checked — lossless and editable — rather than reverse-parsed into the Filter
+    /// fields. When <see langword="null"/> (new filter), the dialog opens on the Filter tab.
+    /// </summary>
+    public NewEventFilterContent(string? initialQuery)
     {
         InitializeComponent();
 
         FilterXmlSelector.SelectedItem = FilterTabItem;
-        EventScopeRadios.SelectedIndex = 0;
+        ByLogRadio.IsChecked = true;
 
         PopulateLogs();
         PopulateSources();
         PopulateKeywords();
+
+        if (!string.IsNullOrWhiteSpace(initialQuery))
+        {
+            // Edit mode: surface the saved query for manual editing on the XML tab.
+            EditQueryManuallyCheckBox.IsChecked = true;
+            XmlQueryBox.Text = initialQuery;
+            FilterXmlSelector.SelectedItem = XmlTabItem;
+            FilterTabPanel.Visibility = Visibility.Collapsed;
+            XmlTabPanel.Visibility = Visibility.Visible;
+        }
 
         UpdateEditQueryState();
         UpdateSourcesSummary();
@@ -95,6 +115,27 @@ public sealed partial class NewEventFilterContent : UserControl
         _lastLoggedSelection = LoggedCombo.SelectedItem;
         _initialized = true;
     }
+
+    /// <summary>
+    /// Raised whenever <see cref="CanSubmit"/> may have changed (scope/source/log selection, the manual
+    /// toggle, or the manual query text). The host uses it to enable/disable its OK button.
+    /// </summary>
+    public event EventHandler? CanSubmitChanged;
+
+    /// <summary>
+    /// Whether the filter currently describes a usable query: a manual XPath when editing manually,
+    /// otherwise at least one selected log ("By log") or source ("By source"). Drives the host OK button so
+    /// an empty filter cannot be submitted (and so no default Application query is produced).
+    /// </summary>
+    public bool CanSubmit =>
+        EditQueryManuallyCheckBox.IsChecked == true
+            ? !string.IsNullOrWhiteSpace(XmlQueryBox.Text)
+            : HasScope;
+
+    // True once the active scope has a concrete selection: a checked log for "By log", a checked source for
+    // "By source".
+    private bool HasScope =>
+        BySourceRadio.IsChecked == true ? AnySourceChecked() : SelectedLogChannels().Count > 0;
 
     /// <summary>
     /// Returns the event-query subscription: the manual XPath when "Edit query manually" is checked,
@@ -123,7 +164,7 @@ public sealed partial class NewEventFilterContent : UserControl
 
         ApplyLoggedRange(criteria);
 
-        if (EventScopeRadios.SelectedIndex == 0)
+        if (ByLogRadio.IsChecked == true)
         {
             foreach (var log in SelectedLogChannels())
             {
@@ -136,6 +177,15 @@ public sealed partial class NewEventFilterContent : UserControl
             {
                 criteria.Selections.Add(selection);
             }
+        }
+
+        // Without at least one channel (By log) or source (By source) there is no scope to query;
+        // returning an empty subscription avoids silently defaulting to the Application log and lets
+        // the host keep the OK button disabled. See HasScope / the host's primary-button guard.
+        if (criteria.Selections.Count == 0)
+        {
+            XmlQueryBox.Text = string.Empty;
+            return string.Empty;
         }
 
         var query = EventXPathBuilder.BuildQueryList(criteria);
@@ -302,17 +352,26 @@ public sealed partial class NewEventFilterContent : UserControl
 
     private void PopulateLogs()
     {
-        List<string> names;
-        try
+        // Probe channel subscribability off the UI thread (≈1000 channels, one channel-config read each),
+        // then build the tree on the dispatcher. Non-subscribable Analytic/Debug channels are excluded so
+        // checking the "Applications and Services Logs" group cannot cascade-select a channel that makes the
+        // Task Scheduler service reject the saved trigger with "The request is not supported".
+        _ = Task.Run(() =>
         {
-            names = EventLogSession.GlobalSession.GetLogNames()
-                .Where(n => !string.IsNullOrWhiteSpace(n))
-                .OrderBy(n => n, StringComparer.OrdinalIgnoreCase)
-                .ToList();
-        }
-        catch (Exception)
+            var all = EventLogSources.GetChannels();
+            var subscribable = new HashSet<string>(
+                all.Where(EventLogSources.IsSubscribableChannel), StringComparer.OrdinalIgnoreCase);
+            DispatcherQueue.TryEnqueue(() => BuildLogTree(all, subscribable));
+        });
+    }
+
+    // Builds the Windows Logs / Applications and Services Logs tree from the enumerated channels. Classic
+    // Windows logs are always included; every other channel is included only when subscribable.
+    private void BuildLogTree(List<string> names, HashSet<string> subscribable)
+    {
+        if (names.Count == 0)
         {
-            // If channel enumeration fails (e.g. no permissions), only the manual XML query is available.
+            // Enumeration failed or returned nothing (e.g. no permissions): only the manual XML query works.
             return;
         }
 
@@ -332,6 +391,12 @@ public sealed partial class NewEventFilterContent : UserControl
         foreach (var channel in names)
         {
             if (ClassicWindowsLogs.Contains(channel, StringComparer.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            // Skip Analytic/Debug (and unreadable) channels: they cannot be part of a subscription query.
+            if (!subscribable.Contains(channel))
             {
                 continue;
             }
@@ -375,7 +440,7 @@ public sealed partial class NewEventFilterContent : UserControl
     {
         // In "By source" mode the Log field reflects the channel(s) the selected sources write to,
         // matching taskschd.msc (e.g. source "Kernel-Acpi" → "Microsoft-Windows-Kernel-Acpi/Diagnostic").
-        if (EventScopeRadios.SelectedIndex == 1)
+        if (BySourceRadio.IsChecked == true)
         {
             var channels = GroupSourcesByChannel(SelectedSources()).Select(s => s.Channel).ToList();
             EventLogsSummary.Text = channels.Count == 0 ? string.Empty : string.Join(", ", channels);
@@ -574,34 +639,23 @@ public sealed partial class NewEventFilterContent : UserControl
         UpdateKeywordsSummary();
     }
 
-    // Choosing a source switches the scope to "By source" ("By log"/"By source" are mutually exclusive).
+    // Refreshes the sources summary and downstream state after a source check change. The radio is the
+    // master control for scope; choosing a source never flips it (the field is only editable while
+    // "By source" is selected anyway).
     private void OnSourcesChanged()
     {
         UpdateSourcesSummary();
-        if (AnySourceChecked() && EventScopeRadios.SelectedIndex != 1)
-        {
-            EventScopeRadios.SelectedIndex = 1; // fires EventScope_SelectionChanged -> UpdateScopeAndDownstream
-        }
-        else
-        {
-            UpdateScopeAndDownstream();
-        }
+        UpdateScopeAndDownstream();
     }
 
-    // Choosing a log switches the scope to "By log".
+    // Refreshes downstream state after a log selection change. As with sources, the radio stays the master
+    // control; choosing a log never flips it.
     private void OnLogsChanged()
     {
-        if (SelectedLogChannels().Count > 0 && EventScopeRadios.SelectedIndex != 0)
-        {
-            EventScopeRadios.SelectedIndex = 0; // fires EventScope_SelectionChanged -> UpdateScopeAndDownstream
-        }
-        else
-        {
-            UpdateScopeAndDownstream();
-        }
+        UpdateScopeAndDownstream();
     }
 
-    private void EventScope_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    private void EventScopeRadio_Checked(object sender, RoutedEventArgs e)
     {
         if (_initialized)
         {
@@ -609,15 +663,20 @@ public sealed partial class NewEventFilterContent : UserControl
         }
     }
 
-    // Central enabling/summary update. Both pickers stay openable (as in the native dialog); the radio
-    // decides which dimension drives the query. Task category is available only when filtering by source
-    // (its items come from the selected source); the other downstream filters become available once any
-    // log or source is chosen.
+    // Central enabling/summary update. The scope radio is the master control: "By log" enables the Event
+    // logs picker and disables Event sources, "By source" does the reverse — the disabled picker keeps its
+    // value but is not editable, mirroring taskschd.msc. Task category is available only when filtering by
+    // source (its items come from the selected source); the other downstream filters become available once
+    // any log or source is chosen.
     private void UpdateScopeAndDownstream()
     {
-        bool bySource = EventScopeRadios.SelectedIndex == 1;
-        bool hasScope = SelectedLogChannels().Count > 0 || AnySourceChecked();
+        bool bySource = BySourceRadio.IsChecked == true;
+        bool hasScope = HasScope;
         bool taskCategoryEnabled = bySource && AnySourceChecked();
+
+        // The radio drives which picker is editable; the other is disabled but retains its value.
+        EventLogsDropDown.IsEnabled = !bySource;
+        EventSourcesDropDown.IsEnabled = bySource;
 
         TaskCategoryCombo.IsEnabled = taskCategoryEnabled;
         if (taskCategoryEnabled)
@@ -637,6 +696,7 @@ public sealed partial class NewEventFilterContent : UserControl
         FilterComputerBox.IsEnabled = hasScope;
 
         UpdateEventLogsSummary();
+        CanSubmitChanged?.Invoke(this, EventArgs.Empty);
     }
 
     private void UpdateEditQueryState()
@@ -651,6 +711,17 @@ public sealed partial class NewEventFilterContent : UserControl
         if (_initialized)
         {
             UpdateEditQueryState();
+            CanSubmitChanged?.Invoke(this, EventArgs.Empty);
+        }
+    }
+
+    private void XmlQueryBox_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        // Only manual edits affect submittability; the programmatic preview refresh is gated by the manual
+        // toggle inside CanSubmit, so always notifying here is safe.
+        if (_initialized)
+        {
+            CanSubmitChanged?.Invoke(this, EventArgs.Empty);
         }
     }
 
@@ -662,7 +733,7 @@ public sealed partial class NewEventFilterContent : UserControl
         RemoveCustomResultItem();
         SelectLogged(0);
 
-        EventScopeRadios.SelectedIndex = 0;
+        ByLogRadio.IsChecked = true;
         EventLogsTree.SelectedNodes.Clear();
 
         // Reset both pickers to the empty state (nothing checked, blank summary) without running the

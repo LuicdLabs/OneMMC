@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml.Controls;
@@ -86,6 +87,43 @@ internal sealed class EventLogPickerController
 
     /// <summary>The selected/typed source name, used as the provider in the query.</summary>
     public string? SelectedSource() => EventLogSources.SelectedText(_sourceCombo);
+
+    /// <summary>
+    /// Pre-selects a log channel and (optionally) a source, used to seed the Basic fields when editing an
+    /// existing event trigger. The log is set by its raw channel name; if the display-name map has already
+    /// been applied the matching display name is shown instead. The Source list is narrowed to the channel
+    /// before the source is applied. Both combos are editable, so a value not present in the list is kept
+    /// as typed text, and <see cref="ApplyDisplayNames"/> preserves the selection if it runs afterwards.
+    /// </summary>
+    public void Select(string? rawChannel, string? source)
+    {
+        if (!string.IsNullOrWhiteSpace(rawChannel))
+        {
+            // Prefer the display name when the reverse map is ready; otherwise the raw channel doubles as
+            // the editable text and ApplyDisplayNames swaps it later.
+            var display = _rawByDisplay.FirstOrDefault(kvp =>
+                string.Equals(kvp.Value, rawChannel, StringComparison.OrdinalIgnoreCase)).Key ?? rawChannel;
+
+            _suppressSourceRefresh = true;
+            _logCombo.SelectedItem = display;
+            if (_logCombo.SelectedItem is null)
+            {
+                _logCombo.Text = display;
+            }
+            _suppressSourceRefresh = false;
+
+            RefreshSourcesForSelectedLog();
+        }
+
+        if (!string.IsNullOrWhiteSpace(source))
+        {
+            _sourceCombo.SelectedItem = source;
+            if (_sourceCombo.SelectedItem is null)
+            {
+                _sourceCombo.Text = source;
+            }
+        }
+    }
 
     // Swaps the Log combo from raw channel names to their localized display names while preserving the
     // user's current selection.

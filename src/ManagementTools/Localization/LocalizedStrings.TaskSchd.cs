@@ -156,6 +156,8 @@ namespace ManagementTools.Localization
         public string TaskSchd_Button_Ok => TaskSchd(TaskSchdKeys.ButtonOk);
         public string TaskSchd_Button_Cancel => TaskSchd(TaskSchdKeys.ButtonCancel);
         public string TaskSchd_Button_Apply => TaskSchd(TaskSchdKeys.ButtonApply);
+        public string TaskSchd_Button_NewEventFilter => TaskSchd(TaskSchdKeys.ButtonNewEventFilter);
+        public string TaskSchd_Button_EditEventFilter => TaskSchd(TaskSchdKeys.ButtonEditEventFilter);
 
         public string TaskSchd_History_Disabled => TaskSchd(TaskSchdKeys.HistoryDisabled);
         public string TaskSchd_History_ColLevel => TaskSchd(TaskSchdKeys.HistoryColLevel);

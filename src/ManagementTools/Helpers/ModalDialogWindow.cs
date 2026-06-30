@@ -105,6 +105,13 @@ public sealed class ModalDialogOptions
     /// <summary>Label for the primary (accent-styled) button.  Omitted when <c>null</c> or whitespace.</summary>
     public string? PrimaryButtonText { get; init; }
 
+    /// <summary>
+    /// Initial enabled state of the primary button.  Defaults to <c>true</c>.  Set to <c>false</c> for
+    /// dialogs that must validate before the affirmative action becomes available; update it later via
+    /// <see cref="ModalDialogWindow.SetPrimaryButtonEnabled"/>.
+    /// </summary>
+    public bool IsPrimaryButtonInitiallyEnabled { get; init; } = true;
+
     /// <summary>Label for the secondary button.  Omitted when <c>null</c> or whitespace.</summary>
     public string? SecondaryButtonText { get; init; }
 
@@ -269,6 +276,19 @@ public sealed class ModalDialogWindow : Window
     }
 
     /// <summary>
+    /// Enables or disables the primary (affirmative) button after the dialog is shown.  No-op when the
+    /// dialog has no primary button.  Use this to gate the affirmative action on live form validation.
+    /// </summary>
+    /// <param name="enabled">Whether the primary button should be clickable.</param>
+    public void SetPrimaryButtonEnabled(bool enabled)
+    {
+        if (_primaryButton is not null)
+        {
+            _primaryButton.IsEnabled = enabled;
+        }
+    }
+
+    /// <summary>
     /// Constructs the two-row XAML layout:
     /// <list type="bullet">
     ///   <item>Row 0 (star height) – content area wrapped in a padded <see cref="Border"/>.</item>
@@ -384,7 +404,8 @@ public sealed class ModalDialogWindow : Window
             {
                 Content = _options.PrimaryButtonText,
                 Style = (Style)Application.Current.Resources["AccentButtonStyle"],
-                HorizontalAlignment = HorizontalAlignment.Stretch
+                HorizontalAlignment = HorizontalAlignment.Stretch,
+                IsEnabled = _options.IsPrimaryButtonInitiallyEnabled
             };
             button.Click += (_, _) =>
             {

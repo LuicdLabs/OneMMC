@@ -380,11 +380,11 @@
 					</StackPanel>
 
 					<StackPanel x:Name="CustomEventSubPanel" Visibility="Collapsed">
-						<!--  Opens NewEventFilterContent in a ModalDialogWindow (see NewEventFilter_Click).  -->
+						<!--  Opens NewEventFilterContent in a ModalDialogWindow (see NewEventFilter_Click).
+						      Content is set in code (New/Edit Event Filter…) via UpdateEventFilterButtonLabel.  -->
 						<Button
 							x:Name="NewEventFilterButton"
-							Click="NewEventFilter_Click"
-							Content="New Event Filter..." />
+							Click="NewEventFilter_Click" />
 					</StackPanel>
 				</StackPanel>
 

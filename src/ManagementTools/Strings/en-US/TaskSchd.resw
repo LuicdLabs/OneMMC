@@ -182,6 +182,8 @@
   <data name="TaskSchd_Button_Ok" xml:space="preserve"><value>OK</value></data>
   <data name="TaskSchd_Button_Cancel" xml:space="preserve"><value>Cancel</value></data>
   <data name="TaskSchd_Button_Apply" xml:space="preserve"><value>Apply</value></data>
+  <data name="TaskSchd_Button_NewEventFilter" xml:space="preserve"><value>New Event Filter...</value></data>
+  <data name="TaskSchd_Button_EditEventFilter" xml:space="preserve"><value>Edit Event Filter...</value></data>
   <data name="TaskSchd_Validation_NameRequired" xml:space="preserve"><value>You must enter a name for the task.</value></data>
   <data name="TaskSchd_Validation_ProgramRequired" xml:space="preserve"><value>You must specify a program or script to run.</value></data>
   <data name="TaskSchd_Validation_DurationGreaterThanInterval" xml:space="preserve"><value>The repetition duration must be greater than the repetition interval.</value></data>

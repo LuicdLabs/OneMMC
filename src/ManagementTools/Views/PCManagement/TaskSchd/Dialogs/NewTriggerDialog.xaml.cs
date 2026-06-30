@@ -38,6 +38,11 @@ public sealed partial class NewTriggerDialog : ContentDialog
     private EventLogPickerController? _eventPicker;
     private bool _eventListsPopulated;
 
+    // When editing a trigger whose subscription parses as Basic, the Log/Source seed is stashed here and
+    // applied once EnsureEventListsPopulated() has built the pickers (their population is deferred to the
+    // first time the event panel is shown).
+    private BasicEventQuery? _pendingBasicEvent;
+
     /// <summary>The trigger built when the dialog is committed; <see langword="null"/> if cancelled.</summary>
     public TriggerModel? ResultTrigger { get; private set; }
 
@@ -64,6 +69,7 @@ public sealed partial class NewTriggerDialog : ContentDialog
         EventModeRadios.SelectedIndex = 0;
         BeginTaskComboBox.SelectedIndex = TriggerOnSchedule;
         ScheduleKindRadios.SelectedIndex = 0;
+        UpdateEventFilterButtonLabel();
 
         var now = DateTimeOffset.Now;
         ScheduleStartDate.Date = now;
@@ -401,8 +407,27 @@ public sealed partial class NewTriggerDialog : ContentDialog
                 BeginTaskComboBox.SelectedIndex = TriggerOnIdle;
                 break;
             case EventTriggerModel ev:
-                BeginTaskComboBox.SelectedIndex = TriggerOnEvent; _eventSubscription = ev.Subscription;
-                EventModeRadios.SelectedIndex = 1; SeedDelay(ev.Delay);
+                // Mirror taskschd.msc: Basic and Custom are independent authoring paths. A subscription
+                // expressible as a single log/source/ID opens in Basic (fields seeded once the pickers
+                // populate) and leaves Custom as a genuine "New Event Filter" (blank). Anything richer opens
+                // in Custom, pre-loaded as "Edit Event Filter". Set the pending seed/mode BEFORE selecting
+                // the panel, because selecting it synchronously runs EnsureEventListsPopulated(), which
+                // consumes the pending seed.
+                if (EventSubscriptionParser.TryParseBasic(ev.Subscription, out var basic))
+                {
+                    _eventSubscription = null;
+                    EventModeRadios.SelectedIndex = 0;
+                    _pendingBasicEvent = basic;
+                    EventIdBox.Text = basic.EventId ?? string.Empty;
+                }
+                else
+                {
+                    _eventSubscription = ev.Subscription;
+                    EventModeRadios.SelectedIndex = 1;
+                }
+                UpdateEventFilterButtonLabel();
+                BeginTaskComboBox.SelectedIndex = TriggerOnEvent;
+                SeedDelay(ev.Delay);
                 break;
             case RegistrationTriggerModel r:
                 BeginTaskComboBox.SelectedIndex = TriggerAtCreation; SeedDelay(r.Delay);
@@ -559,6 +584,19 @@ public sealed partial class NewTriggerDialog : ContentDialog
         CustomEventSubPanel.Visibility = basic ? Visibility.Collapsed : Visibility.Visible;
     }
 
+    // The Custom button reads "Edit Event Filter…" once a query exists (editing reopens it pre-loaded),
+    // otherwise "New Event Filter…" — matching taskschd.msc.
+    private void UpdateEventFilterButtonLabel()
+    {
+        if (NewEventFilterButton is null)
+        {
+            return;
+        }
+        NewEventFilterButton.Content = L(string.IsNullOrWhiteSpace(_eventSubscription)
+            ? TaskSchdKeys.ButtonNewEventFilter
+            : TaskSchdKeys.ButtonEditEventFilter);
+    }
+
     // Fill the Log/Source pickers from the live system the first time the "On an event" panel is shown
     // (deferred so opening the dialog for any other trigger type does not pay the enumeration cost).
     private void EnsureEventListsPopulated()
@@ -571,6 +609,13 @@ public sealed partial class NewTriggerDialog : ContentDialog
 
         _eventPicker = new EventLogPickerController(EventLogCombo, EventSourceCombo);
         _eventPicker.EnsurePopulated();
+
+        // Apply a Basic seed captured during edit-mode PopulateFrom now that the combos exist.
+        if (_pendingBasicEvent is { } basic)
+        {
+            _eventPicker.Select(basic.Channel, basic.Source);
+            _pendingBasicEvent = null;
+        }
     }
 
     // Picking a log narrows the Source list to the sources registered to that channel (matching taskschd.msc);
@@ -580,7 +625,9 @@ public sealed partial class NewTriggerDialog : ContentDialog
 
     private async void NewEventFilter_Click(object sender, RoutedEventArgs e)
     {
-        var content = new NewEventFilterContent();
+        // Pass the current subscription so an existing Custom query reopens in edit mode (pre-loaded),
+        // rather than starting a blank filter.
+        var content = new NewEventFilterContent(_eventSubscription);
         var modal = new ModalDialogWindow(new ModalDialogOptions
         {
             Title = L(TaskSchdKeys.DialogNewEventFilter),
@@ -591,13 +638,19 @@ public sealed partial class NewTriggerDialog : ContentDialog
             CloseButtonText = L(TaskSchdKeys.ButtonCancel),
             DefaultButton = WindowDialogResult.Primary,
             IsPrimaryButtonLeading = true,
+            // Like taskschd.msc, OK stays disabled until a log/source (or a manual query) makes the filter
+            // submittable; CanSubmitChanged keeps it in sync.
+            IsPrimaryButtonInitiallyEnabled = content.CanSubmit,
             Width = 660,
             Height = 700,
         });
 
+        content.CanSubmitChanged += (_, _) => modal.SetPrimaryButtonEnabled(content.CanSubmit);
+
         if (await modal.ShowDialogAsync() == WindowDialogResult.Primary)
         {
             _eventSubscription = content.BuildQuery();
+            UpdateEventFilterButtonLabel();
         }
     }
 
