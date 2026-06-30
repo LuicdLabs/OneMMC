@@ -135,7 +135,7 @@
 						<DropDownButton x:Name="EventSourcesDropDown" Style="{StaticResource PickerDropDownStyle}">
 							<TextBlock
 								x:Name="EventSourcesSummary"
-								Text="&lt;All Event Sources&gt;"
+								Text=""
 								TextTrimming="CharacterEllipsis" />
 							<DropDownButton.Flyout>
 								<Flyout Closed="EventSourcesFlyout_Closed" Placement="Bottom">
@@ -151,7 +151,10 @@
 					</StackPanel>
 
 					<TextBlock Style="{StaticResource SecondaryTextStyle}" Text="Includes/Excludes Event IDs: Enter ID numbers and/or ID ranges separated by commas. To exclude criteria, type a minus sign first. For example 1,3,5-99,-76" />
-					<TextBox x:Name="EventIdsBox" PlaceholderText="&lt;All Event IDs&gt;" />
+					<TextBox
+						x:Name="EventIdsBox"
+						IsEnabled="False"
+						PlaceholderText="&lt;All Event IDs&gt;" />
 
 					<StackPanel Orientation="Horizontal" Spacing="8">
 						<TextBlock Style="{StaticResource InlineLabelStyle}" Text="Task category:" />
@@ -159,15 +162,18 @@
 							x:Name="TaskCategoryCombo"
 							Width="316"
 							IsEditable="True"
-							PlaceholderText="&lt;All Task Categories&gt;" />
+							IsEnabled="False" />
 					</StackPanel>
 
 					<StackPanel Orientation="Horizontal" Spacing="8">
 						<TextBlock Style="{StaticResource InlineLabelStyle}" Text="Keywords:" />
-						<DropDownButton x:Name="KeywordsDropDown" Style="{StaticResource PickerDropDownStyle}">
+						<DropDownButton
+							x:Name="KeywordsDropDown"
+							IsEnabled="False"
+							Style="{StaticResource PickerDropDownStyle}">
 							<TextBlock
 								x:Name="KeywordsSummary"
-								Text="&lt;All Keywords&gt;"
+								Text=""
 								TextTrimming="CharacterEllipsis" />
 							<DropDownButton.Flyout>
 								<Flyout Closed="KeywordsFlyout_Closed" Placement="Bottom">
@@ -187,6 +193,7 @@
 						<TextBox
 							x:Name="FilterUserBox"
 							Width="316"
+							IsEnabled="False"
 							PlaceholderText="&lt;All Users&gt;" />
 					</StackPanel>
 					<StackPanel Orientation="Horizontal" Spacing="8">
@@ -194,6 +201,7 @@
 						<TextBox
 							x:Name="FilterComputerBox"
 							Width="316"
+							IsEnabled="False"
 							PlaceholderText="&lt;All Computers&gt;" />
 					</StackPanel>
 

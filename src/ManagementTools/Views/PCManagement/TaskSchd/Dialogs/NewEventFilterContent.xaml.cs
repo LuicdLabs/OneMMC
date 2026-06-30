@@ -1,12 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Diagnostics.Eventing.Reader;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using ManagementTools.Core.Features.PCManagement.Services.EventViewer;
+using ManagementTools.Helpers;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 
@@ -63,6 +65,10 @@ public sealed partial class NewEventFilterContent : UserControl
 
     private bool _initialized;
 
+    // Guards the "<All …>" sentinel coupling so the programmatic check/uncheck cascade does not re-enter
+    // the per-item PropertyChanged handlers.
+    private bool _suppressAllSync;
+
     // Custom-range state for the Logged picker: the committed range, the dynamically inserted combo item
     // that displays it, the last committed (non-action) selection to revert to, and a re-entrancy guard.
     private CustomRangeSelection? _customRange;
@@ -81,9 +87,10 @@ public sealed partial class NewEventFilterContent : UserControl
         PopulateSources();
         PopulateKeywords();
 
-        UpdateEventScopeState();
         UpdateEditQueryState();
-        UpdateEventLogsSummary();
+        UpdateSourcesSummary();
+        UpdateKeywordsSummary();
+        UpdateScopeAndDownstream();
 
         _lastLoggedSelection = LoggedCombo.SelectedItem;
         _initialized = true;
@@ -120,20 +127,49 @@ public sealed partial class NewEventFilterContent : UserControl
         {
             foreach (var log in SelectedLogChannels())
             {
-                criteria.Logs.Add(log);
+                criteria.Selections.Add(new ChannelSelection { Channel = log });
             }
         }
         else
         {
-            foreach (var source in SelectedSources())
+            foreach (var selection in GroupSourcesByChannel(SelectedSources()))
             {
-                criteria.Sources.Add(source);
+                criteria.Selections.Add(selection);
             }
         }
 
         var query = EventXPathBuilder.BuildQueryList(criteria);
         XmlQueryBox.Text = query;
         return query;
+    }
+
+    // "By source" mirrors Event Viewer: resolve each provider to the channel(s) it writes to and emit one
+    // Select per channel, so the query Path is correct instead of always assuming the Application log.
+    private static List<ChannelSelection> GroupSourcesByChannel(IReadOnlyList<string> sources)
+    {
+        var providersByChannel = new Dictionary<string, List<string>>(StringComparer.OrdinalIgnoreCase);
+        var channelOrder = new List<string>();
+
+        foreach (var source in sources)
+        {
+            foreach (var channel in EventSourceChannelResolver.GetChannels(source))
+            {
+                if (!providersByChannel.TryGetValue(channel, out var providers))
+                {
+                    providers = [];
+                    providersByChannel[channel] = providers;
+                    channelOrder.Add(channel);
+                }
+                if (!providers.Contains(source))
+                {
+                    providers.Add(source);
+                }
+            }
+        }
+
+        return channelOrder
+            .Select(channel => new ChannelSelection { Channel = channel, Providers = providersByChannel[channel] })
+            .ToList();
     }
 
     // ----------------------------------------------------------------- Logged / custom range
@@ -337,17 +373,26 @@ public sealed partial class NewEventFilterContent : UserControl
 
     private void UpdateEventLogsSummary()
     {
+        // In "By source" mode the Log field reflects the channel(s) the selected sources write to,
+        // matching taskschd.msc (e.g. source "Kernel-Acpi" → "Microsoft-Windows-Kernel-Acpi/Diagnostic").
+        if (EventScopeRadios.SelectedIndex == 1)
+        {
+            var channels = GroupSourcesByChannel(SelectedSources()).Select(s => s.Channel).ToList();
+            EventLogsSummary.Text = channels.Count == 0 ? string.Empty : string.Join(", ", channels);
+            return;
+        }
+
         var logs = SelectedLogChannels();
         EventLogsSummary.Text = logs.Count == 0 ? SelectLogsLabel : string.Join(", ", logs);
     }
 
-    private void EventLogsFlyout_Closed(object sender, object e) => UpdateEventLogsSummary();
+    private void EventLogsFlyout_Closed(object sender, object e) => OnLogsChanged();
 
     // ----------------------------------------------------------------- Event sources
 
     private void PopulateSources()
     {
-        _sources.Add(new CheckableItem(AllSourcesLabel, isChecked: true));
+        _sources.Add(new CheckableItem(AllSourcesLabel));
         try
         {
             foreach (var provider in EventLogSession.GlobalSession.GetProviderNames()
@@ -361,34 +406,64 @@ public sealed partial class NewEventFilterContent : UserControl
         {
             // Provider enumeration can fail without elevation; the list keeps just "<All Event Sources>".
         }
+        foreach (var item in _sources)
+        {
+            item.PropertyChanged += OnSourceItemChanged;
+        }
         EventSourcesList.ItemsSource = _sources;
     }
 
-    private List<string> SelectedSources() =>
-        _sources.Where(i => i.IsChecked && i.Name != AllSourcesLabel).Select(i => i.Name).ToList();
+    // "All Event Sources" means "no specific source filter", so it contributes no provider names.
+    private List<string> SelectedSources()
+    {
+        if (IsAllChecked(_sources, AllSourcesLabel))
+        {
+            return [];
+        }
+        return _sources.Where(i => i.IsChecked && i.Name != AllSourcesLabel).Select(i => i.Name).ToList();
+    }
+
+    private bool AnySourceChecked() => _sources.Any(i => i.IsChecked);
+
+    private static bool IsAllChecked(IEnumerable<CheckableItem> items, string allLabel) =>
+        items.Any(i => i.Name == allLabel && i.IsChecked);
 
     private void UpdateSourcesSummary()
     {
-        var picked = SelectedSources();
-        EventSourcesSummary.Text = picked.Count == 0 ? AllSourcesLabel : string.Join(", ", picked);
+        if (IsAllChecked(_sources, AllSourcesLabel))
+        {
+            EventSourcesSummary.Text = AllSourcesLabel;
+            return;
+        }
+        var picked = _sources.Where(i => i.IsChecked && i.Name != AllSourcesLabel).Select(i => i.Name).ToList();
+        EventSourcesSummary.Text = picked.Count == 0 ? string.Empty : string.Join(", ", picked);
     }
 
-    private void EventSourcesFlyout_Closed(object sender, object e) => UpdateSourcesSummary();
+    private void EventSourcesFlyout_Closed(object sender, object e) => OnSourcesChanged();
 
     // ----------------------------------------------------------------- Keywords
 
     private void PopulateKeywords()
     {
-        _keywords.Add(new CheckableItem(AllKeywordsLabel, isChecked: true));
+        _keywords.Add(new CheckableItem(AllKeywordsLabel));
         foreach (var (name, _) in KeywordDefinitions)
         {
             _keywords.Add(new CheckableItem(name));
+        }
+        foreach (var item in _keywords)
+        {
+            item.PropertyChanged += OnKeywordItemChanged;
         }
         KeywordsList.ItemsSource = _keywords;
     }
 
     private long SelectedKeywordsMask()
     {
+        // "All Keywords" means no keyword restriction.
+        if (IsAllChecked(_keywords, AllKeywordsLabel))
+        {
+            return 0;
+        }
         long mask = 0;
         foreach (var item in _keywords)
         {
@@ -414,8 +489,13 @@ public sealed partial class NewEventFilterContent : UserControl
 
     private void UpdateKeywordsSummary()
     {
+        if (IsAllChecked(_keywords, AllKeywordsLabel))
+        {
+            KeywordsSummary.Text = AllKeywordsLabel;
+            return;
+        }
         var picked = _keywords.Where(i => i.IsChecked && i.Name != AllKeywordsLabel).Select(i => i.Name).ToList();
-        KeywordsSummary.Text = picked.Count == 0 ? AllKeywordsLabel : string.Join(", ", picked);
+        KeywordsSummary.Text = picked.Count == 0 ? string.Empty : string.Join(", ", picked);
     }
 
     private void KeywordsFlyout_Closed(object sender, object e) => UpdateKeywordsSummary();
@@ -439,19 +519,124 @@ public sealed partial class NewEventFilterContent : UserControl
         }
     }
 
-    private void UpdateEventScopeState()
+    // Keeps an "<All …>" sentinel in sync with its siblings: toggling it sets them all, and the sentinel
+    // stays checked only while every sibling is checked. The cascade is guarded so the re-entrant
+    // PropertyChanged notifications it raises do not fight each other.
+    private void SyncAllSentinel(ObservableCollection<CheckableItem> items, string allLabel, CheckableItem changed)
     {
-        bool byLog = EventScopeRadios.SelectedIndex == 0;
-        EventLogsDropDown.IsEnabled = byLog;
-        EventSourcesDropDown.IsEnabled = !byLog;
+        var all = items.FirstOrDefault(i => i.Name == allLabel);
+        if (all is null)
+        {
+            return;
+        }
+
+        _suppressAllSync = true;
+        try
+        {
+            if (ReferenceEquals(changed, all))
+            {
+                foreach (var item in items)
+                {
+                    if (!ReferenceEquals(item, all))
+                    {
+                        item.IsChecked = all.IsChecked;
+                    }
+                }
+            }
+            else
+            {
+                all.IsChecked = items.Where(i => !ReferenceEquals(i, all)).All(i => i.IsChecked);
+            }
+        }
+        finally
+        {
+            _suppressAllSync = false;
+        }
+    }
+
+    private void OnSourceItemChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (!_initialized || _suppressAllSync || e.PropertyName != nameof(CheckableItem.IsChecked) || sender is not CheckableItem changed)
+        {
+            return;
+        }
+        SyncAllSentinel(_sources, AllSourcesLabel, changed);
+        OnSourcesChanged();
+    }
+
+    private void OnKeywordItemChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (!_initialized || _suppressAllSync || e.PropertyName != nameof(CheckableItem.IsChecked) || sender is not CheckableItem changed)
+        {
+            return;
+        }
+        SyncAllSentinel(_keywords, AllKeywordsLabel, changed);
+        UpdateKeywordsSummary();
+    }
+
+    // Choosing a source switches the scope to "By source" ("By log"/"By source" are mutually exclusive).
+    private void OnSourcesChanged()
+    {
+        UpdateSourcesSummary();
+        if (AnySourceChecked() && EventScopeRadios.SelectedIndex != 1)
+        {
+            EventScopeRadios.SelectedIndex = 1; // fires EventScope_SelectionChanged -> UpdateScopeAndDownstream
+        }
+        else
+        {
+            UpdateScopeAndDownstream();
+        }
+    }
+
+    // Choosing a log switches the scope to "By log".
+    private void OnLogsChanged()
+    {
+        if (SelectedLogChannels().Count > 0 && EventScopeRadios.SelectedIndex != 0)
+        {
+            EventScopeRadios.SelectedIndex = 0; // fires EventScope_SelectionChanged -> UpdateScopeAndDownstream
+        }
+        else
+        {
+            UpdateScopeAndDownstream();
+        }
     }
 
     private void EventScope_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (EventLogsDropDown is not null)
+        if (_initialized)
         {
-            UpdateEventScopeState();
+            UpdateScopeAndDownstream();
         }
+    }
+
+    // Central enabling/summary update. Both pickers stay openable (as in the native dialog); the radio
+    // decides which dimension drives the query. Task category is available only when filtering by source
+    // (its items come from the selected source); the other downstream filters become available once any
+    // log or source is chosen.
+    private void UpdateScopeAndDownstream()
+    {
+        bool bySource = EventScopeRadios.SelectedIndex == 1;
+        bool hasScope = SelectedLogChannels().Count > 0 || AnySourceChecked();
+        bool taskCategoryEnabled = bySource && AnySourceChecked();
+
+        TaskCategoryCombo.IsEnabled = taskCategoryEnabled;
+        if (taskCategoryEnabled)
+        {
+            TaskCategoryCombo.ItemsSource = EventLogSources.GetTaskCategories(SelectedSources());
+        }
+        else
+        {
+            TaskCategoryCombo.ItemsSource = null;
+            TaskCategoryCombo.SelectedIndex = -1;
+            TaskCategoryCombo.Text = string.Empty;
+        }
+
+        KeywordsDropDown.IsEnabled = hasScope;
+        EventIdsBox.IsEnabled = hasScope;
+        FilterUserBox.IsEnabled = hasScope;
+        FilterComputerBox.IsEnabled = hasScope;
+
+        UpdateEventLogsSummary();
     }
 
     private void UpdateEditQueryState()
@@ -480,24 +665,27 @@ public sealed partial class NewEventFilterContent : UserControl
         EventScopeRadios.SelectedIndex = 0;
         EventLogsTree.SelectedNodes.Clear();
 
+        // Reset both pickers to the empty state (nothing checked, blank summary) without running the
+        // per-item coupling for every reset.
+        _suppressAllSync = true;
         foreach (var source in _sources)
         {
-            source.IsChecked = source.Name == AllSourcesLabel;
+            source.IsChecked = false;
         }
         foreach (var keyword in _keywords)
         {
-            keyword.IsChecked = keyword.Name == AllKeywordsLabel;
+            keyword.IsChecked = false;
         }
+        _suppressAllSync = false;
 
         EventIdsBox.Text = string.Empty;
         TaskCategoryCombo.Text = string.Empty;
         FilterUserBox.Text = string.Empty;
         FilterComputerBox.Text = string.Empty;
 
-        UpdateEventLogsSummary();
         UpdateSourcesSummary();
         UpdateKeywordsSummary();
-        UpdateEventScopeState();
+        UpdateScopeAndDownstream();
     }
 
     private static string? NullIfBlank(string? value) =>

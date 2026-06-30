@@ -1,7 +1,7 @@
 using System;
 using System.Globalization;
-using System.Linq;
 using ManagementTools.Core.Features.PCManagement.Models.TaskSchd;
+using ManagementTools.Core.Features.PCManagement.Services.EventViewer;
 using ManagementTools.Core.Localization;
 using ManagementTools.Helpers;
 using Microsoft.UI.Xaml;
@@ -31,6 +31,12 @@ public sealed partial class NewTriggerDialog : ContentDialog
     private bool _initialized;
     private string? _pickedUserId;
     private string? _eventSubscription;
+
+    // The Basic "On an event" Log/Source pickers are filled from the live system the first time the
+    // event panel is shown, via a controller that also resolves the friendly channel display names
+    // (e.g. "Hardware Events") that taskschd.msc shows and maps them back to the raw channel for the query.
+    private EventLogPickerController? _eventPicker;
+    private bool _eventListsPopulated;
 
     /// <summary>The trigger built when the dialog is committed; <see langword="null"/> if cancelled.</summary>
     public TriggerModel? ResultTrigger { get; private set; }
@@ -291,21 +297,20 @@ public sealed partial class NewTriggerDialog : ContentDialog
             return _eventSubscription ?? string.Empty;
         }
 
-        var log = (EventLogCombo.SelectedItem as ComboBoxItem)?.Content as string ?? "System";
-        var source = (EventSourceCombo.SelectedItem as ComboBoxItem)?.Content as string;
+        var log = _eventPicker?.SelectedRawChannel() ?? "System";
+        var source = _eventPicker?.SelectedSource();
         var id = EventIdBox.Text?.Trim();
 
-        var predicates = new System.Collections.Generic.List<string>();
-        if (!string.IsNullOrEmpty(source))
+        var criteria = new EventXPathBuilder.Criteria
         {
-            predicates.Add($"Provider[@Name='{source}']");
-        }
-        if (!string.IsNullOrEmpty(id) && int.TryParse(id, out _))
+            EventIds = !string.IsNullOrEmpty(id) && int.TryParse(id, out _) ? id : null,
+        };
+        criteria.Selections.Add(new ChannelSelection
         {
-            predicates.Add($"EventID={id}");
-        }
-        var system = predicates.Count > 0 ? $"System[{string.Join(" and ", predicates)}]" : "System";
-        return $"<QueryList><Query Id=\"0\" Path=\"{log}\"><Select Path=\"{log}\">*[{system}]</Select></Query></QueryList>";
+            Channel = log,
+            Providers = string.IsNullOrEmpty(source) ? [] : [source],
+        });
+        return EventXPathBuilder.BuildQueryList(criteria);
     }
 
     private static string? Validate(TriggerModel trigger)
@@ -489,7 +494,7 @@ public sealed partial class NewTriggerDialog : ContentDialog
             case TriggerAtStartup:
             case TriggerAtCreation: NoSettingsPanel.Visibility = Visibility.Visible; break;
             case TriggerOnIdle: IdlePanel.Visibility = Visibility.Visible; break;
-            case TriggerOnEvent: EventPanel.Visibility = Visibility.Visible; break;
+            case TriggerOnEvent: EventPanel.Visibility = Visibility.Visible; EnsureEventListsPopulated(); break;
             case TriggerOnConnect:
             case TriggerOnDisconnect: SessionConnPanel.Visibility = Visibility.Visible; break;
         }
@@ -553,6 +558,25 @@ public sealed partial class NewTriggerDialog : ContentDialog
         BasicEventSubPanel.Visibility = basic ? Visibility.Visible : Visibility.Collapsed;
         CustomEventSubPanel.Visibility = basic ? Visibility.Collapsed : Visibility.Visible;
     }
+
+    // Fill the Log/Source pickers from the live system the first time the "On an event" panel is shown
+    // (deferred so opening the dialog for any other trigger type does not pay the enumeration cost).
+    private void EnsureEventListsPopulated()
+    {
+        if (_eventListsPopulated)
+        {
+            return;
+        }
+        _eventListsPopulated = true;
+
+        _eventPicker = new EventLogPickerController(EventLogCombo, EventSourceCombo);
+        _eventPicker.EnsurePopulated();
+    }
+
+    // Picking a log narrows the Source list to the sources registered to that channel (matching taskschd.msc);
+    // channels that cannot report sources fall back to the full provider list.
+    private void EventLogCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        => _eventPicker?.RefreshSourcesForSelectedLog();
 
     private async void NewEventFilter_Click(object sender, RoutedEventArgs e)
     {

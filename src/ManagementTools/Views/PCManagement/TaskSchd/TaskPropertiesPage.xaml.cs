@@ -2,6 +2,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Security.Principal;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using ManagementTools.Core.Features.PCManagement.Models.TaskSchd;
@@ -109,7 +110,7 @@ public sealed partial class TaskPropertiesPage : Page, IUnsavedChangesGuard
 
         // Security / principal
         var principal = def.Principal;
-        AccountText.Text = principal.DisplayName ?? principal.UserId ?? principal.GroupId ?? string.Empty;
+        AccountText.Text = ResolveAccountDisplayName(principal);
         RunWhetherLoggedOnRadio.IsChecked = principal.RunWhetherLoggedOn;
         RunOnlyLoggedOnRadio.IsChecked = !principal.RunWhetherLoggedOn;
         DoNotStorePasswordCheckBox.IsChecked = principal.LogonType == TaskLogonType.S4U;
@@ -516,6 +517,41 @@ public sealed partial class TaskPropertiesPage : Page, IUnsavedChangesGuard
         }
         RunOnlyLoggedOnRadio.IsEnabled = !isGroup;
         DoNotStorePasswordCheckBox.IsEnabled = !isGroup && RunWhetherLoggedOnRadio.IsChecked == true;
+    }
+
+    // Tasks created by the system (e.g. OneDrive's per-user task) store the run-as account as a raw SID
+    // with no display name. Show the friendly account ("DOMAIN\User") instead, like taskschd.msc — for
+    // display only, so the loaded definition (and the unsaved-changes baseline) is left untouched.
+    private static string ResolveAccountDisplayName(PrincipalModel principal)
+    {
+        if (!string.IsNullOrEmpty(principal.DisplayName) && !LooksLikeSid(principal.DisplayName))
+        {
+            return principal.DisplayName;
+        }
+
+        var id = principal.UserId ?? principal.GroupId ?? principal.DisplayName;
+        if (string.IsNullOrEmpty(id))
+        {
+            return string.Empty;
+        }
+
+        return LooksLikeSid(id) ? TryTranslateSid(id) ?? id : id;
+    }
+
+    private static bool LooksLikeSid(string value) =>
+        value.StartsWith("S-1-", StringComparison.OrdinalIgnoreCase);
+
+    private static string? TryTranslateSid(string sid)
+    {
+        try
+        {
+            return new SecurityIdentifier(sid).Translate(typeof(NTAccount)).Value;
+        }
+        catch (Exception)
+        {
+            // Unresolvable (deleted account, unreachable domain, malformed SID) — fall back to the SID.
+            return null;
+        }
     }
 
     // ----- TaskTriggers -----

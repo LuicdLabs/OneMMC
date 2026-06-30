@@ -353,28 +353,22 @@
 					<StackPanel x:Name="BasicEventSubPanel" Spacing="10">
 						<StackPanel Orientation="Horizontal" Spacing="8">
 							<TextBlock Style="{StaticResource InlineLabelStyle}" Text="Log:" />
-							<!--  TODO(TaskScheduler): populate from the real event-log channels (EvtOpenChannelEnum).  -->
+							<!--  Items populated in code-behind from the real event-log channels (EventLogSession.GetLogNames).  -->
 							<ComboBox
 								x:Name="EventLogCombo"
 								Width="320"
-								PlaceholderText="Select a log">
-								<ComboBoxItem Content="Application" />
-								<ComboBoxItem Content="Security" />
-								<ComboBoxItem Content="Setup" />
-								<ComboBoxItem Content="System" />
-							</ComboBox>
+								IsEditable="True"
+								PlaceholderText="Select a log"
+								SelectionChanged="EventLogCombo_SelectionChanged" />
 						</StackPanel>
 						<StackPanel Orientation="Horizontal" Spacing="8">
 							<TextBlock Style="{StaticResource InlineLabelStyle}" Text="Source:" />
-							<!--  TODO(TaskScheduler): populate sources for the selected log.  -->
+							<!--  Items populated in code-behind: the providers for the selected log (or all providers).  -->
 							<ComboBox
 								x:Name="EventSourceCombo"
 								Width="320"
-								PlaceholderText="Select a source">
-								<ComboBoxItem Content="Application Error" />
-								<ComboBoxItem Content="Service Control Manager" />
-								<ComboBoxItem Content="Winlogon" />
-							</ComboBox>
+								IsEditable="True"
+								PlaceholderText="Select a source" />
 						</StackPanel>
 						<StackPanel Orientation="Horizontal" Spacing="8">
 							<TextBlock Style="{StaticResource InlineLabelStyle}" Text="Event ID:" />

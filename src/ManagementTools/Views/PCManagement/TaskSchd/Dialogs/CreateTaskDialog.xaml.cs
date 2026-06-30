@@ -1,8 +1,10 @@
 using System;
 using System.Globalization;
 using ManagementTools.Core.Features.PCManagement.Models.TaskSchd;
+using ManagementTools.Core.Features.PCManagement.Services.EventViewer;
 using ManagementTools.Core.Features.PCManagement.ViewModels.TaskSchd;
 using ManagementTools.Core.Localization;
+using ManagementTools.Helpers;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using WinRT.Interop;
@@ -27,6 +29,12 @@ public sealed partial class CreateTaskDialog : ContentDialog
     private const int ActionExec = 0;
     private const int ActionEmail = 1;
     private const int ActionMessage = 2;
+
+    // The Basic "On an event" Log/Source pickers are filled from the live system the first time the
+    // event trigger is selected, via a controller that also resolves the friendly channel display names
+    // (e.g. "Hardware Events") that taskschd.msc shows and maps them back to the raw channel for the query.
+    private EventLogPickerController? _eventPicker;
+    private bool _eventListsPopulated;
 
     public IReadOnlyList<string> Months { get; } =
     [
@@ -123,22 +131,38 @@ public sealed partial class CreateTaskDialog : ContentDialog
 
     private string BuildEventSubscription()
     {
-        var log = (EventLogCombo.SelectedItem as ComboBoxItem)?.Content as string ?? "System";
-        var source = (EventSourceCombo.SelectedItem as ComboBoxItem)?.Content as string;
+        var log = _eventPicker?.SelectedRawChannel() ?? "System";
+        var source = _eventPicker?.SelectedSource();
         var id = EventIdBox.Text?.Trim();
 
-        var predicates = new System.Collections.Generic.List<string>();
-        if (!string.IsNullOrEmpty(source))
+        var criteria = new EventXPathBuilder.Criteria
         {
-            predicates.Add($"Provider[@Name='{source}']");
-        }
-        if (!string.IsNullOrEmpty(id) && int.TryParse(id, out _))
+            EventIds = !string.IsNullOrEmpty(id) && int.TryParse(id, out _) ? id : null,
+        };
+        criteria.Selections.Add(new ChannelSelection
         {
-            predicates.Add($"EventID={id}");
-        }
-        var system = predicates.Count > 0 ? $"System[{string.Join(" and ", predicates)}]" : "System";
-        return $"<QueryList><Query Id=\"0\" Path=\"{log}\"><Select Path=\"{log}\">*[{system}]</Select></Query></QueryList>";
+            Channel = log,
+            Providers = string.IsNullOrEmpty(source) ? [] : [source],
+        });
+        return EventXPathBuilder.BuildQueryList(criteria);
     }
+
+    // Fill the Log/Source pickers from the live system the first time the event trigger is shown.
+    private void EnsureEventListsPopulated()
+    {
+        if (_eventListsPopulated)
+        {
+            return;
+        }
+        _eventListsPopulated = true;
+
+        _eventPicker = new EventLogPickerController(EventLogCombo, EventSourceCombo);
+        _eventPicker.EnsurePopulated();
+    }
+
+    // Picking a log narrows the Source list to the sources registered to that channel (matching taskschd.msc).
+    private void EventLogCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        => _eventPicker?.RefreshSourcesForSelectedLog();
 
     private ActionModel? BuildAction()
     {
@@ -197,7 +221,7 @@ public sealed partial class CreateTaskDialog : ContentDialog
             case TriggerOneTime: OneTimePanel.Visibility = Visibility.Visible; break;
             case TriggerStartup:
             case TriggerLogon: TriggerNoSettingsPanel.Visibility = Visibility.Visible; break;
-            case TriggerEvent: EventPanel.Visibility = Visibility.Visible; break;
+            case TriggerEvent: EventPanel.Visibility = Visibility.Visible; EnsureEventListsPopulated(); break;
         }
     }
 
