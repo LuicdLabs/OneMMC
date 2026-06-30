@@ -124,14 +124,38 @@
 					<cwuc:SettingsCard.HeaderIcon>
 						<FontIcon Glyph="&#xE77B;" />
 					</cwuc:SettingsCard.HeaderIcon>
-					<Button Click="AuthorCopy_Click" Content="Copy" MinWidth="120" />
+					<Button x:Name="AuthorCopyButton" Click="AuthorCopy_Click" MinWidth="120">
+						<Grid>
+							<TextBlock x:Name="AuthorCopyText" Text="Copy" HorizontalAlignment="Center" VerticalAlignment="Center" />
+							<FontIcon
+								x:Name="AuthorCheckIcon"
+								FontSize="20"
+								Glyph="&#xE73E;"
+								HorizontalAlignment="Center"
+								VerticalAlignment="Center"
+								Opacity="0"
+								Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
+						</Grid>
+					</Button>
 				</cwuc:SettingsCard>
 
 				<cwuc:SettingsCard x:Name="LocationCard" Header="{x:Bind LocalizedStrings.TaskSchd_General_Location}">
 					<cwuc:SettingsCard.HeaderIcon>
 						<FontIcon Glyph="&#xE8B7;" />
 					</cwuc:SettingsCard.HeaderIcon>
-					<Button Click="LocationCopy_Click" Content="Copy" MinWidth="120" />
+					<Button x:Name="LocationCopyButton" Click="LocationCopy_Click" MinWidth="120">
+						<Grid>
+							<TextBlock x:Name="LocationCopyText" Text="Copy" HorizontalAlignment="Center" VerticalAlignment="Center" />
+							<FontIcon
+								x:Name="LocationCheckIcon"
+								FontSize="20"
+								Glyph="&#xE73E;"
+								HorizontalAlignment="Center"
+								VerticalAlignment="Center"
+								Opacity="0"
+								Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
+						</Grid>
+					</Button>
 				</cwuc:SettingsCard>
 
 				<cwuc:SettingsCard Header="{x:Bind LocalizedStrings.TaskSchd_General_ConfigureFor}">

@@ -18,7 +18,7 @@
 	DefaultButton="Primary"
 	PrimaryButtonText="OK">
 
-	<Grid MinWidth="380" RowSpacing="14">
+	<Grid MinWidth="480" RowSpacing="14">
 		<Grid.RowDefinitions>
 			<RowDefinition Height="Auto" />
 			<RowDefinition Height="Auto" />
@@ -33,44 +33,104 @@
 			TextWrapping="Wrap" />
 
 		<!--  From bound  -->
-		<StackPanel
+		<Grid
 			Grid.Row="1"
-			Orientation="Horizontal"
-			Spacing="8">
+			ColumnSpacing="8"
+			RowSpacing="8">
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="44" />
+				<ColumnDefinition Width="118" />
+				<ColumnDefinition Width="*" />
+			</Grid.ColumnDefinitions>
+			<Grid.RowDefinitions>
+				<RowDefinition Height="Auto" />
+				<RowDefinition Height="Auto" />
+			</Grid.RowDefinitions>
 			<TextBlock
-				Width="44"
+				Grid.Row="0"
+				Grid.Column="0"
 				VerticalAlignment="Center"
 				Text="From:" />
 			<ComboBox
 				x:Name="FromModeCombo"
+				Grid.Row="0"
+				Grid.Column="1"
 				Width="118"
 				SelectionChanged="Mode_SelectionChanged">
 				<ComboBoxItem Content="First Event" />
 				<ComboBoxItem Content="Events On" />
 			</ComboBox>
-			<CalendarDatePicker x:Name="FromDate" MinWidth="132" />
-			<TimePicker x:Name="FromTime" ClockIdentifier="24HourClock" />
-		</StackPanel>
+			<Grid
+				Grid.Row="1"
+				Grid.Column="1"
+				Grid.ColumnSpan="2"
+				ColumnSpacing="8">
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="132" />
+					<ColumnDefinition Width="*" />
+				</Grid.ColumnDefinitions>
+				<CalendarDatePicker
+					x:Name="FromDate"
+					Grid.Column="0"
+					HorizontalAlignment="Stretch" />
+				<TimePicker
+					x:Name="FromTime"
+					Grid.Column="1"
+					MinWidth="0"
+					HorizontalAlignment="Stretch"
+					ClockIdentifier="24HourClock" />
+			</Grid>
+		</Grid>
 
 		<!--  To bound  -->
-		<StackPanel
+		<Grid
 			Grid.Row="2"
-			Orientation="Horizontal"
-			Spacing="8">
+			ColumnSpacing="8"
+			RowSpacing="8">
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="44" />
+				<ColumnDefinition Width="118" />
+				<ColumnDefinition Width="*" />
+			</Grid.ColumnDefinitions>
+			<Grid.RowDefinitions>
+				<RowDefinition Height="Auto" />
+				<RowDefinition Height="Auto" />
+			</Grid.RowDefinitions>
 			<TextBlock
-				Width="44"
+				Grid.Row="0"
+				Grid.Column="0"
 				VerticalAlignment="Center"
 				Text="To:" />
 			<ComboBox
 				x:Name="ToModeCombo"
+				Grid.Row="0"
+				Grid.Column="1"
 				Width="118"
 				SelectionChanged="Mode_SelectionChanged">
 				<ComboBoxItem Content="Last Event" />
 				<ComboBoxItem Content="Events On" />
 			</ComboBox>
-			<CalendarDatePicker x:Name="ToDate" MinWidth="132" />
-			<TimePicker x:Name="ToTime" ClockIdentifier="24HourClock" />
-		</StackPanel>
+			<Grid
+				Grid.Row="1"
+				Grid.Column="1"
+				Grid.ColumnSpan="2"
+				ColumnSpacing="8">
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="132" />
+					<ColumnDefinition Width="*" />
+				</Grid.ColumnDefinitions>
+				<CalendarDatePicker
+					x:Name="ToDate"
+					Grid.Column="0"
+					HorizontalAlignment="Stretch" />
+				<TimePicker
+					x:Name="ToTime"
+					Grid.Column="1"
+					MinWidth="0"
+					HorizontalAlignment="Stretch"
+					ClockIdentifier="24HourClock" />
+			</Grid>
+		</Grid>
 
 		<InfoBar
 			x:Name="ValidationBar"

@@ -78,7 +78,7 @@ public sealed partial class CustomRangeDialog : ContentDialog
         var from = FromModeCombo.SelectedIndex == ModeEventsOn ? Combine(FromDate, FromTime) : null;
         var to = ToModeCombo.SelectedIndex == ModeEventsOn ? Combine(ToDate, ToTime) : null;
 
-        // 防呆: a fully specified range must run forward in time.
+        // a fully specified range must run forward in time.
         if (from is { } f && to is { } t && f >= t)
         {
             args.Cancel = true;

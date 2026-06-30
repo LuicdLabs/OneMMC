@@ -15,6 +15,7 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
 using Windows.ApplicationModel.DataTransfer;
+using Microsoft.UI.Xaml.Media.Animation;
 using WinRT.Interop;
 
 namespace ManagementTools.Views.PCManagement;
@@ -453,19 +454,84 @@ public sealed partial class TaskPropertiesPage : Page, IUnsavedChangesGuard
         }
     }
 
-    private void AuthorCopy_Click(object sender, RoutedEventArgs e) => CopyToClipboard(AuthorCard.Description?.ToString());
+    private void AuthorCopy_Click(object sender, RoutedEventArgs e) =>
+        CopyWithAnimation(AuthorCard.Description?.ToString(), AuthorCopyButton, AuthorCopyText, AuthorCheckIcon);
 
-    private void LocationCopy_Click(object sender, RoutedEventArgs e) => CopyToClipboard(LocationCard.Description?.ToString());
+    private void LocationCopy_Click(object sender, RoutedEventArgs e) =>
+        CopyWithAnimation(LocationCard.Description?.ToString(), LocationCopyButton, LocationCopyText, LocationCheckIcon);
 
-    private static void CopyToClipboard(string? text)
+    /// <summary>
+    /// Copies <paramref name="text"/> to the clipboard and plays a brief checkmark animation on the
+    /// button to give the user visual feedback that the copy succeeded.
+    /// </summary>
+    private void CopyWithAnimation(
+        string? text,
+        Button button,
+        TextBlock copyText,
+        FontIcon checkIcon)
     {
-        if (string.IsNullOrEmpty(text))
+        if (string.IsNullOrEmpty(text) || button.Tag is true)
         {
             return;
         }
+
         var package = new DataPackage();
         package.SetText(text);
         Clipboard.SetContent(package);
+
+        // Prevent re-triggering while the animation is still running.
+        // We use Tag instead of IsEnabled=false to avoid the disabled visual state,
+        // which makes the checkmark look faint and half-transparent.
+        button.Tag = true;
+
+        // Phase 1: crossfade — hide copy text, show checkmark.
+        var fadeOutText = CreateOpacityAnimation(copyText, from: 1, to: 0, durationMs: 150);
+        var fadeInCheck = CreateOpacityAnimation(checkIcon, from: 0, to: 1, durationMs: 200, beginTimeMs: 100);
+
+        var showStoryboard = new Storyboard();
+        showStoryboard.Children.Add(fadeOutText);
+        showStoryboard.Children.Add(fadeInCheck);
+        showStoryboard.Completed += (_, _) =>
+        {
+            // Phase 2: hold the checkmark for 1.5 s, then revert.
+            var revertTimer = DispatcherQueue.CreateTimer();
+            revertTimer.Interval = TimeSpan.FromMilliseconds(1500);
+            revertTimer.IsRepeating = false;
+            revertTimer.Tick += (_, _) =>
+            {
+                var fadeInText = CreateOpacityAnimation(copyText, from: 0, to: 1, durationMs: 200);
+                var fadeOutCheck = CreateOpacityAnimation(checkIcon, from: 1, to: 0, durationMs: 150);
+
+                var hideStoryboard = new Storyboard();
+                hideStoryboard.Children.Add(fadeInText);
+                hideStoryboard.Children.Add(fadeOutCheck);
+                hideStoryboard.Completed += (_, _) => button.Tag = null;
+                hideStoryboard.Begin();
+            };
+            revertTimer.Start();
+        };
+        showStoryboard.Begin();
+    }
+
+    /// <summary>Creates a <see cref="DoubleAnimation"/> targeting the <c>Opacity</c> property of <paramref name="target"/>.</summary>
+    private static DoubleAnimation CreateOpacityAnimation(
+        DependencyObject target,
+        double from,
+        double to,
+        int durationMs,
+        int beginTimeMs = 0)
+    {
+        var animation = new DoubleAnimation
+        {
+            From = from,
+            To = to,
+            Duration = new Duration(TimeSpan.FromMilliseconds(durationMs)),
+            BeginTime = TimeSpan.FromMilliseconds(beginTimeMs),
+            EasingFunction = new CubicEase { EasingMode = EasingMode.EaseInOut },
+        };
+        Storyboard.SetTarget(animation, target);
+        Storyboard.SetTargetProperty(animation, "Opacity");
+        return animation;
     }
 
     private void ChangeUser_Click(object sender, RoutedEventArgs e)
