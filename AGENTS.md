@@ -1,6 +1,6 @@
 ﻿# AGENTS.md
 
-This file provides guidance to Codex (Codex.ai/code) when working with code in this repository.
+This file provides guidance to Codex (or some AI coding agents) when working with code in this repository.
 
 ## Copilot Instructions
 
@@ -25,7 +25,7 @@ dotnet build src/OneMMC/OneMMC.csproj -p:Platform=x64
 dotnet publish src/OneMMC/OneMMC.csproj -c Release -r win-x64
 ```
 
-**Prerequisites**: .NET 10.0 SDK, Windows App SDK 2.0.1+, Windows 10 SDK (19041)+. Recommended dev/test OS: Windows 11 Pro or Windows Server 2025 Standard.
+**Prerequisites**: .NET 10.0 SDK, Windows App SDK 2.2.0+, Windows 10 SDK (19041)+. Recommended dev/test OS: Windows 11 Pro or Windows Server 2025 Standard.
 
 **Solution file**: `OneMMC.slnx` (modern VS 2022+ format). Supported platforms: x86, x64, ARM64.
 
@@ -77,7 +77,7 @@ When in doubt, consult [WinUI 3 documentation](https://learn.microsoft.com/en-us
 - **Keep exceptions centralized**: Any remaining handwritten interop must live in a dedicated native wrapper/helper file and include a comment or XML summary explaining why CsWin32 could not be used directly.
 
 ### MVVM Pattern
-Uses `CommunityToolkit.Mvvm` (8.4.0). ViewModels use `ObservableObject` base, `[ObservableProperty]` for bindable properties, `[RelayCommand]` for commands. Keep code-behind minimal — prefer data binding and `DataTemplate`.
+Uses `CommunityToolkit.Mvvm` (8.4.2). ViewModels use `ObservableObject` base, `[ObservableProperty]` for bindable properties, `[RelayCommand]` for commands. Keep code-behind minimal — prefer data binding and `DataTemplate`.
 
 ### Dependency Injection
 DI is bootstrapped in `LoggingBootstrapper.BuildServiceProvider()` (UI project). Classes are **auto-registered** by convention in `ServiceCollectionExtensions.AddOneMMCModules()`:
