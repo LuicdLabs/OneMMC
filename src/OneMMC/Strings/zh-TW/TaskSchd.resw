@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="TaskSchd_LibraryRoot" xml:space="preserve"><value>工作排程器程式庫</value></data>
+  <data name="TaskSchd_State_Ready" xml:space="preserve"><value>就緒</value></data>
+  <data name="TaskSchd_State_Running" xml:space="preserve"><value>執行中</value></data>
+  <data name="TaskSchd_State_Disabled" xml:space="preserve"><value>已停用</value></data>
+  <data name="TaskSchd_State_Queued" xml:space="preserve"><value>已排入佇列</value></data>
+  <data name="TaskSchd_State_Unknown" xml:space="preserve"><value>未知</value></data>
+  <data name="TaskSchd_StatusLineFormat" xml:space="preserve"><value>{0} | 下次執行時間: {1}</value></data>
+  <data name="TaskSchd_NextRunNever" xml:space="preserve"><value>下次執行時間: 不適用</value></data>
+  <data name="TaskSchd_LastRunNever" xml:space="preserve"><value>從未</value></data>
+  <data name="TaskSchd_Column_Name" xml:space="preserve"><value>名稱</value></data>
+  <data name="TaskSchd_Column_Status" xml:space="preserve"><value>狀態</value></data>
+  <data name="TaskSchd_Column_Triggers" xml:space="preserve"><value>觸發程序</value></data>
+  <data name="TaskSchd_Column_NextRun" xml:space="preserve"><value>下次執行時間</value></data>
+  <data name="TaskSchd_Column_LastRun" xml:space="preserve"><value>上次執行時間</value></data>
+  <data name="TaskSchd_Column_LastResult" xml:space="preserve"><value>上次執行結果</value></data>
+  <data name="TaskSchd_Column_Author" xml:space="preserve"><value>作者</value></data>
+  <data name="TaskSchd_Command_CreateTask" xml:space="preserve"><value>建立工作</value></data>
+  <data name="TaskSchd_Command_Run" xml:space="preserve"><value>執行</value></data>
+  <data name="TaskSchd_Command_End" xml:space="preserve"><value>結束</value></data>
+  <data name="TaskSchd_Command_Enable" xml:space="preserve"><value>啟用</value></data>
+  <data name="TaskSchd_Command_Disable" xml:space="preserve"><value>停用</value></data>
+  <data name="TaskSchd_Command_Delete" xml:space="preserve"><value>刪除</value></data>
+  <data name="TaskSchd_Command_Properties" xml:space="preserve"><value>內容</value></data>
+  <data name="TaskSchd_Command_Refresh" xml:space="preserve"><value>重新整理</value></data>
+  <data name="TaskSchd_Command_NewFolder" xml:space="preserve"><value>新增資料夾</value></data>
+  <data name="TaskSchd_Command_DeleteFolder" xml:space="preserve"><value>刪除資料夾</value></data>
+  <data name="TaskSchd_Command_ImportTask" xml:space="preserve"><value>匯入工作...</value></data>
+  <data name="TaskSchd_Command_ExportTask" xml:space="preserve"><value>匯出...</value></data>
+  <data name="TaskSchd_Command_ConnectComputer" xml:space="preserve"><value>連線到另一部電腦...</value></data>
+  <data name="TaskSchd_Command_EnableAllHistory" xml:space="preserve"><value>啟用所有工作歷程記錄</value></data>
+  <data name="TaskSchd_Command_DisableAllHistory" xml:space="preserve"><value>停用所有工作歷程記錄</value></data>
+  <data name="TaskSchd_Command_More" xml:space="preserve"><value>更多</value></data>
+  <data name="TaskSchd_Tab_General" xml:space="preserve"><value>一般</value></data>
+  <data name="TaskSchd_Tab_Triggers" xml:space="preserve"><value>觸發程序</value></data>
+  <data name="TaskSchd_Tab_Actions" xml:space="preserve"><value>動作</value></data>
+  <data name="TaskSchd_Tab_Conditions" xml:space="preserve"><value>條件</value></data>
+  <data name="TaskSchd_Tab_Settings" xml:space="preserve"><value>設定</value></data>
+  <data name="TaskSchd_Tab_History" xml:space="preserve"><value>歷程記錄</value></data>
+  <data name="TaskSchd_General_Name" xml:space="preserve"><value>名稱</value></data>
+  <data name="TaskSchd_General_Location" xml:space="preserve"><value>位置</value></data>
+  <data name="TaskSchd_General_Author" xml:space="preserve"><value>作者</value></data>
+  <data name="TaskSchd_General_Description" xml:space="preserve"><value>描述</value></data>
+  <data name="TaskSchd_General_SecurityOptions" xml:space="preserve"><value>安全性選項</value></data>
+  <data name="TaskSchd_General_RunAsAccount" xml:space="preserve"><value>執行此工作時，請使用下列使用者帳戶:</value></data>
+  <data name="TaskSchd_General_ChangeUser" xml:space="preserve"><value>變更使用者或群組...</value></data>
+  <data name="TaskSchd_General_RunOnlyLoggedOn" xml:space="preserve"><value>只有使用者登入時才執行</value></data>
+  <data name="TaskSchd_General_RunWhetherLoggedOn" xml:space="preserve"><value>不論使用者登入與否均執行</value></data>
+  <data name="TaskSchd_General_DoNotStorePassword" xml:space="preserve"><value>不要儲存密碼。此工作只能存取本機電腦資源。</value></data>
+  <data name="TaskSchd_General_RunHighestPrivileges" xml:space="preserve"><value>以最高權限執行</value></data>
+  <data name="TaskSchd_General_Hidden" xml:space="preserve"><value>隱藏</value></data>
+  <data name="TaskSchd_General_ConfigureFor" xml:space="preserve"><value>設定對象:</value></data>
+  <data name="TaskSchd_Trigger_OnSchedule" xml:space="preserve"><value>依排程</value></data>
+  <data name="TaskSchd_Trigger_AtLogon" xml:space="preserve"><value>登入時</value></data>
+  <data name="TaskSchd_Trigger_AtStartup" xml:space="preserve"><value>啟動時</value></data>
+  <data name="TaskSchd_Trigger_OnIdle" xml:space="preserve"><value>閒置時</value></data>
+  <data name="TaskSchd_Trigger_OnEvent" xml:space="preserve"><value>發生事件時</value></data>
+  <data name="TaskSchd_Trigger_AtCreation" xml:space="preserve"><value>建立/修改工作時</value></data>
+  <data name="TaskSchd_Trigger_OnConnect" xml:space="preserve"><value>連線到使用者工作階段時</value></data>
+  <data name="TaskSchd_Trigger_OnDisconnect" xml:space="preserve"><value>從使用者工作階段中斷連線時</value></data>
+  <data name="TaskSchd_Trigger_OnLock" xml:space="preserve"><value>工作站鎖定時</value></data>
+  <data name="TaskSchd_Trigger_OnUnlock" xml:space="preserve"><value>工作站解除鎖定時</value></data>
+  <data name="TaskSchd_Schedule_OneTime" xml:space="preserve"><value>一次</value></data>
+  <data name="TaskSchd_Schedule_Daily" xml:space="preserve"><value>每天</value></data>
+  <data name="TaskSchd_Schedule_Weekly" xml:space="preserve"><value>每週</value></data>
+  <data name="TaskSchd_Schedule_Monthly" xml:space="preserve"><value>每月</value></data>
+  <data name="TaskSchd_TriggerCol_Details" xml:space="preserve"><value>詳細資料</value></data>
+  <data name="TaskSchd_TriggerCol_Status" xml:space="preserve"><value>狀態</value></data>
+  <data name="TaskSchd_Trigger_New" xml:space="preserve"><value>新增...</value></data>
+  <data name="TaskSchd_Trigger_Edit" xml:space="preserve"><value>編輯...</value></data>
+  <data name="TaskSchd_Trigger_Delete" xml:space="preserve"><value>刪除</value></data>
+  <data name="TaskSchd_Trigger_BeginLabel" xml:space="preserve"><value>開始工作:</value></data>
+  <data name="TaskSchd_Trigger_Delay" xml:space="preserve"><value>延遲工作:</value></data>
+  <data name="TaskSchd_Trigger_RandomDelay" xml:space="preserve"><value>延遲工作達 (隨機延遲):</value></data>
+  <data name="TaskSchd_Trigger_RepeatEvery" xml:space="preserve"><value>每隔下列時間重複工作:</value></data>
+  <data name="TaskSchd_Trigger_ForDuration" xml:space="preserve"><value>持續時間:</value></data>
+  <data name="TaskSchd_Trigger_StopAllAtEnd" xml:space="preserve"><value>在重複持續時間結束時停止所有執行中的工作</value></data>
+  <data name="TaskSchd_Trigger_StopIfLonger" xml:space="preserve"><value>如果工作執行時間超過下列時間，請停止工作:</value></data>
+  <data name="TaskSchd_Trigger_Activate" xml:space="preserve"><value>啟用:</value></data>
+  <data name="TaskSchd_Trigger_Expire" xml:space="preserve"><value>到期:</value></data>
+  <data name="TaskSchd_Trigger_SyncTimeZones" xml:space="preserve"><value>跨時區同步</value></data>
+  <data name="TaskSchd_Trigger_Enabled" xml:space="preserve"><value>已啟用</value></data>
+  <data name="TaskSchd_TriggerSummary_AtLogon" xml:space="preserve"><value>於 {0} 登入時</value></data>
+  <data name="TaskSchd_TriggerSummary_AtStartup" xml:space="preserve"><value>於系統啟動時</value></data>
+  <data name="TaskSchd_TriggerSummary_DailyFormat" xml:space="preserve"><value>每 {1} 天於 {0}</value></data>
+  <data name="TaskSchd_TriggerSummary_WeeklyFormat" xml:space="preserve"><value>每 {1} 週的 {2} 於 {0}</value></data>
+  <data name="TaskSchd_TriggerSummary_OneTimeFormat" xml:space="preserve"><value>於 {0}</value></data>
+  <data name="TaskSchd_Action_StartProgram" xml:space="preserve"><value>啟動程式</value></data>
+  <data name="TaskSchd_Action_SendEmail" xml:space="preserve"><value>傳送電子郵件 (已淘汰)</value></data>
+  <data name="TaskSchd_Action_DisplayMessage" xml:space="preserve"><value>顯示訊息 (已淘汰)</value></data>
+  <data name="TaskSchd_ActionCol_Details" xml:space="preserve"><value>詳細資料</value></data>
+  <data name="TaskSchd_Action_New" xml:space="preserve"><value>新增...</value></data>
+  <data name="TaskSchd_Action_Edit" xml:space="preserve"><value>編輯...</value></data>
+  <data name="TaskSchd_Action_Delete" xml:space="preserve"><value>刪除</value></data>
+  <data name="TaskSchd_Action_MoveUp" xml:space="preserve"><value>上移</value></data>
+  <data name="TaskSchd_Action_MoveDown" xml:space="preserve"><value>下移</value></data>
+  <data name="TaskSchd_Action_ProgramScript" xml:space="preserve"><value>程式或指令碼:</value></data>
+  <data name="TaskSchd_Action_AddArguments" xml:space="preserve"><value>新增引數 (選用):</value></data>
+  <data name="TaskSchd_Action_StartIn" xml:space="preserve"><value>起始位置 (選用):</value></data>
+  <data name="TaskSchd_Action_Browse" xml:space="preserve"><value>瀏覽...</value></data>
+  <data name="TaskSchd_Action_EmailFrom" xml:space="preserve"><value>寄件者:</value></data>
+  <data name="TaskSchd_Action_EmailTo" xml:space="preserve"><value>收件者:</value></data>
+  <data name="TaskSchd_Action_EmailSubject" xml:space="preserve"><value>主旨:</value></data>
+  <data name="TaskSchd_Action_EmailText" xml:space="preserve"><value>內文:</value></data>
+  <data name="TaskSchd_Action_EmailAttachment" xml:space="preserve"><value>附件:</value></data>
+  <data name="TaskSchd_Action_EmailServer" xml:space="preserve"><value>SMTP 伺服器:</value></data>
+  <data name="TaskSchd_Action_MessageTitle" xml:space="preserve"><value>標題:</value></data>
+  <data name="TaskSchd_Action_MessageBody" xml:space="preserve"><value>訊息:</value></data>
+  <data name="TaskSchd_Conditions_Idle" xml:space="preserve"><value>閒置</value></data>
+  <data name="TaskSchd_Conditions_Power" xml:space="preserve"><value>電源</value></data>
+  <data name="TaskSchd_Conditions_Network" xml:space="preserve"><value>網路</value></data>
+  <data name="TaskSchd_Conditions_StartIfIdle" xml:space="preserve"><value>只有在電腦閒置下列時間後才啟動工作:</value></data>
+  <data name="TaskSchd_Conditions_WaitForIdle" xml:space="preserve"><value>等候閒置時間:</value></data>
+  <data name="TaskSchd_Conditions_StopIfNotIdle" xml:space="preserve"><value>如果電腦不再閒置就停止</value></data>
+  <data name="TaskSchd_Conditions_RestartOnIdle" xml:space="preserve"><value>如果恢復閒置狀態就重新啟動</value></data>
+  <data name="TaskSchd_Conditions_StartOnAcPower" xml:space="preserve"><value>只有在電腦使用 AC 電源時才啟動工作</value></data>
+  <data name="TaskSchd_Conditions_StopOnBattery" xml:space="preserve"><value>如果電腦切換成使用電池電源就停止</value></data>
+  <data name="TaskSchd_Conditions_WakeToRun" xml:space="preserve"><value>喚醒電腦以執行此工作</value></data>
+  <data name="TaskSchd_Conditions_StartIfNetwork" xml:space="preserve"><value>只有在下列網路連線可用時才啟動:</value></data>
+  <data name="TaskSchd_Conditions_AnyConnection" xml:space="preserve"><value>任何連線</value></data>
+  <data name="TaskSchd_Settings_AllowDemandStart" xml:space="preserve"><value>允許隨選執行工作</value></data>
+  <data name="TaskSchd_Settings_StartWhenAvailable" xml:space="preserve"><value>在錯過排定的開始時間後盡快執行工作</value></data>
+  <data name="TaskSchd_Settings_RestartOnFailure" xml:space="preserve"><value>如果工作失敗，請每隔下列時間重新啟動:</value></data>
+  <data name="TaskSchd_Settings_RestartInterval" xml:space="preserve"><value>重新啟動間隔:</value></data>
+  <data name="TaskSchd_Settings_RestartCount" xml:space="preserve"><value>嘗試重新啟動次數最多:</value></data>
+  <data name="TaskSchd_Settings_StopIfLonger" xml:space="preserve"><value>如果工作執行時間超過下列時間，請停止工作:</value></data>
+  <data name="TaskSchd_Settings_ForceStop" xml:space="preserve"><value>如果要求時執行中的工作沒有結束，請強制將它停止</value></data>
+  <data name="TaskSchd_Settings_DeleteAfter" xml:space="preserve"><value>如果工作未排定再次執行，請在下列時間後將它刪除:</value></data>
+  <data name="TaskSchd_Settings_InstanceRule" xml:space="preserve"><value>如果工作已在執行中，則套用下列規則:</value></data>
+  <data name="TaskSchd_Instance_Parallel" xml:space="preserve"><value>平行執行新的執行個體</value></data>
+  <data name="TaskSchd_Instance_Queue" xml:space="preserve"><value>將新的執行個體排入佇列</value></data>
+  <data name="TaskSchd_Instance_IgnoreNew" xml:space="preserve"><value>不要啟動新的執行個體</value></data>
+  <data name="TaskSchd_Instance_StopExisting" xml:space="preserve"><value>停止現有的執行個體</value></data>
+  <data name="TaskSchd_Dialog_CreateTask" xml:space="preserve"><value>建立工作</value></data>
+  <data name="TaskSchd_Dialog_NewTrigger" xml:space="preserve"><value>新增觸發程序</value></data>
+  <data name="TaskSchd_Dialog_EditTrigger" xml:space="preserve"><value>編輯觸發程序</value></data>
+  <data name="TaskSchd_Dialog_NewAction" xml:space="preserve"><value>新增動作</value></data>
+  <data name="TaskSchd_Dialog_EditAction" xml:space="preserve"><value>編輯動作</value></data>
+  <data name="TaskSchd_Dialog_NewEventFilter" xml:space="preserve"><value>新增事件篩選器</value></data>
+  <data name="TaskSchd_Dialog_ConnectComputer" xml:space="preserve"><value>連線到另一部電腦</value></data>
+  <data name="TaskSchd_Button_Ok" xml:space="preserve"><value>確定</value></data>
+  <data name="TaskSchd_Button_Cancel" xml:space="preserve"><value>取消</value></data>
+  <data name="TaskSchd_Button_Apply" xml:space="preserve"><value>套用</value></data>
+  <data name="TaskSchd_Button_NewEventFilter" xml:space="preserve"><value>新增事件篩選器...</value></data>
+  <data name="TaskSchd_Button_EditEventFilter" xml:space="preserve"><value>編輯事件篩選器...</value></data>
+  <data name="TaskSchd_Validation_NameRequired" xml:space="preserve"><value>您必須輸入工作的名稱。</value></data>
+  <data name="TaskSchd_Validation_ProgramRequired" xml:space="preserve"><value>您必須指定要執行的程式或指令碼。</value></data>
+  <data name="TaskSchd_Validation_DurationGreaterThanInterval" xml:space="preserve"><value>重複的持續時間必須大於重複的間隔。</value></data>
+  <data name="TaskSchd_Validation_EndAfterStart" xml:space="preserve"><value>到期時間必須晚於啟用時間。</value></data>
+  <data name="TaskSchd_Validation_EventLogRequired" xml:space="preserve"><value>您必須指定事件記錄檔與來源。</value></data>
+  <data name="TaskSchd_Validation_UserRequired" xml:space="preserve"><value>您必須選取使用者或群組。</value></data>
+  <data name="TaskSchd_Validation_TriggerRequired" xml:space="preserve"><value>您必須指定至少一個觸發程序，或將工作設定為隨選執行。</value></data>
+  <data name="TaskSchd_Validation_ActionRequired" xml:space="preserve"><value>您必須指定至少一個動作。</value></data>
+  <data name="TaskSchd_Confirm_DeleteTaskFormat" xml:space="preserve"><value>您要刪除工作 '{0}' 嗎?</value></data>
+  <data name="TaskSchd_Confirm_DeleteFolderFormat" xml:space="preserve"><value>您要刪除資料夾 '{0}' 嗎?</value></data>
+  <data name="TaskSchd_Confirm_RunTaskFormat" xml:space="preserve"><value>您要立即執行工作 '{0}' 嗎?</value></data>
+  <data name="TaskSchd_Confirm_DeleteTrigger" xml:space="preserve"><value>您要刪除選取的觸發程序嗎?</value></data>
+  <data name="TaskSchd_Confirm_DeleteAction" xml:space="preserve"><value>您要刪除選取的動作嗎?</value></data>
+  <data name="TaskSchd_Error_OperationFailed" xml:space="preserve"><value>工作排程器作業失敗: {0}</value></data>
+  <data name="TaskSchd_Error_TaskFailedFormat" xml:space="preserve"><value>工作 {0} 發生錯誤。錯誤訊息: 回報的錯誤如下: {1}</value></data>
+  <data name="TaskSchd_Error_AccessDenied" xml:space="preserve"><value>此作業需要系統管理員權限。</value></data>
+  <data name="TaskSchd_History_Disabled" xml:space="preserve"><value>工作歷程記錄目前已停用。請啟用所有工作歷程記錄以記錄工作事件。</value></data>
+  <data name="TaskSchd_History_EnablePrompt" xml:space="preserve"><value>啟用所有工作歷程記錄會為整部電腦開啟工作排程器操作記錄檔。要繼續嗎?</value></data>
+  <data name="TaskSchd_History_ColLevel" xml:space="preserve"><value>等級</value></data>
+  <data name="TaskSchd_History_ColDate" xml:space="preserve"><value>日期和時間</value></data>
+  <data name="TaskSchd_History_ColEvent" xml:space="preserve"><value>事件識別碼</value></data>
+  <data name="TaskSchd_History_ColCategory" xml:space="preserve"><value>工作類別</value></data>
+  <data name="TaskSchd_Connect_LocalComputer" xml:space="preserve"><value>本機電腦</value></data>
+  <data name="TaskSchd_Connect_AnotherComputer" xml:space="preserve"><value>另一部電腦:</value></data>
+  <data name="TaskSchd_Connect_ComputerLabel" xml:space="preserve"><value>電腦:</value></data>
+  <data name="TaskSchd_NewFolder_Name" xml:space="preserve"><value>請輸入新資料夾的名稱:</value></data>
+  <data name="TaskSchd_Command_Security" xml:space="preserve"><value>安全性...</value></data>
+</root>

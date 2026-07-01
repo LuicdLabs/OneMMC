@@ -1,0 +1,1090 @@
+﻿using System;
+using System.Collections.ObjectModel;
+using System.IO;
+using System.Linq;
+using System.Security.Principal;
+using System.Threading.Tasks;
+using CommunityToolkit.Mvvm.ComponentModel;
+using OneMMC.Core.Features.PCManagement.Models.TaskSchd;
+using OneMMC.Core.Features.PCManagement.Services.EventViewer;
+using OneMMC.Core.Features.PCManagement.Services.TaskSchd;
+using OneMMC.Core.Localization;
+using OneMMC.Helpers;
+using OneMMC.Localization;
+using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Navigation;
+using Windows.ApplicationModel.DataTransfer;
+using Microsoft.UI.Xaml.Media.Animation;
+using WinRT.Interop;
+
+namespace OneMMC.Views.PCManagement;
+
+/// <summary>
+/// Editor for a single scheduled task. Loads the real definition via <see cref="ITaskSchedulerService"/>,
+/// populates the General/Security/TaskTriggers/Actions/Conditions/Settings/History sections, and writes the
+/// edits back by re-registering the task.
+/// </summary>
+public sealed partial class TaskPropertiesPage : Page, IUnsavedChangesGuard
+{
+    private readonly ITaskSchedulerService _service = App.GetRequiredService<ITaskSchedulerService>();
+    private readonly TaskHistoryService _history = App.GetRequiredService<TaskHistoryService>();
+
+    public LocalizedStrings LocalizedStrings { get; } = LocalizedStrings.Instance;
+
+    public ObservableCollection<TriggerRowItem> TaskTriggers { get; } = [];
+    public ObservableCollection<ActionRowItem> Actions { get; } = [];
+    public ObservableCollection<HistoryRowItem> History { get; } = [];
+
+    private string? _taskPath;
+    private TaskDefinitionModel _definition = new();
+    private bool _initialized;
+
+    // The named network profiles offered by the Conditions "Network" picker (index 0 of the combo is the
+    // synthetic "Any connection" entry, so a combo index i maps to _networkProfiles[i - 1]).
+    private readonly List<NetworkProfile> _networkProfiles = [];
+
+    // Serialized snapshot of the task as last loaded/saved; compared against the current control state
+    // to detect unsaved edits. _bypassNavGuard lets the guard re-issue the navigation it cancelled.
+    private string? _baselineXml;
+    private bool _bypassNavGuard;
+
+    public TaskPropertiesPage()
+    {
+        InitializeComponent();
+        this.RequestedTheme = App.CurrentTheme;
+        App.ThemeChanged += OnThemeChanged;
+        Unloaded += (_, _) => App.ThemeChanged -= OnThemeChanged;
+    }
+
+    private void OnThemeChanged(ElementTheme theme) => this.RequestedTheme = theme;
+
+    private static nint OwnerHwnd => App.MainWindowInstance is null ? 0 : WindowNative.GetWindowHandle(App.MainWindowInstance);
+
+    private static string L(string key) => LocalizationProvider.Current.GetString(ResourceFileNames.TaskSchd, key);
+
+    protected override async void OnNavigatedTo(NavigationEventArgs e)
+    {
+        base.OnNavigatedTo(e);
+        if (e.Parameter is string taskPath && !string.IsNullOrEmpty(taskPath))
+        {
+            _taskPath = taskPath;
+            await LoadAsync();
+        }
+    }
+
+    private async Task LoadAsync()
+    {
+        if (_taskPath is null)
+        {
+            return;
+        }
+
+        try
+        {
+            var info = await _service.GetTaskInfoAsync(_taskPath);
+            _definition = await _service.GetTaskDefinitionAsync(_taskPath);
+            PopulateFromDefinition(_definition, info);
+            await LoadHistoryAsync();
+        }
+        catch (Exception ex) when (App.GetRequiredService<IAdminService>().IsPermissionError(ex))
+        {
+            await AdminDialogHelper.ShowAdminRequiredDialogAsync(this.XamlRoot);
+        }
+        catch (Exception)
+        {
+            // Leave defaults if the task cannot be read.
+        }
+    }
+
+    private void PopulateFromDefinition(TaskDefinitionModel def, TaskInfo info)
+    {
+        _initialized = false;
+
+        GeneralNameText.Text = info.Name;
+        GeneralDescriptionText.Text = def.RegistrationInfo.Description ?? string.Empty;
+        AuthorCard.Description = def.RegistrationInfo.Author ?? string.Empty;
+        LocationCard.Description = info.FolderPath;
+        ConfigureForCombo.SelectedIndex = CompatibilityToIndex(def.Settings.Compatibility);
+        EnabledToggle.IsOn = info.Enabled;
+        HideMenuItem.IsChecked = def.Settings.Hidden;
+
+        // Security / principal
+        var principal = def.Principal;
+        AccountText.Text = ResolveAccountDisplayName(principal);
+        RunWhetherLoggedOnRadio.IsChecked = principal.RunWhetherLoggedOn;
+        RunOnlyLoggedOnRadio.IsChecked = !principal.RunWhetherLoggedOn;
+        DoNotStorePasswordCheckBox.IsChecked = principal.LogonType == TaskLogonType.S4U;
+        HighestPrivilegesToggle.IsOn = principal.RunLevel == TaskRunLevel.HighestAvailable;
+        UpdatePrincipalModeForGroup(!string.IsNullOrEmpty(principal.GroupId));
+
+        // TaskTriggers / actions
+        TaskTriggers.Clear();
+        foreach (var t in def.Triggers)
+        {
+            TaskTriggers.Add(new TriggerRowItem(t));
+        }
+        Actions.Clear();
+        foreach (var a in def.Actions)
+        {
+            Actions.Add(new ActionRowItem(a));
+        }
+        RefreshActionMoveFlags();
+
+        // Conditions
+        var s = def.Settings;
+        IdleToggle.IsOn = s.RunOnlyIfIdle;
+        IdleStartComboBox.Text = FormatDuration(s.IdleSettings.IdleDuration) ?? "10 minutes";
+        IdleWaitComboBox.Text = FormatDuration(s.IdleSettings.WaitTimeout) ?? "1 hour";
+        IdleStopCeasesCheckBox.IsChecked = s.IdleSettings.StopOnIdleEnd;
+        IdleRestartResumesCheckBox.IsChecked = s.IdleSettings.RestartOnIdle;
+        PowerToggle.IsOn = s.DisallowStartIfOnBatteries;
+        StopOnBatteryCheckBox.IsChecked = s.StopIfGoingOnBatteries;
+        WakeToRunCheckBox.IsChecked = s.WakeToRun;
+        NetworkToggle.IsOn = s.RunOnlyIfNetworkAvailable;
+        PopulateNetworkProfiles();
+        SelectNetworkProfile(s.NetworkSettings);
+
+        // Settings
+        AllowDemandStartCheckBox.IsChecked = s.AllowDemandStart;
+        StartWhenAvailableCheckBox.IsChecked = s.StartWhenAvailable;
+        RestartOnFailureCheckBox.IsChecked = s.RestartCount > 0;
+        RestartIntervalComboBox.Text = FormatDuration(s.RestartInterval) ?? "1 minute";
+        RestartCountNumberBox.Value = s.RestartCount > 0 ? s.RestartCount : 3;
+        StopIfRunsLongerCheckBox.IsChecked = s.ExecutionTimeLimit is not null;
+        StopIfRunsLongerComboBox.Text = FormatDuration(s.ExecutionTimeLimit) ?? "3 days";
+        ForceStopCheckBox.IsChecked = s.AllowHardTerminate;
+        DeleteAfterCheckBox.IsChecked = s.DeleteExpiredTaskAfter is not null;
+        DeleteAfterComboBox.Text = FormatDuration(s.DeleteExpiredTaskAfter) ?? "30 days";
+        InstancesCombo.SelectedIndex = (int)s.MultipleInstances;
+
+        _initialized = true;
+        UpdateAllConditionalStates();
+
+        // Snapshot the just-loaded state (round-tripped through the controls) as the clean baseline
+        // for unsaved-changes detection.
+        BuildDefinitionFromControls();
+        _baselineXml = _service.SerializeToXml(_definition);
+    }
+
+    private async Task LoadHistoryAsync()
+    {
+        History.Clear();
+        var enabled = _history.IsHistoryEnabled();
+        HistoryDisabledInfoBar.IsOpen = !enabled;
+        if (!enabled || _taskPath is null)
+        {
+            return;
+        }
+
+        try
+        {
+            var events = await _history.ReadTaskHistoryAsync(_taskPath, 100);
+            foreach (var ev in events)
+            {
+                History.Add(new HistoryRowItem(
+                    $"{ev.LevelDisplayName} — {ev.TaskCategory}",
+                    $"{ev.TimeCreated:g} | {L(TaskSchdKeys.HistoryColEvent)} {ev.EventId}"));
+            }
+        }
+        catch (Exception)
+        {
+            // History is best-effort.
+        }
+    }
+
+    // ----- Command bar -----
+
+    private async void EnabledToggle_Toggled(object sender, RoutedEventArgs e)
+    {
+        if (!_initialized || _taskPath is null)
+        {
+            return;
+        }
+        try
+        {
+            await _service.SetTaskEnabledAsync(_taskPath, EnabledToggle.IsOn);
+        }
+        catch (Exception ex) when (App.GetRequiredService<IAdminService>().IsPermissionError(ex))
+        {
+            await AdminDialogHelper.ShowAdminRequiredDialogAsync(this.XamlRoot);
+        }
+    }
+
+    private async void RunButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (_taskPath is null)
+        {
+            return;
+        }
+        try
+        {
+            await _service.RunTaskAsync(_taskPath);
+        }
+        catch (Exception ex) when (App.GetRequiredService<IAdminService>().IsPermissionError(ex))
+        {
+            await AdminDialogHelper.ShowAdminRequiredDialogAsync(this.XamlRoot);
+        }
+    }
+
+    private async void ApplyButton_Click(object sender, RoutedEventArgs e) => await SaveAsync();
+
+    private async Task<bool> SaveAsync()
+    {
+        if (_taskPath is null)
+        {
+            return false;
+        }
+
+        BuildDefinitionFromControls();
+        var (folderPath, name) = SplitPath(_taskPath);
+        try
+        {
+            await _service.RegisterTaskAsync(folderPath, name, _definition);
+            _baselineXml = _service.SerializeToXml(_definition);
+            return true;
+        }
+        catch (Exception ex) when (App.GetRequiredService<IAdminService>().IsPermissionError(ex))
+        {
+            await AdminDialogHelper.ShowAdminRequiredDialogAsync(this.XamlRoot);
+            return false;
+        }
+        catch (Exception ex)
+        {
+            await ShowMessageAsync(TaskSchedulerErrorFormatter.Describe(ex, GeneralNameText.Text));
+            return false;
+        }
+    }
+
+    // ----- Unsaved-changes guard -----
+
+    protected override void OnNavigatingFrom(NavigatingCancelEventArgs e)
+    {
+        base.OnNavigatingFrom(e);
+        if (_bypassNavGuard || !HasUnsavedChanges)
+        {
+            return;
+        }
+        e.Cancel = true;
+        _ = ResolveUnsavedChangesAsync(e.NavigationMode, e.SourcePageType, e.Parameter);
+    }
+
+    private async Task ResolveUnsavedChangesAsync(NavigationMode mode, Type? sourcePageType, object? parameter)
+    {
+        if (!await ConfirmLeaveAsync())
+        {
+            return; // cancelled or save failed (e.g. needs elevation) — stay on the page
+        }
+        _bypassNavGuard = true;
+        if (mode == NavigationMode.Back && Frame.CanGoBack)
+        {
+            Frame.GoBack();
+        }
+        else if (sourcePageType is not null)
+        {
+            Frame.Navigate(sourcePageType, parameter);
+        }
+    }
+
+    /// <summary>True when the current control state no longer matches the loaded/saved snapshot.</summary>
+    public bool HasUnsavedChanges
+    {
+        get
+        {
+            if (!_initialized || _baselineXml is null)
+            {
+                return false;
+            }
+            BuildDefinitionFromControls();
+            return !string.Equals(_service.SerializeToXml(_definition), _baselineXml, StringComparison.Ordinal);
+        }
+    }
+
+    /// <summary>
+    /// Shared resolution used by both the page's own back-navigation guard and the shell's breadcrumb /
+    /// navigation-pane / window-close guards: prompt, save when chosen, and report whether to proceed.
+    /// </summary>
+    public async Task<bool> ConfirmLeaveAsync()
+    {
+        var choice = await UnsavedChangesPrompt.ShowAsync(this.XamlRoot);
+        if (choice == UnsavedChangesChoice.Cancel)
+        {
+            return false;
+        }
+        if (choice == UnsavedChangesChoice.Save && !await SaveAsync())
+        {
+            return false; // save failed (e.g. needs elevation) — stay on the page
+        }
+        return true;
+    }
+
+    /// <summary>Skips the next <see cref="OnNavigatingFrom"/> prompt; the shell already resolved the edits.</summary>
+    public void SuppressNextNavigationGuard() => _bypassNavGuard = true;
+
+    private void BuildDefinitionFromControls()
+    {
+        var def = _definition;
+        def.RegistrationInfo.Description = GeneralDescriptionText.Text;
+        def.Settings.Compatibility = IndexToCompatibility(ConfigureForCombo.SelectedIndex);
+        def.Settings.Hidden = HideMenuItem.IsChecked;
+
+        // Principal
+        var runWhether = RunWhetherLoggedOnRadio.IsChecked == true;
+        def.Principal.RunLevel = HighestPrivilegesToggle.IsOn ? TaskRunLevel.HighestAvailable : TaskRunLevel.LeastPrivilege;
+        if (string.IsNullOrEmpty(def.Principal.GroupId))
+        {
+            def.Principal.LogonType = runWhether
+                ? (DoNotStorePasswordCheckBox.IsChecked == true ? TaskLogonType.S4U : TaskLogonType.Password)
+                : TaskLogonType.InteractiveToken;
+        }
+
+        // TaskTriggers / actions are kept in sync by the row collections.
+        def.Triggers.Clear();
+        foreach (var t in TaskTriggers)
+        {
+            def.Triggers.Add(t.Model);
+        }
+        def.Actions.Clear();
+        foreach (var a in Actions)
+        {
+            def.Actions.Add(a.Model);
+        }
+
+        // Conditions
+        var s = def.Settings;
+        s.RunOnlyIfIdle = IdleToggle.IsOn;
+        s.IdleSettings.IdleDuration = ParseDuration(IdleStartComboBox.Text);
+        s.IdleSettings.WaitTimeout = ParseDuration(IdleWaitComboBox.Text);
+        s.IdleSettings.StopOnIdleEnd = IdleStopCeasesCheckBox.IsChecked == true;
+        s.IdleSettings.RestartOnIdle = IdleRestartResumesCheckBox.IsChecked == true;
+        s.DisallowStartIfOnBatteries = PowerToggle.IsOn;
+        s.StopIfGoingOnBatteries = StopOnBatteryCheckBox.IsChecked == true;
+        s.WakeToRun = WakeToRunCheckBox.IsChecked == true;
+        s.RunOnlyIfNetworkAvailable = NetworkToggle.IsOn;
+        s.NetworkSettings = BuildNetworkSettings();
+
+        // Settings
+        s.AllowDemandStart = AllowDemandStartCheckBox.IsChecked == true;
+        s.StartWhenAvailable = StartWhenAvailableCheckBox.IsChecked == true;
+        if (RestartOnFailureCheckBox.IsChecked == true)
+        {
+            s.RestartInterval = ParseDuration(RestartIntervalComboBox.Text) ?? TimeSpan.FromMinutes(1);
+            s.RestartCount = (int)RestartCountNumberBox.Value;
+        }
+        else
+        {
+            s.RestartInterval = null;
+            s.RestartCount = 0;
+        }
+        s.ExecutionTimeLimit = StopIfRunsLongerCheckBox.IsChecked == true ? ParseDuration(StopIfRunsLongerComboBox.Text) : null;
+        s.AllowHardTerminate = ForceStopCheckBox.IsChecked == true;
+        s.DeleteExpiredTaskAfter = DeleteAfterCheckBox.IsChecked == true ? (ParseDuration(DeleteAfterComboBox.Text) ?? TimeSpan.FromDays(30)) : null;
+        s.MultipleInstances = (TaskInstancesPolicy)InstancesCombo.SelectedIndex;
+    }
+
+    private async void ExportMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        if (_taskPath is null)
+        {
+            return;
+        }
+        try
+        {
+            var xml = await _service.ExportTaskAsync(_taskPath);
+            var fileDialog = App.GetRequiredService<IFileDialogService>();
+            var path = await fileDialog.SaveFileAsync(OwnerHwnd, "XML Files\0*.xml\0All Files\0*.*\0", title: L(TaskSchdKeys.CommandExportTask), defaultExtension: ".xml", suggestedFileName: GeneralNameText.Text + ".xml");
+            if (!string.IsNullOrEmpty(path))
+            {
+                await File.WriteAllTextAsync(path, xml);
+            }
+        }
+        catch (Exception ex) when (App.GetRequiredService<IAdminService>().IsPermissionError(ex))
+        {
+            await AdminDialogHelper.ShowAdminRequiredDialogAsync(this.XamlRoot);
+        }
+    }
+
+    private async void DeleteMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        if (_taskPath is null)
+        {
+            return;
+        }
+        if (!await ConfirmAsync(string.Format(L(TaskSchdKeys.ConfirmDeleteTaskFormat), GeneralNameText.Text)))
+        {
+            return;
+        }
+        try
+        {
+            await _service.DeleteTaskAsync(_taskPath);
+            if (Frame.CanGoBack)
+            {
+                Frame.GoBack();
+            }
+        }
+        catch (Exception ex) when (App.GetRequiredService<IAdminService>().IsPermissionError(ex))
+        {
+            await AdminDialogHelper.ShowAdminRequiredDialogAsync(this.XamlRoot);
+        }
+    }
+
+    // ----- General edit / copy -----
+
+    private async void GeneralEdit_Click(object sender, RoutedEventArgs e)
+    {
+        var nameBox = new TextBox { Header = L(TaskSchdKeys.GeneralName), Text = GeneralNameText.Text, MinWidth = 360 };
+        var descBox = new TextBox { Header = L(TaskSchdKeys.GeneralDescription), Text = GeneralDescriptionText.Text, AcceptsReturn = true, TextWrapping = TextWrapping.Wrap, Height = 120, Margin = new Thickness(0, 8, 0, 0) };
+        var panel = new StackPanel();
+        panel.Children.Add(nameBox);
+        panel.Children.Add(descBox);
+        var dialog = new ContentDialog
+        {
+            Title = L(TaskSchdKeys.TabGeneral),
+            Content = panel,
+            PrimaryButtonText = L(TaskSchdKeys.ButtonOk),
+            CloseButtonText = L(TaskSchdKeys.ButtonCancel),
+            DefaultButton = ContentDialogButton.Primary,
+            Style = Application.Current.Resources["DefaultContentDialogStyle"] as Style,
+            XamlRoot = this.XamlRoot,
+            RequestedTheme = App.CurrentTheme,
+        };
+        if (await dialog.ShowAsync() == ContentDialogResult.Primary)
+        {
+            GeneralDescriptionText.Text = descBox.Text;
+        }
+    }
+
+    private void AuthorCopy_Click(object sender, RoutedEventArgs e) =>
+        CopyWithAnimation(AuthorCard.Description?.ToString(), AuthorCopyButton, AuthorCopyText, AuthorCheckIcon);
+
+    private void LocationCopy_Click(object sender, RoutedEventArgs e) =>
+        CopyWithAnimation(LocationCard.Description?.ToString(), LocationCopyButton, LocationCopyText, LocationCheckIcon);
+
+    /// <summary>
+    /// Copies <paramref name="text"/> to the clipboard and plays a brief checkmark animation on the
+    /// button to give the user visual feedback that the copy succeeded.
+    /// </summary>
+    private void CopyWithAnimation(
+        string? text,
+        Button button,
+        TextBlock copyText,
+        FontIcon checkIcon)
+    {
+        if (string.IsNullOrEmpty(text) || button.Tag is true)
+        {
+            return;
+        }
+
+        var package = new DataPackage();
+        package.SetText(text);
+        Clipboard.SetContent(package);
+
+        // Prevent re-triggering while the animation is still running.
+        // We use Tag instead of IsEnabled=false to avoid the disabled visual state,
+        // which makes the checkmark look faint and half-transparent.
+        button.Tag = true;
+
+        // Phase 1: crossfade — hide copy text, show checkmark.
+        var fadeOutText = CreateOpacityAnimation(copyText, from: 1, to: 0, durationMs: 150);
+        var fadeInCheck = CreateOpacityAnimation(checkIcon, from: 0, to: 1, durationMs: 200, beginTimeMs: 100);
+
+        var showStoryboard = new Storyboard();
+        showStoryboard.Children.Add(fadeOutText);
+        showStoryboard.Children.Add(fadeInCheck);
+        showStoryboard.Completed += (_, _) =>
+        {
+            // Phase 2: hold the checkmark for 1.5 s, then revert.
+            var revertTimer = DispatcherQueue.CreateTimer();
+            revertTimer.Interval = TimeSpan.FromMilliseconds(1500);
+            revertTimer.IsRepeating = false;
+            revertTimer.Tick += (_, _) =>
+            {
+                var fadeInText = CreateOpacityAnimation(copyText, from: 0, to: 1, durationMs: 200);
+                var fadeOutCheck = CreateOpacityAnimation(checkIcon, from: 1, to: 0, durationMs: 150);
+
+                var hideStoryboard = new Storyboard();
+                hideStoryboard.Children.Add(fadeInText);
+                hideStoryboard.Children.Add(fadeOutCheck);
+                hideStoryboard.Completed += (_, _) => button.Tag = null;
+                hideStoryboard.Begin();
+            };
+            revertTimer.Start();
+        };
+        showStoryboard.Begin();
+    }
+
+    /// <summary>Creates a <see cref="DoubleAnimation"/> targeting the <c>Opacity</c> property of <paramref name="target"/>.</summary>
+    private static DoubleAnimation CreateOpacityAnimation(
+        DependencyObject target,
+        double from,
+        double to,
+        int durationMs,
+        int beginTimeMs = 0)
+    {
+        var animation = new DoubleAnimation
+        {
+            From = from,
+            To = to,
+            Duration = new Duration(TimeSpan.FromMilliseconds(durationMs)),
+            BeginTime = TimeSpan.FromMilliseconds(beginTimeMs),
+            EasingFunction = new CubicEase { EasingMode = EasingMode.EaseInOut },
+        };
+        Storyboard.SetTarget(animation, target);
+        Storyboard.SetTargetProperty(animation, "Opacity");
+        return animation;
+    }
+
+    private void ChangeUser_Click(object sender, RoutedEventArgs e)
+    {
+        var picked = DirectoryObjectPickerService.ShowDialog(OwnerHwnd, ObjectPickerTypes.UsersAndGroups);
+        if (picked is not { Count: > 0 })
+        {
+            return;
+        }
+
+        var obj = picked[0];
+        var id = string.IsNullOrEmpty(obj.Sid) ? obj.Name : obj.Sid;
+        var isGroup = string.Equals(obj.ObjectClass, "group", StringComparison.OrdinalIgnoreCase);
+        var principal = _definition.Principal;
+
+        // UserId and GroupId are mutually exclusive in the task schema. Emitting both — which the
+        // previous code did for a group — makes RegisterTaskDefinition fail with a malformed-XML
+        // error such as "(23,31):GroupId:S-1-5-32-544". Set exactly one, and use the Group logon
+        // type for groups (they run via group membership, with no stored password).
+        if (isGroup)
+        {
+            principal.GroupId = id;
+            principal.UserId = null;
+            principal.LogonType = TaskLogonType.Group;
+        }
+        else
+        {
+            principal.UserId = id;
+            principal.GroupId = null;
+            if (principal.LogonType == TaskLogonType.Group)
+            {
+                principal.LogonType = TaskLogonType.InteractiveToken;
+            }
+        }
+
+        principal.DisplayName = obj.Name;
+        AccountText.Text = obj.Name;
+        UpdatePrincipalModeForGroup(isGroup);
+    }
+
+    // A group principal always runs "whether the user is logged on or not" via group membership and
+    // takes no password, so force that mode and disable the run-only and password options for groups.
+    private void UpdatePrincipalModeForGroup(bool isGroup)
+    {
+        if (isGroup)
+        {
+            RunWhetherLoggedOnRadio.IsChecked = true;
+            RunOnlyLoggedOnRadio.IsChecked = false;
+        }
+        RunOnlyLoggedOnRadio.IsEnabled = !isGroup;
+        DoNotStorePasswordCheckBox.IsEnabled = !isGroup && RunWhetherLoggedOnRadio.IsChecked == true;
+    }
+
+    // Tasks created by the system (e.g. OneDrive's per-user task) store the run-as account as a raw SID
+    // with no display name. Show the friendly account ("DOMAIN\User") instead, like taskschd.msc — for
+    // display only, so the loaded definition (and the unsaved-changes baseline) is left untouched.
+    private static string ResolveAccountDisplayName(PrincipalModel principal)
+    {
+        if (!string.IsNullOrEmpty(principal.DisplayName) && !LooksLikeSid(principal.DisplayName))
+        {
+            return principal.DisplayName;
+        }
+
+        var id = principal.UserId ?? principal.GroupId ?? principal.DisplayName;
+        if (string.IsNullOrEmpty(id))
+        {
+            return string.Empty;
+        }
+
+        return LooksLikeSid(id) ? TryTranslateSid(id) ?? id : id;
+    }
+
+    private static bool LooksLikeSid(string value) =>
+        value.StartsWith("S-1-", StringComparison.OrdinalIgnoreCase);
+
+    private static string? TryTranslateSid(string sid)
+    {
+        try
+        {
+            return new SecurityIdentifier(sid).Translate(typeof(NTAccount)).Value;
+        }
+        catch (Exception)
+        {
+            // Unresolvable (deleted account, unreachable domain, malformed SID) — fall back to the SID.
+            return null;
+        }
+    }
+
+    // ----- TaskTriggers -----
+
+    private async void NewTriggerButton_Click(object sender, RoutedEventArgs e)
+    {
+        var dialog = new NewTriggerDialog { XamlRoot = this.XamlRoot, RequestedTheme = App.CurrentTheme };
+        if (await dialog.ShowAsync() == ContentDialogResult.Primary && dialog.ResultTrigger is { } trigger)
+        {
+            TaskTriggers.Add(new TriggerRowItem(trigger));
+        }
+    }
+
+    private async void TriggerEdit_Click(object sender, RoutedEventArgs e)
+    {
+        if ((sender as FrameworkElement)?.Tag is not TriggerRowItem row)
+        {
+            return;
+        }
+        var dialog = new NewTriggerDialog(row.Model) { XamlRoot = this.XamlRoot, RequestedTheme = App.CurrentTheme };
+        if (await dialog.ShowAsync() == ContentDialogResult.Primary && dialog.ResultTrigger is { } trigger)
+        {
+            var index = TaskTriggers.IndexOf(row);
+            if (index >= 0)
+            {
+                TaskTriggers[index] = new TriggerRowItem(trigger);
+            }
+        }
+    }
+
+    private async void TriggerDelete_Click(object sender, RoutedEventArgs e)
+    {
+        if ((sender as FrameworkElement)?.Tag is TriggerRowItem row &&
+            await ConfirmAsync(L(TaskSchdKeys.ConfirmDeleteTrigger)))
+        {
+            TaskTriggers.Remove(row);
+        }
+    }
+
+    // ----- Actions -----
+
+    private async void NewActionButton_Click(object sender, RoutedEventArgs e)
+    {
+        var dialog = new NewActionDialog { XamlRoot = this.XamlRoot, RequestedTheme = App.CurrentTheme };
+        if (await dialog.ShowAsync() == ContentDialogResult.Primary && dialog.ResultAction is { } action)
+        {
+            Actions.Add(new ActionRowItem(action));
+            RefreshActionMoveFlags();
+        }
+    }
+
+    private async void ActionEdit_Click(object sender, RoutedEventArgs e)
+    {
+        if ((sender as FrameworkElement)?.Tag is not ActionRowItem row)
+        {
+            return;
+        }
+        var dialog = new NewActionDialog(row.Model) { XamlRoot = this.XamlRoot, RequestedTheme = App.CurrentTheme };
+        if (await dialog.ShowAsync() == ContentDialogResult.Primary && dialog.ResultAction is { } action)
+        {
+            var index = Actions.IndexOf(row);
+            if (index >= 0)
+            {
+                Actions[index] = new ActionRowItem(action);
+                RefreshActionMoveFlags();
+            }
+        }
+    }
+
+    private async void ActionDelete_Click(object sender, RoutedEventArgs e)
+    {
+        if ((sender as FrameworkElement)?.Tag is ActionRowItem row &&
+            await ConfirmAsync(L(TaskSchdKeys.ConfirmDeleteAction)))
+        {
+            Actions.Remove(row);
+            RefreshActionMoveFlags();
+        }
+    }
+
+    private void ActionMoveUp_Click(object sender, RoutedEventArgs e) => MoveAction((sender as FrameworkElement)?.Tag as ActionRowItem, -1);
+
+    private void ActionMoveDown_Click(object sender, RoutedEventArgs e) => MoveAction((sender as FrameworkElement)?.Tag as ActionRowItem, +1);
+
+    private void MoveAction(ActionRowItem? row, int delta)
+    {
+        if (row is null)
+        {
+            return;
+        }
+        var index = Actions.IndexOf(row);
+        var target = index + delta;
+        if (index >= 0 && target >= 0 && target < Actions.Count)
+        {
+            Actions.Move(index, target);
+            RefreshActionMoveFlags();
+        }
+    }
+
+    private void RefreshActionMoveFlags()
+    {
+        for (int i = 0; i < Actions.Count; i++)
+        {
+            Actions[i].CanMoveUp = i > 0;
+            Actions[i].CanMoveDown = i < Actions.Count - 1;
+        }
+    }
+
+    // ----- Conditional enablement -----
+
+    private void OnSecurityRunModeChanged(object sender, RoutedEventArgs e)
+    {
+        if (DoNotStorePasswordCheckBox is not null)
+        {
+            DoNotStorePasswordCheckBox.IsEnabled = RunWhetherLoggedOnRadio.IsChecked == true;
+        }
+    }
+
+    private void OnIdleToggled(object sender, RoutedEventArgs e) => UpdateIdleState();
+
+    private void OnIdleStopCeasesChanged(object sender, RoutedEventArgs e) => UpdateIdleState();
+
+    private void OnPowerToggled(object sender, RoutedEventArgs e) => UpdatePowerState();
+
+    private void OnNetworkToggled(object sender, RoutedEventArgs e) => UpdateNetworkState();
+
+    private void OnRestartOnFailureChanged(object sender, RoutedEventArgs e) => UpdateRestartState();
+
+    private void OnStopIfRunsLongerChanged(object sender, RoutedEventArgs e) => UpdateStopIfLongerState();
+
+    private void OnDeleteAfterChanged(object sender, RoutedEventArgs e) => UpdateDeleteAfterState();
+
+    private void UpdateAllConditionalStates()
+    {
+        OnSecurityRunModeChanged(this, new RoutedEventArgs());
+        UpdateIdleState();
+        UpdatePowerState();
+        UpdateNetworkState();
+        UpdateRestartState();
+        UpdateStopIfLongerState();
+        UpdateDeleteAfterState();
+    }
+
+    private void UpdateIdleState()
+    {
+        if (IdleToggle is null ||
+            IdleStartComboBox is null ||
+            IdleWaitComboBox is null ||
+            IdleStopCeasesCheckBox is null ||
+            IdleRestartResumesCheckBox is null)
+        {
+            return;
+        }
+        var on = IdleToggle.IsOn;
+        IdleStartComboBox.IsEnabled = on;
+        IdleWaitComboBox.IsEnabled = on;
+        IdleStopCeasesCheckBox.IsEnabled = on;
+        IdleRestartResumesCheckBox.IsEnabled = on && IdleStopCeasesCheckBox.IsChecked == true;
+    }
+
+    private void UpdatePowerState()
+    {
+        if (PowerToggle is null || StopOnBatteryCheckBox is null)
+        {
+            return;
+        }
+        StopOnBatteryCheckBox.IsEnabled = PowerToggle.IsOn;
+    }
+
+    private void UpdateNetworkState()
+    {
+        if (NetworkToggle is null || NetworkComboBox is null)
+        {
+            return;
+        }
+        NetworkComboBox.IsEnabled = NetworkToggle.IsOn;
+    }
+
+    // ----- Network profiles -----
+
+    /// <summary>Fills the network picker with "Any connection" followed by the named network profiles.</summary>
+    private void PopulateNetworkProfiles()
+    {
+        _networkProfiles.Clear();
+        _networkProfiles.AddRange(NetworkProfileProvider.GetProfiles());
+        RefreshNetworkComboItems();
+    }
+
+    private void RefreshNetworkComboItems()
+    {
+        var items = new List<string> { L(TaskSchdKeys.ConditionsAnyConnection) };
+        items.AddRange(_networkProfiles.Select(p => p.Name));
+        NetworkComboBox.ItemsSource = items;
+    }
+
+    /// <summary>Selects the combo entry matching the saved network settings (or "Any connection").</summary>
+    private void SelectNetworkProfile(NetworkSettingsModel? net)
+    {
+        if (net is null || (net.Id is null && string.IsNullOrEmpty(net.Name)))
+        {
+            NetworkComboBox.SelectedIndex = 0;
+            return;
+        }
+
+        var index = -1;
+        if (net.Id is { } id)
+        {
+            index = _networkProfiles.FindIndex(p => p.Id == id);
+        }
+        if (index < 0 && !string.IsNullOrEmpty(net.Name))
+        {
+            index = _networkProfiles.FindIndex(p => string.Equals(p.Name, net.Name, StringComparison.OrdinalIgnoreCase));
+        }
+
+        // The saved profile is no longer enumerable (e.g. that network has not been seen recently); keep
+        // it selectable so re-saving the task does not silently drop the user's choice.
+        if (index < 0 && !string.IsNullOrEmpty(net.Name))
+        {
+            _networkProfiles.Add(new NetworkProfile(net.Id ?? Guid.Empty, net.Name));
+            RefreshNetworkComboItems();
+            index = _networkProfiles.Count - 1;
+        }
+
+        NetworkComboBox.SelectedIndex = index >= 0 ? index + 1 : 0;
+    }
+
+    /// <summary>Builds the network settings from the picker: a specific profile, or <see langword="null"/> for "Any connection".</summary>
+    private NetworkSettingsModel? BuildNetworkSettings()
+    {
+        var index = NetworkComboBox.SelectedIndex;
+        if (!NetworkToggle.IsOn || index <= 0 || index - 1 >= _networkProfiles.Count)
+        {
+            return null;
+        }
+
+        var profile = _networkProfiles[index - 1];
+        return new NetworkSettingsModel
+        {
+            Id = profile.Id == Guid.Empty ? null : profile.Id,
+            Name = profile.Name,
+        };
+    }
+
+    private void UpdateRestartState()
+    {
+        if (RestartOnFailureCheckBox is null ||
+            RestartIntervalComboBox is null ||
+            RestartCountNumberBox is null)
+        {
+            return;
+        }
+        var on = RestartOnFailureCheckBox.IsChecked == true;
+        RestartIntervalComboBox.IsEnabled = on;
+        RestartCountNumberBox.IsEnabled = on;
+    }
+
+    private void UpdateStopIfLongerState()
+    {
+        if (StopIfRunsLongerCheckBox is null || StopIfRunsLongerComboBox is null)
+        {
+            return;
+        }
+        StopIfRunsLongerComboBox.IsEnabled = StopIfRunsLongerCheckBox.IsChecked == true;
+    }
+
+    private void UpdateDeleteAfterState()
+    {
+        if (DeleteAfterCheckBox is null || DeleteAfterComboBox is null)
+        {
+            return;
+        }
+        DeleteAfterComboBox.IsEnabled = DeleteAfterCheckBox.IsChecked == true;
+    }
+
+    // ----- Small dialog helpers -----
+
+    private async Task ShowMessageAsync(string message)
+    {
+        var dialog = new ContentDialog
+        {
+            Title = L(TaskSchdKeys.TabGeneral),
+            Content = message,
+            CloseButtonText = L(TaskSchdKeys.ButtonOk),
+            Style = Application.Current.Resources["DefaultContentDialogStyle"] as Style,
+            XamlRoot = this.XamlRoot,
+            RequestedTheme = App.CurrentTheme,
+        };
+        await dialog.ShowAsync();
+    }
+
+    private async Task<bool> ConfirmAsync(string message)
+    {
+        var dialog = new ContentDialog
+        {
+            Title = L(TaskSchdKeys.CommandDelete),
+            Content = message,
+            PrimaryButtonText = L(TaskSchdKeys.ButtonOk),
+            CloseButtonText = L(TaskSchdKeys.ButtonCancel),
+            DefaultButton = ContentDialogButton.Primary,
+            Style = Application.Current.Resources["DefaultContentDialogStyle"] as Style,
+            XamlRoot = this.XamlRoot,
+            RequestedTheme = App.CurrentTheme,
+        };
+        return await dialog.ShowAsync() == ContentDialogResult.Primary;
+    }
+
+    private async Task<string?> PromptTextAsync(string title, string label, string initial, bool multiline = false)
+    {
+        var box = new TextBox
+        {
+            Header = label,
+            Text = initial,
+            AcceptsReturn = multiline,
+            TextWrapping = multiline ? TextWrapping.Wrap : TextWrapping.NoWrap,
+            MinWidth = 360,
+            Height = multiline ? 160 : double.NaN,
+        };
+        var dialog = new ContentDialog
+        {
+            Title = title,
+            Content = box,
+            PrimaryButtonText = L(TaskSchdKeys.ButtonOk),
+            CloseButtonText = L(TaskSchdKeys.ButtonCancel),
+            DefaultButton = ContentDialogButton.Primary,
+            Style = Application.Current.Resources["DefaultContentDialogStyle"] as Style,
+            XamlRoot = this.XamlRoot,
+            RequestedTheme = App.CurrentTheme,
+        };
+        return await dialog.ShowAsync() == ContentDialogResult.Primary ? box.Text : null;
+    }
+
+    // ----- Helpers -----
+
+    private static (string folderPath, string name) SplitPath(string fullPath)
+    {
+        var trimmed = fullPath.TrimEnd('\\');
+        var index = trimmed.LastIndexOf('\\');
+        return index <= 0 ? ("\\", trimmed.TrimStart('\\')) : (trimmed[..index], trimmed[(index + 1)..]);
+    }
+
+    // The "Configure for" combo has three items: Windows Vista/2008 (V2), Windows 7/2008 R2 (V2_1),
+    // and Windows 10 (V2_3). Compatibility levels at or above Windows 8 collapse onto "Windows 10".
+    private static int CompatibilityToIndex(TaskCompatibility c) => c switch
+    {
+        TaskCompatibility.At or TaskCompatibility.V1 or TaskCompatibility.V2 => 0,
+        TaskCompatibility.V2_1 => 1,
+        _ => 2,
+    };
+
+    private static TaskCompatibility IndexToCompatibility(int index) => index switch
+    {
+        0 => TaskCompatibility.V2,
+        1 => TaskCompatibility.V2_1,
+        _ => TaskCompatibility.V2_3,
+    };
+
+    private static TimeSpan? ParseDuration(string? text)
+    {
+        if (string.IsNullOrWhiteSpace(text) || text is "Do not wait" or "Immediately")
+        {
+            return null;
+        }
+
+        var parts = text.Trim().Split(' ', 2);
+        if (parts.Length == 2 && double.TryParse(parts[0], out var n))
+        {
+            return parts[1].TrimEnd('s') switch
+            {
+                "minute" => TimeSpan.FromMinutes(n),
+                "hour" => TimeSpan.FromHours(n),
+                "day" => TimeSpan.FromDays(n),
+                _ => null,
+            };
+        }
+        return null;
+    }
+
+    private static string? FormatDuration(TimeSpan? span)
+    {
+        if (span is not { } v || v <= TimeSpan.Zero)
+        {
+            return null;
+        }
+        if (v.TotalDays >= 1 && v.TotalDays == Math.Floor(v.TotalDays))
+        {
+            return $"{(int)v.TotalDays} day{(v.TotalDays > 1 ? "s" : string.Empty)}";
+        }
+        if (v.TotalHours >= 1 && v.TotalHours == Math.Floor(v.TotalHours))
+        {
+            return $"{(int)v.TotalHours} hour{(v.TotalHours > 1 ? "s" : string.Empty)}";
+        }
+        return $"{(int)v.TotalMinutes} minute{(v.TotalMinutes > 1 ? "s" : string.Empty)}";
+    }
+}
+
+/// <summary>A bindable trigger row in the TaskTriggers list.</summary>
+public sealed partial class TriggerRowItem : ObservableObject
+{
+    public TriggerModel Model { get; }
+
+    public string TypeName { get; }
+
+    public string Summary { get; }
+
+    /// <summary>Localized "Enabled" label shown on the row toggle when it is on.</summary>
+    public string OnLabel { get; } = Localize(TaskSchdKeys.TriggerEnabled);
+
+    /// <summary>Localized "Disabled" label shown on the row toggle when it is off.</summary>
+    public string OffLabel { get; } = Localize(TaskSchdKeys.StateDisabled);
+
+    public TriggerRowItem(TriggerModel model)
+    {
+        Model = model;
+        TypeName = TaskScheduleDescriptions.TriggerTypeName(model);
+        Summary = TaskScheduleDescriptions.TriggerSummary(model);
+    }
+
+    /// <summary>Whether this trigger is enabled; bound two-way to the row toggle and saved to the model.</summary>
+    public bool Enabled
+    {
+        get => Model.Enabled;
+        set
+        {
+            if (Model.Enabled != value)
+            {
+                Model.Enabled = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    private static string Localize(string key) =>
+        LocalizationProvider.Current.GetString(ResourceFileNames.TaskSchd, key);
+}
+
+/// <summary>A bindable action row in the Actions list.</summary>
+public sealed partial class ActionRowItem : ObservableObject
+{
+    [ObservableProperty]
+    public partial bool CanMoveUp { get; set; }
+
+    [ObservableProperty]
+    public partial bool CanMoveDown { get; set; }
+
+    public ActionModel Model { get; }
+
+    public string TypeName { get; }
+
+    public string Summary { get; }
+
+    public ActionRowItem(ActionModel model)
+    {
+        Model = model;
+        TypeName = TaskScheduleDescriptions.ActionTypeName(model);
+        Summary = TaskScheduleDescriptions.ActionSummary(model);
+    }
+}
+
+/// <summary>A bindable history row.</summary>
+public sealed class HistoryRowItem
+{
+    public string Title { get; }
+
+    public string Detail { get; }
+
+    public HistoryRowItem(string title, string detail)
+    {
+        Title = title;
+        Detail = detail;
+    }
+}

@@ -1,0 +1,80 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<UserControl
+    x:Class="OneMMC.Views.UserSecurity.SecPol.IPSecurity.Editors.IPSecurityPolicyEditorControl"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:editors="using:OneMMC.Views.UserSecurity.SecPol.IPSecurity.Editors">
+
+    <ScrollViewer
+        HorizontalScrollBarVisibility="Disabled"
+        VerticalScrollBarVisibility="Auto">
+        <StackPanel MinWidth="520" Spacing="16">
+            <InfoBar
+                x:Name="ValidationInfoBar"
+                IsClosable="True"
+                IsOpen="False"
+                Severity="Error" />
+
+            <TextBox
+                x:Name="NameTextBox"
+                AutomationProperties.Name="{x:Bind LocalizedStrings.IPSec_Column_Name}"
+                Header="{x:Bind LocalizedStrings.IPSec_Column_Name}" />
+
+            <TextBox
+                x:Name="DescriptionTextBox"
+                AcceptsReturn="True"
+                AutomationProperties.Name="{x:Bind LocalizedStrings.IPSec_Column_Description}"
+                Header="{x:Bind LocalizedStrings.IPSec_Column_Description}"
+                MaxHeight="120"
+                TextWrapping="Wrap" />
+
+            <Grid ColumnSpacing="20">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Spacing="8">
+                    <CheckBox
+                        x:Name="AssignedCheckBox"
+                        Content="{x:Bind LocalizedStrings.IPSec_Editor_Assigned}" />
+                    <CheckBox
+                        x:Name="DefaultResponseRuleCheckBox"
+                        Content="{x:Bind LocalizedStrings.IPSec_Editor_DefaultResponseRule}" />
+                    <CheckBox
+                        x:Name="MasterPfsCheckBox"
+                        Click="MasterPfsCheckBox_Click"
+                        Content="{x:Bind LocalizedStrings.IPSec_Editor_MasterPfs}" />
+                </StackPanel>
+
+                <StackPanel
+                    Grid.Column="1"
+                    Spacing="12">
+                    <NumberBox
+                        x:Name="QuickModeSessionsNumberBox"
+                        Header="{x:Bind LocalizedStrings.IPSec_Editor_QuickModeSessions}"
+                        Maximum="2147483647"
+                        Minimum="1"
+                        SpinButtonPlacementMode="Compact" />
+                    <NumberBox
+                        x:Name="MainModeLifetimeNumberBox"
+                        Header="{x:Bind LocalizedStrings.IPSec_Editor_MainModeLifetime}"
+                        Maximum="2147483647"
+                        Minimum="1"
+                        SpinButtonPlacementMode="Compact" />
+                    <NumberBox
+                        x:Name="PollingIntervalNumberBox"
+                        Header="{x:Bind LocalizedStrings.IPSec_Editor_PollingInterval}"
+                        Maximum="2147483647"
+                        Minimum="1"
+                        SpinButtonPlacementMode="Compact" />
+                </StackPanel>
+            </Grid>
+
+            <editors:IPSecuritySecurityMethodsEditorControl
+                x:Name="MainModeMethodsEditor"
+                Header="{x:Bind LocalizedStrings.IPSec_Editor_MainModeMethods, Mode=OneTime}"
+                MethodMode="MainMode" />
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

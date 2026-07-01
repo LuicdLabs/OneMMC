@@ -1,0 +1,560 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<!--
+    TaskPropertiesPage — properties of a single scheduled task, bound to the real task definition
+    loaded through ITaskSchedulerService. Navigated to from TaskSchedulerPage with the task path.
+-->
+<Page
+	x:Class="OneMMC.Views.PCManagement.TaskPropertiesPage"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:cwuc="using:CommunityToolkit.WinUI.Controls"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:local="using:OneMMC.Views.PCManagement"
+	xmlns:localization="using:OneMMC.Localization"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	mc:Ignorable="d">
+
+	<Page.Resources>
+		<localization:LocalizedStrings x:Key="LocalizedStrings" />
+
+		<Style
+			x:Key="SectionHeaderStyle"
+			BasedOn="{StaticResource BodyStrongTextBlockStyle}"
+			TargetType="TextBlock">
+			<Setter Property="Margin" Value="2,16,0,4" />
+		</Style>
+
+		<Style x:Key="SecondaryTextStyle" TargetType="TextBlock">
+			<Setter Property="Foreground" Value="{ThemeResource TextFillColorSecondaryBrush}" />
+			<Setter Property="FontSize" Value="12" />
+		</Style>
+
+		<Style x:Key="RowIconButtonStyle" TargetType="Button">
+			<Setter Property="Background" Value="Transparent" />
+			<Setter Property="BorderThickness" Value="0" />
+			<Setter Property="CornerRadius" Value="4" />
+		</Style>
+	</Page.Resources>
+
+	<Grid>
+		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto" />
+			<RowDefinition Height="*" />
+		</Grid.RowDefinitions>
+
+		<CommandBar Grid.Row="0" DefaultLabelPosition="Right">
+			<AppBarElementContainer VerticalContentAlignment="Center">
+				<ToggleSwitch
+					x:Name="EnabledToggle"
+					IsOn="True"
+					OffContent="{x:Bind LocalizedStrings.TaskSchd_Command_Disable}"
+					OnContent="{x:Bind LocalizedStrings.TaskSchd_Command_Enable}"
+					Toggled="EnabledToggle_Toggled" />
+			</AppBarElementContainer>
+			<AppBarButton
+				Click="RunButton_Click"
+				Icon="Play"
+				Label="{x:Bind LocalizedStrings.TaskSchd_Command_Run}" />
+			<AppBarButton Click="ApplyButton_Click" Label="{x:Bind LocalizedStrings.TaskSchd_Button_Apply}">
+				<AppBarButton.Icon>
+					<FontIcon Glyph="&#xE74E;" />
+				</AppBarButton.Icon>
+			</AppBarButton>
+			<AppBarButton Label="{x:Bind LocalizedStrings.TaskSchd_Command_More}" LabelPosition="Collapsed">
+				<AppBarButton.Icon>
+					<FontIcon Glyph="&#xE712;" />
+				</AppBarButton.Icon>
+				<AppBarButton.Flyout>
+					<MenuFlyout>
+						<ToggleMenuFlyoutItem x:Name="HideMenuItem" Text="{x:Bind LocalizedStrings.TaskSchd_General_Hidden}" />
+						<MenuFlyoutItem
+							x:Name="ExportMenuItem"
+							Click="ExportMenuItem_Click"
+							Text="{x:Bind LocalizedStrings.TaskSchd_Command_ExportTask}">
+							<MenuFlyoutItem.Icon>
+								<FontIcon Glyph="&#xEDE1;" />
+							</MenuFlyoutItem.Icon>
+						</MenuFlyoutItem>
+						<MenuFlyoutSeparator />
+						<MenuFlyoutItem
+							x:Name="DeleteMenuItem"
+							Click="DeleteMenuItem_Click"
+							Text="{x:Bind LocalizedStrings.TaskSchd_Command_Delete}">
+							<MenuFlyoutItem.Icon>
+								<FontIcon Glyph="&#xE74D;" />
+							</MenuFlyoutItem.Icon>
+						</MenuFlyoutItem>
+					</MenuFlyout>
+				</AppBarButton.Flyout>
+			</AppBarButton>
+		</CommandBar>
+
+		<ScrollViewer Grid.Row="1">
+			<StackPanel
+				Padding="24,8,24,24"
+				HorizontalAlignment="Stretch"
+				Spacing="4">
+
+				<!--  ====================  GENERAL  ====================  -->
+				<TextBlock Style="{StaticResource SectionHeaderStyle}" Text="{x:Bind LocalizedStrings.TaskSchd_Tab_General}" />
+
+				<cwuc:SettingsCard x:Name="GeneralCard" Header="{x:Bind LocalizedStrings.TaskSchd_General_Name}">
+					<cwuc:SettingsCard.HeaderIcon>
+						<FontIcon Glyph="&#xE713;" />
+					</cwuc:SettingsCard.HeaderIcon>
+					<cwuc:SettingsCard.Description>
+						<StackPanel Spacing="4">
+							<TextBlock
+								x:Name="GeneralNameText"
+								Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+								TextWrapping="Wrap" />
+							<TextBlock
+								x:Name="GeneralDescriptionText"
+								Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+								TextWrapping="Wrap" />
+						</StackPanel>
+					</cwuc:SettingsCard.Description>
+					<Button
+						Click="GeneralEdit_Click"
+						Content="{x:Bind LocalizedStrings.TaskSchd_Trigger_Edit}"
+						MinWidth="120" />
+				</cwuc:SettingsCard>
+
+				<cwuc:SettingsCard x:Name="AuthorCard" Header="{x:Bind LocalizedStrings.TaskSchd_General_Author}">
+					<cwuc:SettingsCard.HeaderIcon>
+						<FontIcon Glyph="&#xE77B;" />
+					</cwuc:SettingsCard.HeaderIcon>
+					<Button x:Name="AuthorCopyButton" Click="AuthorCopy_Click" MinWidth="120">
+						<Grid>
+							<TextBlock x:Name="AuthorCopyText" Text="Copy" HorizontalAlignment="Center" VerticalAlignment="Center" />
+							<FontIcon
+								x:Name="AuthorCheckIcon"
+								FontSize="20"
+								Glyph="&#xE73E;"
+								HorizontalAlignment="Center"
+								VerticalAlignment="Center"
+								Opacity="0"
+								Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
+						</Grid>
+					</Button>
+				</cwuc:SettingsCard>
+
+				<cwuc:SettingsCard x:Name="LocationCard" Header="{x:Bind LocalizedStrings.TaskSchd_General_Location}">
+					<cwuc:SettingsCard.HeaderIcon>
+						<FontIcon Glyph="&#xE8B7;" />
+					</cwuc:SettingsCard.HeaderIcon>
+					<Button x:Name="LocationCopyButton" Click="LocationCopy_Click" MinWidth="120">
+						<Grid>
+							<TextBlock x:Name="LocationCopyText" Text="Copy" HorizontalAlignment="Center" VerticalAlignment="Center" />
+							<FontIcon
+								x:Name="LocationCheckIcon"
+								FontSize="20"
+								Glyph="&#xE73E;"
+								HorizontalAlignment="Center"
+								VerticalAlignment="Center"
+								Opacity="0"
+								Foreground="{ThemeResource TextFillColorPrimaryBrush}" />
+						</Grid>
+					</Button>
+				</cwuc:SettingsCard>
+
+				<cwuc:SettingsCard Header="{x:Bind LocalizedStrings.TaskSchd_General_ConfigureFor}">
+					<cwuc:SettingsCard.HeaderIcon>
+						<FontIcon Glyph="&#xE7F8;" />
+					</cwuc:SettingsCard.HeaderIcon>
+					<!--  "Configure for" compatibility. taskschd.msc on Windows 10/11 offers exactly these
+					      three levels; the index maps to TaskCompatibility (V2 / V2_1 / V2_3) in code-behind.  -->
+					<ComboBox x:Name="ConfigureForCombo" MinWidth="280" SelectedIndex="2">
+						<ComboBoxItem Content="Windows Vista™, Windows Server™ 2008" />
+						<ComboBoxItem Content="Windows® 7, Windows Server™ 2008 R2" />
+						<ComboBoxItem Content="Windows 10" />
+					</ComboBox>
+				</cwuc:SettingsCard>
+
+				<!--  ====================  SECURITY OPTIONS  ====================  -->
+				<TextBlock Style="{StaticResource SectionHeaderStyle}" Text="{x:Bind LocalizedStrings.TaskSchd_General_SecurityOptions}" />
+
+				<cwuc:SettingsExpander
+					Description="{x:Bind LocalizedStrings.TaskSchd_General_RunAsAccount}"
+					IsExpanded="True">
+					<cwuc:SettingsExpander.HeaderIcon>
+						<FontIcon Glyph="&#xE72E;" />
+					</cwuc:SettingsExpander.HeaderIcon>
+					<cwuc:SettingsExpander.Header>
+						<TextBlock x:Name="AccountText" VerticalAlignment="Center" />
+					</cwuc:SettingsExpander.Header>
+
+					<Button Click="ChangeUser_Click" Content="{x:Bind LocalizedStrings.TaskSchd_General_ChangeUser}" />
+
+					<cwuc:SettingsExpander.Items>
+						<cwuc:SettingsCard ContentAlignment="Left">
+							<StackPanel Spacing="8">
+								<RadioButton
+									x:Name="RunOnlyLoggedOnRadio"
+									Content="{x:Bind LocalizedStrings.TaskSchd_General_RunOnlyLoggedOn}"
+									GroupName="SecurityRunMode"
+									IsChecked="True" />
+								<RadioButton
+									x:Name="RunWhetherLoggedOnRadio"
+									Checked="OnSecurityRunModeChanged"
+									Content="{x:Bind LocalizedStrings.TaskSchd_General_RunWhetherLoggedOn}"
+									GroupName="SecurityRunMode"
+									Unchecked="OnSecurityRunModeChanged" />
+								<CheckBox
+									x:Name="DoNotStorePasswordCheckBox"
+									Margin="28,0,0,0"
+									Content="{x:Bind LocalizedStrings.TaskSchd_General_DoNotStorePassword}" />
+							</StackPanel>
+						</cwuc:SettingsCard>
+
+						<cwuc:SettingsCard Header="{x:Bind LocalizedStrings.TaskSchd_General_RunHighestPrivileges}">
+							<ToggleSwitch x:Name="HighestPrivilegesToggle" OffContent="Off" OnContent="On" />
+						</cwuc:SettingsCard>
+					</cwuc:SettingsExpander.Items>
+				</cwuc:SettingsExpander>
+
+				<!--  ====================  TRIGGERS  ====================  -->
+				<TextBlock Style="{StaticResource SectionHeaderStyle}" Text="{x:Bind LocalizedStrings.TaskSchd_Tab_Triggers}" />
+
+				<cwuc:SettingsExpander
+					Header="{x:Bind LocalizedStrings.TaskSchd_Tab_Triggers}"
+					IsExpanded="True"
+					ItemsSource="{x:Bind TaskTriggers}">
+					<cwuc:SettingsExpander.HeaderIcon>
+						<FontIcon Glyph="&#xE823;" />
+					</cwuc:SettingsExpander.HeaderIcon>
+					<Button
+						x:Name="NewTriggerButton"
+						Click="NewTriggerButton_Click"
+						Content="{x:Bind LocalizedStrings.TaskSchd_Trigger_New}"
+						MinWidth="120" />
+					<cwuc:SettingsExpander.ItemTemplate>
+						<DataTemplate x:DataType="local:TriggerRowItem">
+							<cwuc:SettingsCard Description="{x:Bind Summary}" Header="{x:Bind TypeName}">
+								<StackPanel
+									VerticalAlignment="Center"
+									Orientation="Horizontal"
+									Spacing="2">
+									<!--  Per-trigger enable/disable, persisted to the trigger's Enabled element on save.  -->
+									<ToggleSwitch
+										MinWidth="0"
+										Margin="0,0,8,0"
+										VerticalAlignment="Center"
+										IsOn="{x:Bind Enabled, Mode=TwoWay}"
+										OffContent="{x:Bind OffLabel}"
+										OnContent="{x:Bind OnLabel}" />
+									<Button
+										Click="TriggerEdit_Click"
+										Style="{StaticResource RowIconButtonStyle}"
+										Tag="{x:Bind}"
+										ToolTipService.ToolTip="Edit">
+										<FontIcon FontSize="16" Glyph="&#xE70F;" />
+									</Button>
+									<Button
+										Click="TriggerDelete_Click"
+										Style="{StaticResource RowIconButtonStyle}"
+										Tag="{x:Bind}"
+										ToolTipService.ToolTip="Delete">
+										<FontIcon FontSize="16" Glyph="&#xE74D;" />
+									</Button>
+								</StackPanel>
+							</cwuc:SettingsCard>
+						</DataTemplate>
+					</cwuc:SettingsExpander.ItemTemplate>
+				</cwuc:SettingsExpander>
+
+				<!--  ====================  ACTIONS  ====================  -->
+				<TextBlock Style="{StaticResource SectionHeaderStyle}" Text="{x:Bind LocalizedStrings.TaskSchd_Tab_Actions}" />
+
+				<cwuc:SettingsExpander
+					Header="{x:Bind LocalizedStrings.TaskSchd_Tab_Actions}"
+					IsExpanded="True"
+					ItemsSource="{x:Bind Actions}">
+					<cwuc:SettingsExpander.HeaderIcon>
+						<FontIcon Glyph="&#xE768;" />
+					</cwuc:SettingsExpander.HeaderIcon>
+					<Button
+						x:Name="NewActionButton"
+						Click="NewActionButton_Click"
+						Content="{x:Bind LocalizedStrings.TaskSchd_Action_New}"
+						MinWidth="120" />
+					<cwuc:SettingsExpander.ItemTemplate>
+						<DataTemplate x:DataType="local:ActionRowItem">
+							<cwuc:SettingsCard Description="{x:Bind Summary}" Header="{x:Bind TypeName}">
+								<StackPanel Orientation="Horizontal" Spacing="2">
+									<Button
+										Click="ActionMoveUp_Click"
+										IsEnabled="{x:Bind CanMoveUp, Mode=OneWay}"
+										Style="{StaticResource RowIconButtonStyle}"
+										Tag="{x:Bind}"
+										ToolTipService.ToolTip="Move up">
+										<FontIcon FontSize="16" Glyph="&#xE70E;" />
+									</Button>
+									<Button
+										Click="ActionMoveDown_Click"
+										IsEnabled="{x:Bind CanMoveDown, Mode=OneWay}"
+										Style="{StaticResource RowIconButtonStyle}"
+										Tag="{x:Bind}"
+										ToolTipService.ToolTip="Move down">
+										<FontIcon FontSize="16" Glyph="&#xE70D;" />
+									</Button>
+									<Button
+										Click="ActionEdit_Click"
+										Style="{StaticResource RowIconButtonStyle}"
+										Tag="{x:Bind}"
+										ToolTipService.ToolTip="Edit">
+										<FontIcon FontSize="16" Glyph="&#xE70F;" />
+									</Button>
+									<Button
+										Click="ActionDelete_Click"
+										Style="{StaticResource RowIconButtonStyle}"
+										Tag="{x:Bind}"
+										ToolTipService.ToolTip="Delete">
+										<FontIcon FontSize="16" Glyph="&#xE74D;" />
+									</Button>
+								</StackPanel>
+							</cwuc:SettingsCard>
+						</DataTemplate>
+					</cwuc:SettingsExpander.ItemTemplate>
+				</cwuc:SettingsExpander>
+
+				<!--  ====================  CONDITIONS  ====================  -->
+				<TextBlock Style="{StaticResource SectionHeaderStyle}" Text="{x:Bind LocalizedStrings.TaskSchd_Tab_Conditions}" />
+
+				<cwuc:SettingsExpander Header="{x:Bind LocalizedStrings.TaskSchd_Conditions_Idle}" IsExpanded="True">
+					<cwuc:SettingsExpander.HeaderIcon>
+						<FontIcon Glyph="&#xE769;" />
+					</cwuc:SettingsExpander.HeaderIcon>
+					<ToggleSwitch
+						x:Name="IdleToggle"
+						OffContent="Off"
+						OnContent="On"
+						Toggled="OnIdleToggled" />
+					<cwuc:SettingsExpander.Items>
+						<cwuc:SettingsCard Header="{x:Bind LocalizedStrings.TaskSchd_Conditions_StartIfIdle}">
+							<ComboBox
+								x:Name="IdleStartComboBox"
+								MinWidth="170"
+								IsEditable="True"
+								Text="10 minutes">
+								<ComboBoxItem Content="1 minute" />
+								<ComboBoxItem Content="5 minutes" />
+								<ComboBoxItem Content="10 minutes" />
+								<ComboBoxItem Content="15 minutes" />
+								<ComboBoxItem Content="30 minutes" />
+								<ComboBoxItem Content="1 hour" />
+							</ComboBox>
+						</cwuc:SettingsCard>
+						<cwuc:SettingsCard Header="{x:Bind LocalizedStrings.TaskSchd_Conditions_WaitForIdle}">
+							<ComboBox
+								x:Name="IdleWaitComboBox"
+								MinWidth="170"
+								IsEditable="True"
+								Text="1 hour">
+								<ComboBoxItem Content="Do not wait" />
+								<ComboBoxItem Content="1 minute" />
+								<ComboBoxItem Content="5 minutes" />
+								<ComboBoxItem Content="10 minutes" />
+								<ComboBoxItem Content="15 minutes" />
+								<ComboBoxItem Content="30 minutes" />
+								<ComboBoxItem Content="1 hour" />
+								<ComboBoxItem Content="2 hours" />
+							</ComboBox>
+						</cwuc:SettingsCard>
+						<cwuc:SettingsCard ContentAlignment="Left">
+							<StackPanel Spacing="6">
+								<CheckBox
+									x:Name="IdleStopCeasesCheckBox"
+									Checked="OnIdleStopCeasesChanged"
+									Content="{x:Bind LocalizedStrings.TaskSchd_Conditions_StopIfNotIdle}"
+									IsChecked="True"
+									Unchecked="OnIdleStopCeasesChanged" />
+								<CheckBox
+									x:Name="IdleRestartResumesCheckBox"
+									Margin="28,0,0,0"
+									Content="{x:Bind LocalizedStrings.TaskSchd_Conditions_RestartOnIdle}" />
+							</StackPanel>
+						</cwuc:SettingsCard>
+					</cwuc:SettingsExpander.Items>
+				</cwuc:SettingsExpander>
+
+				<cwuc:SettingsExpander
+					Description="{x:Bind LocalizedStrings.TaskSchd_Conditions_StartOnAcPower}"
+					Header="{x:Bind LocalizedStrings.TaskSchd_Conditions_Power}"
+					IsExpanded="True">
+					<cwuc:SettingsExpander.HeaderIcon>
+						<FontIcon Glyph="&#xE7E8;" />
+					</cwuc:SettingsExpander.HeaderIcon>
+					<ToggleSwitch
+						x:Name="PowerToggle"
+						OffContent="Off"
+						OnContent="On"
+						Toggled="OnPowerToggled" />
+					<cwuc:SettingsExpander.Items>
+						<cwuc:SettingsCard ContentAlignment="Left">
+							<CheckBox
+								x:Name="StopOnBatteryCheckBox"
+								Content="{x:Bind LocalizedStrings.TaskSchd_Conditions_StopOnBattery}"
+								IsChecked="True" />
+						</cwuc:SettingsCard>
+						<cwuc:SettingsCard ContentAlignment="Left">
+							<CheckBox x:Name="WakeToRunCheckBox" Content="{x:Bind LocalizedStrings.TaskSchd_Conditions_WakeToRun}" />
+						</cwuc:SettingsCard>
+					</cwuc:SettingsExpander.Items>
+				</cwuc:SettingsExpander>
+
+				<cwuc:SettingsExpander Header="{x:Bind LocalizedStrings.TaskSchd_Conditions_Network}" IsExpanded="True">
+					<cwuc:SettingsExpander.HeaderIcon>
+						<FontIcon Glyph="&#xE839;" />
+					</cwuc:SettingsExpander.HeaderIcon>
+					<ToggleSwitch
+						x:Name="NetworkToggle"
+						OffContent="Off"
+						OnContent="On"
+						Toggled="OnNetworkToggled" />
+					<cwuc:SettingsExpander.Items>
+						<cwuc:SettingsCard Header="{x:Bind LocalizedStrings.TaskSchd_Conditions_StartIfNetwork}">
+							<!--  Items are populated in code-behind: "Any connection" plus the named network profiles.  -->
+							<ComboBox x:Name="NetworkComboBox" MinWidth="170" />
+						</cwuc:SettingsCard>
+					</cwuc:SettingsExpander.Items>
+				</cwuc:SettingsExpander>
+
+				<!--  ====================  SETTINGS  ====================  -->
+				<TextBlock Style="{StaticResource SectionHeaderStyle}" Text="{x:Bind LocalizedStrings.TaskSchd_Tab_Settings}" />
+
+				<cwuc:SettingsExpander Header="{x:Bind LocalizedStrings.TaskSchd_Tab_Settings}" IsExpanded="True">
+					<cwuc:SettingsExpander.HeaderIcon>
+						<FontIcon Glyph="&#xE713;" />
+					</cwuc:SettingsExpander.HeaderIcon>
+					<cwuc:SettingsExpander.Items>
+						<cwuc:SettingsCard ContentAlignment="Left">
+							<CheckBox x:Name="AllowDemandStartCheckBox" Content="{x:Bind LocalizedStrings.TaskSchd_Settings_AllowDemandStart}" IsChecked="True" />
+						</cwuc:SettingsCard>
+						<cwuc:SettingsCard ContentAlignment="Left">
+							<CheckBox x:Name="StartWhenAvailableCheckBox" Content="{x:Bind LocalizedStrings.TaskSchd_Settings_StartWhenAvailable}" />
+						</cwuc:SettingsCard>
+
+						<cwuc:SettingsCard>
+							<cwuc:SettingsCard.Header>
+								<CheckBox
+									x:Name="RestartOnFailureCheckBox"
+									Checked="OnRestartOnFailureChanged"
+									Content="{x:Bind LocalizedStrings.TaskSchd_Settings_RestartOnFailure}"
+									Unchecked="OnRestartOnFailureChanged" />
+							</cwuc:SettingsCard.Header>
+							<ComboBox
+								x:Name="RestartIntervalComboBox"
+								MinWidth="170"
+								IsEditable="True"
+								Text="1 minute">
+								<ComboBoxItem Content="1 minute" />
+								<ComboBoxItem Content="5 minutes" />
+								<ComboBoxItem Content="10 minutes" />
+								<ComboBoxItem Content="15 minutes" />
+								<ComboBoxItem Content="30 minutes" />
+								<ComboBoxItem Content="1 hour" />
+								<ComboBoxItem Content="2 hours" />
+							</ComboBox>
+						</cwuc:SettingsCard>
+						<cwuc:SettingsCard Header="{x:Bind LocalizedStrings.TaskSchd_Settings_RestartCount}">
+							<NumberBox
+								x:Name="RestartCountNumberBox"
+								MinWidth="120"
+								Maximum="999"
+								Minimum="0"
+								SpinButtonPlacementMode="Inline"
+								Value="3" />
+						</cwuc:SettingsCard>
+
+						<cwuc:SettingsCard>
+							<cwuc:SettingsCard.Header>
+								<CheckBox
+									x:Name="StopIfRunsLongerCheckBox"
+									Checked="OnStopIfRunsLongerChanged"
+									Content="{x:Bind LocalizedStrings.TaskSchd_Settings_StopIfLonger}"
+									IsChecked="True"
+									Unchecked="OnStopIfRunsLongerChanged" />
+							</cwuc:SettingsCard.Header>
+							<ComboBox
+								x:Name="StopIfRunsLongerComboBox"
+								MinWidth="170"
+								IsEditable="True"
+								Text="3 days">
+								<ComboBoxItem Content="1 hour" />
+								<ComboBoxItem Content="2 hours" />
+								<ComboBoxItem Content="4 hours" />
+								<ComboBoxItem Content="8 hours" />
+								<ComboBoxItem Content="12 hours" />
+								<ComboBoxItem Content="1 day" />
+								<ComboBoxItem Content="3 days" />
+							</ComboBox>
+						</cwuc:SettingsCard>
+
+						<cwuc:SettingsCard ContentAlignment="Left">
+							<CheckBox x:Name="ForceStopCheckBox" Content="{x:Bind LocalizedStrings.TaskSchd_Settings_ForceStop}" IsChecked="True" />
+						</cwuc:SettingsCard>
+
+						<cwuc:SettingsCard>
+							<cwuc:SettingsCard.Header>
+								<CheckBox
+									x:Name="DeleteAfterCheckBox"
+									Checked="OnDeleteAfterChanged"
+									Content="{x:Bind LocalizedStrings.TaskSchd_Settings_DeleteAfter}"
+									Unchecked="OnDeleteAfterChanged" />
+							</cwuc:SettingsCard.Header>
+							<ComboBox
+								x:Name="DeleteAfterComboBox"
+								MinWidth="170"
+								IsEditable="True"
+								Text="30 days">
+								<ComboBoxItem Content="Immediately" />
+								<ComboBoxItem Content="30 days" />
+								<ComboBoxItem Content="90 days" />
+								<ComboBoxItem Content="180 days" />
+								<ComboBoxItem Content="365 days" />
+							</ComboBox>
+						</cwuc:SettingsCard>
+
+						<cwuc:SettingsCard Header="{x:Bind LocalizedStrings.TaskSchd_Settings_InstanceRule}">
+							<ComboBox x:Name="InstancesCombo" MinWidth="240" SelectedIndex="0">
+								<ComboBoxItem Content="{x:Bind LocalizedStrings.TaskSchd_Instance_IgnoreNew}" />
+								<ComboBoxItem Content="{x:Bind LocalizedStrings.TaskSchd_Instance_Parallel}" />
+								<ComboBoxItem Content="{x:Bind LocalizedStrings.TaskSchd_Instance_Queue}" />
+								<ComboBoxItem Content="{x:Bind LocalizedStrings.TaskSchd_Instance_StopExisting}" />
+							</ComboBox>
+						</cwuc:SettingsCard>
+					</cwuc:SettingsExpander.Items>
+				</cwuc:SettingsExpander>
+
+				<!--  ====================  HISTORY  ====================  -->
+				<TextBlock Style="{StaticResource SectionHeaderStyle}" Text="{x:Bind LocalizedStrings.TaskSchd_Tab_History}" />
+
+				<InfoBar
+					x:Name="HistoryDisabledInfoBar"
+					IsClosable="False"
+					IsOpen="False"
+					Message="{x:Bind LocalizedStrings.TaskSchd_History_Disabled}"
+					Severity="Informational" />
+
+				<ListView
+					x:Name="HistoryListView"
+					MaxHeight="320"
+					Margin="0,4,0,0"
+					ItemsSource="{x:Bind History}">
+					<ListView.ItemTemplate>
+						<DataTemplate x:DataType="local:HistoryRowItem">
+							<StackPanel Padding="4,8" Spacing="2">
+								<TextBlock Style="{StaticResource BodyStrongTextBlockStyle}" Text="{x:Bind Title}" />
+								<TextBlock
+									Style="{StaticResource SecondaryTextStyle}"
+									Text="{x:Bind Detail}"
+									TextTrimming="CharacterEllipsis" />
+							</StackPanel>
+						</DataTemplate>
+					</ListView.ItemTemplate>
+				</ListView>
+			</StackPanel>
+		</ScrollViewer>
+	</Grid>
+</Page>

@@ -1,0 +1,105 @@
+﻿PRIVACY STATEMENT
+OneMMC — Windows OneMMC
+LuicdLabs
+Version 1.0
+
+========================================================================
+
+YOUR PRIVACY MATTERS TO US. THIS STATEMENT EXPLAINS WHAT DATA
+OneMMC COLLECTS, HOW IT IS USED, AND YOUR RIGHTS.
+
+========================================================================
+
+1. SUMMARY
+
+   OneMMC does not collect, transmit, or store any personal
+   data on external servers. All operations are performed locally on
+   your machine. No account registration is required.
+
+2. DATA WE DO NOT COLLECT
+
+   OneMMC does NOT:
+
+   - Transmit any data to LuicdLabs or third-party servers
+   - Collect telemetry, usage statistics, or crash reports remotely
+   - Require or store user account credentials
+   - Access files outside of its normal operation scope
+   - Track your location, identity, or usage patterns
+
+3. DATA STORED LOCALLY
+
+   OneMMC stores the following data locally on your machine
+   only:
+
+   a. Application Logs
+      Log files are written to:
+      %LOCALAPPDATA%\OneMMC\Logs\
+
+      These logs record application events, errors, and diagnostic
+      information to assist with troubleshooting. Log files are
+      retained using a daily rolling policy and are never transmitted
+      externally. You may delete these files at any time.
+
+   b. Application Settings
+      User preferences (such as theme selection) may be stored in
+      the Windows application data folder:
+      %LOCALAPPDATA%\OneMMC\
+
+      These settings remain on your device and are not shared.
+
+4. SYSTEM DATA ACCESS
+
+   To perform system management functions, OneMMC reads
+   and in some cases modifies Windows system data, including:
+
+   - Hardware device information (via Windows Device Manager APIs)
+   - Disk and volume configuration (via Windows Storage APIs)
+   - Windows service configuration and status
+   - Local user accounts and group memberships
+   - Group Policy settings
+   - Event log entries
+   - Performance counter data
+   - Certificate store contents
+   - Windows Firewall rules
+   - TPM device status
+
+   This data is accessed solely to display information or perform
+   the management action you explicitly request. It is not stored
+   beyond the current session unless you take an explicit action
+   (such as exporting a log).
+
+5. THIRD-PARTY COMPONENTS
+
+   OneMMC uses open-source libraries listed in the Third-Party
+   Notices. These libraries operate locally and do not independently
+   collect or transmit data.
+
+   Serilog is used for local logging only. No Serilog sinks that
+   transmit data externally are configured in this application.
+
+6. FEEDBACK AND BUG REPORTS
+
+   If you choose to submit feedback or bug reports via the GitHub
+   issue tracker (https://github.com/LuicdLabs/OneMMC/issues),
+   any information you include in those reports is subject to
+   GitHub's Privacy Policy (https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement).
+
+   Submitting feedback is entirely voluntary.
+
+7. CHILDREN'S PRIVACY
+
+   OneMMC is a system administration tool intended for use
+   by IT professionals and technically experienced users. It is not
+   directed at children under the age of 13.
+
+8. CHANGES TO THIS STATEMENT
+
+   This privacy statement may be updated when new versions of the
+   software are released. The current version is always available
+   within the application and at:
+   https://github.com/LuicdLabs/OneMMC
+
+9. CONTACT
+
+   For privacy-related questions, please open an issue at:
+   https://github.com/LuicdLabs/OneMMC/issues

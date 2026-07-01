@@ -1,6 +1,6 @@
-# AGENTS.md
+﻿# AGENTS.md
 
-This file provides guidance to Codex (Codex.ai/code) when working with code in this repository.
+This file provides guidance to Codex (or some AI coding agents) when working with code in this repository.
 
 ## Copilot Instructions
 
@@ -8,7 +8,7 @@ Before starting any task, read `.github/copilot-instructions.md` first. It conta
 
 ## Project Overview
 
-ManagementTools is a **WinUI 3 desktop application** that serves as a modern alternative to Windows MMC (Microsoft Management Console) snap-ins. It provides native UI for system management tasks like Device Manager, Disk Management, Local Users & Groups, Group Policy Editor, Performance Monitor, Certificate Management, and more.
+OneMMC is a **WinUI 3 desktop application** that serves as a modern alternative to Windows MMC (Microsoft Management Console) snap-ins. It provides native UI for system management tasks like Device Manager, Disk Management, Local Users & Groups, Group Policy Editor, Performance Monitor, Certificate Management, and more.
 
 **Not compatible with NativeAOT** — the project relies heavily on COM interop (`Type.GetTypeFromProgID()`, `Activator.CreateInstance()`, `dynamic`), reflection, and system management packages that require the full .NET runtime. Uses **ReadyToRun (R2R)** precompilation instead.
 
@@ -16,18 +16,18 @@ ManagementTools is a **WinUI 3 desktop application** that serves as a modern alt
 
 ```bash
 # Restore and build (default platform is x64)
-dotnet build src/ManagementTools/ManagementTools.csproj
+dotnet build src/OneMMC/OneMMC.csproj
 
 # Build specific platform
-dotnet build src/ManagementTools/ManagementTools.csproj -p:Platform=x64
+dotnet build src/OneMMC/OneMMC.csproj -p:Platform=x64
 
 # Publish (Release, self-contained, R2R)
-dotnet publish src/ManagementTools/ManagementTools.csproj -c Release -r win-x64
+dotnet publish src/OneMMC/OneMMC.csproj -c Release -r win-x64
 ```
 
-**Prerequisites**: .NET 10.0 SDK, Windows App SDK 2.0.1+, Windows 10 SDK (19041)+. Recommended dev/test OS: Windows 11 Pro or Windows Server 2025 Standard.
+**Prerequisites**: .NET 10.0 SDK, Windows App SDK 2.2.0+, Windows 10 SDK (19041)+. Recommended dev/test OS: Windows 11 Pro or Windows Server 2025 Standard.
 
-**Solution file**: `ManagementTools.slnx` (modern VS 2022+ format). Supported platforms: x86, x64, ARM64.
+**Solution file**: `OneMMC.slnx` (modern VS 2022+ format). Supported platforms: x86, x64, ARM64.
 
 No test projects exist in this repository.
 
@@ -57,11 +57,11 @@ When in doubt, consult [WinUI 3 documentation](https://learn.microsoft.com/en-us
 ## Architecture
 
 ### Two-Project Structure
-- **ManagementTools.Core** (class library) — ViewModels, Services, Models, domain logic, COM/WMI interop
-- **ManagementTools** (WinUI 3 WinExe) — XAML Views, converters, helpers, localization resources, app shell
+- **OneMMC.Core** (class library) — ViewModels, Services, Models, domain logic, COM/WMI interop
+- **OneMMC** (WinUI 3 WinExe) — XAML Views, converters, helpers, localization resources, app shell
 
 ### Architecture Boundaries
-- **Core may reference Windows App SDK platform APIs**: `ManagementTools.Core` may reference `Microsoft.WindowsAppSDK` and `Microsoft.UI.*` only for reusable Windows-native services such as file/folder pickers, native OS dialogs, interop helpers, and image conversion helpers. Dependency still flows one way: UI → Core only.
+- **Core may reference Windows App SDK platform APIs**: `OneMMC.Core` may reference `Microsoft.WindowsAppSDK` and `Microsoft.UI.*` only for reusable Windows-native services such as file/folder pickers, native OS dialogs, interop helpers, and image conversion helpers. Dependency still flows one way: UI → Core only.
 - **ViewModel must not touch UI elements**: ViewModels in Core must not create or manipulate `ContentDialog`, `FrameworkElement`, `XamlRoot`, `DispatcherQueue`, `ElementTheme`, pages, windows, controls, or any presentation state. Expose state via observable properties; let the View decide how to present it.
 - **Features must not cross-reference each other**: A Feature (e.g. `PCManagement`) must not directly reference types from another Feature (e.g. `SystemManagement`). Share only through `Abstractions`.
 - **No direct `new` on Infrastructure classes from Features**: Features must depend on `Abstractions` interfaces only. Infrastructure implementations (e.g. `AdminService`) are resolved via DI — never instantiated directly with `new`.
@@ -77,10 +77,10 @@ When in doubt, consult [WinUI 3 documentation](https://learn.microsoft.com/en-us
 - **Keep exceptions centralized**: Any remaining handwritten interop must live in a dedicated native wrapper/helper file and include a comment or XML summary explaining why CsWin32 could not be used directly.
 
 ### MVVM Pattern
-Uses `CommunityToolkit.Mvvm` (8.4.0). ViewModels use `ObservableObject` base, `[ObservableProperty]` for bindable properties, `[RelayCommand]` for commands. Keep code-behind minimal — prefer data binding and `DataTemplate`.
+Uses `CommunityToolkit.Mvvm` (8.4.2). ViewModels use `ObservableObject` base, `[ObservableProperty]` for bindable properties, `[RelayCommand]` for commands. Keep code-behind minimal — prefer data binding and `DataTemplate`.
 
 ### Dependency Injection
-DI is bootstrapped in `LoggingBootstrapper.BuildServiceProvider()` (UI project). Classes are **auto-registered** by convention in `ServiceCollectionExtensions.AddManagementToolsModules()`:
+DI is bootstrapped in `LoggingBootstrapper.BuildServiceProvider()` (UI project). Classes are **auto-registered** by convention in `ServiceCollectionExtensions.AddOneMMCModules()`:
 - Any concrete class whose name ends in `Service`, `Manager`, or `ViewModel` is registered automatically
 - Default lifetime is `Transient`; override with `[ServiceRegistration(ServiceLifetime)]` attribute
 - `IAdminService` is explicitly mapped as a singleton
@@ -105,7 +105,7 @@ Two supported locales: **en-US**, **zh-TW**. Resources live in `Strings/{locale}
 
 ### Logging
 Serilog + `Microsoft.Extensions.Logging`. Configured in `LoggingBootstrapper.cs`.
-- File sink: daily rolling logs at `%LOCALAPPDATA%/ManagementTools/Logs/`
+- File sink: daily rolling logs at `%LOCALAPPDATA%/OneMMC/Logs/`
 - Debug sink: custom `DebugOutputSink` using `OutputDebugString` (avoids trace loops)
 - **Never use** `Debug.WriteLine`, `Console.WriteLine`, or `Trace.WriteLine` directly
 - Services/ViewModels: Constructor injection with `ILogger<T>`
@@ -146,4 +146,3 @@ Always use `AdminDialogHelper` for admin-related dialogs and InfoBars. Never cre
 
 - **Layout Panel IsEnabled**: `Grid`, `StackPanel`, `Border`, and other layout panels do **not** have an `IsEnabled` property in WinUI 3 — they do not inherit from `Control`. Placing `IsEnabled` on them in XAML causes `WMC0011` compiler errors. The correct pattern is: omit `IsEnabled` from the panel in XAML entirely, then call a helper method (e.g. `SetMode(bool enabled)`) from the constructor and from event handlers to iterate children and set `IsEnabled` on each `Control` individually.
 - **ContentDialog `await ShowAsync()`**: `ContentDialog.ShowAsync()` returns `IAsyncOperation<ContentDialogResult>`. If you see `CS4036 'IAsyncOperation<T>' does not contain a definition for 'GetAwaiter'`, add `using System;` explicitly to the file. Alternatively use `.AsTask()` to convert to a standard `Task<T>`.
-

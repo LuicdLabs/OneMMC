@@ -1,0 +1,352 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="FsMgmt_Page_SearchPlaceholder" xml:space="preserve">
+    <value>搜尋</value>
+  </data>
+  <data name="FsMgmt_Shares_Header" xml:space="preserve">
+    <value>共用</value>
+  </data>
+  <data name="FsMgmt_Sessions_Header" xml:space="preserve">
+    <value>工作階段</value>
+  </data>
+  <data name="FsMgmt_OpenFiles_Header" xml:space="preserve">
+    <value>開啟的檔案</value>
+  </data>
+  <data name="FsMgmt_ComputerName_Label" xml:space="preserve">
+    <value>電腦名稱</value>
+  </data>
+  <data name="FsMgmt_ShareInformation_Header" xml:space="preserve">
+    <value>共用資訊</value>
+  </data>
+  <data name="FsMgmt_SharePath_Label" xml:space="preserve">
+    <value>共用路徑</value>
+  </data>
+  <data name="FsMgmt_FolderPath_Placeholder" xml:space="preserve">
+    <value>例如: C:\Docs\Public</value>
+  </data>
+  <data name="FsMgmt_PermissionsSecurity_Header" xml:space="preserve">
+    <value>共用權限與安全性</value>
+  </data>
+  <data name="FsMgmt_Shares_CountFormat" xml:space="preserve">
+    <value>{0} 個共用資料夾</value>
+  </data>
+  <data name="FsMgmt_Sessions_CountFormat" xml:space="preserve">
+    <value>{0} 個已連線工作階段</value>
+  </data>
+  <data name="FsMgmt_OpenFiles_CountFormat" xml:space="preserve">
+    <value>{0} 個遠端開啟的檔案</value>
+  </data>
+  <data name="FsMgmt_Empty_Shares" xml:space="preserve">
+    <value>沒有符合目前篩選條件的共用。</value>
+  </data>
+  <data name="FsMgmt_Empty_Sessions" xml:space="preserve">
+    <value>沒有已連線的工作階段。</value>
+  </data>
+  <data name="FsMgmt_Empty_OpenFiles" xml:space="preserve">
+    <value>目前沒有遠端開啟的檔案。</value>
+  </data>
+  <data name="FsMgmt_Share_DetailsFormat" xml:space="preserve">
+    <value>路徑: {0} | 用戶端連線: {1}</value>
+  </data>
+  <data name="FsMgmt_Session_DetailsFormat" xml:space="preserve">
+    <value>開啟的檔案: {0} | 連線 / 閒置時間: {1} / {2} | 來賓: {3}</value>
+  </data>
+  <data name="FsMgmt_OpenFile_DetailsFormat" xml:space="preserve">
+    <value>開啟模式: {0} | 鎖定: {1}</value>
+  </data>
+  <data name="FsMgmt_ShareType_Disk" xml:space="preserve">
+    <value>資料夾</value>
+  </data>
+  <data name="FsMgmt_ShareType_Print" xml:space="preserve">
+    <value>印表機</value>
+  </data>
+  <data name="FsMgmt_ShareType_Device" xml:space="preserve">
+    <value>裝置</value>
+  </data>
+  <data name="FsMgmt_ShareType_Ipc" xml:space="preserve">
+    <value>IPC</value>
+  </data>
+  <data name="FsMgmt_ShareType_Unknown" xml:space="preserve">
+    <value>未知</value>
+  </data>
+  <data name="FsMgmt_NotAvailable" xml:space="preserve">
+    <value>無法使用</value>
+  </data>
+  <data name="FsMgmt_UserLimit_MaximumAllowed" xml:space="preserve">
+    <value>允許的最大數目</value>
+  </data>
+  <data name="FsMgmt_UserLimit_AllowNumber" xml:space="preserve">
+    <value>允許此使用者數目</value>
+  </data>
+  <data name="FsMgmt_Offline_Manual" xml:space="preserve">
+    <value>選取的檔案和程式可供離線使用</value>
+  </data>
+  <data name="FsMgmt_Offline_None" xml:space="preserve">
+    <value>檔案或程式不可供離線使用</value>
+  </data>
+  <data name="FsMgmt_Offline_Automatic" xml:space="preserve">
+    <value>檔案和程式會自動供離線使用</value>
+  </data>
+  <data name="FsMgmt_FilePermission_Read" xml:space="preserve">
+    <value>讀取</value>
+  </data>
+  <data name="FsMgmt_FilePermission_Write" xml:space="preserve">
+    <value>寫入</value>
+  </data>
+  <data name="FsMgmt_FilePermission_ReadWrite" xml:space="preserve">
+    <value>讀取/寫入</value>
+  </data>
+  <data name="FsMgmt_Guest_Yes" xml:space="preserve">
+    <value>是</value>
+  </data>
+  <data name="FsMgmt_Guest_No" xml:space="preserve">
+    <value>否</value>
+  </data>
+  <data name="FsMgmt_Duration_DaysFormat" xml:space="preserve">
+    <value>{0}天 {1}小時 {2}分鐘</value>
+  </data>
+  <data name="FsMgmt_Duration_HoursFormat" xml:space="preserve">
+    <value>{0}小時 {1}分鐘 {2}秒</value>
+  </data>
+  <data name="FsMgmt_AddShare_Title" xml:space="preserve">
+    <value>新增共用資料夾</value>
+  </data>
+  <data name="FsMgmt_ShareProperties_TitleFormat" xml:space="preserve">
+    <value>{0} 內容</value>
+  </data>
+  <data name="FsMgmt_FolderPath_Label" xml:space="preserve">
+    <value>資料夾路徑</value>
+  </data>
+  <data name="FsMgmt_ShareName_Label" xml:space="preserve">
+    <value>共用名稱</value>
+  </data>
+  <data name="FsMgmt_Description_Label" xml:space="preserve">
+    <value>描述</value>
+  </data>
+  <data name="FsMgmt_UserLimit_Header" xml:space="preserve">
+    <value>使用者限制</value>
+  </data>
+  <data name="FsMgmt_Offline_Label" xml:space="preserve">
+    <value>離線設定</value>
+  </data>
+  <data name="FsMgmt_OptimizePerformance" xml:space="preserve">
+    <value>最佳化效能</value>
+  </data>
+  <data name="FsMgmt_PermissionsPreset_Label" xml:space="preserve">
+    <value>共用資料夾權限</value>
+  </data>
+  <data name="FsMgmt_Preset_EveryoneRead" xml:space="preserve">
+    <value>所有使用者都有唯讀存取權</value>
+  </data>
+  <data name="FsMgmt_Preset_AdminFullOthersRead" xml:space="preserve">
+    <value>系統管理員有完整存取權，其他使用者有唯讀存取權</value>
+  </data>
+  <data name="FsMgmt_Preset_AdminFullOthersNone" xml:space="preserve">
+    <value>系統管理員有完整存取權，其他使用者沒有存取權</value>
+  </data>
+  <data name="FsMgmt_Preset_Custom" xml:space="preserve">
+    <value>自訂權限</value>
+  </data>
+  <data name="FsMgmt_CustomPermissions_Header" xml:space="preserve">
+    <value>自訂權限設定</value>
+  </data>
+  <data name="FsMgmt_Customize" xml:space="preserve">
+    <value>自訂...</value>
+  </data>
+  <data name="FsMgmt_AdminShare_Info" xml:space="preserve">
+    <value>這是供系統管理用途使用的共用。無法設定共用權限與檔案安全性。</value>
+  </data>
+  <data name="FsMgmt_Validation_FolderPathRequired" xml:space="preserve">
+    <value>建立共用前請選擇資料夾路徑。</value>
+  </data>
+  <data name="FsMgmt_Validation_ShareNameRequired" xml:space="preserve">
+    <value>繼續前請輸入共用名稱。</value>
+  </data>
+  <data name="FsMgmt_Validation_FolderPathInvalid" xml:space="preserve">
+    <value>資料夾路徑必須是有效的 Windows 路徑，例如 C:\共用 或 \\server\share。</value>
+  </data>
+  <data name="FsMgmt_Open" xml:space="preserve">
+    <value>開啟</value>
+  </data>
+  <data name="FsMgmt_StopSharing" xml:space="preserve">
+    <value>停止共用</value>
+  </data>
+  <data name="FsMgmt_Properties" xml:space="preserve">
+    <value>內容</value>
+  </data>
+  <data name="FsMgmt_DisconnectAllSessions" xml:space="preserve">
+    <value>中斷所有工作階段</value>
+  </data>
+  <data name="FsMgmt_DisconnectSelected" xml:space="preserve">
+    <value>中斷選取項目</value>
+  </data>
+  <data name="FsMgmt_CloseAllOpenFiles" xml:space="preserve">
+    <value>關閉所有開啟的檔案</value>
+  </data>
+  <data name="FsMgmt_CloseSelected" xml:space="preserve">
+    <value>關閉選取項目</value>
+  </data>
+  <data name="FsMgmt_ConfirmStopSharing_Title" xml:space="preserve">
+    <value>要停止共用這個資料夾嗎?</value>
+  </data>
+  <data name="FsMgmt_ConfirmStopSharing_MessageFormat" xml:space="preserve">
+    <value>連線到「{0}」的使用者將會中斷連線。</value>
+  </data>
+  <data name="FsMgmt_ConfirmDisconnectSession_Title" xml:space="preserve">
+    <value>要中斷這個工作階段嗎?</value>
+  </data>
+  <data name="FsMgmt_ConfirmDisconnectSession_MessageFormat" xml:space="preserve">
+    <value>要中斷 {0} 與這部電腦的連線嗎?</value>
+  </data>
+  <data name="FsMgmt_ConfirmDisconnectAllSessions_Title" xml:space="preserve">
+    <value>要中斷所有工作階段嗎?</value>
+  </data>
+  <data name="FsMgmt_ConfirmDisconnectAllSessions_Message" xml:space="preserve">
+    <value>所有連線到這部電腦共用資料夾的使用者都會中斷連線。</value>
+  </data>
+  <data name="FsMgmt_ConfirmCloseOpenFile_Title" xml:space="preserve">
+    <value>要關閉這個開啟的檔案嗎?</value>
+  </data>
+  <data name="FsMgmt_ConfirmCloseOpenFile_MessageFormat" xml:space="preserve">
+    <value>關閉「{0}」可能會讓遠端使用者遺失未儲存的變更。</value>
+  </data>
+  <data name="FsMgmt_ConfirmCloseAllOpenFiles_Title" xml:space="preserve">
+    <value>要關閉所有開啟的檔案嗎?</value>
+  </data>
+  <data name="FsMgmt_ConfirmCloseAllOpenFiles_Message" xml:space="preserve">
+    <value>關閉所有開啟的檔案可能會讓遠端使用者遺失未儲存的變更。</value>
+  </data>
+  <data name="FsMgmt_Permissions_Title" xml:space="preserve">
+    <value>共用權限</value>
+  </data>
+  <data name="FsMgmt_Permissions_AccountsHeader" xml:space="preserve">
+    <value>群組或使用者名稱</value>
+  </data>
+  <data name="FsMgmt_Permissions_Account" xml:space="preserve">
+    <value>帳戶</value>
+  </data>
+  <data name="FsMgmt_Permissions_AccessType" xml:space="preserve">
+    <value>類型</value>
+  </data>
+  <data name="FsMgmt_Permissions_AccessRight" xml:space="preserve">
+    <value>權限</value>
+  </data>
+  <data name="FsMgmt_Permissions_Allow" xml:space="preserve">
+    <value>允許</value>
+  </data>
+  <data name="FsMgmt_Permissions_Deny" xml:space="preserve">
+    <value>拒絕</value>
+  </data>
+  <data name="FsMgmt_Permissions_Read" xml:space="preserve">
+    <value>讀取</value>
+  </data>
+  <data name="FsMgmt_Permissions_Change" xml:space="preserve">
+    <value>變更</value>
+  </data>
+  <data name="FsMgmt_Permissions_FullControl" xml:space="preserve">
+    <value>完全控制</value>
+  </data>
+  <data name="FsMgmt_Permissions_AddButton" xml:space="preserve">
+    <value>新增...</value>
+  </data>
+  <data name="FsMgmt_Permissions_SecurityTab" xml:space="preserve">
+    <value>安全性</value>
+  </data>
+  <data name="FsMgmt_Permissions_ShareTab" xml:space="preserve">
+    <value>共用</value>
+  </data>
+  <data name="FsMgmt_Permissions_ForFormat" xml:space="preserve">
+    <value>{0} 的權限</value>
+  </data>
+  <data name="FsMgmt_Permissions_ObjectName" xml:space="preserve">
+    <value>物件名稱:</value>
+  </data>
+  <data name="FsMgmt_Permissions_EditInstruction" xml:space="preserve">
+    <value>若要變更權限，請按一下 [編輯]。</value>
+  </data>
+  <data name="FsMgmt_Permissions_EditButton" xml:space="preserve">
+    <value>編輯...</value>
+  </data>
+  <data name="FsMgmt_Permissions_AdvancedInstruction" xml:space="preserve">
+    <value>如需特殊權限或進階設定，請按一下 [進階]。</value>
+  </data>
+  <data name="FsMgmt_Permissions_Modify" xml:space="preserve">
+    <value>修改</value>
+  </data>
+  <data name="FsMgmt_Permissions_ReadExecute" xml:space="preserve">
+    <value>讀取和執行</value>
+  </data>
+  <data name="FsMgmt_Permissions_ListFolder" xml:space="preserve">
+    <value>列出資料夾內容</value>
+  </data>
+  <data name="FsMgmt_Permissions_Write" xml:space="preserve">
+    <value>寫入</value>
+  </data>
+  <data name="FsMgmt_Permissions_Delete" xml:space="preserve">
+    <value>刪除</value>
+  </data>
+  <data name="FsMgmt_Permissions_ThisFolderOnly" xml:space="preserve">
+    <value>只有此資料夾</value>
+  </data>
+  <data name="FsMgmt_Permissions_ThisFolderSubfoldersFiles" xml:space="preserve">
+    <value>此資料夾、子資料夾及檔案</value>
+  </data>
+  <data name="FsMgmt_Permissions_ThisFolderSubfolders" xml:space="preserve">
+    <value>此資料夾及子資料夾</value>
+  </data>
+  <data name="FsMgmt_Permissions_ThisFolderFiles" xml:space="preserve">
+    <value>此資料夾及檔案</value>
+  </data>
+  <data name="FsMgmt_Permissions_SubfoldersFilesOnly" xml:space="preserve">
+    <value>只有子資料夾及檔案</value>
+  </data>
+  <data name="FsMgmt_Permissions_SubfoldersOnly" xml:space="preserve">
+    <value>只有子資料夾</value>
+  </data>
+  <data name="FsMgmt_Permissions_FilesOnly" xml:space="preserve">
+    <value>只有檔案</value>
+  </data>
+  <data name="FsMgmt_Permissions_Advanced" xml:space="preserve">
+    <value>進階...</value>
+  </data>
+</root>

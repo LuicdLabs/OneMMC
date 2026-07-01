@@ -1,0 +1,85 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<!--
+    OpenStoreDialog.xaml
+    
+    Open Existing Authorization Store Dialog
+-->
+<ContentDialog
+    x:Class="OneMMC.Views.UserSecurity.AzMan.Dialogs.OpenStoreDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
+    mc:Ignorable="d"
+    Title="{x:Bind LocalizedStrings.OpenStoreDialog_Title}"
+    PrimaryButtonText="{x:Bind LocalizedStrings.Common_OpenButton}"
+    CloseButtonText="{x:Bind LocalizedStrings.Common_CancelButton}"
+    DefaultButton="Primary"
+    PrimaryButtonClick="OnPrimaryButtonClick">
+
+    <StackPanel Spacing="16" MinWidth="450">
+        <!-- Store type selection -->
+        <StackPanel Spacing="8">
+            <TextBlock Text="{x:Bind LocalizedStrings.OpenStoreDialog_StoreType_Label}" Style="{StaticResource BodyStrongTextBlockStyle}" />
+            <ComboBox x:Name="StoreTypeComboBox" 
+                      HorizontalAlignment="Stretch"
+                      SelectionChanged="OnStoreTypeChanged">
+                <ComboBoxItem Content="{x:Bind LocalizedStrings.OpenStoreDialog_StoreType_Xml}" Tag="Xml" IsSelected="True" />
+                <ComboBoxItem Content="{x:Bind LocalizedStrings.OpenStoreDialog_StoreType_ActiveDirectory}" Tag="ActiveDirectory" />
+                <ComboBoxItem Content="{x:Bind LocalizedStrings.OpenStoreDialog_StoreType_SqlServer}" Tag="SqlServer" />
+            </ComboBox>
+        </StackPanel>
+
+        <!-- XML file path -->
+        <StackPanel x:Name="XmlPathPanel" Spacing="8">
+            <TextBlock Text="{x:Bind LocalizedStrings.OpenStoreDialog_XmlPath_Label}" Style="{StaticResource BodyStrongTextBlockStyle}" />
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBox x:Name="XmlPathTextBox" 
+                         PlaceholderText="{x:Bind LocalizedStrings.OpenStoreDialog_XmlPath_Placeholder}"
+                         Grid.Column="0" />
+                <Button Content="{x:Bind LocalizedStrings.Common_BrowseButton}" 
+                        Grid.Column="1" 
+                        Margin="8,0,0,0"
+                        Click="OnBrowseClick" />
+            </Grid>
+        </StackPanel>
+
+        <!-- Active Directory path -->
+        <StackPanel x:Name="AdPathPanel" Spacing="8" Visibility="Collapsed">
+            <TextBlock Text="{x:Bind LocalizedStrings.OpenStoreDialog_AdPath_Label}" Style="{StaticResource BodyStrongTextBlockStyle}" />
+            <TextBox x:Name="AdPathTextBox" 
+                     PlaceholderText="{x:Bind LocalizedStrings.OpenStoreDialog_AdPath_Placeholder}" />
+        </StackPanel>
+
+        <!-- SQL Server connection string -->
+        <StackPanel x:Name="SqlPathPanel" Spacing="8" Visibility="Collapsed">
+            <TextBlock Text="{x:Bind LocalizedStrings.OpenStoreDialog_Sql_Label}" Style="{StaticResource BodyStrongTextBlockStyle}" />
+            <TextBox x:Name="SqlServerTextBox" 
+                     PlaceholderText="{x:Bind LocalizedStrings.OpenStoreDialog_Sql_Server_Placeholder}" />
+            <TextBox x:Name="SqlDatabaseTextBox" 
+                     PlaceholderText="{x:Bind LocalizedStrings.OpenStoreDialog_Sql_Database_Placeholder}" />
+            <TextBox x:Name="SqlStoreNameTextBox" 
+                     PlaceholderText="{x:Bind LocalizedStrings.OpenStoreDialog_Sql_Store_Placeholder}" />
+        </StackPanel>
+
+        <!-- Open mode -->
+        <StackPanel Spacing="8">
+            <TextBlock Text="{x:Bind LocalizedStrings.OpenStoreDialog_OpenMode_Label}" Style="{StaticResource BodyStrongTextBlockStyle}" />
+            <RadioButtons x:Name="OpenModeRadio">
+                <RadioButton Content="{x:Bind LocalizedStrings.OpenStoreDialog_OpenMode_Admin}" Tag="ReadWrite" IsChecked="True" />
+                <RadioButton Content="{x:Bind LocalizedStrings.OpenStoreDialog_OpenMode_Reader}" Tag="ReadOnly" />
+            </RadioButtons>
+        </StackPanel>
+
+        <!-- Error message -->
+        <InfoBar x:Name="ErrorInfoBar"
+                 IsOpen="False"
+                 Severity="Error"
+                 Title="{x:Bind LocalizedStrings.Common_ErrorTitle}" />
+    </StackPanel>
+</ContentDialog>

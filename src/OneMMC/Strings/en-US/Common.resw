@@ -1,0 +1,303 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Common_OKButton" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="Common_CancelButton" xml:space="preserve">
+    <value>Cancel</value>
+  </data>
+  <data name="Common_OpenButton" xml:space="preserve">
+    <value>Open</value>
+  </data>
+  <data name="Common_CloseButton" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="Common_SaveButton" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="Common_DontSaveButton" xml:space="preserve">
+    <value>Don't Save</value>
+  </data>
+  <data name="Common_UnsavedChanges_Title" xml:space="preserve">
+    <value>Unsaved changes</value>
+  </data>
+  <data name="Common_UnsavedChanges_Message" xml:space="preserve">
+    <value>You have unsaved changes. Do you want to save them before leaving?</value>
+  </data>
+  <data name="Common_CreateButton" xml:space="preserve">
+    <value>Create</value>
+  </data>
+  <data name="Common_BrowseButton" xml:space="preserve">
+    <value>Browse</value>
+  </data>
+  <data name="Common_AddButton" xml:space="preserve">
+    <value>Add</value>
+  </data>
+  <data name="Common_AddButtonEllipsis" xml:space="preserve">
+    <value>Add</value>
+  </data>
+  <data name="Common_RemoveButton" xml:space="preserve">
+    <value>Remove</value>
+  </data>
+  <data name="Common_DeleteButton" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="Common_Refresh" xml:space="preserve">
+    <value>Refresh</value>
+  </data>
+  <data name="Common_Help" xml:space="preserve">
+    <value>Help</value>
+  </data>
+  <data name="Common_LearnMore" xml:space="preserve">
+    <value>Learn more</value>
+  </data>
+  <data name="Common_MoreOptionsTooltip" xml:space="preserve">
+    <value>More options</value>
+  </data>
+  <data name="Common_SearchPlaceholder" xml:space="preserve">
+    <value>Search</value>
+  </data>
+  <data name="Common_SearchButton" xml:space="preserve">
+    <value>Search</value>
+  </data>
+  <data name="Common_EditTooltip" xml:space="preserve">
+    <value>Edit</value>
+  </data>
+  <data name="Common_DeleteTooltip" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="Common_Enabled" xml:space="preserve">
+    <value>Enabled</value>
+  </data>
+  <data name="Common_Disabled" xml:space="preserve">
+    <value>Disabled</value>
+  </data>
+  <data name="Common_ClearButton" xml:space="preserve">
+    <value>Clear</value>
+  </data>
+  <data name="Common_EditButton" xml:space="preserve">
+    <value>Edit</value>
+  </data>
+  <data name="Common_Groups" xml:space="preserve">
+    <value>Groups</value>
+  </data>
+  <data name="Common_Tasks" xml:space="preserve">
+    <value>Tasks</value>
+  </data>
+  <data name="Common_Operations" xml:space="preserve">
+    <value>Operations</value>
+  </data>
+  <data name="Common_CountItem_Singular" xml:space="preserve">
+    <value>{0} item</value>
+  </data>
+  <data name="Common_CountItem_Plural" xml:space="preserve">
+    <value>{0} items</value>
+  </data>
+  <data name="Common_CountRole_Singular" xml:space="preserve">
+    <value>{0} role</value>
+  </data>
+  <data name="Common_CountRole_Plural" xml:space="preserve">
+    <value>{0} roles</value>
+  </data>
+  <data name="Common_CountTask_Singular" xml:space="preserve">
+    <value>{0} task</value>
+  </data>
+  <data name="Common_CountTask_Plural" xml:space="preserve">
+    <value>{0} tasks</value>
+  </data>
+  <data name="Common_CountOperation_Singular" xml:space="preserve">
+    <value>{0} operation</value>
+  </data>
+  <data name="Common_CountOperation_Plural" xml:space="preserve">
+    <value>{0} operations</value>
+  </data>
+  <data name="Common_CountScope_Singular" xml:space="preserve">
+    <value>{0} scope</value>
+  </data>
+  <data name="Common_CountScope_Plural" xml:space="preserve">
+    <value>{0} scopes</value>
+  </data>
+  <data name="Common_CountSelected_Singular" xml:space="preserve">
+    <value>{0} selected</value>
+  </data>
+  <data name="Common_CountSelected_Plural" xml:space="preserve">
+    <value>{0} selected</value>
+  </data>
+  <data name="Common_LoadedSuccessfully" xml:space="preserve">
+    <value>Loaded successfully</value>
+  </data>
+  <data name="Common_LoadingData" xml:space="preserve">
+    <value>Loading data...</value>
+  </data>
+  <data name="Common_Creating" xml:space="preserve">
+    <value>Creating...</value>
+  </data>
+  <data name="Common_Deleting" xml:space="preserve">
+    <value>Deleting...</value>
+  </data>
+  <data name="Common_Updating" xml:space="preserve">
+    <value>Updating...</value>
+  </data>
+  <data name="Common_OperationCompleted" xml:space="preserve">
+    <value>Operation completed</value>
+  </data>
+  <data name="Common_OperationFailed" xml:space="preserve">
+    <value>Operation failed</value>
+  </data>
+  <data name="Common_ErrorTitle" xml:space="preserve">
+    <value>Error</value>
+  </data>
+  <data name="Common_SuccessTitle" xml:space="preserve">
+    <value>Success</value>
+  </data>
+  <data name="Common_InformationTitle" xml:space="preserve">
+    <value>Information</value>
+  </data>
+  <data name="Common_AdminRequired_Title" xml:space="preserve">
+    <value>Administrator Privileges Required</value>
+  </data>
+  <data name="Common_AdminRequired_Message" xml:space="preserve">
+    <value>This operation requires administrator privileges. Please use "Run as Administrator" to restart and make changes.</value>
+  </data>
+  <data name="Common_AdminRequired_Close" xml:space="preserve">
+    <value>OK</value>
+  </data>
+  <data name="Common_AdminRequired_InfoBarMessage" xml:space="preserve">
+    <value>Some features require administrator privileges. Click "Run as Administrator" to restart with elevated permissions.</value>
+  </data>
+  <data name="Common_RunAsAdministrator" xml:space="preserve">
+    <value>Run as Administrator</value>
+  </data>
+  <data name="Common_AccessDenied_Generic" xml:space="preserve">
+    <value>Insufficient permissions. Please run as administrator.</value>
+  </data>
+  <data name="Common_ViewDetails" xml:space="preserve">
+    <value>View Details</value>
+  </data>
+  <data name="Common_State" xml:space="preserve">
+    <value>State</value>
+  </data>
+  <data name="Common_Close" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="LegalDocument_LoadError" xml:space="preserve">
+    <value>Unable to load the document. Please try again later.</value>
+  </data>
+</root>

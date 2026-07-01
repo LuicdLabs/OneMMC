@@ -1,0 +1,352 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="FsMgmt_Page_SearchPlaceholder" xml:space="preserve">
+    <value>Search</value>
+  </data>
+  <data name="FsMgmt_Shares_Header" xml:space="preserve">
+    <value>Shares</value>
+  </data>
+  <data name="FsMgmt_Sessions_Header" xml:space="preserve">
+    <value>Sessions</value>
+  </data>
+  <data name="FsMgmt_OpenFiles_Header" xml:space="preserve">
+    <value>Open Files</value>
+  </data>
+  <data name="FsMgmt_ComputerName_Label" xml:space="preserve">
+    <value>Computer name</value>
+  </data>
+  <data name="FsMgmt_ShareInformation_Header" xml:space="preserve">
+    <value>Share Information</value>
+  </data>
+  <data name="FsMgmt_SharePath_Label" xml:space="preserve">
+    <value>Share path</value>
+  </data>
+  <data name="FsMgmt_FolderPath_Placeholder" xml:space="preserve">
+    <value>Example: C:\Docs\Public</value>
+  </data>
+  <data name="FsMgmt_PermissionsSecurity_Header" xml:space="preserve">
+    <value>Share Permissions &amp; Security</value>
+  </data>
+  <data name="FsMgmt_Shares_CountFormat" xml:space="preserve">
+    <value>{0} shared folders</value>
+  </data>
+  <data name="FsMgmt_Sessions_CountFormat" xml:space="preserve">
+    <value>{0} connected sessions</value>
+  </data>
+  <data name="FsMgmt_OpenFiles_CountFormat" xml:space="preserve">
+    <value>{0} remotely opened files</value>
+  </data>
+  <data name="FsMgmt_Empty_Shares" xml:space="preserve">
+    <value>No shares match the current filter.</value>
+  </data>
+  <data name="FsMgmt_Empty_Sessions" xml:space="preserve">
+    <value>No connected sessions.</value>
+  </data>
+  <data name="FsMgmt_Empty_OpenFiles" xml:space="preserve">
+    <value>No files are currently open remotely.</value>
+  </data>
+  <data name="FsMgmt_Share_DetailsFormat" xml:space="preserve">
+    <value>Path: {0} | Client Connections: {1}</value>
+  </data>
+  <data name="FsMgmt_Session_DetailsFormat" xml:space="preserve">
+    <value>Open Files: {0} | Connected / Idle time: {1} / {2} | Guest: {3}</value>
+  </data>
+  <data name="FsMgmt_OpenFile_DetailsFormat" xml:space="preserve">
+    <value>Open Mode: {0} | Locks: {1}</value>
+  </data>
+  <data name="FsMgmt_ShareType_Disk" xml:space="preserve">
+    <value>Folder</value>
+  </data>
+  <data name="FsMgmt_ShareType_Print" xml:space="preserve">
+    <value>Printer</value>
+  </data>
+  <data name="FsMgmt_ShareType_Device" xml:space="preserve">
+    <value>Device</value>
+  </data>
+  <data name="FsMgmt_ShareType_Ipc" xml:space="preserve">
+    <value>IPC</value>
+  </data>
+  <data name="FsMgmt_ShareType_Unknown" xml:space="preserve">
+    <value>Unknown</value>
+  </data>
+  <data name="FsMgmt_NotAvailable" xml:space="preserve">
+    <value>Not available</value>
+  </data>
+  <data name="FsMgmt_UserLimit_MaximumAllowed" xml:space="preserve">
+    <value>Maximum allowed</value>
+  </data>
+  <data name="FsMgmt_UserLimit_AllowNumber" xml:space="preserve">
+    <value>Allow this number of users</value>
+  </data>
+  <data name="FsMgmt_Offline_Manual" xml:space="preserve">
+    <value>Selected files and programs available offline</value>
+  </data>
+  <data name="FsMgmt_Offline_None" xml:space="preserve">
+    <value>Files or programs not available offline</value>
+  </data>
+  <data name="FsMgmt_Offline_Automatic" xml:space="preserve">
+    <value>Files and programs automatically available offline</value>
+  </data>
+  <data name="FsMgmt_FilePermission_Read" xml:space="preserve">
+    <value>Read</value>
+  </data>
+  <data name="FsMgmt_FilePermission_Write" xml:space="preserve">
+    <value>Write</value>
+  </data>
+  <data name="FsMgmt_FilePermission_ReadWrite" xml:space="preserve">
+    <value>Read/Write</value>
+  </data>
+  <data name="FsMgmt_Guest_Yes" xml:space="preserve">
+    <value>Yes</value>
+  </data>
+  <data name="FsMgmt_Guest_No" xml:space="preserve">
+    <value>No</value>
+  </data>
+  <data name="FsMgmt_Duration_DaysFormat" xml:space="preserve">
+    <value>{0}d {1}h {2}m</value>
+  </data>
+  <data name="FsMgmt_Duration_HoursFormat" xml:space="preserve">
+    <value>{0}h {1}m {2}s</value>
+  </data>
+  <data name="FsMgmt_AddShare_Title" xml:space="preserve">
+    <value>Add a new Shared Folder</value>
+  </data>
+  <data name="FsMgmt_ShareProperties_TitleFormat" xml:space="preserve">
+    <value>{0} Properties</value>
+  </data>
+  <data name="FsMgmt_FolderPath_Label" xml:space="preserve">
+    <value>Folder path</value>
+  </data>
+  <data name="FsMgmt_ShareName_Label" xml:space="preserve">
+    <value>Share name</value>
+  </data>
+  <data name="FsMgmt_Description_Label" xml:space="preserve">
+    <value>Description</value>
+  </data>
+  <data name="FsMgmt_UserLimit_Header" xml:space="preserve">
+    <value>User limit</value>
+  </data>
+  <data name="FsMgmt_Offline_Label" xml:space="preserve">
+    <value>Offline setting</value>
+  </data>
+  <data name="FsMgmt_OptimizePerformance" xml:space="preserve">
+    <value>Optimize for Performance</value>
+  </data>
+  <data name="FsMgmt_PermissionsPreset_Label" xml:space="preserve">
+    <value>Shared Folder Permissions</value>
+  </data>
+  <data name="FsMgmt_Preset_EveryoneRead" xml:space="preserve">
+    <value>All users have read-only access</value>
+  </data>
+  <data name="FsMgmt_Preset_AdminFullOthersRead" xml:space="preserve">
+    <value>Administrators have full access; other users have read-only access</value>
+  </data>
+  <data name="FsMgmt_Preset_AdminFullOthersNone" xml:space="preserve">
+    <value>Administrators have full access; other users have no access</value>
+  </data>
+  <data name="FsMgmt_Preset_Custom" xml:space="preserve">
+    <value>Customize permissions</value>
+  </data>
+  <data name="FsMgmt_CustomPermissions_Header" xml:space="preserve">
+    <value>Customize permissions setting</value>
+  </data>
+  <data name="FsMgmt_Customize" xml:space="preserve">
+    <value>Customize...</value>
+  </data>
+  <data name="FsMgmt_AdminShare_Info" xml:space="preserve">
+    <value>This has been shared for administrative purposes. The share permissions and file security cannot be set.</value>
+  </data>
+  <data name="FsMgmt_Validation_FolderPathRequired" xml:space="preserve">
+    <value>Choose a folder path before creating the share.</value>
+  </data>
+  <data name="FsMgmt_Validation_ShareNameRequired" xml:space="preserve">
+    <value>Enter a share name before continuing.</value>
+  </data>
+  <data name="FsMgmt_Validation_FolderPathInvalid" xml:space="preserve">
+    <value>The folder path must be a valid Windows path, such as C:\Share or \\server\share.</value>
+  </data>
+  <data name="FsMgmt_Open" xml:space="preserve">
+    <value>Open</value>
+  </data>
+  <data name="FsMgmt_StopSharing" xml:space="preserve">
+    <value>Stop Sharing</value>
+  </data>
+  <data name="FsMgmt_Properties" xml:space="preserve">
+    <value>Properties</value>
+  </data>
+  <data name="FsMgmt_DisconnectAllSessions" xml:space="preserve">
+    <value>Disconnect All Sessions</value>
+  </data>
+  <data name="FsMgmt_DisconnectSelected" xml:space="preserve">
+    <value>Disconnect selected</value>
+  </data>
+  <data name="FsMgmt_CloseAllOpenFiles" xml:space="preserve">
+    <value>Close All Open Files</value>
+  </data>
+  <data name="FsMgmt_CloseSelected" xml:space="preserve">
+    <value>Close selected</value>
+  </data>
+  <data name="FsMgmt_ConfirmStopSharing_Title" xml:space="preserve">
+    <value>Stop sharing this folder?</value>
+  </data>
+  <data name="FsMgmt_ConfirmStopSharing_MessageFormat" xml:space="preserve">
+    <value>Users connected to "{0}" will be disconnected.</value>
+  </data>
+  <data name="FsMgmt_ConfirmDisconnectSession_Title" xml:space="preserve">
+    <value>Disconnect this session?</value>
+  </data>
+  <data name="FsMgmt_ConfirmDisconnectSession_MessageFormat" xml:space="preserve">
+    <value>Disconnect {0} from this computer?</value>
+  </data>
+  <data name="FsMgmt_ConfirmDisconnectAllSessions_Title" xml:space="preserve">
+    <value>Disconnect all sessions?</value>
+  </data>
+  <data name="FsMgmt_ConfirmDisconnectAllSessions_Message" xml:space="preserve">
+    <value>All users connected to shared folders on this computer will be disconnected.</value>
+  </data>
+  <data name="FsMgmt_ConfirmCloseOpenFile_Title" xml:space="preserve">
+    <value>Close this open file?</value>
+  </data>
+  <data name="FsMgmt_ConfirmCloseOpenFile_MessageFormat" xml:space="preserve">
+    <value>Closing "{0}" may cause the remote user to lose unsaved changes.</value>
+  </data>
+  <data name="FsMgmt_ConfirmCloseAllOpenFiles_Title" xml:space="preserve">
+    <value>Close all open files?</value>
+  </data>
+  <data name="FsMgmt_ConfirmCloseAllOpenFiles_Message" xml:space="preserve">
+    <value>Closing all open files may cause remote users to lose unsaved changes.</value>
+  </data>
+  <data name="FsMgmt_Permissions_Title" xml:space="preserve">
+    <value>Share Permissions</value>
+  </data>
+  <data name="FsMgmt_Permissions_AccountsHeader" xml:space="preserve">
+    <value>Group or user names</value>
+  </data>
+  <data name="FsMgmt_Permissions_Account" xml:space="preserve">
+    <value>Account</value>
+  </data>
+  <data name="FsMgmt_Permissions_AccessType" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="FsMgmt_Permissions_AccessRight" xml:space="preserve">
+    <value>Permission</value>
+  </data>
+  <data name="FsMgmt_Permissions_Allow" xml:space="preserve">
+    <value>Allow</value>
+  </data>
+  <data name="FsMgmt_Permissions_Deny" xml:space="preserve">
+    <value>Deny</value>
+  </data>
+  <data name="FsMgmt_Permissions_Read" xml:space="preserve">
+    <value>Read</value>
+  </data>
+  <data name="FsMgmt_Permissions_Change" xml:space="preserve">
+    <value>Change</value>
+  </data>
+  <data name="FsMgmt_Permissions_FullControl" xml:space="preserve">
+    <value>Full Control</value>
+  </data>
+  <data name="FsMgmt_Permissions_AddButton" xml:space="preserve">
+    <value>Add...</value>
+  </data>
+  <data name="FsMgmt_Permissions_SecurityTab" xml:space="preserve">
+    <value>Security</value>
+  </data>
+  <data name="FsMgmt_Permissions_ShareTab" xml:space="preserve">
+    <value>Share</value>
+  </data>
+  <data name="FsMgmt_Permissions_ForFormat" xml:space="preserve">
+    <value>Permissions for {0}</value>
+  </data>
+  <data name="FsMgmt_Permissions_ObjectName" xml:space="preserve">
+    <value>Object name:</value>
+  </data>
+  <data name="FsMgmt_Permissions_EditInstruction" xml:space="preserve">
+    <value>To change permissions, click Edit.</value>
+  </data>
+  <data name="FsMgmt_Permissions_EditButton" xml:space="preserve">
+    <value>Edit...</value>
+  </data>
+  <data name="FsMgmt_Permissions_AdvancedInstruction" xml:space="preserve">
+    <value>For special permissions or advanced settings, click Advanced.</value>
+  </data>
+  <data name="FsMgmt_Permissions_Modify" xml:space="preserve">
+    <value>Modify</value>
+  </data>
+  <data name="FsMgmt_Permissions_ReadExecute" xml:space="preserve">
+    <value>Read &amp; execute</value>
+  </data>
+  <data name="FsMgmt_Permissions_ListFolder" xml:space="preserve">
+    <value>List folder contents</value>
+  </data>
+  <data name="FsMgmt_Permissions_Write" xml:space="preserve">
+    <value>Write</value>
+  </data>
+  <data name="FsMgmt_Permissions_Delete" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="FsMgmt_Permissions_ThisFolderOnly" xml:space="preserve">
+    <value>This folder only</value>
+  </data>
+  <data name="FsMgmt_Permissions_ThisFolderSubfoldersFiles" xml:space="preserve">
+    <value>This folder, subfolders and files</value>
+  </data>
+  <data name="FsMgmt_Permissions_ThisFolderSubfolders" xml:space="preserve">
+    <value>This folder and subfolders</value>
+  </data>
+  <data name="FsMgmt_Permissions_ThisFolderFiles" xml:space="preserve">
+    <value>This folder and files</value>
+  </data>
+  <data name="FsMgmt_Permissions_SubfoldersFilesOnly" xml:space="preserve">
+    <value>Subfolders and files only</value>
+  </data>
+  <data name="FsMgmt_Permissions_SubfoldersOnly" xml:space="preserve">
+    <value>Subfolders only</value>
+  </data>
+  <data name="FsMgmt_Permissions_FilesOnly" xml:space="preserve">
+    <value>Files only</value>
+  </data>
+  <data name="FsMgmt_Permissions_Advanced" xml:space="preserve">
+    <value>Advanced...</value>
+  </data>
+</root>

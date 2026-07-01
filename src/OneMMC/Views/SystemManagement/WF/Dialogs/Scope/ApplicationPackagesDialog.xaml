@@ -1,0 +1,132 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentDialog
+    x:Class="OneMMC.Views.Dialogs.Scope.ApplicationPackagesDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Title="{x:Bind LocalizedStrings.WF_ApplicationPackagesDialog_Title}"
+    PrimaryButtonText="{x:Bind LocalizedStrings.Common_OKButton}"
+    SecondaryButtonText="{x:Bind LocalizedStrings.Common_CancelButton}"
+    Style="{StaticResource DefaultContentDialogStyle}"
+    mc:Ignorable="d">
+
+    <ScrollViewer
+        MaxHeight="560"
+        HorizontalScrollBarVisibility="Disabled"
+        VerticalScrollBarVisibility="Auto"
+        VerticalScrollMode="Enabled">
+    <Grid MinWidth="480" MinHeight="360">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <TextBlock
+            Grid.Row="0"
+            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+            Text="{x:Bind LocalizedStrings.WF_ApplicationPackagesDialog_Description}"
+            TextWrapping="Wrap" />
+
+        <InfoBar
+            x:Name="ValidationInfoBar"
+            Grid.Row="1"
+            Margin="0,12,0,0"
+            IsClosable="False"
+            IsOpen="False"
+            Severity="Error" />
+
+        <!--  Apply to  -->
+        <StackPanel
+            Grid.Row="2"
+            Margin="0,12,0,8"
+            Spacing="8">
+            <RadioButton
+                x:Name="AllPackagesRadio"
+                Content="{x:Bind LocalizedStrings.WF_ApplicationPackagesDialog_All}"
+                GroupName="PackageGroup"
+                IsChecked="True" />
+            <RadioButton
+                x:Name="PackagesOnlyRadio"
+                Content="{x:Bind LocalizedStrings.WF_ApplicationPackagesDialog_PackagesOnly}"
+                GroupName="PackageGroup" />
+            <RadioButton
+                x:Name="SpecificPackageRadio"
+                Content="{x:Bind LocalizedStrings.WF_ApplicationPackagesDialog_Specific}"
+                GroupName="PackageGroup" />
+
+            <Border
+                Margin="24,0,0,0"
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="4">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <Grid
+                        Grid.Row="0"
+                        Padding="12,8"
+                        Background="{ThemeResource SubtleFillColorSecondaryBrush}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="2*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock
+                            Grid.Column="0"
+                            FontWeight="SemiBold"
+                            Text="{x:Bind LocalizedStrings.WF_Column_Name}" />
+                        <TextBlock
+                            Grid.Column="1"
+                            FontWeight="SemiBold"
+                            Text="{x:Bind LocalizedStrings.WF_ApplicationPackagesDialog_UserColumn}" />
+                    </Grid>
+
+                    <ListView
+                        x:Name="PackageListView"
+                        Grid.Row="1"
+                        MaxHeight="220"
+                        IsEnabled="False"
+                        ScrollViewer.VerticalScrollBarVisibility="Auto"
+                        ScrollViewer.VerticalScrollMode="Enabled"
+                        SelectionMode="Single">
+                        <ListView.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Padding="12,8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="2*" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock
+                                        Grid.Column="0"
+                                        Text="{Binding Name}"
+                                        TextWrapping="WrapWholeWords" />
+                                    <TextBlock
+                                        Grid.Column="1"
+                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                        Text="{Binding User}"
+                                        TextWrapping="WrapWholeWords" />
+                                </Grid>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </Grid>
+            </Border>
+
+            <RadioButton
+                x:Name="PackageSidRadio"
+                Content="{x:Bind LocalizedStrings.WF_ApplicationPackagesDialog_Sid}"
+                GroupName="PackageGroup" />
+            <TextBox
+                x:Name="PackageSidBox"
+                IsEnabled="False"
+                PlaceholderText="{x:Bind LocalizedStrings.WF_ApplicationPackagesDialog_SidPlaceholder}" />
+        </StackPanel>
+
+    </Grid>
+    </ScrollViewer>
+</ContentDialog>

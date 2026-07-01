@@ -1,4 +1,4 @@
-# App SDK File Dialog Service
+﻿# App SDK File Dialog Service
 
 ## Overview
 
@@ -15,10 +15,10 @@ Windows App SDK picker APIs are extension-based.
 
 | Item | Value |
 |---|---|
-| Service class | `src/ManagementTools.Core/Infrastructure/WindowsCapabilities/AppSdkFileDialogService.cs` |
-| Namespace | `ManagementTools.Core.Infrastructure.WindowsCapabilities` |
-| Interface | `ManagementTools.Core.Abstractions.Services.IFileDialogService` |
-| DI mapping | `IFileDialogService -> AppSdkFileDialogService` via `AddManagementToolsCore(...)` |
+| Service class | `src/OneMMC.Core/Infrastructure/WindowsCapabilities/AppSdkFileDialogService.cs` |
+| Namespace | `OneMMC.Core.Infrastructure.WindowsCapabilities` |
+| Interface | `OneMMC.Core.Abstractions.Services.IFileDialogService` |
+| DI mapping | `IFileDialogService -> AppSdkFileDialogService` via `AddOneMMCCore(...)` |
 
 ## Windows App SDK 2.0 Behavior
 

@@ -1,0 +1,259 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Page
+    x:Class="OneMMC.Views.SoftwareRestrictionPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:CommunityToolkit.WinUI.Controls"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:srp="using:OneMMC.Core.Features.UserSecurity.Models.SecPol.SoftwareRestriction"
+    mc:Ignorable="d">
+
+    <Page.Resources>
+        <DataTemplate x:Key="DesignatedFileTypeItemTemplate">
+            <Grid MinHeight="32" ColumnSpacing="16">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="120" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <TextBlock
+                    VerticalAlignment="Center"
+                    Text="{Binding Extension}"
+                    TextTrimming="CharacterEllipsis"
+                    TextWrapping="NoWrap"
+                    ToolTipService.ToolTip="{Binding Extension}" />
+                <TextBlock
+                    Grid.Column="1"
+                    VerticalAlignment="Center"
+                    Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}"
+                    Text="{Binding FileType}"
+                    TextTrimming="CharacterEllipsis"
+                    TextWrapping="NoWrap"
+                    ToolTipService.ToolTip="{Binding FileType}" />
+            </Grid>
+        </DataTemplate>
+    </Page.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <CommandBar Grid.Row="0" DefaultLabelPosition="Right">
+            <AppBarButton
+                Click="EditButton_Click"
+                Icon="Edit"
+                IsEnabled="{x:Bind ViewModel.IsConfigured, Mode=OneWay}"
+                Label="{x:Bind LocalizedStrings.Common_EditButton}" />
+            <AppBarButton
+                Click="SetDefaultSecurityLevelButton_Click"
+                Icon="Accept"
+                IsEnabled="{x:Bind ViewModel.CanSetSelectedSecurityLevelDefault, Mode=OneWay}"
+                Label="{x:Bind LocalizedStrings.SRP_Command_SetAsDefault}" />
+            <AppBarButton
+                Click="RefreshButton_Click"
+                Icon="Refresh"
+                Label="{x:Bind LocalizedStrings.Common_Refresh}" />
+            <AppBarButton
+                Click="CreatePolicyButton_Click"
+                Icon="Add"
+                IsEnabled="{x:Bind ViewModel.CanCreatePolicy, Mode=OneWay}"
+                Label="{x:Bind LocalizedStrings.SRP_Command_NewPolicy}" />
+            <AppBarButton
+                Click="DeletePolicyButton_Click"
+                Icon="Delete"
+                IsEnabled="{x:Bind ViewModel.IsConfigured, Mode=OneWay}"
+                Label="{x:Bind LocalizedStrings.SRP_Command_DeletePolicy}" />
+            <AppBarButton
+                Click="DeleteRuleButton_Click"
+                Icon="Remove"
+                IsEnabled="{x:Bind ViewModel.CanDeleteSelectedRule, Mode=OneWay}"
+                Label="{x:Bind LocalizedStrings.Common_DeleteButton}" />
+            <AppBarButton
+                IsEnabled="{x:Bind ViewModel.IsConfigured, Mode=OneWay}"
+                Label="{x:Bind LocalizedStrings.Common_AddButton}">
+                <AppBarButton.Icon>
+                    <SymbolIcon Symbol="Add" />
+                </AppBarButton.Icon>
+                <AppBarButton.Flyout>
+                    <MenuFlyout>
+                        <MenuFlyoutItem
+                            Click="NewPathRule_Click"
+                            Text="{x:Bind LocalizedStrings.SRP_Command_NewPathRule}" />
+                        <MenuFlyoutItem
+                            Click="NewHashRule_Click"
+                            Text="{x:Bind LocalizedStrings.SRP_Command_NewHashRule}" />
+                        <MenuFlyoutItem
+                            Click="NewCertificateRule_Click"
+                            Text="{x:Bind LocalizedStrings.SRP_Command_NewCertificateRule}" />
+                        <MenuFlyoutItem
+                            Click="NewNetworkZoneRule_Click"
+                            Text="{x:Bind LocalizedStrings.SRP_Command_NewNetworkZoneRule}" />
+                    </MenuFlyout>
+                </AppBarButton.Flyout>
+            </AppBarButton>
+        </CommandBar>
+
+        <InfoBar
+            x:Name="ErrorInfoBar"
+            Title="{x:Bind LocalizedStrings.Common_ErrorTitle}"
+            Grid.Row="1"
+            Margin="24,0,24,12"
+            IsClosable="True"
+            IsOpen="{x:Bind ViewModel.HasError, Mode=OneWay}"
+            Message="{x:Bind ViewModel.ErrorMessage, Mode=OneWay}"
+            Severity="Error" />
+
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="300" MinWidth="220" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" MinWidth="360" />
+            </Grid.ColumnDefinitions>
+
+            <TreeView
+                x:Name="PolicyTree"
+                ItemsSource="{x:Bind ViewModel.Sections, Mode=OneWay}"
+                ItemInvoked="PolicyTree_ItemInvoked"
+                SelectionChanged="PolicyTree_SelectionChanged"
+                SelectionMode="Single">
+                <TreeView.ItemTemplate>
+                    <DataTemplate x:DataType="srp:SoftwareRestrictionSectionItem">
+                        <Grid MinHeight="32">
+                            <TextBlock VerticalAlignment="Center" Text="{x:Bind DisplayName}" />
+                        </Grid>
+                    </DataTemplate>
+                </TreeView.ItemTemplate>
+            </TreeView>
+
+            <controls:GridSplitter
+                Grid.Column="1"
+                Width="12"
+                ResizeBehavior="BasedOnAlignment"
+                ResizeDirection="Columns" />
+
+            <Grid Grid.Column="2">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <AutoSuggestBox
+                    x:Name="SearchBox"
+                    Grid.Row="0"
+                    Margin="12,8,12,4"
+                    PlaceholderText="{x:Bind LocalizedStrings.Common_SearchPlaceholder}"
+                    QueryIcon="Find"
+                    TextChanged="SearchBox_TextChanged" />
+
+                <Grid
+                    Grid.Row="1"
+                    Margin="24,8,24,0"
+                    ColumnSpacing="16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="2*" />
+                        <ColumnDefinition Width="3*" />
+                        <ColumnDefinition Width="1.6*" />
+                        <ColumnDefinition Width="2.5*" />
+                        <ColumnDefinition Width="1.8*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock
+                        FontWeight="SemiBold"
+                        Text="{x:Bind ViewModel.CurrentListHeaderName, Mode=OneWay}"
+                        TextWrapping="WrapWholeWords" />
+                    <TextBlock
+                        Grid.Column="1"
+                        FontWeight="SemiBold"
+                        Text="{x:Bind ViewModel.CurrentListHeaderSetting, Mode=OneWay}"
+                        TextWrapping="WrapWholeWords" />
+                    <TextBlock
+                        Grid.Column="2"
+                        FontWeight="SemiBold"
+                        Text="{x:Bind ViewModel.CurrentListHeaderSecurityLevel, Mode=OneWay}"
+                        TextWrapping="WrapWholeWords" />
+                    <TextBlock
+                        Grid.Column="3"
+                        FontWeight="SemiBold"
+                        Text="{x:Bind ViewModel.CurrentListHeaderDescription, Mode=OneWay}"
+                        TextWrapping="WrapWholeWords" />
+                    <TextBlock
+                        Grid.Column="4"
+                        FontWeight="SemiBold"
+                        Text="{x:Bind ViewModel.CurrentListHeaderLastModified, Mode=OneWay}"
+                        TextWrapping="WrapWholeWords" />
+                </Grid>
+
+                <ListView
+                    x:Name="PolicyListView"
+                    Grid.Row="2"
+                    Padding="12"
+                    DoubleTapped="PolicyListView_DoubleTapped"
+                    ItemsSource="{x:Bind ViewModel.CurrentItems, Mode=OneWay}"
+                    SelectedItem="{x:Bind ViewModel.SelectedItem, Mode=TwoWay}"
+                    SelectionMode="Single">
+                    <ListView.ItemTemplate>
+                        <DataTemplate x:DataType="srp:SoftwareRestrictionListItem">
+                            <Grid MinHeight="44" ColumnSpacing="16">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="2*" />
+                                    <ColumnDefinition Width="3*" />
+                                    <ColumnDefinition Width="1.6*" />
+                                    <ColumnDefinition Width="2.5*" />
+                                    <ColumnDefinition Width="1.8*" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock
+                                    VerticalAlignment="Center"
+                                    Text="{x:Bind Name}"
+                                    TextTrimming="CharacterEllipsis"
+                                    TextWrapping="NoWrap"
+                                    ToolTipService.ToolTip="{x:Bind Name}" />
+                                <TextBlock
+                                    Grid.Column="1"
+                                    VerticalAlignment="Center"
+                                    Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}"
+                                    Text="{x:Bind Setting}"
+                                    TextTrimming="CharacterEllipsis"
+                                    TextWrapping="NoWrap"
+                                    ToolTipService.ToolTip="{x:Bind Setting}" />
+                                <TextBlock
+                                    Grid.Column="2"
+                                    VerticalAlignment="Center"
+                                    Text="{x:Bind RuleSecurityLevel}"
+                                    TextTrimming="CharacterEllipsis"
+                                    TextWrapping="NoWrap"
+                                    ToolTipService.ToolTip="{x:Bind RuleSecurityLevel}" />
+                                <TextBlock
+                                    Grid.Column="3"
+                                    VerticalAlignment="Center"
+                                    Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}"
+                                    Text="{x:Bind Description}"
+                                    TextTrimming="CharacterEllipsis"
+                                    TextWrapping="NoWrap"
+                                    ToolTipService.ToolTip="{x:Bind Description}" />
+                                <TextBlock
+                                    Grid.Column="4"
+                                    VerticalAlignment="Center"
+                                    Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}"
+                                    Text="{x:Bind LastModified}"
+                                    TextTrimming="CharacterEllipsis"
+                                    TextWrapping="NoWrap"
+                                    ToolTipService.ToolTip="{x:Bind LastModified}" />
+                            </Grid>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+            </Grid>
+
+            <ProgressRing
+                Grid.Column="2"
+                Width="50"
+                Height="50"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                IsActive="{x:Bind ViewModel.IsLoading, Mode=OneWay}" />
+        </Grid>
+    </Grid>
+</Page>

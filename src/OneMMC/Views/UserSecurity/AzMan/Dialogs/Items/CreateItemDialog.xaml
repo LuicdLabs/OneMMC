@@ -1,0 +1,76 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<!--
+    CreateItemDialog.xaml
+    
+    Generic Create Item Dialog - For creating applications, groups, roles, tasks, operations, etc.
+-->
+<ContentDialog
+    x:Class="OneMMC.Views.UserSecurity.AzMan.Dialogs.CreateItemDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
+    mc:Ignorable="d"
+    Title="{x:Bind LocalizedStrings.CreateItemDialog_Title_Default}"
+    PrimaryButtonText="{x:Bind LocalizedStrings.Common_CreateButton}"
+    CloseButtonText="{x:Bind LocalizedStrings.Common_CancelButton}"
+    DefaultButton="Primary"
+    PrimaryButtonClick="OnPrimaryButtonClick">
+
+    <StackPanel Spacing="16" MinWidth="400">
+        <!-- Name -->
+        <StackPanel Spacing="8">
+            <TextBlock Text="{x:Bind LocalizedStrings.CreateItemDialog_Name_Label}" Style="{StaticResource BodyStrongTextBlockStyle}" />
+            <TextBox x:Name="NameTextBox" 
+                     PlaceholderText="{x:Bind LocalizedStrings.CreateItemDialog_Name_Placeholder_Default}"
+                     MaxLength="256" />
+        </StackPanel>
+
+        <!-- Group type (only shown for groups) -->
+        <StackPanel x:Name="GroupTypePanel" Spacing="8" Visibility="Collapsed">
+            <TextBlock Text="{x:Bind LocalizedStrings.CreateItemDialog_GroupType_Label}" Style="{StaticResource BodyStrongTextBlockStyle}" />
+            <ComboBox x:Name="GroupTypeComboBox" HorizontalAlignment="Stretch">
+                <ComboBoxItem Content="{x:Bind LocalizedStrings.CreateItemDialog_GroupType_Basic}" Tag="Basic" IsSelected="True" />
+                <ComboBoxItem Content="{x:Bind LocalizedStrings.CreateItemDialog_GroupType_LdapQuery}" Tag="LdapQuery" />
+            </ComboBox>
+        </StackPanel>
+
+        <!-- LDAP query (only shown for LDAP query groups) -->
+        <StackPanel x:Name="LdapQueryPanel" Spacing="8" Visibility="Collapsed">
+            <TextBlock Text="{x:Bind LocalizedStrings.CreateItemDialog_LdapQuery_Label}" Style="{StaticResource BodyStrongTextBlockStyle}" />
+            <TextBox x:Name="LdapQueryTextBox" 
+                     PlaceholderText="{x:Bind LocalizedStrings.CreateItemDialog_LdapQuery_Placeholder}"
+                     AcceptsReturn="True"
+                     TextWrapping="Wrap"
+                     Height="80" />
+        </StackPanel>
+
+        <!-- Operation ID (only shown for operations) -->
+        <StackPanel x:Name="OperationIdPanel" Spacing="8" Visibility="Collapsed">
+            <TextBlock Text="{x:Bind LocalizedStrings.CreateItemDialog_OperationId_Label}" Style="{StaticResource BodyStrongTextBlockStyle}" />
+            <NumberBox x:Name="OperationIdNumberBox" 
+                       Minimum="-1"
+                       Maximum="2147483647"
+                       Value="-1"
+                       PlaceholderText="{x:Bind LocalizedStrings.CreateItemDialog_OperationId_Placeholder}"
+                       SpinButtonPlacementMode="Compact" />
+        </StackPanel>
+
+        <!-- Description -->
+        <StackPanel Spacing="8">
+            <TextBlock Text="{x:Bind LocalizedStrings.CreateItemDialog_Description_Label}" Style="{StaticResource BodyStrongTextBlockStyle}" />
+            <TextBox x:Name="DescriptionTextBox" 
+                     PlaceholderText="{x:Bind LocalizedStrings.CreateItemDialog_Description_Placeholder}"
+                     AcceptsReturn="True"
+                     TextWrapping="Wrap"
+                     Height="80" />
+        </StackPanel>
+
+        <!-- Error message -->
+        <InfoBar x:Name="ErrorInfoBar"
+                 IsOpen="False"
+                 Severity="Error"
+                 Title="{x:Bind LocalizedStrings.Common_ErrorTitle}" />
+    </StackPanel>
+</ContentDialog>

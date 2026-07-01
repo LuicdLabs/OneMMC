@@ -1,0 +1,372 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<!--
+    ScopesPage.xaml
+    
+    Scope Details Page - Manage groups and role assignments within the scope
+    Mimics the scope functionality design of azman.msc
+-->
+<Page
+    x:Class="OneMMC.Views.UserSecurity.AzMan.AuthStore.Scopes.ScopesPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:converters="using:OneMMC.Converters"
+    xmlns:cwuc="using:CommunityToolkit.WinUI.Controls"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:models="using:OneMMC.Core.Features.UserSecurity.Models.AzMan"
+    x:Name="Root"
+    mc:Ignorable="d">
+
+    <Page.Resources>
+        <converters:StringVisibilityConverter x:Key="StringVisibilityConverter" />
+    </Page.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />  
+            <!--  Title bar  -->
+            <RowDefinition Height="Auto" />  
+            <!--  Status message  -->
+            <RowDefinition Height="*" />     
+            <!--  Content area  -->
+        </Grid.RowDefinitions>
+
+        <!--  Toolbar  -->
+        <Grid Grid.Row="0" Padding="24,16,24,8">
+            <StackPanel
+                HorizontalAlignment="Right"
+                Orientation="Horizontal"
+                Spacing="4">
+                <Button
+                    Padding="12,8"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    Click="OnRefreshClick">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <FontIcon FontSize="14" Glyph="&#xE72C;" />
+                        <TextBlock VerticalAlignment="Center" Text="{x:Bind LocalizedStrings.Common_Refresh}" />
+                    </StackPanel>
+                </Button>
+
+                <Button
+                    Padding="8"
+                    Background="Transparent"
+                    BorderThickness="0">
+                    <FontIcon FontSize="16" Glyph="&#xE712;" />
+                    <Button.Flyout>
+                        <MenuFlyout Placement="Bottom">
+                            <MenuFlyoutItem Click="OnPropertiesClick" Text="{x:Bind LocalizedStrings.ScopesPage_Properties}">
+                                <MenuFlyoutItem.Icon>
+                                    <FontIcon Glyph="&#xE946;" />
+                                </MenuFlyoutItem.Icon>
+                            </MenuFlyoutItem>
+                            <MenuFlyoutSeparator />
+                            <MenuFlyoutItem Click="OnDeleteScopeClick" Text="{x:Bind LocalizedStrings.ScopesPage_DeleteScope}">
+                                <MenuFlyoutItem.Icon>
+                                    <FontIcon Glyph="&#xE74D;" />
+                                </MenuFlyoutItem.Icon>
+                            </MenuFlyoutItem>
+                        </MenuFlyout>
+                    </Button.Flyout>
+                </Button>
+            </StackPanel>
+        </Grid>
+
+        <!--  Status message  -->
+        <InfoBar
+            x:Name="StatusInfoBar"
+            Grid.Row="1"
+            Margin="24,0"
+            IsOpen="False" />
+
+        <!--  Loading  -->
+        <ProgressRing
+            x:Name="LoadingRing"
+            Grid.Row="2"
+            Width="48"
+            Height="48"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            IsActive="False" />
+
+        <!--  Content area  -->
+        <ScrollViewer Grid.Row="2">
+            <StackPanel Padding="24,8,24,24" Spacing="8">
+
+                <!--  Information block  -->
+                <InfoBar
+                    Title="{x:Bind LocalizedStrings.ScopesPage_Info_Title}"
+                    Margin="0,8,0,0"
+                    IsClosable="False"
+                    IsOpen="True"
+                    Message="{x:Bind LocalizedStrings.ScopesPage_Info_Message}"
+                    Severity="Informational" />
+
+                <!--  Groups within scope  -->
+                <cwuc:SettingsExpander IsExpanded="True" ItemsSource="{x:Bind _viewModel.FilteredGroups, Mode=OneWay}">
+                    <cwuc:SettingsExpander.Header>
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <FontIcon FontSize="20" Glyph="&#xE902;" />
+                            <TextBlock VerticalAlignment="Center" Text="{x:Bind LocalizedStrings.Common_Groups}" />
+                            <TextBlock
+                                Margin="8,0,0,0"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Text="{x:Bind _viewModel.GroupCountText, Mode=OneWay}" />
+                        </StackPanel>
+                    </cwuc:SettingsExpander.Header>
+
+                    <cwuc:SettingsExpander.Content>
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <AutoSuggestBox
+                                x:Name="GroupSearchBox"
+                                Width="200"
+                                PlaceholderText="{x:Bind LocalizedStrings.Common_SearchPlaceholder}"
+                                QueryIcon="Find"
+                                TextChanged="OnGroupSearchTextChanged" />
+                            <Button Padding="12,6" Click="OnAddGroupClick">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <FontIcon FontSize="12" Glyph="&#xE710;" />
+                                    <TextBlock VerticalAlignment="Center" Text="{x:Bind LocalizedStrings.Common_AddButton}" />
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+                    </cwuc:SettingsExpander.Content>
+
+                    <cwuc:SettingsExpander.ItemTemplate>
+                        <DataTemplate x:DataType="models:AzApplicationGroupInfo">
+                            <cwuc:SettingsCard Padding="16,12">
+                                <cwuc:SettingsCard.Header>
+                                    <StackPanel Orientation="Horizontal" Spacing="12">
+                                        <FontIcon
+                                            FontSize="20"
+                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                            Glyph="&#xE902;" />
+                                        <StackPanel>
+                                            <TextBlock Text="{x:Bind Name}" />
+                                            <TextBlock
+                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                Style="{StaticResource CaptionTextBlockStyle}"
+                                                Text="{x:Bind GroupTypeDisplayText}" />
+                                        </StackPanel>
+                                    </StackPanel>
+                                </cwuc:SettingsCard.Header>
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <Button
+                                        Padding="8"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        Click="OnEditGroupClick"
+                                        Tag="{x:Bind}"
+                                        ToolTipService.ToolTip="{Binding ElementName=Root, Path=LocalizedStrings.Common_EditTooltip}">
+                                        <FontIcon FontSize="16" Glyph="&#xE70F;" />
+                                    </Button>
+                                    <Button
+                                        Padding="8"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        Click="OnDeleteGroupClick"
+                                        Tag="{x:Bind}"
+                                        ToolTipService.ToolTip="{Binding ElementName=Root, Path=LocalizedStrings.Common_DeleteTooltip}">
+                                        <FontIcon FontSize="16" Glyph="&#xE74D;" />
+                                    </Button>
+                                </StackPanel>
+                            </cwuc:SettingsCard>
+                        </DataTemplate>
+                    </cwuc:SettingsExpander.ItemTemplate>
+                </cwuc:SettingsExpander>
+
+                <!--  Role assignments within scope  -->
+                <cwuc:SettingsExpander IsExpanded="True" ItemsSource="{x:Bind _viewModel.FilteredRoleAssignments, Mode=OneWay}">
+                    <cwuc:SettingsExpander.Header>
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <FontIcon FontSize="20" Glyph="&#xE77B;" />
+                            <TextBlock VerticalAlignment="Center" Text="{x:Bind LocalizedStrings.ScopesPage_RoleAssignmentsHeader}" />
+                            <TextBlock
+                                Margin="8,0,0,0"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Text="{x:Bind _viewModel.RoleAssignmentCountText, Mode=OneWay}" />
+                        </StackPanel>
+                    </cwuc:SettingsExpander.Header>
+
+                    <cwuc:SettingsExpander.Content>
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <AutoSuggestBox
+                                x:Name="RoleAssignmentSearchBox"
+                                Width="200"
+                                PlaceholderText="{x:Bind LocalizedStrings.Common_SearchPlaceholder}"
+                                QueryIcon="Find"
+                                TextChanged="OnRoleAssignmentSearchTextChanged" />
+                            <Button Padding="12,6" Click="OnAddRoleAssignmentClick">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <FontIcon FontSize="12" Glyph="&#xE710;" />
+                                    <TextBlock VerticalAlignment="Center" Text="{x:Bind LocalizedStrings.Common_AddButton}" />
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+                    </cwuc:SettingsExpander.Content>
+
+                    <cwuc:SettingsExpander.ItemTemplate>
+                        <DataTemplate x:DataType="models:AzRoleAssignmentInfo">
+                            <cwuc:SettingsCard
+                                Padding="16,12"
+                                Description="{x:Bind Description}"
+                                Header="{x:Bind Name}">
+                                <cwuc:SettingsCard.HeaderIcon>
+                                    <FontIcon FontSize="16" Glyph="&#xE77B;" />
+                                </cwuc:SettingsCard.HeaderIcon>
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <Button
+                                        Padding="8"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        Click="OnEditRoleAssignmentClick"
+                                        Tag="{x:Bind}"
+                                        ToolTipService.ToolTip="{Binding ElementName=Root, Path=LocalizedStrings.Common_EditTooltip}">
+                                        <FontIcon FontSize="16" Glyph="&#xE70F;" />
+                                    </Button>
+                                    <Button
+                                        Padding="8"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        Click="OnDeleteRoleAssignmentClick"
+                                        Tag="{x:Bind}"
+                                        ToolTipService.ToolTip="{Binding ElementName=Root, Path=LocalizedStrings.Common_DeleteTooltip}">
+                                        <FontIcon FontSize="16" Glyph="&#xE74D;" />
+                                    </Button>
+                                </StackPanel>
+                            </cwuc:SettingsCard>
+                        </DataTemplate>
+                    </cwuc:SettingsExpander.ItemTemplate>
+                </cwuc:SettingsExpander>
+
+                <!--  Role definitions within scope  -->
+                <cwuc:SettingsExpander IsExpanded="True" ItemsSource="{x:Bind _viewModel.FilteredRoleDefinitions, Mode=OneWay}">
+                    <cwuc:SettingsExpander.Header>
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <FontIcon FontSize="20" Glyph="&#xE716;" />
+                            <TextBlock VerticalAlignment="Center" Text="{x:Bind LocalizedStrings.ScopesPage_RoleDefinitionsHeader}" />
+                            <TextBlock
+                                Margin="8,0,0,0"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Text="{x:Bind _viewModel.RoleDefinitionCountText, Mode=OneWay}" />
+                        </StackPanel>
+                    </cwuc:SettingsExpander.Header>
+
+                    <cwuc:SettingsExpander.Content>
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <AutoSuggestBox
+                                x:Name="RoleDefinitionSearchBox"
+                                Width="200"
+                                PlaceholderText="{x:Bind LocalizedStrings.Common_SearchPlaceholder}"
+                                QueryIcon="Find"
+                                TextChanged="OnRoleDefinitionSearchTextChanged" />
+                            <Button Padding="12,6" Click="OnAddRoleDefinitionClick">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <FontIcon FontSize="12" Glyph="&#xE710;" />
+                                    <TextBlock VerticalAlignment="Center" Text="{x:Bind LocalizedStrings.Common_AddButton}" />
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+                    </cwuc:SettingsExpander.Content>
+
+                    <cwuc:SettingsExpander.ItemTemplate>
+                        <DataTemplate x:DataType="models:AzRoleDefinitionInfo">
+                            <cwuc:SettingsCard
+                                Padding="16,12"
+                                Description="{x:Bind Description}"
+                                Header="{x:Bind Name}">
+                                <cwuc:SettingsCard.HeaderIcon>
+                                    <FontIcon FontSize="16" Glyph="&#xE716;" />
+                                </cwuc:SettingsCard.HeaderIcon>
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <Button
+                                        Padding="8"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        Click="OnEditRoleDefinitionClick"
+                                        Tag="{x:Bind}"
+                                        ToolTipService.ToolTip="{Binding ElementName=Root, Path=LocalizedStrings.Common_EditTooltip}">
+                                        <FontIcon FontSize="16" Glyph="&#xE70F;" />
+                                    </Button>
+                                    <Button
+                                        Padding="8"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        Click="OnDeleteRoleDefinitionClick"
+                                        Tag="{x:Bind}"
+                                        ToolTipService.ToolTip="{Binding ElementName=Root, Path=LocalizedStrings.Common_DeleteTooltip}">
+                                        <FontIcon FontSize="16" Glyph="&#xE74D;" />
+                                    </Button>
+                                </StackPanel>
+                            </cwuc:SettingsCard>
+                        </DataTemplate>
+                    </cwuc:SettingsExpander.ItemTemplate>
+                </cwuc:SettingsExpander>
+
+                <!--  Tasks within scope  -->
+                <cwuc:SettingsExpander IsExpanded="True" ItemsSource="{x:Bind _viewModel.FilteredTasks, Mode=OneWay}">
+                    <cwuc:SettingsExpander.Header>
+                        <StackPanel Orientation="Horizontal" Spacing="12">
+                            <FontIcon FontSize="20" Glyph="&#xE9D5;" />
+                            <TextBlock VerticalAlignment="Center" Text="{x:Bind LocalizedStrings.Common_Tasks}" />
+                            <TextBlock
+                                Margin="8,0,0,0"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Text="{x:Bind _viewModel.TaskCountText, Mode=OneWay}" />
+                        </StackPanel>
+                    </cwuc:SettingsExpander.Header>
+
+                    <cwuc:SettingsExpander.Content>
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <AutoSuggestBox
+                                x:Name="TaskSearchBox"
+                                Width="200"
+                                PlaceholderText="{x:Bind LocalizedStrings.Common_SearchPlaceholder}"
+                                QueryIcon="Find"
+                                TextChanged="OnTaskSearchTextChanged" />
+                            <Button Padding="12,6" Click="OnAddTaskClick">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <FontIcon FontSize="12" Glyph="&#xE710;" />
+                                    <TextBlock VerticalAlignment="Center" Text="{x:Bind LocalizedStrings.Common_AddButton}" />
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+                    </cwuc:SettingsExpander.Content>
+
+                    <cwuc:SettingsExpander.ItemTemplate>
+                        <DataTemplate x:DataType="models:AzTaskInfo">
+                            <cwuc:SettingsCard
+                                Padding="16,12"
+                                Description="{x:Bind Description}"
+                                Header="{x:Bind Name}">
+                                <cwuc:SettingsCard.HeaderIcon>
+                                    <FontIcon FontSize="16" Glyph="&#xE9D5;" />
+                                </cwuc:SettingsCard.HeaderIcon>
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <Button
+                                        Padding="8"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        Click="OnEditTaskClick"
+                                        Tag="{x:Bind}"
+                                        ToolTipService.ToolTip="{Binding ElementName=Root, Path=LocalizedStrings.Common_EditTooltip}">
+                                        <FontIcon FontSize="16" Glyph="&#xE70F;" />
+                                    </Button>
+                                    <Button
+                                        Padding="8"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        Click="OnDeleteTaskClick"
+                                        Tag="{x:Bind}"
+                                        ToolTipService.ToolTip="{Binding ElementName=Root, Path=LocalizedStrings.Common_DeleteTooltip}">
+                                        <FontIcon FontSize="16" Glyph="&#xE74D;" />
+                                    </Button>
+                                </StackPanel>
+                            </cwuc:SettingsCard>
+                        </DataTemplate>
+                    </cwuc:SettingsExpander.ItemTemplate>
+                </cwuc:SettingsExpander>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</Page>

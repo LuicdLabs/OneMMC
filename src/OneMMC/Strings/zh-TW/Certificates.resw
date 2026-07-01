@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Certificates_LocalComputerScopeFormat" xml:space="preserve">
+    <value>目前電腦：{0}（本機）</value>
+  </data>
+  <data name="Certificates_CurrentUserScopeFormat" xml:space="preserve">
+    <value>目前使用者：{0}</value>
+  </data>
+  <data name="Certificates_ImportStoreCommand" xml:space="preserve">
+    <value>匯入...</value>
+  </data>
+  <data name="Certificates_ExportStoreCommand" xml:space="preserve">
+    <value>匯出存放區...</value>
+  </data>
+  <data name="Certificates_ExportItemCommand" xml:space="preserve">
+    <value>匯出...</value>
+  </data>
+  <data name="Certificates_PropertiesCommand" xml:space="preserve">
+    <value>內容</value>
+  </data>
+  <data name="Certificates_PropertiesTitleFormat" xml:space="preserve">
+    <value>{0} 內容</value>
+  </data>
+  <data name="Certificates_MoreButton" xml:space="preserve">
+    <value>更多</value>
+  </data>
+  <data name="Certificates_SectionCertificates" xml:space="preserve">
+    <value>憑證</value>
+  </data>
+  <data name="Certificates_SectionCRLs" xml:space="preserve">
+    <value>憑證撤銷清單</value>
+  </data>
+  <data name="Certificates_SectionCTLs" xml:space="preserve">
+    <value>憑證信任清單</value>
+  </data>
+  <data name="Certificates_EmptyCertificates" xml:space="preserve">
+    <value>此存放區中沒有憑證。</value>
+  </data>
+  <data name="Certificates_EmptyCRLs" xml:space="preserve">
+    <value>此存放區中沒有憑證撤銷清單。</value>
+  </data>
+  <data name="Certificates_EmptyCTLs" xml:space="preserve">
+    <value>此存放區中沒有憑證信任清單。</value>
+  </data>
+  <data name="Certificates_CertificateIssuerFormat" xml:space="preserve">
+    <value>簽發者：{0}</value>
+  </data>
+  <data name="Certificates_CertificateValidityFormat" xml:space="preserve">
+    <value>有效期間：{0} 至 {1}</value>
+  </data>
+  <data name="Certificates_ContextValidityFormat" xml:space="preserve">
+    <value>生效日期：{0} | 下次更新：{1}</value>
+  </data>
+  <data name="Certificates_CertificateSummaryFormat" xml:space="preserve">
+    <value>{0} | 到期日：{1}</value>
+  </data>
+  <data name="Certificates_CrlSummaryFormat" xml:space="preserve">
+    <value>生效日期：{0} | 下次更新：{1}</value>
+  </data>
+  <data name="Certificates_CtlSummaryFormat" xml:space="preserve">
+    <value>生效日期：{0}</value>
+  </data>
+  <data name="Certificates_ItemHashFormat" xml:space="preserve">
+    <value>雜湊：{0}</value>
+  </data>
+  <data name="Certificates_NotAvailable" xml:space="preserve">
+    <value>[無法取得]</value>
+  </data>
+  <data name="Certificates_DeleteConfirmTitle" xml:space="preserve">
+    <value>刪除項目</value>
+  </data>
+  <data name="Certificates_DeleteConfirmMessage" xml:space="preserve">
+    <value>要從此憑證存放區刪除「{0}」嗎？</value>
+  </data>
+</root>

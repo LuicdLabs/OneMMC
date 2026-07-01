@@ -1,8 +1,8 @@
-# Breadcrumb Navigation Technical Documentation
+﻿# Breadcrumb Navigation Technical Documentation
 
 ## Overview
 
-Breadcrumb Navigation is a key navigation feature in the ManagementTools WinUI 3 application. It provides a hierarchical navigation path display and quick-jump capability. This feature allows users to clearly understand their current location and easily return to any level in the navigation path.
+Breadcrumb Navigation is a key navigation feature in the OneMMC WinUI 3 application. It provides a hierarchical navigation path display and quick-jump capability. This feature allows users to clearly understand their current location and easily return to any level in the navigation path.
 
 ## Architecture and Components
 

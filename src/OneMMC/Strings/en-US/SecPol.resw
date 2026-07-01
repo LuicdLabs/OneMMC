@@ -1,0 +1,2109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="SecPol_AccountPolicies_Header" xml:space="preserve">
+    <value>Account Policies</value>
+  </data>
+  <data name="SecPol_AccountPolicies_Description" xml:space="preserve">
+    <value>Password and account lockout policies</value>
+  </data>
+  <data name="SecPol_LocalPolicies_Header" xml:space="preserve">
+    <value>Local Policies</value>
+  </data>
+  <data name="SecPol_LocalPolicies_Description" xml:space="preserve">
+    <value>Auditing, user rights and security options policies</value>
+  </data>
+  <data name="SecPol_NetworkListManager_Header" xml:space="preserve">
+    <value>Network List Manager Policies</value>
+  </data>
+  <data name="SecPol_NetworkListManager_Description" xml:space="preserve">
+    <value>Network name, icon and location group policies</value>
+  </data>
+  <data name="SecPol_PublicKeyPolicies_Header" xml:space="preserve">
+    <value>Public Key Policies</value>
+  </data>
+  <data name="SecPol_SoftwareRestriction_Header" xml:space="preserve">
+    <value>Software Restriction Policies</value>
+  </data>
+  <data name="SecPol_IPSecurity_Header" xml:space="preserve">
+    <value>IP Security Policies on Local Computer</value>
+  </data>
+  <data name="SecPol_IPSecurity_Description" xml:space="preserve">
+    <value>Manage IPsec policies for secure computer communication</value>
+  </data>
+  <data name="SecPol_SystemAudit_Header" xml:space="preserve">
+    <value>System Audit Policies (Local Group Policy Object)</value>
+  </data>
+  <data name="SecPol_Header_Policy" xml:space="preserve">
+    <value>Policy</value>
+  </data>
+  <data name="SecPol_Header_SecuritySetting" xml:space="preserve">
+    <value>Security Setting</value>
+  </data>
+  <data name="SecPol_Tab_General" xml:space="preserve">
+    <value>Local Security Setting</value>
+  </data>
+  <data name="SecPol_Tab_Explain" xml:space="preserve">
+    <value>Explain</value>
+  </data>
+  <data name="SecPol_DefineThisPolicy" xml:space="preserve">
+    <value>Define this policy setting</value>
+  </data>
+  <data name="SecPol_ApplyButton" xml:space="preserve">
+    <value>Apply</value>
+  </data>
+  <data name="SecPol_AuditSettings" xml:space="preserve">
+    <value>Audit these attempts:</value>
+  </data>
+  <data name="SecPol_AuditSuccess" xml:space="preserve">
+    <value>Success</value>
+  </data>
+  <data name="SecPol_AuditFailure" xml:space="preserve">
+    <value>Failure</value>
+  </data>
+  <data name="SecPol_SystemAudit_PropertiesTitleFormat" xml:space="preserve">
+    <value>{0} Properties</value>
+  </data>
+  <data name="SecPol_SystemAudit_ConfigureAuditEvents" xml:space="preserve">
+    <value>Configure the following audit events:</value>
+  </data>
+  <data name="SecPol_SystemAudit_ConfigureButton" xml:space="preserve">
+    <value>Configure</value>
+  </data>
+  <data name="SecPol_SystemAudit_ExplainFallback" xml:space="preserve">
+    <value>This policy setting allows you to audit events generated by {0}.
+
+Events in this subcategory occur on the computer that is authoritative for those credentials or resources.
+
+Default on Client editions: No Auditing.
+
+Default on Server editions: Success.</value>
+  </data>
+  <data name="SecPol_SystemAudit_GlobalObjectPromptFormat" xml:space="preserve">
+    <value>Configure the {0} global object access audit policy here</value>
+  </data>
+  <data name="SecPol_SystemAudit_GlobalObjectExplainFallback" xml:space="preserve">
+    <value>This policy setting controls the global object access audit policy for {0}. When this policy is defined, Windows can apply a system access control list to matching objects for audit evaluation.</value>
+  </data>
+  <data name="SecPol_AssignedAccounts" xml:space="preserve">
+    <value>Assigned accounts:</value>
+  </data>
+  <data name="SecPol_NotDefined" xml:space="preserve">
+    <value>Not Defined</value>
+  </data>
+  <data name="SecPol_AddAccount_Title" xml:space="preserve">
+    <value>Add User or Group</value>
+  </data>
+  <data name="SecPol_AddAccount_Placeholder" xml:space="preserve">
+    <value>Enter user or group name (e.g., BUILTIN\Administrators)</value>
+  </data>
+  <data name="SecPol_Error_EnterValidNumber" xml:space="preserve">
+    <value>Please enter a valid number.</value>
+  </data>
+  <data name="SecPol_Error_ValueOutOfRange" xml:space="preserve">
+    <value>Value must be between {0} and {1}.</value>
+  </data>
+  <data name="SecPol_Category_PasswordPolicy" xml:space="preserve">
+    <value>Password Policy</value>
+  </data>
+  <data name="SecPol_Category_AccountLockoutPolicy" xml:space="preserve">
+    <value>Account Lockout Policy</value>
+  </data>
+  <data name="SecPol_Category_AuditPolicy" xml:space="preserve">
+    <value>Audit Policy</value>
+  </data>
+  <data name="SecPol_Category_UserRightsAssignment" xml:space="preserve">
+    <value>User Rights Assignment</value>
+  </data>
+  <data name="SecPol_Category_SecurityOptions" xml:space="preserve">
+    <value>Security Options</value>
+  </data>
+  <data name="SecPol_Value_NotDefined" xml:space="preserve">
+    <value>Not Defined</value>
+  </data>
+  <data name="SecPol_Value_Enabled" xml:space="preserve">
+    <value>Enabled</value>
+  </data>
+  <data name="SecPol_Value_Disabled" xml:space="preserve">
+    <value>Disabled</value>
+  </data>
+  <data name="SecPol_Value_Empty" xml:space="preserve">
+    <value>(empty)</value>
+  </data>
+  <data name="SecPol_Bitmask_NoMinimum" xml:space="preserve">
+    <value>No minimum</value>
+  </data>
+  <data name="SecPol_Audit_NoAuditing" xml:space="preserve">
+    <value>No auditing</value>
+  </data>
+  <data name="SecPol_Audit_NotConfigured" xml:space="preserve">
+    <value>Not configured</value>
+  </data>
+  <data name="SecPol_Audit_Success" xml:space="preserve">
+    <value>Success</value>
+  </data>
+  <data name="SecPol_Audit_Failure" xml:space="preserve">
+    <value>Failure</value>
+  </data>
+  <data name="SecPol_SystemAudit_Configured" xml:space="preserve">
+    <value>Configured</value>
+  </data>
+  <data name="SecPol_SystemAudit_GlobalObjectAccessAuditing" xml:space="preserve">
+    <value>Global Object Access Auditing</value>
+  </data>
+  <data name="SecPol_SystemAudit_GlobalObject_FileSystem" xml:space="preserve">
+    <value>File system</value>
+  </data>
+  <data name="SecPol_SystemAudit_GlobalObject_Registry" xml:space="preserve">
+    <value>Registry</value>
+  </data>
+  <data name="SecPol_SystemAudit_GlobalFileSacl" xml:space="preserve">
+    <value>Global File SACL</value>
+  </data>
+  <data name="SecPol_SystemAudit_GlobalRegistrySacl" xml:space="preserve">
+    <value>Global Registry SACL</value>
+  </data>
+  <data name="SecPol_SystemAudit_Acl_FullControl" xml:space="preserve">
+    <value>Full control</value>
+  </data>
+  <data name="SecPol_SystemAudit_Acl_ReadAndExecute" xml:space="preserve">
+    <value>Read &amp; execute</value>
+  </data>
+  <data name="SecPol_SystemAudit_Acl_Read" xml:space="preserve">
+    <value>Read</value>
+  </data>
+  <data name="SecPol_SystemAudit_Acl_Write" xml:space="preserve">
+    <value>Write</value>
+  </data>
+  <data name="SecPol_SystemAudit_Acl_Delete" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="SecPol_SystemAudit_Acl_ThisFolderOnly" xml:space="preserve">
+    <value>This folder only</value>
+  </data>
+  <data name="SecPol_SystemAudit_Acl_ThisFolderSubfoldersFiles" xml:space="preserve">
+    <value>This folder, subfolders and files</value>
+  </data>
+  <data name="SecPol_SystemAudit_Acl_ThisFolderAndSubfolders" xml:space="preserve">
+    <value>This folder and subfolders</value>
+  </data>
+  <data name="SecPol_SystemAudit_Acl_ThisFolderAndFiles" xml:space="preserve">
+    <value>This folder and files</value>
+  </data>
+  <data name="SecPol_SystemAudit_Acl_SubfoldersAndFilesOnly" xml:space="preserve">
+    <value>Subfolders and files only</value>
+  </data>
+  <data name="SecPol_SystemAudit_Acl_SubfoldersOnly" xml:space="preserve">
+    <value>Subfolders only</value>
+  </data>
+  <data name="SecPol_SystemAudit_Acl_FilesOnly" xml:space="preserve">
+    <value>Files only</value>
+  </data>
+  <data name="SecPol_SystemAudit_Acl_ThisKeyOnly" xml:space="preserve">
+    <value>This key only</value>
+  </data>
+  <data name="SecPol_SystemAudit_Acl_ThisKeyAndSubkeys" xml:space="preserve">
+    <value>This key and subkeys</value>
+  </data>
+  <data name="SecPol_SystemAudit_Acl_SubkeysOnly" xml:space="preserve">
+    <value>Subkeys only</value>
+  </data>
+  <data name="SecPol_Unit_Days" xml:space="preserve">
+    <value>days</value>
+  </data>
+  <data name="SecPol_Unit_Minutes" xml:space="preserve">
+    <value>minutes</value>
+  </data>
+  <data name="SecPol_Unit_Seconds" xml:space="preserve">
+    <value>seconds</value>
+  </data>
+  <data name="SecPol_Unit_Logons" xml:space="preserve">
+    <value>logons</value>
+  </data>
+  <data name="SecPol_Dropdown_ScRemoveOption_0" xml:space="preserve">
+    <value>characters</value>
+  </data>
+  <data name="SecPol_Unit_PasswordsRemembered" xml:space="preserve">
+    <value>passwords remembered</value>
+  </data>
+  <data name="SecPol_Dropdown_ScRemoveOption_1" xml:space="preserve">
+    <value>Lock Workstation</value>
+  </data>
+  <data name="SecPol_Dropdown_ScRemoveOption_2" xml:space="preserve">
+    <value>Force Logoff</value>
+  </data>
+  <data name="SecPol_Dropdown_ScRemoveOption_3" xml:space="preserve">
+    <value>Disconnect if a Remote Desktop Services session</value>
+  </data>
+  <data name="SecPol_Dropdown_ConsentPromptBehaviorAdmin_0" xml:space="preserve">
+    <value>Elevate without prompting</value>
+  </data>
+  <data name="SecPol_Dropdown_ConsentPromptBehaviorAdmin_1" xml:space="preserve">
+    <value>Prompt for credentials on the secure desktop</value>
+  </data>
+  <data name="SecPol_Dropdown_ConsentPromptBehaviorAdmin_2" xml:space="preserve">
+    <value>Prompt for consent on the secure desktop</value>
+  </data>
+  <data name="SecPol_Dropdown_ConsentPromptBehaviorAdmin_3" xml:space="preserve">
+    <value>Prompt for credentials</value>
+  </data>
+  <data name="SecPol_Dropdown_ConsentPromptBehaviorAdmin_4" xml:space="preserve">
+    <value>Prompt for consent</value>
+  </data>
+  <data name="SecPol_Dropdown_ConsentPromptBehaviorAdmin_5" xml:space="preserve">
+    <value>Prompt for consent for non-Windows binaries</value>
+  </data>
+  <data name="SecPol_Dropdown_ConsentPromptBehaviorUser_0" xml:space="preserve">
+    <value>Automatically deny elevation requests</value>
+  </data>
+  <data name="SecPol_Dropdown_ConsentPromptBehaviorUser_1" xml:space="preserve">
+    <value>Prompt for credentials on the secure desktop</value>
+  </data>
+  <data name="SecPol_Dropdown_ConsentPromptBehaviorUser_3" xml:space="preserve">
+    <value>Prompt for credentials</value>
+  </data>
+  <data name="SecPol_Dropdown_ForceGuest_0" xml:space="preserve">
+    <value>Classic - Local users authenticate as themselves</value>
+  </data>
+  <data name="SecPol_Dropdown_ForceGuest_1" xml:space="preserve">
+    <value>Guest only - Local users authenticate as Guest</value>
+  </data>
+  <data name="SecPol_Dropdown_LDAPClientIntegrity_0" xml:space="preserve">
+    <value>None</value>
+  </data>
+  <data name="SecPol_Dropdown_LDAPClientIntegrity_1" xml:space="preserve">
+    <value>Negotiate signing</value>
+  </data>
+  <data name="SecPol_Dropdown_LDAPClientIntegrity_2" xml:space="preserve">
+    <value>Require signing</value>
+  </data>
+  <data name="SecPol_Dropdown_LmCompatibilityLevel_0" xml:space="preserve">
+    <value>Send LM &amp; NTLM responses</value>
+  </data>
+  <data name="SecPol_Dropdown_LmCompatibilityLevel_1" xml:space="preserve">
+    <value>Send LM &amp; NTLM - use NTLMv2 session security if negotiated</value>
+  </data>
+  <data name="SecPol_Dropdown_LmCompatibilityLevel_2" xml:space="preserve">
+    <value>Send NTLM response only</value>
+  </data>
+  <data name="SecPol_Dropdown_LmCompatibilityLevel_3" xml:space="preserve">
+    <value>Send NTLMv2 response only</value>
+  </data>
+  <data name="SecPol_Dropdown_LmCompatibilityLevel_4" xml:space="preserve">
+    <value>Send NTLMv2 response only. Refuse LM</value>
+  </data>
+  <data name="SecPol_Dropdown_LmCompatibilityLevel_5" xml:space="preserve">
+    <value>Send NTLMv2 response only. Refuse LM &amp; NTLM</value>
+  </data>
+  <data name="SecPol_Dropdown_AllocateDASD_0" xml:space="preserve">
+    <value>Administrators</value>
+  </data>
+  <data name="SecPol_Dropdown_AllocateDASD_1" xml:space="preserve">
+    <value>Administrators and Power Users</value>
+  </data>
+  <data name="SecPol_Dropdown_AllocateDASD_2" xml:space="preserve">
+    <value>Administrators and Interactive Users</value>
+  </data>
+  <data name="SecPol_Dropdown_TypeOfAdminApprovalMode_1" xml:space="preserve">
+    <value>Admin Approval Mode</value>
+  </data>
+  <data name="SecPol_Dropdown_TypeOfAdminApprovalMode_2" xml:space="preserve">
+    <value>Admin Approval Mode with enhanced privilege protection</value>
+  </data>
+  <data name="SecPol_Dropdown_BlockMicrosoftAccounts_0" xml:space="preserve">
+    <value>This policy is disabled</value>
+  </data>
+  <data name="SecPol_Dropdown_BlockMicrosoftAccounts_1" xml:space="preserve">
+    <value>Users can't add Microsoft accounts</value>
+  </data>
+  <data name="SecPol_Dropdown_BlockMicrosoftAccounts_3" xml:space="preserve">
+    <value>Users can't add or log on with Microsoft accounts</value>
+  </data>
+  <data name="SecPol_Dropdown_DontDisplayLockedUserId_1" xml:space="preserve">
+    <value>User display name, domain and user names</value>
+  </data>
+  <data name="SecPol_Dropdown_DontDisplayLockedUserId_2" xml:space="preserve">
+    <value>User display name only</value>
+  </data>
+  <data name="SecPol_Dropdown_DontDisplayLockedUserId_3" xml:space="preserve">
+    <value>Do not display user information</value>
+  </data>
+  <data name="SecPol_Dropdown_LDAPClientConfidentiality_0" xml:space="preserve">
+    <value>None</value>
+  </data>
+  <data name="SecPol_Dropdown_LDAPClientConfidentiality_1" xml:space="preserve">
+    <value>Negotiate encryption</value>
+  </data>
+  <data name="SecPol_Dropdown_LDAPClientConfidentiality_2" xml:space="preserve">
+    <value>Require encryption</value>
+  </data>
+  <data name="SecPol_Dropdown_ConsentPromptBehaviorAdminAP_1" xml:space="preserve">
+    <value>Prompt for credentials on the secure desktop</value>
+  </data>
+  <data name="SecPol_Dropdown_ConsentPromptBehaviorAdminAP_2" xml:space="preserve">
+    <value>Prompt for consent on the secure desktop</value>
+  </data>
+  <data name="SecPol_Dropdown_ForceKeyProtection_0" xml:space="preserve">
+    <value>User input is not required when new keys are stored and used</value>
+  </data>
+  <data name="SecPol_Dropdown_ForceKeyProtection_1" xml:space="preserve">
+    <value>User is prompted when the key is first used</value>
+  </data>
+  <data name="SecPol_Dropdown_ForceKeyProtection_2" xml:space="preserve">
+    <value>User must enter a password each time they use a key</value>
+  </data>
+  <data name="SecPol_Dropdown_LDAPServerIntegrity_1" xml:space="preserve">
+    <value>None</value>
+  </data>
+  <data name="SecPol_Dropdown_LDAPServerIntegrity_2" xml:space="preserve">
+    <value>Require signing</value>
+  </data>
+  <data name="SecPol_Dropdown_LDAPServerIntegrityEnforced_0" xml:space="preserve">
+    <value>Disabled</value>
+  </data>
+  <data name="SecPol_Dropdown_LDAPServerIntegrityEnforced_1" xml:space="preserve">
+    <value>Enabled with compatibility</value>
+  </data>
+  <data name="SecPol_Dropdown_LDAPServerIntegrityEnforced_2" xml:space="preserve">
+    <value>Enabled</value>
+  </data>
+  <data name="SecPol_Dropdown_LDAPEnforceChannelBinding_0" xml:space="preserve">
+    <value>Never</value>
+  </data>
+  <data name="SecPol_Dropdown_LDAPEnforceChannelBinding_1" xml:space="preserve">
+    <value>When supported</value>
+  </data>
+  <data name="SecPol_Dropdown_LDAPEnforceChannelBinding_2" xml:space="preserve">
+    <value>Always</value>
+  </data>
+  <data name="SecPol_Dropdown_SPNTargetNameValidationLevel_0" xml:space="preserve">
+    <value>Off</value>
+  </data>
+  <data name="SecPol_Dropdown_SPNTargetNameValidationLevel_1" xml:space="preserve">
+    <value>Accept if provided by client</value>
+  </data>
+  <data name="SecPol_Dropdown_SPNTargetNameValidationLevel_2" xml:space="preserve">
+    <value>Required from client</value>
+  </data>
+  <data name="SecPol_Dropdown_S4U2SelfFlags_0" xml:space="preserve">
+    <value>Default</value>
+  </data>
+  <data name="SecPol_Dropdown_S4U2SelfFlags_1" xml:space="preserve">
+    <value>Enabled</value>
+  </data>
+  <data name="SecPol_Dropdown_S4U2SelfFlags_2" xml:space="preserve">
+    <value>Disabled</value>
+  </data>
+  <data name="SecPol_Dropdown_RestrictSendingNTLMTraffic_0" xml:space="preserve">
+    <value>Allow all</value>
+  </data>
+  <data name="SecPol_Dropdown_RestrictSendingNTLMTraffic_1" xml:space="preserve">
+    <value>Deny all domain accounts</value>
+  </data>
+  <data name="SecPol_Dropdown_RestrictSendingNTLMTraffic_2" xml:space="preserve">
+    <value>Deny all accounts</value>
+  </data>
+  <data name="SecPol_Dropdown_RestrictNTLMInDomain_0" xml:space="preserve">
+    <value>Disable</value>
+  </data>
+  <data name="SecPol_Dropdown_RestrictNTLMInDomain_1" xml:space="preserve">
+    <value>Deny for domain accounts to domain servers</value>
+  </data>
+  <data name="SecPol_Dropdown_RestrictNTLMInDomain_3" xml:space="preserve">
+    <value>Deny for domain accounts</value>
+  </data>
+  <data name="SecPol_Dropdown_RestrictNTLMInDomain_5" xml:space="preserve">
+    <value>Deny for domain servers</value>
+  </data>
+  <data name="SecPol_Dropdown_RestrictNTLMInDomain_7" xml:space="preserve">
+    <value>Deny all</value>
+  </data>
+  <data name="SecPol_Dropdown_RestrictReceivingNTLMTraffic_0" xml:space="preserve">
+    <value>Allow all</value>
+  </data>
+  <data name="SecPol_Dropdown_RestrictReceivingNTLMTraffic_1" xml:space="preserve">
+    <value>Deny all domain accounts</value>
+  </data>
+  <data name="SecPol_Dropdown_RestrictReceivingNTLMTraffic_2" xml:space="preserve">
+    <value>Deny all accounts</value>
+  </data>
+  <data name="SecPol_Dropdown_AuditNTLMInDomain_0" xml:space="preserve">
+    <value>Disable</value>
+  </data>
+  <data name="SecPol_Dropdown_AuditNTLMInDomain_1" xml:space="preserve">
+    <value>Enable for domain accounts to domain servers</value>
+  </data>
+  <data name="SecPol_Dropdown_AuditNTLMInDomain_3" xml:space="preserve">
+    <value>Enable for domain accounts</value>
+  </data>
+  <data name="SecPol_Dropdown_AuditNTLMInDomain_5" xml:space="preserve">
+    <value>Enable for domain servers</value>
+  </data>
+  <data name="SecPol_Dropdown_AuditNTLMInDomain_7" xml:space="preserve">
+    <value>Enable all</value>
+  </data>
+  <data name="SecPol_Dropdown_AuditReceivingNTLMTraffic_0" xml:space="preserve">
+    <value>Disable</value>
+  </data>
+  <data name="SecPol_Dropdown_AuditReceivingNTLMTraffic_1" xml:space="preserve">
+    <value>Enable for domain accounts</value>
+  </data>
+  <data name="SecPol_Dropdown_AuditReceivingNTLMTraffic_2" xml:space="preserve">
+    <value>Enable for all accounts</value>
+  </data>
+  <data name="SecPol_Unit_InvalidLogonAttempts" xml:space="preserve">
+    <value>invalid logon attempts</value>
+  </data>
+  <data name="SecPol_ExportButton" xml:space="preserve">
+    <value>Export</value>
+  </data>
+  <data name="SecPol_ExportFilter" xml:space="preserve">
+    <value>Text Files (*.txt)</value>
+  </data>
+  <data name="SecPol_Unit_Characters" xml:space="preserve">
+    <value>characters</value>
+  </data>
+  <data name="NetworkListManager_UnidentifiedNetworks_Header" xml:space="preserve">
+    <value>Unidentified Networks</value>
+  </data>
+  <data name="NetworkListManager_UnidentifiedNetworks_Description" xml:space="preserve">
+    <value>Networks that cannot be identified because of a network issue or insufficient identifiable characteristics.</value>
+  </data>
+  <data name="NetworkListManager_IdentifyingNetworks_Header" xml:space="preserve">
+    <value>Identifying Networks</value>
+  </data>
+  <data name="NetworkListManager_IdentifyingNetworks_Description" xml:space="preserve">
+    <value>The temporary state of networks that are still being identified.</value>
+  </data>
+  <data name="NetworkListManager_AllNetworks_Header" xml:space="preserve">
+    <value>All Networks</value>
+  </data>
+  <data name="NetworkListManager_AllNetworks_Description" xml:space="preserve">
+    <value>All networks that a user connects to.</value>
+  </data>
+  <data name="NetworkListManager_NetworkName_Header" xml:space="preserve">
+    <value>Network Name</value>
+  </data>
+  <data name="NetworkListManager_NetworkNameUserPermissions_Header" xml:space="preserve">
+    <value>Network Name User permissions</value>
+  </data>
+  <data name="NetworkListManager_NetworkIcon_Header" xml:space="preserve">
+    <value>Network Icon</value>
+  </data>
+  <data name="NetworkListManager_NetworkIconUserPermissions_Header" xml:space="preserve">
+    <value>Network Icon User permissions</value>
+  </data>
+  <data name="NetworkListManager_NetworkLocationType_Header" xml:space="preserve">
+    <value>Network Location type</value>
+  </data>
+  <data name="NetworkListManager_NetworkLocationTypeUserPermissions_Header" xml:space="preserve">
+    <value>Network Location type User permissions</value>
+  </data>
+  <data name="NetworkListManager_AllNetworksName_Header" xml:space="preserve">
+    <value>Network name</value>
+  </data>
+  <data name="NetworkListManager_AllNetworksLocation_Header" xml:space="preserve">
+    <value>Network location</value>
+  </data>
+  <data name="NetworkListManager_AllNetworksIcon_Header" xml:space="preserve">
+    <value>Network icon</value>
+  </data>
+  <data name="NetworkListManager_Name_Option" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="NetworkListManager_Icon_Option" xml:space="preserve">
+    <value>Icon</value>
+  </data>
+  <data name="NetworkListManager_Private_Option" xml:space="preserve">
+    <value>Private</value>
+  </data>
+  <data name="NetworkListManager_Public_Option" xml:space="preserve">
+    <value>Public</value>
+  </data>
+  <data name="NetworkListManager_UserCanChangeName" xml:space="preserve">
+    <value>User can change name</value>
+  </data>
+  <data name="NetworkListManager_UserCannotChangeName" xml:space="preserve">
+    <value>User cannot change name</value>
+  </data>
+  <data name="NetworkListManager_UserCanChangeIcon" xml:space="preserve">
+    <value>User can change icon</value>
+  </data>
+  <data name="NetworkListManager_UserCannotChangeIcon" xml:space="preserve">
+    <value>User cannot change icon</value>
+  </data>
+  <data name="NetworkListManager_UserCanChangeLocation" xml:space="preserve">
+    <value>User can change location</value>
+  </data>
+  <data name="NetworkListManager_UserCannotChangeLocation" xml:space="preserve">
+    <value>User cannot change location</value>
+  </data>
+  <data name="NetworkListManager_ConfigureButton" xml:space="preserve">
+    <value>Configure</value>
+  </data>
+  <data name="NetworkListManager_ChangeIconButton" xml:space="preserve">
+    <value>Change icon</value>
+  </data>
+  <data name="NetworkListManager_IconConfigured" xml:space="preserve">
+    <value>Configured</value>
+  </data>
+  <data name="NetworkListManager_NetworkNameDialog_Title" xml:space="preserve">
+    <value>Network Name</value>
+  </data>
+  <data name="NetworkListManager_NetworkNameDialog_Description" xml:space="preserve">
+    <value>A network name identifies a network.</value>
+  </data>
+  <data name="NetworkListManager_NetworkNameDialog_GroupTitle" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="NetworkListManager_NetworkNameDialog_Placeholder" xml:space="preserve">
+    <value>Enter network name</value>
+  </data>
+  <data name="NetworkListManager_NetworkIconDialog_Title" xml:space="preserve">
+    <value>Network Icon</value>
+  </data>
+  <data name="NetworkListManager_NetworkIconDialog_Description" xml:space="preserve">
+    <value>A network icon provides a graphic or logo that represents the company or network.</value>
+  </data>
+  <data name="NetworkListManager_NetworkIconDialog_GroupTitle" xml:space="preserve">
+    <value>Icon</value>
+  </data>
+  <data name="NetworkListManager_NetworkIconDialog_PreviewLabel" xml:space="preserve">
+    <value>Current icon</value>
+  </data>
+  <data name="SRP_Section_SecurityLevels" xml:space="preserve">
+    <value>Security Levels</value>
+  </data>
+  <data name="SRP_Section_AdditionalRules" xml:space="preserve">
+    <value>Additional Rules</value>
+  </data>
+  <data name="SRP_Section_Enforcement" xml:space="preserve">
+    <value>Enforcement</value>
+  </data>
+  <data name="SRP_Section_DesignatedFileTypes" xml:space="preserve">
+    <value>Designated File Types</value>
+  </data>
+  <data name="SRP_Section_TrustedPublishers" xml:space="preserve">
+    <value>Trusted Publishers</value>
+  </data>
+  <data name="SRP_SecurityLevel_Disallowed" xml:space="preserve">
+    <value>Disallowed</value>
+  </data>
+  <data name="SRP_SecurityLevel_BasicUser" xml:space="preserve">
+    <value>Basic User</value>
+  </data>
+  <data name="SRP_SecurityLevel_Unrestricted" xml:space="preserve">
+    <value>Unrestricted</value>
+  </data>
+  <data name="SRP_SecurityLevel_Disallowed_Description" xml:space="preserve">
+    <value>Software will not run, regardless of the access rights of the user.</value>
+  </data>
+  <data name="SRP_SecurityLevel_BasicUser_Description" xml:space="preserve">
+    <value>Allows programs to execute as a user that does not have administrator access rights.</value>
+  </data>
+  <data name="SRP_SecurityLevel_Unrestricted_Description" xml:space="preserve">
+    <value>Software access rights are determined by the access rights of the user.</value>
+  </data>
+  <data name="SRP_RuleKind_Path" xml:space="preserve">
+    <value>Path Rule</value>
+  </data>
+  <data name="SRP_RuleKind_Hash" xml:space="preserve">
+    <value>Hash Rule</value>
+  </data>
+  <data name="SRP_RuleKind_Certificate" xml:space="preserve">
+    <value>Certificate Rule</value>
+  </data>
+  <data name="SRP_RuleKind_NetworkZone" xml:space="preserve">
+    <value>Network Zone Rule</value>
+  </data>
+  <data name="SRP_RuleKind_Unknown" xml:space="preserve">
+    <value>Unknown Rule</value>
+  </data>
+  <data name="SRP_Error_RuleUnsupportedForEdit" xml:space="preserve">
+    <value>This rule type cannot be edited yet.</value>
+  </data>
+  <data name="SRP_Error_CertificateRuleUnsupportedForCreate" xml:space="preserve">
+    <value>Creating certificate rules is not available until the certificate policy storage shape is verified.</value>
+  </data>
+  <data name="SRP_Error_CertificateRuleInvalid" xml:space="preserve">
+    <value>Select a certificate file or a file with an Authenticode signature.</value>
+  </data>
+  <data name="SRP_Error_NetworkZoneInvalid" xml:space="preserve">
+    <value>Select a valid network zone.</value>
+  </data>
+  <data name="SRP_Status_PolicyCreated" xml:space="preserve">
+    <value>Software Restriction Policies were created.</value>
+  </data>
+  <data name="SRP_Status_PolicyDeleted" xml:space="preserve">
+    <value>Software Restriction Policies were deleted.</value>
+  </data>
+  <data name="SRP_Status_PolicySaved" xml:space="preserve">
+    <value>Software Restriction Policies were saved.</value>
+  </data>
+  <data name="SRP_Status_RuleSaved" xml:space="preserve">
+    <value>Rule saved.</value>
+  </data>
+  <data name="SRP_Status_RuleDeleted" xml:space="preserve">
+    <value>Rule deleted.</value>
+  </data>
+  <data name="SRP_NoPolicyDefined" xml:space="preserve">
+    <value>No Software Restriction Policies Defined</value>
+  </data>
+  <data name="SRP_NoPolicyDefined_Description" xml:space="preserve">
+    <value>Create new Software Restriction Policies before configuring security levels, enforcement, file types, trusted publishers, or additional rules.</value>
+  </data>
+  <data name="SRP_DefaultMarker" xml:space="preserve">
+    <value>Default</value>
+  </data>
+  <data name="SRP_DefaultMarker_Format" xml:space="preserve">
+    <value>{0} ({1})</value>
+  </data>
+  <data name="SRP_NoAdditionalRules" xml:space="preserve">
+    <value>No additional rules</value>
+  </data>
+  <data name="SRP_NoDesignatedFileTypes" xml:space="preserve">
+    <value>No designated file types</value>
+  </data>
+  <data name="SRP_DesignatedFileType_Setting" xml:space="preserve">
+    <value>Executable file type</value>
+  </data>
+  <data name="SRP_Enforcement_DefaultSecurityLevel" xml:space="preserve">
+    <value>Default security level</value>
+  </data>
+  <data name="SRP_Enforcement_UserScope" xml:space="preserve">
+    <value>Apply software restriction policies to the following users</value>
+  </data>
+  <data name="SRP_Enforcement_FileScope" xml:space="preserve">
+    <value>Apply software restriction policies to the following files</value>
+  </data>
+  <data name="SRP_Enforcement_CertificateRules" xml:space="preserve">
+    <value>Certificate rules</value>
+  </data>
+  <data name="SRP_UserScope_AllUsers" xml:space="preserve">
+    <value>All users</value>
+  </data>
+  <data name="SRP_UserScope_AllExceptAdministrators" xml:space="preserve">
+    <value>All users except local administrators</value>
+  </data>
+  <data name="SRP_FileScope_ExecutableFilesOnly" xml:space="preserve">
+    <value>All software files except libraries</value>
+  </data>
+  <data name="SRP_FileScope_AllSoftwareFiles" xml:space="preserve">
+    <value>All software files</value>
+  </data>
+  <data name="SRP_TrustedPublishers_Management" xml:space="preserve">
+    <value>Trusted publisher management</value>
+  </data>
+  <data name="SRP_TrustedPublishers_DefineSettings" xml:space="preserve">
+    <value>Define these policy settings</value>
+  </data>
+  <data name="SRP_TrustedPublishers_PublisherRevocation" xml:space="preserve">
+    <value>Publisher certificate revocation</value>
+  </data>
+  <data name="SRP_TrustedPublishers_TimestampRevocation" xml:space="preserve">
+    <value>Timestamp certificate revocation</value>
+  </data>
+  <data name="SRP_TrustedPublishers_AdditionalChecks" xml:space="preserve">
+    <value>Additional checks during signature verification</value>
+  </data>
+  <data name="SRP_PublisherScope_EndUsers" xml:space="preserve">
+    <value>End users</value>
+  </data>
+  <data name="SRP_PublisherScope_LocalAdministrators" xml:space="preserve">
+    <value>Local computer administrators</value>
+  </data>
+  <data name="SRP_PublisherScope_EnterpriseAdministrators" xml:space="preserve">
+    <value>Enterprise administrators</value>
+  </data>
+  <data name="SRP_PublisherScope_EndUsers_Option" xml:space="preserve">
+    <value>Allow all administrators and users to manage user's own Trusted Publishers</value>
+  </data>
+  <data name="SRP_PublisherScope_LocalAdministrators_Option" xml:space="preserve">
+    <value>Allow only all administrators to manage Trusted Publishers</value>
+  </data>
+  <data name="SRP_PublisherScope_EnterpriseAdministrators_Option" xml:space="preserve">
+    <value>Allow only enterprise administrators to manage Trusted Publishers</value>
+  </data>
+  <data name="SRP_TrustedPublishers_PublisherRevocation_Option" xml:space="preserve">
+    <value>Verify that the publisher certificate is not revoked (recommended)</value>
+  </data>
+  <data name="SRP_TrustedPublishers_TimestampRevocation_Option" xml:space="preserve">
+    <value>Verify that the timestamp certificate is not revoked</value>
+  </data>
+  <data name="SRP_Command_NewPolicy" xml:space="preserve">
+    <value>New Software Restriction Policies</value>
+  </data>
+  <data name="SRP_Command_DeletePolicy" xml:space="preserve">
+    <value>Delete Software Restriction Policies</value>
+  </data>
+  <data name="SRP_Command_SetAsDefault" xml:space="preserve">
+    <value>Set as default</value>
+  </data>
+  <data name="SRP_Command_NewPathRule" xml:space="preserve">
+    <value>New Path Rule</value>
+  </data>
+  <data name="SRP_Command_NewHashRule" xml:space="preserve">
+    <value>New Hash Rule</value>
+  </data>
+  <data name="SRP_Command_NewCertificateRule" xml:space="preserve">
+    <value>New Certificate Rule</value>
+  </data>
+  <data name="SRP_Command_NewNetworkZoneRule" xml:space="preserve">
+    <value>New Network Zone Rule</value>
+  </data>
+  <data name="SRP_ListHeader_Name" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="SRP_ListHeader_Setting" xml:space="preserve">
+    <value>Security Setting</value>
+  </data>
+  <data name="SRP_ListHeader_Type" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="SRP_ListHeader_SecurityLevel" xml:space="preserve">
+    <value>Security Level</value>
+  </data>
+  <data name="SRP_ListHeader_Description" xml:space="preserve">
+    <value>Description</value>
+  </data>
+  <data name="SRP_ListHeader_LastModified" xml:space="preserve">
+    <value>Last Modified Date</value>
+  </data>
+  <data name="SRP_Dialog_EditEnforcement_Title" xml:space="preserve">
+    <value>Enforcement Properties</value>
+  </data>
+  <data name="SRP_Dialog_EditFileTypes_Title" xml:space="preserve">
+    <value>Designated File Types Properties</value>
+  </data>
+  <data name="SRP_Dialog_EditTrustedPublishers_Title" xml:space="preserve">
+    <value>Trusted Publishers Properties</value>
+  </data>
+  <data name="SRP_Dialog_EditRule_Title" xml:space="preserve">
+    <value>Rule Properties</value>
+  </data>
+  <data name="SRP_Dialog_DeletePolicy_Title" xml:space="preserve">
+    <value>Delete Software Restriction Policies</value>
+  </data>
+  <data name="SRP_Dialog_DeletePolicy_Message" xml:space="preserve">
+    <value>This will remove Software Restriction Policies from local policy storage.</value>
+  </data>
+  <data name="SRP_Dialog_DeleteRule_Title" xml:space="preserve">
+    <value>Delete Rule</value>
+  </data>
+  <data name="SRP_Dialog_DeleteRule_Message" xml:space="preserve">
+    <value>Delete the selected rule?</value>
+  </data>
+  <data name="SRP_Dialog_SetDefaultSecurityLevel_Title" xml:space="preserve">
+    <value>Set Default Security Level</value>
+  </data>
+  <data name="SRP_Dialog_SetDefaultSecurityLevel_MessageFormat" xml:space="preserve">
+    <value>Set {0} as the default security level?</value>
+  </data>
+  <data name="SRP_Dialog_RuleDetails_TitleFormat" xml:space="preserve">
+    <value>{0} Properties</value>
+  </data>
+  <data name="SRP_Field_Path" xml:space="preserve">
+    <value>Path</value>
+  </data>
+  <data name="SRP_Field_HashFile" xml:space="preserve">
+    <value>File to hash</value>
+  </data>
+  <data name="SRP_Field_CertificateFile" xml:space="preserve">
+    <value>Certificate or signed file</value>
+  </data>
+  <data name="SRP_Field_NetworkZone" xml:space="preserve">
+    <value>Network zone</value>
+  </data>
+  <data name="SRP_Field_SecurityLevel" xml:space="preserve">
+    <value>Security level</value>
+  </data>
+  <data name="SRP_Field_Description" xml:space="preserve">
+    <value>Description</value>
+  </data>
+  <data name="SRP_Field_DesignatedFileTypes" xml:space="preserve">
+    <value>File types</value>
+  </data>
+  <data name="SRP_Field_FileExtension" xml:space="preserve">
+    <value>File extension</value>
+  </data>
+  <data name="SRP_ListHeader_Extension" xml:space="preserve">
+    <value>Extension</value>
+  </data>
+  <data name="SRP_ListHeader_FileType" xml:space="preserve">
+    <value>File Type</value>
+  </data>
+  <data name="SRP_FileTypeFallback_Format" xml:space="preserve">
+    <value>{0} File</value>
+  </data>
+  <data name="SRP_Help_DesignatedFileTypes" xml:space="preserve">
+    <value>To add a file type, type its extension, and then click Add.</value>
+  </data>
+  <data name="SRP_Help_DesignatedFileTypes_AddRemove" xml:space="preserve">
+    <value>The following file types define what is considered to be executable code. To add a file type, type its extension, and then click Add.</value>
+  </data>
+  <data name="SRP_Help_TrustedPublishers" xml:space="preserve">
+    <value>Specify Trusted Publisher (Authenticode) policy options.</value>
+  </data>
+  <data name="SRP_Dialog_SelectPathFile_Title" xml:space="preserve">
+    <value>Select path rule file</value>
+  </data>
+  <data name="SRP_Dialog_SelectPathFolder_Title" xml:space="preserve">
+    <value>Select path rule folder</value>
+  </data>
+  <data name="SRP_Dialog_SelectHashFile_Title" xml:space="preserve">
+    <value>Select file to hash</value>
+  </data>
+  <data name="SRP_Dialog_SelectCertificateFile_Title" xml:space="preserve">
+    <value>Select certificate or signed file</value>
+  </data>
+  <data name="SRP_FileDialog_AllFiles" xml:space="preserve">
+    <value>All files</value>
+  </data>
+  <data name="SRP_FileDialog_CertificateFiles" xml:space="preserve">
+    <value>Certificate files</value>
+  </data>
+  <data name="SRP_FileDialog_SignedFiles" xml:space="preserve">
+    <value>Signed files</value>
+  </data>
+  <data name="SRP_Browse_File" xml:space="preserve">
+    <value>Browse file</value>
+  </data>
+  <data name="SRP_Browse_Folder" xml:space="preserve">
+    <value>Browse folder</value>
+  </data>
+  <data name="SRP_NetworkZone_LocalComputer" xml:space="preserve">
+    <value>Local computer</value>
+  </data>
+  <data name="SRP_NetworkZone_LocalComputer_Description" xml:space="preserve">
+    <value>This zone contains Web sites that are on your local computer.</value>
+  </data>
+  <data name="SRP_NetworkZone_LocalIntranet" xml:space="preserve">
+    <value>Local intranet</value>
+  </data>
+  <data name="SRP_NetworkZone_LocalIntranet_Description" xml:space="preserve">
+    <value>This zone contains all Web sites that are on your organization's intranet.</value>
+  </data>
+  <data name="SRP_NetworkZone_TrustedSites" xml:space="preserve">
+    <value>Trusted sites</value>
+  </data>
+  <data name="SRP_NetworkZone_TrustedSites_Description" xml:space="preserve">
+    <value>This zone contains Web sites that you trust not to damage your computer or data.</value>
+  </data>
+  <data name="SRP_NetworkZone_Internet" xml:space="preserve">
+    <value>Internet</value>
+  </data>
+  <data name="SRP_NetworkZone_Internet_Description" xml:space="preserve">
+    <value>This zone contains all Web sites you haven't placed in other zones.</value>
+  </data>
+  <data name="SRP_NetworkZone_RestrictedSites" xml:space="preserve">
+    <value>Restricted sites</value>
+  </data>
+  <data name="SRP_NetworkZone_RestrictedSites_Description" xml:space="preserve">
+    <value>This zone contains Web sites that could potentially damage your computer or data.</value>
+  </data>
+  <data name="SRP_CertificateValid" xml:space="preserve">
+    <value>Valid</value>
+  </data>
+  <data name="SRP_CertificateExpiredOrNotYetValid" xml:space="preserve">
+    <value>Expired or not yet valid</value>
+  </data>
+  <data name="SRP_IntendedPurposes_All" xml:space="preserve">
+    <value>All</value>
+  </data>
+  <data name="SRP_Detail_RuleKind" xml:space="preserve">
+    <value>Rule type</value>
+  </data>
+  <data name="SRP_Detail_SecurityLevel" xml:space="preserve">
+    <value>Security level</value>
+  </data>
+  <data name="SRP_Detail_CertificateRulesEnabled" xml:space="preserve">
+    <value>Certificate rules enabled</value>
+  </data>
+  <data name="SRP_Detail_Subject" xml:space="preserve">
+    <value>Subject</value>
+  </data>
+  <data name="SRP_Detail_Issuer" xml:space="preserve">
+    <value>Issuer</value>
+  </data>
+  <data name="SRP_Detail_SerialNumber" xml:space="preserve">
+    <value>Serial number</value>
+  </data>
+  <data name="SRP_Detail_Thumbprint" xml:space="preserve">
+    <value>Thumbprint</value>
+  </data>
+  <data name="SRP_Detail_ValidFrom" xml:space="preserve">
+    <value>Valid from</value>
+  </data>
+  <data name="SRP_Detail_ValidTo" xml:space="preserve">
+    <value>Valid to</value>
+  </data>
+  <data name="SRP_Detail_IntendedPurposes" xml:space="preserve">
+    <value>Intended purposes</value>
+  </data>
+  <data name="SRP_Detail_FriendlyName" xml:space="preserve">
+    <value>Friendly name</value>
+  </data>
+  <data name="SRP_Detail_Status" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="SRP_Detail_StoragePath" xml:space="preserve">
+    <value>Policy storage path</value>
+  </data>
+  <data name="SRP_Detail_LastModified" xml:space="preserve">
+    <value>Last modified</value>
+  </data>
+  <data name="SRP_Detail_Description" xml:space="preserve">
+    <value>Description</value>
+  </data>
+  <data name="SRP_Detail_RawData" xml:space="preserve">
+    <value>Raw certificate data</value>
+  </data>
+  <data name="PKP_Node_EncryptingFileSystem" xml:space="preserve">
+    <value>Encrypting File System</value>
+  </data>
+  <data name="PKP_Node_EncryptingFileSystem_Description" xml:space="preserve">
+    <value>Data recovery agent certificates for Encrypting File System policies.</value>
+  </data>
+  <data name="PKP_Node_DataProtection" xml:space="preserve">
+    <value>Data Protection</value>
+  </data>
+  <data name="PKP_Node_DataProtection_Description" xml:space="preserve">
+    <value>Data Protection recovery agent certificates from local Group Policy.</value>
+  </data>
+  <data name="PKP_Node_BitLockerDriveEncryption" xml:space="preserve">
+    <value>BitLocker Drive Encryption</value>
+  </data>
+  <data name="PKP_Node_BitLockerDriveEncryption_Description" xml:space="preserve">
+    <value>BitLocker data recovery agent certificates from local Group Policy.</value>
+  </data>
+  <data name="PKP_Node_CertificateEnrollmentPolicy" xml:space="preserve">
+    <value>Certificate Services Client - Certificate Enrollment Policy</value>
+  </data>
+  <data name="PKP_Node_CertificateEnrollmentPolicy_Description" xml:space="preserve">
+    <value>Local certificate enrollment policy server configuration.</value>
+  </data>
+  <data name="PKP_Node_CertificatePathValidation" xml:space="preserve">
+    <value>Certificate Path Validation Settings</value>
+  </data>
+  <data name="PKP_Node_CertificatePathValidation_Description" xml:space="preserve">
+    <value>Certificate chain, root update, and Group Policy certificate store settings.</value>
+  </data>
+  <data name="PKP_Node_CertificateAutoEnrollment" xml:space="preserve">
+    <value>Certificate Services Client - Auto-Enrollment</value>
+  </data>
+  <data name="PKP_Node_CertificateAutoEnrollment_Description" xml:space="preserve">
+    <value>Local certificate auto-enrollment policy status.</value>
+  </data>
+  <data name="PKP_Column_Name" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="PKP_Column_IssuedTo" xml:space="preserve">
+    <value>Issued To</value>
+  </data>
+  <data name="PKP_Column_IssuedBy" xml:space="preserve">
+    <value>Issued By</value>
+  </data>
+  <data name="PKP_Column_ExpirationDate" xml:space="preserve">
+    <value>Expiration Date</value>
+  </data>
+  <data name="PKP_Column_IntendedPurposes" xml:space="preserve">
+    <value>Intended Purposes</value>
+  </data>
+  <data name="PKP_Column_FriendlyName" xml:space="preserve">
+    <value>Friendly Name</value>
+  </data>
+  <data name="PKP_Column_Status" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="PKP_Column_CertificateTemplate" xml:space="preserve">
+    <value>Certificate Template</value>
+  </data>
+  <data name="PKP_Column_Setting" xml:space="preserve">
+    <value>Setting</value>
+  </data>
+  <data name="PKP_Command_Properties" xml:space="preserve">
+    <value>Properties</value>
+  </data>
+  <data name="PKP_Command_ViewCertificate" xml:space="preserve">
+    <value>View Certificate</value>
+  </data>
+  <data name="PKP_Command_AddRecoveryAgent" xml:space="preserve">
+    <value>Add Recovery Agent</value>
+  </data>
+  <data name="PKP_Dialog_DeleteRecoveryAgent_Title" xml:space="preserve">
+    <value>Delete Recovery Agent</value>
+  </data>
+  <data name="PKP_Dialog_DeleteRecoveryAgent_MessageFormat" xml:space="preserve">
+    <value>Delete the selected recovery agent certificate ({0})?</value>
+  </data>
+  <data name="PKP_Dialog_SelectRecoveryAgentCertificate_Title" xml:space="preserve">
+    <value>Select recovery agent certificate</value>
+  </data>
+  <data name="PKP_FileDialog_CertificateFiles" xml:space="preserve">
+    <value>Certificate files</value>
+  </data>
+  <data name="PKP_FileDialog_AllFiles" xml:space="preserve">
+    <value>All files</value>
+  </data>
+  <data name="PKP_Dialog_PolicyProperties_TitleFormat" xml:space="preserve">
+    <value>{0} Properties</value>
+  </data>
+  <data name="PKP_Dialog_CertificateDetails_TitleFormat" xml:space="preserve">
+    <value>Certificate Details - {0}</value>
+  </data>
+  <data name="PKP_NoRecoveryAgents" xml:space="preserve">
+    <value>No recovery agents configured</value>
+  </data>
+  <data name="PKP_GroupPolicyStorePath_Format" xml:space="preserve">
+    <value>Group Policy store: {0}</value>
+  </data>
+  <data name="PKP_StoreReadFailed" xml:space="preserve">
+    <value>Unable to read policy store</value>
+  </data>
+  <data name="PKP_CertificateBlobUnavailable" xml:space="preserve">
+    <value>Certificate details unavailable</value>
+  </data>
+  <data name="PKP_RecoveryAgent_CertificateNotSuitable_Efs" xml:space="preserve">
+    <value>The certificate is not suitable for Encrypting File System recovery.</value>
+  </data>
+  <data name="PKP_RecoveryAgent_CertificateNotSuitable_DataRecovery" xml:space="preserve">
+    <value>The certificate is not suitable for data recovery agent use.</value>
+  </data>
+  <data name="PKP_RecoveryAgent_SingleCertificateLimit" xml:space="preserve">
+    <value>Cannot add more than one Data Recovery Agent certificate.</value>
+  </data>
+  <data name="PKP_CertificateValid" xml:space="preserve">
+    <value>Valid</value>
+  </data>
+  <data name="PKP_CertificateExpiredOrNotYetValid" xml:space="preserve">
+    <value>Expired or not yet valid</value>
+  </data>
+  <data name="PKP_IntendedPurposes_All" xml:space="preserve">
+    <value>All application policies</value>
+  </data>
+  <data name="PKP_NotConfigured" xml:space="preserve">
+    <value>Not configured</value>
+  </data>
+  <data name="PKP_EnrollmentPolicyServer" xml:space="preserve">
+    <value>Enrollment policy server</value>
+  </data>
+  <data name="PKP_EnrollmentPolicyCmdletBacked" xml:space="preserve">
+    <value>No local policy servers were detected. Enable this policy to add a local certificate enrollment policy server.</value>
+  </data>
+  <data name="PKP_PathValidation_AiaRetrieval" xml:space="preserve">
+    <value>Allow issuer certificate (AIA) retrieval during path validation</value>
+  </data>
+  <data name="PKP_PathValidation_RootAutoUpdate" xml:space="preserve">
+    <value>Automatic update of trusted root certificates</value>
+  </data>
+  <data name="PKP_PathValidation_DisallowedAutoUpdate" xml:space="preserve">
+    <value>Automatic update of disallowed certificates</value>
+  </data>
+  <data name="PKP_PathValidation_TrustedRoots" xml:space="preserve">
+    <value>Trusted Root Certification Authorities</value>
+  </data>
+  <data name="PKP_PathValidation_TrustedPublishers" xml:space="preserve">
+    <value>Trusted Publishers</value>
+  </data>
+  <data name="PKP_PathValidation_IntermediateCas" xml:space="preserve">
+    <value>Intermediate Certification Authorities</value>
+  </data>
+  <data name="PKP_PathValidation_ChainEnginePolicySource" xml:space="preserve">
+    <value>Chain engine policy source</value>
+  </data>
+  <data name="PKP_PathValidation_AuthRootPolicySource" xml:space="preserve">
+    <value>AuthRoot policy source</value>
+  </data>
+  <data name="PKP_PathValidation_Tab_Stores" xml:space="preserve">
+    <value>Stores</value>
+  </data>
+  <data name="PKP_PathValidation_Tab_TrustedPublishers" xml:space="preserve">
+    <value>Trusted Publishers</value>
+  </data>
+  <data name="PKP_PathValidation_Tab_NetworkRetrieval" xml:space="preserve">
+    <value>Network Retrieval</value>
+  </data>
+  <data name="PKP_PathValidation_Tab_Revocation" xml:space="preserve">
+    <value>Revocation</value>
+  </data>
+  <data name="PKP_PathValidation_DefineSettings" xml:space="preserve">
+    <value>Define these policy settings</value>
+  </data>
+  <data name="PKP_PathValidation_Stores_Help" xml:space="preserve">
+    <value>Specify rules for user trust of root certification authority (CA) certificates and peer trust certificates.</value>
+  </data>
+  <data name="PKP_PathValidation_TrustedPublishers_Help" xml:space="preserve">
+    <value>Specify Trusted Publisher (Authenticode) policy options.</value>
+  </data>
+  <data name="PKP_PathValidation_NetworkRetrieval_Help" xml:space="preserve">
+    <value>Specify options for retrieving validation data on a network.</value>
+  </data>
+  <data name="PKP_PathValidation_Revocation_Help" xml:space="preserve">
+    <value>Specify policy options for using CRLs and OCSP responders during revocation checking.</value>
+  </data>
+  <data name="PKP_PathValidation_StoresDefined" xml:space="preserve">
+    <value>Stores policy settings</value>
+  </data>
+  <data name="PKP_PathValidation_TrustedPublishersDefined" xml:space="preserve">
+    <value>Trusted Publishers policy settings</value>
+  </data>
+  <data name="PKP_PathValidation_NetworkRetrievalDefined" xml:space="preserve">
+    <value>Network Retrieval policy settings</value>
+  </data>
+  <data name="PKP_PathValidation_RevocationDefined" xml:space="preserve">
+    <value>Revocation policy settings</value>
+  </data>
+  <data name="PKP_PathValidation_AllowUserTrustedRoots" xml:space="preserve">
+    <value>Allow user trusted root CAs to be used to validate certificates</value>
+  </data>
+  <data name="PKP_PathValidation_AllowPeerTrust" xml:space="preserve">
+    <value>Allow users to trust peer trust certificates</value>
+  </data>
+  <data name="PKP_PathValidation_SelectCertificatePurposes" xml:space="preserve">
+    <value>Select Certificate Purposes</value>
+  </data>
+  <data name="PKP_PathValidation_PeerTrustPurposes" xml:space="preserve">
+    <value>Peer trust certificate purposes</value>
+  </data>
+  <data name="PKP_PathValidation_RootStoresMode" xml:space="preserve">
+    <value>Root CAs that client computers can trust</value>
+  </data>
+  <data name="PKP_PathValidation_ThirdPartyAndEnterpriseRoots" xml:space="preserve">
+    <value>Third-Party Root CAs and Enterprise Root CAs</value>
+  </data>
+  <data name="PKP_PathValidation_OnlyEnterpriseRoots" xml:space="preserve">
+    <value>Only Enterprise Root CAs</value>
+  </data>
+  <data name="PKP_PathValidation_UpnConstraints" xml:space="preserve">
+    <value>CAs must also be compliant with User Principal Name constraints</value>
+  </data>
+  <data name="PKP_PathValidation_TrustedPublisherManagement" xml:space="preserve">
+    <value>Trusted publisher management</value>
+  </data>
+  <data name="PKP_PathValidation_PublisherScope_EndUsers" xml:space="preserve">
+    <value>Allow all administrators and users to manage user's own Trusted Publishers</value>
+  </data>
+  <data name="PKP_PathValidation_PublisherScope_LocalAdministrators" xml:space="preserve">
+    <value>Allow only local administrators to manage Trusted Publishers</value>
+  </data>
+  <data name="PKP_PathValidation_PublisherScope_EnterpriseAdministrators" xml:space="preserve">
+    <value>Allow only enterprise administrators to manage Trusted Publishers</value>
+  </data>
+  <data name="PKP_PathValidation_TrustedPublisherRevocation" xml:space="preserve">
+    <value>Verify that the publisher certificate is not revoked</value>
+  </data>
+  <data name="PKP_PathValidation_TrustedTimestampRevocation" xml:space="preserve">
+    <value>Verify that the timestamp certificate is not revoked</value>
+  </data>
+  <data name="PKP_PathValidation_UrlRetrievalTimeout" xml:space="preserve">
+    <value>Default URL retrieval timeout (seconds)</value>
+  </data>
+  <data name="PKP_PathValidation_PathRetrievalTimeout" xml:space="preserve">
+    <value>Default path validation cumulative retrieval timeout (seconds)</value>
+  </data>
+  <data name="PKP_PathValidation_CrossCertInterval" xml:space="preserve">
+    <value>Cross-certificate download interval (hours)</value>
+  </data>
+  <data name="PKP_PathValidation_PreferCrlBeforeOcsp" xml:space="preserve">
+    <value>Prefer CRL over OCSP responses</value>
+  </data>
+  <data name="PKP_PathValidation_CachedOcspThreshold" xml:space="preserve">
+    <value>Cached OCSP response threshold</value>
+  </data>
+  <data name="PKP_PathValidation_ExtendRevocationLifetime" xml:space="preserve">
+    <value>Allow CRL and OCSP responses to be valid longer than their lifetime</value>
+  </data>
+  <data name="PKP_PathValidation_RevocationExtensionHours" xml:space="preserve">
+    <value>Validity extension period (hours)</value>
+  </data>
+  <data name="PKP_PathValidation_AddPurpose" xml:space="preserve">
+    <value>Add</value>
+  </data>
+  <data name="PKP_PathValidation_DeletePurpose" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="PKP_PathValidation_CustomOidPlaceholder" xml:space="preserve">
+    <value>OID or application policy name</value>
+  </data>
+  <data name="PKP_CertificateCount_Format" xml:space="preserve">
+    <value>{0} certificate(s)</value>
+  </data>
+  <data name="PKP_Registry_RawValue_Format" xml:space="preserve">
+    <value>Registry value: {0}</value>
+  </data>
+  <data name="PKP_AutoEnrollmentCmdletBacked" xml:space="preserve">
+    <value>No local auto-enrollment registry values were detected. Full editing should use the Windows PKI auto-enrollment API surface.</value>
+  </data>
+  <data name="PKP_EnrollmentPolicy_ConfigurationModel" xml:space="preserve">
+    <value>Configuration Model</value>
+  </data>
+  <data name="PKP_EnrollmentPolicy_TabTitle" xml:space="preserve">
+    <value>Enrollment Policy</value>
+  </data>
+  <data name="PKP_EnrollmentPolicy_Help" xml:space="preserve">
+    <value>Windows clients will use the default configuration for Certificate Enrollment Policy. To enable advanced configuration of Certificate Enrollment Policy change the option to Enabled in the drop-down above.</value>
+  </data>
+  <data name="PKP_EnrollmentPolicy_Servers" xml:space="preserve">
+    <value>Policy servers</value>
+  </data>
+  <data name="PKP_EnrollmentPolicy_ServerDetail_Format" xml:space="preserve">
+    <value>Policy server: {0}</value>
+  </data>
+  <data name="PKP_EnrollmentPolicy_ServerDetailValue_Format" xml:space="preserve">
+    <value>URI: {0}; Authentication: {1}; Cost: {2}; Flags: {3}</value>
+  </data>
+  <data name="PKP_EnrollmentPolicy_ServerName" xml:space="preserve">
+    <value>Friendly name</value>
+  </data>
+  <data name="PKP_EnrollmentPolicy_ServerUrl" xml:space="preserve">
+    <value>Policy server URI</value>
+  </data>
+  <data name="PKP_EnrollmentPolicy_ServerPolicyId" xml:space="preserve">
+    <value>Policy ID</value>
+  </data>
+  <data name="PKP_EnrollmentPolicy_ServerAuthentication" xml:space="preserve">
+    <value>Authentication type</value>
+  </data>
+  <data name="PKP_EnrollmentPolicy_ServerCost" xml:space="preserve">
+    <value>Cost</value>
+  </data>
+  <data name="PKP_EnrollmentPolicy_ServerOptions" xml:space="preserve">
+    <value>Server options</value>
+  </data>
+  <data name="PKP_EnrollmentPolicy_ServerAutoEnrollment" xml:space="preserve">
+    <value>Enable this policy server for certificate auto-enrollment</value>
+  </data>
+  <data name="PKP_EnrollmentPolicy_ServerUseClientId" xml:space="preserve">
+    <value>Send client identifying data to the policy server</value>
+  </data>
+  <data name="PKP_EnrollmentPolicy_ServerAllowUntrustedCa" xml:space="preserve">
+    <value>Allow certificates from untrusted certification authorities</value>
+  </data>
+  <data name="PKP_EnrollmentPolicy_ServerEditor_AddTitle" xml:space="preserve">
+    <value>Add policy server</value>
+  </data>
+  <data name="PKP_EnrollmentPolicy_ServerEditor_EditTitle" xml:space="preserve">
+    <value>Edit policy server</value>
+  </data>
+  <data name="PKP_EnrollmentPolicy_ServerValidation_UrlRequired" xml:space="preserve">
+    <value>Enter a policy server URI.</value>
+  </data>
+  <data name="PKP_EnrollmentPolicy_ServerValidation_DuplicateUrl" xml:space="preserve">
+    <value>A policy server with this URI already exists.</value>
+  </data>
+  <data name="PKP_EnrollmentPolicy_Auth_Anonymous" xml:space="preserve">
+    <value>Anonymous</value>
+  </data>
+  <data name="PKP_EnrollmentPolicy_Auth_Kerberos" xml:space="preserve">
+    <value>Kerberos</value>
+  </data>
+  <data name="PKP_EnrollmentPolicy_Auth_UserName" xml:space="preserve">
+    <value>User name and password</value>
+  </data>
+  <data name="PKP_EnrollmentPolicy_Auth_ClientCertificate" xml:space="preserve">
+    <value>Client certificate</value>
+  </data>
+  <data name="PKP_EnrollmentPolicy_NoServers" xml:space="preserve">
+    <value>No certificate enrollment policy servers are configured</value>
+  </data>
+  <data name="PKP_EnrollmentPolicy_ServerCount" xml:space="preserve">
+    <value>Policy server count</value>
+  </data>
+  <data name="PKP_EnrollmentPolicy_PolicySource" xml:space="preserve">
+    <value>Policy source</value>
+  </data>
+  <data name="PKP_AutoEnrollment_ConfigurationModel" xml:space="preserve">
+    <value>Configuration Model</value>
+  </data>
+  <data name="PKP_AutoEnrollment_TabTitle" xml:space="preserve">
+    <value>Enrollment Policy Configuration</value>
+  </data>
+  <data name="PKP_AutoEnrollment_Help" xml:space="preserve">
+    <value>Enroll user and computer certificates automatically.</value>
+  </data>
+  <data name="PKP_AutoEnrollment_RenewExpired" xml:space="preserve">
+    <value>Renew expired certificates, update pending certificates, and remove revoked certificates</value>
+  </data>
+  <data name="PKP_AutoEnrollment_UpdateTemplates" xml:space="preserve">
+    <value>Update certificates that use certificate templates</value>
+  </data>
+  <data name="PKP_AutoEnrollment_ExpirationNotifications" xml:space="preserve">
+    <value>Expiration notification percentage</value>
+  </data>
+  <data name="PKP_AutoEnrollment_BalloonNotifications" xml:space="preserve">
+    <value>Balloon notifications</value>
+  </data>
+  <data name="PKP_AutoEnrollment_StoreNames" xml:space="preserve">
+    <value>Certificate stores</value>
+  </data>
+  <data name="PKP_AutoEnrollment_PolicySource" xml:space="preserve">
+    <value>Policy source</value>
+  </data>
+  <data name="PKP_AutoEnrollment_RawValue_Format" xml:space="preserve">
+    <value>Registry value: {0}</value>
+  </data>
+  <data name="PKP_Efs_Tab_General" xml:space="preserve">
+    <value>General</value>
+  </data>
+  <data name="PKP_Efs_Tab_Certificates" xml:space="preserve">
+    <value>Certificates</value>
+  </data>
+  <data name="PKP_Efs_Tab_Cache" xml:space="preserve">
+    <value>Cache</value>
+  </data>
+  <data name="PKP_Efs_FileEncryption" xml:space="preserve">
+    <value>File encryption using Encrypting File System</value>
+  </data>
+  <data name="PKP_Efs_FileEncryption_NotDefined" xml:space="preserve">
+    <value>Not defined</value>
+  </data>
+  <data name="PKP_Efs_FileEncryption_Allow" xml:space="preserve">
+    <value>Allow</value>
+  </data>
+  <data name="PKP_Efs_FileEncryption_DontAllow" xml:space="preserve">
+    <value>Don't allow</value>
+  </data>
+  <data name="PKP_Efs_EllipticCurveCryptography" xml:space="preserve">
+    <value>Elliptic Curve Cryptography</value>
+  </data>
+  <data name="PKP_Efs_Ecc_Allow" xml:space="preserve">
+    <value>Allow</value>
+  </data>
+  <data name="PKP_Efs_Ecc_Require" xml:space="preserve">
+    <value>Require</value>
+  </data>
+  <data name="PKP_Efs_Ecc_DontAllow" xml:space="preserve">
+    <value>Don't allow</value>
+  </data>
+  <data name="PKP_Efs_Options" xml:space="preserve">
+    <value>Options</value>
+  </data>
+  <data name="PKP_Efs_EncryptDocumentsFolder" xml:space="preserve">
+    <value>Encrypt the contents of the user's Documents folder</value>
+  </data>
+  <data name="PKP_Efs_RequireSmartCard" xml:space="preserve">
+    <value>Require a smart card for EFS</value>
+  </data>
+  <data name="PKP_Efs_CreateSmartCardUserKey" xml:space="preserve">
+    <value>Create a caching-capable user key from smart card private keys</value>
+  </data>
+  <data name="PKP_Efs_KeyBackupNotifications" xml:space="preserve">
+    <value>Display key backup notifications when user key is created or changed</value>
+  </data>
+  <data name="PKP_Efs_TemplateName" xml:space="preserve">
+    <value>EFS template for automatic certificate requests</value>
+  </data>
+  <data name="PKP_Efs_SelfSignedCertificates" xml:space="preserve">
+    <value>Self-signed certificates</value>
+  </data>
+  <data name="PKP_Efs_AllowSelfSigned" xml:space="preserve">
+    <value>Allow self-signed certificates</value>
+  </data>
+  <data name="PKP_Efs_RsaKeySize" xml:space="preserve">
+    <value>RSA key size</value>
+  </data>
+  <data name="PKP_Efs_EccKeySize" xml:space="preserve">
+    <value>ECC key size</value>
+  </data>
+  <data name="PKP_Efs_ClearCacheWhen" xml:space="preserve">
+    <value>Clear cache when</value>
+  </data>
+  <data name="PKP_Efs_ClearCacheOnTimeout" xml:space="preserve">
+    <value>Cache timeout occurs</value>
+  </data>
+  <data name="PKP_Efs_CacheTimeout" xml:space="preserve">
+    <value>Cache timeout</value>
+  </data>
+  <data name="PKP_Efs_ClearCacheOnLock" xml:space="preserve">
+    <value>User locks workstation</value>
+  </data>
+  <data name="PKP_Efs_Minutes" xml:space="preserve">
+    <value>minutes</value>
+  </data>
+  <data name="PKP_Efs_PolicySource" xml:space="preserve">
+    <value>Policy source</value>
+  </data>
+  <data name="PKP_Detail_Subject" xml:space="preserve">
+    <value>Subject</value>
+  </data>
+  <data name="PKP_Detail_Issuer" xml:space="preserve">
+    <value>Issuer</value>
+  </data>
+  <data name="PKP_Detail_SerialNumber" xml:space="preserve">
+    <value>Serial number</value>
+  </data>
+  <data name="PKP_Detail_Thumbprint" xml:space="preserve">
+    <value>Thumbprint</value>
+  </data>
+  <data name="PKP_Detail_ValidFrom" xml:space="preserve">
+    <value>Valid from</value>
+  </data>
+  <data name="PKP_Detail_ValidTo" xml:space="preserve">
+    <value>Valid to</value>
+  </data>
+  <data name="PKP_Detail_IntendedPurposes" xml:space="preserve">
+    <value>Intended purposes</value>
+  </data>
+  <data name="PKP_Detail_FriendlyName" xml:space="preserve">
+    <value>Friendly name</value>
+  </data>
+  <data name="PKP_Detail_Status" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="PKP_Detail_CertificateTemplate" xml:space="preserve">
+    <value>Certificate template</value>
+  </data>
+  <data name="PKP_Detail_SignatureAlgorithm" xml:space="preserve">
+    <value>Signature algorithm</value>
+  </data>
+  <data name="PKP_Detail_PublicKeyAlgorithm" xml:space="preserve">
+    <value>Public key algorithm</value>
+  </data>
+  <data name="PKP_Detail_PublicKeySize" xml:space="preserve">
+    <value>Public key size</value>
+  </data>
+  <data name="PKP_Detail_PublicKeySize_Format" xml:space="preserve">
+    <value>{0} bits</value>
+  </data>
+  <data name="PKP_Detail_Store" xml:space="preserve">
+    <value>Policy store</value>
+  </data>
+  <data name="IPSec_Column_Name" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="IPSec_Column_Description" xml:space="preserve">
+    <value>Description</value>
+  </data>
+  <data name="IPSec_Column_PolicyAssigned" xml:space="preserve">
+    <value>Policy Assigned</value>
+  </data>
+  <data name="IPSec_Column_LastModified" xml:space="preserve">
+    <value>Last Modified Time</value>
+  </data>
+  <data name="IPSec_Column_Source" xml:space="preserve">
+    <value>Source</value>
+  </data>
+  <data name="IPSec_Command_ViewDetails" xml:space="preserve">
+    <value>View details</value>
+  </data>
+  <data name="IPSec_Dialog_Details_TitleFormat" xml:space="preserve">
+    <value>{0} Details</value>
+  </data>
+  <data name="IPSec_PageDescription" xml:space="preserve">
+    <value>Browse the legacy static IP Security Policies, shared IP filter lists, and shared filter actions stored on this computer.</value>
+  </data>
+  <data name="IPSec_PolicyAgentService" xml:space="preserve">
+    <value>IPsec Policy Agent</value>
+  </data>
+  <data name="IPSec_ServiceStatus_Format" xml:space="preserve">
+    <value>{0}; startup type: {1}</value>
+  </data>
+  <data name="IPSec_ServiceStatus_Unavailable" xml:space="preserve">
+    <value>Unable to read IPsec Policy Agent service status.</value>
+  </data>
+  <data name="IPSec_ServiceStatus_Running" xml:space="preserve">
+    <value>Running</value>
+  </data>
+  <data name="IPSec_ServiceStatus_Stopped" xml:space="preserve">
+    <value>Stopped</value>
+  </data>
+  <data name="IPSec_ServiceStatus_Paused" xml:space="preserve">
+    <value>Paused</value>
+  </data>
+  <data name="IPSec_ServiceStatus_StartPending" xml:space="preserve">
+    <value>Starting</value>
+  </data>
+  <data name="IPSec_ServiceStatus_StopPending" xml:space="preserve">
+    <value>Stopping</value>
+  </data>
+  <data name="IPSec_ServiceStart_Automatic" xml:space="preserve">
+    <value>Automatic</value>
+  </data>
+  <data name="IPSec_ServiceStart_Manual" xml:space="preserve">
+    <value>Manual</value>
+  </data>
+  <data name="IPSec_ServiceStart_Disabled" xml:space="preserve">
+    <value>Disabled</value>
+  </data>
+  <data name="IPSec_NoLegacyPolicies" xml:space="preserve">
+    <value>No legacy local IP Security Policies configured</value>
+  </data>
+  <data name="IPSec_LegacyStore_NotPresent" xml:space="preserve">
+    <value>The legacy local IPsec policy store is not present.</value>
+  </data>
+  <data name="IPSec_LegacyStore_Empty" xml:space="preserve">
+    <value>The legacy local IPsec policy store does not contain readable policy entries.</value>
+  </data>
+  <data name="IPSec_LegacyStore_AccessDenied" xml:space="preserve">
+    <value>Legacy IPsec policy store access denied</value>
+  </data>
+  <data name="IPSec_LegacyStore_ReadFailed" xml:space="preserve">
+    <value>Unable to read legacy IPsec policy store</value>
+  </data>
+  <data name="IPSec_RegistryValueCount_Format" xml:space="preserve">
+    <value>{0} registry value(s)</value>
+  </data>
+  <data name="IPSec_NoConnectionSecurityRules" xml:space="preserve">
+    <value>No connection security rules detected</value>
+  </data>
+  <data name="IPSec_ConnectionSecurityProvider_Description" xml:space="preserve">
+    <value>The modern connection security rule provider returned no rules.</value>
+  </data>
+  <data name="IPSec_ConnectionSecurity_AccessDenied" xml:space="preserve">
+    <value>Connection security rule access denied</value>
+  </data>
+  <data name="IPSec_ConnectionSecurityProvider_Unavailable" xml:space="preserve">
+    <value>Connection security rule provider unavailable</value>
+  </data>
+  <data name="IPSec_ConnectionSecurityState_Format" xml:space="preserve">
+    <value>{0}; inbound: {1}; outbound: {2}; mode: {3}</value>
+  </data>
+  <data name="IPSec_UnnamedPolicy" xml:space="preserve">
+    <value>Unnamed IPsec policy</value>
+  </data>
+  <data name="IPSec_Security_None" xml:space="preserve">
+    <value>None</value>
+  </data>
+  <data name="IPSec_Security_Request" xml:space="preserve">
+    <value>Request</value>
+  </data>
+  <data name="IPSec_Security_Require" xml:space="preserve">
+    <value>Require</value>
+  </data>
+  <data name="IPSec_Mode_Transport" xml:space="preserve">
+    <value>Transport</value>
+  </data>
+  <data name="IPSec_Mode_Tunnel" xml:space="preserve">
+    <value>Tunnel</value>
+  </data>
+  <data name="IPSec_RowKind_LegacyPolicy" xml:space="preserve">
+    <value>Legacy IPsec policy</value>
+  </data>
+  <data name="IPSec_RowKind_ConnectionSecurityRule" xml:space="preserve">
+    <value>Connection security rule</value>
+  </data>
+  <data name="IPSec_RowKind_Information" xml:space="preserve">
+    <value>Information</value>
+  </data>
+  <data name="IPSec_Detail_RowKind" xml:space="preserve">
+    <value>Row type</value>
+  </data>
+  <data name="IPSec_Detail_Name" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="IPSec_Detail_Description" xml:space="preserve">
+    <value>Description</value>
+  </data>
+  <data name="IPSec_Detail_PolicyAssigned" xml:space="preserve">
+    <value>Policy assigned</value>
+  </data>
+  <data name="IPSec_Detail_LastModified" xml:space="preserve">
+    <value>Last modified time</value>
+  </data>
+  <data name="IPSec_Detail_Source" xml:space="preserve">
+    <value>Source</value>
+  </data>
+  <data name="IPSec_Detail_Summary" xml:space="preserve">
+    <value>Summary</value>
+  </data>
+  <data name="IPSec_Detail_RegistryValues" xml:space="preserve">
+    <value>Registry values</value>
+  </data>
+  <data name="IPSec_Section_Policies" xml:space="preserve">
+    <value>IP Security Policies</value>
+  </data>
+  <data name="IPSec_Section_FilterLists" xml:space="preserve">
+    <value>IP Filter Lists</value>
+  </data>
+  <data name="IPSec_Section_FilterActions" xml:space="preserve">
+    <value>Filter Actions</value>
+  </data>
+  <data name="IPSec_Column_FilterCount" xml:space="preserve">
+    <value>Filters</value>
+  </data>
+  <data name="IPSec_Column_Action" xml:space="preserve">
+    <value>Action</value>
+  </data>
+  <data name="IPSec_Column_SecurityMethods" xml:space="preserve">
+    <value>Security Methods</value>
+  </data>
+  <data name="IPSec_Empty_Policies" xml:space="preserve">
+    <value>No IP Security Policies are stored on this computer.</value>
+  </data>
+  <data name="IPSec_Empty_FilterLists" xml:space="preserve">
+    <value>No shared IP filter lists are stored on this computer.</value>
+  </data>
+  <data name="IPSec_Empty_FilterActions" xml:space="preserve">
+    <value>No shared filter actions are stored on this computer.</value>
+  </data>
+  <data name="IPSec_Value_Yes" xml:space="preserve">
+    <value>Yes</value>
+  </data>
+  <data name="IPSec_Value_No" xml:space="preserve">
+    <value>No</value>
+  </data>
+  <data name="IPSec_FilterAction_Permit" xml:space="preserve">
+    <value>Permit</value>
+  </data>
+  <data name="IPSec_FilterAction_Block" xml:space="preserve">
+    <value>Block</value>
+  </data>
+  <data name="IPSec_FilterAction_Negotiate" xml:space="preserve">
+    <value>Negotiate security</value>
+  </data>
+  <data name="IPSec_RuleCount_Format" xml:space="preserve">
+    <value>{0} rule(s)</value>
+  </data>
+  <data name="IPSec_FilterCount_Format" xml:space="preserve">
+    <value>{0} filter(s)</value>
+  </data>
+  <data name="IPSec_SecurityMethodCount_Format" xml:space="preserve">
+    <value>{0} method(s)</value>
+  </data>
+  <data name="IPSec_RowKind_Policy" xml:space="preserve">
+    <value>IP Security Policy</value>
+  </data>
+  <data name="IPSec_RowKind_FilterList" xml:space="preserve">
+    <value>IP filter list</value>
+  </data>
+  <data name="IPSec_RowKind_FilterAction" xml:space="preserve">
+    <value>Filter action</value>
+  </data>
+  <data name="IPSec_Detail_Rules" xml:space="preserve">
+    <value>Rules</value>
+  </data>
+  <data name="IPSec_Detail_MasterPfs" xml:space="preserve">
+    <value>Master key perfect forward secrecy</value>
+  </data>
+  <data name="IPSec_Detail_QuickModeSessions" xml:space="preserve">
+    <value>Quick mode sessions per main mode</value>
+  </data>
+  <data name="IPSec_Detail_MainModeLifetime" xml:space="preserve">
+    <value>Main mode lifetime (minutes)</value>
+  </data>
+  <data name="IPSec_Detail_DefaultResponseRule" xml:space="preserve">
+    <value>Default response rule</value>
+  </data>
+  <data name="IPSec_Detail_PollingInterval" xml:space="preserve">
+    <value>Policy polling interval (minutes)</value>
+  </data>
+  <data name="IPSec_Detail_SecurityMethods" xml:space="preserve">
+    <value>Security methods</value>
+  </data>
+  <data name="IPSec_Detail_FilterCount" xml:space="preserve">
+    <value>Filter count</value>
+  </data>
+  <data name="IPSec_Detail_Filters" xml:space="preserve">
+    <value>Filters</value>
+  </data>
+  <data name="IPSec_Detail_Action" xml:space="preserve">
+    <value>Action</value>
+  </data>
+  <data name="IPSec_Detail_QuickModePfs" xml:space="preserve">
+    <value>Session key perfect forward secrecy</value>
+  </data>
+  <data name="IPSec_Detail_AcceptUnsecuredInbound" xml:space="preserve">
+    <value>Accept unsecured inbound communication</value>
+  </data>
+  <data name="IPSec_Detail_AllowUnsecuredFallback" xml:space="preserve">
+    <value>Allow fallback to unsecured communication</value>
+  </data>
+  <data name="IPSec_Editor_ValidationInvalid" xml:space="preserve">
+    <value>Review the highlighted IPsec values and correct any invalid or missing settings.</value>
+  </data>
+  <data name="IPSec_Editor_Assigned" xml:space="preserve">
+    <value>Assign this policy to the local computer</value>
+  </data>
+  <data name="IPSec_Editor_DefaultResponseRule" xml:space="preserve">
+    <value>Activate the default response rule</value>
+  </data>
+  <data name="IPSec_Editor_MasterPfs" xml:space="preserve">
+    <value>Use master key perfect forward secrecy</value>
+  </data>
+  <data name="IPSec_Editor_QuickModeSessions" xml:space="preserve">
+    <value>Quick mode sessions per main mode</value>
+  </data>
+  <data name="IPSec_Editor_MainModeLifetime" xml:space="preserve">
+    <value>Main mode lifetime (minutes)</value>
+  </data>
+  <data name="IPSec_Editor_PollingInterval" xml:space="preserve">
+    <value>Policy polling interval (minutes)</value>
+  </data>
+  <data name="IPSec_Editor_MainModeMethods" xml:space="preserve">
+    <value>Main mode security methods</value>
+  </data>
+  <data name="IPSec_Editor_MethodsHelp" xml:space="preserve">
+    <value>Enter security methods in preference order, one per line.</value>
+  </data>
+  <data name="IPSec_Editor_Filters" xml:space="preserve">
+    <value>IP filters</value>
+  </data>
+  <data name="IPSec_Editor_AddFilterTitle" xml:space="preserve">
+    <value>Add IP filter</value>
+  </data>
+  <data name="IPSec_Editor_EditFilterTitle" xml:space="preserve">
+    <value>Edit IP filter</value>
+  </data>
+  <data name="IPSec_Editor_FilterSummaryFormat" xml:space="preserve">
+    <value>{0} to {1}; {2}; ports {3} to {4}</value>
+  </data>
+  <data name="IPSec_Editor_SourceAddress" xml:space="preserve">
+    <value>Source address</value>
+  </data>
+  <data name="IPSec_Editor_DestinationAddress" xml:space="preserve">
+    <value>Destination address</value>
+  </data>
+  <data name="IPSec_Editor_SourceMask" xml:space="preserve">
+    <value>Source mask or prefix</value>
+  </data>
+  <data name="IPSec_Editor_DestinationMask" xml:space="preserve">
+    <value>Destination mask or prefix</value>
+  </data>
+  <data name="IPSec_Editor_Protocol" xml:space="preserve">
+    <value>Protocol</value>
+  </data>
+  <data name="IPSec_Editor_Mirrored" xml:space="preserve">
+    <value>Create a mirrored filter</value>
+  </data>
+  <data name="IPSec_Editor_SourcePort" xml:space="preserve">
+    <value>Source port (0 means any)</value>
+  </data>
+  <data name="IPSec_Editor_DestinationPort" xml:space="preserve">
+    <value>Destination port (0 means any)</value>
+  </data>
+  <data name="IPSec_Editor_FilterAction" xml:space="preserve">
+    <value>Filter action</value>
+  </data>
+  <data name="IPSec_Editor_QuickModePfs" xml:space="preserve">
+    <value>Use session key perfect forward secrecy</value>
+  </data>
+  <data name="IPSec_Editor_AcceptUnsecuredInbound" xml:space="preserve">
+    <value>Accept unsecured inbound communication</value>
+  </data>
+  <data name="IPSec_Editor_AllowUnsecuredFallback" xml:space="preserve">
+    <value>Allow fallback to unsecured communication</value>
+  </data>
+  <data name="IPSec_Editor_QuickModeMethods" xml:space="preserve">
+    <value>Quick mode security methods</value>
+  </data>
+  <data name="IPSec_Editor_EncryptionAlgorithm" xml:space="preserve">
+    <value>Encryption algorithm</value>
+  </data>
+  <data name="IPSec_Editor_HashAlgorithm" xml:space="preserve">
+    <value>Hash algorithm</value>
+  </data>
+  <data name="IPSec_Editor_DiffieHellmanGroup" xml:space="preserve">
+    <value>Diffie-Hellman group</value>
+  </data>
+  <data name="IPSec_Editor_SecurityMethodType" xml:space="preserve">
+    <value>Security method type</value>
+  </data>
+  <data name="IPSec_Editor_EspEncryption" xml:space="preserve">
+    <value>ESP encryption</value>
+  </data>
+  <data name="IPSec_Editor_EspAuthentication" xml:space="preserve">
+    <value>ESP authentication</value>
+  </data>
+  <data name="IPSec_Editor_AhHash" xml:space="preserve">
+    <value>AH integrity</value>
+  </data>
+  <data name="IPSec_Editor_LifetimeKilobytes" xml:space="preserve">
+    <value>Lifetime (KB)</value>
+  </data>
+  <data name="IPSec_Editor_LifetimeSeconds" xml:space="preserve">
+    <value>Lifetime (seconds)</value>
+  </data>
+  <data name="IPSec_Editor_AddSecurityMethod" xml:space="preserve">
+    <value>Add security method</value>
+  </data>
+  <data name="IPSec_Editor_Algorithm_3DES" xml:space="preserve">
+    <value>3DES</value>
+  </data>
+  <data name="IPSec_Editor_Algorithm_DES" xml:space="preserve">
+    <value>DES</value>
+  </data>
+  <data name="IPSec_Editor_Algorithm_None" xml:space="preserve">
+    <value>None</value>
+  </data>
+  <data name="IPSec_Editor_Algorithm_SHA1" xml:space="preserve">
+    <value>SHA1</value>
+  </data>
+  <data name="IPSec_Editor_Algorithm_MD5" xml:space="preserve">
+    <value>MD5</value>
+  </data>
+  <data name="IPSec_Editor_DhGroup_DH2048" xml:space="preserve">
+    <value>High (DH2048)</value>
+  </data>
+  <data name="IPSec_Editor_DhGroup_Medium" xml:space="preserve">
+    <value>Medium (2)</value>
+  </data>
+  <data name="IPSec_Editor_DhGroup_Low" xml:space="preserve">
+    <value>Low (1)</value>
+  </data>
+  <data name="IPSec_Editor_MethodType_ESP" xml:space="preserve">
+    <value>ESP</value>
+  </data>
+  <data name="IPSec_Editor_MethodType_AH" xml:space="preserve">
+    <value>AH</value>
+  </data>
+  <data name="IPSec_Editor_MethodType_AH_ESP" xml:space="preserve">
+    <value>AH + ESP</value>
+  </data>
+  <data name="IPSec_Editor_RuleFilterList" xml:space="preserve">
+    <value>IP filter list</value>
+  </data>
+  <data name="IPSec_Editor_RuleFilterAction" xml:space="preserve">
+    <value>Filter action</value>
+  </data>
+  <data name="IPSec_Editor_ConnectionType" xml:space="preserve">
+    <value>Connection type</value>
+  </data>
+  <data name="IPSec_Editor_ConnectionAll" xml:space="preserve">
+    <value>All network connections</value>
+  </data>
+  <data name="IPSec_Editor_ConnectionLan" xml:space="preserve">
+    <value>Local area network (LAN)</value>
+  </data>
+  <data name="IPSec_Editor_ConnectionDialUp" xml:space="preserve">
+    <value>Remote access</value>
+  </data>
+  <data name="IPSec_Editor_RuleActive" xml:space="preserve">
+    <value>Activate this rule</value>
+  </data>
+  <data name="IPSec_Editor_Tunnel" xml:space="preserve">
+    <value>IPsec tunnel</value>
+  </data>
+  <data name="IPSec_Editor_TunnelEndpoint" xml:space="preserve">
+    <value>Tunnel endpoint</value>
+  </data>
+  <data name="IPSec_Editor_AuthenticationMethods" xml:space="preserve">
+    <value>Authentication methods, in preference order</value>
+  </data>
+  <data name="IPSec_Editor_AuthenticationKind" xml:space="preserve">
+    <value>Authentication method</value>
+  </data>
+  <data name="IPSec_Editor_AuthenticationKerberos" xml:space="preserve">
+    <value>Active Directory default (Kerberos V5)</value>
+  </data>
+  <data name="IPSec_Editor_AuthenticationCertificate" xml:space="preserve">
+    <value>Certificate authority</value>
+  </data>
+  <data name="IPSec_Editor_AuthenticationPsk" xml:space="preserve">
+    <value>Pre-shared key</value>
+  </data>
+  <data name="IPSec_Editor_CertificateAuthorityName" xml:space="preserve">
+    <value>Root certificate authority name</value>
+  </data>
+  <data name="IPSec_Editor_CertificateMapping" xml:space="preserve">
+    <value>Enable certificate-to-account mapping</value>
+  </data>
+  <data name="IPSec_Editor_ExcludeCertificateAuthorityName" xml:space="preserve">
+    <value>Exclude the certificate authority name from requests</value>
+  </data>
+  <data name="IPSec_Editor_PreSharedKey" xml:space="preserve">
+    <value>Pre-shared key</value>
+  </data>
+  <data name="IPSec_Editor_PskReentryRequired" xml:space="preserve">
+    <value>The existing pre-shared key is redacted. Re-enter it before saving this rule.</value>
+  </data>
+  <data name="IPSec_Editor_PskConfigured" xml:space="preserve">
+    <value>A pre-shared key is configured and will not be displayed.</value>
+  </data>
+  <data name="IPSec_Editor_AddOrReplaceAuthentication" xml:space="preserve">
+    <value>Add or replace authentication method</value>
+  </data>
+  <data name="IPSec_Editor_MoveUp" xml:space="preserve">
+    <value>Move up</value>
+  </data>
+  <data name="IPSec_Editor_MoveDown" xml:space="preserve">
+    <value>Move down</value>
+  </data>
+  <data name="IPSec_Command_New" xml:space="preserve">
+    <value>New</value>
+  </data>
+  <data name="IPSec_Command_Edit" xml:space="preserve">
+    <value>Edit</value>
+  </data>
+  <data name="IPSec_Command_Delete" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="IPSec_Command_Assign" xml:space="preserve">
+    <value>Assign</value>
+  </data>
+  <data name="IPSec_Command_Unassign" xml:space="preserve">
+    <value>Unassign</value>
+  </data>
+  <data name="IPSec_Command_AddRule" xml:space="preserve">
+    <value>Add rule</value>
+  </data>
+  <data name="IPSec_Command_EditRule" xml:space="preserve">
+    <value>Edit rule</value>
+  </data>
+  <data name="IPSec_Command_DeleteRule" xml:space="preserve">
+    <value>Delete rule</value>
+  </data>
+  <data name="IPSec_Command_ManageRules" xml:space="preserve">
+    <value>Manage rules</value>
+  </data>
+  <data name="IPSec_Command_ManageFiltersActions" xml:space="preserve">
+    <value>Manage IP filter lists and filter actions</value>
+  </data>
+  <data name="IPSec_Dialog_ManageFiltersActions_Title" xml:space="preserve">
+    <value>Manage IP filter lists and filter actions</value>
+  </data>
+  <data name="IPSec_DeleteConfirm_Title" xml:space="preserve">
+    <value>Confirm deletion</value>
+  </data>
+  <data name="IPSec_DeletePolicy_MessageFormat" xml:space="preserve">
+    <value>Delete the IP Security Policy "{0}" and all of its rules?</value>
+  </data>
+  <data name="IPSec_DeleteFilterList_MessageFormat" xml:space="preserve">
+    <value>Delete the IP filter list "{0}" and all of its filters?</value>
+  </data>
+  <data name="IPSec_DeleteFilterAction_MessageFormat" xml:space="preserve">
+    <value>Delete the filter action "{0}"?</value>
+  </data>
+  <data name="IPSec_DeleteRule_MessageFormat" xml:space="preserve">
+    <value>Delete the rule "{0}"?</value>
+  </data>
+  <data name="IPSec_Dialog_CreatePolicy_Title" xml:space="preserve">
+    <value>Create IP Security Policy</value>
+  </data>
+  <data name="IPSec_Dialog_EditPolicy_TitleFormat" xml:space="preserve">
+    <value>Edit IP Security Policy: {0}</value>
+  </data>
+  <data name="IPSec_Dialog_CreateFilterList_Title" xml:space="preserve">
+    <value>Create IP filter list</value>
+  </data>
+  <data name="IPSec_Dialog_EditFilterList_TitleFormat" xml:space="preserve">
+    <value>Edit IP filter list: {0}</value>
+  </data>
+  <data name="IPSec_Dialog_CreateFilterAction_Title" xml:space="preserve">
+    <value>Create filter action</value>
+  </data>
+  <data name="IPSec_Dialog_EditFilterAction_TitleFormat" xml:space="preserve">
+    <value>Edit filter action: {0}</value>
+  </data>
+  <data name="IPSec_Dialog_CreateRule_TitleFormat" xml:space="preserve">
+    <value>Create rule for {0}</value>
+  </data>
+  <data name="IPSec_Dialog_EditRule_TitleFormat" xml:space="preserve">
+    <value>Edit rule: {0}</value>
+  </data>
+</root>
