@@ -1,4 +1,4 @@
-# ManagementTools Localization Implementation Guide
+﻿# OneMMC Localization Implementation Guide
 
 ## Table of Contents
 1. [Overview](#overview)
@@ -16,7 +16,7 @@
 
 ## Overview
 
-ManagementTools implements localization support by using the **WinUI 3 resource system (.resw)**. This project uses a modular design: localized strings for different features are split into separate resource files, making them easier to maintain and extend.
+OneMMC implements localization support by using the **WinUI 3 resource system (.resw)**. This project uses a modular design: localized strings for different features are split into separate resource files, making them easier to maintain and extend.
 
 ### Supported Languages
 - **English (en-US)** - Default language
@@ -91,7 +91,7 @@ public partial class LocalizedStrings
 ## File Organization
 
 ```
-ManagementTools/
+OneMMC/
 ├── Localization/                          # Localization code
 │   ├── LocalizedStrings.cs                # Base class
 │   ├── LocalizedStrings.Common.cs         # Common strings
@@ -135,7 +135,7 @@ Assume we want to add localization support for a new feature named `NetworkManag
 ### Step 1: Create Resource Files
 
 #### 1.1 Create the English Resource File
-**File**: `ManagementTools/Strings/en-US/NetworkManager.resw`
+**File**: `OneMMC/Strings/en-US/NetworkManager.resw`
 
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
@@ -161,7 +161,7 @@ Assume we want to add localization support for a new feature named `NetworkManag
 ```
 
 #### 1.2 Create the Traditional Chinese Resource File
-**File**: `ManagementTools/Strings/zh-TW/NetworkManager.resw`
+**File**: `OneMMC/Strings/zh-TW/NetworkManager.resw`
 
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
@@ -188,7 +188,7 @@ Assume we want to add localization support for a new feature named `NetworkManag
 
 ### Step 2: Update ResourceFiles.cs
 
-**File**: `ManagementTools/Localization/ResourceFiles.cs`
+**File**: `OneMMC/Localization/ResourceFiles.cs`
 
 ```csharp
 public static class ResourceFiles
@@ -202,10 +202,10 @@ public static class ResourceFiles
 
 ### Step 3: Create a LocalizedStrings Partial Class
 
-**File**: `ManagementTools/Localization/LocalizedStrings.NetworkManager.cs`
+**File**: `OneMMC/Localization/LocalizedStrings.NetworkManager.cs`
 
 ```csharp
-namespace ManagementTools.Localization
+namespace OneMMC.Localization
 {
     /// <summary>
     /// Localized strings for Network Manager feature.
@@ -236,14 +236,14 @@ namespace ManagementTools.Localization
 
 ### Step 4: Use the Strings in XAML
 
-**File**: `ManagementTools/Views/NetworkManagerPage.xaml`
+**File**: `OneMMC/Views/NetworkManagerPage.xaml`
 
 ```xml
 <Page
-    x:Class="ManagementTools.Views.NetworkManagerPage"
+    x:Class="OneMMC.Views.NetworkManagerPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="using:ManagementTools.Localization">
+    xmlns:local="using:OneMMC.Localization">
 
     <Page.Resources>
         <local:LocalizedStrings x:Key="LocalizedStrings" />
@@ -327,7 +327,7 @@ public string CurrentPCText =>
 ### Basic Usage
 
 ```csharp
-using ManagementTools.Localization;
+using OneMMC.Localization;
 
 public class MyViewModel
 {
@@ -364,7 +364,7 @@ string message = LocalizationService.Instance.GetFormattedString(
 
 ```csharp
 using CommunityToolkit.Mvvm.ComponentModel;
-using ManagementTools.Localization;
+using OneMMC.Localization;
 
 public partial class NetworkManagerViewModel : ObservableObject
 {
@@ -402,9 +402,9 @@ public partial class NetworkManagerViewModel : ObservableObject
 ```csharp
 using Microsoft.UI.Xaml.Data;
 using System;
-using ManagementTools.Localization;
+using OneMMC.Localization;
 
-namespace ManagementTools.Converters
+namespace OneMMC.Converters
 {
     public class BoolToYesNoConverter : IValueConverter
     {
@@ -447,12 +447,12 @@ Assume we want to add support for Simplified Chinese (`zh-CN`):
 
 ### Step 1: Create the Language Folder
 
-Create a `zh-CN` folder under `ManagementTools/Strings/`.
+Create a `zh-CN` folder under `OneMMC/Strings/`.
 
 ### Step 2: Copy and Translate Resource Files
 
 ```
-ManagementTools/Strings/zh-CN/
+OneMMC/Strings/zh-CN/
 ├── Resources.resw
 ├── Common.resw
 ├── Navigation.resw

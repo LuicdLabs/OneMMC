@@ -1,0 +1,10 @@
+﻿{
+  "profiles": {
+    "OneMMC (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "OneMMC (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}

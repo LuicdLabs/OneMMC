@@ -1,0 +1,107 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Page
+    x:Class="OneMMC.Views.LocalSecurityPolicyPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:CommunityToolkit.WinUI.Controls"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:OneMMC.Localization"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Page.Resources>
+        <local:LocalizedStrings x:Key="LocalizedStrings" />
+    </Page.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!--  CommandBar  -->
+        <CommandBar Grid.Row="0" DefaultLabelPosition="Right">
+            <!-- <AppBarButton Icon="Refresh" Label="Refresh" /> -->
+            <AppBarButton Icon="More" />
+        </CommandBar>
+
+        <!--  Content  -->
+        <ScrollViewer Grid.Row="1">
+            <StackPanel Padding="24,8,24,24" Spacing="4">
+                <!--  Account Policies  -->
+                <controls:SettingsCard
+                    Click="AccountPolicies_Click"
+                    Description="{x:Bind LocalizedStrings.SecPol_AccountPolicies_Description}"
+                    Header="{x:Bind LocalizedStrings.SecPol_AccountPolicies_Header}"
+                    IsClickEnabled="True">
+                    <controls:SettingsCard.HeaderIcon>
+                        <FontIcon Glyph="&#xE77B;" />
+                    </controls:SettingsCard.HeaderIcon>
+                </controls:SettingsCard>
+
+                <!--  Local Policies  -->
+                <controls:SettingsCard
+                    Click="LocalPolicies_Click"
+                    Description="{x:Bind LocalizedStrings.SecPol_LocalPolicies_Description}"
+                    Header="{x:Bind LocalizedStrings.SecPol_LocalPolicies_Header}"
+                    IsClickEnabled="True">
+                    <controls:SettingsCard.HeaderIcon>
+                        <FontIcon Glyph="&#xE72E;" />
+                    </controls:SettingsCard.HeaderIcon>
+                </controls:SettingsCard>
+
+                <!--  Network List Manager Policies  -->
+                <controls:SettingsCard
+                    Click="NetworkListManager_Click"
+                    Description="{x:Bind LocalizedStrings.SecPol_NetworkListManager_Description}"
+                    Header="{x:Bind LocalizedStrings.SecPol_NetworkListManager_Header}"
+                    IsClickEnabled="True">
+                    <controls:SettingsCard.HeaderIcon>
+                        <FontIcon Glyph="&#xE968;" />
+                    </controls:SettingsCard.HeaderIcon>
+                </controls:SettingsCard>
+
+                <!--  Public Key Policies  -->
+                <controls:SettingsCard
+                    Click="PublicKeyPolicies_Click"
+                    Header="{x:Bind LocalizedStrings.SecPol_PublicKeyPolicies_Header}"
+                    IsClickEnabled="True">
+                    <controls:SettingsCard.HeaderIcon>
+                        <FontIcon Glyph="&#xE192;" />
+                    </controls:SettingsCard.HeaderIcon>
+                </controls:SettingsCard>
+
+                <!--  Software Restriction Policies  -->
+                <controls:SettingsCard
+                    Click="SoftwareRestriction_Click"
+                    Header="{x:Bind LocalizedStrings.SecPol_SoftwareRestriction_Header}"
+                    IsClickEnabled="True">
+                    <controls:SettingsCard.HeaderIcon>
+                        <FontIcon Glyph="&#xEA0D;" />
+                    </controls:SettingsCard.HeaderIcon>
+                </controls:SettingsCard>
+
+                <!--  IP Security Policies on Local Computer  -->
+                <controls:SettingsCard
+                    Click="IPSecurity_Click"
+                    Description="{x:Bind LocalizedStrings.SecPol_IPSecurity_Description}"
+                    Header="{x:Bind LocalizedStrings.SecPol_IPSecurity_Header}"
+                    IsClickEnabled="True">
+                    <controls:SettingsCard.HeaderIcon>
+                        <FontIcon Glyph="&#xE705;" />
+                    </controls:SettingsCard.HeaderIcon>
+                </controls:SettingsCard>
+
+                <!--  System Audit Policies  -->
+                <controls:SettingsCard
+                    Click="SystemAudit_Click"
+                    Header="{x:Bind LocalizedStrings.SecPol_SystemAudit_Header}"
+                    IsClickEnabled="True">
+                    <controls:SettingsCard.HeaderIcon>
+                        <FontIcon Glyph="&#xF552;" />
+                    </controls:SettingsCard.HeaderIcon>
+                </controls:SettingsCard>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</Page>

@@ -1,25 +1,25 @@
-# Logging Technical Documentation
+﻿# Logging Technical Documentation
 
 ## Purpose
 
-ManagementTools uses one logging pipeline across UI and Core:
+OneMMC uses one logging pipeline across UI and Core:
 
 - abstraction: `Microsoft.Extensions.Logging`
 - provider: Serilog
-- file sink: `%LOCALAPPDATA%/ManagementTools/Logs/`
+- file sink: `%LOCALAPPDATA%/OneMMC/Logs/`
 - debug sink: custom `DebugOutputSink`
 
 The goal is predictable diagnostics without feature-specific logging patterns.
 
 ## Startup
 
-Logging is bootstrapped in `src/ManagementTools/Services/Logging/LoggingBootstrapper.cs`.
+Logging is bootstrapped in `src/OneMMC/Services/Logging/LoggingBootstrapper.cs`.
 
 Startup flow:
 
 1. Create the Serilog pipeline.
 2. Add `Microsoft.Extensions.Logging` to the service collection.
-3. Register Core services through `AddManagementToolsCore(...)`.
+3. Register Core services through `AddOneMMCCore(...)`.
 4. Register UI services and view models.
 5. Build the service provider.
 6. Enable the Trace bridge for legacy trace listeners.
@@ -48,8 +48,8 @@ interop helpers.
 
 - Core registration is explicit. Logging no longer relies on reflection-based
   auto-registration.
-- `ManagementTools.Core` now exposes a single public DI entrypoint:
-  `AddManagementToolsCore(this IServiceCollection services)`.
+- `OneMMC.Core` now exposes a single public DI entrypoint:
+  `AddOneMMCCore(this IServiceCollection services)`.
 - Windows-native capability services such as file dialogs and ACL editor integration
   live under `Infrastructure/WindowsCapabilities`.
 
@@ -58,8 +58,8 @@ interop helpers.
 Common checks after logging-related changes:
 
 ```powershell
-dotnet build src/ManagementTools/ManagementTools.csproj -p:Platform=x64
-rg \"Debug.WriteLine|Console.WriteLine|Trace.WriteLine\" src/ManagementTools src/ManagementTools.Core
+dotnet build src/OneMMC/OneMMC.csproj -p:Platform=x64
+rg \"Debug.WriteLine|Console.WriteLine|Trace.WriteLine\" src/OneMMC src/OneMMC.Core
 ```
 
 Expected result:

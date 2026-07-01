@@ -1,4 +1,4 @@
-# Directory Object Picker Service
+﻿# Directory Object Picker Service
 
 ## Overview
 
@@ -14,8 +14,8 @@ active window and pass an HWND to the service.
 
 | Item | Value |
 |---|---|
-| Service class | `src/ManagementTools.Core/Infrastructure/WindowsCapabilities/DirectoryObjectPickerService.cs` |
-| Namespace | `ManagementTools.Core.Infrastructure.WindowsCapabilities` |
+| Service class | `src/OneMMC.Core/Infrastructure/WindowsCapabilities/DirectoryObjectPickerService.cs` |
+| Namespace | `OneMMC.Core.Infrastructure.WindowsCapabilities` |
 | Result model | `DirectoryObject` |
 | Options type | `DirectoryObjectPickerOptions` |
 | Object type flags | `ObjectPickerTypes` |

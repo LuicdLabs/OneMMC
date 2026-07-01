@@ -1,8 +1,8 @@
-# Issues
+﻿# Issues
 
 ## Document Purpose
 
-This document tracks ManagementTools feature discrepancies from the original MMC and marks their current status.
+This document tracks OneMMC feature discrepancies from the original MMC and marks their current status.
 
 ---
 

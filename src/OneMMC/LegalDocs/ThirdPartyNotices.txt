@@ -1,0 +1,144 @@
+﻿THIRD-PARTY SOFTWARE ACKNOWLEDGEMENTS
+OneMMC — Windows OneMMC
+LuicdLabs
+Version 1.0
+
+========================================================================
+
+OneMMC incorporates third-party open-source software components.
+The following is a list of these components, their copyright holders, and
+their applicable license terms. Each component is used in accordance with
+the terms of its respective license.
+
+========================================================================
+
+MIT LICENSE COMPONENTS
+
+The following components are licensed under the MIT License:
+
+   CommunityToolkit.Mvvm 8.4.2
+   Copyright (c) .NET Foundation and Contributors
+   https://github.com/CommunityToolkit/dotnet
+
+   CommunityToolkit.WinUI.Controls.SettingsControls 8.2.251219
+   Copyright (c) .NET Foundation and Contributors
+   https://github.com/CommunityToolkit/Windows
+
+   CommunityToolkit.WinUI.Controls.Sizers 8.2.251219
+   Copyright (c) .NET Foundation and Contributors
+   https://github.com/CommunityToolkit/Windows
+
+   Microsoft.Extensions.DependencyInjection 10.0.8
+   Copyright (c) .NET Foundation and Contributors
+   https://github.com/dotnet/runtime
+
+   Microsoft.Extensions.Logging 10.0.8
+   Copyright (c) .NET Foundation and Contributors
+   https://github.com/dotnet/runtime
+
+   Microsoft.Management.Infrastructure 3.0.0
+   Copyright (c) .NET Foundation and Contributors
+
+   Microsoft.Windows.CsWin32 0.3.275
+   Copyright (c) Microsoft Corporation
+   https://github.com/microsoft/CsWin32
+
+   Microsoft.Windows.SDK.BuildTools 10.0.28000.1839
+   Copyright (c) Microsoft Corporation
+
+   Microsoft.WindowsAppSDK 2.1.3
+   Copyright (c) Microsoft Corporation
+   https://github.com/microsoft/WindowsAppSDK
+
+   System.Diagnostics.EventLog 10.0.8
+   Copyright (c) .NET Foundation and Contributors
+   https://github.com/dotnet/runtime
+
+   System.Diagnostics.PerformanceCounter 10.0.8
+   Copyright (c) .NET Foundation and Contributors
+   https://github.com/dotnet/runtime
+
+   System.Drawing.Common 10.0.8
+   Copyright (c) .NET Foundation and Contributors
+   https://github.com/dotnet/runtime
+
+   System.DirectoryServices 10.0.8
+   Copyright (c) .NET Foundation and Contributors
+   https://github.com/dotnet/runtime
+
+   System.DirectoryServices.AccountManagement 10.0.8
+   Copyright (c) .NET Foundation and Contributors
+   https://github.com/dotnet/runtime
+
+   System.Management 10.0.8
+   Copyright (c) .NET Foundation and Contributors
+   https://github.com/dotnet/runtime
+
+   System.ServiceProcess.ServiceController 10.0.8
+   Copyright (c) .NET Foundation and Contributors
+   https://github.com/dotnet/runtime
+
+   MIT License text:
+   https://opensource.org/licenses/MIT
+
+========================================================================
+
+APACHE 2.0 LICENSE COMPONENTS
+
+The following components are licensed under the Apache License, Version 2.0:
+
+   Serilog 4.3.1
+   Copyright (c) 2013-2025 Serilog Contributors
+   https://github.com/serilog/serilog
+
+   Serilog.Extensions.Logging 10.0.0
+   Copyright (c) 2014-2025 Serilog Contributors
+   https://github.com/serilog/serilog-extensions-logging
+
+   Serilog.Sinks.File 7.0.0
+   Copyright (c) 2014-2025 Serilog Contributors
+   https://github.com/serilog/serilog-sinks-file
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use these files except in compliance with the License.
+   You may obtain a copy of the License at:
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+
+========================================================================
+
+CREATIVE COMMONS ATTRIBUTION 4.0 INTERNATIONAL
+
+   Policy Plus
+   Copyright (c) Fleex255 and contributors
+   Source: https://github.com/Fleex255/PolicyPlus
+   License: Creative Commons Attribution 4.0 International (CC-BY-4.0)
+   License text: https://creativecommons.org/licenses/by/4.0/legalcode
+
+   Portions of the Group Policy parsing and policy source implementation in
+   OneMMC are adapted from Policy Plus. The adapted portions have
+   been modified for this project's C#/.NET codebase, WinUI 3 architecture,
+   and OneMMC feature organization. Policy Plus is not affiliated
+   with, sponsored by, or endorsed by LuicdLabs.
+
+========================================================================
+
+ADDITIONAL NOTES
+
+- The .NET runtime libraries listed above (System.* and Microsoft.Extensions.*)
+  are part of the .NET 10.0 SDK, which is licensed under the MIT License.
+
+- Windows App SDK and related Microsoft packages are licensed under the MIT
+  License as published by Microsoft Corporation.
+
+- For the full license text of any component, please visit the source URLs
+  listed above or open an issue at:
+  https://github.com/LuicdLabs/OneMMC/issues
+
+========================================================================

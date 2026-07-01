@@ -1,9 +1,9 @@
-<div style="display: flex; align-items: center; justify-content: left;">
+﻿<div style="display: flex; align-items: center; justify-content: left;">
   <picture>
     <img height="120" src="./doc/images/AppLogo.png" />
   </picture>
   <h1 style="margin-left: 16px;">
-    <span>Management Tools</span>
+    <span>OneMMC</span>
   </h1>
 </div>
 
@@ -56,19 +56,19 @@ A modern Windows system management suite built with WinUI 3, designed as a strea
 
 #### Clone the Repository
 ```bash
-git clone https://github.com/LuicdLabs/ManagementTools
+git clone https://github.com/LuicdLabs/OneMMC
 ```
 
 #### Open in Visual Studio
 - Navigate to **File → Open → Project/Solution**
-- Select the `ManagementTools.slnx` solution file
+- Select the `OneMMC.slnx` solution file
 
 #### Set Startup Project
 - Right‑click the solution in **Solution Explorer** → **Configure Startup Projects...**
 - Under **Configure Startup Projects**, select **Single startup project:**
-- From the dropdown, choose **ManagementTools**
+- From the dropdown, choose **OneMMC**
 - Click **OK**
 
 #### Switch to Unpackaged
-- In Toolbar, find the dropdown that says **ManagementTools (Package)** and change it to **ManagementTools (Unpackaged)**
+- In Toolbar, find the dropdown that says **OneMMC (Package)** and change it to **OneMMC (Unpackaged)**
 - Navigate to **Debug → Start Debugging** to build and run the application

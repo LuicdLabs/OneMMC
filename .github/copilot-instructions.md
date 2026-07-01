@@ -1,4 +1,4 @@
-# Copilot Instructions
+﻿# Copilot Instructions
 
 ## General Guidelines
 - **Naming Conventions**: Strictly follow the official [C# Coding Conventions](https://learn.microsoft.com/en-us/dotnet/csharp/fundamentals/coding-style/coding-conventions) and [.NET Runtime Coding Guidelines](https://github.com/dotnet/runtime/blob/main/docs/coding-guidelines/coding-style.md).
@@ -25,7 +25,7 @@
     - Any handwritten interop that remains must be centralized in a native wrapper/helper file and documented with the reason CsWin32 could not be used directly.
 
 ## Architecture Boundaries
-- **Core may reference Windows App SDK platform APIs**: `ManagementTools.Core` may reference `Microsoft.WindowsAppSDK` and `Microsoft.UI.*` only for reusable Windows-native services such as file/folder pickers, native OS dialogs, interop helpers, and image conversion helpers. Dependency still flows one way: UI → Core only.
+- **Core may reference Windows App SDK platform APIs**: `OneMMC.Core` may reference `Microsoft.WindowsAppSDK` and `Microsoft.UI.*` only for reusable Windows-native services such as file/folder pickers, native OS dialogs, interop helpers, and image conversion helpers. Dependency still flows one way: UI → Core only.
 - **ViewModel must not touch UI elements**: ViewModels in Core must not create or manipulate `ContentDialog`, `FrameworkElement`, `XamlRoot`, `DispatcherQueue`, `ElementTheme`, pages, windows, controls, or any presentation state. Expose state via observable properties; let the View decide how to present it.
 - **Features must not cross-reference each other**: A Feature (e.g. `PCManagement`) must not directly reference types from another Feature (e.g. `SystemManagement`). Share only through `Abstractions`.
 - **No direct `new` on Infrastructure classes from Features**: Features must depend on `Abstractions` interfaces only. Infrastructure implementations (e.g. `AdminService`) are resolved via DI — never instantiated directly with `new`.

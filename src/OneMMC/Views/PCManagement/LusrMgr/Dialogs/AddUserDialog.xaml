@@ -1,0 +1,63 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ContentDialog
+    x:Class="OneMMC.Views.LusrMgr.AddUserDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:muxc="using:Microsoft.UI.Xaml.Controls"
+    xmlns:local="using:OneMMC.Views.LusrMgr"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    CloseButtonText="{x:Bind LocalizedStrings.Common_CloseButton}"
+    PrimaryButtonText="{x:Bind LocalizedStrings.Common_CreateButton}"
+    DefaultButton="Primary"
+    Style="{StaticResource DefaultContentDialogStyle}">
+
+    <Grid MinWidth="400" MinHeight="500">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <TextBlock
+            Grid.Row="0"
+            Margin="0,0,0,12"
+            Style="{StaticResource SubtitleTextBlockStyle}"
+            Text="{x:Bind LocalizedStrings.LusrMgr_AddUser_Title}"
+            TextWrapping="Wrap" />
+
+        <!-- Content -->
+        <ScrollViewer Grid.Row="1">
+            <StackPanel Spacing="12">
+                <TextBlock Text="{x:Bind LocalizedStrings.LusrMgr_AddUser_UserName}" FontWeight="SemiBold" />
+                <TextBox x:Name="UserNameBox" />
+
+                <TextBlock Text="{x:Bind LocalizedStrings.LusrMgr_AddUser_FullName}" FontWeight="SemiBold" />
+                <TextBox x:Name="FullNameBox" />
+
+                <TextBlock Text="{x:Bind LocalizedStrings.LusrMgr_AddUser_Description}" FontWeight="SemiBold" />
+                <TextBox x:Name="DescriptionBox" />
+
+                <TextBlock Text="{x:Bind LocalizedStrings.LusrMgr_AddUser_Password}" FontWeight="SemiBold" />
+                <PasswordBox x:Name="PasswordBox" />
+
+                <TextBlock Text="{x:Bind LocalizedStrings.LusrMgr_AddUser_ConfirmPassword}" FontWeight="SemiBold" />
+                <PasswordBox x:Name="ConfirmPasswordBox" />
+
+                <StackPanel Spacing="8" Margin="0,12,0,0">
+                    <CheckBox x:Name="UserMustChangePasswordCheck" Content="{x:Bind LocalizedStrings.LusrMgr_AddUser_UserMustChangePassword}" Checked="OnPasswordOptionChanged" Unchecked="OnPasswordOptionChanged"/>
+                    <CheckBox x:Name="UserCannotChangePasswordCheck" Content="{x:Bind LocalizedStrings.LusrMgr_AddUser_UserCannotChangePassword}" Checked="OnPasswordOptionChanged" Unchecked="OnPasswordOptionChanged"/>
+                    <CheckBox x:Name="PasswordNeverExpiresCheck" Content="{x:Bind LocalizedStrings.LusrMgr_AddUser_PasswordNeverExpires}" Checked="OnPasswordOptionChanged" Unchecked="OnPasswordOptionChanged"/>
+                    <CheckBox x:Name="AccountDisabledCheck" Content="{x:Bind LocalizedStrings.LusrMgr_AddUser_AccountDisabled}"/>
+                </StackPanel>
+                <!-- Warning/info area for password option conflicts -->
+                <muxc:InfoBar x:Name="PasswordConflictInfo" Margin="0,4,0,0" IsOpen="False" IsClosable="True" Severity="Warning">
+                    <muxc:InfoBar.Content>
+                        <TextBlock Text="{x:Bind LocalizedStrings.LusrMgr_AddUser_PasswordConflict}" TextWrapping="Wrap"/>
+                    </muxc:InfoBar.Content>
+                </muxc:InfoBar>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</ContentDialog>

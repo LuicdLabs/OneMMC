@@ -1,0 +1,224 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<!--
+    TaskSchedulerPage — modern taskschd.msc replacement (main view).
+    Bound to TaskSchedulerViewModel (Core) over the native Task Scheduler 2.0 COM backend.
+    Double-tapping a task opens TaskPropertiesPage.
+-->
+<Page
+	x:Class="OneMMC.Views.PCManagement.TaskSchedulerPage"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:converters="using:OneMMC.Converters"
+	xmlns:cwuc="using:CommunityToolkit.WinUI.Controls"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:local="using:OneMMC.Views.PCManagement"
+	xmlns:localization="using:OneMMC.Localization"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:vm="using:OneMMC.Core.Features.PCManagement.ViewModels.TaskSchd"
+	mc:Ignorable="d">
+
+	<Page.Resources>
+		<localization:LocalizedStrings x:Key="LocalizedStrings" />
+		<converters:NullToBoolConverter x:Key="NullToBoolConverter" />
+
+		<!--  Secondary (subtitle) text inside list rows  -->
+		<Style x:Key="SecondaryTextStyle" TargetType="TextBlock">
+			<Setter Property="Foreground" Value="{ThemeResource TextFillColorSecondaryBrush}" />
+			<Setter Property="FontSize" Value="12" />
+		</Style>
+	</Page.Resources>
+
+	<Grid>
+		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto" />
+			<RowDefinition Height="*" />
+		</Grid.RowDefinitions>
+
+		<!--  CommandBar  -->
+		<CommandBar Grid.Row="0" DefaultLabelPosition="Right">
+			<AppBarButton
+				x:Name="CreateTaskButton"
+				Click="CreateTaskButton_Click"
+				Icon="Add"
+				Label="{x:Bind LocalizedStrings.TaskSchd_Command_CreateTask}" />
+			<AppBarButton
+				Command="{x:Bind ViewModel.RefreshCommand}"
+				Icon="Refresh"
+				Label="{x:Bind LocalizedStrings.TaskSchd_Command_Refresh}" />
+			<AppBarSeparator />
+
+			<!--  Disable / Enable: single toggle (glyph + label swap in code-behind).  -->
+			<AppBarButton
+				x:Name="DisableEnableButton"
+				Click="DisableEnableButton_Click"
+				IsEnabled="{x:Bind ViewModel.HasSelectedTask, Mode=OneWay}"
+				Label="{x:Bind LocalizedStrings.TaskSchd_Command_Disable}">
+				<AppBarButton.Icon>
+					<FontIcon x:Name="DisableEnableIcon" Glyph="&#xE769;" />
+				</AppBarButton.Icon>
+			</AppBarButton>
+
+			<AppBarButton
+				x:Name="PropertiesButton"
+				Click="PropertiesButton_Click"
+				IsEnabled="{x:Bind ViewModel.HasSelectedTask, Mode=OneWay}"
+				Label="{x:Bind LocalizedStrings.TaskSchd_Command_Properties}">
+				<AppBarButton.Icon>
+					<FontIcon Glyph="&#xE90F;" />
+				</AppBarButton.Icon>
+			</AppBarButton>
+
+			<AppBarButton Label="{x:Bind LocalizedStrings.TaskSchd_Command_More}" LabelPosition="Collapsed">
+				<AppBarButton.Icon>
+					<FontIcon Glyph="&#xE712;" />
+				</AppBarButton.Icon>
+				<AppBarButton.Flyout>
+					<MenuFlyout>
+						<MenuFlyoutItem
+							x:Name="RunEndMenuItem"
+							Click="RunEndMenuItem_Click"
+							IsEnabled="{x:Bind ViewModel.HasSelectedTask, Mode=OneWay}"
+							Text="{x:Bind LocalizedStrings.TaskSchd_Command_Run}">
+							<MenuFlyoutItem.Icon>
+								<FontIcon x:Name="RunEndIcon" Glyph="&#xE768;" />
+							</MenuFlyoutItem.Icon>
+						</MenuFlyoutItem>
+						<MenuFlyoutItem
+							Click="ExportTask_Click"
+							IsEnabled="{x:Bind ViewModel.HasSelectedTask, Mode=OneWay}"
+							Text="{x:Bind LocalizedStrings.TaskSchd_Command_ExportTask}">
+							<MenuFlyoutItem.Icon>
+								<FontIcon Glyph="&#xEDE1;" />
+							</MenuFlyoutItem.Icon>
+						</MenuFlyoutItem>
+						<MenuFlyoutItem
+							Click="DeleteTask_Click"
+							IsEnabled="{x:Bind ViewModel.HasSelectedTask, Mode=OneWay}"
+							Text="{x:Bind LocalizedStrings.TaskSchd_Command_Delete}">
+							<MenuFlyoutItem.Icon>
+								<FontIcon Glyph="&#xE74D;" />
+							</MenuFlyoutItem.Icon>
+						</MenuFlyoutItem>
+						<MenuFlyoutSeparator />
+						<MenuFlyoutItem
+							Click="NewFolder_Click"
+							IsEnabled="{x:Bind ViewModel.IsFolderSelected, Mode=OneWay}"
+							Text="{x:Bind LocalizedStrings.TaskSchd_Command_NewFolder}">
+							<MenuFlyoutItem.Icon>
+								<FontIcon Glyph="&#xE8F4;" />
+							</MenuFlyoutItem.Icon>
+						</MenuFlyoutItem>
+						<MenuFlyoutItem
+							Click="ImportTask_Click"
+							IsEnabled="{x:Bind ViewModel.IsFolderSelected, Mode=OneWay}"
+							Text="{x:Bind LocalizedStrings.TaskSchd_Command_ImportTask}">
+							<MenuFlyoutItem.Icon>
+								<FontIcon Glyph="&#xE8B5;" />
+							</MenuFlyoutItem.Icon>
+						</MenuFlyoutItem>
+						<MenuFlyoutItem
+							Click="DeleteFolder_Click"
+							IsEnabled="{x:Bind ViewModel.IsNonRootFolderSelected, Mode=OneWay}"
+							Text="{x:Bind LocalizedStrings.TaskSchd_Command_DeleteFolder}">
+							<MenuFlyoutItem.Icon>
+								<FontIcon Glyph="&#xE74D;" />
+							</MenuFlyoutItem.Icon>
+						</MenuFlyoutItem>
+						<MenuFlyoutSeparator />
+						<MenuFlyoutItem Click="ConnectComputer_Click" Text="{x:Bind LocalizedStrings.TaskSchd_Command_ConnectComputer}">
+							<MenuFlyoutItem.Icon>
+								<FontIcon Glyph="&#xE968;" />
+							</MenuFlyoutItem.Icon>
+						</MenuFlyoutItem>
+						<MenuFlyoutItem x:Name="HistoryToggleMenuItem" Click="ToggleAllHistory_Click" Text="{x:Bind LocalizedStrings.TaskSchd_Command_EnableAllHistory}">
+							<MenuFlyoutItem.Icon>
+								<FontIcon Glyph="&#xE81C;" />
+							</MenuFlyoutItem.Icon>
+						</MenuFlyoutItem>
+					</MenuFlyout>
+				</AppBarButton.Flyout>
+			</AppBarButton>
+		</CommandBar>
+
+		<!--  Content: TreeView | ContentSizer | task list  -->
+		<Grid Grid.Row="1">
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="Auto" />
+				<ColumnDefinition Width="Auto" />
+				<ColumnDefinition Width="*" MinWidth="320" />
+			</Grid.ColumnDefinitions>
+
+			<Border
+				x:Name="TreePanel"
+				Grid.Column="0"
+				Width="280"
+				MinWidth="200"
+				BorderBrush="Transparent"
+				BorderThickness="0,0,1,0">
+				<!--
+					Explicit TreeViewNode hierarchy (RootNodes built in code-behind), matching the
+					other management trees in this app (RSoP, GpEdit, SecPol). The data-bound
+					ItemsSource + TreeViewItem-template approach corrupts single-selection visuals,
+					so the node content is a plain template bound to TreeViewNode.Content.
+				-->
+				<TreeView
+					x:Name="LibraryTreeView"
+					AllowDrop="False"
+					CanDragItems="False"
+					CanReorderItems="False"
+					ItemInvoked="LibraryTreeView_ItemInvoked"
+					SelectionChanged="LibraryTreeView_SelectionChanged"
+					SelectionMode="Single">
+					<TreeView.ItemTemplate>
+						<DataTemplate>
+							<Grid MinHeight="36">
+								<TextBlock VerticalAlignment="Center" Text="{Binding Content.Name}" />
+							</Grid>
+						</DataTemplate>
+					</TreeView.ItemTemplate>
+				</TreeView>
+			</Border>
+
+			<cwuc:ContentSizer
+				Grid.Column="1"
+				Width="12"
+				TargetControl="{x:Bind TreePanel}" />
+
+			<Grid Grid.Column="2">
+				<Grid.RowDefinitions>
+					<RowDefinition Height="Auto" />
+					<RowDefinition Height="*" />
+				</Grid.RowDefinitions>
+
+				<AutoSuggestBox
+					x:Name="SearchBox"
+					Grid.Row="0"
+					Margin="12,12,12,8"
+					PlaceholderText="Search"
+					QueryIcon="Find"
+					TextChanged="SearchBox_TextChanged" />
+
+				<ListView
+					x:Name="TasksListView"
+					Grid.Row="1"
+					Margin="12,0,12,12"
+					DoubleTapped="TasksListView_DoubleTapped"
+					ItemsSource="{x:Bind ViewModel.Tasks, Mode=OneWay}"
+					SelectedItem="{x:Bind ViewModel.SelectedTask, Mode=TwoWay}"
+					SelectionMode="Single">
+					<ListView.ItemTemplate>
+						<DataTemplate x:DataType="vm:TaskListItem">
+							<StackPanel Padding="4,8" Spacing="2">
+								<TextBlock Style="{StaticResource BodyStrongTextBlockStyle}" Text="{x:Bind Name, Mode=OneWay}" />
+								<TextBlock
+									Style="{StaticResource SecondaryTextStyle}"
+									Text="{x:Bind StatusLine, Mode=OneWay}"
+									TextTrimming="CharacterEllipsis" />
+							</StackPanel>
+						</DataTemplate>
+					</ListView.ItemTemplate>
+				</ListView>
+			</Grid>
+		</Grid>
+	</Grid>
+</Page>

@@ -1,0 +1,96 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Page
+    x:Class="OneMMC.Views.ConnectionSecurityRulesPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:OneMMC.Localization"
+    xmlns:controls="using:CommunityToolkit.WinUI.Controls"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Page.Resources>
+        <local:LocalizedStrings x:Key="LocalizedStrings" />
+    </Page.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!--  Search and CommandBar  -->
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <AutoSuggestBox
+                x:Name="SearchBox"
+                Grid.Column="0"
+                MinWidth="300"
+                Margin="12,8,12,8"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Center"
+                PlaceholderText="{x:Bind LocalizedStrings.WF_SearchRules}"
+                QueryIcon="Find"
+                TextChanged="SearchBox_TextChanged" />
+
+            <CommandBar Grid.Column="1" DefaultLabelPosition="Right">
+                <AppBarButton
+                    x:Name="AddRuleButton"
+                    Click="AddRuleButton_Click"
+                    Icon="Add"
+                    Label="{x:Bind LocalizedStrings.WF_NewRule}" />
+                <AppBarButton
+                    Click="RefreshButton_Click"
+                    Icon="Refresh"
+                    Label="{x:Bind LocalizedStrings.Common_Refresh}" />
+                <AppBarButton Icon="More" />
+            </CommandBar>
+        </Grid>
+
+        <!--  Rules List  -->
+        <Grid Grid.Row="1">
+            <ScrollViewer>
+                <ItemsRepeater
+                    x:Name="RulesRepeater"
+                    Margin="12"
+                    ItemsSource="{x:Bind ViewModel.FilteredRules, Mode=OneWay}">
+                    <ItemsRepeater.Layout>
+                        <StackLayout Spacing="4" />
+                    </ItemsRepeater.Layout>
+                    <ItemsRepeater.ItemTemplate>
+                        <DataTemplate>
+                            <controls:SettingsCard
+                                Click="RuleCard_Click"
+                                Description="{Binding Summary}"
+                                Header="{Binding Name}"
+                                IsClickEnabled="True"
+                                Tag="{Binding}">
+                                <ToggleSwitch
+                                    Tag="{Binding}"
+                                    IsOn="{Binding IsEnabled, Mode=OneWay}"
+                                    Loaded="RuleToggleSwitch_Loaded"
+                                    OffContent=""
+                                    OnContent="{Binding WF_State_On, Source={StaticResource LocalizedStrings}}"
+                                    Toggled="RuleToggleSwitch_Toggled"
+                                    Unloaded="RuleToggleSwitch_Unloaded" />
+                            </controls:SettingsCard>
+                        </DataTemplate>
+                    </ItemsRepeater.ItemTemplate>
+                </ItemsRepeater>
+            </ScrollViewer>
+
+            <!--  Loading Indicator  -->
+            <ProgressRing
+                x:Name="LoadingRing"
+                Width="50"
+                Height="50"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                IsActive="{x:Bind ViewModel.IsLoading, Mode=OneWay}" />
+        </Grid>
+    </Grid>
+</Page>

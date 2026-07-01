@@ -1,0 +1,458 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Page
+    x:Class="OneMMC.Views.DiskManagementPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:CommunityToolkit.WinUI.Controls"
+    xmlns:converters="using:OneMMC.Converters"
+    xmlns:core="using:OneMMC.Core.Features.PCManagement.Models.DiskMgmt"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:OneMMC.Views"
+    xmlns:localization="using:OneMMC.Localization"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    x:Name="DiskManagementPageRoot"
+    mc:Ignorable="d">
+
+    <Page.Resources>
+        <localization:LocalizedStrings x:Key="LocalizedStrings" />
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+
+        <!--  Physical Disk Template  -->
+        <DataTemplate x:Key="PhysicalDiskTemplate" x:DataType="core:PhysicalDiskInfo">
+            <controls:SettingsExpander
+                Description="{x:Bind StatusLine}"
+                Header="{x:Bind DisplayName}"
+                IsExpanded="False"
+                ItemsSource="{x:Bind PartitionInfos}">
+                <controls:SettingsExpander.HeaderIcon>
+                    <FontIcon Glyph="&#xEDA2;" />
+                </controls:SettingsExpander.HeaderIcon>
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <TextBlock
+                        VerticalAlignment="Center"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Text="{x:Bind FormattedSize}" />
+                    <TextBlock
+                        VerticalAlignment="Center"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Text="|" />
+                    <TextBlock
+                        VerticalAlignment="Center"
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Text="{x:Bind PartitionStyle}" />
+                    <Button Style="{StaticResource SubtleButtonStyle}" ToolTipService.ToolTip="More options">
+                        <FontIcon FontSize="14" Glyph="&#xE712;" />
+                        <Button.Flyout>
+                            <MenuFlyout>
+                                <MenuFlyoutItem
+                                    Click="DiskPropertiesButton_Click"
+                                    Tag="{x:Bind}"
+                                    Text="{Binding DiskMgmt_Properties, Source={StaticResource LocalizedStrings}}">
+                                    <MenuFlyoutItem.Icon>
+                                        <FontIcon Glyph="&#xE946;" />
+                                    </MenuFlyoutItem.Icon>
+                                </MenuFlyoutItem>
+                                <MenuFlyoutSeparator />
+                                <MenuFlyoutItem
+                                    Click="InitializeDiskButton_Click"
+                                    Tag="{x:Bind}"
+                                    Text="{Binding DiskMgmt_InitializeDisk, Source={StaticResource LocalizedStrings}}">
+                                </MenuFlyoutItem>
+                                <MenuFlyoutItem
+                                    Click="CreateSimpleVolumeButton_Click"
+                                    Tag="{x:Bind}"
+                                    Text="{Binding DiskMgmt_CreateSimpleVolume, Source={StaticResource LocalizedStrings}}">
+                                    <MenuFlyoutItem.Icon>
+                                        <FontIcon Glyph="&#xE710;" />
+                                    </MenuFlyoutItem.Icon>
+                                </MenuFlyoutItem>
+                                <MenuFlyoutSeparator />
+                                <MenuFlyoutItem
+                                    Click="SetDiskOnlineButton_Click"
+                                    Tag="{x:Bind}"
+                                    Text="{Binding DiskMgmt_Online, Source={StaticResource LocalizedStrings}}">
+                                    <MenuFlyoutItem.Icon>
+                                        <FontIcon Glyph="&#xE8CE;" />
+                                    </MenuFlyoutItem.Icon>
+                                </MenuFlyoutItem>
+                                <MenuFlyoutItem
+                                    Click="SetDiskOfflineButton_Click"
+                                    Tag="{x:Bind}"
+                                    Text="{Binding DiskMgmt_Offline, Source={StaticResource LocalizedStrings}}">
+                                    <MenuFlyoutItem.Icon>
+                                        <FontIcon Glyph="&#xE8CD;" />
+                                    </MenuFlyoutItem.Icon>
+                                </MenuFlyoutItem>
+                                <MenuFlyoutItem
+                                    Click="SetDiskReadOnlyButton_Click"
+                                    Tag="{x:Bind}"
+                                    Text="{Binding DiskMgmt_SetReadOnly, Source={StaticResource LocalizedStrings}}">
+                                </MenuFlyoutItem>
+                                <MenuFlyoutItem
+                                    Click="ClearDiskReadOnlyButton_Click"
+                                    Tag="{x:Bind}"
+                                    Text="{Binding DiskMgmt_ClearReadOnly, Source={StaticResource LocalizedStrings}}">
+                                </MenuFlyoutItem>
+                                <MenuFlyoutSeparator />
+                                <MenuFlyoutItem
+                                    Click="CleanDiskButton_Click"
+                                    Tag="{x:Bind}"
+                                    Text="{Binding DiskMgmt_CleanDisk, Source={StaticResource LocalizedStrings}}">
+                                    <MenuFlyoutItem.Icon>
+                                        <FontIcon Foreground="Red" Glyph="&#xE74D;" />
+                                    </MenuFlyoutItem.Icon>
+                                </MenuFlyoutItem>
+                            </MenuFlyout>
+                        </Button.Flyout>
+                    </Button>
+                </StackPanel>
+                <controls:SettingsExpander.ItemTemplate>
+                    <DataTemplate x:DataType="core:PartitionInfo">
+                        <controls:SettingsCard Header="{x:Bind DisplayName}" Tag="{x:Bind}">
+                            <controls:SettingsCard.Description>
+                                <StackPanel Spacing="4">
+                                    <TextBlock Text="{x:Bind StatusLine}" />
+                                    <!--  Warning indicator for critical system partitions  -->
+                                    <StackPanel
+                                        Orientation="Horizontal"
+                                        Spacing="4"
+                                        Visibility="{x:Bind IsImportantPartition, Converter={StaticResource BoolToVisibilityConverter}}">
+                                        <FontIcon
+                                            FontSize="12"
+                                            Foreground="{ThemeResource SystemFillColorCautionBrush}"
+                                            Glyph="&#xE7BA;" />
+                                        <TextBlock
+                                            FontSize="12"
+                                            Foreground="{ThemeResource SystemFillColorCautionBrush}"
+                                            Text="{Binding DiskMgmt_SystemProtected, Source={StaticResource LocalizedStrings}}" />
+                                    </StackPanel>
+                                    <Grid Visibility="{x:Bind HasDriveLetter, Converter={StaticResource BoolToVisibilityConverter}}">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <ProgressBar
+                                            Grid.Column="0"
+                                            Height="4"
+                                            Margin="0,4,8,0"
+                                            CornerRadius="2"
+                                            Maximum="100"
+                                            Value="{x:Bind UsagePercentage}" />
+                                        <TextBlock
+                                            Grid.Column="1"
+                                            VerticalAlignment="Center"
+                                            FontSize="12"
+                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                            Text="{x:Bind FormattedFreeSpace}" />
+                                    </Grid>
+                                </StackPanel>
+                            </controls:SettingsCard.Description>
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <Button
+                                    Click="OpenInExplorerButton_Click"
+                                    Style="{StaticResource SubtleButtonStyle}"
+                                    Tag="{x:Bind}"
+                                    ToolTipService.ToolTip="{Binding DiskMgmt_OpenInFileExplorer, Source={StaticResource LocalizedStrings}}"
+                                    Visibility="{x:Bind HasDriveLetter, Converter={StaticResource BoolToVisibilityConverter}}">
+                                    <FontIcon FontSize="14" Glyph="&#xEC50;" />
+                                </Button>
+                                <Button Style="{StaticResource SubtleButtonStyle}" ToolTipService.ToolTip="{Binding Common_MoreOptionsTooltip, Source={StaticResource LocalizedStrings}}">
+                                    <FontIcon FontSize="14" Glyph="&#xE712;" />
+                                    <Button.Flyout>
+                                        <MenuFlyout>
+                                            <MenuFlyoutItem
+                                                Click="CreateVolumeOnUnallocated_Click"
+                                                Tag="{x:Bind}"
+                                                Text="{Binding DiskMgmt_NewSimpleVolume, Source={StaticResource LocalizedStrings}}"
+                                                Visibility="{x:Bind IsUnallocated, Converter={StaticResource BoolToVisibilityConverter}}">
+                                                <MenuFlyoutItem.Icon>
+                                                    <FontIcon Glyph="&#xE710;" />
+                                                </MenuFlyoutItem.Icon>
+                                            </MenuFlyoutItem>
+                                            <MenuFlyoutItem
+                                                Click="OpenInExplorerButton_Click"
+                                                Tag="{x:Bind}"
+                                                Text="{Binding DiskMgmt_OpenInFileExplorer, Source={StaticResource LocalizedStrings}}"
+                                                Visibility="{x:Bind HasDriveLetter, Converter={StaticResource BoolToVisibilityConverter}}">
+                                                <MenuFlyoutItem.Icon>
+                                                    <FontIcon Glyph="&#xEC50;" />
+                                                </MenuFlyoutItem.Icon>
+                                            </MenuFlyoutItem>
+                                            <MenuFlyoutItem
+                                                Click="PartitionPropertiesButton_Click"
+                                                Tag="{x:Bind}"
+                                                Text="{Binding DiskMgmt_Properties, Source={StaticResource LocalizedStrings}}"
+                                                Visibility="{x:Bind IsAllocated, Converter={StaticResource BoolToVisibilityConverter}}">
+                                                <MenuFlyoutItem.Icon>
+                                                    <FontIcon Glyph="&#xE946;" />
+                                                </MenuFlyoutItem.Icon>
+                                            </MenuFlyoutItem>
+                                            <MenuFlyoutSeparator Visibility="{x:Bind IsAllocated, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                            <MenuFlyoutItem
+                                                Click="ManageDriveLetterButton_Click"
+                                                IsEnabled="{x:Bind AllowDriveLetterOperations}"
+                                                Tag="{x:Bind}"
+                                                Text="{Binding DiskMgmt_ManageDriveLetter, Source={StaticResource LocalizedStrings}}"
+                                                Visibility="{x:Bind AllowDriveLetterOperations, Converter={StaticResource BoolToVisibilityConverter}}">
+                                                <MenuFlyoutItem.Icon>
+                                                    <FontIcon Glyph="&#xE8AC;" />
+                                                </MenuFlyoutItem.Icon>
+                                            </MenuFlyoutItem>
+                                            <MenuFlyoutItem
+                                                Click="RemoveDriveLetterButton_Click"
+                                                IsEnabled="{x:Bind AllowDriveLetterOperations}"
+                                                Tag="{x:Bind}"
+                                                Text="{Binding DiskMgmt_RemoveDriveLetter, Source={StaticResource LocalizedStrings}}"
+                                                Visibility="{x:Bind HasDriveLetter, Converter={StaticResource BoolToVisibilityConverter}}">
+                                                <MenuFlyoutItem.Icon>
+                                                    <FontIcon Glyph="&#xE738;" />
+                                                </MenuFlyoutItem.Icon>
+                                            </MenuFlyoutItem>
+                                            <MenuFlyoutItem
+                                                Click="MountToFolderButton_Click"
+                                                Tag="{x:Bind}"
+                                                Text="{Binding DiskMgmt_MountToFolder, Source={StaticResource LocalizedStrings}}"
+                                                Visibility="{x:Bind HasDriveLetter, Converter={StaticResource BoolToVisibilityConverter}}">
+                                                <MenuFlyoutItem.Icon>
+                                                    <FontIcon Glyph="&#xE8B7;" />
+                                                </MenuFlyoutItem.Icon>
+                                            </MenuFlyoutItem>
+                                            <MenuFlyoutSeparator Visibility="{x:Bind HasDriveLetter, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                            <MenuFlyoutItem
+                                                Click="ExtendVolumeButton_Click"
+                                                Tag="{x:Bind}"
+                                                Text="{Binding DiskMgmt_ExtendVolume, Source={StaticResource LocalizedStrings}}"
+                                                Visibility="{x:Bind HasDriveLetter, Converter={StaticResource BoolToVisibilityConverter}}">
+                                                <MenuFlyoutItem.Icon>
+                                                    <FontIcon Glyph="&#xE8B1;" />
+                                                </MenuFlyoutItem.Icon>
+                                            </MenuFlyoutItem>
+                                            <MenuFlyoutItem
+                                                Click="ShrinkVolumeButton_Click"
+                                                Tag="{x:Bind}"
+                                                Text="{Binding DiskMgmt_ShrinkVolume, Source={StaticResource LocalizedStrings}}"
+                                                Visibility="{x:Bind HasDriveLetter, Converter={StaticResource BoolToVisibilityConverter}}">
+                                                <MenuFlyoutItem.Icon>
+                                                    <FontIcon Glyph="&#xE71F;" />
+                                                </MenuFlyoutItem.Icon>
+                                            </MenuFlyoutItem>
+                                            <MenuFlyoutSeparator Visibility="{x:Bind HasDriveLetter, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                            <MenuFlyoutItem
+                                                Click="FormatVolumeButton_Click"
+                                                IsEnabled="{x:Bind AllowDangerousOperations}"
+                                                Tag="{x:Bind}"
+                                                Text="{Binding DiskMgmt_Format, Source={StaticResource LocalizedStrings}}"
+                                                Visibility="{x:Bind HasDriveLetter, Converter={StaticResource BoolToVisibilityConverter}}">
+                                                <MenuFlyoutItem.Icon>
+                                                    <FontIcon Glyph="&#xEBC4;" />
+                                                </MenuFlyoutItem.Icon>
+                                            </MenuFlyoutItem>
+                                            <MenuFlyoutItem
+                                                Click="MarkPartitionActiveButton_Click"
+                                                Tag="{x:Bind}"
+                                                Text="{Binding DiskMgmt_MarkAsActive, Source={StaticResource LocalizedStrings}}"
+                                                Visibility="{x:Bind IsAllocated, Converter={StaticResource BoolToVisibilityConverter}}">
+                                                <MenuFlyoutItem.Icon>
+                                                    <FontIcon Glyph="&#xE73E;" />
+                                                </MenuFlyoutItem.Icon>
+                                            </MenuFlyoutItem>
+                                            <MenuFlyoutSeparator Visibility="{x:Bind IsAllocated, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                            <MenuFlyoutItem
+                                                Click="DeleteVolumeButton_Click"
+                                                IsEnabled="{x:Bind AllowDangerousOperations}"
+                                                Tag="{x:Bind}"
+                                                Text="{Binding DiskMgmt_DeleteVolume, Source={StaticResource LocalizedStrings}}"
+                                                Visibility="{x:Bind IsAllocated, Converter={StaticResource BoolToVisibilityConverter}}">
+                                                <MenuFlyoutItem.Icon>
+                                                    <FontIcon Foreground="Red" Glyph="&#xE74D;" />
+                                                </MenuFlyoutItem.Icon>
+                                            </MenuFlyoutItem>
+                                        </MenuFlyout>
+                                    </Button.Flyout>
+                                </Button>
+                            </StackPanel>
+                        </controls:SettingsCard>
+                    </DataTemplate>
+                </controls:SettingsExpander.ItemTemplate>
+            </controls:SettingsExpander>
+        </DataTemplate>
+
+        <!--  CD-ROM Template  -->
+        <DataTemplate x:Key="CDROMTemplate" x:DataType="core:CDROMInfo">
+            <controls:SettingsExpander
+                Description="{x:Bind StatusLine}"
+                Header="{x:Bind Caption}"
+                IsExpanded="False">
+                <controls:SettingsExpander.HeaderIcon>
+                    <FontIcon Glyph="&#xE958;" />
+                </controls:SettingsExpander.HeaderIcon>
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <Button
+                        MinWidth="120"
+                        Click="EjectCDROMButton_Click"
+                        Content="{Binding DiskMgmt_Eject, Source={StaticResource LocalizedStrings}}"
+                        Tag="{x:Bind}"
+                        ToolTipService.ToolTip="{Binding DiskMgmt_EjectDiscTray, Source={StaticResource LocalizedStrings}}" />
+                    <Button
+                        MinWidth="120"
+                        Click="CDROMPropertiesButton_Click"
+                        Content="{Binding DiskMgmt_Properties, Source={StaticResource LocalizedStrings}}"
+                        Tag="{x:Bind}" />
+                </StackPanel>
+                <controls:SettingsExpander.Items>
+                    <controls:SettingsCard Description="{x:Bind Drive}" Header="{x:Bind DisplayStatus}">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <TextBlock
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Text="{x:Bind FormattedSize}"
+                                Visibility="{x:Bind MediaLoaded, Converter={StaticResource BoolToVisibilityConverter}}" />
+                            <Button
+                                MinWidth="120"
+                                Click="ManageCDROMDriveLetterButton_Click"
+                                Content="{Binding DiskMgmt_ManageDriveLetter, Source={StaticResource LocalizedStrings}}"
+                                Tag="{x:Bind}" />
+                        </StackPanel>
+                    </controls:SettingsCard>
+                </controls:SettingsExpander.Items>
+            </controls:SettingsExpander>
+        </DataTemplate>
+
+        <!--  Template Selector  -->
+        <converters:DiskItemTemplateSelector
+            x:Key="DiskItemTemplateSelector"
+            CDROMTemplate="{StaticResource CDROMTemplate}"
+            PhysicalDiskTemplate="{StaticResource PhysicalDiskTemplate}" />
+    </Page.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!--  Main Content  -->
+        <ScrollViewer Grid.Row="1">
+            <StackPanel Padding="24,24,24,24">
+
+                <!--  VHD Section  -->
+                <controls:SettingsCard Description="{x:Bind LocalizedStrings.DiskMgmt_VirtualHardDiskDescription}" Header="{x:Bind LocalizedStrings.DiskMgmt_VirtualHardDisk}">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <Button
+                            x:Name="CreateVHDButton"
+                            MinWidth="120"
+                            Click="CreateVHDButton_Click"
+                            Content="{x:Bind LocalizedStrings.Common_CreateButton}" />
+                        <DropDownButton
+                            x:Name="VHDOperationsButton"
+                            MinWidth="120"
+                            Content="{x:Bind LocalizedStrings.DiskMgmt_VHDOperations}">
+                            <DropDownButton.Flyout>
+                                <MenuFlyout>
+                                    <MenuFlyoutItem Click="AttachVHDButton_Click" Text="{x:Bind LocalizedStrings.DiskMgmt_Attach}" />
+                                    <MenuFlyoutItem Click="DetachVHDButton_Click" Text="{x:Bind LocalizedStrings.DiskMgmt_Detach}" />
+                                </MenuFlyout>
+                            </DropDownButton.Flyout>
+                        </DropDownButton>
+                    </StackPanel>
+                </controls:SettingsCard>
+
+                <!--  Disk Count and Refresh Bar  -->
+                <Grid Margin="0,16,0,16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock
+                        x:Name="DriveCountText"
+                        Grid.Column="0"
+                        VerticalAlignment="Center"
+                        FontWeight="SemiBold"
+                        Text="{x:Bind ViewModel.DriveCountText, Mode=OneWay}" />
+
+                    <StackPanel
+                        Grid.Column="1"
+                        Orientation="Horizontal"
+                        Spacing="4">
+                        <Button
+                            x:Name="RefreshButton"
+                            Click="RefreshButton_Click"
+                            Style="{StaticResource SubtleButtonStyle}"
+                            ToolTipService.ToolTip="{x:Bind LocalizedStrings.Common_Refresh}">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <FontIcon FontSize="14" Glyph="&#xE72C;" />
+                                <TextBlock Text="{x:Bind LocalizedStrings.Common_Refresh}" />
+                            </StackPanel>
+                        </Button>
+                        <Button
+                            x:Name="MoreOptionsButton"
+                            Style="{StaticResource SubtleButtonStyle}"
+                            ToolTipService.ToolTip="{x:Bind LocalizedStrings.Common_MoreOptionsTooltip}">
+                            <FontIcon FontSize="14" Glyph="&#xE712;" />
+                            <Button.Flyout>
+                                <MenuFlyout>
+                                    <MenuFlyoutItem Click="OpenDiskMgmtButton_Click" Text="{x:Bind LocalizedStrings.DiskMgmt_OpenDiskManagement}">
+                                        <MenuFlyoutItem.Icon>
+                                            <FontIcon Glyph="&#xE8A7;" />
+                                        </MenuFlyoutItem.Icon>
+                                    </MenuFlyoutItem>
+                                </MenuFlyout>
+                            </Button.Flyout>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+
+                <!--  All Disks List (Physical Disks + CD-ROM)  -->
+                <ListView
+                    x:Name="DisksListView"
+                    ItemTemplateSelector="{StaticResource DiskItemTemplateSelector}"
+                    ItemsSource="{x:Bind ViewModel.AllDiskItems, Mode=OneWay}"
+                    SelectionMode="None">
+                    <ListView.ItemContainerStyle>
+                        <Style TargetType="ListViewItem">
+                            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                            <Setter Property="Padding" Value="0" />
+                            <Setter Property="Margin" Value="0,0,0,4" />
+                        </Style>
+                    </ListView.ItemContainerStyle>
+                </ListView>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!--  Loading Overlay  -->
+        <Grid
+            Grid.Row="1"
+            Visibility="{x:Bind ViewModel.IsLoading, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}"
+            Background="Transparent">
+            <ProgressBar
+                Margin="24,0"
+                VerticalAlignment="Top"
+                IsIndeterminate="True" />
+        </Grid>
+
+        <!--  Status Bar  -->
+        <Grid
+            Grid.Row="2"
+            Padding="24,8"
+            BorderBrush="{ThemeResource DividerStrokeColorDefaultBrush}"
+            BorderThickness="0,1,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <TextBlock
+                x:Name="StatusText"
+                Grid.Column="0"
+                VerticalAlignment="Center"
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                Text="{x:Bind ViewModel.StatusMessage, Mode=OneWay}" />
+            <ProgressRing
+                Grid.Column="1"
+                Width="20"
+                Height="20"
+                Margin="12,0,0,0"
+                IsActive="{x:Bind ViewModel.IsLoading, Mode=OneWay}" />
+        </Grid>
+    </Grid>
+</Page>

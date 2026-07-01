@@ -1,8 +1,8 @@
-# Unified Administrator Detection System
+﻿# Unified Administrator Detection System
 
 ## Overview
 
-ManagementTools uses a **Unified Administrator Detection System** to ensure that all features requiring elevated privileges maintain consistent **UI behavior** and **user experience**. This document describes the overall architecture of this system, integration with localization, and the implementation patterns developers should follow when adding features that require administrator privileges.
+OneMMC uses a **Unified Administrator Detection System** to ensure that all features requiring elevated privileges maintain consistent **UI behavior** and **user experience**. This document describes the overall architecture of this system, integration with localization, and the implementation patterns developers should follow when adding features that require administrator privileges.
 
 ---
 
@@ -62,7 +62,7 @@ ManagementTools uses a **Unified Administrator Detection System** to ensure that
 
 ### `IAdminService` / `AdminService`
 
-**Location:** `ManagementTools.Core/Services/IAdminService.cs`, `AdminService.cs`  
+**Location:** `OneMMC.Core/Services/IAdminService.cs`, `AdminService.cs`  
 **Lifecycle:** Singleton (because administrator status does not change within the same process)
 
 | Member | Description |
@@ -75,7 +75,7 @@ ManagementTools uses a **Unified Administrator Detection System** to ensure that
 
 ### `AdminDialogHelper`
 
-**Location:** `ManagementTools/Helpers/AdminDialogHelper.cs`  
+**Location:** `OneMMC/Helpers/AdminDialogHelper.cs`  
 **Type:** Static class with `_isDialogOpen` guard to prevent multiple dialogs from opening simultaneously
 
 | Method | Purpose |
@@ -90,7 +90,7 @@ All methods use `Common_AdminRequired_*` localization string keys.
 
 ### `OperationResult.IsAccessDenied`
 
-**Location:** `ManagementTools.Core/Services/DiskMgmt/Common/OperationResult.cs`  
+**Location:** `OneMMC.Core/Services/DiskMgmt/Common/OperationResult.cs`  
 **Purpose:** Disk management operations return `OperationResult`; when permissions are insufficient, `IsAccessDenied = true` is set. The UI layer checks this flag and displays `AdminDialogHelper`.
 
 | Factory | Description |
@@ -205,7 +205,7 @@ if (result.IsAccessDenied)
 Use `LocalizationProvider.Current.GetString()` with constants from `ResourceKeys.cs`:
 
 ```csharp
-using ManagementTools.Core.Localization;
+using OneMMC.Core.Localization;
 
 // Generic access denied message
 var msg = LocalizationProvider.Current.GetString(
