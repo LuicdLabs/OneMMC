@@ -9,43 +9,42 @@
     mc:Ignorable="d">
 
     <UserControl.Resources>
-        <local:LocalizedStrings x:Key="LocalizedStrings" />
     </UserControl.Resources>
 
     <StackPanel MinWidth="420" Spacing="14">
-        <TextBlock Text="{Binding WF_Common_IntegrityAlgorithm, Source={StaticResource LocalizedStrings}}" />
+        <TextBlock Text="{x:Bind local:LocalizedStrings.Instance.WF_Common_IntegrityAlgorithm}" />
         <ComboBox x:Name="IntegrityComboBox" SelectionChanged="IntegrityComboBox_SelectionChanged">
-            <ComboBoxItem Content="{Binding WF_SecurityMethodEditor_SHA384, Source={StaticResource LocalizedStrings}}" Tag="SHA-384" />
-            <ComboBoxItem Content="{Binding WF_Common_SHA256, Source={StaticResource LocalizedStrings}}" Tag="SHA-256" />
-            <ComboBoxItem Content="{Binding WF_Common_SHA1, Source={StaticResource LocalizedStrings}}" Tag="SHA-1" />
-            <ComboBoxItem Content="{Binding WF_Common_MD5, Source={StaticResource LocalizedStrings}}" Tag="MD5" />
+            <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_SecurityMethodEditor_SHA384}" Tag="SHA-384" />
+            <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_Common_SHA256}" Tag="SHA-256" />
+            <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_Common_SHA1}" Tag="SHA-1" />
+            <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_Common_MD5}" Tag="MD5" />
         </ComboBox>
         <StackPanel Orientation="Horizontal" Spacing="8">
             <FontIcon Glyph="&#xE946;" />
             <TextBlock x:Name="IntegrityDescriptionTextBlock" TextWrapping="Wrap" />
         </StackPanel>
 
-        <TextBlock Margin="0,8,0,0" Text="{Binding WF_Common_EncryptionAlgorithm, Source={StaticResource LocalizedStrings}}" />
+        <TextBlock Margin="0,8,0,0" Text="{x:Bind local:LocalizedStrings.Instance.WF_Common_EncryptionAlgorithm}" />
         <ComboBox x:Name="EncryptionComboBox" SelectionChanged="EncryptionComboBox_SelectionChanged">
-            <ComboBoxItem Content="{Binding WF_Common_AESCBC256, Source={StaticResource LocalizedStrings}}" Tag="AES-CBC 256" />
-            <ComboBoxItem Content="{Binding WF_Common_AESCBC192, Source={StaticResource LocalizedStrings}}" Tag="AES-CBC 192" />
-            <ComboBoxItem Content="{Binding WF_Common_AESCBC128, Source={StaticResource LocalizedStrings}}" Tag="AES-CBC 128" />
-            <ComboBoxItem Content="{Binding WF_Common_Value3DES, Source={StaticResource LocalizedStrings}}" Tag="3DES" />
-            <ComboBoxItem Content="{Binding WF_Common_DES, Source={StaticResource LocalizedStrings}}" Tag="DES" />
+            <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_Common_AESCBC256}" Tag="AES-CBC 256" />
+            <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_Common_AESCBC192}" Tag="AES-CBC 192" />
+            <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_Common_AESCBC128}" Tag="AES-CBC 128" />
+            <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_Common_Value3DES}" Tag="3DES" />
+            <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_Common_DES}" Tag="DES" />
         </ComboBox>
         <StackPanel Orientation="Horizontal" Spacing="8">
             <FontIcon Glyph="&#xE946;" />
             <TextBlock x:Name="EncryptionDescriptionTextBlock" TextWrapping="Wrap" />
         </StackPanel>
 
-        <TextBlock Margin="0,8,0,0" Text="{Binding WF_SecurityMethodEditor_KeyExchangeAlgorithm, Source={StaticResource LocalizedStrings}}" />
+        <TextBlock Margin="0,8,0,0" Text="{x:Bind local:LocalizedStrings.Instance.WF_SecurityMethodEditor_KeyExchangeAlgorithm}" />
         <ComboBox x:Name="KeyExchangeComboBox" SelectionChanged="KeyExchangeComboBox_SelectionChanged">
-            <ComboBoxItem Content="{Binding WF_SecurityMethodEditor_EllipticCurveDiffieHellmanP384, Source={StaticResource LocalizedStrings}}" Tag="Elliptic Curve Diffie-Hellman P-384" />
-            <ComboBoxItem Content="{Binding WF_SecurityMethodEditor_EllipticCurveDiffieHellmanP256, Source={StaticResource LocalizedStrings}}" Tag="Elliptic Curve Diffie-Hellman P-256" />
-            <ComboBoxItem Content="{Binding WF_SecurityMethodEditor_DiffieHellmanGroup24, Source={StaticResource LocalizedStrings}}" Tag="Diffie-Hellman Group 24" />
-            <ComboBoxItem Content="{Binding WF_SecurityMethodEditor_DiffieHellmanGroup14, Source={StaticResource LocalizedStrings}}" Tag="Diffie-Hellman Group 14" />
-            <ComboBoxItem Content="{Binding WF_SecurityMethodEditor_DiffieHellmanGroup2, Source={StaticResource LocalizedStrings}}" Tag="Diffie-Hellman Group 2" />
-            <ComboBoxItem Content="{Binding WF_SecurityMethodEditor_DiffieHellmanGroup1, Source={StaticResource LocalizedStrings}}" Tag="Diffie-Hellman Group 1" />
+            <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_SecurityMethodEditor_EllipticCurveDiffieHellmanP384}" Tag="Elliptic Curve Diffie-Hellman P-384" />
+            <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_SecurityMethodEditor_EllipticCurveDiffieHellmanP256}" Tag="Elliptic Curve Diffie-Hellman P-256" />
+            <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_SecurityMethodEditor_DiffieHellmanGroup24}" Tag="Diffie-Hellman Group 24" />
+            <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_SecurityMethodEditor_DiffieHellmanGroup14}" Tag="Diffie-Hellman Group 14" />
+            <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_SecurityMethodEditor_DiffieHellmanGroup2}" Tag="Diffie-Hellman Group 2" />
+            <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_SecurityMethodEditor_DiffieHellmanGroup1}" Tag="Diffie-Hellman Group 1" />
         </ComboBox>
         <StackPanel Orientation="Horizontal" Spacing="8">
             <FontIcon Glyph="&#xE946;" />

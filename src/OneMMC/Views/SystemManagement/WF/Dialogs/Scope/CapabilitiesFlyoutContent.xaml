@@ -9,16 +9,15 @@
     mc:Ignorable="d">
 
     <UserControl.Resources>
-        <local:LocalizedStrings x:Key="LocalizedStrings" />
     </UserControl.Resources>
 
     <StackPanel Width="320" Padding="12" Spacing="8">
         <TextBlock
             FontWeight="SemiBold"
-            Text="{Binding WF_Capabilities_ChooseCapabilities, Source={StaticResource LocalizedStrings}}" />
+            Text="{x:Bind local:LocalizedStrings.Instance.WF_Capabilities_ChooseCapabilities}" />
         <TextBlock
             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-            Text="{Binding WF_Capabilities_SelectTheApplicationPackageCapabilitiesToAuthorize, Source={StaticResource LocalizedStrings}}"
+            Text="{x:Bind local:LocalizedStrings.Instance.WF_Capabilities_SelectTheApplicationPackageCapabilitiesToAuthorize}"
             TextWrapping="Wrap" />
 
         <Border
@@ -41,11 +40,11 @@
             Spacing="8">
             <Button
                 x:Name="CancelButton"
-                Content="{Binding Common_CancelButton, Source={StaticResource LocalizedStrings}}"
+                Content="{x:Bind local:LocalizedStrings.Instance.Common_CancelButton}"
                 Click="CancelButton_Click" />
             <Button
                 x:Name="OkButton"
-                Content="{Binding Common_OKButton, Source={StaticResource LocalizedStrings}}"
+                Content="{x:Bind local:LocalizedStrings.Instance.Common_OKButton}"
                 Style="{StaticResource AccentButtonStyle}"
                 Click="OkButton_Click" />
         </StackPanel>

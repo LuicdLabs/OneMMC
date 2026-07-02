@@ -9,7 +9,6 @@
     mc:Ignorable="d">
 
     <UserControl.Resources>
-        <local:LocalizedStrings x:Key="LocalizedStrings" />
     </UserControl.Resources>
 
     <StackPanel MinWidth="440" Spacing="0">
@@ -17,21 +16,21 @@
         <!--  Description  -->
         <TextBlock
             Margin="0,0,0,16"
-            Text="{Binding WF_CustomizeAllowIfSecure_SelectOneOfTheFollowingOptionsToDetermineTheActionWindowsDefender, Source={StaticResource LocalizedStrings}}"
+            Text="{x:Bind local:LocalizedStrings.Instance.WF_CustomizeAllowIfSecure_SelectOneOfTheFollowingOptionsToDetermineTheActionWindowsDefender}"
             TextWrapping="Wrap" />
 
         <!--  Option 1: Allow authenticated and integrity-protected connections  -->
         <RadioButton
             x:Name="AllowAuthenticatedRadio"
             Margin="0,0,0,4"
-            Content="{Binding WF_CustomizeAllowIfSecure_AllowAuthenticatedAndIntegrityProtectedConnectionsA, Source={StaticResource LocalizedStrings}}"
+            Content="{x:Bind local:LocalizedStrings.Instance.WF_CustomizeAllowIfSecure_AllowAuthenticatedAndIntegrityProtectedConnectionsA}"
             FontWeight="SemiBold"
             GroupName="AllowIfSecureGroup"
             IsChecked="True" />
         <TextBlock
             Margin="28,0,0,0"
             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-            Text="{Binding WF_CustomizeAllowIfSecure_OnlyAllowConnectionsThatAreAuthenticatedAndIntegrityProtectedUsingIPsecCompatible, Source={StaticResource LocalizedStrings}}"
+            Text="{x:Bind local:LocalizedStrings.Instance.WF_CustomizeAllowIfSecure_OnlyAllowConnectionsThatAreAuthenticatedAndIntegrityProtectedUsingIPsecCompatible}"
             TextWrapping="Wrap" />
 
         <Border
@@ -43,24 +42,24 @@
         <RadioButton
             x:Name="RequireEncryptionRadio"
             Margin="0,0,0,4"
-            Content="{Binding WF_CustomizeAllowIfSecure_RequireEncryptedConnectionsE, Source={StaticResource LocalizedStrings}}"
+            Content="{x:Bind local:LocalizedStrings.Instance.WF_CustomizeAllowIfSecure_RequireEncryptedConnectionsE}"
             FontWeight="SemiBold"
             GroupName="AllowIfSecureGroup" />
         <TextBlock
             Margin="28,0,0,0"
             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-            Text="{Binding WF_CustomizeAllowIfSecure_InAdditionToIntegrityAndAuthenticationAlsoRequirePrivacy, Source={StaticResource LocalizedStrings}}"
+            Text="{x:Bind local:LocalizedStrings.Instance.WF_CustomizeAllowIfSecure_InAdditionToIntegrityAndAuthenticationAlsoRequirePrivacy}"
             TextWrapping="Wrap" />
         <CheckBox
             x:Name="NegotiateEncryptionCheckBox"
             Margin="28,6,0,4"
-            Content="{Binding WF_CustomizeAllowIfSecure_AllowTheComputersToDynamicallyNegotiateEncryption, Source={StaticResource LocalizedStrings}}"
+            Content="{x:Bind local:LocalizedStrings.Instance.WF_CustomizeAllowIfSecure_AllowTheComputersToDynamicallyNegotiateEncryption}"
             IsEnabled="False" />
         <TextBlock
             x:Name="NegotiateEncryptionDescriptionText"
             Margin="28,0,0,0"
             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-            Text="{Binding WF_CustomizeAllowIfSecure_ThisOptionAllowsAuthenticatedButUnencryptedNetworkPacketsToBeSentWhile, Source={StaticResource LocalizedStrings}}"
+            Text="{x:Bind local:LocalizedStrings.Instance.WF_CustomizeAllowIfSecure_ThisOptionAllowsAuthenticatedButUnencryptedNetworkPacketsToBeSentWhile}"
             TextWrapping="Wrap" />
 
         <Border
@@ -72,13 +71,13 @@
         <RadioButton
             x:Name="AllowNullEncapRadio"
             Margin="0,0,0,4"
-            Content="{Binding WF_CustomizeAllowIfSecure_AllowConnectionsUsingNullEncapsulationN, Source={StaticResource LocalizedStrings}}"
+            Content="{x:Bind local:LocalizedStrings.Instance.WF_CustomizeAllowIfSecure_AllowConnectionsUsingNullEncapsulationN}"
             FontWeight="SemiBold"
             GroupName="AllowIfSecureGroup" />
         <TextBlock
             Margin="28,0,0,0"
             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-            Text="{Binding WF_CustomizeAllowIfSecure_NullEncapsulationAllowsYouToRequireAuthenticationForConnectionsButWithoutProviding, Source={StaticResource LocalizedStrings}}"
+            Text="{x:Bind local:LocalizedStrings.Instance.WF_CustomizeAllowIfSecure_NullEncapsulationAllowsYouToRequireAuthenticationForConnectionsButWithoutProviding}"
             TextWrapping="Wrap" />
 
         <Border
@@ -90,7 +89,7 @@
         <CheckBox
             x:Name="OverrideBlockRulesCheckBox"
             Margin="0,0,0,4"
-            Content="{Binding WF_CustomizeAllowIfSecure_OverrideBlockRulesO, Source={StaticResource LocalizedStrings}}"
+            Content="{x:Bind local:LocalizedStrings.Instance.WF_CustomizeAllowIfSecure_OverrideBlockRulesO}"
             FontWeight="SemiBold" />
         <TextBlock
             x:Name="OverrideBlockRulesDescriptionText"

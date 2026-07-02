@@ -519,121 +519,121 @@ public sealed partial class ConnectionSecurityRulesPage : Page
 
     private static string GetRuleLookupName(ConnectionSecurityRuleModel rule)
         => string.IsNullOrWhiteSpace(rule.OriginalName) ? rule.Name : rule.OriginalName;
+}
 
-    public partial class ConnectionSecurityRulesViewModel : BindableBase
+public partial class ConnectionSecurityRulesViewModel : BindableBase
+{
+    private ObservableCollection<ConnectionSecurityRuleItem> _rules = new();
+    private ObservableCollection<ConnectionSecurityRuleItem> _filteredRules = new();
+    private ConnectionSecurityRuleItem? _selectedRule;
+    private bool _isLoading;
+
+    public ObservableCollection<ConnectionSecurityRuleItem> Rules
     {
-        private ObservableCollection<ConnectionSecurityRuleItem> _rules = new();
-        private ObservableCollection<ConnectionSecurityRuleItem> _filteredRules = new();
-        private ConnectionSecurityRuleItem? _selectedRule;
-        private bool _isLoading;
-
-        public ObservableCollection<ConnectionSecurityRuleItem> Rules
-        {
-            get => _rules;
-            set => SetProperty(ref _rules, value);
-        }
-
-        public ObservableCollection<ConnectionSecurityRuleItem> FilteredRules
-        {
-            get => _filteredRules;
-            set => SetProperty(ref _filteredRules, value);
-        }
-
-        public ConnectionSecurityRuleItem? SelectedRule
-        {
-            get => _selectedRule;
-            set => SetProperty(ref _selectedRule, value);
-        }
-
-        public bool IsLoading
-        {
-            get => _isLoading;
-            set => SetProperty(ref _isLoading, value);
-        }
-
-        public void FilterRules(string searchText)
-        {
-            if (string.IsNullOrWhiteSpace(searchText))
-            {
-                FilteredRules = new ObservableCollection<ConnectionSecurityRuleItem>(Rules);
-                return;
-            }
-
-            var filtered = Rules.Where(rule =>
-                rule.Name.Contains(searchText, StringComparison.OrdinalIgnoreCase) ||
-                rule.Summary.Contains(searchText, StringComparison.OrdinalIgnoreCase) ||
-                rule.Description.Contains(searchText, StringComparison.OrdinalIgnoreCase))
-                .ToList();
-
-            FilteredRules = new ObservableCollection<ConnectionSecurityRuleItem>(filtered);
-        }
+        get => _rules;
+        set => SetProperty(ref _rules, value);
     }
 
-    public partial class ConnectionSecurityRuleItem : BindableBase
+    public ObservableCollection<ConnectionSecurityRuleItem> FilteredRules
     {
-        private string _name = string.Empty;
-        private string _description = string.Empty;
-        private string _summary = string.Empty;
-        private bool _isEnabled;
-
-        public ConnectionSecurityRuleModel Model { get; init; } = new();
-
-        public string Name
-        {
-            get => _name;
-            set => SetProperty(ref _name, value);
-        }
-
-        public string Description
-        {
-            get => _description;
-            set => SetProperty(ref _description, value);
-        }
-
-        public string Summary
-        {
-            get => _summary;
-            set => SetProperty(ref _summary, value);
-        }
-
-        public bool IsEnabled
-        {
-            get => _isEnabled;
-            set => SetProperty(ref _isEnabled, value);
-        }
-
-        public static ConnectionSecurityRuleItem FromModel(ConnectionSecurityRuleModel model)
-        {
-            return new ConnectionSecurityRuleItem
-            {
-                Model = model,
-                Name = model.Name,
-                Description = model.Description,
-                Summary = string.IsNullOrWhiteSpace(model.Summary) ? model.ProfileDisplay : model.Summary,
-                IsEnabled = model.Enabled
-            };
-        }
+        get => _filteredRules;
+        set => SetProperty(ref _filteredRules, value);
     }
 
-    public partial class BindableBase : System.ComponentModel.INotifyPropertyChanged
+    public ConnectionSecurityRuleItem? SelectedRule
     {
-        public event System.ComponentModel.PropertyChangedEventHandler? PropertyChanged;
+        get => _selectedRule;
+        set => SetProperty(ref _selectedRule, value);
+    }
 
-        protected bool SetProperty<T>(ref T storage, T value, [System.Runtime.CompilerServices.CallerMemberName] string? propertyName = null)
+    public bool IsLoading
+    {
+        get => _isLoading;
+        set => SetProperty(ref _isLoading, value);
+    }
+
+    public void FilterRules(string searchText)
+    {
+        if (string.IsNullOrWhiteSpace(searchText))
         {
-            if (System.Collections.Generic.EqualityComparer<T>.Default.Equals(storage, value))
-            {
-                return false;
-            }
-
-            storage = value;
-            OnPropertyChanged(propertyName);
-            return true;
+            FilteredRules = new ObservableCollection<ConnectionSecurityRuleItem>(Rules);
+            return;
         }
 
-        protected void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string? propertyName = null)
+        var filtered = Rules.Where(rule =>
+            rule.Name.Contains(searchText, StringComparison.OrdinalIgnoreCase) ||
+            rule.Summary.Contains(searchText, StringComparison.OrdinalIgnoreCase) ||
+            rule.Description.Contains(searchText, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+
+        FilteredRules = new ObservableCollection<ConnectionSecurityRuleItem>(filtered);
+    }
+}
+
+public partial class ConnectionSecurityRuleItem : BindableBase
+{
+    private string _name = string.Empty;
+    private string _description = string.Empty;
+    private string _summary = string.Empty;
+    private bool _isEnabled;
+
+    public ConnectionSecurityRuleModel Model { get; init; } = new();
+
+    public string Name
+    {
+        get => _name;
+        set => SetProperty(ref _name, value);
+    }
+
+    public string Description
+    {
+        get => _description;
+        set => SetProperty(ref _description, value);
+    }
+
+    public string Summary
+    {
+        get => _summary;
+        set => SetProperty(ref _summary, value);
+    }
+
+    public bool IsEnabled
+    {
+        get => _isEnabled;
+        set => SetProperty(ref _isEnabled, value);
+    }
+
+    public static ConnectionSecurityRuleItem FromModel(ConnectionSecurityRuleModel model)
+    {
+        return new ConnectionSecurityRuleItem
         {
-            PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
+            Model = model,
+            Name = model.Name,
+            Description = model.Description,
+            Summary = string.IsNullOrWhiteSpace(model.Summary) ? model.ProfileDisplay : model.Summary,
+            IsEnabled = model.Enabled
+        };
+    }
+}
+
+public partial class BindableBase : System.ComponentModel.INotifyPropertyChanged
+{
+    public event System.ComponentModel.PropertyChangedEventHandler? PropertyChanged;
+
+    protected bool SetProperty<T>(ref T storage, T value, [System.Runtime.CompilerServices.CallerMemberName] string? propertyName = null)
+    {
+        if (System.Collections.Generic.EqualityComparer<T>.Default.Equals(storage, value))
+        {
+            return false;
         }
+
+        storage = value;
+        OnPropertyChanged(propertyName);
+        return true;
+    }
+
+    protected void OnPropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string? propertyName = null)
+    {
+        PropertyChanged?.Invoke(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
     }
 }

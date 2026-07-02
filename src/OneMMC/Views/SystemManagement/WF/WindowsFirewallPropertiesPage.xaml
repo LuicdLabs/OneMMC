@@ -11,7 +11,6 @@
     mc:Ignorable="d">
 
     <Page.Resources>
-        <local:LocalizedStrings x:Key="LocalizedStrings" />
     </Page.Resources>
 
     <ScrollViewer>
@@ -19,10 +18,10 @@
             <TextBlock
                 FontSize="14"
                 FontWeight="SemiBold"
-                Text="{Binding WF_WindowsFirewallProperties_Profiles, Source={StaticResource LocalizedStrings}}" />
+                Text="{x:Bind local:LocalizedStrings.Instance.WF_WindowsFirewallProperties_Profiles}" />
 
             <controls:SettingsExpander
-                Header="{Binding WF_Profile_Domain, Source={StaticResource LocalizedStrings}}"
+                Header="{x:Bind local:LocalizedStrings.Instance.WF_Profile_Domain}"
                 HeaderIcon="{ui:FontIcon Glyph=&#xEDA3;}"
                 IsExpanded="True">
 
@@ -30,67 +29,67 @@
                     x:Name="DomainProfileToggleSwitch"
                     Grid.Column="1"
                     IsOn="True"
-                    OffContent="{Binding WF_State_Off, Source={StaticResource LocalizedStrings}}"
-                    OnContent="{Binding WF_State_On, Source={StaticResource LocalizedStrings}}"
+                    OffContent="{x:Bind local:LocalizedStrings.Instance.WF_State_Off}"
+                    OnContent="{x:Bind local:LocalizedStrings.Instance.WF_State_On}"
                     Toggled="DomainProfileToggleSwitch_Toggled" />
 
                 <controls:SettingsExpander.Items>
-                    <controls:SettingsCard Header="{Binding WF_WindowsFirewallProperties_InboundConnections, Source={StaticResource LocalizedStrings}}">
+                    <controls:SettingsCard Header="{x:Bind local:LocalizedStrings.Instance.WF_WindowsFirewallProperties_InboundConnections}">
                         <ComboBox
                             x:Name="DomainInboundComboBox"
                             MinWidth="160"
                             SelectedIndex="0"
                             SelectionChanged="ProfileActionComboBox_SelectionChanged"
                             Tag="Domain:Inbound">
-                            <ComboBoxItem Content="{Binding WF_WindowsFirewallProperties_BlockDefault, Source={StaticResource LocalizedStrings}}" Tag="Block (default)" />
-                            <ComboBoxItem Content="{Binding WF_WindowsFirewallProperties_BlockAllConnections, Source={StaticResource LocalizedStrings}}" Tag="Block all connections" />
-                            <ComboBoxItem Content="{Binding WF_Action_Allow, Source={StaticResource LocalizedStrings}}" Tag="Allow" />
+                            <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_WindowsFirewallProperties_BlockDefault}" Tag="Block (default)" />
+                            <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_WindowsFirewallProperties_BlockAllConnections}" Tag="Block all connections" />
+                            <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_Action_Allow}" Tag="Allow" />
                         </ComboBox>
                     </controls:SettingsCard>
 
-                    <controls:SettingsCard Header="{Binding WF_WindowsFirewallProperties_OutboundConnections, Source={StaticResource LocalizedStrings}}">
+                    <controls:SettingsCard Header="{x:Bind local:LocalizedStrings.Instance.WF_WindowsFirewallProperties_OutboundConnections}">
                         <ComboBox
                             x:Name="DomainOutboundComboBox"
                             MinWidth="160"
                             SelectedIndex="0"
                             SelectionChanged="ProfileActionComboBox_SelectionChanged"
                             Tag="Domain:Outbound">
-                            <ComboBoxItem Content="{Binding WF_WindowsFirewallProperties_AllowDefault, Source={StaticResource LocalizedStrings}}" Tag="Allow (default)" />
-                            <ComboBoxItem Content="{Binding WF_Action_Block, Source={StaticResource LocalizedStrings}}" Tag="Block" />
+                            <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_WindowsFirewallProperties_AllowDefault}" Tag="Allow (default)" />
+                            <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_Action_Block}" Tag="Block" />
                         </ComboBox>
                     </controls:SettingsCard>
 
-                    <controls:SettingsCard Header="{Binding WF_WindowsFirewallProperties_ProtectedNetworkConnections, Source={StaticResource LocalizedStrings}}">
+                    <controls:SettingsCard Header="{x:Bind local:LocalizedStrings.Instance.WF_WindowsFirewallProperties_ProtectedNetworkConnections}">
                         <Button
                             x:Name="DomainProtectedNetworkButton"
                             MinWidth="110"
                             Click="ProtectedNetworkCustomizeButton_Click"
-                            Content="{Binding WF_Button_Customize, Source={StaticResource LocalizedStrings}}"
+                            Content="{x:Bind local:LocalizedStrings.Instance.WF_Button_Customize}"
                             Tag="Domain" />
                     </controls:SettingsCard>
 
-                    <controls:SettingsCard Header="{Binding WF_WindowsFirewallProperties_SpecifySettingsThatControlWindowsDefenderFirewallBehavior, Source={StaticResource LocalizedStrings}}">
+                    <controls:SettingsCard Header="{x:Bind local:LocalizedStrings.Instance.WF_WindowsFirewallProperties_SpecifySettingsThatControlWindowsDefenderFirewallBehavior}">
                         <Button
                             x:Name="DomainBehaviorButton"
                             MinWidth="110"
                             Click="FirewallBehaviorSpecifyButton_Click"
-                            Content="{Binding WF_Button_Specify, Source={StaticResource LocalizedStrings}}"
+                            Content="{x:Bind local:LocalizedStrings.Instance.WF_Button_Specify}"
                             Tag="Domain" />
                     </controls:SettingsCard>
 
-                    <controls:SettingsCard Header="{Binding WF_WindowsFirewallProperties_SpecifyLoggingSettingsForTroubleshooting, Source={StaticResource LocalizedStrings}}">
+                    <controls:SettingsCard Header="{x:Bind local:LocalizedStrings.Instance.WF_WindowsFirewallProperties_SpecifyLoggingSettingsForTroubleshooting}">
                         <Button
                             x:Name="DomainLoggingButton"
                             MinWidth="110"
                             Click="LoggingSpecifyButton_Click"
-                            Content="{Binding WF_Button_Specify, Source={StaticResource LocalizedStrings}}"
+                            Content="{x:Bind local:LocalizedStrings.Instance.WF_Button_Specify}"
                             Tag="Domain" />
                     </controls:SettingsCard>
                 </controls:SettingsExpander.Items>
             </controls:SettingsExpander>
 
             <controls:SettingsExpander
-                Header="{Binding WF_Profile_Private, Source={StaticResource LocalizedStrings}}"
+                Header="{x:Bind local:LocalizedStrings.Instance.WF_Profile_Private}"
                 HeaderIcon="{ui:FontIcon Glyph=&#xE72E;}"
                 IsExpanded="True">
 
@@ -98,67 +97,67 @@
                     x:Name="PrivateProfileToggleSwitch"
                     Grid.Column="1"
                     IsOn="True"
-                    OffContent="{Binding WF_State_Off, Source={StaticResource LocalizedStrings}}"
-                    OnContent="{Binding WF_State_On, Source={StaticResource LocalizedStrings}}"
+                    OffContent="{x:Bind local:LocalizedStrings.Instance.WF_State_Off}"
+                    OnContent="{x:Bind local:LocalizedStrings.Instance.WF_State_On}"
                     Toggled="PrivateProfileToggleSwitch_Toggled" />
 
                 <controls:SettingsExpander.Items>
-                    <controls:SettingsCard Header="{Binding WF_WindowsFirewallProperties_InboundConnections, Source={StaticResource LocalizedStrings}}">
+                    <controls:SettingsCard Header="{x:Bind local:LocalizedStrings.Instance.WF_WindowsFirewallProperties_InboundConnections}">
                         <ComboBox
                             x:Name="PrivateInboundComboBox"
                             MinWidth="160"
                             SelectedIndex="0"
                             SelectionChanged="ProfileActionComboBox_SelectionChanged"
                             Tag="Private:Inbound">
-                            <ComboBoxItem Content="{Binding WF_WindowsFirewallProperties_BlockDefault, Source={StaticResource LocalizedStrings}}" Tag="Block (default)" />
-                            <ComboBoxItem Content="{Binding WF_WindowsFirewallProperties_BlockAllConnections, Source={StaticResource LocalizedStrings}}" Tag="Block all connections" />
-                            <ComboBoxItem Content="{Binding WF_Action_Allow, Source={StaticResource LocalizedStrings}}" Tag="Allow" />
+                            <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_WindowsFirewallProperties_BlockDefault}" Tag="Block (default)" />
+                            <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_WindowsFirewallProperties_BlockAllConnections}" Tag="Block all connections" />
+                            <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_Action_Allow}" Tag="Allow" />
                         </ComboBox>
                     </controls:SettingsCard>
 
-                    <controls:SettingsCard Header="{Binding WF_WindowsFirewallProperties_OutboundConnections, Source={StaticResource LocalizedStrings}}">
+                    <controls:SettingsCard Header="{x:Bind local:LocalizedStrings.Instance.WF_WindowsFirewallProperties_OutboundConnections}">
                         <ComboBox
                             x:Name="PrivateOutboundComboBox"
                             MinWidth="160"
                             SelectedIndex="0"
                             SelectionChanged="ProfileActionComboBox_SelectionChanged"
                             Tag="Private:Outbound">
-                            <ComboBoxItem Content="{Binding WF_WindowsFirewallProperties_AllowDefault, Source={StaticResource LocalizedStrings}}" Tag="Allow (default)" />
-                            <ComboBoxItem Content="{Binding WF_Action_Block, Source={StaticResource LocalizedStrings}}" Tag="Block" />
+                            <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_WindowsFirewallProperties_AllowDefault}" Tag="Allow (default)" />
+                            <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_Action_Block}" Tag="Block" />
                         </ComboBox>
                     </controls:SettingsCard>
 
-                    <controls:SettingsCard Header="{Binding WF_WindowsFirewallProperties_ProtectedNetworkConnections, Source={StaticResource LocalizedStrings}}">
+                    <controls:SettingsCard Header="{x:Bind local:LocalizedStrings.Instance.WF_WindowsFirewallProperties_ProtectedNetworkConnections}">
                         <Button
                             x:Name="PrivateProtectedNetworkButton"
                             MinWidth="110"
                             Click="ProtectedNetworkCustomizeButton_Click"
-                            Content="{Binding WF_Button_Customize, Source={StaticResource LocalizedStrings}}"
+                            Content="{x:Bind local:LocalizedStrings.Instance.WF_Button_Customize}"
                             Tag="Private" />
                     </controls:SettingsCard>
 
-                    <controls:SettingsCard Header="{Binding WF_WindowsFirewallProperties_SpecifySettingsThatControlWindowsDefenderFirewallBehavior, Source={StaticResource LocalizedStrings}}">
+                    <controls:SettingsCard Header="{x:Bind local:LocalizedStrings.Instance.WF_WindowsFirewallProperties_SpecifySettingsThatControlWindowsDefenderFirewallBehavior}">
                         <Button
                             x:Name="PrivateBehaviorButton"
                             MinWidth="110"
                             Click="FirewallBehaviorSpecifyButton_Click"
-                            Content="{Binding WF_Button_Specify, Source={StaticResource LocalizedStrings}}"
+                            Content="{x:Bind local:LocalizedStrings.Instance.WF_Button_Specify}"
                             Tag="Private" />
                     </controls:SettingsCard>
 
-                    <controls:SettingsCard Header="{Binding WF_WindowsFirewallProperties_SpecifyLoggingSettingsForTroubleshooting, Source={StaticResource LocalizedStrings}}">
+                    <controls:SettingsCard Header="{x:Bind local:LocalizedStrings.Instance.WF_WindowsFirewallProperties_SpecifyLoggingSettingsForTroubleshooting}">
                         <Button
                             x:Name="PrivateLoggingButton"
                             MinWidth="110"
                             Click="LoggingSpecifyButton_Click"
-                            Content="{Binding WF_Button_Specify, Source={StaticResource LocalizedStrings}}"
+                            Content="{x:Bind local:LocalizedStrings.Instance.WF_Button_Specify}"
                             Tag="Private" />
                     </controls:SettingsCard>
                 </controls:SettingsExpander.Items>
             </controls:SettingsExpander>
 
             <controls:SettingsExpander
-                Header="{Binding WF_Profile_Public, Source={StaticResource LocalizedStrings}}"
+                Header="{x:Bind local:LocalizedStrings.Instance.WF_Profile_Public}"
                 HeaderIcon="{ui:FontIcon Glyph=&#xE909;}"
                 IsExpanded="True">
 
@@ -166,60 +165,60 @@
                     x:Name="PublicProfileToggleSwitch"
                     Grid.Column="1"
                     IsOn="True"
-                    OffContent="{Binding WF_State_Off, Source={StaticResource LocalizedStrings}}"
-                    OnContent="{Binding WF_State_On, Source={StaticResource LocalizedStrings}}"
+                    OffContent="{x:Bind local:LocalizedStrings.Instance.WF_State_Off}"
+                    OnContent="{x:Bind local:LocalizedStrings.Instance.WF_State_On}"
                     Toggled="PublicProfileToggleSwitch_Toggled" />
 
                 <controls:SettingsExpander.Items>
-                    <controls:SettingsCard Header="{Binding WF_WindowsFirewallProperties_InboundConnections, Source={StaticResource LocalizedStrings}}">
+                    <controls:SettingsCard Header="{x:Bind local:LocalizedStrings.Instance.WF_WindowsFirewallProperties_InboundConnections}">
                         <ComboBox
                             x:Name="PublicInboundComboBox"
                             MinWidth="160"
                             SelectedIndex="0"
                             SelectionChanged="ProfileActionComboBox_SelectionChanged"
                             Tag="Public:Inbound">
-                            <ComboBoxItem Content="{Binding WF_WindowsFirewallProperties_BlockDefault, Source={StaticResource LocalizedStrings}}" Tag="Block (default)" />
-                            <ComboBoxItem Content="{Binding WF_WindowsFirewallProperties_BlockAllConnections, Source={StaticResource LocalizedStrings}}" Tag="Block all connections" />
-                            <ComboBoxItem Content="{Binding WF_Action_Allow, Source={StaticResource LocalizedStrings}}" Tag="Allow" />
+                            <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_WindowsFirewallProperties_BlockDefault}" Tag="Block (default)" />
+                            <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_WindowsFirewallProperties_BlockAllConnections}" Tag="Block all connections" />
+                            <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_Action_Allow}" Tag="Allow" />
                         </ComboBox>
                     </controls:SettingsCard>
 
-                    <controls:SettingsCard Header="{Binding WF_WindowsFirewallProperties_OutboundConnections, Source={StaticResource LocalizedStrings}}">
+                    <controls:SettingsCard Header="{x:Bind local:LocalizedStrings.Instance.WF_WindowsFirewallProperties_OutboundConnections}">
                         <ComboBox
                             x:Name="PublicOutboundComboBox"
                             MinWidth="160"
                             SelectedIndex="0"
                             SelectionChanged="ProfileActionComboBox_SelectionChanged"
                             Tag="Public:Outbound">
-                            <ComboBoxItem Content="{Binding WF_WindowsFirewallProperties_AllowDefault, Source={StaticResource LocalizedStrings}}" Tag="Allow (default)" />
-                            <ComboBoxItem Content="{Binding WF_Action_Block, Source={StaticResource LocalizedStrings}}" Tag="Block" />
+                            <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_WindowsFirewallProperties_AllowDefault}" Tag="Allow (default)" />
+                            <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_Action_Block}" Tag="Block" />
                         </ComboBox>
                     </controls:SettingsCard>
 
-                    <controls:SettingsCard Header="{Binding WF_WindowsFirewallProperties_ProtectedNetworkConnections, Source={StaticResource LocalizedStrings}}">
+                    <controls:SettingsCard Header="{x:Bind local:LocalizedStrings.Instance.WF_WindowsFirewallProperties_ProtectedNetworkConnections}">
                         <Button
                             x:Name="PublicProtectedNetworkButton"
                             MinWidth="110"
                             Click="ProtectedNetworkCustomizeButton_Click"
-                            Content="{Binding WF_Button_Customize, Source={StaticResource LocalizedStrings}}"
+                            Content="{x:Bind local:LocalizedStrings.Instance.WF_Button_Customize}"
                             Tag="Public" />
                     </controls:SettingsCard>
 
-                    <controls:SettingsCard Header="{Binding WF_WindowsFirewallProperties_SpecifySettingsThatControlWindowsDefenderFirewallBehavior, Source={StaticResource LocalizedStrings}}">
+                    <controls:SettingsCard Header="{x:Bind local:LocalizedStrings.Instance.WF_WindowsFirewallProperties_SpecifySettingsThatControlWindowsDefenderFirewallBehavior}">
                         <Button
                             x:Name="PublicBehaviorButton"
                             MinWidth="110"
                             Click="FirewallBehaviorSpecifyButton_Click"
-                            Content="{Binding WF_Button_Specify, Source={StaticResource LocalizedStrings}}"
+                            Content="{x:Bind local:LocalizedStrings.Instance.WF_Button_Specify}"
                             Tag="Public" />
                     </controls:SettingsCard>
 
-                    <controls:SettingsCard Header="{Binding WF_WindowsFirewallProperties_SpecifyLoggingSettingsForTroubleshooting, Source={StaticResource LocalizedStrings}}">
+                    <controls:SettingsCard Header="{x:Bind local:LocalizedStrings.Instance.WF_WindowsFirewallProperties_SpecifyLoggingSettingsForTroubleshooting}">
                         <Button
                             x:Name="PublicLoggingButton"
                             MinWidth="110"
                             Click="LoggingSpecifyButton_Click"
-                            Content="{Binding WF_Button_Specify, Source={StaticResource LocalizedStrings}}"
+                            Content="{x:Bind local:LocalizedStrings.Instance.WF_Button_Specify}"
                             Tag="Public" />
                     </controls:SettingsCard>
                 </controls:SettingsExpander.Items>
@@ -229,54 +228,54 @@
                 Margin="0,8,0,0"
                 FontSize="14"
                 FontWeight="SemiBold"
-                Text="{Binding WF_WindowsFirewallProperties_IPsecSettings, Source={StaticResource LocalizedStrings}}" />
+                Text="{x:Bind local:LocalizedStrings.Instance.WF_WindowsFirewallProperties_IPsecSettings}" />
 
             <controls:SettingsCard
-                Description="{Binding WF_FirewallProperties_IpsecDefaultsDescription, Source={StaticResource LocalizedStrings}}"
-                Header="{Binding WF_WindowsFirewallProperties_IPsecDefaults, Source={StaticResource LocalizedStrings}}"
+                Description="{x:Bind local:LocalizedStrings.Instance.WF_FirewallProperties_IpsecDefaultsDescription}"
+                Header="{x:Bind local:LocalizedStrings.Instance.WF_WindowsFirewallProperties_IPsecDefaults}"
                 HeaderIcon="{ui:FontIcon Glyph=&#xF003;}">
                 <Button
                     x:Name="CustomizeIpsecDefaultsButton"
                     MinWidth="110"
                     Click="CustomizeIpsecDefaultsButton_Click"
-                    Content="{Binding WF_Button_Customize, Source={StaticResource LocalizedStrings}}" />
+                    Content="{x:Bind local:LocalizedStrings.Instance.WF_Button_Customize}" />
             </controls:SettingsCard>
 
             <controls:SettingsExpander
-                Description="{Binding WF_FirewallProperties_IcmpExemptionsDescription, Source={StaticResource LocalizedStrings}}"
-                Header="{Binding WF_WindowsFirewallProperties_IPsecExemptions, Source={StaticResource LocalizedStrings}}"
+                Description="{x:Bind local:LocalizedStrings.Instance.WF_FirewallProperties_IcmpExemptionsDescription}"
+                Header="{x:Bind local:LocalizedStrings.Instance.WF_WindowsFirewallProperties_IPsecExemptions}"
                 HeaderIcon="{ui:FontIcon Glyph=&#xE9D5;}"
                 IsExpanded="True">
 
                 <controls:SettingsExpander.Items>
-                    <controls:SettingsCard Header="{Binding WF_WindowsFirewallProperties_ExemptICMPFromIPsec, Source={StaticResource LocalizedStrings}}">
+                    <controls:SettingsCard Header="{x:Bind local:LocalizedStrings.Instance.WF_WindowsFirewallProperties_ExemptICMPFromIPsec}">
                         <ComboBox
                             x:Name="IcmpExemptionComboBox"
                             MinWidth="160"
                             SelectedIndex="1"
                             SelectionChanged="IcmpExemptionComboBox_SelectionChanged">
-                            <ComboBoxItem Content="{Binding WF_Common_Yes, Source={StaticResource LocalizedStrings}}" Tag="Yes" />
-                            <ComboBoxItem Content="{Binding WF_Common_NoDefault, Source={StaticResource LocalizedStrings}}" Tag="No (default)" />
+                            <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_Common_Yes}" Tag="Yes" />
+                            <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_Common_NoDefault}" Tag="No (default)" />
                         </ComboBox>
                     </controls:SettingsCard>
                 </controls:SettingsExpander.Items>
             </controls:SettingsExpander>
 
             <controls:SettingsExpander
-                Description="{Binding WF_FirewallProperties_TunnelAuthorizationDescription, Source={StaticResource LocalizedStrings}}"
-                Header="{Binding WF_Common_IPsecTunnelAuthorization, Source={StaticResource LocalizedStrings}}"
+                Description="{x:Bind local:LocalizedStrings.Instance.WF_FirewallProperties_TunnelAuthorizationDescription}"
+                Header="{x:Bind local:LocalizedStrings.Instance.WF_Common_IPsecTunnelAuthorization}"
                 HeaderIcon="{ui:FontIcon Glyph=&#xF32A;}"
                 IsExpanded="True">
 
                 <controls:SettingsExpander.Items>
                     <controls:SettingsCard
                         x:Name="TunnelAuthorizationSettingsCard"
-                        Header="{Binding WF_Common_IPsecTunnelAuthorization, Source={StaticResource LocalizedStrings}}">
+                        Header="{x:Bind local:LocalizedStrings.Instance.WF_Common_IPsecTunnelAuthorization}">
                         <Button
                             x:Name="CustomizeTunnelAuthorizationButton"
                             MinWidth="110"
                             Click="TunnelAuthorizationCustomizeButton_Click"
-                            Content="{Binding WF_Button_Customize, Source={StaticResource LocalizedStrings}}" />
+                            Content="{x:Bind local:LocalizedStrings.Instance.WF_Button_Customize}" />
                     </controls:SettingsCard>
                 </controls:SettingsExpander.Items>
             </controls:SettingsExpander>

@@ -9,7 +9,6 @@
     mc:Ignorable="d">
 
     <UserControl.Resources>
-        <local:LocalizedStrings x:Key="LocalizedStrings" />
     </UserControl.Resources>
 
     <ScrollViewer
@@ -30,20 +29,20 @@
                 BorderThickness="1"
                 CornerRadius="4">
                 <StackPanel Spacing="8">
-                    <TextBlock FontWeight="SemiBold" Text="{Binding WF_AdvancedCertCriteria_RestrictUsage, Source={StaticResource LocalizedStrings}}" />
+                    <TextBlock FontWeight="SemiBold" Text="{x:Bind local:LocalizedStrings.Instance.WF_AdvancedCertCriteria_RestrictUsage}" />
                     <StackPanel Orientation="Horizontal" Spacing="24">
                         <RadioButton
                             x:Name="NoRestrictionRadio"
-                            Content="{Binding WF_AdvancedCertCriteria_NoRestrictionDefault, Source={StaticResource LocalizedStrings}}"
+                            Content="{x:Bind local:LocalizedStrings.Instance.WF_AdvancedCertCriteria_NoRestrictionDefault}"
                             GroupName="RestrictGroup"
                             IsChecked="True" />
                         <RadioButton
                             x:Name="SelectionOnlyRadio"
-                            Content="{Binding WF_AdvancedCriteria_RestrictSelectionOnly, Source={StaticResource LocalizedStrings}}"
+                            Content="{x:Bind local:LocalizedStrings.Instance.WF_AdvancedCriteria_RestrictSelectionOnly}"
                             GroupName="RestrictGroup" />
                         <RadioButton
                             x:Name="ValidationOnlyRadio"
-                            Content="{Binding WF_AdvancedCriteria_RestrictValidationOnly, Source={StaticResource LocalizedStrings}}"
+                            Content="{x:Bind local:LocalizedStrings.Instance.WF_AdvancedCriteria_RestrictValidationOnly}"
                             GroupName="RestrictGroup" />
                     </StackPanel>
                 </StackPanel>
@@ -56,7 +55,7 @@
                 BorderThickness="1"
                 CornerRadius="4">
                 <StackPanel Spacing="8">
-                    <TextBlock FontWeight="SemiBold" Text="{Binding WF_AdvancedCertCriteria_EnhancedKeyUsageEKU, Source={StaticResource LocalizedStrings}}" />
+                    <TextBlock FontWeight="SemiBold" Text="{x:Bind local:LocalizedStrings.Instance.WF_AdvancedCertCriteria_EnhancedKeyUsageEKU}" />
                     <Grid ColumnSpacing="8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
@@ -76,29 +75,29 @@
                             HorizontalAlignment="Stretch"
                             SelectionChanged="EkuCombo_SelectionChanged"
                             SelectedIndex="0">
-                            <ComboBoxItem Content="{Binding WF_AdvancedCertCriteria_IPsecSecurityIKEIntermediate13615582, Source={StaticResource LocalizedStrings}}" Tag="IPsec security IKE intermediate (1.3.6.1.5.5.8.2.2)" />
-                            <ComboBoxItem Content="{Binding WF_AdvancedCertCriteria_DNSSEC1361413116411, Source={StaticResource LocalizedStrings}}" Tag="DNSSEC (1.3.6.1.4.1.311.64.1.1)" />
-                            <ComboBoxItem Content="{Binding WF_AdvancedCertCriteria_ClientAuthentication136155732, Source={StaticResource LocalizedStrings}}" Tag="Client Authentication (1.3.6.1.5.5.7.3.2)" />
-                            <ComboBoxItem Content="{Binding WF_AdvancedCertCriteria_ServerAuthentication136155731, Source={StaticResource LocalizedStrings}}" Tag="Server Authentication (1.3.6.1.5.5.7.3.1)" />
-                            <ComboBoxItem Content="{Binding WF_AdvancedCertCriteria_CustomEKU, Source={StaticResource LocalizedStrings}}" Tag="Custom" />
+                            <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_AdvancedCertCriteria_IPsecSecurityIKEIntermediate13615582}" Tag="IPsec security IKE intermediate (1.3.6.1.5.5.8.2.2)" />
+                            <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_AdvancedCertCriteria_DNSSEC1361413116411}" Tag="DNSSEC (1.3.6.1.4.1.311.64.1.1)" />
+                            <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_AdvancedCertCriteria_ClientAuthentication136155732}" Tag="Client Authentication (1.3.6.1.5.5.7.3.2)" />
+                            <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_AdvancedCertCriteria_ServerAuthentication136155731}" Tag="Server Authentication (1.3.6.1.5.5.7.3.1)" />
+                            <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_AdvancedCertCriteria_CustomEKU}" Tag="Custom" />
                         </ComboBox>
 
                         <StackPanel Grid.Row="0" Grid.Column="1" Grid.RowSpan="2" Spacing="4" VerticalAlignment="Top">
-                            <Button x:Name="EkuAddButton" Content="{Binding WF_AdvancedCertCriteria_Add, Source={StaticResource LocalizedStrings}}" Click="EkuAddButton_Click" HorizontalAlignment="Stretch" />
-                            <Button x:Name="EkuRemoveButton" Content="{Binding WF_AdvancedCertCriteria_Remove, Source={StaticResource LocalizedStrings}}" Click="EkuRemoveButton_Click" HorizontalAlignment="Stretch" />
+                            <Button x:Name="EkuAddButton" Content="{x:Bind local:LocalizedStrings.Instance.WF_AdvancedCertCriteria_Add}" Click="EkuAddButton_Click" HorizontalAlignment="Stretch" />
+                            <Button x:Name="EkuRemoveButton" Content="{x:Bind local:LocalizedStrings.Instance.WF_AdvancedCertCriteria_Remove}" Click="EkuRemoveButton_Click" HorizontalAlignment="Stretch" />
                         </StackPanel>
 
                         <TextBlock
                             Grid.Row="0" Grid.Column="2"
                             HorizontalAlignment="Right"
-                            Text="{Binding WF_AdvancedCertCriteria_RequiredEKUs, Source={StaticResource LocalizedStrings}}" />
+                            Text="{x:Bind local:LocalizedStrings.Instance.WF_AdvancedCertCriteria_RequiredEKUs}" />
 
                         <!-- Custom EKU text input -->
                         <TextBox
                             x:Name="CustomEkuTextBox"
                             Grid.Row="1" Grid.Column="0"
                             Visibility="Collapsed"
-                            PlaceholderText="{Binding WF_AdvancedCertCriteria_CustomOIDEG1234, Source={StaticResource LocalizedStrings}}" />
+                            PlaceholderText="{x:Bind local:LocalizedStrings.Instance.WF_AdvancedCertCriteria_CustomOIDEG1234}" />
 
                         <!-- Required EKUs list -->
                         <ListView
@@ -117,7 +116,7 @@
                 BorderThickness="1"
                 CornerRadius="4">
                 <StackPanel Spacing="8">
-                    <TextBlock FontWeight="SemiBold" Text="{Binding WF_AdvancedCertCriteria_CertificateNameRestriction, Source={StaticResource LocalizedStrings}}" />
+                    <TextBlock FontWeight="SemiBold" Text="{x:Bind local:LocalizedStrings.Instance.WF_AdvancedCertCriteria_CertificateNameRestriction}" />
                     <Grid ColumnSpacing="12" RowSpacing="8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
@@ -127,18 +126,18 @@
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
-                        <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" Text="{Binding WF_AdvancedCertCriteria_SelectNameType, Source={StaticResource LocalizedStrings}}" />
+                        <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" Text="{x:Bind local:LocalizedStrings.Instance.WF_AdvancedCertCriteria_SelectNameType}" />
                         <ComboBox x:Name="NameTypeCombo" Grid.Row="0" Grid.Column="1" HorizontalAlignment="Stretch" SelectedIndex="0">
-                            <ComboBoxItem Content="{Binding WF_Common_None, Source={StaticResource LocalizedStrings}}" Tag="None" />
-                            <ComboBoxItem Content="{Binding WF_AdvancedCertCriteria_SubjectAlternativeNameEmail, Source={StaticResource LocalizedStrings}}" Tag="SANEmail" />
-                            <ComboBoxItem Content="{Binding WF_AdvancedCertCriteria_SubjectAlternativeNameDNS, Source={StaticResource LocalizedStrings}}" Tag="SANDNS" />
-                            <ComboBoxItem Content="{Binding WF_AdvancedCertCriteria_SubjectAlternativeNamePrincipal, Source={StaticResource LocalizedStrings}}" Tag="SANPrincipal" />
-                            <ComboBoxItem Content="{Binding WF_AdvancedCertCriteria_SubjectOU, Source={StaticResource LocalizedStrings}}" Tag="SubjectOU" />
-                            <ComboBoxItem Content="{Binding WF_AdvancedCertCriteria_SubjectO, Source={StaticResource LocalizedStrings}}" Tag="SubjectO" />
-                            <ComboBoxItem Content="{Binding WF_AdvancedCertCriteria_SubjectCN, Source={StaticResource LocalizedStrings}}" Tag="SubjectCN" />
-                            <ComboBoxItem Content="{Binding WF_AdvancedCertCriteria_SubjectDC, Source={StaticResource LocalizedStrings}}" Tag="SubjectDC" />
+                            <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_Common_None}" Tag="None" />
+                            <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_AdvancedCertCriteria_SubjectAlternativeNameEmail}" Tag="SANEmail" />
+                            <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_AdvancedCertCriteria_SubjectAlternativeNameDNS}" Tag="SANDNS" />
+                            <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_AdvancedCertCriteria_SubjectAlternativeNamePrincipal}" Tag="SANPrincipal" />
+                            <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_AdvancedCertCriteria_SubjectOU}" Tag="SubjectOU" />
+                            <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_AdvancedCertCriteria_SubjectO}" Tag="SubjectO" />
+                            <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_AdvancedCertCriteria_SubjectCN}" Tag="SubjectCN" />
+                            <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_AdvancedCertCriteria_SubjectDC}" Tag="SubjectDC" />
                         </ComboBox>
-                        <TextBlock Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" Text="{Binding WF_AdvancedCertCriteria_CertificateName, Source={StaticResource LocalizedStrings}}" />
+                        <TextBlock Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" Text="{x:Bind local:LocalizedStrings.Instance.WF_AdvancedCertCriteria_CertificateName}" />
                         <TextBox x:Name="CertNameTextBox" Grid.Row="1" Grid.Column="1" />
                     </Grid>
                 </StackPanel>
@@ -151,16 +150,16 @@
                 BorderThickness="1"
                 CornerRadius="4">
                 <StackPanel Spacing="8">
-                    <TextBlock FontWeight="SemiBold" Text="{Binding WF_AdvancedCertCriteria_CertificateThumbprint, Source={StaticResource LocalizedStrings}}" />
+                    <TextBlock FontWeight="SemiBold" Text="{x:Bind local:LocalizedStrings.Instance.WF_AdvancedCertCriteria_CertificateThumbprint}" />
                     <Grid ColumnSpacing="12">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" VerticalAlignment="Center" Text="{Binding WF_AdvancedCertCriteria_Thumbprint, Source={StaticResource LocalizedStrings}}" />
+                        <TextBlock Grid.Column="0" VerticalAlignment="Center" Text="{x:Bind local:LocalizedStrings.Instance.WF_AdvancedCertCriteria_Thumbprint}" />
                         <TextBox x:Name="ThumbprintTextBox" Grid.Column="1" />
                     </Grid>
-                    <CheckBox x:Name="FollowRenewalCheckBox" Content="{Binding WF_AdvancedCertCriteria_FollowCertificateRenewal, Source={StaticResource LocalizedStrings}}" />
+                    <CheckBox x:Name="FollowRenewalCheckBox" Content="{x:Bind local:LocalizedStrings.Instance.WF_AdvancedCertCriteria_FollowCertificateRenewal}" />
                 </StackPanel>
             </Border>
 

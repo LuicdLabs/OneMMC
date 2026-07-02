@@ -9,7 +9,6 @@
     mc:Ignorable="d">
 
     <UserControl.Resources>
-        <local:LocalizedStrings x:Key="LocalizedStrings" />
     </UserControl.Resources>
 
     <ScrollViewer
@@ -36,8 +35,8 @@
                 Grid.Row="1"
                 Margin="0,0,0,10"
                 SelectionChanged="TabBar_SelectionChanged">
-                <SelectorBarItem x:Name="ComputersTab" Text="{Binding WF_Common_Computers, Source={StaticResource LocalizedStrings}}" />
-                <SelectorBarItem x:Name="UsersTab" Text="{Binding WF_Common_Users, Source={StaticResource LocalizedStrings}}" />
+                <SelectorBarItem x:Name="ComputersTab" Text="{x:Bind local:LocalizedStrings.Instance.WF_Common_Computers}" />
+                <SelectorBarItem x:Name="UsersTab" Text="{x:Bind local:LocalizedStrings.Instance.WF_Common_Users}" />
             </SelectorBar>
 
             <Grid Grid.Row="2">
@@ -55,11 +54,11 @@
                     BorderThickness="1"
                     CornerRadius="4">
                     <StackPanel Spacing="10">
-                        <TextBlock FontWeight="SemiBold" Text="{Binding WF_IpsecTunnelAuthorizations_AuthorizedComputers, Source={StaticResource LocalizedStrings}}" />
+                        <TextBlock FontWeight="SemiBold" Text="{x:Bind local:LocalizedStrings.Instance.WF_IpsecTunnelAuthorizations_AuthorizedComputers}" />
                         <CheckBox
                             x:Name="AllowComputersCheckBox"
                             Checked="AllowComputersCheckBox_Checked"
-                            Content="{Binding WF_IpsecTunnelAuthorizations_OnlyAllowConnectionsFromTheseComputers, Source={StaticResource LocalizedStrings}}"
+                            Content="{x:Bind local:LocalizedStrings.Instance.WF_IpsecTunnelAuthorizations_OnlyAllowConnectionsFromTheseComputers}"
                             Unchecked="AllowComputersCheckBox_Checked" />
 
                         <Grid ColumnSpacing="8">
@@ -87,12 +86,12 @@
                                     x:Name="AddAllowedComputerButton"
                                     MinWidth="96"
                                     Click="AddAllowedComputerButton_Click"
-                                    Content="{Binding WF_Common_AddEllipsis, Source={StaticResource LocalizedStrings}}" />
+                                    Content="{x:Bind local:LocalizedStrings.Instance.WF_Common_AddEllipsis}" />
                                 <Button
                                     x:Name="RemoveAllowedComputerButton"
                                     MinWidth="96"
                                     Click="RemoveAllowedComputerButton_Click"
-                                    Content="{Binding Common_RemoveButton, Source={StaticResource LocalizedStrings}}" />
+                                    Content="{x:Bind local:LocalizedStrings.Instance.Common_RemoveButton}" />
                             </StackPanel>
                         </Grid>
                     </StackPanel>
@@ -105,11 +104,11 @@
                     BorderThickness="1"
                     CornerRadius="4">
                     <StackPanel Spacing="10">
-                        <TextBlock FontWeight="SemiBold" Text="{Binding WF_IpsecTunnelAuthorizations_Exceptions, Source={StaticResource LocalizedStrings}}" />
+                        <TextBlock FontWeight="SemiBold" Text="{x:Bind local:LocalizedStrings.Instance.WF_IpsecTunnelAuthorizations_Exceptions}" />
                         <CheckBox
                             x:Name="DenyComputersCheckBox"
                             Checked="DenyComputersCheckBox_Checked"
-                            Content="{Binding WF_IpsecTunnelAuthorizations_DenyConnectionsFromTheseComputers, Source={StaticResource LocalizedStrings}}"
+                            Content="{x:Bind local:LocalizedStrings.Instance.WF_IpsecTunnelAuthorizations_DenyConnectionsFromTheseComputers}"
                             Unchecked="DenyComputersCheckBox_Checked" />
 
                         <Grid ColumnSpacing="8">
@@ -137,12 +136,12 @@
                                     x:Name="AddDeniedComputerButton"
                                     MinWidth="96"
                                     Click="AddDeniedComputerButton_Click"
-                                    Content="{Binding WF_Common_AddEllipsis, Source={StaticResource LocalizedStrings}}" />
+                                    Content="{x:Bind local:LocalizedStrings.Instance.WF_Common_AddEllipsis}" />
                                 <Button
                                     x:Name="RemoveDeniedComputerButton"
                                     MinWidth="96"
                                     Click="RemoveDeniedComputerButton_Click"
-                                    Content="{Binding Common_RemoveButton, Source={StaticResource LocalizedStrings}}" />
+                                    Content="{x:Bind local:LocalizedStrings.Instance.Common_RemoveButton}" />
                             </StackPanel>
                         </Grid>
                     </StackPanel>
@@ -163,11 +162,11 @@
                     BorderThickness="1"
                     CornerRadius="4">
                     <StackPanel Spacing="10">
-                        <TextBlock FontWeight="SemiBold" Text="{Binding WF_IpsecTunnelAuthorizations_AuthorizedUsers, Source={StaticResource LocalizedStrings}}" />
+                        <TextBlock FontWeight="SemiBold" Text="{x:Bind local:LocalizedStrings.Instance.WF_IpsecTunnelAuthorizations_AuthorizedUsers}" />
                         <CheckBox
                             x:Name="AllowUsersCheckBox"
                             Checked="AllowUsersCheckBox_Checked"
-                            Content="{Binding WF_Common_OnlyAllowConnectionsFromTheseUsers, Source={StaticResource LocalizedStrings}}"
+                            Content="{x:Bind local:LocalizedStrings.Instance.WF_Common_OnlyAllowConnectionsFromTheseUsers}"
                             Unchecked="AllowUsersCheckBox_Checked" />
 
                         <Grid ColumnSpacing="8">
@@ -195,12 +194,12 @@
                                     x:Name="AddAllowedUserButton"
                                     MinWidth="96"
                                     Click="AddAllowedUserButton_Click"
-                                    Content="{Binding WF_Common_AddEllipsis, Source={StaticResource LocalizedStrings}}" />
+                                    Content="{x:Bind local:LocalizedStrings.Instance.WF_Common_AddEllipsis}" />
                                 <Button
                                     x:Name="RemoveAllowedUserButton"
                                     MinWidth="96"
                                     Click="RemoveAllowedUserButton_Click"
-                                    Content="{Binding Common_RemoveButton, Source={StaticResource LocalizedStrings}}" />
+                                    Content="{x:Bind local:LocalizedStrings.Instance.Common_RemoveButton}" />
                             </StackPanel>
                         </Grid>
                     </StackPanel>
@@ -213,11 +212,11 @@
                     BorderThickness="1"
                     CornerRadius="4">
                     <StackPanel Spacing="10">
-                        <TextBlock FontWeight="SemiBold" Text="{Binding WF_IpsecTunnelAuthorizations_Exceptions, Source={StaticResource LocalizedStrings}}" />
+                        <TextBlock FontWeight="SemiBold" Text="{x:Bind local:LocalizedStrings.Instance.WF_IpsecTunnelAuthorizations_Exceptions}" />
                         <CheckBox
                             x:Name="DenyUsersCheckBox"
                             Checked="DenyUsersCheckBox_Checked"
-                            Content="{Binding WF_IpsecTunnelAuthorizations_DenyConnectionsFromTheseUsers, Source={StaticResource LocalizedStrings}}"
+                            Content="{x:Bind local:LocalizedStrings.Instance.WF_IpsecTunnelAuthorizations_DenyConnectionsFromTheseUsers}"
                             Unchecked="DenyUsersCheckBox_Checked" />
 
                         <Grid ColumnSpacing="8">
@@ -245,12 +244,12 @@
                                     x:Name="AddDeniedUserButton"
                                     MinWidth="96"
                                     Click="AddDeniedUserButton_Click"
-                                    Content="{Binding WF_Common_AddEllipsis, Source={StaticResource LocalizedStrings}}" />
+                                    Content="{x:Bind local:LocalizedStrings.Instance.WF_Common_AddEllipsis}" />
                                 <Button
                                     x:Name="RemoveDeniedUserButton"
                                     MinWidth="96"
                                     Click="RemoveDeniedUserButton_Click"
-                                    Content="{Binding Common_RemoveButton, Source={StaticResource LocalizedStrings}}" />
+                                    Content="{x:Bind local:LocalizedStrings.Instance.Common_RemoveButton}" />
                             </StackPanel>
                         </Grid>
                     </StackPanel>

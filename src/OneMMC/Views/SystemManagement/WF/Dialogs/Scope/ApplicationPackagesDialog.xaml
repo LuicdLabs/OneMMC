@@ -3,6 +3,7 @@
     x:Class="OneMMC.Views.Dialogs.Scope.ApplicationPackagesDialog"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:scope="using:OneMMC.Views.Dialogs.Scope"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     Title="{x:Bind LocalizedStrings.WF_ApplicationPackagesDialog_Title}"
@@ -95,7 +96,7 @@
                         ScrollViewer.VerticalScrollMode="Enabled"
                         SelectionMode="Single">
                         <ListView.ItemTemplate>
-                            <DataTemplate>
+                            <DataTemplate x:DataType="scope:PackageItem">
                                 <Grid Padding="12,8">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="2*" />
@@ -103,12 +104,12 @@
                                     </Grid.ColumnDefinitions>
                                     <TextBlock
                                         Grid.Column="0"
-                                        Text="{Binding Name}"
+                                        Text="{x:Bind Name}"
                                         TextWrapping="WrapWholeWords" />
                                     <TextBlock
                                         Grid.Column="1"
                                         Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                        Text="{Binding User}"
+                                        Text="{x:Bind User}"
                                         TextWrapping="WrapWholeWords" />
                                 </Grid>
                             </DataTemplate>

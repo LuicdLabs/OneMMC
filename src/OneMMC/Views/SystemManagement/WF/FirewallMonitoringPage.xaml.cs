@@ -556,61 +556,71 @@ public sealed partial class FirewallMonitoringPage : Page
     private string FormatPropertiesTitle(string name)
         => string.Format(CultureInfo.CurrentCulture, LocalizedStrings.WF_Monitoring_PropertiesTitleFormat, name);
 
-    private sealed class MonitoringTreeItem
-    {
-        public string Name { get; init; } = string.Empty;
-        public MonitoringType Type { get; init; }
-    }
+}
 
-    private sealed class MonitoringItem
-    {
-        public string Name { get; init; } = string.Empty;
-        public string Description { get; init; } = string.Empty;
-        public FirewallRuleModel? FirewallRule { get; init; }
-        public ConnectionSecurityRuleModel? ConnectionSecurityRule { get; init; }
-        public MainModeSecurityAssociationModel? MainModeSecurityAssociation { get; init; }
-        public QuickModeSecurityAssociationModel? QuickModeSecurityAssociation { get; init; }
+/// <summary>
+/// Payload of a node in the firewall monitoring tree. Namespace-level so it can be
+/// referenced from XAML via x:DataType for compiled (AOT-safe) bindings.
+/// </summary>
+internal sealed class MonitoringTreeItem
+{
+    public string Name { get; init; } = string.Empty;
+    public MonitoringType Type { get; init; }
+}
 
-        public static MonitoringItem FromFirewallRule(FirewallRuleModel rule)
-            => new()
-            {
-                Name = rule.DisplayName,
-                Description = rule.DisplayDescription,
-                FirewallRule = rule
-            };
+/// <summary>
+/// A row in the firewall monitoring details list. Namespace-level so it can be
+/// referenced from XAML via x:DataType for compiled (AOT-safe) bindings.
+/// </summary>
+internal sealed class MonitoringItem
+{
+    public string Name { get; init; } = string.Empty;
+    public string Description { get; init; } = string.Empty;
+    public FirewallRuleModel? FirewallRule { get; init; }
+    public ConnectionSecurityRuleModel? ConnectionSecurityRule { get; init; }
+    public MainModeSecurityAssociationModel? MainModeSecurityAssociation { get; init; }
+    public QuickModeSecurityAssociationModel? QuickModeSecurityAssociation { get; init; }
 
-        public static MonitoringItem FromConnectionSecurityRule(ConnectionSecurityRuleModel rule)
-            => new()
-            {
-                Name = rule.Name,
-                Description = rule.Summary,
-                ConnectionSecurityRule = rule
-            };
+    public static MonitoringItem FromFirewallRule(FirewallRuleModel rule)
+        => new()
+        {
+            Name = rule.DisplayName,
+            Description = rule.DisplayDescription,
+            FirewallRule = rule
+        };
 
-        public static MonitoringItem FromMainModeAssociation(MainModeSecurityAssociationModel association)
-            => new()
-            {
-                Name = association.LocalEndpoint,
-                Description = association.RemoteEndpoint,
-                MainModeSecurityAssociation = association
-            };
+    public static MonitoringItem FromConnectionSecurityRule(ConnectionSecurityRuleModel rule)
+        => new()
+        {
+            Name = rule.Name,
+            Description = rule.Summary,
+            ConnectionSecurityRule = rule
+        };
 
-        public static MonitoringItem FromQuickModeAssociation(QuickModeSecurityAssociationModel association)
-            => new()
-            {
-                Name = association.LocalAddress,
-                Description = association.RemoteAddress,
-                QuickModeSecurityAssociation = association
-            };
-    }
+    public static MonitoringItem FromMainModeAssociation(MainModeSecurityAssociationModel association)
+        => new()
+        {
+            Name = association.LocalEndpoint,
+            Description = association.RemoteEndpoint,
+            MainModeSecurityAssociation = association
+        };
 
-    private enum MonitoringType
-    {
-        None,
-        Firewall,
-        ConnectionSecurityRules,
-        SecurityAssociations,
-        MainMode,
-        QuickMode
-    }
+    public static MonitoringItem FromQuickModeAssociation(QuickModeSecurityAssociationModel association)
+        => new()
+        {
+            Name = association.LocalAddress,
+            Description = association.RemoteAddress,
+            QuickModeSecurityAssociation = association
+        };
+}
+
+/// <summary>Identifies which monitoring data set a tree node represents.</summary>
+internal enum MonitoringType
+{
+    None,
+    Firewall,
+    ConnectionSecurityRules,
+    SecurityAssociations,
+    MainMode,
+    QuickMode
 }

@@ -9,7 +9,6 @@
     mc:Ignorable="d">
 
     <UserControl.Resources>
-        <local:LocalizedStrings x:Key="LocalizedStrings" />
     </UserControl.Resources>
 
     <ScrollViewer
@@ -17,14 +16,14 @@
         VerticalScrollBarVisibility="Auto"
         VerticalScrollMode="Enabled">
         <StackPanel MinWidth="780" Spacing="12">
-            <TextBlock x:Name="DescriptionTextBlock" Text="{Binding WF_TunnelEndpoints_DefaultDescription, Source={StaticResource LocalizedStrings}}" TextWrapping="Wrap" />
+            <TextBlock x:Name="DescriptionTextBlock" Text="{x:Bind local:LocalizedStrings.Instance.WF_TunnelEndpoints_DefaultDescription}" TextWrapping="Wrap" />
 
             <!--  Client section (top) — used by Client-to-gateway mode  -->
             <StackPanel x:Name="ClientTopSection" Spacing="8" Visibility="Collapsed">
-                <TextBlock FontWeight="SemiBold" Text="{Binding WF_ConfigureTunnelEndpoints_Client, Source={StaticResource LocalizedStrings}}" />
+                <TextBlock FontWeight="SemiBold" Text="{x:Bind local:LocalizedStrings.Instance.WF_ConfigureTunnelEndpoints_Client}" />
                 <RadioButton
                     x:Name="ClientTopRadioButton"
-                    Content="{Binding WF_ConfigureTunnelEndpoints_MyIPAddress, Source={StaticResource LocalizedStrings}}"
+                    Content="{x:Bind local:LocalizedStrings.Instance.WF_ConfigureTunnelEndpoints_MyIPAddress}"
                     GroupName="ClientTopGroup"
                     IsChecked="True"
                     IsEnabled="False" />
@@ -32,7 +31,7 @@
 
             <!--  Endpoint 1 computers — used by Custom and Gateway-to-client  -->
             <StackPanel x:Name="Endpoint1Section" Spacing="8">
-                <TextBlock x:Name="Endpoint1HeaderTextBlock" FontWeight="SemiBold" Text="{Binding WF_TunnelEndpoints_Endpoint1Header, Source={StaticResource LocalizedStrings}}" />
+                <TextBlock x:Name="Endpoint1HeaderTextBlock" FontWeight="SemiBold" Text="{x:Bind local:LocalizedStrings.Instance.WF_TunnelEndpoints_Endpoint1Header}" />
                 <Grid ColumnSpacing="8">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
@@ -46,16 +45,16 @@
                         SelectionMode="Single" />
 
                     <StackPanel Grid.Column="1" Spacing="6">
-                        <Button MinWidth="120" Click="Endpoint1AddButton_Click" Content="{Binding WF_Common_AddEllipsis, Source={StaticResource LocalizedStrings}}" />
-                        <Button MinWidth="120" Click="Endpoint1EditButton_Click" Content="{Binding WF_Common_Edit, Source={StaticResource LocalizedStrings}}" />
-                        <Button MinWidth="120" Click="Endpoint1RemoveButton_Click" Content="{Binding Common_RemoveButton, Source={StaticResource LocalizedStrings}}" />
+                        <Button MinWidth="120" Click="Endpoint1AddButton_Click" Content="{x:Bind local:LocalizedStrings.Instance.WF_Common_AddEllipsis}" />
+                        <Button MinWidth="120" Click="Endpoint1EditButton_Click" Content="{x:Bind local:LocalizedStrings.Instance.WF_Common_Edit}" />
+                        <Button MinWidth="120" Click="Endpoint1RemoveButton_Click" Content="{x:Bind local:LocalizedStrings.Instance.Common_RemoveButton}" />
                     </StackPanel>
                 </Grid>
             </StackPanel>
 
             <!--  Local tunnel endpoint — used by Custom and Gateway-to-client  -->
             <StackPanel x:Name="LocalTunnelSection" Spacing="8">
-                <TextBlock FontWeight="SemiBold" Text="{Binding WF_ConfigureTunnelEndpoints_WhatIsTheLocalTunnelEndpointClosestToEndpoint1, Source={StaticResource LocalizedStrings}}" />
+                <TextBlock FontWeight="SemiBold" Text="{x:Bind local:LocalizedStrings.Instance.WF_ConfigureTunnelEndpoints_WhatIsTheLocalTunnelEndpointClosestToEndpoint1}" />
                 <Grid ColumnSpacing="8" RowSpacing="8">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" MinWidth="100" />
@@ -67,7 +66,7 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
-                    <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" Text="{Binding WF_Common_IPv4Address, Source={StaticResource LocalizedStrings}}" />
+                    <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" Text="{x:Bind local:LocalizedStrings.Instance.WF_Common_IPv4Address}" />
                     <TextBox x:Name="LocalTunnelIpv4TextBox" Grid.Row="0" Grid.Column="1" />
                     <Button
                         x:Name="EditLocalTunnelButton"
@@ -75,9 +74,9 @@
                         Grid.Column="2"
                         MinWidth="120"
                         Click="EditLocalTunnelButton_Click"
-                        Content="{Binding WF_Common_Edit, Source={StaticResource LocalizedStrings}}" />
+                        Content="{x:Bind local:LocalizedStrings.Instance.WF_Common_Edit}" />
 
-                    <TextBlock Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" Text="{Binding WF_Common_IPv6Address, Source={StaticResource LocalizedStrings}}" />
+                    <TextBlock Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" Text="{x:Bind local:LocalizedStrings.Instance.WF_Common_IPv6Address}" />
                     <TextBox x:Name="LocalTunnelIpv6TextBox" Grid.Row="1" Grid.Column="1" />
                 </Grid>
             </StackPanel>
@@ -86,14 +85,14 @@
             <StackPanel x:Name="IpsecAuthorizationSection" Spacing="8">
                 <CheckBox x:Name="ApplyIpsecAuthorizationCheckBox">
                     <TextBlock
-                        Text="{Binding WF_ConfigureTunnelEndpoints_ApplyIPsecTunnelAuthorizationAsSpecifiedOnTheIPsecSettingsTab, Source={StaticResource LocalizedStrings}}"
+                        Text="{x:Bind local:LocalizedStrings.Instance.WF_ConfigureTunnelEndpoints_ApplyIPsecTunnelAuthorizationAsSpecifiedOnTheIPsecSettingsTab}"
                         TextWrapping="Wrap" />
                 </CheckBox>
             </StackPanel>
 
             <!--  Remote tunnel endpoint — used by Custom and Client-to-gateway  -->
             <StackPanel x:Name="RemoteTunnelSection" Spacing="8">
-                <TextBlock FontWeight="SemiBold" Text="{Binding WF_ConfigureTunnelEndpoints_WhatIsTheRemoteTunnelEndpointClosestToEndpoint2, Source={StaticResource LocalizedStrings}}" />
+                <TextBlock FontWeight="SemiBold" Text="{x:Bind local:LocalizedStrings.Instance.WF_ConfigureTunnelEndpoints_WhatIsTheRemoteTunnelEndpointClosestToEndpoint2}" />
                 <Grid ColumnSpacing="8" RowSpacing="8">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto" MinWidth="100" />
@@ -105,7 +104,7 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
-                    <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" Text="{Binding WF_Common_IPv4Address, Source={StaticResource LocalizedStrings}}" />
+                    <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" Text="{x:Bind local:LocalizedStrings.Instance.WF_Common_IPv4Address}" />
                     <TextBox x:Name="RemoteTunnelIpv4TextBox" Grid.Row="0" Grid.Column="1" />
                     <Button
                         x:Name="EditRemoteTunnelButton"
@@ -113,16 +112,16 @@
                         Grid.Column="2"
                         MinWidth="120"
                         Click="EditRemoteTunnelButton_Click"
-                        Content="{Binding WF_Common_Edit, Source={StaticResource LocalizedStrings}}" />
+                        Content="{x:Bind local:LocalizedStrings.Instance.WF_Common_Edit}" />
 
-                    <TextBlock Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" Text="{Binding WF_Common_IPv6Address, Source={StaticResource LocalizedStrings}}" />
+                    <TextBlock Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" Text="{x:Bind local:LocalizedStrings.Instance.WF_Common_IPv6Address}" />
                     <TextBox x:Name="RemoteTunnelIpv6TextBox" Grid.Row="1" Grid.Column="1" />
                 </Grid>
             </StackPanel>
 
             <!--  Endpoint 2 computers — used by Custom and Client-to-gateway  -->
             <StackPanel x:Name="Endpoint2Section" Spacing="8">
-                <TextBlock x:Name="Endpoint2HeaderTextBlock" FontWeight="SemiBold" Text="{Binding WF_TunnelEndpoints_Endpoint2Header, Source={StaticResource LocalizedStrings}}" />
+                <TextBlock x:Name="Endpoint2HeaderTextBlock" FontWeight="SemiBold" Text="{x:Bind local:LocalizedStrings.Instance.WF_TunnelEndpoints_Endpoint2Header}" />
                 <Grid ColumnSpacing="8">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
@@ -136,19 +135,19 @@
                         SelectionMode="Single" />
 
                     <StackPanel Grid.Column="1" Spacing="6">
-                        <Button MinWidth="120" Click="Endpoint2AddButton_Click" Content="{Binding WF_Common_AddEllipsis, Source={StaticResource LocalizedStrings}}" />
-                        <Button MinWidth="120" Click="Endpoint2EditButton_Click" Content="{Binding WF_Common_Edit, Source={StaticResource LocalizedStrings}}" />
-                        <Button MinWidth="120" Click="Endpoint2RemoveButton_Click" Content="{Binding Common_RemoveButton, Source={StaticResource LocalizedStrings}}" />
+                        <Button MinWidth="120" Click="Endpoint2AddButton_Click" Content="{x:Bind local:LocalizedStrings.Instance.WF_Common_AddEllipsis}" />
+                        <Button MinWidth="120" Click="Endpoint2EditButton_Click" Content="{x:Bind local:LocalizedStrings.Instance.WF_Common_Edit}" />
+                        <Button MinWidth="120" Click="Endpoint2RemoveButton_Click" Content="{x:Bind local:LocalizedStrings.Instance.Common_RemoveButton}" />
                     </StackPanel>
                 </Grid>
             </StackPanel>
 
             <!--  Client section (bottom) — used by Gateway-to-client mode  -->
             <StackPanel x:Name="ClientBottomSection" Spacing="8" Visibility="Collapsed">
-                <TextBlock FontWeight="SemiBold" Text="{Binding WF_ConfigureTunnelEndpoints_Client, Source={StaticResource LocalizedStrings}}" />
+                <TextBlock FontWeight="SemiBold" Text="{x:Bind local:LocalizedStrings.Instance.WF_ConfigureTunnelEndpoints_Client}" />
                 <RadioButton
                     x:Name="ClientBottomRadioButton"
-                    Content="{Binding WF_Common_AnyIPAddress, Source={StaticResource LocalizedStrings}}"
+                    Content="{x:Bind local:LocalizedStrings.Instance.WF_Common_AnyIPAddress}"
                     GroupName="ClientBottomGroup"
                     IsChecked="True"
                     IsEnabled="False" />

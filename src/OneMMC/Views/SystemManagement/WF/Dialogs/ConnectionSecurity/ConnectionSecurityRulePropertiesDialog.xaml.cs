@@ -103,9 +103,14 @@ public sealed partial class ConnectionSecurityRulePropertiesDialog : ContentDial
             _ => LocalizedStrings.WF_SecurityRequirement_None
         };
 
-    public class AuthMethodItem
-    {
-        public string Name { get; set; } = string.Empty;
-        public string Description { get; set; } = string.Empty;
-    }
+}
+
+/// <summary>
+/// Auth method row shown in the rule properties dialog. Namespace-level so it can be
+/// referenced from XAML via x:DataType for compiled (AOT-safe) bindings.
+/// </summary>
+public class AuthMethodItem
+{
+    public string Name { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
 }

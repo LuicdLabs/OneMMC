@@ -10,7 +10,6 @@
     mc:Ignorable="d">
 
     <Page.Resources>
-        <local:LocalizedStrings x:Key="LocalizedStrings" />
     </Page.Resources>
 
     <Grid>
@@ -27,7 +26,7 @@
                     <MenuFlyout>
                         <MenuFlyoutItem
                             Click="RestoreDefaultsItem_Click"
-                            Text="{Binding WF_WindowsFirewall_RestoreLocalDefaults, Source={StaticResource LocalizedStrings}}">
+                            Text="{x:Bind local:LocalizedStrings.Instance.WF_WindowsFirewall_RestoreLocalDefaults}">
                             <MenuFlyoutItem.Icon>
                                 <FontIcon Glyph="&#xE777;" />
                             </MenuFlyoutItem.Icon>
@@ -35,7 +34,7 @@
                         <MenuFlyoutItem
                             x:Name="OpenLegacyFirewallItem"
                             Click="OpenLegacyFirewallItem_Click"
-                            Text="{Binding WF_OpenLegacyFirewall, Source={StaticResource LocalizedStrings}}">
+                            Text="{x:Bind local:LocalizedStrings.Instance.WF_OpenLegacyFirewall}">
                             <MenuFlyoutItem.Icon>
                                 <FontIcon Glyph="&#xE8A7;" />
                             </MenuFlyoutItem.Icon>
@@ -50,73 +49,73 @@
             <StackPanel Padding="24,8,24,24" Spacing="4">
 
                 <!--  Overview SettingsExpander  -->
-                <controls:SettingsExpander Header="{Binding WF_WindowsFirewall_Overview, Source={StaticResource LocalizedStrings}}" IsExpanded="True">
+                <controls:SettingsExpander Header="{x:Bind local:LocalizedStrings.Instance.WF_WindowsFirewall_Overview}" IsExpanded="True">
                     <controls:SettingsExpander.HeaderIcon>
                         <FontIcon Glyph="&#xEB05;" />
                     </controls:SettingsExpander.HeaderIcon>
 
                     <controls:SettingsExpander.Items>
-                        <controls:SettingsCard x:Name="DomainProfileCard" Padding="16,12" Header="{Binding WF_WindowsFirewall_DomainProfile, Source={StaticResource LocalizedStrings}}">
+                        <controls:SettingsCard x:Name="DomainProfileCard" Padding="16,12" Header="{x:Bind local:LocalizedStrings.Instance.WF_WindowsFirewall_DomainProfile}">
                             <controls:SettingsCard.Description>
                                 <StackPanel Spacing="4">
                                     <TextBlock
                                         x:Name="DomainStatusText"
                                         Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                        Text="{Binding WF_WindowsFirewall_WindowsDefenderFirewallIsOn, Source={StaticResource LocalizedStrings}}"
+                                        Text="{x:Bind local:LocalizedStrings.Instance.WF_WindowsFirewall_WindowsDefenderFirewallIsOn}"
                                         TextWrapping="Wrap" />
                                     <TextBlock
                                         x:Name="DomainInboundText"
                                         Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                        Text="{Binding WF_WindowsFirewall_InboundConnectionsThatDoNotMatchARuleAreBlocked, Source={StaticResource LocalizedStrings}}"
+                                        Text="{x:Bind local:LocalizedStrings.Instance.WF_WindowsFirewall_InboundConnectionsThatDoNotMatchARuleAreBlocked}"
                                         TextWrapping="Wrap" />
                                     <TextBlock
                                         x:Name="DomainOutboundText"
                                         Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                        Text="{Binding WF_WindowsFirewall_OutboundConnectionsThatDoNotMatchARuleAreAllowed, Source={StaticResource LocalizedStrings}}"
+                                        Text="{x:Bind local:LocalizedStrings.Instance.WF_WindowsFirewall_OutboundConnectionsThatDoNotMatchARuleAreAllowed}"
                                         TextWrapping="Wrap" />
                                 </StackPanel>
                             </controls:SettingsCard.Description>
                         </controls:SettingsCard>
 
-                        <controls:SettingsCard x:Name="PrivateProfileCard" Padding="16,12" Header="{Binding WF_WindowsFirewall_PrivateProfile, Source={StaticResource LocalizedStrings}}">
+                        <controls:SettingsCard x:Name="PrivateProfileCard" Padding="16,12" Header="{x:Bind local:LocalizedStrings.Instance.WF_WindowsFirewall_PrivateProfile}">
                             <controls:SettingsCard.Description>
                                 <StackPanel Spacing="4">
                                     <TextBlock
                                         x:Name="PrivateStatusText"
                                         Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                        Text="{Binding WF_WindowsFirewall_WindowsDefenderFirewallIsOn, Source={StaticResource LocalizedStrings}}"
+                                        Text="{x:Bind local:LocalizedStrings.Instance.WF_WindowsFirewall_WindowsDefenderFirewallIsOn}"
                                         TextWrapping="Wrap" />
                                     <TextBlock
                                         x:Name="PrivateInboundText"
                                         Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                        Text="{Binding WF_WindowsFirewall_InboundConnectionsThatDoNotMatchARuleAreBlocked, Source={StaticResource LocalizedStrings}}"
+                                        Text="{x:Bind local:LocalizedStrings.Instance.WF_WindowsFirewall_InboundConnectionsThatDoNotMatchARuleAreBlocked}"
                                         TextWrapping="Wrap" />
                                     <TextBlock
                                         x:Name="PrivateOutboundText"
                                         Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                        Text="{Binding WF_WindowsFirewall_OutboundConnectionsThatDoNotMatchARuleAreAllowed, Source={StaticResource LocalizedStrings}}"
+                                        Text="{x:Bind local:LocalizedStrings.Instance.WF_WindowsFirewall_OutboundConnectionsThatDoNotMatchARuleAreAllowed}"
                                         TextWrapping="Wrap" />
                                 </StackPanel>
                             </controls:SettingsCard.Description>
                         </controls:SettingsCard>
 
-                        <controls:SettingsCard x:Name="PublicProfileCard" Padding="16,12" Header="{Binding WF_WindowsFirewall_PublicProfile, Source={StaticResource LocalizedStrings}}">
+                        <controls:SettingsCard x:Name="PublicProfileCard" Padding="16,12" Header="{x:Bind local:LocalizedStrings.Instance.WF_WindowsFirewall_PublicProfile}">
                             <controls:SettingsCard.Description>
                                 <StackPanel Spacing="4">
                                     <TextBlock
                                         x:Name="PublicStatusText"
                                         Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                        Text="{Binding WF_WindowsFirewall_WindowsDefenderFirewallIsOn, Source={StaticResource LocalizedStrings}}"
+                                        Text="{x:Bind local:LocalizedStrings.Instance.WF_WindowsFirewall_WindowsDefenderFirewallIsOn}"
                                         TextWrapping="Wrap" />
                                     <TextBlock
                                         x:Name="PublicInboundText"
                                         Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                        Text="{Binding WF_WindowsFirewall_InboundConnectionsThatDoNotMatchARuleAreBlocked, Source={StaticResource LocalizedStrings}}"
+                                        Text="{x:Bind local:LocalizedStrings.Instance.WF_WindowsFirewall_InboundConnectionsThatDoNotMatchARuleAreBlocked}"
                                         TextWrapping="Wrap" />
                                     <TextBlock
                                         x:Name="PublicOutboundText"
                                         Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                        Text="{Binding WF_WindowsFirewall_OutboundConnectionsThatDoNotMatchARuleAreAllowed, Source={StaticResource LocalizedStrings}}"
+                                        Text="{x:Bind local:LocalizedStrings.Instance.WF_WindowsFirewall_OutboundConnectionsThatDoNotMatchARuleAreAllowed}"
                                         TextWrapping="Wrap" />
                                 </StackPanel>
                             </controls:SettingsCard.Description>
@@ -128,8 +127,8 @@
                 <controls:SettingsCard
                     x:Name="InboundRulesCard"
                     Click="InboundRulesCard_Click"
-                    Description="{Binding WF_WindowsFirewall_InboundRulesDescription, Source={StaticResource LocalizedStrings}}"
-                    Header="{Binding WF_InboundRules_PageTitle, Source={StaticResource LocalizedStrings}}"
+                    Description="{x:Bind local:LocalizedStrings.Instance.WF_WindowsFirewall_InboundRulesDescription}"
+                    Header="{x:Bind local:LocalizedStrings.Instance.WF_InboundRules_PageTitle}"
                     IsClickEnabled="True">
                     <controls:SettingsCard.HeaderIcon>
                         <FontIcon Glyph="&#xEA4E;" />
@@ -140,8 +139,8 @@
                 <controls:SettingsCard
                     x:Name="OutboundRulesCard"
                     Click="OutboundRulesCard_Click"
-                    Description="{Binding WF_WindowsFirewall_OutboundRulesDescription, Source={StaticResource LocalizedStrings}}"
-                    Header="{Binding WF_OutboundRules_PageTitle, Source={StaticResource LocalizedStrings}}"
+                    Description="{x:Bind local:LocalizedStrings.Instance.WF_WindowsFirewall_OutboundRulesDescription}"
+                    Header="{x:Bind local:LocalizedStrings.Instance.WF_OutboundRules_PageTitle}"
                     IsClickEnabled="True">
                     <controls:SettingsCard.HeaderIcon>
                         <FontIcon Glyph="&#xE976;" />
@@ -152,8 +151,8 @@
                 <controls:SettingsCard
                     x:Name="ConnectionSecurityRulesCard"
                     Click="ConnectionSecurityRulesCard_Click"
-                    Description="{Binding WF_WindowsFirewall_ConnectionSecurityRulesDescription, Source={StaticResource LocalizedStrings}}"
-                    Header="{Binding WF_ConnectionSecurityRules_PageTitle, Source={StaticResource LocalizedStrings}}"
+                    Description="{x:Bind local:LocalizedStrings.Instance.WF_WindowsFirewall_ConnectionSecurityRulesDescription}"
+                    Header="{x:Bind local:LocalizedStrings.Instance.WF_ConnectionSecurityRules_PageTitle}"
                     IsClickEnabled="True">
                     <controls:SettingsCard.HeaderIcon>
                         <FontIcon Glyph="&#xEDA3;" />
@@ -164,8 +163,8 @@
                 <controls:SettingsCard
                     x:Name="MonitoringCard"
                     Click="MonitoringCard_Click"
-                    Description="{Binding WF_WindowsFirewall_MonitoringDescription, Source={StaticResource LocalizedStrings}}"
-                    Header="{Binding WF_Monitoring_PageTitle, Source={StaticResource LocalizedStrings}}"
+                    Description="{x:Bind local:LocalizedStrings.Instance.WF_WindowsFirewall_MonitoringDescription}"
+                    Header="{x:Bind local:LocalizedStrings.Instance.WF_Monitoring_PageTitle}"
                     IsClickEnabled="True">
                     <controls:SettingsCard.HeaderIcon>
                         <FontIcon Glyph="&#xE9D9;" />
@@ -176,8 +175,8 @@
                 <controls:SettingsCard
                     x:Name="FirewallPropertiesCard"
                     Click="FirewallPropertiesCard_Click"
-                    Description="{Binding WF_WindowsFirewall_PropertiesDescription, Source={StaticResource LocalizedStrings}}"
-                    Header="{Binding WF_Common_WindowsDefenderFirewallProperties, Source={StaticResource LocalizedStrings}}"
+                    Description="{x:Bind local:LocalizedStrings.Instance.WF_WindowsFirewall_PropertiesDescription}"
+                    Header="{x:Bind local:LocalizedStrings.Instance.WF_Common_WindowsDefenderFirewallProperties}"
                     IsClickEnabled="True">
                     <controls:SettingsCard.HeaderIcon>
                         <FontIcon Glyph="&#xE713;" />

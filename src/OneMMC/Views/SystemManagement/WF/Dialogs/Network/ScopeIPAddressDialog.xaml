@@ -9,7 +9,6 @@
     mc:Ignorable="d">
 
     <UserControl.Resources>
-        <local:LocalizedStrings x:Key="LocalizedStrings" />
     </UserControl.Resources>
 
     <Grid MinWidth="520" MinHeight="440">
@@ -22,15 +21,15 @@
 
         <!-- Local IP addresses -->
         <StackPanel Grid.Row="0" Margin="0,0,0,8" Spacing="8">
-            <TextBlock FontWeight="SemiBold" Text="{Binding WF_ScopeIPAddress_LocalIPAddresses, Source={StaticResource LocalizedStrings}}" />
+            <TextBlock FontWeight="SemiBold" Text="{x:Bind local:LocalizedStrings.Instance.WF_ScopeIPAddress_LocalIPAddresses}" />
             <RadioButton
                 x:Name="LocalAnyRadio"
-                Content="{Binding WF_Common_AnyIPAddress, Source={StaticResource LocalizedStrings}}"
+                Content="{x:Bind local:LocalizedStrings.Instance.WF_Common_AnyIPAddress}"
                 GroupName="LocalGroup"
                 IsChecked="True" />
             <RadioButton
                 x:Name="LocalSpecificRadio"
-                Content="{Binding WF_Common_TheseIPAddresses, Source={StaticResource LocalizedStrings}}"
+                Content="{x:Bind local:LocalizedStrings.Instance.WF_Common_TheseIPAddresses}"
                 GroupName="LocalGroup" />
         </StackPanel>
 
@@ -57,24 +56,24 @@
                     Background="{ThemeResource SubtleFillColorSecondaryBrush}"
                     Orientation="Horizontal"
                     Spacing="8">
-                    <Button x:Name="LocalAddButton" Content="{Binding Common_AddButton, Source={StaticResource LocalizedStrings}}" IsEnabled="False" Click="LocalAddButton_Click" />
-                    <Button x:Name="LocalEditButton" Content="{Binding Common_EditButton, Source={StaticResource LocalizedStrings}}" IsEnabled="False" Click="LocalEditButton_Click" />
-                    <Button x:Name="LocalDeleteButton" Content="{Binding Common_DeleteButton, Source={StaticResource LocalizedStrings}}" IsEnabled="False" Click="LocalDeleteButton_Click" />
+                    <Button x:Name="LocalAddButton" Content="{x:Bind local:LocalizedStrings.Instance.Common_AddButton}" IsEnabled="False" Click="LocalAddButton_Click" />
+                    <Button x:Name="LocalEditButton" Content="{x:Bind local:LocalizedStrings.Instance.Common_EditButton}" IsEnabled="False" Click="LocalEditButton_Click" />
+                    <Button x:Name="LocalDeleteButton" Content="{x:Bind local:LocalizedStrings.Instance.Common_DeleteButton}" IsEnabled="False" Click="LocalDeleteButton_Click" />
                 </StackPanel>
             </Grid>
         </Border>
 
         <!-- Remote IP addresses -->
         <StackPanel Grid.Row="2" Margin="0,12,0,8" Spacing="8">
-            <TextBlock FontWeight="SemiBold" Text="{Binding WF_ScopeIPAddress_RemoteIPAddresses, Source={StaticResource LocalizedStrings}}" />
+            <TextBlock FontWeight="SemiBold" Text="{x:Bind local:LocalizedStrings.Instance.WF_ScopeIPAddress_RemoteIPAddresses}" />
             <RadioButton
                 x:Name="RemoteAnyRadio"
-                Content="{Binding WF_Common_AnyIPAddress, Source={StaticResource LocalizedStrings}}"
+                Content="{x:Bind local:LocalizedStrings.Instance.WF_Common_AnyIPAddress}"
                 GroupName="RemoteGroup"
                 IsChecked="True" />
             <RadioButton
                 x:Name="RemoteSpecificRadio"
-                Content="{Binding WF_Common_TheseIPAddresses, Source={StaticResource LocalizedStrings}}"
+                Content="{x:Bind local:LocalizedStrings.Instance.WF_Common_TheseIPAddresses}"
                 GroupName="RemoteGroup" />
         </StackPanel>
 
@@ -101,9 +100,9 @@
                     Background="{ThemeResource SubtleFillColorSecondaryBrush}"
                     Orientation="Horizontal"
                     Spacing="8">
-                    <Button x:Name="RemoteAddButton" Content="{Binding Common_AddButton, Source={StaticResource LocalizedStrings}}" IsEnabled="False" Click="RemoteAddButton_Click" />
-                    <Button x:Name="RemoteEditButton" Content="{Binding Common_EditButton, Source={StaticResource LocalizedStrings}}" IsEnabled="False" Click="RemoteEditButton_Click" />
-                    <Button x:Name="RemoteDeleteButton" Content="{Binding Common_DeleteButton, Source={StaticResource LocalizedStrings}}" IsEnabled="False" Click="RemoteDeleteButton_Click" />
+                    <Button x:Name="RemoteAddButton" Content="{x:Bind local:LocalizedStrings.Instance.Common_AddButton}" IsEnabled="False" Click="RemoteAddButton_Click" />
+                    <Button x:Name="RemoteEditButton" Content="{x:Bind local:LocalizedStrings.Instance.Common_EditButton}" IsEnabled="False" Click="RemoteEditButton_Click" />
+                    <Button x:Name="RemoteDeleteButton" Content="{x:Bind local:LocalizedStrings.Instance.Common_DeleteButton}" IsEnabled="False" Click="RemoteDeleteButton_Click" />
                 </StackPanel>
             </Grid>
         </Border>

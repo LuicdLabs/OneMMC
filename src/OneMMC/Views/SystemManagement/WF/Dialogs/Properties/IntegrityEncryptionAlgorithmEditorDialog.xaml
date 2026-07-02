@@ -9,7 +9,6 @@
     mc:Ignorable="d">
 
     <UserControl.Resources>
-        <local:LocalizedStrings x:Key="LocalizedStrings" />
     </UserControl.Resources>
 
     <StackPanel MinWidth="560" Spacing="12">
@@ -19,19 +18,19 @@
             CornerRadius="4"
             Padding="10">
             <StackPanel Spacing="10">
-                <TextBlock FontWeight="SemiBold" Text="{Binding WF_Field_Protocol, Source={StaticResource LocalizedStrings}}" />
+                <TextBlock FontWeight="SemiBold" Text="{x:Bind local:LocalizedStrings.Instance.WF_Field_Protocol}" />
 
                 <StackPanel Spacing="4">
                     <RadioButton
                         x:Name="EspProtocolRadioButton"
                         Checked="ProtocolRadioButton_Checked"
-                        Content="{Binding WF_Common_ESPRecommended, Source={StaticResource LocalizedStrings}}"
+                        Content="{x:Bind local:LocalizedStrings.Instance.WF_Common_ESPRecommended}"
                         GroupName="ProtocolGroup"
                         IsChecked="True" />
                     <TextBlock
                         Margin="24,0,0,0"
                         Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                        Text="{Binding WF_IntegrityEncryptionAlgorithmEditor_ESPProtocolProvidesPrivacyAndIntegrityForThePacketPayloadESPIs, Source={StaticResource LocalizedStrings}}"
+                        Text="{x:Bind local:LocalizedStrings.Instance.WF_IntegrityEncryptionAlgorithmEditor_ESPProtocolProvidesPrivacyAndIntegrityForThePacketPayloadESPIs}"
                         TextWrapping="Wrap" />
                 </StackPanel>
 
@@ -39,12 +38,12 @@
                     <RadioButton
                         x:Name="EspAndAhProtocolRadioButton"
                         Checked="ProtocolRadioButton_Checked"
-                        Content="{Binding WF_IntegrityEncryptionAlgorithmEditor_ESPAndAH, Source={StaticResource LocalizedStrings}}"
+                        Content="{x:Bind local:LocalizedStrings.Instance.WF_IntegrityEncryptionAlgorithmEditor_ESPAndAH}"
                         GroupName="ProtocolGroup" />
                     <TextBlock
                         Margin="24,0,0,0"
                         Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                        Text="{Binding WF_IntegrityEncryptionAlgorithmEditor_AddingTheAHProtocolProvidesAdditionalIntegrityForTheIPHeaderThis, Source={StaticResource LocalizedStrings}}"
+                        Text="{x:Bind local:LocalizedStrings.Instance.WF_IntegrityEncryptionAlgorithmEditor_AddingTheAHProtocolProvidesAdditionalIntegrityForTheIPHeaderThis}"
                         TextWrapping="Wrap" />
                 </StackPanel>
             </StackPanel>
@@ -56,7 +55,7 @@
             CornerRadius="4"
             Padding="10">
             <StackPanel Spacing="8">
-                <TextBlock FontWeight="SemiBold" Text="{Binding WF_IntegrityEncryptionAlgorithmEditor_Algorithms, Source={StaticResource LocalizedStrings}}" />
+                <TextBlock FontWeight="SemiBold" Text="{x:Bind local:LocalizedStrings.Instance.WF_IntegrityEncryptionAlgorithmEditor_Algorithms}" />
 
                 <Grid ColumnSpacing="8" RowSpacing="10">
                     <Grid.ColumnDefinitions>
@@ -68,29 +67,29 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
-                    <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" Text="{Binding WF_Common_EncryptionAlgorithm, Source={StaticResource LocalizedStrings}}" />
+                    <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" Text="{x:Bind local:LocalizedStrings.Instance.WF_Common_EncryptionAlgorithm}" />
                     <ComboBox x:Name="EncryptionAlgorithmComboBox" Grid.Row="0" Grid.Column="1" SelectionChanged="EncryptionAlgorithmComboBox_SelectionChanged">
-                        <ComboBoxItem Content="{Binding WF_IntegrityEncryptionAlgorithmEditor_AESGCM256, Source={StaticResource LocalizedStrings}}" Tag="AES-GCM 256" />
-                        <ComboBoxItem Content="{Binding WF_IntegrityEncryptionAlgorithmEditor_AESGCM192, Source={StaticResource LocalizedStrings}}" Tag="AES-GCM 192" />
-                        <ComboBoxItem Content="{Binding WF_IntegrityEncryptionAlgorithmEditor_AESGCM128, Source={StaticResource LocalizedStrings}}" Tag="AES-GCM 128" />
-                        <ComboBoxItem Content="{Binding WF_Common_AESCBC256, Source={StaticResource LocalizedStrings}}" Tag="AES-CBC 256" />
-                        <ComboBoxItem Content="{Binding WF_Common_AESCBC192, Source={StaticResource LocalizedStrings}}" Tag="AES-CBC 192" />
-                        <ComboBoxItem Content="{Binding WF_Common_AESCBC128, Source={StaticResource LocalizedStrings}}" Tag="AES-CBC 128" />
-                        <ComboBoxItem Content="{Binding WF_Common_Value3DES, Source={StaticResource LocalizedStrings}}" Tag="3DES" />
-                        <ComboBoxItem Content="{Binding WF_Common_DES, Source={StaticResource LocalizedStrings}}" Tag="DES" />
+                        <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_IntegrityEncryptionAlgorithmEditor_AESGCM256}" Tag="AES-GCM 256" />
+                        <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_IntegrityEncryptionAlgorithmEditor_AESGCM192}" Tag="AES-GCM 192" />
+                        <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_IntegrityEncryptionAlgorithmEditor_AESGCM128}" Tag="AES-GCM 128" />
+                        <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_Common_AESCBC256}" Tag="AES-CBC 256" />
+                        <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_Common_AESCBC192}" Tag="AES-CBC 192" />
+                        <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_Common_AESCBC128}" Tag="AES-CBC 128" />
+                        <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_Common_Value3DES}" Tag="3DES" />
+                        <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_Common_DES}" Tag="DES" />
                     </ComboBox>
 
-                    <TextBlock Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" Text="{Binding WF_Common_IntegrityAlgorithm, Source={StaticResource LocalizedStrings}}" />
+                    <TextBlock Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" Text="{x:Bind local:LocalizedStrings.Instance.WF_Common_IntegrityAlgorithm}" />
                     <ComboBox x:Name="IntegrityAlgorithmComboBox" Grid.Row="1" Grid.Column="1" SelectionChanged="IntegrityAlgorithmComboBox_SelectionChanged">
-                        <ComboBoxItem Content="{Binding WF_IntegrityEncryptionAlgorithmEditor_AESGCM256, Source={StaticResource LocalizedStrings}}" Tag="AES-GCM 256" />
-                        <ComboBoxItem Content="{Binding WF_IntegrityEncryptionAlgorithmEditor_AESGCM192, Source={StaticResource LocalizedStrings}}" Tag="AES-GCM 192" />
-                        <ComboBoxItem Content="{Binding WF_IntegrityEncryptionAlgorithmEditor_AESGCM128, Source={StaticResource LocalizedStrings}}" Tag="AES-GCM 128" />
-                        <ComboBoxItem Content="{Binding WF_Common_AESGMAC256, Source={StaticResource LocalizedStrings}}" Tag="AES-GMAC 256" />
-                        <ComboBoxItem Content="{Binding WF_Common_AESGMAC192, Source={StaticResource LocalizedStrings}}" Tag="AES-GMAC 192" />
-                        <ComboBoxItem Content="{Binding WF_Common_AESGMAC128, Source={StaticResource LocalizedStrings}}" Tag="AES-GMAC 128" />
-                        <ComboBoxItem Content="{Binding WF_Common_SHA256, Source={StaticResource LocalizedStrings}}" Tag="SHA-256" />
-                        <ComboBoxItem Content="{Binding WF_Common_SHA1, Source={StaticResource LocalizedStrings}}" Tag="SHA-1" />
-                        <ComboBoxItem Content="{Binding WF_Common_MD5, Source={StaticResource LocalizedStrings}}" Tag="MD5" />
+                        <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_IntegrityEncryptionAlgorithmEditor_AESGCM256}" Tag="AES-GCM 256" />
+                        <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_IntegrityEncryptionAlgorithmEditor_AESGCM192}" Tag="AES-GCM 192" />
+                        <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_IntegrityEncryptionAlgorithmEditor_AESGCM128}" Tag="AES-GCM 128" />
+                        <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_Common_AESGMAC256}" Tag="AES-GMAC 256" />
+                        <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_Common_AESGMAC192}" Tag="AES-GMAC 192" />
+                        <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_Common_AESGMAC128}" Tag="AES-GMAC 128" />
+                        <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_Common_SHA256}" Tag="SHA-256" />
+                        <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_Common_SHA1}" Tag="SHA-1" />
+                        <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_Common_MD5}" Tag="MD5" />
                     </ComboBox>
                 </Grid>
 
@@ -107,7 +106,7 @@
                 <TextBlock
                     x:Name="ValidationWarningTextBlock"
                     Foreground="{ThemeResource SystemFillColorCriticalBrush}"
-                    Text="{Binding WF_IntegrityEncryptionAlgorithmEditor_InvalidAlgorithmCombinationForAESGCMEncryptionIntegrityMustMatchTheSame, Source={StaticResource LocalizedStrings}}"
+                    Text="{x:Bind local:LocalizedStrings.Instance.WF_IntegrityEncryptionAlgorithmEditor_InvalidAlgorithmCombinationForAESGCMEncryptionIntegrityMustMatchTheSame}"
                     TextWrapping="Wrap"
                     Visibility="Collapsed" />
             </StackPanel>
@@ -119,7 +118,7 @@
             CornerRadius="4"
             Padding="10">
             <StackPanel Spacing="8">
-                <TextBlock FontWeight="SemiBold" Text="{Binding WF_Common_KeyLifetimes, Source={StaticResource LocalizedStrings}}" />
+                <TextBlock FontWeight="SemiBold" Text="{x:Bind local:LocalizedStrings.Instance.WF_Common_KeyLifetimes}" />
 
                 <Grid ColumnSpacing="8" RowSpacing="8">
                     <Grid.ColumnDefinitions>
@@ -131,7 +130,7 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
-                    <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" Text="{Binding WF_Common_Minutes, Source={StaticResource LocalizedStrings}}" />
+                    <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" Text="{x:Bind local:LocalizedStrings.Instance.WF_Common_Minutes}" />
                     <NumberBox
                         x:Name="MinutesNumberBox"
                         Grid.Row="0"
@@ -140,7 +139,7 @@
                         SpinButtonPlacementMode="Inline"
                         Value="60" />
 
-                    <TextBlock Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" Text="{Binding WF_Common_KB, Source={StaticResource LocalizedStrings}}" />
+                    <TextBlock Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" Text="{x:Bind local:LocalizedStrings.Instance.WF_Common_KB}" />
                     <NumberBox
                         x:Name="KilobytesNumberBox"
                         Grid.Row="1"
