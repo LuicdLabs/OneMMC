@@ -13,7 +13,6 @@
     x:Name="PageRoot"
     mc:Ignorable="d">
     <Page.Resources>
-        <localization:LocalizedStrings x:Key="LocalizedStrings" />
     </Page.Resources>
 
     <Grid>
@@ -99,15 +98,15 @@
                                             <Button
                                                 Background="Transparent"
                                                 BorderThickness="0"
-                                                Command="{Binding DataContext.EditUserCommand, ElementName=PageRoot}"
-                                                CommandParameter="{x:Bind}">
+                                                Click="EditUserButton_Click"
+                                                Tag="{x:Bind}">
                                                 <FontIcon FontSize="16" Glyph="&#xE70F;" />
                                             </Button>
                                             <Button
                                                 Background="Transparent"
                                                 BorderThickness="0"
-                                                Command="{Binding DataContext.DeleteUserCommand, ElementName=PageRoot}"
-                                                CommandParameter="{x:Bind}">
+                                                Click="DeleteUserButton_Click"
+                                                Tag="{x:Bind}">
                                                 <FontIcon FontSize="16" Glyph="&#xE74D;" />
                                             </Button>
                                         </StackPanel>
@@ -179,15 +178,15 @@
                                             <Button
                                                 Background="Transparent"
                                                 BorderThickness="0"
-                                                Command="{Binding DataContext.EditGroupCommand, ElementName=PageRoot}"
-                                                CommandParameter="{x:Bind}">
+                                                Click="EditGroupButton_Click"
+                                                Tag="{x:Bind}">
                                                 <FontIcon FontSize="16" Glyph="&#xE70F;" />
                                             </Button>
                                             <Button
                                                 Background="Transparent"
                                                 BorderThickness="0"
-                                                Command="{Binding DataContext.DeleteGroupCommand, ElementName=PageRoot}"
-                                                CommandParameter="{x:Bind}">
+                                                Click="DeleteGroupButton_Click"
+                                                Tag="{x:Bind}">
                                                 <FontIcon FontSize="16" Glyph="&#xE74D;" />
                                             </Button>
                                         </StackPanel>

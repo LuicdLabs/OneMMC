@@ -10,6 +10,15 @@ using System.Linq;
 namespace OneMMC.Services
 {
     /// <summary>
+    /// Breadcrumb item record.
+    /// Declared at namespace level so XAML compiled bindings (x:DataType/x:Bind) can reference it.
+    /// </summary>
+    public partial record Breadcrumb(string Label, Type Page, object? Parameter = null)
+    {
+        public override string ToString() => Label;
+    }
+
+    /// <summary>
     /// Breadcrumb navigation service - Manages breadcrumb navigation
     /// </summary>
     public class BreadcrumbNavigationService
@@ -52,16 +61,6 @@ namespace OneMMC.Services
         public static string GetPageTitle(DependencyObject obj)
         {
             return (string)obj.GetValue(PageTitleProperty);
-        }
-        #endregion
-
-        #region Classes
-        /// <summary>
-        /// Breadcrumb item record
-        /// </summary>
-        public record Breadcrumb(string Label, Type Page, object? Parameter = null)
-        {
-            public override string ToString() => Label;
         }
         #endregion
 

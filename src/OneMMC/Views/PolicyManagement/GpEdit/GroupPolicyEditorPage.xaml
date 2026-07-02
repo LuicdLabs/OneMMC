@@ -57,9 +57,9 @@
                 ItemInvoked="PolicyTree_ItemInvoked"
                 SelectionMode="Single">
                 <TreeView.ItemTemplate>
-                    <DataTemplate>
+                    <DataTemplate x:DataType="TreeViewNode">
                         <Grid Height="30">
-                            <TextBlock VerticalAlignment="Center" Text="{Binding Content.Name}" />
+                            <TextBlock VerticalAlignment="Center" Text="{x:Bind ((vm:GroupPolicyTreeItem)Content).Name}" />
                         </Grid>
                     </DataTemplate>
                 </TreeView.ItemTemplate>

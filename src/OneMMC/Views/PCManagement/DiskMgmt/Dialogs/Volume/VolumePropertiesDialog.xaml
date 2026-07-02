@@ -15,7 +15,6 @@
     Style="{StaticResource DefaultContentDialogStyle}">
 
     <ContentDialog.Resources>
-        <localization:LocalizedStrings x:Key="LocalizedStrings" />
         <converters:NullToDashStringConverter x:Key="NullToDashStringConverter"/>
         <converters:BoolToYesNoConverter x:Key="BoolToYesNoConverter"/>
         <converters:BytesToStringConverter x:Key="BytesToStringConverter"/>

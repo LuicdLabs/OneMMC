@@ -139,8 +139,7 @@
                     <ComboBox
                         x:Name="FirstFailureBox"
                         MinWidth="350"
-                        Header="{x:Bind LocalizedStrings.Service_Recovery_FirstFailure}"
-                        SelectedValuePath="Tag">
+                        Header="{x:Bind LocalizedStrings.Service_Recovery_FirstFailure}">
                         <ComboBoxItem Content="{x:Bind LocalizedStrings.Service_Recovery_TakeNoAction}" Tag="none" />
                         <ComboBoxItem Content="{x:Bind LocalizedStrings.Service_Recovery_RestartService}" Tag="restart" />
                         <ComboBoxItem Content="{x:Bind LocalizedStrings.Service_Recovery_RunProgram}" Tag="run" />
@@ -149,8 +148,7 @@
                     <ComboBox
                         x:Name="SecondFailureBox"
                         MinWidth="350"
-                        Header="{x:Bind LocalizedStrings.Service_Recovery_SecondFailure}"
-                        SelectedValuePath="Tag">
+                        Header="{x:Bind LocalizedStrings.Service_Recovery_SecondFailure}">
                         <ComboBoxItem Content="{x:Bind LocalizedStrings.Service_Recovery_TakeNoAction}" Tag="none" />
                         <ComboBoxItem Content="{x:Bind LocalizedStrings.Service_Recovery_RestartService}" Tag="restart" />
                         <ComboBoxItem Content="{x:Bind LocalizedStrings.Service_Recovery_RunProgram}" Tag="run" />
@@ -159,8 +157,7 @@
                     <ComboBox
                         x:Name="SubsequentFailureBox"
                         MinWidth="350"
-                        Header="{x:Bind LocalizedStrings.Service_Recovery_SubsequentFailure}"
-                        SelectedValuePath="Tag">
+                        Header="{x:Bind LocalizedStrings.Service_Recovery_SubsequentFailure}">
                         <ComboBoxItem Content="{x:Bind LocalizedStrings.Service_Recovery_TakeNoAction}" Tag="none" />
                         <ComboBoxItem Content="{x:Bind LocalizedStrings.Service_Recovery_RestartService}" Tag="restart" />
                         <ComboBoxItem Content="{x:Bind LocalizedStrings.Service_Recovery_RunProgram}" Tag="run" />
@@ -208,8 +205,8 @@
                             MaxHeight="180"
                             ItemsSource="{x:Bind _service.Dependencies, Mode=OneWay}">
                             <ListView.ItemTemplate>
-                                <DataTemplate>
-                                    <TextBlock Padding="8,4" Text="{Binding}" />
+                                <DataTemplate x:DataType="x:String">
+                                    <TextBlock Padding="8,4" Text="{x:Bind}" />
                                 </DataTemplate>
                             </ListView.ItemTemplate>
                         </ListView>
@@ -235,8 +232,8 @@
                             MaxHeight="180"
                             ItemsSource="{x:Bind _service.Dependents, Mode=OneWay}">
                             <ListView.ItemTemplate>
-                                <DataTemplate>
-                                    <TextBlock Padding="8,4" Text="{Binding}" />
+                                <DataTemplate x:DataType="x:String">
+                                    <TextBlock Padding="8,4" Text="{x:Bind}" />
                                 </DataTemplate>
                             </ListView.ItemTemplate>
                         </ListView>

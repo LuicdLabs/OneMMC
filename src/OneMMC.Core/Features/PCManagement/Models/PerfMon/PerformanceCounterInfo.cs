@@ -403,6 +403,12 @@ namespace OneMMC.Core.Features.PCManagement.Models.PerfMon
         /// false: Category is single-instance
         /// </summary>
         public bool IsMultiInstance { get; set; }
+
+        /// <summary>
+        /// Returns <see cref="Name"/> so list controls can display the category without a
+        /// reflection-based DisplayMemberPath (AOT/trimming compatibility).
+        /// </summary>
+        public override string ToString() => Name;
     }
 
     // ========================================================================
@@ -424,6 +430,12 @@ namespace OneMMC.Core.Features.PCManagement.Models.PerfMon
         /// From Windows performance counter CounterHelp.
         /// </summary>
         public string Description { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Returns <see cref="Name"/> so list controls can display the counter without a
+        /// reflection-based DisplayMemberPath (AOT/trimming compatibility).
+        /// </summary>
+        public override string ToString() => Name;
     }
 
     // ========================================================================

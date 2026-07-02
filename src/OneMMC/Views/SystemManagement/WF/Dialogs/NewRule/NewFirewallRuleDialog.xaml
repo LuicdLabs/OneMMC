@@ -146,8 +146,13 @@
                     x:Name="PredefinedGroupBox"
                     Width="Auto"
                     HorizontalAlignment="Stretch"
-                    DisplayMemberPath="DisplayName"
-                    SelectionChanged="PredefinedGroupBox_SelectionChanged" />
+                    SelectionChanged="PredefinedGroupBox_SelectionChanged">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate x:DataType="wf:PredefinedFirewallRuleGroup">
+                            <TextBlock Text="{x:Bind DisplayName}" />
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
 
                 <ListView
                     x:Name="PredefinedRulesListView"

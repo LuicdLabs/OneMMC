@@ -6,6 +6,16 @@ using OneMMC.Services;
 
 namespace OneMMC.ViewModels;
 
+/// <summary>
+/// A selectable theme entry (stable value + localized display name).
+/// Declared at namespace level so XAML compiled bindings (x:DataType/x:Bind) can reference it.
+/// </summary>
+public class ThemeOption
+{
+    public string Value { get; set; } = string.Empty;
+    public string DisplayName { get; set; } = string.Empty;
+}
+
 public partial class SettingsViewModel : ObservableObject
 {
     private const string ThemeLight = "Light";
@@ -13,12 +23,6 @@ public partial class SettingsViewModel : ObservableObject
     private const string ThemeSystem = "Use Windows theme";
 
     private readonly IThemeService _themeService;
-
-    public class ThemeOption
-    {
-        public string Value { get; set; } = string.Empty;
-        public string DisplayName { get; set; } = string.Empty;
-    }
 
     // Use simple data structure and let the UI layer handle localization
     public class SettingItemData
@@ -47,9 +51,29 @@ public partial class SettingsViewModel : ObservableObject
         get => _selectedTheme;
         set
         {
-            if (SetProperty(ref _selectedTheme, value) && !string.IsNullOrEmpty(value))
+            if (SetProperty(ref _selectedTheme, value))
             {
-                _themeService.SetTheme(ToAppTheme(value));
+                OnPropertyChanged(nameof(SelectedThemeOption));
+                if (!string.IsNullOrEmpty(value))
+                {
+                    _themeService.SetTheme(ToAppTheme(value));
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// The <see cref="ThemeOption"/> matching <see cref="SelectedTheme"/>, for compiled
+    /// SelectedItem binding (replaces the reflection-based SelectedValuePath pattern).
+    /// </summary>
+    public ThemeOption? SelectedThemeOption
+    {
+        get => ThemeOptions.Find(option => option.Value == SelectedTheme);
+        set
+        {
+            if (value is not null)
+            {
+                SelectedTheme = value.Value;
             }
         }
     }

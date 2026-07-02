@@ -18,7 +18,6 @@
     Style="{StaticResource DefaultContentDialogStyle}">
 
     <ContentDialog.Resources>
-        <localization:LocalizedStrings x:Key="LocalizedStrings" />
         <converters:NullableBoolToBoolConverter x:Key="NullableBoolToBoolConverter" />
     </ContentDialog.Resources>
 

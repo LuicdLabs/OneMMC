@@ -15,7 +15,6 @@
     Style="{StaticResource DefaultContentDialogStyle}">
 
     <ContentDialog.Resources>
-        <localization:LocalizedStrings x:Key="LocalizedStrings" />
     </ContentDialog.Resources>
 
     <StackPanel Spacing="16" MinWidth="400">

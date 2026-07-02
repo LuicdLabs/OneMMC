@@ -74,8 +74,8 @@
 						</Style>
 					</BreadcrumbBar.Resources>
 					<BreadcrumbBar.ItemTemplate>
-						<DataTemplate x:Name="BreadcrumbBarItemTemplate">
-							<BreadcrumbBarItem Content="{Binding Content}" Style="{StaticResource BreadcrumbBarItemStyle}" />
+						<DataTemplate x:Name="BreadcrumbBarItemTemplate" x:DataType="svc:Breadcrumb">
+							<BreadcrumbBarItem Content="{x:Bind Label}" Style="{StaticResource BreadcrumbBarItemStyle}" />
 						</DataTemplate>
 					</BreadcrumbBar.ItemTemplate>
 				</BreadcrumbBar>

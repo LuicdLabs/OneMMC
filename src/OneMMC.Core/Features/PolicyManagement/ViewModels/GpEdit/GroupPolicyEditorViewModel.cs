@@ -429,45 +429,50 @@ namespace OneMMC.Core.Features.PolicyManagement.ViewModels.GpEdit
             _disposed = true;
         }
 
-        public partial class GroupPolicyTreeItem : ObservableObject
+    }
+
+    /// <summary>
+    /// Represents a tree item in the Group Policy editor tree view.
+    /// Declared at namespace level so XAML compiled bindings (x:Bind casts) can reference it.
+    /// </summary>
+    public partial class GroupPolicyTreeItem : ObservableObject
+    {
+        public string Name { get; set; }
+        public PolicyManagerCategory? Category { get; set; }
+        public bool IsComputerConfiguration { get; set; }
+        public ObservableCollection<GroupPolicyTreeItem> Children { get; set; } = new();
+        private readonly GroupPolicyEditorViewModel _viewModel;
+
+        public GroupPolicyTreeItem(string name, PolicyManagerCategory? category, bool isComputer, IEnumerable<PolicyManagerCategory>? childrenToPopulate, GroupPolicyEditorViewModel vm)
         {
-            public string Name { get; set; }
-            public PolicyManagerCategory? Category { get; set; }
-            public bool IsComputerConfiguration { get; set; }
-            public ObservableCollection<GroupPolicyTreeItem> Children { get; set; } = new();
-            private readonly GroupPolicyEditorViewModel _viewModel;
+            Name = name;
+            Category = category;
+            IsComputerConfiguration = isComputer;
+            _viewModel = vm;
 
-            public GroupPolicyTreeItem(string name, PolicyManagerCategory? category, bool isComputer, IEnumerable<PolicyManagerCategory>? childrenToPopulate, GroupPolicyEditorViewModel vm)
+            if (childrenToPopulate is not null)
             {
-                Name = name;
-                Category = category;
-                IsComputerConfiguration = isComputer;
-                _viewModel = vm;
+                PopulateChildren(childrenToPopulate, isComputer ? AdmxPolicySection.Machine : AdmxPolicySection.User);
+            }
+        }
 
-                if (childrenToPopulate is not null)
+        private void PopulateChildren(IEnumerable<PolicyManagerCategory> categories, AdmxPolicySection section)
+        {
+            foreach (var cat in categories.OrderBy(c => c.DisplayName))
+            {
+                if (HasPoliciesInSection(cat, section))
                 {
-                    PopulateChildren(childrenToPopulate, isComputer ? AdmxPolicySection.Machine : AdmxPolicySection.User);
+                    Children.Add(new GroupPolicyTreeItem(cat.DisplayName, cat, IsComputerConfiguration, cat.Children, _viewModel));
                 }
             }
+        }
 
-            private void PopulateChildren(IEnumerable<PolicyManagerCategory> categories, AdmxPolicySection section)
-            {
-                foreach (var cat in categories.OrderBy(c => c.DisplayName))
-                {
-                    if (HasPoliciesInSection(cat, section))
-                    {
-                        Children.Add(new GroupPolicyTreeItem(cat.DisplayName, cat, IsComputerConfiguration, cat.Children, _viewModel));
-                    }
-                }
-            }
+        private static bool HasPoliciesInSection(PolicyManagerCategory category, AdmxPolicySection section)
+        {
+            if (category.Policies.Any(p => p.RawPolicy.Section == section || p.RawPolicy.Section == AdmxPolicySection.Both))
+                return true;
 
-            private static bool HasPoliciesInSection(PolicyManagerCategory category, AdmxPolicySection section)
-            {
-                if (category.Policies.Any(p => p.RawPolicy.Section == section || p.RawPolicy.Section == AdmxPolicySection.Both))
-                    return true;
-
-                return category.Children.Any(c => HasPoliciesInSection(c, section));
-            }
+            return category.Children.Any(c => HasPoliciesInSection(c, section));
         }
     }
 }

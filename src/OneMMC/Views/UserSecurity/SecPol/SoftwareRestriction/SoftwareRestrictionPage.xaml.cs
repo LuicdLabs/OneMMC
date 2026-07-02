@@ -910,10 +910,10 @@ public sealed partial class SoftwareRestrictionPage : Page
     private static ComboBox CreateComboBox<T>(IEnumerable<ComboOption<T>> options, T selectedValue)
         where T : notnull
     {
+        // Items render via ComboOption<T>.ToString() (no reflection-based DisplayMemberPath).
         ComboBox comboBox = new()
         {
             MinWidth = 280,
-            DisplayMemberPath = nameof(ComboOption<T>.Name),
             ItemsSource = options.ToList()
         };
 
@@ -1088,7 +1088,18 @@ public sealed partial class SoftwareRestrictionPage : Page
     }
 
     private sealed record ComboOption<T>(string Name, T Value, string Description = "")
-        where T : notnull;
-
-    private sealed record DesignatedFileTypeItem(string Extension, string FileType);
+        where T : notnull
+    {
+        /// <summary>
+        /// Returns <see cref="Name"/> so list controls can display the option without a
+        /// reflection-based DisplayMemberPath (AOT/trimming compatibility).
+        /// </summary>
+        public override string ToString() => Name;
+    }
 }
+
+/// <summary>
+/// A designated file type row (extension + friendly type name).
+/// Declared at namespace level so XAML compiled bindings (x:DataType/x:Bind) can reference it.
+/// </summary>
+internal sealed record DesignatedFileTypeItem(string Extension, string FileType);

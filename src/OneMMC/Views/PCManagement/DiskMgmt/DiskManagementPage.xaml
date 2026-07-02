@@ -14,7 +14,6 @@
     mc:Ignorable="d">
 
     <Page.Resources>
-        <localization:LocalizedStrings x:Key="LocalizedStrings" />
         <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
 
         <!--  Physical Disk Template  -->
@@ -47,7 +46,7 @@
                                 <MenuFlyoutItem
                                     Click="DiskPropertiesButton_Click"
                                     Tag="{x:Bind}"
-                                    Text="{Binding DiskMgmt_Properties, Source={StaticResource LocalizedStrings}}">
+                                    Text="{x:Bind localization:LocalizedStrings.Instance.DiskMgmt_Properties}">
                                     <MenuFlyoutItem.Icon>
                                         <FontIcon Glyph="&#xE946;" />
                                     </MenuFlyoutItem.Icon>
@@ -56,12 +55,12 @@
                                 <MenuFlyoutItem
                                     Click="InitializeDiskButton_Click"
                                     Tag="{x:Bind}"
-                                    Text="{Binding DiskMgmt_InitializeDisk, Source={StaticResource LocalizedStrings}}">
+                                    Text="{x:Bind localization:LocalizedStrings.Instance.DiskMgmt_InitializeDisk}">
                                 </MenuFlyoutItem>
                                 <MenuFlyoutItem
                                     Click="CreateSimpleVolumeButton_Click"
                                     Tag="{x:Bind}"
-                                    Text="{Binding DiskMgmt_CreateSimpleVolume, Source={StaticResource LocalizedStrings}}">
+                                    Text="{x:Bind localization:LocalizedStrings.Instance.DiskMgmt_CreateSimpleVolume}">
                                     <MenuFlyoutItem.Icon>
                                         <FontIcon Glyph="&#xE710;" />
                                     </MenuFlyoutItem.Icon>
@@ -70,7 +69,7 @@
                                 <MenuFlyoutItem
                                     Click="SetDiskOnlineButton_Click"
                                     Tag="{x:Bind}"
-                                    Text="{Binding DiskMgmt_Online, Source={StaticResource LocalizedStrings}}">
+                                    Text="{x:Bind localization:LocalizedStrings.Instance.DiskMgmt_Online}">
                                     <MenuFlyoutItem.Icon>
                                         <FontIcon Glyph="&#xE8CE;" />
                                     </MenuFlyoutItem.Icon>
@@ -78,7 +77,7 @@
                                 <MenuFlyoutItem
                                     Click="SetDiskOfflineButton_Click"
                                     Tag="{x:Bind}"
-                                    Text="{Binding DiskMgmt_Offline, Source={StaticResource LocalizedStrings}}">
+                                    Text="{x:Bind localization:LocalizedStrings.Instance.DiskMgmt_Offline}">
                                     <MenuFlyoutItem.Icon>
                                         <FontIcon Glyph="&#xE8CD;" />
                                     </MenuFlyoutItem.Icon>
@@ -86,18 +85,18 @@
                                 <MenuFlyoutItem
                                     Click="SetDiskReadOnlyButton_Click"
                                     Tag="{x:Bind}"
-                                    Text="{Binding DiskMgmt_SetReadOnly, Source={StaticResource LocalizedStrings}}">
+                                    Text="{x:Bind localization:LocalizedStrings.Instance.DiskMgmt_SetReadOnly}">
                                 </MenuFlyoutItem>
                                 <MenuFlyoutItem
                                     Click="ClearDiskReadOnlyButton_Click"
                                     Tag="{x:Bind}"
-                                    Text="{Binding DiskMgmt_ClearReadOnly, Source={StaticResource LocalizedStrings}}">
+                                    Text="{x:Bind localization:LocalizedStrings.Instance.DiskMgmt_ClearReadOnly}">
                                 </MenuFlyoutItem>
                                 <MenuFlyoutSeparator />
                                 <MenuFlyoutItem
                                     Click="CleanDiskButton_Click"
                                     Tag="{x:Bind}"
-                                    Text="{Binding DiskMgmt_CleanDisk, Source={StaticResource LocalizedStrings}}">
+                                    Text="{x:Bind localization:LocalizedStrings.Instance.DiskMgmt_CleanDisk}">
                                     <MenuFlyoutItem.Icon>
                                         <FontIcon Foreground="Red" Glyph="&#xE74D;" />
                                     </MenuFlyoutItem.Icon>
@@ -124,7 +123,7 @@
                                         <TextBlock
                                             FontSize="12"
                                             Foreground="{ThemeResource SystemFillColorCautionBrush}"
-                                            Text="{Binding DiskMgmt_SystemProtected, Source={StaticResource LocalizedStrings}}" />
+                                            Text="{x:Bind localization:LocalizedStrings.Instance.DiskMgmt_SystemProtected}" />
                                     </StackPanel>
                                     <Grid Visibility="{x:Bind HasDriveLetter, Converter={StaticResource BoolToVisibilityConverter}}">
                                         <Grid.ColumnDefinitions>
@@ -152,18 +151,18 @@
                                     Click="OpenInExplorerButton_Click"
                                     Style="{StaticResource SubtleButtonStyle}"
                                     Tag="{x:Bind}"
-                                    ToolTipService.ToolTip="{Binding DiskMgmt_OpenInFileExplorer, Source={StaticResource LocalizedStrings}}"
+                                    ToolTipService.ToolTip="{x:Bind localization:LocalizedStrings.Instance.DiskMgmt_OpenInFileExplorer}"
                                     Visibility="{x:Bind HasDriveLetter, Converter={StaticResource BoolToVisibilityConverter}}">
                                     <FontIcon FontSize="14" Glyph="&#xEC50;" />
                                 </Button>
-                                <Button Style="{StaticResource SubtleButtonStyle}" ToolTipService.ToolTip="{Binding Common_MoreOptionsTooltip, Source={StaticResource LocalizedStrings}}">
+                                <Button Style="{StaticResource SubtleButtonStyle}" ToolTipService.ToolTip="{x:Bind localization:LocalizedStrings.Instance.Common_MoreOptionsTooltip}">
                                     <FontIcon FontSize="14" Glyph="&#xE712;" />
                                     <Button.Flyout>
                                         <MenuFlyout>
                                             <MenuFlyoutItem
                                                 Click="CreateVolumeOnUnallocated_Click"
                                                 Tag="{x:Bind}"
-                                                Text="{Binding DiskMgmt_NewSimpleVolume, Source={StaticResource LocalizedStrings}}"
+                                                Text="{x:Bind localization:LocalizedStrings.Instance.DiskMgmt_NewSimpleVolume}"
                                                 Visibility="{x:Bind IsUnallocated, Converter={StaticResource BoolToVisibilityConverter}}">
                                                 <MenuFlyoutItem.Icon>
                                                     <FontIcon Glyph="&#xE710;" />
@@ -172,7 +171,7 @@
                                             <MenuFlyoutItem
                                                 Click="OpenInExplorerButton_Click"
                                                 Tag="{x:Bind}"
-                                                Text="{Binding DiskMgmt_OpenInFileExplorer, Source={StaticResource LocalizedStrings}}"
+                                                Text="{x:Bind localization:LocalizedStrings.Instance.DiskMgmt_OpenInFileExplorer}"
                                                 Visibility="{x:Bind HasDriveLetter, Converter={StaticResource BoolToVisibilityConverter}}">
                                                 <MenuFlyoutItem.Icon>
                                                     <FontIcon Glyph="&#xEC50;" />
@@ -181,7 +180,7 @@
                                             <MenuFlyoutItem
                                                 Click="PartitionPropertiesButton_Click"
                                                 Tag="{x:Bind}"
-                                                Text="{Binding DiskMgmt_Properties, Source={StaticResource LocalizedStrings}}"
+                                                Text="{x:Bind localization:LocalizedStrings.Instance.DiskMgmt_Properties}"
                                                 Visibility="{x:Bind IsAllocated, Converter={StaticResource BoolToVisibilityConverter}}">
                                                 <MenuFlyoutItem.Icon>
                                                     <FontIcon Glyph="&#xE946;" />
@@ -192,7 +191,7 @@
                                                 Click="ManageDriveLetterButton_Click"
                                                 IsEnabled="{x:Bind AllowDriveLetterOperations}"
                                                 Tag="{x:Bind}"
-                                                Text="{Binding DiskMgmt_ManageDriveLetter, Source={StaticResource LocalizedStrings}}"
+                                                Text="{x:Bind localization:LocalizedStrings.Instance.DiskMgmt_ManageDriveLetter}"
                                                 Visibility="{x:Bind AllowDriveLetterOperations, Converter={StaticResource BoolToVisibilityConverter}}">
                                                 <MenuFlyoutItem.Icon>
                                                     <FontIcon Glyph="&#xE8AC;" />
@@ -202,7 +201,7 @@
                                                 Click="RemoveDriveLetterButton_Click"
                                                 IsEnabled="{x:Bind AllowDriveLetterOperations}"
                                                 Tag="{x:Bind}"
-                                                Text="{Binding DiskMgmt_RemoveDriveLetter, Source={StaticResource LocalizedStrings}}"
+                                                Text="{x:Bind localization:LocalizedStrings.Instance.DiskMgmt_RemoveDriveLetter}"
                                                 Visibility="{x:Bind HasDriveLetter, Converter={StaticResource BoolToVisibilityConverter}}">
                                                 <MenuFlyoutItem.Icon>
                                                     <FontIcon Glyph="&#xE738;" />
@@ -211,7 +210,7 @@
                                             <MenuFlyoutItem
                                                 Click="MountToFolderButton_Click"
                                                 Tag="{x:Bind}"
-                                                Text="{Binding DiskMgmt_MountToFolder, Source={StaticResource LocalizedStrings}}"
+                                                Text="{x:Bind localization:LocalizedStrings.Instance.DiskMgmt_MountToFolder}"
                                                 Visibility="{x:Bind HasDriveLetter, Converter={StaticResource BoolToVisibilityConverter}}">
                                                 <MenuFlyoutItem.Icon>
                                                     <FontIcon Glyph="&#xE8B7;" />
@@ -221,7 +220,7 @@
                                             <MenuFlyoutItem
                                                 Click="ExtendVolumeButton_Click"
                                                 Tag="{x:Bind}"
-                                                Text="{Binding DiskMgmt_ExtendVolume, Source={StaticResource LocalizedStrings}}"
+                                                Text="{x:Bind localization:LocalizedStrings.Instance.DiskMgmt_ExtendVolume}"
                                                 Visibility="{x:Bind HasDriveLetter, Converter={StaticResource BoolToVisibilityConverter}}">
                                                 <MenuFlyoutItem.Icon>
                                                     <FontIcon Glyph="&#xE8B1;" />
@@ -230,7 +229,7 @@
                                             <MenuFlyoutItem
                                                 Click="ShrinkVolumeButton_Click"
                                                 Tag="{x:Bind}"
-                                                Text="{Binding DiskMgmt_ShrinkVolume, Source={StaticResource LocalizedStrings}}"
+                                                Text="{x:Bind localization:LocalizedStrings.Instance.DiskMgmt_ShrinkVolume}"
                                                 Visibility="{x:Bind HasDriveLetter, Converter={StaticResource BoolToVisibilityConverter}}">
                                                 <MenuFlyoutItem.Icon>
                                                     <FontIcon Glyph="&#xE71F;" />
@@ -241,7 +240,7 @@
                                                 Click="FormatVolumeButton_Click"
                                                 IsEnabled="{x:Bind AllowDangerousOperations}"
                                                 Tag="{x:Bind}"
-                                                Text="{Binding DiskMgmt_Format, Source={StaticResource LocalizedStrings}}"
+                                                Text="{x:Bind localization:LocalizedStrings.Instance.DiskMgmt_Format}"
                                                 Visibility="{x:Bind HasDriveLetter, Converter={StaticResource BoolToVisibilityConverter}}">
                                                 <MenuFlyoutItem.Icon>
                                                     <FontIcon Glyph="&#xEBC4;" />
@@ -250,7 +249,7 @@
                                             <MenuFlyoutItem
                                                 Click="MarkPartitionActiveButton_Click"
                                                 Tag="{x:Bind}"
-                                                Text="{Binding DiskMgmt_MarkAsActive, Source={StaticResource LocalizedStrings}}"
+                                                Text="{x:Bind localization:LocalizedStrings.Instance.DiskMgmt_MarkAsActive}"
                                                 Visibility="{x:Bind IsAllocated, Converter={StaticResource BoolToVisibilityConverter}}">
                                                 <MenuFlyoutItem.Icon>
                                                     <FontIcon Glyph="&#xE73E;" />
@@ -261,7 +260,7 @@
                                                 Click="DeleteVolumeButton_Click"
                                                 IsEnabled="{x:Bind AllowDangerousOperations}"
                                                 Tag="{x:Bind}"
-                                                Text="{Binding DiskMgmt_DeleteVolume, Source={StaticResource LocalizedStrings}}"
+                                                Text="{x:Bind localization:LocalizedStrings.Instance.DiskMgmt_DeleteVolume}"
                                                 Visibility="{x:Bind IsAllocated, Converter={StaticResource BoolToVisibilityConverter}}">
                                                 <MenuFlyoutItem.Icon>
                                                     <FontIcon Foreground="Red" Glyph="&#xE74D;" />
@@ -290,13 +289,13 @@
                     <Button
                         MinWidth="120"
                         Click="EjectCDROMButton_Click"
-                        Content="{Binding DiskMgmt_Eject, Source={StaticResource LocalizedStrings}}"
+                        Content="{x:Bind localization:LocalizedStrings.Instance.DiskMgmt_Eject}"
                         Tag="{x:Bind}"
-                        ToolTipService.ToolTip="{Binding DiskMgmt_EjectDiscTray, Source={StaticResource LocalizedStrings}}" />
+                        ToolTipService.ToolTip="{x:Bind localization:LocalizedStrings.Instance.DiskMgmt_EjectDiscTray}" />
                     <Button
                         MinWidth="120"
                         Click="CDROMPropertiesButton_Click"
-                        Content="{Binding DiskMgmt_Properties, Source={StaticResource LocalizedStrings}}"
+                        Content="{x:Bind localization:LocalizedStrings.Instance.DiskMgmt_Properties}"
                         Tag="{x:Bind}" />
                 </StackPanel>
                 <controls:SettingsExpander.Items>
@@ -309,7 +308,7 @@
                             <Button
                                 MinWidth="120"
                                 Click="ManageCDROMDriveLetterButton_Click"
-                                Content="{Binding DiskMgmt_ManageDriveLetter, Source={StaticResource LocalizedStrings}}"
+                                Content="{x:Bind localization:LocalizedStrings.Instance.DiskMgmt_ManageDriveLetter}"
                                 Tag="{x:Bind}" />
                         </StackPanel>
                     </controls:SettingsCard>

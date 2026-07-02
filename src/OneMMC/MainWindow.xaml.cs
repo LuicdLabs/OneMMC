@@ -491,7 +491,7 @@ namespace OneMMC
             }
 
             // Capture the click target before awaiting — the event args are only valid synchronously.
-            var crumb = (BreadcrumbNavigationService.Breadcrumb)args.Item;
+            var crumb = (Breadcrumb)args.Item;
             var index = args.Index;
 
             // Resolve unsaved edits first so the breadcrumb trail is only truncated when the user actually

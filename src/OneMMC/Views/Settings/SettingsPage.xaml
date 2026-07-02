@@ -10,9 +10,9 @@
     xmlns:local="using:OneMMC.Models"
     xmlns:localization="using:OneMMC.Localization"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:viewmodels="using:OneMMC.ViewModels"
     mc:Ignorable="d">
 	<Page.Resources>
-		<localization:LocalizedStrings x:Key="LocalizedStrings" />
 	</Page.Resources>
 
     <ScrollViewer>
@@ -29,11 +29,14 @@
 					<controls:ComboBox
 						x:Name="ThemeComboBox"
 						ItemsSource="{x:Bind ViewModel.ThemeOptions}"
-						DisplayMemberPath="DisplayName"
-						SelectedValuePath="Value"
-						SelectedValue="{x:Bind ViewModel.SelectedTheme, Mode=TwoWay}"
+						SelectedItem="{x:Bind ViewModel.SelectedThemeOption, Mode=TwoWay}"
 						HorizontalAlignment="Right"
 						MinWidth="120">
+						<controls:ComboBox.ItemTemplate>
+							<DataTemplate x:DataType="viewmodels:ThemeOption">
+								<TextBlock Text="{x:Bind DisplayName}" />
+							</DataTemplate>
+						</controls:ComboBox.ItemTemplate>
 					</controls:ComboBox>
 				</cwuc:SettingsCard>
 

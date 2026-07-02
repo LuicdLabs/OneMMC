@@ -20,9 +20,9 @@
             SelectionChanged="MethodsListView_SelectionChanged"
             SelectionMode="Single">
             <ListView.ItemTemplate>
-                <DataTemplate>
+                <DataTemplate x:DataType="x:String">
                     <TextBlock
-                        Text="{Binding}"
+                        Text="{x:Bind}"
                         TextWrapping="WrapWholeWords" />
                 </DataTemplate>
             </ListView.ItemTemplate>

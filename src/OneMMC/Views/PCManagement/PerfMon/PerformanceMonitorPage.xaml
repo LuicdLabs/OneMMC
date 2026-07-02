@@ -15,7 +15,6 @@
     x:Name="PageRoot">
 
     <Page.Resources>
-        <localization:LocalizedStrings x:Key="LocalizedStrings" />
         <converters:NullToVisibilityConverter x:Key="NullToVisibilityConverter" />
         <converters:NullToBoolConverter x:Key="NullToBoolConverter" />
         <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
@@ -467,7 +466,7 @@
                                                     </Grid.ColumnDefinitions>
 
                                                     <StackPanel Grid.Column="0">
-                                                        <TextBlock Text="{Binding PerfMon_CurrentLabel, Source={StaticResource LocalizedStrings}}" 
+                                                        <TextBlock Text="{x:Bind localization:LocalizedStrings.Instance.PerfMon_CurrentLabel}" 
                                                                   FontSize="11" 
                                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" 
                                                                   Margin="0,0,0,4"/>
@@ -477,7 +476,7 @@
                                                     </StackPanel>
 
                                                     <StackPanel Grid.Column="1">
-                                                        <TextBlock Text="{Binding PerfMon_AverageLabel, Source={StaticResource LocalizedStrings}}" 
+                                                        <TextBlock Text="{x:Bind localization:LocalizedStrings.Instance.PerfMon_AverageLabel}" 
                                                                   FontSize="11" 
                                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" 
                                                                   Margin="0,0,0,4"/>
@@ -487,7 +486,7 @@
                                                     </StackPanel>
 
                                                     <StackPanel Grid.Column="2">
-                                                        <TextBlock Text="{Binding PerfMon_MinimumLabel, Source={StaticResource LocalizedStrings}}" 
+                                                        <TextBlock Text="{x:Bind localization:LocalizedStrings.Instance.PerfMon_MinimumLabel}" 
                                                                   FontSize="11" 
                                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" 
                                                                   Margin="0,0,0,4"/>
@@ -497,7 +496,7 @@
                                                     </StackPanel>
 
                                                     <StackPanel Grid.Column="3">
-                                                        <TextBlock Text="{Binding PerfMon_MaximumLabel, Source={StaticResource LocalizedStrings}}" 
+                                                        <TextBlock Text="{x:Bind localization:LocalizedStrings.Instance.PerfMon_MaximumLabel}" 
                                                                   FontSize="11" 
                                                                   Foreground="{ThemeResource TextFillColorSecondaryBrush}" 
                                                                   Margin="0,0,0,4"/>

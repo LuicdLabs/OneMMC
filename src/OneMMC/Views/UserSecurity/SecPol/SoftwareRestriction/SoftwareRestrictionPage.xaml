@@ -7,10 +7,11 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:srp="using:OneMMC.Core.Features.UserSecurity.Models.SecPol.SoftwareRestriction"
+    xmlns:views="using:OneMMC.Views"
     mc:Ignorable="d">
 
     <Page.Resources>
-        <DataTemplate x:Key="DesignatedFileTypeItemTemplate">
+        <DataTemplate x:Key="DesignatedFileTypeItemTemplate" x:DataType="views:DesignatedFileTypeItem">
             <Grid MinHeight="32" ColumnSpacing="16">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="120" />
@@ -18,18 +19,18 @@
                 </Grid.ColumnDefinitions>
                 <TextBlock
                     VerticalAlignment="Center"
-                    Text="{Binding Extension}"
+                    Text="{x:Bind Extension}"
                     TextTrimming="CharacterEllipsis"
                     TextWrapping="NoWrap"
-                    ToolTipService.ToolTip="{Binding Extension}" />
+                    ToolTipService.ToolTip="{x:Bind Extension}" />
                 <TextBlock
                     Grid.Column="1"
                     VerticalAlignment="Center"
                     Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}"
-                    Text="{Binding FileType}"
+                    Text="{x:Bind FileType}"
                     TextTrimming="CharacterEllipsis"
                     TextWrapping="NoWrap"
-                    ToolTipService.ToolTip="{Binding FileType}" />
+                    ToolTipService.ToolTip="{x:Bind FileType}" />
             </Grid>
         </DataTemplate>
     </Page.Resources>

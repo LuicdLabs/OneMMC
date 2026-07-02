@@ -12,7 +12,6 @@
 	mc:Ignorable="d">
 
 	<Page.Resources>
-		<localization:LocalizedStrings x:Key="LocalizedStrings" />
 		<converters:HexToSolidColorBrushConverter x:Key="HexToBrush" />
 		<converters:TpmSeverityToInfoBarSeverityConverter x:Key="SeverityConverter" />
 	</Page.Resources>
