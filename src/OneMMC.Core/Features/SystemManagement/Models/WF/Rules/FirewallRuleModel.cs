@@ -93,7 +93,7 @@ namespace OneMMC.Core.Features.SystemManagement.Models.WF.Rules
     /// <summary>
     /// Represents a Windows Firewall rule.
     /// </summary>
-    public class FirewallRuleModel : INotifyPropertyChanged
+    public partial class FirewallRuleModel : INotifyPropertyChanged
     {
         private string _name = string.Empty;
         private string _displayName = string.Empty;

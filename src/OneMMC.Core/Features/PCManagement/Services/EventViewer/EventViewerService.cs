@@ -17,7 +17,7 @@ namespace OneMMC.Core.Features.PCManagement.Services.EventViewer;
 /// Service layer wrapping <see cref="System.Diagnostics.Eventing.Reader"/> APIs
 /// for reading, exporting, clearing, and monitoring Windows event logs.
 /// </summary>
-public class EventViewerService : IDisposable
+public partial class EventViewerService : IDisposable
 {
     private readonly ILogger<EventViewerService> _logger;
     private EventLogWatcher? _activeWatcher;

@@ -103,7 +103,7 @@ public static class LoggingBootstrapper
     }
 }
 
-internal sealed class SerilogTraceListener : TraceListener
+internal sealed partial class SerilogTraceListener : TraceListener
 {
     private readonly Microsoft.Extensions.Logging.ILogger _logger;
 

@@ -9,7 +9,7 @@ namespace OneMMC.Converters;
 /// Returns Visible if the string is not null, empty, or whitespace-only; Collapsed otherwise.
 /// Similar to StringNotEmptyToVisibilityConverter but also checks for whitespace-only strings.
 /// </summary>
-public class StringVisibilityConverter : IValueConverter
+public partial class StringVisibilityConverter : IValueConverter
 {
     /// <summary>
     /// Converts a string to Visibility based on whether it has meaningful content.

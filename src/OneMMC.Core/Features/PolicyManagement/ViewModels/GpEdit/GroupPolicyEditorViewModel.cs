@@ -429,7 +429,7 @@ namespace OneMMC.Core.Features.PolicyManagement.ViewModels.GpEdit
             _disposed = true;
         }
 
-        public class GroupPolicyTreeItem : ObservableObject
+        public partial class GroupPolicyTreeItem : ObservableObject
         {
             public string Name { get; set; }
             public PolicyManagerCategory? Category { get; set; }

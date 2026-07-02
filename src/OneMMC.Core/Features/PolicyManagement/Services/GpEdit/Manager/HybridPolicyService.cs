@@ -18,7 +18,7 @@ namespace OneMMC.Core.Features.PolicyManagement.Services.GpEdit.Manager
     /// Provides policy management that writes to both Registry and POL files.
     /// This ensures changes are visible in both the system and gpedit.msc.
     /// </summary>
-    public sealed class HybridPolicyService : IPolicyService
+    public sealed partial class HybridPolicyService : IPolicyService
     {
         private static ILogger _logger = NullLogger.Instance;
         private readonly string _polFilePath;

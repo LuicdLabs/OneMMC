@@ -35,22 +35,22 @@ public sealed partial class TaskSchedulerViewModel : ObservableObject
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsFolderSelected))]
     [NotifyPropertyChangedFor(nameof(IsNonRootFolderSelected))]
-    private TaskFolderItem? _selectedFolder;
+    public partial TaskFolderItem? SelectedFolder { get; set; }
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasSelectedTask))]
     [NotifyPropertyChangedFor(nameof(IsSelectedTaskEnabled))]
     [NotifyPropertyChangedFor(nameof(IsSelectedTaskRunning))]
-    private TaskListItem? _selectedTask;
+    public partial TaskListItem? SelectedTask { get; set; }
 
     [ObservableProperty]
-    private bool _isBusy;
+    public partial bool IsBusy { get; set; }
 
     [ObservableProperty]
-    private string? _lastError;
+    public partial string? LastError { get; set; }
 
     [ObservableProperty]
-    private string _connectionDisplayName = string.Empty;
+    public partial string ConnectionDisplayName { get; set; } = string.Empty;
 
     /// <summary>Raised when an operation fails because the user lacks administrator privileges.</summary>
     public event Action? AdminPermissionRequired;
@@ -354,16 +354,16 @@ public sealed partial class TaskFolderItem : ObservableObject
 public sealed partial class TaskListItem : ObservableObject
 {
     [ObservableProperty]
-    private string _name = string.Empty;
+    public partial string Name { get; set; } = string.Empty;
 
     [ObservableProperty]
-    private string _statusLine = string.Empty;
+    public partial string StatusLine { get; set; } = string.Empty;
 
     [ObservableProperty]
-    private bool _enabled;
+    public partial bool Enabled { get; set; }
 
     [ObservableProperty]
-    private TaskState _state;
+    public partial TaskState State { get; set; }
 
     public string Path { get; private set; } = string.Empty;
 

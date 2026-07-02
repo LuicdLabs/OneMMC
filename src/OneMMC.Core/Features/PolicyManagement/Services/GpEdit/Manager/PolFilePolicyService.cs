@@ -16,7 +16,7 @@ namespace OneMMC.Core.Features.PolicyManagement.Services.GpEdit.Manager
     /// Provides policy management using POL (Registry.pol) files.
     /// This is the standard mode for Windows Pro/Enterprise editions with full Group Policy infrastructure.
     /// </summary>
-    public sealed class PolFilePolicyService : IPolicyService
+    public sealed partial class PolFilePolicyService : IPolicyService
     {
         private static ILogger _logger = NullLogger.Instance;
         private readonly string _polFilePath;

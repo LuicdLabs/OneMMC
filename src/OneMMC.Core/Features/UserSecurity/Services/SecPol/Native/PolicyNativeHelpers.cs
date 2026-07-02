@@ -14,7 +14,7 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
     /// scope/RAII helpers and common read/write logic so that individual providers
     /// remain focused on their category-specific concerns.
     /// </summary>
-    internal static class PolicyNativeHelpers
+    internal static partial class PolicyNativeHelpers
     {
         private static ILogger _logger = NullLogger.Instance;
 
@@ -30,7 +30,7 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
 
         #region Scope / RAII Helpers
 
-        internal sealed class HGlobalBuffer : IDisposable
+        internal sealed partial class HGlobalBuffer : IDisposable
         {
             public IntPtr Pointer { get; }
 
@@ -46,7 +46,7 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
             }
         }
 
-        internal sealed class LsaPolicyHandleScope : IDisposable
+        internal sealed partial class LsaPolicyHandleScope : IDisposable
         {
             public IntPtr Handle { get; }
 
@@ -59,7 +59,7 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
             }
         }
 
-        internal sealed class LsaMemoryScope : IDisposable
+        internal sealed partial class LsaMemoryScope : IDisposable
         {
             public IntPtr Pointer { get; }
 
@@ -72,7 +72,7 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
             }
         }
 
-        internal sealed class LsaUnicodeStringScope : IDisposable
+        internal sealed partial class LsaUnicodeStringScope : IDisposable
         {
             public LSA_UNICODE_STRING Value;
 
@@ -96,7 +96,7 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
             }
         }
 
-        internal sealed class RegistryKeyScope : IDisposable
+        internal sealed partial class RegistryKeyScope : IDisposable
         {
             public IntPtr Handle { get; }
 
@@ -109,7 +109,7 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
             }
         }
 
-        internal sealed class RegistryValueBuffer : IDisposable
+        internal sealed partial class RegistryValueBuffer : IDisposable
         {
             public IntPtr Pointer { get; }
             public int Size { get; }

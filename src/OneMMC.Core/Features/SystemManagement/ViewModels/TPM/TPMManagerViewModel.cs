@@ -23,40 +23,40 @@ namespace OneMMC.Core.Features.SystemManagement.ViewModels.TPM
         private SynchronizationContext? _syncContext;
 
         [ObservableProperty]
-        private string tpmManufacturerName = string.Empty;
+        public partial string TpmManufacturerName { get; set; } = string.Empty;
 
         [ObservableProperty]
-        private string tpmManufacturerVersion = string.Empty;
+        public partial string TpmManufacturerVersion { get; set; } = string.Empty;
 
         [ObservableProperty]
-        private string tpmSpecificationVersion = string.Empty;
+        public partial string TpmSpecificationVersion { get; set; } = string.Empty;
 
         [ObservableProperty]
-        private string tpmReadyGlyph = "\uE73E"; // CheckMark
+        public partial string TpmReadyGlyph { get; set; } = "\uE73E"; // CheckMark
 
         [ObservableProperty]
-        private string tpmEnabledGlyph = "\uE73E";
+        public partial string TpmEnabledGlyph { get; set; } = "\uE73E";
 
         [ObservableProperty]
-        private string tpmActivatedGlyph = "\uE73E";
+        public partial string TpmActivatedGlyph { get; set; } = "\uE73E";
 
         [ObservableProperty]
-        private string tpmOwnedGlyph = "\uE73E";
+        public partial string TpmOwnedGlyph { get; set; } = "\uE73E";
 
         [ObservableProperty]
-        private string tpmStatusColorHex = "#008000"; // Green
+        public partial string TpmStatusColorHex { get; set; } = "#008000"; // Green
 
         [ObservableProperty]
-        private bool showStatusMessage = false;
+        public partial bool ShowStatusMessage { get; set; } = false;
 
         [ObservableProperty]
-        private TpmStatusSeverity statusSeverity = TpmStatusSeverity.Informational;
+        public partial TpmStatusSeverity StatusSeverity { get; set; } = TpmStatusSeverity.Informational;
 
         [ObservableProperty]
-        private string statusTitle = string.Empty;
+        public partial string StatusTitle { get; set; } = string.Empty;
 
         [ObservableProperty]
-        private string statusMessage = string.Empty;
+        public partial string StatusMessage { get; set; } = string.Empty;
 
         public TPMManagerViewModel(TPMService tpmService)
         {

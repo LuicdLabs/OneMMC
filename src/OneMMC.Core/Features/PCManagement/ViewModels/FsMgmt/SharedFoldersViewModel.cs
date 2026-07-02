@@ -22,19 +22,19 @@ public sealed partial class SharedFoldersViewModel : ObservableObject
     private readonly List<SharedFolderSession> _allSessions = [];
     private readonly List<SharedFolderOpenFile> _allOpenFiles = [];
     [ObservableProperty]
-    private ObservableCollection<SharedFolderShare> _shares = [];
+    public partial ObservableCollection<SharedFolderShare> Shares { get; set; } = [];
 
     [ObservableProperty]
-    private ObservableCollection<SharedFolderSession> _sessions = [];
+    public partial ObservableCollection<SharedFolderSession> Sessions { get; set; } = [];
 
     [ObservableProperty]
-    private ObservableCollection<SharedFolderOpenFile> _openFiles = [];
+    public partial ObservableCollection<SharedFolderOpenFile> OpenFiles { get; set; } = [];
 
     [ObservableProperty]
-    private string _filterText = string.Empty;
+    public partial string FilterText { get; set; } = string.Empty;
 
     [ObservableProperty]
-    private bool _isLoading;
+    public partial bool IsLoading { get; set; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SharedFoldersViewModel"/> class.

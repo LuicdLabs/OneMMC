@@ -20,7 +20,7 @@ namespace OneMMC.Core.Features.PolicyManagement.Services.RSoP
     /// AdmxBundle and IPolicyService infrastructure in read-only mode.
     /// Only policies that have been actively configured (Enabled or Disabled) are considered "applied".
     /// </summary>
-        public sealed class RSoPService : IDisposable
+        public sealed partial class RSoPService : IDisposable
     {
         private readonly ILogger<RSoPService> _logger;
         private AdmxBundle? _admxBundle;

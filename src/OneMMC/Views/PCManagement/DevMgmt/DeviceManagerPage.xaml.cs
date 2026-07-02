@@ -107,7 +107,7 @@ namespace OneMMC.Views
     }
 
     // Value Converters
-    public class BoolToGlyphConverter : IValueConverter
+    public partial class BoolToGlyphConverter : IValueConverter
     {
         public string TrueValue { get; set; } = string.Empty;
         public string FalseValue { get; set; } = string.Empty;
@@ -127,7 +127,7 @@ namespace OneMMC.Views
         }
     }
 
-    public class BoolToColorConverter : IValueConverter
+    public partial class BoolToColorConverter : IValueConverter
     {
         public string TrueValue { get; set; } = string.Empty;
         public string FalseValue { get; set; } = string.Empty;
@@ -155,7 +155,7 @@ namespace OneMMC.Views
         }
     }
 
-    public class DeviceCountFormatter : IValueConverter
+    public partial class DeviceCountFormatter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, string language)
         {
@@ -173,7 +173,7 @@ namespace OneMMC.Views
         }
     }
 
-    public class InverseBoolToVisibilityConverter : IValueConverter
+    public partial class InverseBoolToVisibilityConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, string language)
         {
@@ -189,7 +189,7 @@ namespace OneMMC.Views
             throw new NotImplementedException();
         }
     }
-    public class BoolToVisibilityConverter : IValueConverter
+    public partial class BoolToVisibilityConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, string language)
         {

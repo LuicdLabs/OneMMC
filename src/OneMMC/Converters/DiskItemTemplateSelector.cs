@@ -8,7 +8,7 @@ namespace OneMMC.Converters
     /// Selects the appropriate DataTemplate based on the type of disk item.
     /// Used in Disk Management to display different UI layouts for physical disks vs CD-ROM drives.
     /// </summary>
-    public class DiskItemTemplateSelector : DataTemplateSelector
+    public partial class DiskItemTemplateSelector : DataTemplateSelector
     {
         /// <summary>
         /// Gets or sets the template used for physical disk items.

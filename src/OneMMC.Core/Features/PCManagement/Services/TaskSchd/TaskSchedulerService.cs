@@ -15,7 +15,7 @@ namespace OneMMC.Core.Features.PCManagement.Services.TaskSchd;
 /// cached per connection target. Tasks are written via <c>RegisterTask(xml)</c> and read via
 /// <c>IRegisteredTask.Xml</c>, with <see cref="TaskXmlMapper"/> doing the model&lt;-&gt;XML mapping.
 /// </summary>
-public sealed class TaskSchedulerService : ITaskSchedulerService, IDisposable
+public sealed partial class TaskSchedulerService : ITaskSchedulerService, IDisposable
 {
     private readonly ILogger<TaskSchedulerService> _logger;
     private readonly StaComExecutor _executor = new("TaskScheduler COM");

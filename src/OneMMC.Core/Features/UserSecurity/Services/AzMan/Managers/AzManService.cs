@@ -41,7 +41,7 @@ namespace OneMMC.Core.Features.UserSecurity.Services.AzMan;
 /// <summary>
 /// Authorization Manager Service - Manages AzMan authorization stores
 /// </summary>
-public class AzManService : IDisposable
+public partial class AzManService : IDisposable
 {
     #region COM Constants
 

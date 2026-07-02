@@ -202,7 +202,7 @@ therefore does not imply the app works; see [Runtime Risks](#runtime-risks-even-
 | Pattern | Scale | Remediation |
 |---|---|---|
 | Reflection-based `JsonSerializer` (no `JsonSerializerContext`) | 7 sites in 4 files (`AppSettings`, AzMan persistence, PerfMon config, SecPol definitions) | Source-generated `JsonSerializerContext` - small, contained |
-| MI/CIM via `Microsoft.Management.Infrastructure` | 467 sites in 14 files (all WF) | More AOT-tolerant than `System.Management` but unproven; `CimInstance` property bags need runtime validation |
+| MI/CIM via `Microsoft.Management.Infrastructure` | 467 sites in 14 files (all WF) | Confirmed AOT-incompatible and upstream-archived (see Package Compatibility) - must migrate alongside `System.Management` |
 | Hand-written `[ComImport]` interfaces | 114 occurrences in 21 files | Rewrite as `[GeneratedComInterface]`/`ComWrappers` source generation |
 | Member reflection | ~12 sites in 6 files | Annotate or replace; small |
 | Classes crossing the WinRT ABI not yet `partial` | surfaced as CsWinRT1028/1029 in Run B | Mechanical `partial` additions |
@@ -221,10 +221,10 @@ therefore does not imply the app works; see [Runtime Risks](#runtime-risks-even-
 
 | Package | AOT status |
 |---|---|
-| `System.Management` 10.0.9 | **Not supported** (official). Alternatives: MI API, WmiLight, CsWin32 `IWbem*` COM |
+| `System.Management` 10.0.9 | **Not supported** (official). Sanctioned replacements: see [NativeAotMigration.md](NativeAotMigration.md) |
 | `System.DirectoryServices` / `.AccountManagement` 10.0.9 | Expected **not supported** (built on built-in COM interop / ADSI) |
 | `System.Diagnostics.PerformanceCounter` 10.0.9 | Expected not supported (registry/reflection marshalling) |
-| `Microsoft.Management.Infrastructure` 3.0.0 | Uncertain - evidence from Runs C/D below |
+| `Microsoft.Management.Infrastructure` 3.0.0 | **Confirmed not supported**: crashes under AOT with `MissingInteropDataException` (delegate marshalling, [PowerShell/MMI#54](https://github.com/PowerShell/MMI/issues/54)); package targets netstandard1.6 (cannot carry AOT annotations); upstream repo archived 2024-06-14 — will not be fixed |
 | `System.Drawing.Common` 10.0.9 | Partial (GDI+ interop; some paths warn) |
 | `Microsoft.WindowsAppSDK` 2.2.0 | Supported since 1.6 with `partial` classes + `{x:Bind}` |
 | `CommunityToolkit.Mvvm` 8.4.2 | Supported (source generators); `MVVMTK0045` items need partial properties |
@@ -236,10 +236,10 @@ therefore does not imply the app works; see [Runtime Risks](#runtime-risks-even-
 |---|---|---|---|
 | AzMan (UserSecurity) | COM activation + ~150 `dynamic` | **Hard** | Full typed `ComWrappers` source-gen rewrite of the AzRoles automation surface |
 | ComExp (SystemManagement) | COM `dynamic` (COMAdmin) + WMI | **Hard** | ComWrappers rewrite + WMI migration |
-| WF / Windows Firewall | `HNetCfg.*` COM activation + 467 MI/CIM + heaviest `{Binding}` | **Hard** | ComWrappers rewrite; validate MI/CIM; x:Bind conversion |
+| WF / Windows Firewall | `HNetCfg.*` COM activation + 467 MI/CIM + heaviest `{Binding}` | **Hard** | ComWrappers rewrite; migrate MMI to WmiLight/IWbem; x:Bind conversion |
 | TaskSchd (PCManagement) | CLSID activation + `[ComImport]` | **Hard** | ComWrappers (`[GeneratedComInterface]`) rewrite |
 | SecPol (UserSecurity) | some `dynamic` + JSON | Hard (partial) | ComWrappers + `JsonSerializerContext` |
-| DiskMgmt (PCManagement) | ~81 WMI sites | Hard (package) | Migrate to MI API / WmiLight / CsWin32 `IWbem*` |
+| DiskMgmt (PCManagement) | ~81 WMI sites | Hard (package) | Migrate to WmiLight (or CsWin32 `IWbem*` fallback) |
 | DevMgmt, TPM, WindowsServices | WMI | Hard (package) | Same WMI migration |
 | PerfMon (PCManagement) | `PerformanceCounter` package + reflection | Hard (package) | PDH via CsWin32 |
 | LusrMgr (PCManagement) | `System.DirectoryServices.AccountManagement` | Hard (package) | SAM/NetAPI via CsWin32 or LDAP rewrite |
@@ -264,50 +264,37 @@ therefore does not imply the app works; see [Runtime Risks](#runtime-risks-even-
 | Phase | Work | Nature | Rough effort |
 |---|---|---|---|
 | P0 - hygiene (valuable even without AOT) | `partial` classes (CsWinRT1028/29), `MVVMTK0045` partial properties, `JsonSerializerContext` (7 sites), `{Binding}`→`{x:Bind}` (~925 sites) | Mechanical, low-risk | Days-weeks; x:Bind conversion is the bulk |
-| P1 - WMI migration | `System.Management` (121 sites) → MI API or WmiLight | Per-feature rewrite + retest | Weeks |
+| P1 - WMI/CIM migration | `System.Management` (121 sites) **and** `Microsoft.Management.Infrastructure` (467 sites) → WmiLight or CsWin32 `IWbem*` | Per-feature rewrite + retest | Weeks |
 | P2 - COM/`dynamic` rewrite | AzMan/ComExp/WF/TaskSchd/ObjectPicker → typed `[GeneratedComInterface]`/`ComWrappers` | Deep interop work; AzMan alone is a full-feature rewrite | Months |
 | P3 - package replacements | `DirectoryServices.AccountManagement`, `PerformanceCounter` → CsWin32-based implementations | Rewrite + behavior parity testing | Weeks-months |
 
-## Recommendation
+This sketch is superseded by the committed phase plan (M0-M4) in
+[NativeAotMigration.md](NativeAotMigration.md).
 
-**No-go for full Native AOT at this time. Keep ReadyToRun. Adopt the P0 hygiene items
-opportunistically.**
+## Decision
 
-Decision inputs, with measured values:
+**Native AOT is adopted as the project's end-state goal** (project direction set 2026-07-02).
+This assessment establishes the measured baseline the migration starts from; the committed
+migration plan - sanctioned replacements per blocker and the M0-M4 phase gates - lives in
+[NativeAotMigration.md](NativeAotMigration.md), and the day-to-day coding rules live in
+[.github/copilot-instructions.md](../.github/copilot-instructions.md).
 
-1. **Blocker breadth** - 2,381 distinct AOT warning sites; **1,237 of them are inside dependency
-   packages** and cannot be fixed in this repository (`System.Management`,
-   `System.DirectoryServices*`, `Microsoft.CSharp` RuntimeBinder, WinRT generic marshallers).
-   Eight-plus features require full interop rewrites: AzMan, ComExp, WF, TaskSchd, DiskMgmt,
-   DevMgmt, PerfMon, LusrMgr, plus the shared `DirectoryObjectPickerService` used by ~20 dialogs.
-   The refactor is measured in months (P2 alone - the COM/`dynamic` rewrite - is a full rewrite
-   of the AzMan automation surface).
-2. **Measured benefit** - size drops 224.4 MB → 75.7 MB (-66%) and 276 → 16 files, which is
-   attractive but secondary for a locally-installed admin tool; the startup benefit could not be
-   measured because the app does not start.
-3. **Risk profile** - the decisive result: the AOT binary **crashes at startup** inside
-   `Microsoft.UI.Xaml.dll` (`0xC000027B`). Even after fixing boot (74 `partial` classes, ~925
-   `{Binding}` → `{x:Bind}`, XAML metadata rooting), every COM-activation, `dynamic`, and WMI
-   code path would still fail *at runtime, not compile time* - the worst possible failure mode
-   for a system-administration tool where silent breakage can misconfigure machines.
+What the measurements mean under that goal:
 
-### What is worth doing regardless (P0 hygiene)
+1. **The gap is quantified, not speculative** - 2,381 distinct AOT warning sites, of which
+   **1,237 sit inside dependency packages** (`System.Management`,
+   `Microsoft.Management.Infrastructure`, `System.DirectoryServices*`, `Microsoft.CSharp`
+   RuntimeBinder, WinRT generic marshallers). Those are eliminated by *replacing the packages
+   and patterns* per the migration plan, not by annotating first-party code.
+2. **The boot crash defines the first milestone** - the AOT binary crashes in
+   `Microsoft.UI.Xaml.dll` (`0xC000027B`) before the first window. M0/M1 of the migration
+   (partial classes, `{x:Bind}` conversion, metadata rooting) target exactly this, and the Run D
+   publish + launch is the gate that proves it.
+3. **The payoff is real** - 224.4 MB → 75.7 MB (-66%), 276 → 16 files, plus AOT startup
+   characteristics, once the gates are met.
+4. **Interim publish stays ReadyToRun** so the app remains shippable during migration. R2R is a
+   transition vehicle; it is retired at the M4 cutover when the default publish flips to
+   `PublishAot`.
 
-These improve trim-readiness and code health without committing to AOT:
-
-- Mark the 74 CsWinRT1028 classes `partial` (mechanical).
-- Fix the 26 `MVVMTK0045` sites by moving `[ObservableProperty]` to partial properties.
-- Add a `JsonSerializerContext` for the 7 reflection-based JSON sites.
-- Prefer `{x:Bind}` in new XAML; convert existing `{Binding}` opportunistically.
-
-### Re-evaluation triggers
-
-Revisit this assessment (re-run the four commands above) when any of these change:
-
-- Windows App SDK / XAML compiler ships full AOT support for `{Binding}` and automatic metadata
-  rooting (tracked since WASDK 1.6 release notes: "Later releases will enhance both C#/WinRT and
-  the XAML Compiler to automate rooting").
-- AOT-compatible replacements are adopted for `System.Management` (e.g. MI API, WmiLight),
-  `System.DirectoryServices.AccountManagement`, and `System.Diagnostics.PerformanceCounter`.
-- The AzMan/ComExp/WF/TaskSchd COM layers are rewritten onto source-generated `ComWrappers`
-  (`[GeneratedComInterface]`), eliminating `dynamic` and ProgID activation.
+Re-run the four commands above at every phase gate and after each .NET SDK / Windows App SDK
+upgrade; the warning counts per feature area are the progress metric.

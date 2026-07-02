@@ -33,13 +33,19 @@ Build the main app before submitting changes:
 dotnet build src/OneMMC/OneMMC.csproj -p:Platform=x64
 ```
 
-Release publish uses self-contained ReadyToRun:
+Release publish uses self-contained ReadyToRun (interim while the Native AOT migration is in progress):
 
 ```powershell
 dotnet publish src/OneMMC/OneMMC.csproj -c Release -r win-x64
 ```
 
-NativeAOT is not supported. The app relies on COM interop, reflection, dynamic activation, WMI, and Windows management APIs that require the full .NET runtime. An opt-in evaluation switch (`/p:OneMMCAotAnalysis=true`, wired in `eng/AotAnalysis.props`) enables AOT/trim analyzers for feasibility assessment (see `doc/NativeAotAssessment.md`); default builds are unaffected.
+**Native AOT is the project's end-state goal.** Legacy code still relies on COM interop, reflection, dynamic activation, WMI, and Windows management APIs that require the full .NET runtime, so the default publish stays ReadyToRun until the migration milestones in [doc/NativeAotMigration.md](../doc/NativeAotMigration.md) are met (measured baseline: [doc/NativeAotAssessment.md](../doc/NativeAotAssessment.md)). New and modified code must follow the mandatory AOT compatibility rules in [.github/copilot-instructions.md](copilot-instructions.md) (§Native AOT Compatibility). When touching interop, serialization, or XAML, build with the opt-in analyzer switch and introduce no new AOT/trim warnings:
+
+```powershell
+dotnet build src/OneMMC/OneMMC.csproj -c Release -p:Platform=x64 -p:OneMMCAotAnalysis=true
+```
+
+The switch (wired in `eng/AotAnalysis.props`) must never be enabled by default; default builds are unaffected.
 
 There are currently no test projects in this repository. For now, every change should include:
 
@@ -168,4 +174,5 @@ Before requesting review, confirm:
 - Logging uses `ILogger<T>` and does not introduce direct debug, console, or trace writes.
 - Administrator scenarios use `IAdminService` and `AdminDialogHelper`.
 - Native interop uses CsWin32 unless a documented exception is necessary.
+- New/modified code follows the Native AOT compatibility rules (no `dynamic`, no ProgID/CLSID + `Activator` COM activation, no new `System.Management`/`Microsoft.Management.Infrastructure` usage, `{x:Bind}` in new XAML), and an `-p:OneMMCAotAnalysis=true` build introduces no new AOT/trim warnings for touched interop, serialization, or XAML code.
 - Manual verification notes are included because there are no automated test projects yet.

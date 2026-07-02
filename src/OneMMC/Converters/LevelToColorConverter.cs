@@ -11,7 +11,7 @@ namespace OneMMC.Converters;
 /// Level values: 1=Critical (Red), 2=Error (Tomato), 3=Warning (Orange), 5=Verbose (Gray).
 /// Information (4) and others use Transparent (used on indicator bar Background, not text).
 /// </summary>
-public class LevelToColorConverter : IValueConverter
+public partial class LevelToColorConverter : IValueConverter
 {
     private static readonly SolidColorBrush CriticalBrush = new(Colors.Red);
     private static readonly SolidColorBrush ErrorBrush = new(Color.FromArgb(255, 255, 99, 71)); // Tomato

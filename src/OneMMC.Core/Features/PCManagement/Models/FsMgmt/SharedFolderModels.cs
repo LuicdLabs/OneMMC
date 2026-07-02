@@ -257,7 +257,7 @@ public sealed class SharedFolderShareDefinition
 /// <summary>
 /// Represents one share permission row in the custom permissions dialog.
 /// </summary>
-public sealed class SharePermissionEntry : INotifyPropertyChanged
+public sealed partial class SharePermissionEntry : INotifyPropertyChanged
 {
     private string _name = string.Empty;
     private string _sid = string.Empty;

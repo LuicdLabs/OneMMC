@@ -4,7 +4,7 @@ using Microsoft.Management.Infrastructure;
 
 namespace OneMMC.Core.Features.SystemManagement.Services.WF.Profiles;
 
-internal sealed record FirewallSettingSnapshot(
+internal sealed partial record FirewallSettingSnapshot(
     ushort AllowIpsecThroughNat,
     uint Exemptions,
     string RemoteMachineTransportAuthorizationList,

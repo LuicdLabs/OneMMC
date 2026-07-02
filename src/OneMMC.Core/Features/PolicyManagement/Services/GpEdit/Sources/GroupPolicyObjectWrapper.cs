@@ -14,7 +14,7 @@ namespace OneMMC.Core.Features.PolicyManagement.Services.GpEdit.Sources
     /// This wrapper provides a managed interface for manipulating Group Policy Objects
     /// through the official Windows API, ensuring changes are visible in gpedit.msc and rsop.msc.
     /// </summary>
-    public class GroupPolicyObjectWrapper : IDisposable
+    public partial class GroupPolicyObjectWrapper : IDisposable
     {
         private static ILogger _logger = NullLogger.Instance;
         private IGroupPolicyObject? _gpo;

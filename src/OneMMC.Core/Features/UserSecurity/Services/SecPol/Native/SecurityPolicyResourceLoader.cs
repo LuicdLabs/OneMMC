@@ -19,7 +19,7 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
     /// string references (<c>@wsecedit.dll,-59001</c>) used in <c>sceregvl.inf</c>.
     /// </para>
     /// </summary>
-    public sealed class SecurityPolicyResourceLoader : IDisposable
+    public sealed partial class SecurityPolicyResourceLoader : IDisposable
     {
         private IntPtr _wseceditHandle = IntPtr.Zero;
         private bool _disposed;

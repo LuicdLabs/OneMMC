@@ -7,7 +7,7 @@ using Microsoft.UI.Xaml.Controls;
 
 namespace OneMMC.Converters;
 
-public class HexToSolidColorBrushConverter : IValueConverter
+public partial class HexToSolidColorBrushConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, string language)
     {
@@ -27,7 +27,7 @@ public class HexToSolidColorBrushConverter : IValueConverter
     }
 }
 
-public class TpmSeverityToInfoBarSeverityConverter : IValueConverter
+public partial class TpmSeverityToInfoBarSeverityConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, string language)
     {

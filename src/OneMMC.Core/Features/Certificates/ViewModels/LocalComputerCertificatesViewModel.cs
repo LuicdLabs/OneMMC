@@ -7,7 +7,7 @@ namespace OneMMC.Core.Features.Certificates.ViewModels;
 /// <summary>
 /// View-model for the local-machine certificate management page.
 /// </summary>
-public sealed class LocalComputerCertificatesViewModel : CertificateStoresViewModelBase
+public sealed partial class LocalComputerCertificatesViewModel : CertificateStoresViewModelBase
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="LocalComputerCertificatesViewModel"/> class.

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace OneMMC.Models;
 
@@ -66,7 +67,7 @@ public class AppSettings
         if (File.Exists(SettingsFilePath))
         {
             string json = File.ReadAllText(SettingsFilePath);
-            settings = JsonSerializer.Deserialize<AppSettings>(json);
+            settings = JsonSerializer.Deserialize(json, AppSettingsJsonContext.Default.AppSettings);
         }
 
         return settings ?? new AppSettings();
@@ -78,7 +79,14 @@ public class AppSettings
     public void Save()
     {
         Directory.CreateDirectory(SettingsDirectory);
-        string json = JsonSerializer.Serialize(this, new JsonSerializerOptions { WriteIndented = true });
+        string json = JsonSerializer.Serialize(this, AppSettingsJsonContext.Default.AppSettings);
         File.WriteAllText(SettingsFilePath, json);
     }
 }
+
+/// <summary>
+/// Source-generated JSON context so settings serialization works without reflection (Native AOT compatible).
+/// </summary>
+[JsonSourceGenerationOptions(WriteIndented = true)]
+[JsonSerializable(typeof(AppSettings))]
+internal sealed partial class AppSettingsJsonContext : JsonSerializerContext;

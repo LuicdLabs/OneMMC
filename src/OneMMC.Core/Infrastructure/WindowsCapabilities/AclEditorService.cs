@@ -479,7 +479,7 @@ public interface IAclEditorSecurityObjectTypeInfo
 /// <summary>
 /// Opens the native Windows ACL editor for callers that provide security descriptor state.
 /// </summary>
-public sealed class AclEditorService
+public sealed partial class AclEditorService
 {
     private const int S_OK = 0;
     private const uint SiAccessGeneral = 0x00020000;
@@ -550,7 +550,7 @@ public sealed class AclEditorService
     /// </summary>
     [ComVisible(true)]
     [ClassInterface(ClassInterfaceType.None)]
-    public sealed class EditableSecurityInformation :
+    public sealed partial class EditableSecurityInformation :
         IAclEditorSecurityInformation,
         IAclEditorSecurityInformation4,
         IAclEditorEffectivePermission,

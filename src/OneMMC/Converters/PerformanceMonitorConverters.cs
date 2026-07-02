@@ -29,7 +29,7 @@ namespace OneMMC.Converters
     /// <remarks>
     /// Usage scenarios: Monitoring status indicators, enabled/disabled state display
     /// </remarks>
-    public class BoolToBrushConverter : IValueConverter
+    public partial class BoolToBrushConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, string language) =>
             value is bool b && b
@@ -50,7 +50,7 @@ namespace OneMMC.Converters
     /// Usage scenarios: Counter line colors, legend color display
     /// Error handling: Invalid color strings return yellow as default value
     /// </remarks>
-    public class HexColorToBrushConverter : IValueConverter
+    public partial class HexColorToBrushConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, string language)
         {
@@ -85,7 +85,7 @@ namespace OneMMC.Converters
     /// Usage scenarios: Display "no data" prompt messages
     /// Example: Show "No counters added yet" when counter list is empty
     /// </remarks>
-    public class ZeroToVisibilityConverter : IValueConverter
+    public partial class ZeroToVisibilityConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, string language) =>
             value is int count && count == 0 ? Microsoft.UI.Xaml.Visibility.Visible : Microsoft.UI.Xaml.Visibility.Collapsed;
@@ -103,7 +103,7 @@ namespace OneMMC.Converters
     /// <remarks>
     /// Usage scenarios: Statistical information display (latest value, average, minimum, maximum)
     /// </remarks>
-    public class DoubleToFormattedStringConverter : IValueConverter
+    public partial class DoubleToFormattedStringConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, string language) =>
             value is double d ? d.ToString("N3") : "0.000";
@@ -126,7 +126,7 @@ namespace OneMMC.Converters
     /// - \uE769: Pause icon (displayed when monitoring)
     /// - \uE768: Play icon (displayed when paused)
     /// </remarks>
-    public class BoolToMonitoringStateConverter : IValueConverter
+    public partial class BoolToMonitoringStateConverter : IValueConverter
     {
         /// <summary>Localized string resources</summary>
         public OneMMC.Localization.LocalizedStrings LocalizedStrings { get; set; } = OneMMC.Localization.LocalizedStrings.Instance;
@@ -156,7 +156,7 @@ namespace OneMMC.Converters
     /// Usage scenarios: Counter value visualization in bar chart view mode
     /// Calculation formula: height = (value / MaxValue) * MaxHeight
     /// </remarks>
-    public class DoubleToHeightConverter : IValueConverter
+    public partial class DoubleToHeightConverter : IValueConverter
     {
         /// <summary>Maximum bar chart height (pixels)</summary>
         public double MaxHeight { get; set; } = 180;
@@ -182,7 +182,7 @@ namespace OneMMC.Converters
     /// [Legacy] Converts boolean values to icon characters.
     /// Recommend using BoolToMonitoringStateConverter instead.
     /// </summary>
-    public class BoolToGlyphConverter : IValueConverter
+    public partial class BoolToGlyphConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, string language) =>
             value is bool b && b ? "\uE769" : "\uE768"; // Pause/play icons
@@ -193,7 +193,7 @@ namespace OneMMC.Converters
     /// [Legacy] Converts boolean values to text.
     /// Recommend using BoolToMonitoringStateConverter instead.
     /// </summary>
-    public class BoolToTextConverter : IValueConverter
+    public partial class BoolToTextConverter : IValueConverter
     {
         /// <summary>Localized string resources</summary>
         public OneMMC.Localization.LocalizedStrings LocalizedStrings { get; set; } = OneMMC.Localization.LocalizedStrings.Instance;

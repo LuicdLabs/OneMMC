@@ -23,7 +23,7 @@ namespace OneMMC.Core.Features.UserSecurity.Services.AzMan;
 ///     // Work with COM objects...
 /// } // All tracked COM objects are released here
 /// </example>
-internal sealed class ComObjectScope : IDisposable
+internal sealed partial class ComObjectScope : IDisposable
 {
     private readonly List<object> _trackedObjects = [];
     private bool _disposed;

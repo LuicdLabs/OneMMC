@@ -8,7 +8,7 @@ namespace OneMMC.Converters;
 /// Converts null or empty values to a dash ("-") string for display purposes.
 /// Useful for showing a placeholder when property values are unavailable.
 /// </summary>
-public class NullToDashStringConverter : IValueConverter
+public partial class NullToDashStringConverter : IValueConverter
 {
     /// <summary>
     /// Converts a value to its string representation, or "-" if null/empty.
@@ -38,7 +38,7 @@ public class NullToDashStringConverter : IValueConverter
 /// Converts a boolean value to localized "Yes" or "No" strings.
 /// Uses the application's localization system for internationalization support.
 /// </summary>
-public class BoolToYesNoConverter : IValueConverter
+public partial class BoolToYesNoConverter : IValueConverter
 {
     private static readonly LocalizedStrings _localizedStrings = LocalizedStrings.Instance;
 
@@ -72,7 +72,7 @@ public class BoolToYesNoConverter : IValueConverter
 /// Converts byte count values (ulong or uint) to formatted strings with thousand separators.
 /// Displays values in the format "1,234,567 bytes".
 /// </summary>
-public class BytesToStringConverter : IValueConverter
+public partial class BytesToStringConverter : IValueConverter
 {
     /// <summary>
     /// Converts a byte count to a formatted string.
@@ -108,7 +108,7 @@ public class BytesToStringConverter : IValueConverter
 /// Converts a double value to a formatted percentage string with one decimal place.
 /// Displays values in the format "75.5%".
 /// </summary>
-public class PercentageConverter : IValueConverter
+public partial class PercentageConverter : IValueConverter
 {
     /// <summary>
     /// Converts a double to a formatted percentage string.
@@ -141,7 +141,7 @@ public class PercentageConverter : IValueConverter
 /// Returns Visible if value > 0, Collapsed otherwise.
 /// Useful for hiding UI elements when counts or sizes are zero.
 /// </summary>
-public class GreaterThanZeroToVisibilityConverter : IValueConverter
+public partial class GreaterThanZeroToVisibilityConverter : IValueConverter
 {
     /// <summary>
     /// Converts a numeric value to Visibility based on whether it's greater than zero.
@@ -172,7 +172,7 @@ public class GreaterThanZeroToVisibilityConverter : IValueConverter
 /// Returns Visible if the string has content, Collapsed if null or empty.
 /// Useful for conditionally showing labels or text blocks based on data availability.
 /// </summary>
-public class StringNotEmptyToVisibilityConverter : IValueConverter
+public partial class StringNotEmptyToVisibilityConverter : IValueConverter
 {
     /// <summary>
     /// Converts a string to Visibility based on whether it has content.

@@ -12,7 +12,7 @@ namespace OneMMC.Core.Features.SystemManagement.Services.WF.Monitoring;
 /// <summary>
 /// Watches Windows Firewall configuration instances and raises debounced change notifications.
 /// </summary>
-public sealed class WindowsFirewallRuleChangeService : IDisposable
+public sealed partial class WindowsFirewallRuleChangeService : IDisposable
 {
     private static readonly TimeSpan ChangeDebounceInterval = TimeSpan.FromMilliseconds(750);
     private static readonly string[] WatchedClassNames =
@@ -276,7 +276,7 @@ public sealed class WindowsFirewallRuleChangeService : IDisposable
         IsWatching = false;
     }
 
-    private sealed class FirewallChangeSubscription : IDisposable
+    private sealed partial class FirewallChangeSubscription : IDisposable
     {
         private WindowsFirewallRuleChangeService? _owner;
         private EventHandler? _handler;

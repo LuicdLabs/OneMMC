@@ -9,7 +9,7 @@ namespace OneMMC.Converters;
 /// True converts to Visible, False converts to Collapsed.
 /// Supports two-way binding for scenarios where visibility changes need to update boolean properties.
 /// </summary>
-public class BoolToVisibilityConverter : IValueConverter
+public partial class BoolToVisibilityConverter : IValueConverter
 {
     /// <summary>
     /// Converts a boolean value to Visibility.

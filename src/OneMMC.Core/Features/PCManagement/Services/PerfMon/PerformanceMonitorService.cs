@@ -36,7 +36,7 @@ namespace OneMMC.Core.Features.PCManagement.Services.PerfMon
     /// 3. Resource management - Implement IDisposable to ensure proper resource cleanup
     /// 4. Asynchronous operations - Use async/await for time-consuming operations to avoid blocking UI
     /// </remarks>
-    public class PerformanceMonitorService : IDisposable
+    public partial class PerformanceMonitorService : IDisposable
     {
         private readonly ILogger<PerformanceMonitorService> _logger;
 
@@ -512,19 +512,19 @@ namespace OneMMC.Core.Features.PCManagement.Services.PerfMon
                 try
                 {
                     // Create configuration object
-                    var config = new
+                    var config = new PerfMonConfigDto
                     {
                         Version = "1.0",
                         SavedDate = DateTime.Now,
-                        Counters = counters.Select(c => new
+                        Counters = counters.Select(c => new PerfMonCounterDto
                         {
-                            c.CategoryName, c.CounterName, c.InstanceName, c.MachineName,
-                            c.Scale, c.ColorHex, c.IsVisible, c.Width, c.LineStyle
+                            CategoryName = c.CategoryName, CounterName = c.CounterName, InstanceName = c.InstanceName, MachineName = c.MachineName,
+                            Scale = c.Scale, ColorHex = c.ColorHex, IsVisible = c.IsVisible, Width = c.Width, LineStyle = c.LineStyle
                         }).ToList()
                     };
-                    
+
                     // Serialize to JSON and write to file
-                    System.IO.File.WriteAllText(filePath, System.Text.Json.JsonSerializer.Serialize(config, new System.Text.Json.JsonSerializerOptions { WriteIndented = true }));
+                    System.IO.File.WriteAllText(filePath, System.Text.Json.JsonSerializer.Serialize(config, PerfMonJsonContext.Default.PerfMonConfigDto));
                     return true;
                 }
                 catch (Exception ex) { _logger.LogError(ex, "Failed saving performance monitor configuration to {Path}.", filePath); return false; }
@@ -544,9 +544,8 @@ namespace OneMMC.Core.Features.PCManagement.Services.PerfMon
                 {
                     if (!System.IO.File.Exists(filePath)) return new List<PerformanceCounterInfo>();
 
-                    // Read and parse JSON
-                    var config = System.Text.Json.JsonSerializer.Deserialize<System.Text.Json.JsonDocument>(System.IO.File.ReadAllText(filePath));
-                    if (config == null) return new List<PerformanceCounterInfo>();
+                    // Read and parse JSON (JsonDocument.Parse is reflection-free and AOT safe)
+                    using var config = System.Text.Json.JsonDocument.Parse(System.IO.File.ReadAllText(filePath));
 
                     // Convert JSON to counter objects
                     return config.RootElement.GetProperty("Counters").EnumerateArray().Select(item => new PerformanceCounterInfo
@@ -604,6 +603,39 @@ namespace OneMMC.Core.Features.PCManagement.Services.PerfMon
             GC.SuppressFinalize(this);
         }
     }
+
+    /// <summary>
+    /// Serialization shape of a saved performance monitor configuration file (.pmcfg).
+    /// </summary>
+    internal sealed class PerfMonConfigDto
+    {
+        public string Version { get; set; } = "1.0";
+        public DateTime SavedDate { get; set; }
+        public List<PerfMonCounterDto> Counters { get; set; } = [];
+    }
+
+    /// <summary>
+    /// Serialization shape of a single counter entry in a .pmcfg file.
+    /// </summary>
+    internal sealed class PerfMonCounterDto
+    {
+        public string CategoryName { get; set; } = string.Empty;
+        public string CounterName { get; set; } = string.Empty;
+        public string InstanceName { get; set; } = string.Empty;
+        public string MachineName { get; set; } = ".";
+        public double Scale { get; set; } = 1.0;
+        public string ColorHex { get; set; } = "#F7B500";
+        public bool IsVisible { get; set; } = true;
+        public int Width { get; set; } = 1;
+        public int LineStyle { get; set; }
+    }
+
+    /// <summary>
+    /// Source-generated JSON context so .pmcfg serialization works without reflection (Native AOT compatible).
+    /// </summary>
+    [System.Text.Json.Serialization.JsonSourceGenerationOptions(WriteIndented = true)]
+    [System.Text.Json.Serialization.JsonSerializable(typeof(PerfMonConfigDto))]
+    internal sealed partial class PerfMonJsonContext : System.Text.Json.Serialization.JsonSerializerContext;
 }
 
 

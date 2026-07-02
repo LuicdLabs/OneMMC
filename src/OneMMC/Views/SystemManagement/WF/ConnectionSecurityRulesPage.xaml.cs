@@ -520,7 +520,7 @@ public sealed partial class ConnectionSecurityRulesPage : Page
     private static string GetRuleLookupName(ConnectionSecurityRuleModel rule)
         => string.IsNullOrWhiteSpace(rule.OriginalName) ? rule.Name : rule.OriginalName;
 
-    public class ConnectionSecurityRulesViewModel : BindableBase
+    public partial class ConnectionSecurityRulesViewModel : BindableBase
     {
         private ObservableCollection<ConnectionSecurityRuleItem> _rules = new();
         private ObservableCollection<ConnectionSecurityRuleItem> _filteredRules = new();
@@ -569,7 +569,7 @@ public sealed partial class ConnectionSecurityRulesPage : Page
         }
     }
 
-    public class ConnectionSecurityRuleItem : BindableBase
+    public partial class ConnectionSecurityRuleItem : BindableBase
     {
         private string _name = string.Empty;
         private string _description = string.Empty;
@@ -615,7 +615,7 @@ public sealed partial class ConnectionSecurityRulesPage : Page
         }
     }
 
-    public class BindableBase : System.ComponentModel.INotifyPropertyChanged
+    public partial class BindableBase : System.ComponentModel.INotifyPropertyChanged
     {
         public event System.ComponentModel.PropertyChangedEventHandler? PropertyChanged;
 

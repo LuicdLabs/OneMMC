@@ -125,13 +125,7 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
             using var reader = new StreamReader(stream);
             var json = reader.ReadToEnd();
 
-            var options = new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true,
-                ReadCommentHandling = JsonCommentHandling.Skip
-            };
-
-            var dtos = JsonSerializer.Deserialize<List<PolicyDefinitionDto>>(json, options);
+            var dtos = JsonSerializer.Deserialize(json, SecurityOptionsJsonContext.Default.ListPolicyDefinitionDto);
             _logger.LogDebug($"[SecurityOptionsPolicyProvider] Deserialized {dtos?.Count ?? 0} definitions from JSON");
             return dtos ?? new List<PolicyDefinitionDto>();
         }
@@ -670,6 +664,17 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
 
         #endregion
     }
+
+    /// <summary>
+    /// Source-generated JSON context so the embedded policy definitions load without reflection
+    /// (Native AOT compatible). Mirrors the previous runtime options: case-insensitive property
+    /// names and comment skipping.
+    /// </summary>
+    [System.Text.Json.Serialization.JsonSourceGenerationOptions(
+        PropertyNameCaseInsensitive = true,
+        ReadCommentHandling = JsonCommentHandling.Skip)]
+    [System.Text.Json.Serialization.JsonSerializable(typeof(List<PolicyDefinitionDto>))]
+    internal sealed partial class SecurityOptionsJsonContext : System.Text.Json.Serialization.JsonSerializerContext;
 }
 
 

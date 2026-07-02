@@ -792,7 +792,7 @@ public class ScopeNavigationParameter
 /// <summary>
 /// Scope Detail ViewModel - Manage groups, role assignments, etc. within the scope
 /// </summary>
-public class ScopeDetailViewModel : INotifyPropertyChanged
+public partial class ScopeDetailViewModel : INotifyPropertyChanged
 {
     private readonly AzManService _azManService;
     private readonly LocalizedStrings _localizedStrings = LocalizedStrings.Instance;

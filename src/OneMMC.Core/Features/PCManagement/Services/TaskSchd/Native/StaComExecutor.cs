@@ -11,7 +11,7 @@ namespace OneMMC.Core.Features.PCManagement.Services.TaskSchd.Native;
 /// <see cref="ITaskService"/>) must stay on one STA thread. This mirrors the STA discipline used by
 /// the AzMan service, kept local to the PCManagement feature to respect the no-cross-feature rule.
 /// </summary>
-internal sealed class StaComExecutor : IDisposable
+internal sealed partial class StaComExecutor : IDisposable
 {
     private readonly BlockingCollection<Action> _queue = new();
     private readonly Thread _thread;
