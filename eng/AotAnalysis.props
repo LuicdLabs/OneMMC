@@ -1,0 +1,43 @@
+<Project>
+  <!--
+    OneMMC Native AOT feasibility analysis (evaluation only - Stage 1).
+    Activate with: dotnet build/publish ... /p:OneMMCAotAnalysis=true
+    This file is only imported when the switch is set (see Directory.Build.props)
+    and must NEVER be active by default. Delete this file and the conditional
+    import in Directory.Build.props to remove the feature entirely.
+    Results and methodology: doc/NativeAotAssessment.md
+  -->
+
+  <!--
+    Both projects: Roslyn AOT/trim/single-file analyzers, without claiming
+    compatibility. IsAotCompatible/IsTrimmable are deliberately NOT set - they
+    would stamp AssemblyMetadata("IsTrimmable") into the built assembly and
+    publicly (falsely) claim AOT compatibility. The three analyzer properties
+    below produce the identical warning stream without that side effect.
+  -->
+  <PropertyGroup>
+    <EnableAotAnalyzer>true</EnableAotAnalyzer>
+    <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+    <EnableSingleFileAnalyzer>true</EnableSingleFileAnalyzer>
+
+    <!-- CsWinRT: strictest AOT diagnostics (CsWinRT1028/1029/1030 partial-class/ABI checks). -->
+    <CsWinRTAotWarningLevel>2</CsWinRTAotWarningLevel>
+
+    <!-- Report every trim-warning site instead of one collapsed warning per assembly. -->
+    <TrimmerSingleWarn>false</TrimmerSingleWarn>
+    <SuppressTrimAnalysisWarnings>false</SuppressTrimAnalysisWarnings>
+  </PropertyGroup>
+
+  <!-- App project only: experimental AOT publish path. -->
+  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'OneMMC'">
+    <PublishAot>true</PublishAot>
+    <!-- CsWinRT AOT optimizer can emit unsafe code; Core already allows it, the app does not. -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <!--
+      If a plain `dotnet build` with the switch fails during CsWinRT native exports
+      generation (CsWinRT issue #1546: PublishAot=true is assumed to mean an actual
+      publish is occurring), uncomment the next line. WinUI apps need no native exports.
+    <CsWinRTAotExportsEnabled>false</CsWinRTAotExportsEnabled>
+    -->
+  </PropertyGroup>
+</Project>

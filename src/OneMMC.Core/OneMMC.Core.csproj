@@ -6,8 +6,9 @@
     <UseWinUI>true</UseWinUI>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <WinUISDKReferences>false</WinUISDKReferences>
-    <!-- OneMMC is not NativeAOT; enabling WinUI in Core triggers MVVM Toolkit WinRT/AOT guidance for existing ViewModels. -->
-    <NoWarn>$(NoWarn);MVVMTK0045</NoWarn>
+    <!-- OneMMC is not NativeAOT; enabling WinUI in Core triggers MVVM Toolkit WinRT/AOT guidance for existing ViewModels.
+         The suppression is lifted during AOT analysis runs (/p:OneMMCAotAnalysis=true) so the warnings can be counted. -->
+    <NoWarn Condition="'$(OneMMCAotAnalysis)' != 'true'">$(NoWarn);MVVMTK0045</NoWarn>
     </PropertyGroup>
   <!-- Global usings: available in every .cs file without explicit using directives -->
   <ItemGroup>

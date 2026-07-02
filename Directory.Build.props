@@ -4,4 +4,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>preview</LangVersion>
   </PropertyGroup>
+
+  <!-- Opt-in Native AOT feasibility analysis (see doc/NativeAotAssessment.md). Never active by default. -->
+  <Import Project="$(MSBuildThisFileDirectory)eng\AotAnalysis.props"
+          Condition="'$(OneMMCAotAnalysis)' == 'true'" />
 </Project>

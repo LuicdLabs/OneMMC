@@ -39,7 +39,7 @@ Release publish uses self-contained ReadyToRun:
 dotnet publish src/OneMMC/OneMMC.csproj -c Release -r win-x64
 ```
 
-NativeAOT is not supported. The app relies on COM interop, reflection, dynamic activation, WMI, and Windows management APIs that require the full .NET runtime.
+NativeAOT is not supported. The app relies on COM interop, reflection, dynamic activation, WMI, and Windows management APIs that require the full .NET runtime. An opt-in evaluation switch (`/p:OneMMCAotAnalysis=true`, wired in `eng/AotAnalysis.props`) enables AOT/trim analyzers for feasibility assessment (see `doc/NativeAotAssessment.md`); default builds are unaffected.
 
 There are currently no test projects in this repository. For now, every change should include:
 

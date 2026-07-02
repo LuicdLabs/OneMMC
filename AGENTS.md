@@ -10,7 +10,7 @@ Before starting any task, read `.github/copilot-instructions.md` first. It conta
 
 OneMMC is a **WinUI 3 desktop application** that serves as a modern alternative to Windows MMC (Microsoft Management Console) snap-ins. It provides native UI for system management tasks like Device Manager, Disk Management, Local Users & Groups, Group Policy Editor, Performance Monitor, Certificate Management, and more.
 
-**Not compatible with NativeAOT** — the project relies heavily on COM interop (`Type.GetTypeFromProgID()`, `Activator.CreateInstance()`, `dynamic`), reflection, and system management packages that require the full .NET runtime. Uses **ReadyToRun (R2R)** precompilation instead.
+**Not compatible with NativeAOT** — the project relies heavily on COM interop (`Type.GetTypeFromProgID()`, `Activator.CreateInstance()`, `dynamic`), reflection, and system management packages that require the full .NET runtime. Uses **ReadyToRun (R2R)** precompilation instead. An opt-in analysis switch exists for feasibility evaluation only: building or publishing with `/p:OneMMCAotAnalysis=true` enables the AOT/trim analyzers (wired in `eng/AotAnalysis.props`; see `doc/NativeAotAssessment.md`). It must never be enabled by default.
 
 ## Build & Run
 

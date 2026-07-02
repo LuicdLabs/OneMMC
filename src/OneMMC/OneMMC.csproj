@@ -146,9 +146,12 @@
         <HasPackageAndPublishMenu>true</HasPackageAndPublishMenu>
       </PropertyGroup>
 
-      <!-- Publish Properties -->
-      <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+      <!-- Publish Properties. PublishReadyToRun is disabled during AOT analysis runs
+           (/p:OneMMCAotAnalysis=true) because ReadyToRun and PublishAot are mutually exclusive. -->
+      <PropertyGroup Condition="'$(Configuration)' == 'Release' and '$(OneMMCAotAnalysis)' != 'true'">
         <PublishReadyToRun>True</PublishReadyToRun>
+      </PropertyGroup>
+      <PropertyGroup Condition="'$(Configuration)' == 'Release'">
         <SelfContained>true</SelfContained>
       </PropertyGroup>
       <PropertyGroup>
