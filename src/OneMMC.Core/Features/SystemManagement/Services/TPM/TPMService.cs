@@ -1,16 +1,17 @@
 ﻿using System;
 using System.Diagnostics;
-using Debug = System.Diagnostics.Trace;
-using System.Management;
 using OneMMC.Core.Infrastructure.Admin;
-using OneMMC.Core.Infrastructure.Wmi;
 using OneMMC.Core.Localization;
 using Microsoft.Extensions.Logging;
+using WmiLight;
 
 namespace OneMMC.Core.Features.SystemManagement.Services.TPM
 {
     public class TPMService
     {
+        private const string TpmNamespace = @"root\CIMV2\Security\MicrosoftTpm";
+        private const string TpmQuery = "SELECT * FROM Win32_Tpm";
+
         private readonly ILogger<TPMService> _logger;
         private readonly IAdminService _adminService;
 
@@ -45,29 +46,32 @@ namespace OneMMC.Core.Features.SystemManagement.Services.TPM
             try
             {
                 // Query TPM using WMI
-                using (var searcher = new ManagementObjectSearcher("root\\CIMV2\\Security\\MicrosoftTpm", "SELECT * FROM Win32_Tpm"))
+                using (var connection = new WmiConnection(TpmNamespace))
                 {
-                    foreach (ManagementObject obj in searcher.GetAndDispose())
+                    foreach (WmiObject obj in connection.CreateQuery(TpmQuery))
                     {
-                        // Get TPM version
-                        info.SpecVersion = obj["SpecVersion"]?.ToString() ?? "Unknown";
-                        info.ManufacturerVersion = obj["ManufacturerVersion"]?.ToString() ?? "Unknown";
-                        info.ManufacturerId = obj["ManufacturerId"]?.ToString() ?? "Unknown";
-                        info.ManufacturerName = GetManufacturerName(obj["ManufacturerId"]);
+                        using (obj)
+                        {
+                            // Get TPM version
+                            info.SpecVersion = obj["SpecVersion"]?.ToString() ?? "Unknown";
+                            info.ManufacturerVersion = obj["ManufacturerVersion"]?.ToString() ?? "Unknown";
+                            info.ManufacturerId = obj["ManufacturerId"]?.ToString() ?? "Unknown";
+                            info.ManufacturerName = GetManufacturerName(obj["ManufacturerId"]);
 
-                        // Get TPM status
-                        info.IsEnabled = Convert.ToBoolean(obj["IsEnabled_InitialValue"]);
-                        info.IsActivated = Convert.ToBoolean(obj["IsActivated_InitialValue"]);
-                        info.IsOwned = Convert.ToBoolean(obj["IsOwned_InitialValue"]);
+                            // Get TPM status
+                            info.IsEnabled = Convert.ToBoolean(obj["IsEnabled_InitialValue"]);
+                            info.IsActivated = Convert.ToBoolean(obj["IsActivated_InitialValue"]);
+                            info.IsOwned = Convert.ToBoolean(obj["IsOwned_InitialValue"]);
 
-                        // Check if TPM is ready (all indicators are true)
-                        info.IsReady = info.IsEnabled && info.IsActivated && info.IsOwned;
+                            // Check if TPM is ready (all indicators are true)
+                            info.IsReady = info.IsEnabled && info.IsActivated && info.IsOwned;
 
-                        info.IsAvailable = true;
+                            info.IsAvailable = true;
+                        }
                     }
                 }
             }
-            catch (ManagementException)
+            catch (WmiException)
             {
                 // TPM might not be available or accessible
                 info.IsAvailable = false;
@@ -134,41 +138,36 @@ namespace OneMMC.Core.Features.SystemManagement.Services.TPM
 
             try
             {
-                using (var searcher = new ManagementObjectSearcher("root\\CIMV2\\Security\\MicrosoftTpm", "SELECT * FROM Win32_Tpm"))
+                using var connection = new WmiConnection(TpmNamespace);
+                var tpmObjects = connection.CreateQuery(TpmQuery).ToList();
+                if (tpmObjects.Count == 0)
                 {
-                    using var collection = searcher.Get();
-                    if (collection.Count == 0)
-                    {
-                        result.Success = false;
-                        result.Status = ClearStatus.NotFoundObject;
-                        result.ErrorMessage = "Win32_Tpm object not found (WMI does not provide TPM information).";
-                        return result;
-                    }
+                    result.Success = false;
+                    result.Status = ClearStatus.NotFoundObject;
+                    result.ErrorMessage = "Win32_Tpm object not found (WMI does not provide TPM information).";
+                    return result;
+                }
 
-                    foreach (ManagementObject obj in collection.DisposeItems())
+                try
+                {
+                    foreach (WmiObject obj in tpmObjects)
                     {
                         // Method 1: Try using Clear method (TPM 2.0 doesn't need OwnerAuth, pass empty string)
                         try
                         {
-                            var clearParams = obj.GetMethodParameters("Clear");
-                            if (clearParams != null)
+                            using WmiMethod clearMethod = obj.GetMethod("Clear");
+                            using WmiMethodParameters clearParams = clearMethod.CreateInParameters();
+                            // For TPM 2.0, OwnerAuth parameter can be empty string
+                            clearParams.SetPropertyValue("OwnerAuth", "");
+                            uint returnCode = obj.ExecuteMethod<uint>(clearMethod, clearParams, out WmiMethodParameters clearOutParams);
+                            clearOutParams?.Dispose();
+                            if (returnCode == 0)
                             {
-                                // For TPM 2.0, OwnerAuth parameter can be empty string
-                                clearParams["OwnerAuth"] = "";
-                                var outParams = obj.InvokeMethod("Clear", clearParams, null);
-
-                                if (outParams != null && outParams["ReturnValue"] != null)
-                                {
-                                    var returnCode = Convert.ToUInt32(outParams["ReturnValue"]);
-                                    if (returnCode == 0)
-                                    {
-                                        result.Success = true;
-                                        result.Status = ClearStatus.Success;
-                                        return result;
-                                    }
-                                    _logger.LogDebug($"Clear method returned error code: {returnCode}");
-                                }
+                                result.Success = true;
+                                result.Status = ClearStatus.Success;
+                                return result;
                             }
+                            _logger.LogDebug($"Clear method returned error code: {returnCode}");
                         }
                         catch (Exception ex)
                         {
@@ -179,12 +178,11 @@ namespace OneMMC.Core.Features.SystemManagement.Services.TPM
                         try
                         {
                             // Try to disable first
-                            var disableParams = obj.GetMethodParameters("Disable");
-                            if (disableParams != null)
-                            {
-                                disableParams["OwnerAuth"] = "";
-                                obj.InvokeMethod("Disable", disableParams, null);
-                            }
+                            using WmiMethod disableMethod = obj.GetMethod("Disable");
+                            using WmiMethodParameters disableParams = disableMethod.CreateInParameters();
+                            disableParams.SetPropertyValue("OwnerAuth", "");
+                            obj.ExecuteMethod<uint>(disableMethod, disableParams, out WmiMethodParameters disableOutParams);
+                            disableOutParams?.Dispose();
                         }
                         catch
                         {
@@ -195,26 +193,20 @@ namespace OneMMC.Core.Features.SystemManagement.Services.TPM
                         // 22 = PP_ClearControl(FALSE) + PP_Clear (Set physical presence request to clear TPM)
                         try
                         {
-                            var methodParams = obj.GetMethodParameters("SetPhysicalPresenceRequest");
-                            if (methodParams != null)
+                            using WmiMethod pprMethod = obj.GetMethod("SetPhysicalPresenceRequest");
+                            using WmiMethodParameters pprParams = pprMethod.CreateInParameters();
+                            // 22 is TPM 2.0 clear operation code
+                            pprParams.SetPropertyValue("Request", (uint)22);
+                            uint returnCode = obj.ExecuteMethod<uint>(pprMethod, pprParams, out WmiMethodParameters pprOutParams);
+                            pprOutParams?.Dispose();
+                            if (returnCode == 0)
                             {
-                                // 22 is TPM 2.0 clear operation code
-                                methodParams["Request"] = (uint)22;
-                                var outParams = obj.InvokeMethod("SetPhysicalPresenceRequest", methodParams, null);
-
-                                if (outParams != null && outParams["ReturnValue"] != null)
-                                {
-                                    var returnCode = Convert.ToUInt32(outParams["ReturnValue"]);
-                                    if (returnCode == 0)
-                                    {
-                                        result.Success = true;
-                                        result.Status = ClearStatus.Success;
-                                        result.ErrorMessage = "Clear request set. Please restart the computer to complete TPM clearing.";
-                                        return result;
-                                    }
-                                    _logger.LogDebug($"SetPhysicalPresenceRequest(22) returned error code: {returnCode}");
-                                }
+                                result.Success = true;
+                                result.Status = ClearStatus.Success;
+                                result.ErrorMessage = "Clear request set. Please restart the computer to complete TPM clearing.";
+                                return result;
                             }
+                            _logger.LogDebug($"SetPhysicalPresenceRequest(22) returned error code: {returnCode}");
                         }
                         catch (Exception ex)
                         {
@@ -224,25 +216,19 @@ namespace OneMMC.Core.Features.SystemManagement.Services.TPM
                         // Method 4: Try legacy SetPhysicalPresenceRequest(5) - TPM 1.2 Clear request
                         try
                         {
-                            var methodParams = obj.GetMethodParameters("SetPhysicalPresenceRequest");
-                            if (methodParams != null)
+                            using WmiMethod pprMethod = obj.GetMethod("SetPhysicalPresenceRequest");
+                            using WmiMethodParameters pprParams = pprMethod.CreateInParameters();
+                            pprParams.SetPropertyValue("Request", (uint)5);
+                            uint returnCode = obj.ExecuteMethod<uint>(pprMethod, pprParams, out WmiMethodParameters pprOutParams);
+                            pprOutParams?.Dispose();
+                            if (returnCode == 0)
                             {
-                                methodParams["Request"] = (uint)5;
-                                var outParams = obj.InvokeMethod("SetPhysicalPresenceRequest", methodParams, null);
-
-                                if (outParams != null && outParams["ReturnValue"] != null)
-                                {
-                                    var returnCode = Convert.ToUInt32(outParams["ReturnValue"]);
-                                    if (returnCode == 0)
-                                    {
-                                        result.Success = true;
-                                        result.Status = ClearStatus.Success;
-                                        result.ErrorMessage = "Clear request set. Please restart the computer to complete TPM clearing.";
-                                        return result;
-                                    }
-                                    result.ErrorMessage = $"SetPhysicalPresenceRequest(5) returned error code: {returnCode}";
-                                }
+                                result.Success = true;
+                                result.Status = ClearStatus.Success;
+                                result.ErrorMessage = "Clear request set. Please restart the computer to complete TPM clearing.";
+                                return result;
                             }
+                            result.ErrorMessage = $"SetPhysicalPresenceRequest(5) returned error code: {returnCode}";
                         }
                         catch (Exception ex)
                         {
@@ -252,22 +238,27 @@ namespace OneMMC.Core.Features.SystemManagement.Services.TPM
                         // Method 5: Try ClearTpm method (some OEM implementations)
                         try
                         {
-                            var outParams = obj.InvokeMethod("ClearTpm", null, null);
-                            if (outParams != null && outParams["ReturnValue"] != null)
+                            using WmiMethod clearTpmMethod = obj.GetMethod("ClearTpm");
+                            uint returnCode = obj.ExecuteMethod<uint>(clearTpmMethod, out WmiMethodParameters clearTpmOutParams);
+                            clearTpmOutParams?.Dispose();
+                            if (returnCode == 0)
                             {
-                                var returnCode = Convert.ToUInt32(outParams["ReturnValue"]);
-                                if (returnCode == 0)
-                                {
-                                    result.Success = true;
-                                    result.Status = ClearStatus.Success;
-                                    return result;
-                                }
+                                result.Success = true;
+                                result.Status = ClearStatus.Success;
+                                return result;
                             }
                         }
                         catch (Exception ex)
                         {
                             _logger.LogDebug($"ClearTpm method failed: {ex.Message}");
                         }
+                    }
+                }
+                finally
+                {
+                    foreach (WmiObject obj in tpmObjects)
+                    {
+                        obj.Dispose();
                     }
                 }
 
@@ -280,7 +271,7 @@ namespace OneMMC.Core.Features.SystemManagement.Services.TPM
                 }
                 return result;
             }
-            catch (UnauthorizedAccessException)
+            catch (Exception ex) when (_adminService.IsPermissionError(ex))
             {
                 return new ClearResult { Success = false, Status = ClearStatus.RequiresAdmin, ErrorMessage = LocalizationProvider.Current.GetString(ResourceFileNames.TPM, TPMKeys.WmiAccessDenied) };
             }

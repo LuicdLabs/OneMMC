@@ -86,6 +86,13 @@
       <ItemGroup>
         <ProjectReference Include="..\OneMMC.Core\OneMMC.Core.csproj" />
       </ItemGroup>
+
+      <!-- WmiLight is consumed through the OneMMC.Core class library, so it must be rooted for
+           trimmed/AOT publishes (documented WmiLight requirement for library encapsulation).
+           Inert in the default (non-trimmed) R2R publish. See doc/NativeAotMigration.md (M2). -->
+      <ItemGroup>
+        <TrimmerRootAssembly Include="WmiLight" />
+      </ItemGroup>
       <ItemGroup>
         <Folder Include="Views\CertificatesCredential\CertLM\" />
         <Folder Include="Views\CertificatesCredential\CertMgr\" />

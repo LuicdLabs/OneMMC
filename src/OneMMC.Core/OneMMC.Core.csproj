@@ -33,6 +33,9 @@
     <PackageReference Include="System.Management" />
     <PackageReference Include="System.ServiceProcess.ServiceController" />
     <PackageReference Include="System.Diagnostics.PerformanceCounter" />
+    <!-- AOT-compatible WMI client; replaces System.Management / Microsoft.Management.Infrastructure
+         feature-by-feature per doc/NativeAotMigration.md (M2). -->
+    <PackageReference Include="WmiLight" />
   </ItemGroup>
 
   <ItemGroup>
