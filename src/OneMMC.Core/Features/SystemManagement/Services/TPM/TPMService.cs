@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using OneMMC.Core.Infrastructure.Admin;
+using OneMMC.Core.Infrastructure.Wmi;
 using OneMMC.Core.Localization;
 using Microsoft.Extensions.Logging;
 using WmiLight;
@@ -48,26 +49,23 @@ namespace OneMMC.Core.Features.SystemManagement.Services.TPM
                 // Query TPM using WMI
                 using (var connection = new WmiConnection(TpmNamespace))
                 {
-                    foreach (WmiObject obj in connection.CreateQuery(TpmQuery))
+                    foreach (WmiObject obj in connection.CreateQuery(TpmQuery).DisposeItems())
                     {
-                        using (obj)
-                        {
-                            // Get TPM version
-                            info.SpecVersion = obj["SpecVersion"]?.ToString() ?? "Unknown";
-                            info.ManufacturerVersion = obj["ManufacturerVersion"]?.ToString() ?? "Unknown";
-                            info.ManufacturerId = obj["ManufacturerId"]?.ToString() ?? "Unknown";
-                            info.ManufacturerName = GetManufacturerName(obj["ManufacturerId"]);
+                        // Get TPM version
+                        info.SpecVersion = obj["SpecVersion"]?.ToString() ?? "Unknown";
+                        info.ManufacturerVersion = obj["ManufacturerVersion"]?.ToString() ?? "Unknown";
+                        info.ManufacturerId = obj["ManufacturerId"]?.ToString() ?? "Unknown";
+                        info.ManufacturerName = GetManufacturerName(obj["ManufacturerId"]);
 
-                            // Get TPM status
-                            info.IsEnabled = Convert.ToBoolean(obj["IsEnabled_InitialValue"]);
-                            info.IsActivated = Convert.ToBoolean(obj["IsActivated_InitialValue"]);
-                            info.IsOwned = Convert.ToBoolean(obj["IsOwned_InitialValue"]);
+                        // Get TPM status
+                        info.IsEnabled = Convert.ToBoolean(obj["IsEnabled_InitialValue"]);
+                        info.IsActivated = Convert.ToBoolean(obj["IsActivated_InitialValue"]);
+                        info.IsOwned = Convert.ToBoolean(obj["IsOwned_InitialValue"]);
 
-                            // Check if TPM is ready (all indicators are true)
-                            info.IsReady = info.IsEnabled && info.IsActivated && info.IsOwned;
+                        // Check if TPM is ready (all indicators are true)
+                        info.IsReady = info.IsEnabled && info.IsActivated && info.IsOwned;
 
-                            info.IsAvailable = true;
-                        }
+                        info.IsAvailable = true;
                     }
                 }
             }

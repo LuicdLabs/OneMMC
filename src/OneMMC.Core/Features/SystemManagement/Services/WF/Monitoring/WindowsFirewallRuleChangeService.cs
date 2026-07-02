@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Management;
 using System.Threading;
 using OneMMC.Core.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using WmiLight;
 
 namespace OneMMC.Core.Features.SystemManagement.Services.WF.Monitoring;
 
@@ -37,7 +37,8 @@ public sealed partial class WindowsFirewallRuleChangeService : IDisposable
 
     private readonly ILogger<WindowsFirewallRuleChangeService> _logger;
     private readonly object _syncRoot = new();
-    private readonly List<ManagementEventWatcher> _watchers = [];
+    private readonly List<WmiEventWatcher> _watchers = [];
+    private WmiConnection? _connection;
     private Timer? _debounceTimer;
     private int _subscriberCount;
     private bool _isDisposed;
@@ -152,15 +153,14 @@ public sealed partial class WindowsFirewallRuleChangeService : IDisposable
             return;
         }
 
-        var scope = new ManagementScope(@"\\.\root\StandardCimv2");
+        _connection ??= new WmiConnection(@"\\.\root\StandardCimv2");
         foreach (string className in WatchedClassNames)
         {
-            ManagementEventWatcher? watcher = null;
+            WmiEventWatcher? watcher = null;
             try
             {
-                var query = new WqlEventQuery(
+                watcher = _connection.CreateEventWatcher(
                     $"SELECT * FROM __InstanceOperationEvent WITHIN 2 WHERE TargetInstance ISA \"{className}\"");
-                watcher = new ManagementEventWatcher(scope, query);
                 watcher.EventArrived += OnRuleEventArrived;
                 watcher.Start();
                 _watchers.Add(watcher);
@@ -178,6 +178,11 @@ public sealed partial class WindowsFirewallRuleChangeService : IDisposable
         }
 
         IsWatching = _watchers.Count > 0;
+        if (!IsWatching)
+        {
+            _connection.Dispose();
+            _connection = null;
+        }
     }
 
     private void RemoveSubscription(EventHandler handler)
@@ -202,7 +207,7 @@ public sealed partial class WindowsFirewallRuleChangeService : IDisposable
         }
     }
 
-    private void OnRuleEventArrived(object sender, EventArrivedEventArgs e)
+    private void OnRuleEventArrived(object? sender, WmiEventArrivedEventArgs e)
     {
         lock (_syncRoot)
         {
@@ -249,7 +254,7 @@ public sealed partial class WindowsFirewallRuleChangeService : IDisposable
 
     private void StopCore()
     {
-        foreach (ManagementEventWatcher watcher in _watchers)
+        foreach (WmiEventWatcher watcher in _watchers)
         {
             try
             {
@@ -270,6 +275,8 @@ public sealed partial class WindowsFirewallRuleChangeService : IDisposable
         }
 
         _watchers.Clear();
+        _connection?.Dispose();
+        _connection = null;
         _debounceTimer?.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
         _debounceTimer?.Dispose();
         _debounceTimer = null;

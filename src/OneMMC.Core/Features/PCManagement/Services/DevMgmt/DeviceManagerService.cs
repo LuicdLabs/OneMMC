@@ -2,13 +2,13 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Management;
 using System.Runtime.InteropServices;
 using System.Text;
 using OneMMC.Core.Infrastructure.Admin;
 using OneMMC.Core.Infrastructure.Wmi;
 using OneMMC.Core.Localization;
 using Microsoft.Extensions.Logging;
+using WmiLight;
 using Windows.Win32.Devices.DeviceAndDriverInstallation;
 using Windows.Win32.Foundation;
 using Win32PInvoke = Windows.Win32.PInvoke;
@@ -140,9 +140,9 @@ namespace OneMMC.Core.Features.PCManagement.Services.DevMgmt
 
             try
             {
-                using (var searcher = new ManagementObjectSearcher("SELECT * FROM Win32_PnPEntity"))
+                using (var connection = new WmiConnection())
                 {
-                    foreach (ManagementObject device in searcher.GetAndDispose())
+                    foreach (WmiObject device in connection.CreateQuery("SELECT * FROM Win32_PnPEntity").DisposeItems())
                     {
                         var className = device["PNPClass"]?.ToString() ?? "Unknown";
                         var classGuid = device["ClassGuid"]?.ToString() ?? "";
@@ -197,9 +197,9 @@ namespace OneMMC.Core.Features.PCManagement.Services.DevMgmt
             try
             {
                 var query = $"SELECT * FROM Win32_PnPEntity WHERE DeviceID='{deviceId.Replace("\\", "\\\\")}'";
-                using (var searcher = new ManagementObjectSearcher(query))
+                using (var connection = new WmiConnection())
                 {
-                    foreach (ManagementObject device in searcher.GetAndDispose())
+                    foreach (WmiObject device in connection.CreateQuery(query).DisposeItems())
                     {
                         properties.Name = device["Caption"]?.ToString() ?? string.Empty;
                         properties.Description = device["Description"]?.ToString() ?? string.Empty;
@@ -249,9 +249,9 @@ namespace OneMMC.Core.Features.PCManagement.Services.DevMgmt
             try
             {
                 var query = $"SELECT * FROM Win32_PnPSignedDriver WHERE DeviceID='{deviceId.Replace("\\", "\\\\")}'";
-                using (var searcher = new ManagementObjectSearcher(query))
+                using (var connection = new WmiConnection())
                 {
-                    foreach (ManagementObject driver in searcher.GetAndDispose())
+                    foreach (WmiObject driver in connection.CreateQuery(query).DisposeItems())
                     {
                         driverInfo.DriverVersion = driver["DriverVersion"]?.ToString() ?? string.Empty;
                         
@@ -678,10 +678,10 @@ namespace OneMMC.Core.Features.PCManagement.Services.DevMgmt
 
             try
             {
-                using (var searcher = new ManagementObjectSearcher(
-                    "SELECT * FROM Win32_PnPEntity WHERE ConfigManagerErrorCode = 22"))
+                using (var connection = new WmiConnection())
                 {
-                    foreach (ManagementObject device in searcher.GetAndDispose())
+                    foreach (WmiObject device in connection.CreateQuery(
+                        "SELECT * FROM Win32_PnPEntity WHERE ConfigManagerErrorCode = 22").DisposeItems())
                     {
                         var deviceInfo = new DeviceInfo
                         {
