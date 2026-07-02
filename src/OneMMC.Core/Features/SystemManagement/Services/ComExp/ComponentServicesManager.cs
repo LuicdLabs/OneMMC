@@ -4,7 +4,6 @@ using System.Diagnostics;
 using Debug = System.Diagnostics.Trace;
 using System.Globalization;
 using System.Linq;
-using System.Management;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,6 +18,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Windows.Win32.Foundation;
 using Windows.Win32.Security;
+using WmiLight;
 using Win32PInvoke = Windows.Win32.PInvoke;
 
 namespace OneMMC.Core.Features.SystemManagement.Services.ComExp;
@@ -438,30 +438,35 @@ public sealed class ComponentServicesManager
             try
             {
                 // Query WMI for MSFT_DtcTransactionTask
-                using var searcher = new ManagementObjectSearcher(
-                    @"root\MsDTC",
-                    "SELECT * FROM MSFT_DtcTransactionTask");
+                using var connection = new WmiConnection(@"root\MsDTC");
 
-                foreach (ManagementObject obj in searcher.GetAndDispose())
+                foreach (WmiObject obj in connection.CreateQuery("SELECT * FROM MSFT_DtcTransactionTask").DisposeItems())
                 {
                     try
                     {
-                        var inParams = obj.GetMethodParameters("Get");
-                        inParams["DtcName"] = "Local";
+                        using WmiMethod getMethod = obj.GetMethod("Get");
+                        using WmiMethodParameters inParams = getMethod.CreateInParameters();
+                        inParams.SetPropertyValue("DtcName", "Local");
 
-                        var outParams = obj.InvokeMethod("Get", inParams, null);
-                        if (outParams != null && outParams["cmdletOutput"] is ManagementBaseObject[] transactions)
+                        obj.ExecuteMethod(getMethod, inParams, out WmiMethodParameters outParams);
+                        using (outParams)
                         {
-                            foreach (var txn in transactions)
+                            if (outParams?["cmdletOutput"] is WmiObject[] transactions)
                             {
-                                var state = txn["State"]?.ToString() ?? "Unknown";
-                                var transactionId = txn["TransactionId"]?.ToString() ?? string.Empty;
-
-                                results.Add(new DtcTransactionItem
+                                foreach (var txn in transactions)
                                 {
-                                    Status = state,
-                                    UnitOfWorkId = transactionId
-                                });
+                                    using (txn)
+                                    {
+                                        var state = txn["State"]?.ToString() ?? "Unknown";
+                                        var transactionId = txn["TransactionId"]?.ToString() ?? string.Empty;
+
+                                        results.Add(new DtcTransactionItem
+                                        {
+                                            Status = state,
+                                            UnitOfWorkId = transactionId
+                                        });
+                                    }
+                                }
                             }
                         }
                     }
@@ -491,35 +496,40 @@ public sealed class ComponentServicesManager
             try
             {
                 // Query WMI for transaction statistics
-                using var searcher = new ManagementObjectSearcher(
-                    @"root\MsDTC",
-                    "SELECT * FROM MSFT_DtcTransactionsStatisticsTask");
+                using var connection = new WmiConnection(@"root\MsDTC");
 
                 // Call the Get method to retrieve statistics
-                foreach (ManagementObject obj in searcher.GetAndDispose())
+                foreach (WmiObject obj in connection.CreateQuery("SELECT * FROM MSFT_DtcTransactionsStatisticsTask").DisposeItems())
                 {
                     try
                     {
-                        var inParams = obj.GetMethodParameters("Get");
-                        inParams["DtcName"] = "Local";
+                        using WmiMethod getMethod = obj.GetMethod("Get");
+                        using WmiMethodParameters inParams = getMethod.CreateInParameters();
+                        inParams.SetPropertyValue("DtcName", "Local");
 
-                        var outParams = obj.InvokeMethod("Get", inParams, null);
-                        if (outParams != null && outParams["Statistics"] is ManagementBaseObject statsObj)
+                        obj.ExecuteMethod(getMethod, inParams, out WmiMethodParameters outParams);
+                        using (outParams)
                         {
-                            return new DtcTransactionsStatistics
+                            if (outParams?["Statistics"] is WmiObject statsObj)
                             {
-                                Open = Convert.ToUInt32(statsObj["Open"]),
-                                OpenMax = Convert.ToUInt32(statsObj["OpenMax"]),
-                                InDoubt = Convert.ToUInt32(statsObj["InDoubt"]),
-                                Committed = Convert.ToUInt32(statsObj["Committed"]),
-                                Aborted = Convert.ToUInt32(statsObj["Aborted"]),
-                                ForcedCommit = Convert.ToUInt32(statsObj["ForcedCommit"]),
-                                ForcedAbort = Convert.ToUInt32(statsObj["ForcedAbort"]),
-                                Heuristic = Convert.ToUInt32(statsObj["Heuristic"]),
-                                ResponseTimeMin = 0, // Not available in WMI
-                                ResponseTimeAverage = 0,
-                                ResponseTimeMax = 0
-                            };
+                                using (statsObj)
+                                {
+                                    return new DtcTransactionsStatistics
+                                    {
+                                        Open = Convert.ToUInt32(statsObj["Open"]),
+                                        OpenMax = Convert.ToUInt32(statsObj["OpenMax"]),
+                                        InDoubt = Convert.ToUInt32(statsObj["InDoubt"]),
+                                        Committed = Convert.ToUInt32(statsObj["Committed"]),
+                                        Aborted = Convert.ToUInt32(statsObj["Aborted"]),
+                                        ForcedCommit = Convert.ToUInt32(statsObj["ForcedCommit"]),
+                                        ForcedAbort = Convert.ToUInt32(statsObj["ForcedAbort"]),
+                                        Heuristic = Convert.ToUInt32(statsObj["Heuristic"]),
+                                        ResponseTimeMin = 0, // Not available in WMI
+                                        ResponseTimeAverage = 0,
+                                        ResponseTimeMax = 0
+                                    };
+                                }
+                            }
                         }
                     }
                     catch (Exception ex)
@@ -529,11 +539,7 @@ public sealed class ComponentServicesManager
                 }
 
                 // Fallback: Try to query DtcTransactionsStatistics directly
-                using var statSearcher = new ManagementObjectSearcher(
-                    @"root\MsDTC",
-                    "SELECT * FROM DtcTransactionsStatistics");
-
-                foreach (ManagementObject obj in statSearcher.GetAndDispose())
+                foreach (WmiObject obj in connection.CreateQuery("SELECT * FROM DtcTransactionsStatistics").DisposeItems())
                 {
                     return new DtcTransactionsStatistics
                     {
@@ -658,10 +664,9 @@ public sealed class ComponentServicesManager
 
         try
         {
-            using var searcher = new ManagementObjectSearcher(
-                "SELECT ProcessId, ExecutablePath, Description, CreationDate FROM Win32_Process");
+            using var connection = new WmiConnection();
 
-            foreach (ManagementObject obj in searcher.GetAndDispose())
+            foreach (WmiObject obj in connection.CreateQuery("SELECT ProcessId, ExecutablePath, Description, CreationDate FROM Win32_Process").DisposeItems())
             {
                 try
                 {
@@ -673,7 +678,7 @@ public sealed class ComponentServicesManager
                     var creationDateStr = obj["CreationDate"]?.ToString();
                     if (!string.IsNullOrEmpty(creationDateStr))
                     {
-                        creationDate = ManagementDateTimeConverter.ToDateTime(creationDateStr);
+                        creationDate = DmtfDateTimeConverter.ToDateTime(creationDateStr);
                     }
 
                     result[processId] = new WmiProcessInfo(executablePath, description, creationDate);
