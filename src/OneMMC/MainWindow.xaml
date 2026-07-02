@@ -67,17 +67,18 @@
 					MaxWidth="1000"
 					HorizontalAlignment="Stretch">
 					<BreadcrumbBar.Resources>
-						<Style x:Key="BreadcrumbBarItemStyle" TargetType="BreadcrumbBarItem">
+						<!--
+							Implicit style for the generated BreadcrumbBarItem containers. No ItemTemplate on
+							purpose: BreadcrumbBar feeds its ellipsis element a null item, which crashes any
+							compiled-binding (x:Bind) template in ProcessBindings; without a template the
+							control renders items via Breadcrumb.ToString() (the Label), which is AOT-safe.
+						-->
+						<Style TargetType="BreadcrumbBarItem">
                             <Setter Property="FontSize" Value="26" />
                             <Setter Property="FontWeight" Value="SemiBold" />
 							<Setter Property="Foreground" Value="{ThemeResource TextFillColorTertiaryBrush}" />
 						</Style>
 					</BreadcrumbBar.Resources>
-					<BreadcrumbBar.ItemTemplate>
-						<DataTemplate x:Name="BreadcrumbBarItemTemplate" x:DataType="svc:Breadcrumb">
-							<BreadcrumbBarItem Content="{x:Bind Label}" Style="{StaticResource BreadcrumbBarItemStyle}" />
-						</DataTemplate>
-					</BreadcrumbBar.ItemTemplate>
 				</BreadcrumbBar>
 			</NavigationView.Header>
 			<NavigationView.Resources>
