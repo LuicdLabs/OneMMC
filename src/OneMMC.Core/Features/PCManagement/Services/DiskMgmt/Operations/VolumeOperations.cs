@@ -4,11 +4,12 @@ using System.Diagnostics;
 using Debug = System.Diagnostics.Trace;
 using System.IO;
 using System.Linq;
-using System.Management;
 using System.Runtime.InteropServices;
 using System.Threading;
 using OneMMC.Core.Features.PCManagement.Services.DiskMgmt.Common;
 using OneMMC.Core.Features.PCManagement.Models.DiskMgmt;
+using OneMMC.Core.Infrastructure.Wmi;
+using WmiLight;
 using Win32PInvoke = Windows.Win32.PInvoke;
 
 namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
@@ -38,8 +39,8 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
         {
             return ExecuteWmiOperation(() =>
             {
-                var scope = CreateConnectedScope();
-                using var disk = GetDisk(scope, diskIndex);
+                using var connection = CreateConnection();
+                using var disk = GetDisk(connection, diskIndex);
 
                 if (disk == null)
                     return OperationResult.Fail(ErrorMessages.DiskNotFound);
@@ -52,7 +53,7 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
                 Thread.Sleep(DiskManagementConstants.PARTITION_CREATE_DELAY_MS);
 
                 var formatResult = FormatNewPartition(
-                    scope,
+                    connection,
                     createResult.DiskNumber,
                     createResult.PartitionNumber,
                     fileSystem,
@@ -79,14 +80,15 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
 
             return ExecuteWmiOperation(() =>
             {
-                var scope = CreateConnectedScope();
-                using var partition = GetPartition(scope, diskIndex, partitionIndex);
+                using var connection = CreateConnection();
+                using var partition = GetPartition(connection, diskIndex, partitionIndex);
 
                 if (partition == null)
                     return OperationResult.Fail(ErrorMessages.PartitionNotFound);
 
-                var outParams = partition.InvokeMethod("DeleteObject", null, null);
-                var returnValue = Convert.ToUInt32(outParams?["ReturnValue"] ?? uint.MaxValue);
+                using WmiMethod deleteMethod = partition.GetMethod("DeleteObject");
+                var returnValue = partition.ExecuteMethod<uint>(deleteMethod, out WmiMethodParameters deleteOutParams);
+                deleteOutParams?.Dispose();
 
                 return returnValue == DiskManagementConstants.WMI_SUCCESS
                     ? OperationResult.Ok("Partition deleted successfully.")
@@ -119,8 +121,8 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
 
             return ExecuteWmiOperation(() =>
             {
-                var scope = CreateConnectedScope();
-                using var volume = GetVolumeByDriveLetter(scope, normalizedLetter);
+                using var connection = CreateConnection();
+                using var volume = GetVolumeByDriveLetter(connection, normalizedLetter);
 
                 if (volume == null)
                     return OperationResult.Fail($"Volume {normalizedLetter}: not found.");
@@ -142,8 +144,8 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
 
             return ExecuteWmiOperation(() =>
             {
-                var scope = CreateConnectedScope();
-                using var partition = GetPartitionByDriveLetter(scope, normalizedLetter);
+                using var connection = CreateConnection();
+                using var partition = GetPartitionByDriveLetter(connection, normalizedLetter);
 
                 if (partition == null)
                     return OperationResult.Fail($"Volume {normalizedLetter}: not found.");
@@ -171,8 +173,8 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
 
             return ExecuteWmiOperation(() =>
             {
-                var scope = CreateConnectedScope();
-                using var partition = GetPartitionByDriveLetter(scope, normalizedLetter);
+                using var connection = CreateConnection();
+                using var partition = GetPartitionByDriveLetter(connection, normalizedLetter);
 
                 if (partition == null)
                     return OperationResult.Fail($"Volume {normalizedLetter}: not found.");
@@ -197,8 +199,8 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
 
             return ExecuteWmiQuery(() =>
             {
-                var scope = CreateConnectedScope();
-                using var partition = GetPartitionByDriveLetter(scope, normalizedLetter);
+                using var connection = CreateConnection();
+                using var partition = GetPartitionByDriveLetter(connection, normalizedLetter);
 
                 if (partition == null)
                     return new QueryResult<ulong>(false, 0, $"Volume {normalizedLetter}: not found.");
@@ -210,7 +212,7 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
                 if (!sizeResult.Success)
                     return EstimateShrinkableSpace(normalizedLetter);
 
-                var currentSize = GetWmiPropertySafe<ulong>(partition, "Size");
+                var currentSize = partition.GetPropertySafe<ulong>("Size");
 
                 // BUG-FIX: prevent underflow when SizeMin > currentSize
                 if (sizeResult.SizeMin >= currentSize)
@@ -234,8 +236,8 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
 
             return ExecuteWmiQuery(() =>
             {
-                var scope = CreateConnectedScope();
-                using var partition = GetPartitionByDriveLetter(scope, normalizedLetter);
+                using var connection = CreateConnection();
+                using var partition = GetPartitionByDriveLetter(connection, normalizedLetter);
 
                 if (partition == null)
                     return new QueryResult<ulong>(false, 0, $"Volume {normalizedLetter}: not found.");
@@ -248,7 +250,7 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
                     return new QueryResult<ulong>(true, 0,
                         "Unable to query extendable space. No unallocated space may be available.");
 
-                var currentSize = GetWmiPropertySafe<ulong>(partition, "Size");
+                var currentSize = partition.GetPropertySafe<ulong>("Size");
 
                 if (sizeResult.SizeMax <= currentSize)
                     return new QueryResult<ulong>(true, 0, "No unallocated space available for extension.");
@@ -265,8 +267,8 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
         {
             return ExecuteWmiQuery(() =>
             {
-                var scope = CreateConnectedScope();
-                using var partition = GetPartition(scope, diskIndex, partitionIndex);
+                using var connection = CreateConnection();
+                using var partition = GetPartition(connection, diskIndex, partitionIndex);
 
                 if (partition == null)
                     return new QueryResult<ulong>(false, 0, ErrorMessages.PartitionNotFound);
@@ -278,7 +280,7 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
                 if (!sizeResult.Success)
                     return new QueryResult<ulong>(false, 0, sizeResult.Message);
 
-                var currentSize = GetWmiPropertySafe<ulong>(partition, "Size");
+                var currentSize = partition.GetPropertySafe<ulong>("Size");
 
                 // BUG-FIX: prevent underflow
                 if (sizeResult.SizeMin >= currentSize)
@@ -296,8 +298,8 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
         {
             return ExecuteWmiQuery(() =>
             {
-                var scope = CreateConnectedScope();
-                using var partition = GetPartition(scope, diskIndex, partitionIndex);
+                using var connection = CreateConnection();
+                using var partition = GetPartition(connection, diskIndex, partitionIndex);
 
                 if (partition == null)
                     return new QueryResult<ulong>(false, 0, ErrorMessages.PartitionNotFound);
@@ -310,7 +312,7 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
                     return new QueryResult<ulong>(true, 0,
                         "Unable to query extendable space. No unallocated space may be available.");
 
-                var currentSize = GetWmiPropertySafe<ulong>(partition, "Size");
+                var currentSize = partition.GetPropertySafe<ulong>("Size");
 
                 if (sizeResult.SizeMax <= currentSize)
                     return new QueryResult<ulong>(true, 0, "No unallocated space available for extension.");
@@ -327,25 +329,26 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
         {
             return ExecuteWmiOperation(() =>
             {
-                var scope = CreateConnectedScope();
-                using var disk = GetDisk(scope, diskIndex);
+                using var connection = CreateConnection();
+                using var disk = GetDisk(connection, diskIndex);
 
                 if (disk == null)
                     return OperationResult.Fail(ErrorMessages.DiskNotFound);
 
-                var style = GetWmiPropertySafe<ushort>(disk, "PartitionStyle");
+                var style = disk.GetPropertySafe<ushort>("PartitionStyle");
                 if (style != DiskManagementConstants.PARTITION_STYLE_MBR)
                     return OperationResult.Fail(ErrorMessages.MbrOnly);
 
-                using var partition = GetPartition(scope, diskIndex, partitionIndex);
+                using var partition = GetPartition(connection, diskIndex, partitionIndex);
                 if (partition == null)
                     return OperationResult.Fail(ErrorMessages.PartitionNotFound);
 
-                var inParams = partition.GetMethodParameters("SetAttributes");
-                inParams["IsActive"] = true;
+                using WmiMethod setAttributesMethod = partition.GetMethod("SetAttributes");
+                using WmiMethodParameters inParams = setAttributesMethod.CreateInParameters();
+                inParams.SetPropertyValue("IsActive", true);
 
-                var outParams = partition.InvokeMethod("SetAttributes", inParams, null);
-                var returnValue = Convert.ToUInt32(outParams?["ReturnValue"] ?? uint.MaxValue);
+                var returnValue = partition.ExecuteMethod<uint>(setAttributesMethod, inParams, out WmiMethodParameters setAttributesOutParams);
+                setAttributesOutParams?.Dispose();
 
                 return returnValue == DiskManagementConstants.WMI_SUCCESS
                     ? OperationResult.Ok("Partition marked as active.")
@@ -442,19 +445,20 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
 
             return ExecuteWmiOperation(() =>
             {
-                var scope = CreateConnectedScope();
-                using var partition = GetPartition(scope, diskIndex, partitionIndex);
+                using var connection = CreateConnection();
+                using var partition = GetPartition(connection, diskIndex, partitionIndex);
 
                 if (partition == null)
                     return OperationResult.Fail(ErrorMessages.PartitionNotFound);
 
-                var inParams = partition.GetMethodParameters("AddAccessPath");
-                inParams["AccessPath"] = normalizedLetter + ":";
+                using WmiMethod addAccessPathMethod = partition.GetMethod("AddAccessPath");
+                using WmiMethodParameters inParams = addAccessPathMethod.CreateInParameters();
+                inParams.SetPropertyValue("AccessPath", normalizedLetter + ":");
 
                 DiagnosticLogger.LogDebug($"[AssignDriveLetter] Using AddAccessPath with AccessPath={normalizedLetter}:");
 
-                var outParams = partition.InvokeMethod("AddAccessPath", inParams, null);
-                var returnValue = Convert.ToUInt32(outParams?["ReturnValue"] ?? uint.MaxValue);
+                var returnValue = partition.ExecuteMethod<uint>(addAccessPathMethod, inParams, out WmiMethodParameters addAccessPathOutParams);
+                addAccessPathOutParams?.Dispose();
 
                 return returnValue == DiskManagementConstants.WMI_SUCCESS
                     ? OperationResult.Ok($"Drive letter {normalizedLetter}: assigned successfully.")
@@ -484,8 +488,8 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
 
             return ExecuteWmiOperation(() =>
             {
-                var scope = CreateConnectedScope();
-                using var partition = GetPartitionByDriveLetter(scope, normalizedLetter);
+                using var connection = CreateConnection();
+                using var partition = GetPartitionByDriveLetter(connection, normalizedLetter);
 
                 if (partition == null)
                     return OperationResult.Fail($"Volume {normalizedLetter}: not found.");
@@ -504,13 +508,13 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
         {
             return ExecuteWmiOperation(() =>
             {
-                var scope = CreateConnectedScope();
-                using var partition = GetPartition(scope, diskIndex, partitionIndex);
+                using var connection = CreateConnection();
+                using var partition = GetPartition(connection, diskIndex, partitionIndex);
 
                 if (partition == null)
                     return OperationResult.Fail(ErrorMessages.PartitionNotFound);
 
-                var currentLetter = GetWmiPropertySafe<char>(partition, "DriveLetter");
+                var currentLetter = partition.GetPropertySafe<char>("DriveLetter");
                 if (currentLetter == '\0' || currentLetter == ' ')
                     return OperationResult.Fail(ErrorMessages.NoAccessPath);
 
@@ -586,8 +590,8 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
 
             try
             {
-                var scope = CreateConnectedScope();
-                var usedLetters = GetUsedDriveLetters(scope);
+                using var connection = CreateConnection();
+                var usedLetters = GetUsedDriveLetters(connection);
 
                 // Skip A, B (reserved for floppy drives)
                 for (char letter = 'C'; letter <= 'Z'; letter++)
@@ -613,17 +617,17 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
 
             try
             {
-                var scope = CreateConnectedScope();
-                using var disk = GetDisk(scope, diskIndex);
+                using var connection = CreateConnection();
+                using var disk = GetDisk(connection, diskIndex);
 
                 if (disk == null)
                     return spaces;
 
-                var diskSize = GetWmiPropertySafe<ulong>(disk, "Size");
+                var diskSize = disk.GetPropertySafe<ulong>("Size");
                 if (diskSize == 0)
                     return spaces;
 
-                var partitions = GetAllPartitionsOnDisk(scope, diskIndex);
+                var partitions = GetAllPartitionsOnDisk(connection, diskIndex);
 
                 // Starting offset: typically 1MB (GPT header / disk protection area)
                 ulong currentOffset = DiskManagementConstants.ALIGNMENT_1MB;
@@ -680,67 +684,49 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
 
         #region Helper Methods ??WMI Operations
 
-        private ManagementScope CreateConnectedScope()
+        private WmiConnection CreateConnection()
         {
-            var scope = new ManagementScope(DiskManagementConstants.StorageWmiScope);
-            scope.Connect();
-            return scope;
+            var connection = new WmiConnection(DiskManagementConstants.StorageWmiScope);
+            connection.Open();
+            return connection;
         }
 
-        private ManagementObject? GetDisk(ManagementScope scope, uint diskIndex)
+        private WmiObject? GetDisk(WmiConnection connection, uint diskIndex)
         {
-            var query = new ObjectQuery($"SELECT * FROM MSFT_Disk WHERE Number = {diskIndex}");
-            using var searcher = new ManagementObjectSearcher(scope, query);
-            using var collection = searcher.Get();
-            return collection.Cast<ManagementObject>().FirstOrDefault();
+            return connection.CreateQuery($"SELECT * FROM MSFT_Disk WHERE Number = {diskIndex}").FirstOrDefault();
         }
 
-        private ManagementObject? GetPartition(ManagementScope scope, uint diskIndex, uint partitionIndex)
+        private WmiObject? GetPartition(WmiConnection connection, uint diskIndex, uint partitionIndex)
         {
             var partitionNumber = partitionIndex + 1;
-            var query = new ObjectQuery(
-                $"SELECT * FROM MSFT_Partition WHERE DiskNumber = {diskIndex} AND PartitionNumber = {partitionNumber}");
-            using var searcher = new ManagementObjectSearcher(scope, query);
-            using var collection = searcher.Get();
-            return collection.Cast<ManagementObject>().FirstOrDefault();
+            return connection.CreateQuery(
+                $"SELECT * FROM MSFT_Partition WHERE DiskNumber = {diskIndex} AND PartitionNumber = {partitionNumber}").FirstOrDefault();
         }
 
-        private ManagementObject? GetPartitionByDriveLetter(ManagementScope scope, string driveLetter)
+        private WmiObject? GetPartitionByDriveLetter(WmiConnection connection, string driveLetter)
         {
             var sanitized = SanitizeWqlValue(driveLetter);
-            var query = new ObjectQuery($"SELECT * FROM MSFT_Partition WHERE DriveLetter = '{sanitized}'");
-            using var searcher = new ManagementObjectSearcher(scope, query);
-            using var collection = searcher.Get();
-            return collection.Cast<ManagementObject>().FirstOrDefault();
+            return connection.CreateQuery($"SELECT * FROM MSFT_Partition WHERE DriveLetter = '{sanitized}'").FirstOrDefault();
         }
 
         /// <summary>
         /// BUG-FIX: MSFT_Volume.DriveLetter is Char16 (single char) ??query with single char, not "C:"
         /// </summary>
-        private ManagementObject? GetVolumeByDriveLetter(ManagementScope scope, string driveLetter)
+        private WmiObject? GetVolumeByDriveLetter(WmiConnection connection, string driveLetter)
         {
             var sanitized = SanitizeWqlValue(driveLetter);
-            var query = new ObjectQuery($"SELECT * FROM MSFT_Volume WHERE DriveLetter = '{sanitized}'");
-            using var searcher = new ManagementObjectSearcher(scope, query);
-            using var collection = searcher.Get();
-            return collection.Cast<ManagementObject>().FirstOrDefault();
+            return connection.CreateQuery($"SELECT * FROM MSFT_Volume WHERE DriveLetter = '{sanitized}'").FirstOrDefault();
         }
 
-        private HashSet<char> GetUsedDriveLetters(ManagementScope scope)
+        private HashSet<char> GetUsedDriveLetters(WmiConnection connection)
         {
             var used = new HashSet<char>();
-            var query = new ObjectQuery("SELECT DriveLetter FROM MSFT_Partition");
-            using var searcher = new ManagementObjectSearcher(scope, query);
-            using var collection = searcher.Get();
 
-            foreach (ManagementObject partition in collection)
+            foreach (WmiObject partition in connection.CreateQuery("SELECT DriveLetter FROM MSFT_Partition").DisposeItems())
             {
-                using (partition)
-                {
-                    var letter = GetWmiPropertySafe<char>(partition, "DriveLetter");
-                    if (letter != '\0' && letter != ' ' && char.IsLetter(letter))
-                        used.Add(char.ToUpperInvariant(letter));
-                }
+                var letter = partition.GetPropertySafe<char>("DriveLetter");
+                if (letter != '\0' && letter != ' ' && char.IsLetter(letter))
+                    used.Add(char.ToUpperInvariant(letter));
             }
 
             return used;
@@ -749,22 +735,16 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
         /// <summary>
         /// Get all partitions on a disk, sorted by offset
         /// </summary>
-        private List<(ulong Offset, ulong Size)> GetAllPartitionsOnDisk(ManagementScope scope, uint diskIndex)
+        private List<(ulong Offset, ulong Size)> GetAllPartitionsOnDisk(WmiConnection connection, uint diskIndex)
         {
             var partitions = new List<(ulong Offset, ulong Size)>();
-            var query = new ObjectQuery(
-                $"SELECT Offset, Size FROM MSFT_Partition WHERE DiskNumber = {diskIndex}");
-            using var searcher = new ManagementObjectSearcher(scope, query);
-            using var collection = searcher.Get();
 
-            foreach (ManagementObject part in collection)
+            foreach (WmiObject part in connection.CreateQuery(
+                $"SELECT Offset, Size FROM MSFT_Partition WHERE DiskNumber = {diskIndex}").DisposeItems())
             {
-                using (part)
-                {
-                    var offset = GetWmiPropertySafe<ulong>(part, "Offset");
-                    var size = GetWmiPropertySafe<ulong>(part, "Size");
-                    partitions.Add((offset, size));
-                }
+                var offset = part.GetPropertySafe<ulong>("Offset");
+                var size = part.GetPropertySafe<ulong>("Size");
+                partitions.Add((offset, size));
             }
 
             partitions.Sort((a, b) => a.Offset.CompareTo(b.Offset));
@@ -785,24 +765,25 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
             uint? PartitionNumber = null);
 
         private CreatePartitionResult CreatePartitionOnDisk(
-            ManagementObject disk,
+            WmiObject disk,
             ulong sizeInMB,
             string? driveLetter,
             ulong? offset)
         {
             try
             {
-                var inParams = disk.GetMethodParameters("CreatePartition");
+                using WmiMethod createPartitionMethod = disk.GetMethod("CreatePartition");
+                using WmiMethodParameters inParams = createPartitionMethod.CreateInParameters();
 
                 if (sizeInMB > 0)
-                    inParams["Size"] = sizeInMB * DiskManagementConstants.BYTES_PER_MB;
+                    inParams.SetUInt64Parameter("Size", sizeInMB * DiskManagementConstants.BYTES_PER_MB);
                 else
-                    inParams["UseMaximumSize"] = true;
+                    inParams.SetPropertyValue("UseMaximumSize", true);
 
                 if (offset.HasValue && offset.Value > 0)
                 {
                     var alignedOffset = AlignToMB(offset.Value);
-                    inParams["Offset"] = alignedOffset;
+                    inParams.SetUInt64Parameter("Offset", alignedOffset);
                     LogDebug(nameof(CreatePartitionOnDisk),
                         $"Using aligned offset {alignedOffset} (original: {offset.Value})");
                 }
@@ -811,39 +792,42 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
                 {
                     var letter = NormalizeDriveLetter(driveLetter);
                     if (letter.Length == 1)
-                        inParams["DriveLetter"] = letter[0];
+                        inParams.SetChar16Parameter("DriveLetter", letter[0]);
                 }
                 else
                 {
-                    inParams["AssignDriveLetter"] = true;
+                    inParams.SetPropertyValue("AssignDriveLetter", true);
                 }
 
-                var outParams = disk.InvokeMethod("CreatePartition", inParams, null);
-                var returnValue = Convert.ToUInt32(outParams?["ReturnValue"] ?? uint.MaxValue);
-
-                if (returnValue != DiskManagementConstants.WMI_SUCCESS)
-                    return new CreatePartitionResult(false,
-                        $"Failed to create partition. Error code: {returnValue} - {ErrorMessages.GetMsftErrorMessage(returnValue)}");
-
-                // Extract DiskNumber and PartitionNumber from embedded object
-                var createdPartition = outParams?["CreatedPartition"] as ManagementBaseObject;
-                if (createdPartition != null)
+                var returnValue = disk.ExecuteMethod<uint>(createPartitionMethod, inParams, out WmiMethodParameters outParams);
+                using (outParams)
                 {
-                    var diskNum = Convert.ToUInt32(createdPartition["DiskNumber"]);
-                    var partNum = Convert.ToUInt32(createdPartition["PartitionNumber"]);
+                    if (returnValue != DiskManagementConstants.WMI_SUCCESS)
+                        return new CreatePartitionResult(false,
+                            $"Failed to create partition. Error code: {returnValue} - {ErrorMessages.GetMsftErrorMessage(returnValue)}");
+
+                    // Extract DiskNumber and PartitionNumber from embedded object
+                    if (outParams?["CreatedPartition"] is WmiObject createdPartition)
+                    {
+                        using (createdPartition)
+                        {
+                            var diskNum = Convert.ToUInt32(createdPartition["DiskNumber"]);
+                            var partNum = Convert.ToUInt32(createdPartition["PartitionNumber"]);
+
+                            return new CreatePartitionResult(true,
+                                "Partition created successfully.",
+                                diskNum,
+                                partNum);
+                        }
+                    }
 
                     return new CreatePartitionResult(true,
-                        "Partition created successfully.",
-                        diskNum,
-                        partNum);
+                        "Partition created, but unable to get reference for formatting. Please format manually.");
                 }
-
-                return new CreatePartitionResult(true,
-                    "Partition created, but unable to get reference for formatting. Please format manually.");
             }
-            catch (ManagementException mex)
+            catch (WmiException wex)
             {
-                return new CreatePartitionResult(false, $"Failed to create partition: {mex.Message}");
+                return new CreatePartitionResult(false, $"Failed to create partition: {wex.Message}");
             }
         }
 
@@ -851,7 +835,7 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
         /// Format a newly created partition by DiskNumber + PartitionNumber lookup
         /// </summary>
         private OperationResult FormatNewPartition(
-            ManagementScope scope,
+            WmiConnection connection,
             uint? diskNumber,
             uint? partitionNumber,
             string fileSystem,
@@ -866,21 +850,18 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
             {
                 for (int retry = 0; retry < DiskManagementConstants.MAX_VOLUME_WAIT_RETRIES; retry++)
                 {
-                    var partQuery = new ObjectQuery(
+                    var partObj = connection.CreateQuery(
                         $"SELECT DriveLetter FROM MSFT_Partition " +
-                        $"WHERE DiskNumber = {diskNumber.Value} AND PartitionNumber = {partitionNumber.Value}");
-                    using var partSearcher = new ManagementObjectSearcher(scope, partQuery);
-                    using var partCollection = partSearcher.Get();
-                    var partObj = partCollection.Cast<ManagementObject>().FirstOrDefault();
+                        $"WHERE DiskNumber = {diskNumber.Value} AND PartitionNumber = {partitionNumber.Value}").FirstOrDefault();
 
                     if (partObj != null)
                     {
                         using (partObj)
                         {
-                            var dl = GetWmiPropertySafe<char>(partObj, "DriveLetter");
+                            var dl = partObj.GetPropertySafe<char>("DriveLetter");
                             if (dl != '\0' && dl != ' ')
                             {
-                                using var volume = GetVolumeByDriveLetter(scope, dl.ToString());
+                                using var volume = GetVolumeByDriveLetter(connection, dl.ToString());
                                 if (volume != null)
                                     return FormatVolumeObject(volume, fileSystem, label, quickFormat);
                             }
@@ -892,7 +873,7 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
                 }
 
                 // Last resort: match volume by partition size
-                return TryFormatVolumeByPartitionId(scope, diskNumber.Value, partitionNumber.Value,
+                return TryFormatVolumeByPartitionId(connection, diskNumber.Value, partitionNumber.Value,
                     fileSystem, label, quickFormat);
             }
             catch (Exception ex)
@@ -905,7 +886,7 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
         /// Fallback format: enumerate all volumes and match by size
         /// </summary>
         private OperationResult TryFormatVolumeByPartitionId(
-            ManagementScope scope,
+            WmiConnection connection,
             uint diskNumber,
             uint partitionNumber,
             string fileSystem,
@@ -914,34 +895,24 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
         {
             try
             {
-                var partQuery = new ObjectQuery(
+                var partition = connection.CreateQuery(
                     $"SELECT * FROM MSFT_Partition " +
-                    $"WHERE DiskNumber = {diskNumber} AND PartitionNumber = {partitionNumber}");
-                using var partSearcher = new ManagementObjectSearcher(scope, partQuery);
-                using var partCollection = partSearcher.Get();
-                var partition = partCollection.Cast<ManagementObject>().FirstOrDefault();
+                    $"WHERE DiskNumber = {diskNumber} AND PartitionNumber = {partitionNumber}").FirstOrDefault();
 
                 if (partition == null)
                     return OperationResult.Fail("Unable to find partition for formatting.");
 
                 using (partition)
                 {
-                    var partSize = GetWmiPropertySafe<ulong>(partition, "Size");
+                    var partSize = partition.GetPropertySafe<ulong>("Size");
 
-                    var volQuery = new ObjectQuery("SELECT * FROM MSFT_Volume WHERE FileSystemLabel = ''");
-                    using var volSearcher = new ManagementObjectSearcher(scope, volQuery);
-                    using var volCollection = volSearcher.Get();
-
-                    foreach (ManagementObject volume in volCollection)
+                    foreach (WmiObject volume in connection.CreateQuery("SELECT * FROM MSFT_Volume WHERE FileSystemLabel = ''").DisposeItems())
                     {
-                        using (volume)
+                        var volSize = volume.GetPropertySafe<ulong>("Size");
+                        // Allow 10% size tolerance (filesystem metadata overhead)
+                        if (volSize > 0 && Math.Abs((long)volSize - (long)partSize) < (long)(partSize * 0.1))
                         {
-                            var volSize = GetWmiPropertySafe<ulong>(volume, "Size");
-                            // Allow 10% size tolerance (filesystem metadata overhead)
-                            if (volSize > 0 && Math.Abs((long)volSize - (long)partSize) < (long)(partSize * 0.1))
-                            {
-                                return FormatVolumeObject(volume, fileSystem, label, quickFormat);
-                            }
+                            return FormatVolumeObject(volume, fileSystem, label, quickFormat);
                         }
                     }
                 }
@@ -955,23 +926,24 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
         }
 
         private OperationResult FormatVolumeObject(
-            ManagementObject volume,
+            WmiObject volume,
             string fileSystem,
             string label,
             bool quickFormat)
         {
             try
             {
-                var inParams = volume.GetMethodParameters("Format");
-                inParams["FileSystem"] = fileSystem;
-                inParams["FileSystemLabel"] = label ?? "";
-                inParams["Full"] = !quickFormat;
-                inParams["Force"] = true;
+                using WmiMethod formatMethod = volume.GetMethod("Format");
+                using WmiMethodParameters inParams = formatMethod.CreateInParameters();
+                inParams.SetPropertyValue("FileSystem", fileSystem);
+                inParams.SetPropertyValue("FileSystemLabel", label ?? "");
+                inParams.SetPropertyValue("Full", !quickFormat);
+                inParams.SetPropertyValue("Force", true);
 
                 DiagnosticLogger.LogDebug($"[FormatVolumeObject] Formatting with FileSystem={fileSystem}, Label=\"{label ?? ""}\", Full={!quickFormat}, Force=true");
 
-                var outParams = volume.InvokeMethod("Format", inParams, null);
-                var returnValue = Convert.ToUInt32(outParams?["ReturnValue"] ?? uint.MaxValue);
+                var returnValue = volume.ExecuteMethod<uint>(formatMethod, inParams, out WmiMethodParameters formatOutParams);
+                formatOutParams?.Dispose();
 
                 return returnValue == DiskManagementConstants.WMI_SUCCESS
                     ? OperationResult.Ok("Formatting successful.")
@@ -979,17 +951,17 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
                         $"Formatting failed. Error code: {returnValue} - {ErrorMessages.GetMsftErrorMessage(returnValue)}",
                         returnValue);
             }
-            catch (ManagementException mex)
+            catch (WmiException wex)
             {
-                return OperationResult.Fail($"Formatting failed: {mex.Message}");
+                return OperationResult.Fail($"Formatting failed: {wex.Message}");
             }
         }
 
-        private OperationResult ResizePartitionExtend(ManagementObject partition, ulong sizeInMB)
+        private OperationResult ResizePartitionExtend(WmiObject partition, ulong sizeInMB)
         {
             try
             {
-                var currentSize = GetWmiPropertySafe<ulong>(partition, "Size");
+                var currentSize = partition.GetPropertySafe<ulong>("Size");
                 var sizeResult = GetPartitionSupportedSize(partition);
 
                 ulong targetSize;
@@ -1026,17 +998,17 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
                 return ResizePartition(partition, targetSize,
                     $"Volume extended successfully. New size: {FormatSize(targetSize)}");
             }
-            catch (ManagementException mex)
+            catch (WmiException wex)
             {
-                return OperationResult.Fail($"Extension failed: {mex.Message}");
+                return OperationResult.Fail($"Extension failed: {wex.Message}");
             }
         }
 
-        private OperationResult ResizePartitionShrink(ManagementObject partition, ulong sizeInMB)
+        private OperationResult ResizePartitionShrink(WmiObject partition, ulong sizeInMB)
         {
             try
             {
-                var currentSize = GetWmiPropertySafe<ulong>(partition, "Size");
+                var currentSize = partition.GetPropertySafe<ulong>("Size");
                 var shrinkBytes = sizeInMB * DiskManagementConstants.BYTES_PER_MB;
 
                 // Prevent ulong underflow when shrinkBytes > currentSize
@@ -1056,7 +1028,7 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
                 else
                 {
                     // Fallback: estimate minimum from DriveInfo when GetSupportedSize is unavailable
-                    var driveLetter = GetWmiPropertySafe<char>(partition, "DriveLetter");
+                    var driveLetter = partition.GetPropertySafe<char>("DriveLetter");
                     if (driveLetter != '\0' && driveLetter != ' ')
                     {
                         var estimatedMin = EstimateMinPartitionSize(driveLetter);
@@ -1070,19 +1042,20 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
 
                 return ResizePartition(partition, targetSize, $"Volume shrunk successfully by {sizeInMB} MB.");
             }
-            catch (ManagementException mex)
+            catch (WmiException wex)
             {
-                return OperationResult.Fail($"Shrink failed: {mex.Message}");
+                return OperationResult.Fail($"Shrink failed: {wex.Message}");
             }
         }
 
-        private OperationResult ResizePartition(ManagementObject partition, ulong targetSize, string successMessage)
+        private OperationResult ResizePartition(WmiObject partition, ulong targetSize, string successMessage)
         {
-            var inParams = partition.GetMethodParameters("Resize");
-            inParams["Size"] = targetSize;
+            using WmiMethod resizeMethod = partition.GetMethod("Resize");
+            using WmiMethodParameters inParams = resizeMethod.CreateInParameters();
+            inParams.SetUInt64Parameter("Size", targetSize);
 
-            var outParams = partition.InvokeMethod("Resize", inParams, null);
-            var returnValue = Convert.ToUInt32(outParams?["ReturnValue"] ?? uint.MaxValue);
+            var returnValue = partition.ExecuteMethod<uint>(resizeMethod, inParams, out WmiMethodParameters resizeOutParams);
+            resizeOutParams?.Dispose();
 
             return returnValue == DiskManagementConstants.WMI_SUCCESS
                 ? OperationResult.Ok(successMessage)
@@ -1092,58 +1065,49 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
         }
 
         private (bool Success, ulong SizeMin, ulong SizeMax, string Message, uint? ErrorCode)
-            GetPartitionSupportedSize(ManagementObject partition)
+            GetPartitionSupportedSize(WmiObject partition)
         {
             try
             {
-                // Some WMI providers require method parameters even for output-only methods
-                ManagementBaseObject outParams;
-                try
+                using WmiMethod getSupportedSizeMethod = partition.GetMethod("GetSupportedSize");
+                var returnValue = partition.ExecuteMethod<uint>(getSupportedSizeMethod, out WmiMethodParameters outParams);
+                using (outParams)
                 {
-                    var inParams = partition.GetMethodParameters("GetSupportedSize");
-                    outParams = partition.InvokeMethod("GetSupportedSize", inParams, null);
+                    if (returnValue != DiskManagementConstants.WMI_SUCCESS)
+                    {
+                        if (returnValue == DiskManagementConstants.WMI_NOT_SUPPORTED)
+                            return (false, 0, 0, ErrorMessages.PartitionNotSupportResize, returnValue);
+
+                        return (false, 0, 0,
+                            $"Unable to query partition size limits. Error code: {returnValue} - {ErrorMessages.GetMsftErrorMessage(returnValue)}",
+                            returnValue);
+                    }
+
+                    var sizeMin = Convert.ToUInt64(outParams?["SizeMin"] ?? 0UL);
+                    var sizeMax = Convert.ToUInt64(outParams?["SizeMax"] ?? 0UL);
+
+                    return (true, sizeMin, sizeMax, "Success", null);
                 }
-                catch (ManagementException)
-                {
-                    // Fallback: invoke without parameters
-                    outParams = partition.InvokeMethod("GetSupportedSize", null, null);
-                }
-
-                var returnValue = Convert.ToUInt32(outParams?["ReturnValue"] ?? uint.MaxValue);
-
-                if (returnValue != DiskManagementConstants.WMI_SUCCESS)
-                {
-                    if (returnValue == DiskManagementConstants.WMI_NOT_SUPPORTED)
-                        return (false, 0, 0, ErrorMessages.PartitionNotSupportResize, returnValue);
-
-                    return (false, 0, 0,
-                        $"Unable to query partition size limits. Error code: {returnValue} - {ErrorMessages.GetMsftErrorMessage(returnValue)}",
-                        returnValue);
-                }
-
-                var sizeMin = Convert.ToUInt64(outParams?["SizeMin"] ?? 0UL);
-                var sizeMax = Convert.ToUInt64(outParams?["SizeMax"] ?? 0UL);
-
-                return (true, sizeMin, sizeMax, "Success", null);
             }
-            catch (ManagementException ex)
+            catch (WmiException ex)
             {
                 LogDebug(nameof(GetPartitionSupportedSize),
-                    $"GetSupportedSize failed: {ex.ErrorCode} - {ex.Message}");
+                    $"GetSupportedSize failed: 0x{ex.HResult:X8} - {ex.Message}");
                 return (false, 0, 0, $"Unable to query partition size limits: {ex.Message}", null);
             }
         }
 
-        private OperationResult RemoveDriveLetterFromPartition(ManagementObject partition, string driveLetter)
+        private OperationResult RemoveDriveLetterFromPartition(WmiObject partition, string driveLetter)
         {
             // Method 1: Use RemoveAccessPath
             try
             {
-                var inParams = partition.GetMethodParameters("RemoveAccessPath");
-                inParams["AccessPath"] = driveLetter + ":\\";
+                using WmiMethod removeAccessPathMethod = partition.GetMethod("RemoveAccessPath");
+                using WmiMethodParameters inParams = removeAccessPathMethod.CreateInParameters();
+                inParams.SetPropertyValue("AccessPath", driveLetter + ":\\");
 
-                var outParams = partition.InvokeMethod("RemoveAccessPath", inParams, null);
-                var returnValue = Convert.ToUInt32(outParams?["ReturnValue"] ?? uint.MaxValue);
+                var returnValue = partition.ExecuteMethod<uint>(removeAccessPathMethod, inParams, out WmiMethodParameters removeOutParams);
+                removeOutParams?.Dispose();
 
                 if (returnValue == DiskManagementConstants.WMI_SUCCESS)
                     return OperationResult.Ok($"Drive letter {driveLetter}: removed successfully.");
@@ -1151,10 +1115,10 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
                 LogDebug(nameof(RemoveDriveLetterFromPartition),
                     $"RemoveAccessPath returned {returnValue}, falling back to DeleteVolumeMountPoint.");
             }
-            catch (ManagementException ex)
+            catch (WmiException ex)
             {
                 LogDebug(nameof(RemoveDriveLetterFromPartition),
-                    $"RemoveAccessPath threw {ex.ErrorCode}, falling back to DeleteVolumeMountPoint.");
+                    $"RemoveAccessPath threw 0x{ex.HResult:X8}, falling back to DeleteVolumeMountPoint.");
             }
 
             // Method 2: Fallback using Win32 DeleteVolumeMountPoint
@@ -1203,52 +1167,10 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
                 d.Name.StartsWith(normalized, StringComparison.OrdinalIgnoreCase));
         }
 
-        private static T GetWmiPropertySafe<T>(ManagementBaseObject obj, string propertyName, T defaultValue = default!)
-        {
-            try
-            {
-                var value = obj[propertyName];
-                if (value == null) return defaultValue;
-
-                var targetType = typeof(T);
-                var underlyingType = Nullable.GetUnderlyingType(targetType) ?? targetType;
-
-                if (underlyingType == typeof(string))
-                    return (T)(object)(value.ToString()?.Trim() ?? "");
-
-                if (underlyingType == typeof(bool))
-                    return (T)(object)Convert.ToBoolean(value);
-
-                if (underlyingType == typeof(uint))
-                    return (T)(object)Convert.ToUInt32(value);
-
-                if (underlyingType == typeof(ushort))
-                    return (T)(object)Convert.ToUInt16(value);
-
-                if (underlyingType == typeof(ulong))
-                    return (T)(object)Convert.ToUInt64(value);
-
-                if (underlyingType == typeof(int))
-                    return (T)(object)Convert.ToInt32(value);
-
-                if (underlyingType == typeof(char))
-                {
-                    var str = value.ToString();
-                    return (T)(object)(!string.IsNullOrEmpty(str) ? str[0] : '\0');
-                }
-
-                return (T)Convert.ChangeType(value, underlyingType);
-            }
-            catch
-            {
-                return defaultValue;
-            }
-        }
-
-        private bool IsSpecialPartitionType(ManagementObject partition, out string? reason)
+        private bool IsSpecialPartitionType(WmiObject partition, out string? reason)
         {
             reason = null;
-            var gptTypeStr = GetWmiPropertySafe<string>(partition, "GptType") ?? "";
+            var gptTypeStr = partition.GetPropertySafe<string>("GptType") ?? "";
 
             if (!string.IsNullOrEmpty(gptTypeStr) && Guid.TryParse(gptTypeStr, out var gptGuid))
             {
@@ -1260,8 +1182,8 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
             }
 
             // Additional check: MBR system partition (non-boot)
-            var isBoot = GetWmiPropertySafe<bool>(partition, "IsBoot");
-            var isSystem = GetWmiPropertySafe<bool>(partition, "IsSystem");
+            var isBoot = partition.GetPropertySafe<bool>("IsBoot");
+            var isSystem = partition.GetPropertySafe<bool>("IsSystem");
             if (isSystem && !isBoot)
             {
                 reason = ErrorMessages.SpecialPartitionOperation;
@@ -1396,12 +1318,12 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
 
                 return result;
             }
-            catch (ManagementException mex)
+            catch (WmiException wex)
             {
-                DiagnosticLogger.LogOperationError(operationName, mex,
+                DiagnosticLogger.LogOperationError(operationName, wex,
                     diskIndex, partitionIndex, driveLetter,
-                    $"WMI Error Code: {mex.ErrorCode}");
-                return OperationResult.Fail($"{operationName} failed: {mex.Message}");
+                    $"WMI Error Code: 0x{wex.HResult:X8}");
+                return OperationResult.Fail($"{operationName} failed: {wex.Message}");
             }
             catch (COMException comEx)
             {
@@ -1452,12 +1374,12 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
 
                 return result;
             }
-            catch (ManagementException mex)
+            catch (WmiException wex)
             {
-                DiagnosticLogger.LogOperationError(operationName, mex,
+                DiagnosticLogger.LogOperationError(operationName, wex,
                     diskIndex, partitionIndex, driveLetter,
-                    $"WMI Error Code: {mex.ErrorCode}");
-                return new QueryResult<T>(false, default(T)!, $"{operationName} failed: {mex.Message}");
+                    $"WMI Error Code: 0x{wex.HResult:X8}");
+                return new QueryResult<T>(false, default(T)!, $"{operationName} failed: {wex.Message}");
             }
             catch (COMException comEx)
             {

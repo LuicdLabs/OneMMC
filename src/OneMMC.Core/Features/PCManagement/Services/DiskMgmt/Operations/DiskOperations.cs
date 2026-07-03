@@ -1,8 +1,8 @@
 ﻿using System;
-using System.Management;
 using System.Runtime.InteropServices;
 using OneMMC.Core.Features.PCManagement.Services.DiskMgmt.Common;
 using OneMMC.Core.Infrastructure.Wmi;
+using WmiLight;
 
 namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
 {
@@ -23,19 +23,20 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
 
             return ExecuteWmiOperation(nameof(InitializeDisk), () =>
             {
-                var scope = CreateConnectedScope();
-                using var disk = GetDisk(scope, diskIndex);
+                using var connection = CreateConnection();
+                using var disk = GetDisk(connection, diskIndex);
 
                 if (disk == null)
                     return OperationResult.Fail(ErrorMessages.DiskNotFound);
 
-                var inParams = disk.GetMethodParameters("Initialize");
-                inParams["PartitionStyle"] = useGpt
+                using WmiMethod initializeMethod = disk.GetMethod("Initialize");
+                using WmiMethodParameters inParams = initializeMethod.CreateInParameters();
+                inParams.SetUInt16Parameter("PartitionStyle", useGpt
                     ? DiskManagementConstants.PARTITION_STYLE_GPT
-                    : DiskManagementConstants.PARTITION_STYLE_MBR;
+                    : DiskManagementConstants.PARTITION_STYLE_MBR);
 
-                var outParams = disk.InvokeMethod("Initialize", inParams, null);
-                var rv = Convert.ToUInt32(outParams["ReturnValue"]);
+                var rv = disk.ExecuteMethod<uint>(initializeMethod, inParams, out WmiMethodParameters outParams);
+                outParams?.Dispose();
 
                 return rv == DiskManagementConstants.WMI_SUCCESS
                     ? OperationResult.Ok($"Disk successfully initialized as {(useGpt ? "GPT" : "MBR")} format.")
@@ -48,15 +49,16 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
         {
             return ExecuteWmiOperation(nameof(SetDiskOnlineOffline), () =>
             {
-                var scope = CreateConnectedScope();
-                using var disk = GetDisk(scope, diskIndex);
+                using var connection = CreateConnection();
+                using var disk = GetDisk(connection, diskIndex);
 
                 if (disk == null)
                     return OperationResult.Fail(ErrorMessages.DiskNotFound);
 
                 var methodName = online ? "Online" : "Offline";
-                var outParams = disk.InvokeMethod(methodName, null, null);
-                var rv = Convert.ToUInt32(outParams["ReturnValue"]);
+                using WmiMethod method = disk.GetMethod(methodName);
+                var rv = disk.ExecuteMethod<uint>(method, out WmiMethodParameters outParams);
+                outParams?.Dispose();
 
                 return rv == DiskManagementConstants.WMI_SUCCESS
                     ? OperationResult.Ok(online ? "Disk is now online." : "Disk is now offline.")
@@ -69,14 +71,12 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
         {
             try
             {
-                var scope = CreateConnectedScope();
-                var query = new ObjectQuery($"SELECT IsOffline FROM MSFT_Disk WHERE Number = {diskIndex}");
-                using var searcher = new ManagementObjectSearcher(scope, query);
+                using var connection = CreateConnection();
 
-                foreach (ManagementObject disk in searcher.GetAndDispose())
+                foreach (WmiObject disk in connection.CreateQuery($"SELECT IsOffline FROM MSFT_Disk WHERE Number = {diskIndex}"))
                 {
                     using (disk)
-                        return !GetWmiPropertySafe<bool>(disk, "IsOffline");
+                        return !disk.GetPropertySafe<bool>("IsOffline");
                 }
             }
             catch (Exception ex)
@@ -91,17 +91,18 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
         {
             return ExecuteWmiOperation(nameof(SetDiskReadOnly), () =>
             {
-                var scope = CreateConnectedScope();
-                using var disk = GetDisk(scope, diskIndex);
+                using var connection = CreateConnection();
+                using var disk = GetDisk(connection, diskIndex);
 
                 if (disk == null)
                     return OperationResult.Fail(ErrorMessages.DiskNotFound);
 
-                var inParams = disk.GetMethodParameters("SetAttributes");
-                inParams["IsReadOnly"] = readOnly;
+                using WmiMethod setAttributesMethod = disk.GetMethod("SetAttributes");
+                using WmiMethodParameters inParams = setAttributesMethod.CreateInParameters();
+                inParams.SetPropertyValue("IsReadOnly", readOnly);
 
-                var outParams = disk.InvokeMethod("SetAttributes", inParams, null);
-                var rv = Convert.ToUInt32(outParams["ReturnValue"]);
+                var rv = disk.ExecuteMethod<uint>(setAttributesMethod, inParams, out WmiMethodParameters outParams);
+                outParams?.Dispose();
 
                 return rv == DiskManagementConstants.WMI_SUCCESS
                     ? OperationResult.Ok(readOnly ? "Disk set to read-only." : "Disk set to read-write.")
@@ -114,14 +115,12 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
         {
             try
             {
-                var scope = CreateConnectedScope();
-                var query = new ObjectQuery($"SELECT IsReadOnly FROM MSFT_Disk WHERE Number = {diskIndex}");
-                using var searcher = new ManagementObjectSearcher(scope, query);
+                using var connection = CreateConnection();
 
-                foreach (ManagementObject disk in searcher.GetAndDispose())
+                foreach (WmiObject disk in connection.CreateQuery($"SELECT IsReadOnly FROM MSFT_Disk WHERE Number = {diskIndex}"))
                 {
                     using (disk)
-                        return GetWmiPropertySafe<bool>(disk, "IsReadOnly");
+                        return disk.GetPropertySafe<bool>("IsReadOnly");
                 }
             }
             catch (Exception ex)
@@ -142,18 +141,19 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
 
             return ExecuteWmiOperation(nameof(CleanDisk), () =>
             {
-                var scope = CreateConnectedScope();
-                using var disk = GetDisk(scope, diskIndex);
+                using var connection = CreateConnection();
+                using var disk = GetDisk(connection, diskIndex);
 
                 if (disk == null)
                     return OperationResult.Fail(ErrorMessages.DiskNotFound);
 
-                var inParams = disk.GetMethodParameters("Clear");
-                inParams["RemoveData"] = true;
-                inParams["RemoveOEM"] = true;
+                using WmiMethod clearMethod = disk.GetMethod("Clear");
+                using WmiMethodParameters inParams = clearMethod.CreateInParameters();
+                inParams.SetPropertyValue("RemoveData", true);
+                inParams.SetPropertyValue("RemoveOEM", true);
 
-                var outParams = disk.InvokeMethod("Clear", inParams, null);
-                var rv = Convert.ToUInt32(outParams["ReturnValue"]);
+                var rv = disk.ExecuteMethod<uint>(clearMethod, inParams, out WmiMethodParameters outParams);
+                outParams?.Dispose();
 
                 return rv == DiskManagementConstants.WMI_SUCCESS
                     ? OperationResult.Ok("Disk cleaned, all partitions removed.")
@@ -166,15 +166,13 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
         {
             try
             {
-                var scope = CreateConnectedScope();
-                var query = new ObjectQuery($"SELECT PartitionStyle FROM MSFT_Disk WHERE Number = {diskIndex}");
-                using var searcher = new ManagementObjectSearcher(scope, query);
+                using var connection = CreateConnection();
 
-                foreach (ManagementObject disk in searcher.GetAndDispose())
+                foreach (WmiObject disk in connection.CreateQuery($"SELECT PartitionStyle FROM MSFT_Disk WHERE Number = {diskIndex}"))
                 {
                     using (disk)
                     {
-                        var style = GetWmiPropertySafe<ushort>(disk, "PartitionStyle");
+                        var style = disk.GetPropertySafe<ushort>("PartitionStyle");
                         return style == DiskManagementConstants.PARTITION_STYLE_RAW;
                     }
                 }
@@ -187,57 +185,21 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
             return false;
         }
 
-        private static ManagementScope CreateConnectedScope()
+        private static WmiConnection CreateConnection()
         {
-            var scope = new ManagementScope(DiskManagementConstants.StorageWmiScope);
-            scope.Connect();
-            return scope;
+            var connection = new WmiConnection(DiskManagementConstants.StorageWmiScope);
+            connection.Open();
+            return connection;
         }
 
-        private static ManagementObject? GetDisk(ManagementScope scope, uint diskIndex)
+        private static WmiObject? GetDisk(WmiConnection connection, uint diskIndex)
         {
-            var query = new ObjectQuery($"SELECT * FROM MSFT_Disk WHERE Number = {diskIndex}");
-            using var searcher = new ManagementObjectSearcher(scope, query);
-            using var collection = searcher.Get();
-            foreach (ManagementObject disk in collection)
+            foreach (WmiObject disk in connection.CreateQuery($"SELECT * FROM MSFT_Disk WHERE Number = {diskIndex}"))
             {
                 return disk;
             }
 
             return null;
-        }
-
-        private static T GetWmiPropertySafe<T>(ManagementBaseObject obj, string propertyName, T defaultValue = default!)
-        {
-            try
-            {
-                var value = obj[propertyName];
-                if (value == null) return defaultValue;
-
-                var targetType = typeof(T);
-                var underlyingType = Nullable.GetUnderlyingType(targetType) ?? targetType;
-
-                if (underlyingType == typeof(string))
-                    return (T)(object)(value.ToString()?.Trim() ?? string.Empty);
-
-                return (T)Convert.ChangeType(value, underlyingType);
-            }
-            catch
-            {
-                return defaultValue;
-            }
-        }
-
-        private static string SafeString(object? value, string defaultValue = "")
-        {
-            try
-            {
-                return value?.ToString()?.Trim() ?? defaultValue;
-            }
-            catch
-            {
-                return defaultValue;
-            }
         }
 
         private static OperationResult ExecuteWmiOperation(
@@ -262,10 +224,10 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
 
                 return result;
             }
-            catch (ManagementException mex)
+            catch (WmiException wex)
             {
-                DiagnosticLogger.LogOperationError(operationName, mex, diskIndex, null, null, $"WMI Error Code: {mex.ErrorCode}");
-                return OperationResult.Fail($"{operationName} failed: {mex.Message}");
+                DiagnosticLogger.LogOperationError(operationName, wex, diskIndex, null, null, $"WMI Error Code: 0x{wex.HResult:X8}");
+                return OperationResult.Fail($"{operationName} failed: {wex.Message}");
             }
             catch (COMException comEx)
             {

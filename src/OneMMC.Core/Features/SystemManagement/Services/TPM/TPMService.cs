@@ -194,7 +194,7 @@ namespace OneMMC.Core.Features.SystemManagement.Services.TPM
                             using WmiMethod pprMethod = obj.GetMethod("SetPhysicalPresenceRequest");
                             using WmiMethodParameters pprParams = pprMethod.CreateInParameters();
                             // 22 is TPM 2.0 clear operation code
-                            pprParams.SetPropertyValue("Request", (uint)22);
+                            pprParams.SetUInt32Parameter("Request", 22);
                             uint returnCode = obj.ExecuteMethod<uint>(pprMethod, pprParams, out WmiMethodParameters pprOutParams);
                             pprOutParams?.Dispose();
                             if (returnCode == 0)
@@ -216,7 +216,7 @@ namespace OneMMC.Core.Features.SystemManagement.Services.TPM
                         {
                             using WmiMethod pprMethod = obj.GetMethod("SetPhysicalPresenceRequest");
                             using WmiMethodParameters pprParams = pprMethod.CreateInParameters();
-                            pprParams.SetPropertyValue("Request", (uint)5);
+                            pprParams.SetUInt32Parameter("Request", 5);
                             uint returnCode = obj.ExecuteMethod<uint>(pprMethod, pprParams, out WmiMethodParameters pprOutParams);
                             pprOutParams?.Dispose();
                             if (returnCode == 0)

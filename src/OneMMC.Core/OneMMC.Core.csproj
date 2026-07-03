@@ -30,7 +30,6 @@
     <PackageReference Include="System.Diagnostics.EventLog" />
     <PackageReference Include="System.DirectoryServices" />
     <PackageReference Include="System.DirectoryServices.AccountManagement" />
-    <PackageReference Include="System.Management" />
     <PackageReference Include="System.ServiceProcess.ServiceController" />
     <PackageReference Include="System.Diagnostics.PerformanceCounter" />
     <!-- AOT-compatible WMI client; replaces System.Management / Microsoft.Management.Infrastructure
