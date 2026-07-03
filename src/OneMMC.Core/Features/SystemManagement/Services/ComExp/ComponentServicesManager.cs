@@ -10,7 +10,9 @@ using System.Threading.Tasks;
 using Microsoft.Win32;
 using System.ServiceProcess;
 using OneMMC.Core.Features.SystemManagement.Models.ComExp;
+using OneMMC.Core.Features.SystemManagement.Services.ComExp.Native;
 using OneMMC.Core.DependencyInjection;
+using OneMMC.Core.Infrastructure.Interop;
 using OneMMC.Core.Infrastructure.Wmi;
 using OneMMC.Core.Localization;
 using Microsoft.Extensions.DependencyInjection;
@@ -25,10 +27,8 @@ namespace OneMMC.Core.Features.SystemManagement.Services.ComExp;
 
 public sealed class ComponentServicesManager
 {
-    private const string ComAdminProgId = "COMAdmin.COMAdminCatalog";
     private const string DcomRegistryPath = @"SOFTWARE\Classes\AppID";
     private const string DtcServiceName = "MSDTC";
-	private static readonly Dictionary<Type, HashSet<string>> MissingComProperties = new();
     private readonly ILogger<ComponentServicesManager> _logger;
 
     public ComponentServicesManager()
@@ -48,51 +48,40 @@ public sealed class ComponentServicesManager
             var results = new List<ComPlusApplicationInfo>();
             _logger.LogDebug("[ComponentServicesManager] Loading COM+ applications...");
 
+            ICOMAdminCatalog? catalog = null;
+            ICatalogCollection? applications = null;
             try
             {
-                var catalogType = Type.GetTypeFromProgID(ComAdminProgId, throwOnError: false);
-                if (catalogType == null)
-                {
-                    _logger.LogDebug("[ComponentServicesManager] COMAdmin catalog type not found.");
-                    return results;
-                }
+                catalog = ComActivator.CreateInstance<ICOMAdminCatalog>(ComAdminCatalogClsid.ComAdminCatalog);
+                catalog.GetCollection("Applications", out applications);
+                applications.Populate();
 
-                dynamic catalog = Activator.CreateInstance(catalogType) ?? throw new InvalidOperationException("COMAdmin catalog instance creation failed.");
-                dynamic applications = catalog.GetCollection("Applications");
-                try
+                int count = applications.get_Count();
+                for (int i = 0; i < count; i++)
                 {
-                    applications.Populate();
-
-                    foreach (var app in applications)
+                    applications.get_Item(i, out ICatalogObject app);
+                    try
                     {
-                        try
-                        {
-                            var activationValue = ReadComProperty(app, "Activation");
-                            var activationDisplay = GetLocalizedActivation(activationValue);
+                        var activationValue = ReadComProperty(app, "Activation");
+                        var activationDisplay = GetLocalizedActivation(activationValue);
 
-                            var authValue = ReadComProperty(app, "Authentication");
-                            var authDisplay = GetLocalizedAuthentication(authValue);
+                        var authValue = ReadComProperty(app, "Authentication");
+                        var authDisplay = GetLocalizedAuthentication(authValue);
 
-                            var info = new ComPlusApplicationInfo
-                            {
-                                Name = ReadComProperty(app, "Name") ?? "(Unknown)",
-                                Id = ReadComProperty(app, "ID"),
-                                Description = ReadComProperty(app, "Description"),
-                                Activation = activationDisplay,
-                                AuthenticationLevel = authDisplay
-                            };
-                            results.Add(info);
-                        }
-                        finally
+                        var info = new ComPlusApplicationInfo
                         {
-                            ReleaseComObject(app);
-                        }
+                            Name = ReadComProperty(app, "Name") ?? "(Unknown)",
+                            Id = ReadComProperty(app, "ID"),
+                            Description = ReadComProperty(app, "Description"),
+                            Activation = activationDisplay,
+                            AuthenticationLevel = authDisplay
+                        };
+                        results.Add(info);
                     }
-                }
-                finally
-                {
-                    ReleaseComObject(applications);
-                    ReleaseComObject(catalog);
+                    finally
+                    {
+                        ComActivator.Release(app);
+                    }
                 }
 
                 _logger.LogDebug($"[ComponentServicesManager] COM+ applications loaded: {results.Count}");
@@ -100,6 +89,11 @@ public sealed class ComponentServicesManager
             catch (Exception ex)
             {
                 _logger.LogDebug($"[ComponentServicesManager] Failed to load COM+ applications: {ex}");
+            }
+            finally
+            {
+                ComActivator.Release(applications);
+                ComActivator.Release(catalog);
             }
 
             return results.OrderBy(app => app.Name, StringComparer.OrdinalIgnoreCase).ToList();
@@ -246,133 +240,109 @@ public sealed class ComponentServicesManager
             var results = new List<ProcessInfo>();
             _logger.LogDebug("[ComponentServicesManager] Loading COM+ running processes...");
 
+            ICOMAdminCatalog? catalog = null;
+            ICatalogCollection? applications = null;
+            ICatalogCollection? applicationInstances = null;
             try
             {
-                var catalogType = Type.GetTypeFromProgID(ComAdminProgId, throwOnError: false);
-                if (catalogType == null)
+                catalog = ComActivator.CreateInstance<ICOMAdminCatalog>(ComAdminCatalogClsid.ComAdminCatalog);
+
+                // Build appId -> (name, isNTService) lookups from the Applications collection up front so
+                // the ApplicationInstances loop is a pure dictionary lookup (no nested COM enumeration).
+                catalog.GetCollection("Applications", out applications);
+                applications.Populate();
+
+                var appIdToName = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+                var appIdIsNTService = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
+
+                int appCount = applications.get_Count();
+                for (int i = 0; i < appCount; i++)
                 {
-                    _logger.LogDebug("[ComponentServicesManager] COMAdmin catalog type not found.");
-                    return results;
-                }
-
-                dynamic catalog = Activator.CreateInstance(catalogType) ?? throw new InvalidOperationException("COMAdmin catalog instance creation failed.");
-                dynamic applications = catalog.GetCollection("Applications");
-                try
-                {
-                    applications.Populate();
-
-                    var appIdToName = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-                    foreach (var app in applications)
-                    {
-                        try
-                        {
-                            var appId = ReadComProperty(app, "ID");
-                            var name = ReadComProperty(app, "Name");
-                            if (!string.IsNullOrWhiteSpace(appId) && !string.IsNullOrWhiteSpace(name))
-                            {
-                                appIdToName[appId] = name;
-                            }
-                        }
-                        finally
-                        {
-                            ReleaseComObject(app);
-                        }
-                    }
-
-                    dynamic applicationInstances = catalog.GetCollection("ApplicationInstances");
+                    applications.get_Item(i, out ICatalogObject app);
                     try
                     {
-                        applicationInstances.Populate();
-
-                        foreach (var instance in applicationInstances)
+                        var appId = ReadComProperty(app, "ID");
+                        if (string.IsNullOrWhiteSpace(appId))
                         {
-                            try
-                            {
-                                var appId = ReadComProperty(instance, "Application");
-                                var processIdStr = ReadComProperty(instance, "ProcessID");
+                            continue;
+                        }
 
-                                if (string.IsNullOrWhiteSpace(appId) || string.IsNullOrWhiteSpace(processIdStr))
-                                {
-                                    continue;
-                                }
+                        var name = ReadComProperty(app, "Name");
+                        if (!string.IsNullOrWhiteSpace(name))
+                        {
+                            appIdToName[appId] = name;
+                        }
 
-                                if (!int.TryParse(processIdStr, NumberStyles.Integer, CultureInfo.InvariantCulture, out int processId))
-                                {
-                                    continue;
-                                }
+                        var runAsNTService = ReadComProperty(app, "RunForever");
+                        appIdIsNTService[appId] = runAsNTService == "1"
+                            || string.Equals(runAsNTService, "true", StringComparison.OrdinalIgnoreCase);
+                    }
+                    finally
+                    {
+                        ComActivator.Release(app);
+                    }
+                }
 
-                                appIdToName.TryGetValue(appId, out string? appName);
-                                
-                                string? executableName = null;
-                                try
-                                {
-                                    var process = Process.GetProcessById(processId);
-                                    executableName = process.ProcessName + ".exe";
-                                }
-                                catch
-                                {
-                                    executableName = "dllhost.exe";
-                                }
+                catalog.GetCollection("ApplicationInstances", out applicationInstances);
+                applicationInstances.Populate();
 
-                                bool isNTService = false;
-                                bool isPaused = false;
-                                bool isRecycling = false;
-                                
-                                if (!string.IsNullOrWhiteSpace(appId))
-                                {
-                                    foreach (var app in applications)
-                                    {
-                                        try
-                                        {
-                                            var checkAppId = ReadComProperty(app, "ID");
-                                            if (string.Equals(checkAppId, appId, StringComparison.OrdinalIgnoreCase))
-                                            {
-                                                var runAsNTService = ReadComProperty(app, "RunForever");
-                                                isNTService = runAsNTService == "1" || string.Equals(runAsNTService, "true", StringComparison.OrdinalIgnoreCase);
-                                                break;
-                                            }
-                                        }
-                                        finally
-                                        {
-                                            ReleaseComObject(app);
-                                        }
-                                    }
-                                }
-                                
-                                results.Add(new ProcessInfo
-                                {
-                                    ProcessId = processId,
-                                    Name = appName ?? "(Unknown COM+ Application)",
-                                    Description = appId,
-                                    ExecutableName = executableName,
-                                    IsPaused = isPaused,
-                                    IsRecycling = isRecycling,
-                                    IsNTService = isNTService
-                                });
-                            }
-                            catch (Exception ex)
-                            {
-                                _logger.LogDebug($"[ComponentServicesManager] Failed to process application instance: {ex.GetType().Name} - {ex.Message}");
-                                if (ex.InnerException != null)
-                                {
-                                    _logger.LogDebug($"[ComponentServicesManager] Inner exception: {ex.InnerException.Message}");
-                                }
-                            }
-                            finally
-                            {
-                                ReleaseComObject(instance);
-                            }
+                int instanceCount = applicationInstances.get_Count();
+                for (int i = 0; i < instanceCount; i++)
+                {
+                    applicationInstances.get_Item(i, out ICatalogObject instance);
+                    try
+                    {
+                        var appId = ReadComProperty(instance, "Application");
+                        var processIdStr = ReadComProperty(instance, "ProcessID");
+
+                        if (string.IsNullOrWhiteSpace(appId) || string.IsNullOrWhiteSpace(processIdStr))
+                        {
+                            continue;
+                        }
+
+                        if (!int.TryParse(processIdStr, NumberStyles.Integer, CultureInfo.InvariantCulture, out int processId))
+                        {
+                            continue;
+                        }
+
+                        appIdToName.TryGetValue(appId, out string? appName);
+
+                        string? executableName;
+                        try
+                        {
+                            var process = Process.GetProcessById(processId);
+                            executableName = process.ProcessName + ".exe";
+                        }
+                        catch
+                        {
+                            executableName = "dllhost.exe";
+                        }
+
+                        appIdIsNTService.TryGetValue(appId, out bool isNTService);
+
+                        results.Add(new ProcessInfo
+                        {
+                            ProcessId = processId,
+                            Name = appName ?? "(Unknown COM+ Application)",
+                            Description = appId,
+                            ExecutableName = executableName,
+                            IsPaused = false,
+                            IsRecycling = false,
+                            IsNTService = isNTService
+                        });
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogDebug($"[ComponentServicesManager] Failed to process application instance: {ex.GetType().Name} - {ex.Message}");
+                        if (ex.InnerException != null)
+                        {
+                            _logger.LogDebug($"[ComponentServicesManager] Inner exception: {ex.InnerException.Message}");
                         }
                     }
                     finally
                     {
-                        ReleaseComObject(applicationInstances);
+                        ComActivator.Release(instance);
                     }
-                }
-                finally
-                {
-                    ReleaseComObject(applications);
-                    ReleaseComObject(catalog);
                 }
 
                 _logger.LogDebug($"[ComponentServicesManager] COM+ running processes loaded: {results.Count}");
@@ -380,6 +350,12 @@ public sealed class ComponentServicesManager
             catch (Exception ex)
             {
                 _logger.LogDebug($"[ComponentServicesManager] Failed to load COM+ running processes: {ex}");
+            }
+            finally
+            {
+                ComActivator.Release(applicationInstances);
+                ComActivator.Release(applications);
+                ComActivator.Release(catalog);
             }
 
             return results.OrderBy(item => item.Name, StringComparer.OrdinalIgnoreCase).ToList();
@@ -566,93 +542,31 @@ public sealed class ComponentServicesManager
         });
     }
 
-    private static void ReleaseComObject(object? obj)
+    /// <summary>
+    /// Reads a COM+ catalog object's named property as an invariant-culture string, or
+    /// <see langword="null"/> if the value is empty or the property does not exist on the object
+    /// (<see cref="ICatalogObject.get_Value"/> throws <see cref="COMException"/> in that case).
+    /// </summary>
+    private string? ReadComProperty(ICatalogObject catalogObject, string propertyName)
     {
-        if (obj != null && Marshal.IsComObject(obj))
-        {
-            Marshal.ReleaseComObject(obj);
-        }
-    }
-
-    private int? ReadComIntProperty(object comObject, string propertyName)
-    {
-        var value = ReadComProperty(comObject, propertyName);
-        if (int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var result))
-        {
-            return result;
-        }
-
-        return null;
-    }
-
-    private string? ReadComProperty(object comObject, string propertyName)
-    {
-        if (comObject == null)
-        {
-            return null;
-        }
-
-		var comType = comObject.GetType();
-		if (IsMissingComProperty(comType, propertyName))
-		{
-			return null;
-		}
-
         try
         {
-            var result = comType.InvokeMember(
-                "Value",
-                System.Reflection.BindingFlags.GetProperty | System.Reflection.BindingFlags.IgnoreCase,
-                null,
-                comObject,
-                new object[] { propertyName });
-            if (result != null)
+            catalogObject.get_Value(propertyName, out Variant value);
+            try
             {
-                return Convert.ToString(result, CultureInfo.InvariantCulture);
+                return value.ToInvariantString();
             }
-        }
-		catch (System.Reflection.TargetInvocationException ex)
-        {
-			_logger.LogDebug($"[ComponentServicesManager] Property '{propertyName}' not available: {ex.InnerException?.Message ?? ex.Message}");
-			MarkMissingComProperty(comType, propertyName);
-        }
-        catch (MissingMemberException ex)
-        {
-			_logger.LogDebug($"[ComponentServicesManager] Property '{propertyName}' missing: {ex.Message}");
-			MarkMissingComProperty(comType, propertyName);
+            finally
+            {
+                value.Clear();
+            }
         }
         catch (COMException ex)
         {
-			_logger.LogDebug($"[ComponentServicesManager] COM error reading '{propertyName}': {ex.Message}");
-			MarkMissingComProperty(comType, propertyName);
+            _logger.LogDebug($"[ComponentServicesManager] Property '{propertyName}' not available: {ex.Message}");
+            return null;
         }
-
-        return null;
     }
-
-	private static bool IsMissingComProperty(Type comType, string propertyName)
-	{
-		lock (MissingComProperties)
-		{
-			return MissingComProperties.TryGetValue(comType, out var missing)
-				&& missing.Contains(propertyName);
-		}
-	}
-
-
-
-	private static void MarkMissingComProperty(Type comType, string propertyName)
-	{
-		lock (MissingComProperties)
-		{
-			if (!MissingComProperties.TryGetValue(comType, out var missing))
-			{
-				missing = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-				MissingComProperties[comType] = missing;
-			}
-			missing.Add(propertyName);
-		}
-	}
 
     #region Process Helper Methods
 
