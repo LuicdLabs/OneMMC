@@ -1,15 +1,19 @@
-﻿// ============================================================================
+// ============================================================================
 // AzMan Service - Reader Methods
 // ============================================================================
 // Reader methods: read store, application, group, role, task, operation information
-// Uses ComPropertyAccessor for safe COM property access to avoid RuntimeBinderException
+// through the typed AzRoles interfaces (Native/AzRolesNative.cs). Property reads are
+// wrapped so a COM failure on one property degrades to a default value instead of
+// aborting the whole read, matching the previous reflection-based reader behavior.
 // ============================================================================
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
+using System.Runtime.InteropServices;
 using Microsoft.Extensions.Logging;
 using OneMMC.Core.Features.UserSecurity.Models.AzMan;
+using OneMMC.Core.Features.UserSecurity.Services.AzMan.Native;
+using OneMMC.Core.Infrastructure.Interop;
 
 namespace OneMMC.Core.Features.UserSecurity.Services.AzMan;
 
@@ -23,26 +27,98 @@ internal sealed class AzManReaders
     }
 
     private ILogger<AzManService> _logger => _service.Logger;
-    private int AZ_GROUPTYPE_BASIC => AzManService.AZ_GROUPTYPE_BASIC;
     private void TryReadVersionFromXml(string storeUrl, ref AzAuthorizationStoreInfo info) => _service.TryReadVersionFromXml(storeUrl, ref info);
     private static string ExtractStoreName(string path) => AzManService.ExtractStoreName(path);
+
+    #region Safe Read Helpers
+
+    private delegate void VariantGetter(out Variant value);
+
+    /// <summary>Reads a BSTR property, returning <paramref name="defaultValue"/> on COM failure or null.</summary>
+    private string SafeString(Func<string?> getter, string defaultValue = "")
+    {
+        try
+        {
+            return getter() ?? defaultValue;
+        }
+        catch (COMException ex)
+        {
+            _logger.LogDebug("[AzManService] COM property read failed: {Message}", ex.Message);
+            return defaultValue;
+        }
+    }
+
+    /// <summary>Reads a LONG-typed boolean property, returning <paramref name="defaultValue"/> on COM failure.</summary>
+    private bool SafeBool(Func<int> getter, bool defaultValue = false)
+    {
+        try
+        {
+            return AzRolesCom.ToBool(getter());
+        }
+        catch (COMException ex)
+        {
+            _logger.LogDebug("[AzManService] COM property read failed: {Message}", ex.Message);
+            return defaultValue;
+        }
+    }
+
+    /// <summary>Reads a LONG property, returning <paramref name="defaultValue"/> on COM failure.</summary>
+    private int SafeInt(Func<int> getter, int defaultValue = 0)
+    {
+        try
+        {
+            return getter();
+        }
+        catch (COMException ex)
+        {
+            _logger.LogDebug("[AzManService] COM property read failed: {Message}", ex.Message);
+            return defaultValue;
+        }
+    }
+
+    /// <summary>
+    /// Reads a VARIANT(SAFEARRAY-of-strings) property, returning an empty list on COM failure
+    /// (e.g. name resolution needs permissions the caller lacks).
+    /// </summary>
+    private List<string> SafeStringList(VariantGetter getter)
+    {
+        try
+        {
+            getter(out Variant value);
+            try
+            {
+                return value.ToStringList();
+            }
+            finally
+            {
+                value.Clear();
+            }
+        }
+        catch (COMException ex)
+        {
+            _logger.LogDebug("[AzManService] COM string-array read failed: {Message}", ex.Message);
+            return [];
+        }
+    }
+
+    #endregion
 
     #region Reader Methods
 
     /// <summary>
     /// Read store information
     /// </summary>
-    internal AzAuthorizationStoreInfo ReadStoreInfo(dynamic store, string storeUrl, AzStoreType storeType)
+    internal AzAuthorizationStoreInfo ReadStoreInfo(IAzAuthorizationStore3 store, string storeUrl, AzStoreType storeType)
     {
         var info = new AzAuthorizationStoreInfo
         {
             StorePath = storeUrl,
             Name = ExtractStoreName(storeUrl),
             StoreType = storeType,
-            Description = ComPropertyAccessor.GetString(store, "Description"),
-            IsWritable = ComPropertyAccessor.GetBool(store, "Writable"),
-            GenerateAudits = ComPropertyAccessor.GetBool(store, "GenerateAudits"),
-            TargetMachine = ComPropertyAccessor.GetString(store, "TargetMachine"),
+            Description = SafeString(store.get_Description),
+            IsWritable = SafeBool(store.get_Writable),
+            GenerateAudits = SafeBool(store.get_GenerateAudits),
+            TargetMachine = SafeString(store.get_TargetMachine),
             // Default to 1.0; overridden below based on store type.
             MajorVersion = 1,
             MinorVersion = 0
@@ -56,37 +132,91 @@ internal sealed class AzManReaders
         }
         else
         {
-            // For Active Directory stores: open a transient MANAGE_STORE_ONLY handle to read
-            // the persisted schema version from AD.
+            // For Active Directory stores: read the persisted schema version from AD via ADSI.
             //
             // Background: AzRoles COM does NOT populate MajorVersion/MinorVersion when the store
             // is opened with BATCH_UPDATE (4) – the properties remain at defaults (1 / 0)
             // regardless of what is stored in Active Directory.  A MANAGE_STORE_ONLY (0) handle
             // reads them correctly, which is also the mode used by azman.msc.
-            //
-            // For SQL Server stores the BATCH_UPDATE handle does report version correctly, so
-            // that path falls back to a direct COM property read if the dedicated-handle read
-            // fails (which it shouldn't for AD stores with the same ProgID).
             (info.MajorVersion, info.MinorVersion) = _service.ReadAdStoreSchemaVersion(storeUrl);
         }
 
         // Read applications
-        object storeObj = store;
-        info.Applications = ComPropertyAccessor.GetCollection(storeObj, "Applications", obj => ReadApplicationInfo(obj));
+        try
+        {
+            store.get_Applications(out IAzApplications applications);
+            try
+            {
+                foreach (IAzApplication app in applications.Items())
+                {
+                    try
+                    {
+                        if (ReadApplicationInfo(app) is { } appInfo)
+                        {
+                            info.Applications.Add(appInfo);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogDebug($"[AzManService] Error reading application: {ex.Message}");
+                    }
+                    finally
+                    {
+                        AzRolesCom.Release(app);
+                    }
+                }
+            }
+            finally
+            {
+                AzRolesCom.Release(applications);
+            }
+        }
+        catch (COMException ex)
+        {
+            _logger.LogDebug("[AzManService] Failed to enumerate applications: {Message}", ex.Message);
+        }
         _logger.LogDebug($"[AzManService] Successfully read {info.Applications.Count} applications");
 
         // Read store-level groups
-        info.Groups = ComPropertyAccessor.GetCollection(storeObj, "ApplicationGroups", obj => ReadGroupInfo(obj));
+        try
+        {
+            store.get_ApplicationGroups(out IAzApplicationGroups groups);
+            try
+            {
+                foreach (IAzApplicationGroup2 group in groups.Items())
+                {
+                    try
+                    {
+                        if (ReadGroupInfo(group) is { } groupInfo)
+                        {
+                            info.Groups.Add(groupInfo);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogDebug($"[AzManService] Error reading group: {ex.Message}");
+                    }
+                    finally
+                    {
+                        AzRolesCom.Release(group);
+                    }
+                }
+            }
+            finally
+            {
+                AzRolesCom.Release(groups);
+            }
+        }
+        catch (COMException ex)
+        {
+            _logger.LogDebug("[AzManService] Failed to enumerate store groups: {Message}", ex.Message);
+        }
         _logger.LogDebug($"[AzManService] Successfully read {info.Groups.Count} groups");
 
-        // Read policy administrators
-        info.PolicyAdministrators = ComPropertyAccessor.GetStringArray(storeObj, "PolicyAdministratorsName");
-
-        // Read policy readers
-        info.PolicyReaders = ComPropertyAccessor.GetStringArray(storeObj, "PolicyReadersName");
-
-        // Read delegated policy users
-        info.DelegatedPolicyUsers = ComPropertyAccessor.GetStringArray(storeObj, "DelegatedPolicyUsersName");
+        // Read policy administrators / readers / delegated users
+        info.PolicyAdministrators = SafeStringList(store.get_PolicyAdministratorsName);
+        info.PolicyReaders = SafeStringList(store.get_PolicyReadersName);
+        info.DelegatedPolicyUsers = SafeStringList(store.get_DelegatedPolicyUsersName);
 
         return info;
     }
@@ -94,78 +224,250 @@ internal sealed class AzManReaders
     /// <summary>
     /// Read application information
     /// </summary>
-    internal AzApplicationInfo? ReadApplicationInfo(object app)
+    internal AzApplicationInfo? ReadApplicationInfo(IAzApplication app)
     {
         if (app == null) return null;
 
         var info = new AzApplicationInfo
         {
-            Name = ComPropertyAccessor.GetString(app, "Name"),
-            Description = ComPropertyAccessor.GetString(app, "Description"),
-            GenerateAudits = ComPropertyAccessor.GetBool(app, "GenerateAudits"),
-            ApplicationData = ComPropertyAccessor.GetString(app, "ApplicationData"),
-            AuthzInterfaceClsid = ComPropertyAccessor.GetString(app, "AuthzInterfaceClsid")
+            Name = SafeString(app.get_Name),
+            Description = SafeString(app.get_Description),
+            GenerateAudits = SafeBool(app.get_GenerateAudits),
+            ApplicationData = SafeString(app.get_ApplicationData),
+            AuthzInterfaceClsid = SafeString(app.get_AuthzInterfaceClsid),
+            // The AzRoles property is named Version (the previous "ApplicationVersion" name never
+            // existed in the typelib and always fell back to Version under late binding).
+            Version = SafeString(app.get_Version)
         };
 
-        // Read ApplicationVersion (try ApplicationVersion first, then Version)
-        info.Version = ComPropertyAccessor.GetString(app, "ApplicationVersion");
-        if (string.IsNullOrEmpty(info.Version))
-        {
-            info.Version = ComPropertyAccessor.GetString(app, "Version");
-        }
-
         // Read application groups
-        info.Groups = ComPropertyAccessor.GetCollection(app, "ApplicationGroups", ReadGroupInfo);
+        info.Groups = ReadGroups(app);
 
         // Read roles (role assignments)
-        info.RoleAssignments = ComPropertyAccessor.GetCollection(app, "Roles", ReadRoleAssignmentInfo);
+        info.RoleAssignments = ReadRoleAssignments(GetRoles(app));
 
         // Read tasks and role definitions
-        ReadTasksAndRoleDefinitions(app, info);
+        ReadTasksAndRoleDefinitions(GetTasks(app), info.RoleDefinitions, info.Tasks);
 
         // Read operations
-        info.Operations = ComPropertyAccessor.GetCollection(app, "Operations", ReadOperationInfo);
+        info.Operations = ReadOperations(app);
 
         // Read scopes
-        info.Scopes = ComPropertyAccessor.GetCollection(app, "Scopes", ReadScopeInfo);
+        info.Scopes = ReadScopes(app);
 
         // Read policy administrators, readers, and delegated users
-        info.PolicyAdministrators = ComPropertyAccessor.GetStringArray(app, "PolicyAdministratorsName");
-        info.PolicyReaders = ComPropertyAccessor.GetStringArray(app, "PolicyReadersName");
-        info.DelegatedPolicyUsers = ComPropertyAccessor.GetStringArray(app, "DelegatedPolicyUsersName");
+        info.PolicyAdministrators = SafeStringList(app.get_PolicyAdministratorsName);
+        info.PolicyReaders = SafeStringList(app.get_PolicyReadersName);
+        info.DelegatedPolicyUsers = SafeStringList(app.get_DelegatedPolicyUsersName);
 
         return info;
     }
 
-    /// <summary>
-    /// Read tasks and separate them into tasks and role definitions
-    /// </summary>
-    internal void ReadTasksAndRoleDefinitions(object app, AzApplicationInfo info)
+    private List<AzApplicationGroupInfo> ReadGroups(IAzApplication app)
     {
-        var allTasks = ComPropertyAccessor.GetCollection(app, "Tasks", (object task) =>
+        var result = new List<AzApplicationGroupInfo>();
+        try
         {
-            bool isRoleDef = ComPropertyAccessor.GetBool(task, "IsRoleDefinition");
-            return new { Task = task, IsRoleDefinition = isRoleDef };
-        });
+            app.get_ApplicationGroups(out IAzApplicationGroups groups);
+            try
+            {
+                foreach (IAzApplicationGroup2 group in groups.Items())
+                {
+                    try
+                    {
+                        if (ReadGroupInfo(group) is { } groupInfo)
+                        {
+                            result.Add(groupInfo);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogDebug($"[AzManService] Error reading group: {ex.Message}");
+                    }
+                    finally
+                    {
+                        AzRolesCom.Release(group);
+                    }
+                }
+            }
+            finally
+            {
+                AzRolesCom.Release(groups);
+            }
+        }
+        catch (COMException ex)
+        {
+            _logger.LogDebug("[AzManService] Failed to enumerate groups: {Message}", ex.Message);
+        }
+        return result;
+    }
 
-        foreach (var item in allTasks)
+    private List<IAzRole> GetRoles(IAzApplication app)
+    {
+        try
+        {
+            app.get_Roles(out IAzRoles roles);
+            try
+            {
+                return roles.Items();
+            }
+            finally
+            {
+                AzRolesCom.Release(roles);
+            }
+        }
+        catch (COMException ex)
+        {
+            _logger.LogDebug("[AzManService] Failed to enumerate roles: {Message}", ex.Message);
+            return [];
+        }
+    }
+
+    private List<IAzTask> GetTasks(IAzApplication app)
+    {
+        try
+        {
+            app.get_Tasks(out IAzTasks tasks);
+            try
+            {
+                return tasks.Items();
+            }
+            finally
+            {
+                AzRolesCom.Release(tasks);
+            }
+        }
+        catch (COMException ex)
+        {
+            _logger.LogDebug("[AzManService] Failed to enumerate tasks: {Message}", ex.Message);
+            return [];
+        }
+    }
+
+    private List<AzRoleAssignmentInfo> ReadRoleAssignments(List<IAzRole> roles)
+    {
+        var result = new List<AzRoleAssignmentInfo>();
+        foreach (IAzRole role in roles)
         {
             try
             {
-                if (item.IsRoleDefinition)
+                if (ReadRoleAssignmentInfo(role) is { } roleInfo)
                 {
-                    var roleDef = ReadRoleDefinitionFromTask(item.Task);
-                    if (roleDef != null)
+                    result.Add(roleInfo);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogDebug($"[AzManService] Error reading role assignment: {ex.Message}");
+            }
+            finally
+            {
+                AzRolesCom.Release(role);
+            }
+        }
+        return result;
+    }
+
+    private List<AzOperationInfo> ReadOperations(IAzApplication app)
+    {
+        var result = new List<AzOperationInfo>();
+        try
+        {
+            app.get_Operations(out IAzOperations operations);
+            try
+            {
+                foreach (IAzOperation op in operations.Items())
+                {
+                    try
                     {
-                        info.RoleDefinitions.Add(roleDef);
+                        if (ReadOperationInfo(op) is { } opInfo)
+                        {
+                            result.Add(opInfo);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogDebug($"[AzManService] Error reading operation: {ex.Message}");
+                    }
+                    finally
+                    {
+                        AzRolesCom.Release(op);
+                    }
+                }
+            }
+            finally
+            {
+                AzRolesCom.Release(operations);
+            }
+        }
+        catch (COMException ex)
+        {
+            _logger.LogDebug("[AzManService] Failed to enumerate operations: {Message}", ex.Message);
+        }
+        return result;
+    }
+
+    private List<AzScopeInfo> ReadScopes(IAzApplication app)
+    {
+        var result = new List<AzScopeInfo>();
+        try
+        {
+            app.get_Scopes(out IAzScopes scopes);
+            try
+            {
+                foreach (IAzScope scope in scopes.Items())
+                {
+                    try
+                    {
+                        if (ReadScopeInfo(scope) is { } scopeInfo)
+                        {
+                            result.Add(scopeInfo);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogDebug($"[AzManService] Error reading scope: {ex.Message}");
+                    }
+                    finally
+                    {
+                        AzRolesCom.Release(scope);
+                    }
+                }
+            }
+            finally
+            {
+                AzRolesCom.Release(scopes);
+            }
+        }
+        catch (COMException ex)
+        {
+            _logger.LogDebug("[AzManService] Failed to enumerate scopes: {Message}", ex.Message);
+        }
+        return result;
+    }
+
+    /// <summary>
+    /// Read tasks from an already-materialized list, separating role definitions from plain tasks.
+    /// Releases every task in the list.
+    /// </summary>
+    private void ReadTasksAndRoleDefinitions(List<IAzTask> tasks, List<AzRoleDefinitionInfo> roleDefinitions, List<AzTaskInfo> plainTasks)
+    {
+        foreach (IAzTask task in tasks)
+        {
+            try
+            {
+                if (SafeBool(task.get_IsRoleDefinition))
+                {
+                    if (ReadRoleDefinitionFromTask(task) is { } roleDef)
+                    {
+                        roleDefinitions.Add(roleDef);
                     }
                 }
                 else
                 {
-                    var taskInfo = ReadTaskInfo(item.Task);
-                    if (taskInfo != null)
+                    if (ReadTaskInfo(task) is { } taskInfo)
                     {
-                        info.Tasks.Add(taskInfo);
+                        plainTasks.Add(taskInfo);
                     }
                 }
             }
@@ -173,91 +475,114 @@ internal sealed class AzManReaders
             {
                 _logger.LogDebug($"[AzManService] Error processing task/role definition: {ex.Message}");
             }
+            finally
+            {
+                AzRolesCom.Release(task);
+            }
         }
     }
 
     /// <summary>
     /// Read scope information
     /// </summary>
-    internal AzScopeInfo? ReadScopeInfo(object scope)
+    internal AzScopeInfo? ReadScopeInfo(IAzScope scope)
     {
         if (scope == null) return null;
 
         var info = new AzScopeInfo
         {
-            Name = ComPropertyAccessor.GetString(scope, "Name"),
-            Description = ComPropertyAccessor.GetString(scope, "Description"),
-            ApplicationData = ComPropertyAccessor.GetString(scope, "ApplicationData"),
-            IsWritable = ComPropertyAccessor.GetBool(scope, "Writable")
+            Name = SafeString(scope.get_Name),
+            Description = SafeString(scope.get_Description),
+            ApplicationData = SafeString(scope.get_ApplicationData),
+            IsWritable = SafeBool(scope.get_Writable)
         };
 
         // Read groups in scope
-        info.Groups = ComPropertyAccessor.GetCollection(scope, "ApplicationGroups", ReadGroupInfo);
+        try
+        {
+            scope.get_ApplicationGroups(out IAzApplicationGroups groups);
+            try
+            {
+                foreach (IAzApplicationGroup2 group in groups.Items())
+                {
+                    try
+                    {
+                        if (ReadGroupInfo(group) is { } groupInfo)
+                        {
+                            info.Groups.Add(groupInfo);
+                        }
+                    }
+                    finally
+                    {
+                        AzRolesCom.Release(group);
+                    }
+                }
+            }
+            finally
+            {
+                AzRolesCom.Release(groups);
+            }
+        }
+        catch (COMException ex)
+        {
+            _logger.LogDebug("[AzManService] Failed to enumerate scope groups: {Message}", ex.Message);
+        }
 
         // Read tasks and role definitions in scope
-        ReadScopeTasksAndRoles(scope, info);
+        try
+        {
+            scope.get_Tasks(out IAzTasks tasks);
+            try
+            {
+                ReadTasksAndRoleDefinitions(tasks.Items(), info.Roles, info.Tasks);
+            }
+            finally
+            {
+                AzRolesCom.Release(tasks);
+            }
+        }
+        catch (COMException ex)
+        {
+            _logger.LogDebug("[AzManService] Failed to enumerate scope tasks: {Message}", ex.Message);
+        }
 
         // Read role assignments in scope
-        info.RoleAssignments = ComPropertyAccessor.GetCollection(scope, "Roles", ReadRoleAssignmentInfo);
+        try
+        {
+            scope.get_Roles(out IAzRoles roles);
+            try
+            {
+                info.RoleAssignments = ReadRoleAssignments(roles.Items());
+            }
+            finally
+            {
+                AzRolesCom.Release(roles);
+            }
+        }
+        catch (COMException ex)
+        {
+            _logger.LogDebug("[AzManService] Failed to enumerate scope roles: {Message}", ex.Message);
+        }
 
         return info;
     }
 
     /// <summary>
-    /// Read tasks and role definitions within a scope
-    /// </summary>
-    internal void ReadScopeTasksAndRoles(object scope, AzScopeInfo info)
-    {
-        var allTasks = ComPropertyAccessor.GetCollection(scope, "Tasks", (object task) =>
-        {
-            bool isRoleDef = ComPropertyAccessor.GetBool(task, "IsRoleDefinition");
-            return new { Task = task, IsRoleDefinition = isRoleDef };
-        });
-
-        foreach (var item in allTasks)
-        {
-            try
-            {
-                if (item.IsRoleDefinition)
-                {
-                    var roleDef = ReadRoleDefinitionFromTask(item.Task);
-                    if (roleDef != null)
-                    {
-                        info.Roles.Add(roleDef);
-                    }
-                }
-                else
-                {
-                    var taskInfo = ReadTaskInfo(item.Task);
-                    if (taskInfo != null)
-                    {
-                        info.Tasks.Add(taskInfo);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogDebug($"[AzManService] Error processing scope task/role: {ex.Message}");
-            }
-        }
-    }
-
-    /// <summary>
     /// Read group information
     /// </summary>
-    internal AzApplicationGroupInfo? ReadGroupInfo(object group)
+    internal AzApplicationGroupInfo? ReadGroupInfo(IAzApplicationGroup2 group)
     {
         if (group == null) return null;
 
         var info = new AzApplicationGroupInfo
         {
-            Name = ComPropertyAccessor.GetString(group, "Name"),
-            Description = ComPropertyAccessor.GetString(group, "Description")
+            Name = SafeString(group.get_Name),
+            Description = SafeString(group.get_Description)
         };
 
         // Read Type property - values match COM AZ_GROUPTYPE_* constants directly:
         // AZ_GROUPTYPE_LDAP_QUERY = 1, AZ_GROUPTYPE_BASIC = 2, AZ_GROUPTYPE_BIZRULE = 3
-        int groupType = ComPropertyAccessor.GetInt(group, "Type", AzManService.AZ_GROUPTYPE_BASIC);
+        int groupType = SafeInt(group.get_Type, AzManService.AZ_GROUPTYPE_BASIC);
 
         if (Enum.IsDefined(typeof(AzGroupType), groupType))
         {
@@ -272,25 +597,25 @@ internal sealed class AzManReaders
         // Read LDAP query (only for LdapQuery groups)
         if (info.GroupType == AzGroupType.LdapQuery)
         {
-            info.LdapQuery = ComPropertyAccessor.GetString(group, "LdapQuery");
+            info.LdapQuery = SafeString(group.get_LdapQuery);
         }
 
         _logger.LogDebug("[AzManService] Group '{GroupName}': Type={GroupType}", info.Name, info.GroupType);
 
         // Read members (both Basic and LDAP Query groups can have members)
-        info.Members = ComPropertyAccessor.GetStringArray(group, "Members");
-        info.MemberNames = ComPropertyAccessor.GetStringArray(group, "MembersName");
-        info.NonMembers = ComPropertyAccessor.GetStringArray(group, "NonMembers");
-        info.NonMemberNames = ComPropertyAccessor.GetStringArray(group, "NonMembersName");
+        info.Members = SafeStringList(group.get_Members);
+        info.MemberNames = SafeStringList(group.get_MembersName);
+        info.NonMembers = SafeStringList(group.get_NonMembers);
+        info.NonMemberNames = SafeStringList(group.get_NonMembersName);
 
         // Application group member links
-        info.AppMemberLinks = ComPropertyAccessor.GetStringArray(group, "AppMembers");
-        info.AppNonMemberLinks = ComPropertyAccessor.GetStringArray(group, "AppNonMembers");
+        info.AppMemberLinks = SafeStringList(group.get_AppMembers);
+        info.AppNonMemberLinks = SafeStringList(group.get_AppNonMembers);
 
         // Read business rule properties
-        info.BizRule = ComPropertyAccessor.GetString(group, "BizRule");
-        info.BizRuleLanguage = ComPropertyAccessor.GetString(group, "BizRuleLanguage");
-        info.BizRuleImportedPath = ComPropertyAccessor.GetString(group, "BizRuleImportedPath");
+        info.BizRule = SafeString(group.get_BizRule);
+        info.BizRuleLanguage = SafeString(group.get_BizRuleLanguage);
+        info.BizRuleImportedPath = SafeString(group.get_BizRuleImportedPath);
 
         return info;
     }
@@ -298,28 +623,28 @@ internal sealed class AzManReaders
     /// <summary>
     /// Read role assignment information
     /// </summary>
-    internal AzRoleAssignmentInfo? ReadRoleAssignmentInfo(object role)
+    internal AzRoleAssignmentInfo? ReadRoleAssignmentInfo(IAzRole role)
     {
         if (role == null) return null;
 
         var info = new AzRoleAssignmentInfo
         {
-            Name = ComPropertyAccessor.GetString(role, "Name"),
-            Description = ComPropertyAccessor.GetString(role, "Description")
+            Name = SafeString(role.get_Name),
+            Description = SafeString(role.get_Description)
         };
 
         // Read members (both SID and Name)
-        info.Members = ComPropertyAccessor.GetStringArray(role, "Members");
-        info.MemberNames = ComPropertyAccessor.GetStringArray(role, "MembersName");
+        info.Members = SafeStringList(role.get_Members);
+        info.MemberNames = SafeStringList(role.get_MembersName);
 
         // Read application group member links
-        info.AppMemberLinks = ComPropertyAccessor.GetStringArray(role, "AppMembers");
+        info.AppMemberLinks = SafeStringList(role.get_AppMembers);
 
         // Read task list
-        info.Tasks = ComPropertyAccessor.GetStringArray(role, "Tasks");
+        info.Tasks = SafeStringList(role.get_Tasks);
 
         // Read operation list
-        info.Operations = ComPropertyAccessor.GetStringArray(role, "Operations");
+        info.Operations = SafeStringList(role.get_Operations);
 
         return info;
     }
@@ -327,26 +652,26 @@ internal sealed class AzManReaders
     /// <summary>
     /// Read role definition information from task
     /// </summary>
-    internal AzRoleDefinitionInfo? ReadRoleDefinitionFromTask(object task)
+    internal AzRoleDefinitionInfo? ReadRoleDefinitionFromTask(IAzTask task)
     {
         if (task == null) return null;
 
         var info = new AzRoleDefinitionInfo
         {
-            Name = ComPropertyAccessor.GetString(task, "Name"),
-            Description = ComPropertyAccessor.GetString(task, "Description")
+            Name = SafeString(task.get_Name),
+            Description = SafeString(task.get_Description)
         };
 
         // Read Operations
-        info.Operations = ComPropertyAccessor.GetStringArray(task, "Operations");
+        info.Operations = SafeStringList(task.get_Operations);
 
         // Read Tasks (nested task references)
-        info.Tasks = ComPropertyAccessor.GetStringArray(task, "Tasks");
+        info.Tasks = SafeStringList(task.get_Tasks);
 
         // Read business rule properties
-        info.BizRule = ComPropertyAccessor.GetString(task, "BizRule");
-        info.BizRuleLanguage = ComPropertyAccessor.GetString(task, "BizRuleLanguage");
-        info.BizRuleImportedPath = ComPropertyAccessor.GetString(task, "BizRuleImportedPath");
+        info.BizRule = SafeString(task.get_BizRule);
+        info.BizRuleLanguage = SafeString(task.get_BizRuleLanguage);
+        info.BizRuleImportedPath = SafeString(task.get_BizRuleImportedPath);
 
         return info;
     }
@@ -354,28 +679,28 @@ internal sealed class AzManReaders
     /// <summary>
     /// Read task information
     /// </summary>
-    internal AzTaskInfo? ReadTaskInfo(object task)
+    internal AzTaskInfo? ReadTaskInfo(IAzTask task)
     {
         if (task == null) return null;
 
         var info = new AzTaskInfo
         {
-            Name = ComPropertyAccessor.GetString(task, "Name"),
-            Description = ComPropertyAccessor.GetString(task, "Description"),
-            ApplicationData = ComPropertyAccessor.GetString(task, "ApplicationData"),
-            IsRoleDefinition = ComPropertyAccessor.GetBool(task, "IsRoleDefinition")
+            Name = SafeString(task.get_Name),
+            Description = SafeString(task.get_Description),
+            ApplicationData = SafeString(task.get_ApplicationData),
+            IsRoleDefinition = SafeBool(task.get_IsRoleDefinition)
         };
 
         // Read Operations
-        info.Operations = ComPropertyAccessor.GetStringArray(task, "Operations");
+        info.Operations = SafeStringList(task.get_Operations);
 
         // Read task links (nested task references)
-        info.TaskLinks = ComPropertyAccessor.GetStringArray(task, "Tasks");
+        info.TaskLinks = SafeStringList(task.get_Tasks);
 
         // Read business rule properties
-        info.BizRule = ComPropertyAccessor.GetString(task, "BizRule");
-        info.BizRuleLanguage = ComPropertyAccessor.GetString(task, "BizRuleLanguage");
-        info.BizRuleImportedPath = ComPropertyAccessor.GetString(task, "BizRuleImportedPath");
+        info.BizRule = SafeString(task.get_BizRule);
+        info.BizRuleLanguage = SafeString(task.get_BizRuleLanguage);
+        info.BizRuleImportedPath = SafeString(task.get_BizRuleImportedPath);
 
         return info;
     }
@@ -383,22 +708,18 @@ internal sealed class AzManReaders
     /// <summary>
     /// Read operation information
     /// </summary>
-    internal AzOperationInfo? ReadOperationInfo(object op)
+    internal AzOperationInfo? ReadOperationInfo(IAzOperation op)
     {
         if (op == null) return null;
 
         return new AzOperationInfo
         {
-            Name = ComPropertyAccessor.GetString(op, "Name"),
-            Description = ComPropertyAccessor.GetString(op, "Description"),
-            OperationId = ComPropertyAccessor.GetInt(op, "OperationID"),
-            ApplicationData = ComPropertyAccessor.GetString(op, "ApplicationData")
+            Name = SafeString(op.get_Name),
+            Description = SafeString(op.get_Description),
+            OperationId = SafeInt(op.get_OperationID),
+            ApplicationData = SafeString(op.get_ApplicationData)
         };
     }
 
     #endregion
 }
-
-
-
-

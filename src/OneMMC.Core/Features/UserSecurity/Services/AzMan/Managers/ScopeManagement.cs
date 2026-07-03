@@ -1,4 +1,4 @@
-﻿// ============================================================================
+// ============================================================================
 // AzMan Service - Scope Management
 // ============================================================================
 // Scope management functions: create, delete, update scopes
@@ -9,6 +9,8 @@ using System.Runtime.InteropServices;
 using System.Security.Principal;
 using System.Threading.Tasks;
 using OneMMC.Core.Features.UserSecurity.Models.AzMan;
+using OneMMC.Core.Features.UserSecurity.Services.AzMan.Native;
+using OneMMC.Core.Infrastructure.Interop;
 using Microsoft.Extensions.Logging;
 
 namespace OneMMC.Core.Features.UserSecurity.Services.AzMan;
@@ -24,18 +26,78 @@ internal sealed class ScopeManagement
 
     private ILogger<AzManService> _logger => _service.Logger;
 
-    private Task<T> RunApplicationReadAsync<T>(string storePath, string appName, Func<object, T> func, string errorMessage)
+    private Task<T> RunApplicationReadAsync<T>(string storePath, string appName, Func<IAzApplication, T> func, string errorMessage)
         => _service.RunApplicationReadAsync(storePath, appName, func, errorMessage);
-    private Task RunApplicationWriteAsync(string storePath, string appName, Action<dynamic> action, string errorMessage, string? debugMessage = null, bool submitStore = false)
+    private Task RunApplicationWriteAsync(string storePath, string appName, Action<IAzApplication> action, string errorMessage, string? debugMessage = null, bool submitStore = false)
         => _service.RunApplicationWriteAsync(storePath, appName, action, errorMessage, debugMessage, submitStore);
-    private Task<T> RunScopeReadAsync<T>(string storePath, string appName, string scopeName, Func<object, T> func, string errorMessage)
+    private Task<T> RunScopeReadAsync<T>(string storePath, string appName, string scopeName, Func<IAzScope, T> func, string errorMessage)
         => _service.RunScopeReadAsync(storePath, appName, scopeName, func, errorMessage);
-    private Task RunScopeWriteAsync(string storePath, string appName, string scopeName, Action<dynamic> action, string errorMessage, string? debugMessage = null, bool submitScope = true, bool submitApp = false)
+    private Task RunScopeWriteAsync(string storePath, string appName, string scopeName, Action<IAzScope> action, string errorMessage, string? debugMessage = null, bool submitScope = true, bool submitApp = false)
         => _service.RunScopeWriteAsync(storePath, appName, scopeName, action, errorMessage, debugMessage, submitScope, submitApp);
-    private AzApplicationGroupInfo? ReadGroupInfo(object group) => _service.ReadGroupInfo(group);
-    private AzRoleAssignmentInfo? ReadRoleAssignmentInfo(object role) => _service.ReadRoleAssignmentInfo(role);
-    private AzRoleDefinitionInfo? ReadRoleDefinitionFromTask(object task) => _service.ReadRoleDefinitionFromTask(task);
-    private AzTaskInfo? ReadTaskInfo(object task) => _service.ReadTaskInfo(task);
+    private AzScopeInfo? ReadScopeInfo(IAzScope scope) => _service.ReadScopeInfo(scope);
+
+    /// <summary>
+    /// Opens the named group in the scope, runs <paramref name="action"/>, submits the group and
+    /// releases it. Shared by every scope-group mutation below.
+    /// </summary>
+    private static void WithScopeGroup(IAzScope scope, string groupName, Action<IAzApplicationGroup2> action)
+    {
+        scope.OpenApplicationGroup(groupName, Variant.Missing, out IAzApplicationGroup2 group);
+        try
+        {
+            action(group);
+            group.Submit(0, Variant.Missing);
+        }
+        finally
+        {
+            AzRolesCom.Release(group);
+        }
+    }
+
+    /// <summary>
+    /// Opens the named role in the scope, runs <paramref name="action"/>, submits the role and
+    /// releases it. Shared by every scope-role mutation below.
+    /// </summary>
+    private static void WithScopeRole(IAzScope scope, string roleName, Action<IAzRole> action)
+    {
+        scope.OpenRole(roleName, Variant.Missing, out IAzRole role);
+        try
+        {
+            action(role);
+            role.Submit(0, Variant.Missing);
+        }
+        finally
+        {
+            AzRolesCom.Release(role);
+        }
+    }
+
+    /// <summary>
+    /// Opens the named task in the scope, runs <paramref name="action"/>, submits the task and
+    /// releases it. Shared by every scope-task mutation below.
+    /// </summary>
+    private static void WithScopeTask(IAzScope scope, string taskName, Action<IAzTask> action)
+    {
+        scope.OpenTask(taskName, Variant.Missing, out IAzTask task);
+        try
+        {
+            action(task);
+            task.Submit(0, Variant.Missing);
+        }
+        finally
+        {
+            AzRolesCom.Release(task);
+        }
+    }
+
+    /// <summary>Throws when the group is not a Basic group (only Basic groups have editable member lists).</summary>
+    private static void EnsureBasicGroup(IAzApplicationGroup2 group, string groupName)
+    {
+        if (group.get_Type() != AzManService.AZ_GROUPTYPE_BASIC)
+        {
+            throw new AzManException($"Cannot modify members of group '{groupName}' because it is not a Basic group.");
+        }
+    }
 
     #region Scope Management
 
@@ -51,19 +113,18 @@ internal sealed class ScopeManagement
         return await RunApplicationReadAsync(
             storePath,
             appName,
-            appObj =>
+            app =>
             {
-                dynamic app = appObj;
-                dynamic scope = app.CreateScope(name);
+                app.CreateScope(name, Variant.Missing, out IAzScope scope);
                 try
                 {
-                    scope.Description = description;
-                    scope.Submit();
-                    app.Submit();
+                    scope.put_Description(description);
+                    scope.Submit(0, Variant.Missing);
+                    app.Submit(0, Variant.Missing);
                 }
                 finally
                 {
-                    ComPropertyAccessor.ReleaseComObject(scope);
+                    AzRolesCom.Release(scope);
                 }
 
                 return new AzScopeInfo
@@ -88,7 +149,7 @@ internal sealed class ScopeManagement
             storePath,
             appName,
             name,
-            scope => scope.Description = description,
+            scope => scope.put_Description(description),
             "Failed to update scope",
             submitScope: true,
             submitApp: true);
@@ -102,7 +163,7 @@ internal sealed class ScopeManagement
         await RunApplicationWriteAsync(
             storePath,
             appName,
-            app => app.DeleteScope(scopeName),
+            app => app.DeleteScope(scopeName, Variant.Missing),
             "Failed to delete scope");
     }
 
@@ -115,62 +176,7 @@ internal sealed class ScopeManagement
             storePath,
             appName,
             scopeName,
-            scopeObj =>
-            {
-                var scopeInfo = new AzScopeInfo
-                {
-                    Name = ComPropertyAccessor.GetString(scopeObj, "Name"),
-                    Description = ComPropertyAccessor.GetString(scopeObj, "Description"),
-                    ApplicationData = ComPropertyAccessor.GetString(scopeObj, "ApplicationData"),
-                    IsWritable = ComPropertyAccessor.GetBool(scopeObj, "Writable")
-                };
-
-                // Read groups within scope
-                scopeInfo.Groups = ComPropertyAccessor.GetCollection(scopeObj, "ApplicationGroups", obj => ReadGroupInfo(obj), true);
-
-                // Read role assignments within scope
-                scopeInfo.RoleAssignments = ComPropertyAccessor.GetCollection(scopeObj, "Roles", obj => ReadRoleAssignmentInfo(obj), true);
-
-                // Read tasks and role definitions within scope
-                var allTasks = ComPropertyAccessor.GetCollection(scopeObj, "Tasks", (object task) =>
-                {
-                    bool isRoleDef = ComPropertyAccessor.GetBool(task, "IsRoleDefinition");
-                    return new { Task = task, IsRoleDefinition = isRoleDef };
-                });
-
-                foreach (var item in allTasks)
-                {
-                    try
-                    {
-                        if (item.IsRoleDefinition)
-                        {
-                            var roleDef = ReadRoleDefinitionFromTask(item.Task);
-                            if (roleDef != null)
-                            {
-                                scopeInfo.Roles.Add(roleDef);
-                            }
-                        }
-                        else
-                        {
-                            var taskInfo = ReadTaskInfo(item.Task);
-                            if (taskInfo != null)
-                            {
-                                scopeInfo.Tasks.Add(taskInfo);
-                            }
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogDebug($"[AzManService] Failed to read scope task/role: {ex.Message}");
-                    }
-                    finally
-                    {
-                        ComPropertyAccessor.ReleaseComObject(item.Task);
-                    }
-                }
-
-                return scopeInfo;
-            },
+            scope => ReadScopeInfo(scope)!,
             "Failed to get scope");
     }
 
@@ -189,24 +195,23 @@ internal sealed class ScopeManagement
             storePath,
             appName,
             scopeName,
-            scopeObj =>
+            scope =>
             {
-                dynamic scope = scopeObj;
-                dynamic group = scope.CreateApplicationGroup(name);
+                scope.CreateApplicationGroup(name, Variant.Missing, out IAzApplicationGroup2 group);
                 try
                 {
-                    group.Type = (int)groupType;
-                    group.Description = description;
+                    group.put_Type((int)groupType);
+                    group.put_Description(description);
                     if (groupType == AzGroupType.LdapQuery && !string.IsNullOrEmpty(ldapQuery))
                     {
-                        group.LdapQuery = ldapQuery;
+                        group.put_LdapQuery(ldapQuery);
                     }
-                    group.Submit();
-                    scope.Submit();
+                    group.Submit(0, Variant.Missing);
+                    scope.Submit(0, Variant.Missing);
                 }
                 finally
                 {
-                    ComPropertyAccessor.ReleaseComObject(group);
+                    AzRolesCom.Release(group);
                 }
 
                 return new AzApplicationGroupInfo
@@ -231,23 +236,11 @@ internal sealed class ScopeManagement
             storePath,
             appName,
             scopeName,
-            scope =>
+            scope => WithScopeGroup(scope, groupName, group =>
             {
-                dynamic group = scope.OpenApplicationGroup(groupName);
-                try
-                {
-                    if ((int)group.Type != AzManService.AZ_GROUPTYPE_BASIC)
-                    {
-                        throw new AzManException($"Cannot modify members of group '{groupName}' because it is not a Basic group.");
-                    }
-                    group.AddMember(memberSid);
-                    group.Submit();
-                }
-                finally
-                {
-                    ComPropertyAccessor.ReleaseComObject(group);
-                }
-            },
+                EnsureBasicGroup(group, groupName);
+                group.AddMember(memberSid, Variant.Missing);
+            }),
             "Failed to add scope group member",
             submitScope: false);
     }
@@ -263,23 +256,11 @@ internal sealed class ScopeManagement
             storePath,
             appName,
             scopeName,
-            scope =>
+            scope => WithScopeGroup(scope, groupName, group =>
             {
-                dynamic group = scope.OpenApplicationGroup(groupName);
-                try
-                {
-                    if ((int)group.Type != AzManService.AZ_GROUPTYPE_BASIC)
-                    {
-                        throw new AzManException($"Cannot modify members of group '{groupName}' because it is not a Basic group.");
-                    }
-                    group.DeleteMember(memberSid);
-                    group.Submit();
-                }
-                finally
-                {
-                    ComPropertyAccessor.ReleaseComObject(group);
-                }
-            },
+                EnsureBasicGroup(group, groupName);
+                group.DeleteMember(memberSid, Variant.Missing);
+            }),
             "Failed to remove scope group member",
             submitScope: false);
     }
@@ -295,23 +276,11 @@ internal sealed class ScopeManagement
             storePath,
             appName,
             scopeName,
-            scope =>
+            scope => WithScopeGroup(scope, groupName, group =>
             {
-                dynamic group = scope.OpenApplicationGroup(groupName);
-                try
-                {
-                    if ((int)group.Type != AzManService.AZ_GROUPTYPE_BASIC)
-                    {
-                        throw new AzManException($"Cannot modify members of group '{groupName}' because it is not a Basic group.");
-                    }
-                    group.AddNonMember(memberSid);
-                    group.Submit();
-                }
-                finally
-                {
-                    ComPropertyAccessor.ReleaseComObject(group);
-                }
-            },
+                EnsureBasicGroup(group, groupName);
+                group.AddNonMember(memberSid, Variant.Missing);
+            }),
             "Failed to add scope group non-member",
             submitScope: false);
     }
@@ -327,23 +296,11 @@ internal sealed class ScopeManagement
             storePath,
             appName,
             scopeName,
-            scope =>
+            scope => WithScopeGroup(scope, groupName, group =>
             {
-                dynamic group = scope.OpenApplicationGroup(groupName);
-                try
-                {
-                    if ((int)group.Type != AzManService.AZ_GROUPTYPE_BASIC)
-                    {
-                        throw new AzManException($"Cannot modify members of group '{groupName}' because it is not a Basic group.");
-                    }
-                    group.DeleteNonMember(memberSid);
-                    group.Submit();
-                }
-                finally
-                {
-                    ComPropertyAccessor.ReleaseComObject(group);
-                }
-            },
+                EnsureBasicGroup(group, groupName);
+                group.DeleteNonMember(memberSid, Variant.Missing);
+            }),
             "Failed to remove scope group non-member",
             submitScope: false);
     }
@@ -357,7 +314,7 @@ internal sealed class ScopeManagement
             storePath,
             appName,
             scopeName,
-            scope => scope.DeleteApplicationGroup(groupName),
+            scope => scope.DeleteApplicationGroup(groupName, Variant.Missing),
             "Failed to delete scope group",
             submitScope: true);
     }
@@ -371,20 +328,11 @@ internal sealed class ScopeManagement
             storePath,
             appName,
             scopeName,
-            scope =>
+            scope => WithScopeGroup(scope, groupName, group =>
             {
-                dynamic group = scope.OpenApplicationGroup(groupName);
-                try
-                {
-                    group.BizRuleLanguage = bizRuleLanguage;
-                    group.BizRule = bizRule;
-                    group.Submit();
-                }
-                finally
-                {
-                    ComPropertyAccessor.ReleaseComObject(group);
-                }
-            },
+                group.put_BizRuleLanguage(bizRuleLanguage);
+                group.put_BizRule(bizRule);
+            }),
             "Failed to set scope group business rule",
             submitScope: false);
     }
@@ -403,19 +351,18 @@ internal sealed class ScopeManagement
             storePath,
             appName,
             scopeName,
-            scopeObj =>
+            scope =>
             {
-                dynamic scope = scopeObj;
-                dynamic role = scope.CreateRole(name);
+                scope.CreateRole(name, Variant.Missing, out IAzRole role);
                 try
                 {
-                    role.Description = description;
-                    role.Submit();
-                    scope.Submit();
+                    role.put_Description(description);
+                    role.Submit(0, Variant.Missing);
+                    scope.Submit(0, Variant.Missing);
                 }
                 finally
                 {
-                    ComPropertyAccessor.ReleaseComObject(role);
+                    AzRolesCom.Release(role);
                 }
 
                 return new AzRoleAssignmentInfo
@@ -438,19 +385,7 @@ internal sealed class ScopeManagement
             storePath,
             appName,
             scopeName,
-            scope =>
-            {
-                dynamic role = scope.OpenRole(roleName);
-                try
-                {
-                    role.AddMember(memberSid);
-                    role.Submit();
-                }
-                finally
-                {
-                    ComPropertyAccessor.ReleaseComObject(role);
-                }
-            },
+            scope => WithScopeRole(scope, roleName, role => role.AddMember(memberSid, Variant.Missing)),
             "Failed to add scope role member",
             submitScope: false);
     }
@@ -464,7 +399,7 @@ internal sealed class ScopeManagement
             storePath,
             appName,
             scopeName,
-            scope => scope.DeleteRole(roleName),
+            scope => scope.DeleteRole(roleName, Variant.Missing),
             "Failed to delete scope role assignment",
             submitScope: true);
     }
@@ -483,20 +418,19 @@ internal sealed class ScopeManagement
             storePath,
             appName,
             scopeName,
-            scopeObj =>
+            scope =>
             {
-                dynamic scope = scopeObj;
-                dynamic task = scope.CreateTask(name);
+                scope.CreateTask(name, Variant.Missing, out IAzTask task);
                 try
                 {
-                    task.Description = description;
-                    task.IsRoleDefinition = 1; // COM API uses int: 1 = true
-                    task.Submit();
-                    scope.Submit();
+                    task.put_Description(description);
+                    task.put_IsRoleDefinition(AzRolesCom.FromBool(true));
+                    task.Submit(0, Variant.Missing);
+                    scope.Submit(0, Variant.Missing);
                 }
                 finally
                 {
-                    ComPropertyAccessor.ReleaseComObject(task);
+                    AzRolesCom.Release(task);
                 }
 
                 return new AzRoleDefinitionInfo
@@ -517,19 +451,7 @@ internal sealed class ScopeManagement
             storePath,
             appName,
             scopeName,
-            scope =>
-            {
-                dynamic task = scope.OpenTask(name);
-                try
-                {
-                    task.Description = description;
-                    task.Submit();
-                }
-                finally
-                {
-                    ComPropertyAccessor.ReleaseComObject(task);
-                }
-            },
+            scope => WithScopeTask(scope, name, task => task.put_Description(description)),
             "Failed to update scope role definition",
             submitScope: false);
     }
@@ -543,7 +465,7 @@ internal sealed class ScopeManagement
             storePath,
             appName,
             scopeName,
-            scope => scope.DeleteTask(name),
+            scope => scope.DeleteTask(name, Variant.Missing),
             "Failed to delete scope role definition",
             submitScope: true);
     }
@@ -562,19 +484,18 @@ internal sealed class ScopeManagement
             storePath,
             appName,
             scopeName,
-            scopeObj =>
+            scope =>
             {
-                dynamic scope = scopeObj;
-                dynamic task = scope.CreateTask(name);
+                scope.CreateTask(name, Variant.Missing, out IAzTask task);
                 try
                 {
-                    task.Description = description;
-                    task.Submit();
-                    scope.Submit();
+                    task.put_Description(description);
+                    task.Submit(0, Variant.Missing);
+                    scope.Submit(0, Variant.Missing);
                 }
                 finally
                 {
-                    ComPropertyAccessor.ReleaseComObject(task);
+                    AzRolesCom.Release(task);
                 }
 
                 return new AzTaskInfo
@@ -595,19 +516,7 @@ internal sealed class ScopeManagement
             storePath,
             appName,
             scopeName,
-            scope =>
-            {
-                dynamic task = scope.OpenTask(name);
-                try
-                {
-                    task.Description = description;
-                    task.Submit();
-                }
-                finally
-                {
-                    ComPropertyAccessor.ReleaseComObject(task);
-                }
-            },
+            scope => WithScopeTask(scope, name, task => task.put_Description(description)),
             "Failed to update scope task",
             submitScope: false);
     }
@@ -621,7 +530,7 @@ internal sealed class ScopeManagement
             storePath,
             appName,
             scopeName,
-            scope => scope.DeleteTask(name),
+            scope => scope.DeleteTask(name, Variant.Missing),
             "Failed to delete scope task",
             submitScope: true);
     }
@@ -635,19 +544,7 @@ internal sealed class ScopeManagement
             storePath,
             appName,
             scopeName,
-            scope =>
-            {
-                dynamic task = scope.OpenTask(taskName);
-                try
-                {
-                    task.AddOperation(operationName);
-                    task.Submit();
-                }
-                finally
-                {
-                    ComPropertyAccessor.ReleaseComObject(task);
-                }
-            },
+            scope => WithScopeTask(scope, taskName, task => task.AddOperation(operationName, Variant.Missing)),
             "Failed to add operation to scope task",
             submitScope: true);
     }
@@ -661,19 +558,7 @@ internal sealed class ScopeManagement
             storePath,
             appName,
             scopeName,
-            scope =>
-            {
-                dynamic task = scope.OpenTask(taskName);
-                try
-                {
-                    task.DeleteOperation(operationName);
-                    task.Submit();
-                }
-                finally
-                {
-                    ComPropertyAccessor.ReleaseComObject(task);
-                }
-            },
+            scope => WithScopeTask(scope, taskName, task => task.DeleteOperation(operationName, Variant.Missing)),
             "Failed to remove operation from scope task",
             submitScope: true);
     }
@@ -687,19 +572,7 @@ internal sealed class ScopeManagement
             storePath,
             appName,
             scopeName,
-            scope =>
-            {
-                dynamic task = scope.OpenTask(taskName);
-                try
-                {
-                    task.AddTask(linkedTaskName);
-                    task.Submit();
-                }
-                finally
-                {
-                    ComPropertyAccessor.ReleaseComObject(task);
-                }
-            },
+            scope => WithScopeTask(scope, taskName, task => task.AddTask(linkedTaskName, Variant.Missing)),
             "Failed to add task link to scope task",
             submitScope: true);
     }
@@ -713,19 +586,7 @@ internal sealed class ScopeManagement
             storePath,
             appName,
             scopeName,
-            scope =>
-            {
-                dynamic task = scope.OpenTask(taskName);
-                try
-                {
-                    task.DeleteTask(linkedTaskName);
-                    task.Submit();
-                }
-                finally
-                {
-                    ComPropertyAccessor.ReleaseComObject(task);
-                }
-            },
+            scope => WithScopeTask(scope, taskName, task => task.DeleteTask(linkedTaskName, Variant.Missing)),
             "Failed to remove task link from scope task",
             submitScope: true);
     }
@@ -739,20 +600,11 @@ internal sealed class ScopeManagement
             storePath,
             appName,
             scopeName,
-            scope =>
+            scope => WithScopeTask(scope, taskName, task =>
             {
-                dynamic task = scope.OpenTask(taskName);
-                try
-                {
-                    task.BizRuleLanguage = bizRuleLanguage;
-                    task.BizRule = bizRule;
-                    task.Submit();
-                }
-                finally
-                {
-                    ComPropertyAccessor.ReleaseComObject(task);
-                }
-            },
+                task.put_BizRuleLanguage(bizRuleLanguage);
+                task.put_BizRule(bizRule);
+            }),
             "Failed to set business rule on scope task",
             submitScope: false);
     }
@@ -792,21 +644,12 @@ internal sealed class ScopeManagement
             storePath,
             appName,
             scopeName,
-            scope =>
+            scope => WithScopeTask(scope, taskName, task =>
             {
-                dynamic task = scope.OpenTask(taskName);
-                try
-                {
-                    task.BizRuleLanguage = bizRuleLanguage;
-                    task.BizRule = bizRule;
-                    task.BizRuleImportedPath = filePath;
-                    task.Submit();
-                }
-                finally
-                {
-                    ComPropertyAccessor.ReleaseComObject(task);
-                }
-            },
+                task.put_BizRuleLanguage(bizRuleLanguage);
+                task.put_BizRule(bizRule);
+                task.put_BizRuleImportedPath(filePath);
+            }),
             "Failed to import business rule into scope task",
             submitScope: false);
     }
@@ -832,19 +675,7 @@ internal sealed class ScopeManagement
             storePath,
             appName,
             scopeName,
-            scope =>
-            {
-                dynamic role = scope.OpenRole(roleName);
-                try
-                {
-                    role.DeleteMember(memberSid);
-                    role.Submit();
-                }
-                finally
-                {
-                    ComPropertyAccessor.ReleaseComObject(role);
-                }
-            },
+            scope => WithScopeRole(scope, roleName, role => role.DeleteMember(memberSid, Variant.Missing)),
             "Failed to remove scope role member",
             submitScope: false);
     }
@@ -858,19 +689,7 @@ internal sealed class ScopeManagement
             storePath,
             appName,
             scopeName,
-            scope =>
-            {
-                dynamic role = scope.OpenRole(roleName);
-                try
-                {
-                    role.AddTask(taskName);
-                    role.Submit();
-                }
-                finally
-                {
-                    ComPropertyAccessor.ReleaseComObject(role);
-                }
-            },
+            scope => WithScopeRole(scope, roleName, role => role.AddTask(taskName, Variant.Missing)),
             "Failed to add task to scope role assignment",
             submitScope: true);
     }
@@ -884,19 +703,7 @@ internal sealed class ScopeManagement
             storePath,
             appName,
             scopeName,
-            scope =>
-            {
-                dynamic role = scope.OpenRole(roleName);
-                try
-                {
-                    role.DeleteTask(taskName);
-                    role.Submit();
-                }
-                finally
-                {
-                    ComPropertyAccessor.ReleaseComObject(role);
-                }
-            },
+            scope => WithScopeRole(scope, roleName, role => role.DeleteTask(taskName, Variant.Missing)),
             "Failed to remove task from scope role assignment",
             submitScope: true);
     }
@@ -910,19 +717,7 @@ internal sealed class ScopeManagement
             storePath,
             appName,
             scopeName,
-            scope =>
-            {
-                dynamic role = scope.OpenRole(roleName);
-                try
-                {
-                    role.AddOperation(operationName);
-                    role.Submit();
-                }
-                finally
-                {
-                    ComPropertyAccessor.ReleaseComObject(role);
-                }
-            },
+            scope => WithScopeRole(scope, roleName, role => role.AddOperation(operationName, Variant.Missing)),
             "Failed to add operation to scope role assignment",
             submitScope: true);
     }
@@ -936,19 +731,7 @@ internal sealed class ScopeManagement
             storePath,
             appName,
             scopeName,
-            scope =>
-            {
-                dynamic role = scope.OpenRole(roleName);
-                try
-                {
-                    role.DeleteOperation(operationName);
-                    role.Submit();
-                }
-                finally
-                {
-                    ComPropertyAccessor.ReleaseComObject(role);
-                }
-            },
+            scope => WithScopeRole(scope, roleName, role => role.DeleteOperation(operationName, Variant.Missing)),
             "Failed to remove operation from scope role assignment",
             submitScope: true);
     }
@@ -962,19 +745,7 @@ internal sealed class ScopeManagement
             storePath,
             appName,
             scopeName,
-            scope =>
-            {
-                dynamic role = scope.OpenRole(roleName);
-                try
-                {
-                    role.AddAppMember(appGroupName);
-                    role.Submit();
-                }
-                finally
-                {
-                    ComPropertyAccessor.ReleaseComObject(role);
-                }
-            },
+            scope => WithScopeRole(scope, roleName, role => role.AddAppMember(appGroupName, Variant.Missing)),
             "Failed to add app member to scope role assignment",
             submitScope: true);
     }
@@ -988,19 +759,7 @@ internal sealed class ScopeManagement
             storePath,
             appName,
             scopeName,
-            scope =>
-            {
-                dynamic role = scope.OpenRole(roleName);
-                try
-                {
-                    role.DeleteAppMember(appGroupName);
-                    role.Submit();
-                }
-                finally
-                {
-                    ComPropertyAccessor.ReleaseComObject(role);
-                }
-            },
+            scope => WithScopeRole(scope, roleName, role => role.DeleteAppMember(appGroupName, Variant.Missing)),
             "Failed to remove app member from scope role assignment",
             submitScope: true);
     }
@@ -1014,19 +773,7 @@ internal sealed class ScopeManagement
             storePath,
             appName,
             scopeName,
-            scope =>
-            {
-                dynamic role = scope.OpenRole(roleName);
-                try
-                {
-                    role.Description = description;
-                    role.Submit();
-                }
-                finally
-                {
-                    ComPropertyAccessor.ReleaseComObject(role);
-                }
-            },
+            scope => WithScopeRole(scope, roleName, role => role.put_Description(description)),
             "Failed to update scope role assignment",
             submitScope: true);
     }
@@ -1044,19 +791,7 @@ internal sealed class ScopeManagement
             storePath,
             appName,
             scopeName,
-            scope =>
-            {
-                dynamic task = scope.OpenTask(roleDefName);
-                try
-                {
-                    task.AddTask(taskName);
-                    task.Submit();
-                }
-                finally
-                {
-                    ComPropertyAccessor.ReleaseComObject(task);
-                }
-            },
+            scope => WithScopeTask(scope, roleDefName, task => task.AddTask(taskName, Variant.Missing)),
             "Failed to add task to scope role definition",
             submitScope: true);
     }
@@ -1070,19 +805,7 @@ internal sealed class ScopeManagement
             storePath,
             appName,
             scopeName,
-            scope =>
-            {
-                dynamic task = scope.OpenTask(roleDefName);
-                try
-                {
-                    task.DeleteTask(taskName);
-                    task.Submit();
-                }
-                finally
-                {
-                    ComPropertyAccessor.ReleaseComObject(task);
-                }
-            },
+            scope => WithScopeTask(scope, roleDefName, task => task.DeleteTask(taskName, Variant.Missing)),
             "Failed to remove task from scope role definition",
             submitScope: true);
     }
@@ -1096,19 +819,7 @@ internal sealed class ScopeManagement
             storePath,
             appName,
             scopeName,
-            scope =>
-            {
-                dynamic task = scope.OpenTask(roleDefName);
-                try
-                {
-                    task.AddOperation(operationName);
-                    task.Submit();
-                }
-                finally
-                {
-                    ComPropertyAccessor.ReleaseComObject(task);
-                }
-            },
+            scope => WithScopeTask(scope, roleDefName, task => task.AddOperation(operationName, Variant.Missing)),
             "Failed to add operation to scope role definition",
             submitScope: true);
     }
@@ -1122,19 +833,7 @@ internal sealed class ScopeManagement
             storePath,
             appName,
             scopeName,
-            scope =>
-            {
-                dynamic task = scope.OpenTask(roleDefName);
-                try
-                {
-                    task.DeleteOperation(operationName);
-                    task.Submit();
-                }
-                finally
-                {
-                    ComPropertyAccessor.ReleaseComObject(task);
-                }
-            },
+            scope => WithScopeTask(scope, roleDefName, task => task.DeleteOperation(operationName, Variant.Missing)),
             "Failed to remove operation from scope role definition",
             submitScope: true);
     }
@@ -1161,6 +860,3 @@ internal sealed class ScopeManagement
         }
     }
 }
-
-
-

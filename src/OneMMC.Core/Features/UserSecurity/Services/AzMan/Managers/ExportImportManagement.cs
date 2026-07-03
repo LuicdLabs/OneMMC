@@ -1,17 +1,18 @@
-﻿// ============================================================================
+// ============================================================================
 // AzMan Service - Export/Import Functions
 // ============================================================================
 // Export and import authorization store data
 // ============================================================================
 
 using System;
-using System.Diagnostics;
+using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-using System.Xml;
 using Microsoft.Extensions.Logging;
 using OneMMC.Core.Features.UserSecurity.Models.AzMan;
+using OneMMC.Core.Features.UserSecurity.Services.AzMan.Native;
+using OneMMC.Core.Infrastructure.Interop;
 
 namespace OneMMC.Core.Features.UserSecurity.Services.AzMan;
 
@@ -27,13 +28,52 @@ internal sealed class ExportImportManagement
     private object _lockObject => _service.LockObject;
     private ILogger<AzManService> _logger => _service.Logger;
 
-    private string AZ_AUTHORIZATION_STORE_PROGID => AzManService.AZ_AUTHORIZATION_STORE_PROGID;
     private int AZ_AZSTORE_FLAG_CREATE => AzManService.AZ_AZSTORE_FLAG_CREATE;
     private int AZ_AZSTORE_FLAG_MANAGE_STORE_ONLY => AzManService.AZ_AZSTORE_FLAG_MANAGE_STORE_ONLY;
 
     private Task RunComAsync(Action action) => _service.RunComAsync(action);
     private void EnsureStoreOpen(string storePath) => _service.EnsureStoreOpen(storePath);
     private static string GetComErrorMessage(COMException ex) => AzManService.GetComErrorMessage(ex);
+
+    #region Safe Read Helpers
+
+    /// <summary>Reads a BSTR property for copying, returning "" on COM failure or null.</summary>
+    private static string CopyString(Func<string?> getter)
+    {
+        try
+        {
+            return getter() ?? string.Empty;
+        }
+        catch (COMException)
+        {
+            return string.Empty;
+        }
+    }
+
+    /// <summary>Reads a VARIANT(SAFEARRAY-of-strings) property for copying; empty list on COM failure.</summary>
+    private static List<string> CopyStringList(AzManVariantGetter getter)
+    {
+        try
+        {
+            getter(out Variant value);
+            try
+            {
+                return value.ToStringList();
+            }
+            finally
+            {
+                value.Clear();
+            }
+        }
+        catch (COMException)
+        {
+            return [];
+        }
+    }
+
+    private delegate void AzManVariantGetter(out Variant value);
+
+    #endregion
 
     #region Export Functions
 
@@ -64,25 +104,23 @@ internal sealed class ExportImportManagement
                     string targetUrl = $"msxml://{exportPath}";
 
                     // Create new XML store
-                    var storeType = Type.GetTypeFromProgID(AZ_AUTHORIZATION_STORE_PROGID);
-                    if (storeType == null)
-                    {
-                        throw new InvalidOperationException("Cannot find AzRoles.AzAuthorizationStore COM component.");
-                    }
-
-                    dynamic targetStore = Activator.CreateInstance(storeType)!;
+                    IAzAuthorizationStore3 targetStore = AzRolesCom.CreateStore();
 
                     try
                     {
-                        dynamic authStore = _service.GetAuthStoreOrThrow(storePath);
+                        IAzAuthorizationStore3 authStore = _service.GetAuthStoreOrThrow(storePath);
 
                         // Initialize target store (create mode)
-                        targetStore.Initialize(AZ_AZSTORE_FLAG_CREATE, targetUrl);
+                        targetStore.Initialize(AZ_AZSTORE_FLAG_CREATE, targetUrl, Variant.Missing);
 
                         // Copy store properties
-                        targetStore.Description = ComPropertyAccessor.GetString(authStore, "Description");
-                        targetStore.ApplicationData = ComPropertyAccessor.GetString(authStore, "ApplicationData");
-                        targetStore.GenerateAudits = ComPropertyAccessor.GetBool(authStore, "GenerateAudits");
+                        targetStore.put_Description(CopyString(authStore.get_Description));
+                        targetStore.put_ApplicationData(CopyString(authStore.get_ApplicationData));
+                        try { targetStore.put_GenerateAudits(authStore.get_GenerateAudits()); } catch (COMException) { }
+
+                        // The children of a freshly created store can only be persisted after the
+                        // store itself has been submitted once.
+                        targetStore.Submit(0, Variant.Missing);
 
                         // Copy applications
                         CopyApplications(authStore, targetStore);
@@ -96,12 +134,12 @@ internal sealed class ExportImportManagement
                             CopySecurityInfo(authStore, targetStore);
                         }
 
-                        targetStore.Submit();
+                        targetStore.Submit(0, Variant.Missing);
                         _logger.LogDebug($"[AzManService] Exported store to: {exportPath}");
                     }
                     finally
                     {
-                        Marshal.ReleaseComObject(targetStore);
+                        AzRolesCom.Release(targetStore);
                     }
                 }
                 catch (COMException ex)
@@ -134,33 +172,33 @@ internal sealed class ExportImportManagement
 
                     string targetUrl = $"msxml://{exportPath}";
 
-                    var storeType = Type.GetTypeFromProgID(AZ_AUTHORIZATION_STORE_PROGID);
-                    if (storeType == null)
-                    {
-                        throw new InvalidOperationException("Cannot find AzRoles.AzAuthorizationStore COM component.");
-                    }
-
-                    dynamic targetStore = Activator.CreateInstance(storeType)!;
+                    IAzAuthorizationStore3 targetStore = AzRolesCom.CreateStore();
 
                     try
                     {
-                        dynamic authStore = _service.GetAuthStoreOrThrow(storePath);
+                        IAzAuthorizationStore3 authStore = _service.GetAuthStoreOrThrow(storePath);
 
-                        targetStore.Initialize(AZ_AZSTORE_FLAG_CREATE, targetUrl);
-                        targetStore.Description = $"Exported application: {appName}";
+                        targetStore.Initialize(AZ_AZSTORE_FLAG_CREATE, targetUrl, Variant.Missing);
+                        targetStore.put_Description($"Exported application: {appName}");
+                        targetStore.Submit(0, Variant.Missing);
 
-                        // Open source application
-                        dynamic sourceApp = authStore.OpenApplication(appName);
+                        // Open source application, create and copy it into the target store
+                        authStore.OpenApplication(appName, Variant.Missing, out IAzApplication sourceApp);
+                        try
+                        {
+                            CopyApplication(sourceApp, name => { targetStore.CreateApplication(name, Variant.Missing, out IAzApplication created); return created; });
+                        }
+                        finally
+                        {
+                            AzRolesCom.Release(sourceApp);
+                        }
 
-                        // Create and copy application
-                        CopyApplication(sourceApp, targetStore);
-
-                        targetStore.Submit();
+                        targetStore.Submit(0, Variant.Missing);
                         _logger.LogDebug($"[AzManService] Exported application '{appName}' to: {exportPath}");
                     }
                     finally
                     {
-                        Marshal.ReleaseComObject(targetStore);
+                        AzRolesCom.Release(targetStore);
                     }
                 }
                 catch (COMException ex)
@@ -195,53 +233,71 @@ internal sealed class ExportImportManagement
 
                     string sourceUrl = $"msxml://{importPath}";
 
-                    var storeType = Type.GetTypeFromProgID(AZ_AUTHORIZATION_STORE_PROGID);
-                    if (storeType == null)
-                    {
-                        throw new InvalidOperationException("Cannot find AzRoles.AzAuthorizationStore COM component.");
-                    }
-
-                    dynamic sourceStore = Activator.CreateInstance(storeType)!;
+                    IAzAuthorizationStore3 sourceStore = AzRolesCom.CreateStore();
 
                     try
                     {
-                        sourceStore.Initialize(AZ_AZSTORE_FLAG_MANAGE_STORE_ONLY, sourceUrl);
+                        sourceStore.Initialize(AZ_AZSTORE_FLAG_MANAGE_STORE_ONLY, sourceUrl, Variant.Missing);
 
                         // Get first application from source
-                        object sourceStoreObj = sourceStore;
-                        var apps = ComPropertyAccessor.GetCollection(sourceStoreObj, "Applications", (object app) => app);
-
-                        if (apps.Count == 0)
-                        {
-                            throw new InvalidOperationException("No applications found in import file.");
-                        }
-
-                        dynamic sourceApp = apps[0];
-                        string originalName = ComPropertyAccessor.GetString(sourceApp, "Name");
-                        string targetName = newAppName ?? originalName;
-
-                        dynamic authStore = _service.GetAuthStoreOrThrow(storePath);
-
-                        // Check if application already exists
+                        sourceStore.get_Applications(out IAzApplications applications);
+                        List<IAzApplication> apps;
                         try
                         {
-                            authStore.OpenApplication(targetName);
-                            throw new InvalidOperationException($"Application '{targetName}' already exists in target store.");
+                            apps = applications.Items();
                         }
-                        catch (COMException)
+                        finally
                         {
-                            // Application doesn't exist, which is what we want
+                            AzRolesCom.Release(applications);
                         }
 
-                        // Copy application to target store
-                        CopyApplication(sourceApp, authStore, targetName);
+                        try
+                        {
+                            if (apps.Count == 0)
+                            {
+                                throw new InvalidOperationException("No applications found in import file.");
+                            }
 
-                        authStore.Submit();
-                        _logger.LogDebug($"[AzManService] Imported application '{targetName}' from: {importPath}");
+                            IAzApplication sourceApp = apps[0];
+                            string originalName = CopyString(sourceApp.get_Name);
+                            string targetName = newAppName ?? originalName;
+
+                            IAzAuthorizationStore3 authStore = _service.GetAuthStoreOrThrow(storePath);
+
+                            // Check if application already exists
+                            bool exists = false;
+                            try
+                            {
+                                authStore.OpenApplication(targetName, Variant.Missing, out IAzApplication existing);
+                                AzRolesCom.Release(existing);
+                                exists = true;
+                            }
+                            catch (COMException)
+                            {
+                                // Application doesn't exist, which is what we want
+                            }
+                            if (exists)
+                            {
+                                throw new InvalidOperationException($"Application '{targetName}' already exists in target store.");
+                            }
+
+                            // Copy application to target store
+                            CopyApplication(sourceApp, name => { authStore.CreateApplication(name, Variant.Missing, out IAzApplication created); return created; }, targetName);
+
+                            authStore.Submit(0, Variant.Missing);
+                            _logger.LogDebug($"[AzManService] Imported application '{targetName}' from: {importPath}");
+                        }
+                        finally
+                        {
+                            foreach (IAzApplication app in apps)
+                            {
+                                AzRolesCom.Release(app);
+                            }
+                        }
                     }
                     finally
                     {
-                        Marshal.ReleaseComObject(sourceStore);
+                        AzRolesCom.Release(sourceStore);
                     }
                 }
                 catch (COMException ex)
@@ -256,234 +312,400 @@ internal sealed class ExportImportManagement
 
     #region Copy Helper Methods
 
-    private void CopyApplications(dynamic sourceStore, dynamic targetStore)
+    private void CopyApplications(IAzAuthorizationStore3 sourceStore, IAzAuthorizationStore3 targetStore)
     {
-        object sourceStoreObj = sourceStore;
-        var apps = ComPropertyAccessor.GetCollection(sourceStoreObj, "Applications", (object app) => app);
-
-        foreach (dynamic app in apps)
+        sourceStore.get_Applications(out IAzApplications applications);
+        List<IAzApplication> apps;
+        try
         {
-            CopyApplication(app, targetStore);
+            apps = applications.Items();
+        }
+        finally
+        {
+            AzRolesCom.Release(applications);
+        }
+
+        foreach (IAzApplication app in apps)
+        {
+            try
+            {
+                CopyApplication(app, name => { targetStore.CreateApplication(name, Variant.Missing, out IAzApplication created); return created; });
+            }
+            finally
+            {
+                AzRolesCom.Release(app);
+            }
         }
     }
 
-    private void CopyApplication(dynamic sourceApp, dynamic targetStore, string? newName = null)
+    /// <summary>
+    /// Copies <paramref name="sourceApp"/> (properties, operations, tasks, groups, roles, scopes) into
+    /// a new application produced by <paramref name="createTargetApp"/> (bound to the target container).
+    /// </summary>
+    private void CopyApplication(IAzApplication sourceApp, Func<string, IAzApplication> createTargetApp, string? newName = null)
     {
-        string appName = newName ?? ComPropertyAccessor.GetString(sourceApp, "Name");
-        dynamic targetApp = targetStore.CreateApplication(appName);
-
-        // Copy properties
-        targetApp.Description = ComPropertyAccessor.GetString(sourceApp, "Description");
-        targetApp.ApplicationData = ComPropertyAccessor.GetString(sourceApp, "ApplicationData");
-        targetApp.GenerateAudits = ComPropertyAccessor.GetBool(sourceApp, "GenerateAudits");
-
-        string version = ComPropertyAccessor.GetString(sourceApp, "ApplicationVersion");
-        if (!string.IsNullOrEmpty(version))
+        string appName = newName ?? CopyString(sourceApp.get_Name);
+        IAzApplication targetApp = createTargetApp(appName);
+        try
         {
-            targetApp.ApplicationVersion = version;
+            // Copy properties
+            targetApp.put_Description(CopyString(sourceApp.get_Description));
+            targetApp.put_ApplicationData(CopyString(sourceApp.get_ApplicationData));
+            try { targetApp.put_GenerateAudits(sourceApp.get_GenerateAudits()); } catch (COMException) { }
+
+            string version = CopyString(sourceApp.get_Version);
+            if (!string.IsNullOrEmpty(version))
+            {
+                targetApp.put_Version(version);
+            }
+
+            // AzMan requires a parent to be submitted (instantiated in the store) before children can
+            // be created on it — CreateOperation/CreateTask/etc. on an unsubmitted app fail with
+            // 0x80072089 ("object's parent is either uninstantiated or deleted"). Submit the app's
+            // scalar state now, then build its child collections.
+            targetApp.Submit(0, Variant.Missing);
+
+            // Copy operations first (they are referenced by tasks)
+            CopyOperations(sourceApp, targetApp);
+
+            // Copy tasks (including role definitions)
+            CopyTasks(sourceApp, targetApp);
+
+            // Copy application groups
+            CopyAppGroups(sourceApp, targetApp);
+
+            // Copy roles (role assignments)
+            CopyRoles(sourceApp, targetApp);
+
+            // Copy scopes
+            CopyScopes(sourceApp, targetApp);
+
+            targetApp.Submit(0, Variant.Missing);
         }
-
-        // Copy operations first (they are referenced by tasks)
-        CopyOperations(sourceApp, targetApp);
-
-        // Copy tasks (including role definitions)
-        CopyTasks(sourceApp, targetApp);
-
-        // Copy application groups
-        CopyAppGroups(sourceApp, targetApp);
-
-        // Copy roles (role assignments)
-        CopyRoles(sourceApp, targetApp);
-
-        // Copy scopes
-        CopyScopes(sourceApp, targetApp);
-
-        targetApp.Submit();
-    }
-
-    private void CopyOperations(dynamic sourceApp, dynamic targetApp)
-    {
-        object sourceAppObj = sourceApp;
-        var operations = ComPropertyAccessor.GetCollection(sourceAppObj, "Operations", (object op) => op);
-
-        foreach (dynamic op in operations)
+        finally
         {
-            string name = ComPropertyAccessor.GetString(op, "Name");
-            dynamic targetOp = targetApp.CreateOperation(name);
-            targetOp.Description = ComPropertyAccessor.GetString(op, "Description");
-            targetOp.OperationID = ComPropertyAccessor.GetInt(op, "OperationID");
-            targetOp.ApplicationData = ComPropertyAccessor.GetString(op, "ApplicationData");
-            targetOp.Submit();
-        }
-    }
-
-    private void CopyTasks(dynamic sourceApp, dynamic targetApp)
-    {
-        object sourceAppObj = sourceApp;
-        var tasks = ComPropertyAccessor.GetCollection(sourceAppObj, "Tasks", (object task) => task);
-
-        foreach (dynamic task in tasks)
-        {
-            string name = ComPropertyAccessor.GetString(task, "Name");
-            dynamic targetTask = targetApp.CreateTask(name);
-            targetTask.Description = ComPropertyAccessor.GetString(task, "Description");
-            targetTask.IsRoleDefinition = ComPropertyAccessor.GetBool(task, "IsRoleDefinition");
-            targetTask.ApplicationData = ComPropertyAccessor.GetString(task, "ApplicationData");
-
-            // Copy business rule
-            string bizRule = ComPropertyAccessor.GetString(task, "BizRule");
-            if (!string.IsNullOrEmpty(bizRule))
-            {
-                targetTask.BizRuleLanguage = ComPropertyAccessor.GetString(task, "BizRuleLanguage");
-                targetTask.BizRule = bizRule;
-            }
-
-            // Copy operations
-            var ops = ComPropertyAccessor.GetStringArray(task, "Operations");
-            foreach (var opName in ops)
-            {
-                try { targetTask.AddOperation(opName); } catch { }
-            }
-
-            // Copy task links
-            var taskLinks = ComPropertyAccessor.GetStringArray(task, "Tasks");
-            foreach (var taskName in taskLinks)
-            {
-                try { targetTask.AddTask(taskName); } catch { }
-            }
-
-            targetTask.Submit();
+            AzRolesCom.Release(targetApp);
         }
     }
 
-    private void CopyAppGroups(dynamic sourceApp, dynamic targetApp)
+    private void CopyOperations(IAzApplication sourceApp, IAzApplication targetApp)
     {
-        object sourceAppObj = sourceApp;
-        var groups = ComPropertyAccessor.GetCollection(sourceAppObj, "ApplicationGroups", (object group) => group);
-
-        foreach (dynamic group in groups)
+        sourceApp.get_Operations(out IAzOperations operations);
+        List<IAzOperation> ops;
+        try
         {
-            string name = ComPropertyAccessor.GetString(group, "Name");
-            int groupType = ComPropertyAccessor.GetInt(group, "Type");
-            dynamic targetGroup = targetApp.CreateApplicationGroup(name, groupType);
-            targetGroup.Description = ComPropertyAccessor.GetString(group, "Description");
+            ops = operations.Items();
+        }
+        finally
+        {
+            AzRolesCom.Release(operations);
+        }
 
-            if (groupType == (int)AzGroupType.LdapQuery)
+        foreach (IAzOperation op in ops)
+        {
+            try
             {
-                targetGroup.LdapQuery = ComPropertyAccessor.GetString(group, "LdapQuery");
-            }
-            else
-            {
-                // Copy members
-                var members = ComPropertyAccessor.GetStringArray(group, "Members");
-                foreach (var member in members)
+                string name = CopyString(op.get_Name);
+                targetApp.CreateOperation(name, Variant.Missing, out IAzOperation targetOp);
+                try
                 {
-                    try { targetGroup.AddMember(member); } catch { }
+                    targetOp.put_Description(CopyString(op.get_Description));
+                    try { targetOp.put_OperationID(op.get_OperationID()); } catch (COMException) { }
+                    targetOp.put_ApplicationData(CopyString(op.get_ApplicationData));
+                    targetOp.Submit(0, Variant.Missing);
                 }
-
-                // Copy non-members
-                var nonMembers = ComPropertyAccessor.GetStringArray(group, "NonMembers");
-                foreach (var nonMember in nonMembers)
+                finally
                 {
-                    try { targetGroup.AddNonMember(nonMember); } catch { }
+                    AzRolesCom.Release(targetOp);
                 }
             }
-
-            targetGroup.Submit();
-        }
-    }
-
-    private void CopyRoles(dynamic sourceApp, dynamic targetApp)
-    {
-        object sourceAppObj = sourceApp;
-        var roles = ComPropertyAccessor.GetCollection(sourceAppObj, "Roles", (object role) => role);
-
-        foreach (dynamic role in roles)
-        {
-            string name = ComPropertyAccessor.GetString(role, "Name");
-            dynamic targetRole = targetApp.CreateRole(name);
-            targetRole.Description = ComPropertyAccessor.GetString(role, "Description");
-
-            // Copy tasks
-            var tasks = ComPropertyAccessor.GetStringArray(role, "Tasks");
-            foreach (var taskName in tasks)
+            finally
             {
-                try { targetRole.AddTask(taskName); } catch { }
+                AzRolesCom.Release(op);
             }
-
-            // Copy operations
-            var ops = ComPropertyAccessor.GetStringArray(role, "Operations");
-            foreach (var opName in ops)
-            {
-                try { targetRole.AddOperation(opName); } catch { }
-            }
-
-            // Note: Members are not copied as they are security principals specific to the source environment
-
-            targetRole.Submit();
         }
     }
 
-    private void CopyScopes(dynamic sourceApp, dynamic targetApp)
+    private void CopyTasks(IAzApplication sourceApp, IAzApplication targetApp)
     {
-        object sourceAppObj = sourceApp;
-        var scopes = ComPropertyAccessor.GetCollection(sourceAppObj, "Scopes", (object scope) => scope);
-
-        foreach (dynamic scope in scopes)
+        sourceApp.get_Tasks(out IAzTasks tasks);
+        List<IAzTask> taskList;
+        try
         {
-            string name = ComPropertyAccessor.GetString(scope, "Name");
-            dynamic targetScope = targetApp.CreateScope(name);
-            targetScope.Description = ComPropertyAccessor.GetString(scope, "Description");
-            targetScope.ApplicationData = ComPropertyAccessor.GetString(scope, "ApplicationData");
-
-            // Copy scope groups, tasks, roles would go here
-            // For simplicity, we're copying basic properties only
-
-            targetScope.Submit();
+            taskList = tasks.Items();
         }
-    }
-
-    private void CopyStoreGroups(dynamic sourceStore, dynamic targetStore)
-    {
-        object sourceStoreObj = sourceStore;
-        var groups = ComPropertyAccessor.GetCollection(sourceStoreObj, "ApplicationGroups", (object group) => group);
-
-        foreach (dynamic group in groups)
+        finally
         {
-            string name = ComPropertyAccessor.GetString(group, "Name");
-            int groupType = ComPropertyAccessor.GetInt(group, "Type");
-            dynamic targetGroup = targetStore.CreateApplicationGroup(name, groupType);
-            targetGroup.Description = ComPropertyAccessor.GetString(group, "Description");
+            AzRolesCom.Release(tasks);
+        }
 
-            if (groupType == (int)AzGroupType.LdapQuery)
+        foreach (IAzTask task in taskList)
+        {
+            try
             {
-                targetGroup.LdapQuery = ComPropertyAccessor.GetString(group, "LdapQuery");
-            }
+                string name = CopyString(task.get_Name);
+                targetApp.CreateTask(name, Variant.Missing, out IAzTask targetTask);
+                try
+                {
+                    targetTask.put_Description(CopyString(task.get_Description));
+                    try { targetTask.put_IsRoleDefinition(task.get_IsRoleDefinition()); } catch (COMException) { }
+                    targetTask.put_ApplicationData(CopyString(task.get_ApplicationData));
 
-            targetGroup.Submit();
+                    // Copy business rule
+                    string bizRule = CopyString(task.get_BizRule);
+                    if (!string.IsNullOrEmpty(bizRule))
+                    {
+                        targetTask.put_BizRuleLanguage(CopyString(task.get_BizRuleLanguage));
+                        targetTask.put_BizRule(bizRule);
+                    }
+
+                    // Instantiate the task before adding operation/task-link members (see CopyApplication).
+                    targetTask.Submit(0, Variant.Missing);
+
+                    // Copy operations
+                    foreach (var opName in CopyStringList(task.get_Operations))
+                    {
+                        try { targetTask.AddOperation(opName, Variant.Missing); } catch { }
+                    }
+
+                    // Copy task links
+                    foreach (var taskName in CopyStringList(task.get_Tasks))
+                    {
+                        try { targetTask.AddTask(taskName, Variant.Missing); } catch { }
+                    }
+
+                    targetTask.Submit(0, Variant.Missing);
+                }
+                finally
+                {
+                    AzRolesCom.Release(targetTask);
+                }
+            }
+            finally
+            {
+                AzRolesCom.Release(task);
+            }
         }
     }
 
-    private void CopySecurityInfo(dynamic sourceStore, dynamic targetStore)
+    private void CopyAppGroups(IAzApplication sourceApp, IAzApplication targetApp)
+    {
+        sourceApp.get_ApplicationGroups(out IAzApplicationGroups groups);
+        List<IAzApplicationGroup2> groupList;
+        try
+        {
+            groupList = groups.Items();
+        }
+        finally
+        {
+            AzRolesCom.Release(groups);
+        }
+
+        foreach (IAzApplicationGroup2 group in groupList)
+        {
+            try
+            {
+                string name = CopyString(group.get_Name);
+                int groupType = group.get_Type();
+                targetApp.CreateApplicationGroup(name, Variant.Missing, out IAzApplicationGroup2 targetGroup);
+                try
+                {
+                    // The previous late-bound code passed the group type into CreateApplicationGroup's
+                    // reserved VARIANT (where AzRoles ignores it); set the Type property explicitly.
+                    targetGroup.put_Type(groupType);
+                    targetGroup.put_Description(CopyString(group.get_Description));
+
+                    if (groupType == (int)AzGroupType.LdapQuery)
+                    {
+                        targetGroup.put_LdapQuery(CopyString(group.get_LdapQuery));
+                        targetGroup.Submit(0, Variant.Missing);
+                    }
+                    else
+                    {
+                        // Instantiate the group before adding members (see CopyApplication).
+                        targetGroup.Submit(0, Variant.Missing);
+
+                        // Copy members
+                        foreach (var member in CopyStringList(group.get_Members))
+                        {
+                            try { targetGroup.AddMember(member, Variant.Missing); } catch { }
+                        }
+
+                        // Copy non-members
+                        foreach (var nonMember in CopyStringList(group.get_NonMembers))
+                        {
+                            try { targetGroup.AddNonMember(nonMember, Variant.Missing); } catch { }
+                        }
+
+                        targetGroup.Submit(0, Variant.Missing);
+                    }
+                }
+                finally
+                {
+                    AzRolesCom.Release(targetGroup);
+                }
+            }
+            finally
+            {
+                AzRolesCom.Release(group);
+            }
+        }
+    }
+
+    private void CopyRoles(IAzApplication sourceApp, IAzApplication targetApp)
+    {
+        sourceApp.get_Roles(out IAzRoles roles);
+        List<IAzRole> roleList;
+        try
+        {
+            roleList = roles.Items();
+        }
+        finally
+        {
+            AzRolesCom.Release(roles);
+        }
+
+        foreach (IAzRole role in roleList)
+        {
+            try
+            {
+                string name = CopyString(role.get_Name);
+                targetApp.CreateRole(name, Variant.Missing, out IAzRole targetRole);
+                try
+                {
+                    targetRole.put_Description(CopyString(role.get_Description));
+
+                    // Instantiate the role before adding task/operation members (see CopyApplication).
+                    targetRole.Submit(0, Variant.Missing);
+
+                    // Copy tasks
+                    foreach (var taskName in CopyStringList(role.get_Tasks))
+                    {
+                        try { targetRole.AddTask(taskName, Variant.Missing); } catch { }
+                    }
+
+                    // Copy operations
+                    foreach (var opName in CopyStringList(role.get_Operations))
+                    {
+                        try { targetRole.AddOperation(opName, Variant.Missing); } catch { }
+                    }
+
+                    // Note: Members are not copied as they are security principals specific to the source environment
+
+                    targetRole.Submit(0, Variant.Missing);
+                }
+                finally
+                {
+                    AzRolesCom.Release(targetRole);
+                }
+            }
+            finally
+            {
+                AzRolesCom.Release(role);
+            }
+        }
+    }
+
+    private void CopyScopes(IAzApplication sourceApp, IAzApplication targetApp)
+    {
+        sourceApp.get_Scopes(out IAzScopes scopes);
+        List<IAzScope> scopeList;
+        try
+        {
+            scopeList = scopes.Items();
+        }
+        finally
+        {
+            AzRolesCom.Release(scopes);
+        }
+
+        foreach (IAzScope scope in scopeList)
+        {
+            try
+            {
+                string name = CopyString(scope.get_Name);
+                targetApp.CreateScope(name, Variant.Missing, out IAzScope targetScope);
+                try
+                {
+                    targetScope.put_Description(CopyString(scope.get_Description));
+                    targetScope.put_ApplicationData(CopyString(scope.get_ApplicationData));
+
+                    // Copy scope groups, tasks, roles would go here
+                    // For simplicity, we're copying basic properties only
+
+                    targetScope.Submit(0, Variant.Missing);
+                }
+                finally
+                {
+                    AzRolesCom.Release(targetScope);
+                }
+            }
+            finally
+            {
+                AzRolesCom.Release(scope);
+            }
+        }
+    }
+
+    private void CopyStoreGroups(IAzAuthorizationStore3 sourceStore, IAzAuthorizationStore3 targetStore)
+    {
+        sourceStore.get_ApplicationGroups(out IAzApplicationGroups groups);
+        List<IAzApplicationGroup2> groupList;
+        try
+        {
+            groupList = groups.Items();
+        }
+        finally
+        {
+            AzRolesCom.Release(groups);
+        }
+
+        foreach (IAzApplicationGroup2 group in groupList)
+        {
+            try
+            {
+                string name = CopyString(group.get_Name);
+                int groupType = group.get_Type();
+                targetStore.CreateApplicationGroup(name, Variant.Missing, out IAzApplicationGroup2 targetGroup);
+                try
+                {
+                    // See CopyAppGroups: Type must be set explicitly, not via the reserved parameter.
+                    targetGroup.put_Type(groupType);
+                    targetGroup.put_Description(CopyString(group.get_Description));
+
+                    if (groupType == (int)AzGroupType.LdapQuery)
+                    {
+                        targetGroup.put_LdapQuery(CopyString(group.get_LdapQuery));
+                    }
+
+                    targetGroup.Submit(0, Variant.Missing);
+                }
+                finally
+                {
+                    AzRolesCom.Release(targetGroup);
+                }
+            }
+            finally
+            {
+                AzRolesCom.Release(group);
+            }
+        }
+    }
+
+    private void CopySecurityInfo(IAzAuthorizationStore3 sourceStore, IAzAuthorizationStore3 targetStore)
     {
         // Copy policy administrators
-        var admins = ComPropertyAccessor.GetStringArray(sourceStore, "PolicyAdministratorsName");
-        foreach (var admin in admins)
+        foreach (var admin in CopyStringList(sourceStore.get_PolicyAdministratorsName))
         {
-            try { targetStore.AddPolicyAdministratorName(admin); } catch { }
+            try { targetStore.AddPolicyAdministratorName(admin, Variant.Missing); } catch { }
         }
 
         // Copy policy readers
-        var readers = ComPropertyAccessor.GetStringArray(sourceStore, "PolicyReadersName");
-        foreach (var reader in readers)
+        foreach (var reader in CopyStringList(sourceStore.get_PolicyReadersName))
         {
-            try { targetStore.AddPolicyReaderName(reader); } catch { }
+            try { targetStore.AddPolicyReaderName(reader, Variant.Missing); } catch { }
         }
     }
 
     #endregion
 }
-
-
-
-

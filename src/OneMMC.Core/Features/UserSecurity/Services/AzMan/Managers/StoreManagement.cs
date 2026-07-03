@@ -1,4 +1,4 @@
-﻿// ============================================================================
+// ============================================================================
 // AzMan Service - Store Management
 // ============================================================================
 // Store management functions: create, open, close, delete, refresh stores
@@ -9,6 +9,8 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using OneMMC.Core.Features.UserSecurity.Models.AzMan;
+using OneMMC.Core.Features.UserSecurity.Services.AzMan.Native;
+using OneMMC.Core.Infrastructure.Interop;
 using Microsoft.Extensions.Logging;
 
 namespace OneMMC.Core.Features.UserSecurity.Services.AzMan;
@@ -26,22 +28,21 @@ internal sealed class StoreManagement
     private List<AzAuthorizationStoreInfo> _openedStores => _service.OpenedStoresInternal;
     private ILogger<AzManService> _logger => _service.Logger;
 
-    private string AZ_AUTHORIZATION_STORE_PROGID => AzManService.AZ_AUTHORIZATION_STORE_PROGID;
     private int AZ_AZSTORE_FLAG_CREATE => AzManService.AZ_AZSTORE_FLAG_CREATE;
     private int AZ_AZSTORE_FLAG_MANAGE_STORE_ONLY => AzManService.AZ_AZSTORE_FLAG_MANAGE_STORE_ONLY;
     private int AZ_AZSTORE_FLAG_BATCH_UPDATE => AzManService.AZ_AZSTORE_FLAG_BATCH_UPDATE;
 
     private Task RunComAsync(Action action) => _service.RunComAsync(action);
     private Task<T> RunComAsync<T>(Func<T> func) => _service.RunComAsync(func);
-    private Task<T> RunStoreReadAsync<T>(string storePath, Func<object, T> func, string errorMessage)
+    private Task<T> RunStoreReadAsync<T>(string storePath, Func<IAzAuthorizationStore3, T> func, string errorMessage)
         => _service.RunStoreReadAsync(storePath, func, errorMessage);
-    private Task RunStoreWriteAsync(string storePath, Action<dynamic> action, string errorMessage, string? debugMessage = null)
+    private Task RunStoreWriteAsync(string storePath, Action<IAzAuthorizationStore3> action, string errorMessage, string? debugMessage = null)
         => _service.RunStoreWriteAsync(storePath, action, errorMessage, debugMessage);
     private void CloseStoreInternal(string storePath) => _service.CloseStoreInternal(storePath);
     private static string ExtractStoreName(string path) => AzManService.ExtractStoreName(path);
     private static string GetComErrorMessage(COMException ex) => AzManService.GetComErrorMessage(ex);
     private static string GetXmlFilePathFromStoreUrl(string storeUrl) => AzManService.GetXmlFilePathFromStoreUrl(storeUrl);
-    private AzAuthorizationStoreInfo ReadStoreInfo(dynamic store, string storeUrl, AzStoreType storeType)
+    private AzAuthorizationStoreInfo ReadStoreInfo(IAzAuthorizationStore3 store, string storeUrl, AzStoreType storeType)
         => _service.ReadStoreInfo(store, storeUrl, storeType);
     private void EnsureXmlStoreSchemaV2(string storeUrl) => _service.EnsureXmlStoreSchemaV2(storeUrl);
     private void EnsureAdStoreSchemaV2(string storeUrl) => _service.EnsureAdStoreSchemaV2(storeUrl);
@@ -68,30 +69,23 @@ internal sealed class StoreManagement
                 try
                 {
                     // Create AzAuthorizationStore COM object
-                    var storeType = Type.GetTypeFromProgID(AZ_AUTHORIZATION_STORE_PROGID);
-                    if (storeType == null)
-                    {
-                        throw new InvalidOperationException(
-                            "Cannot find AzRoles.AzAuthorizationStore COM component. Please ensure Windows Authorization Manager is installed.");
-                    }
-
-                    dynamic store = Activator.CreateInstance(storeType)!;
+                    IAzAuthorizationStore3 store = AzRolesCom.CreateStore();
 
                     // Initialize store (create mode)
                     string storeUrl = parameters.GetStoreUrl();
-                    store.Initialize(AZ_AZSTORE_FLAG_CREATE, storeUrl);
+                    store.Initialize(AZ_AZSTORE_FLAG_CREATE, storeUrl, Variant.Missing);
 
                     // Set description
                     if (!string.IsNullOrEmpty(parameters.Description))
                     {
-                        store.Description = parameters.Description;
+                        store.put_Description(parameters.Description);
                     }
 
                     // Set auditing
-                    store.GenerateAudits = parameters.GenerateAudits;
+                    store.put_GenerateAudits(AzRolesCom.FromBool(parameters.GenerateAudits));
 
                     // Submit the initial store so it is persisted.
-                    store.Submit();
+                    store.Submit(0, Variant.Missing);
 
                     // Upgrade schema to 2.0.
                     // For XML stores: patch the file directly (COM API doesn't expose version attrs).
@@ -107,7 +101,7 @@ internal sealed class StoreManagement
                         {
                             EnsureAdStoreSchemaV2(storeUrl);
                             // Refresh the COM object so the returned storeInfo shows new elements.
-                            try { store.UpdateCache(); } catch { }
+                            try { store.UpdateCache(Variant.Missing); } catch { }
                         }
                         catch (Exception ex)
                         {
@@ -160,7 +154,7 @@ internal sealed class StoreManagement
                 {
                     // Check if the same store is already open
                     string storeUrl = parameters.GetStoreUrl();
-                    var existing = _openedStores.Find(s => 
+                    var existing = _openedStores.Find(s =>
                         s.StorePath.Equals(storeUrl, StringComparison.OrdinalIgnoreCase));
                     if (existing != null)
                     {
@@ -176,7 +170,7 @@ internal sealed class StoreManagement
                         {
                             path = path.Substring(8);
                         }
-                        
+
                         // Check local file
                         if (!path.StartsWith(@"\\") && !System.IO.File.Exists(path))
                         {
@@ -185,18 +179,11 @@ internal sealed class StoreManagement
                     }
 
                     // Create AzAuthorizationStore COM object
-                    var storeType = Type.GetTypeFromProgID(AZ_AUTHORIZATION_STORE_PROGID);
-                    if (storeType == null)
-                    {
-                        throw new InvalidOperationException(
-                            "Cannot find AzRoles.AzAuthorizationStore COM component. Please ensure Windows Authorization Manager is installed.");
-                    }
-
-                    dynamic store = Activator.CreateInstance(storeType)!;
+                    IAzAuthorizationStore3 store = AzRolesCom.CreateStore();
 
                     // Initialize store (open mode)
                     int flags = parameters.ReadOnly ? AZ_AZSTORE_FLAG_MANAGE_STORE_ONLY : AZ_AZSTORE_FLAG_BATCH_UPDATE;
-                    store.Initialize(flags, storeUrl);
+                    store.Initialize(flags, storeUrl, Variant.Missing);
 
                     // Read store information
                     var storeInfo = ReadStoreInfo(store, storeUrl, parameters.StoreType);
@@ -257,29 +244,37 @@ internal sealed class StoreManagement
                     CloseStoreInternal(storePath);
 
                     // Create new COM object to delete
-                    var storeType = Type.GetTypeFromProgID(AZ_AUTHORIZATION_STORE_PROGID);
-                    if (storeType == null)
+                    IAzAuthorizationStore3 store = AzRolesCom.CreateStore();
+                    try
                     {
-                        throw new InvalidOperationException("Cannot find AzRoles.AzAuthorizationStore COM component.");
+                        store.Initialize(AZ_AZSTORE_FLAG_MANAGE_STORE_ONLY, storePath, Variant.Missing);
+                        store.Delete(Variant.Missing);
+                    }
+                    finally
+                    {
+                        AzRolesCom.Release(store);
                     }
 
-                    dynamic store = Activator.CreateInstance(storeType)!;
-                    store.Initialize(AZ_AZSTORE_FLAG_MANAGE_STORE_ONLY, storePath);
-                    store.Delete();
-
-                    Marshal.ReleaseComObject(store);
                     _logger.LogInformation("Successfully deleted store: {StorePath}", storePath);
                 }
                 catch (COMException ex)
                 {
+                    // 0x80070002 (ERROR_FILE_NOT_FOUND): the AD object (or XML file) no longer exists
+                    // at the given path, e.g. it was already deleted by another tool.
+                    if (ex.ErrorCode == unchecked((int)0x80070002))
+                    {
+                        _logger.LogWarning(ex, "Store not found while attempting deletion: {StorePath}", storePath);
+                        throw new AzManException(
+                            $"Failed to delete authorization store: the store at '{storePath}' could not be found. It may have already been deleted.", ex);
+                    }
+
                     throw new AzManException($"Failed to delete authorization store: {GetComErrorMessage(ex)}", ex);
                 }
                 catch (System.IO.FileNotFoundException ex)
                 {
-                    // The CLR COM interop layer maps HRESULT 0x80070002 (ERROR_FILE_NOT_FOUND)
-                    // to FileNotFoundException rather than COMException.  This happens when the
-                    // AD object (or XML file) no longer exists at the given path, e.g. it was
-                    // already deleted by another tool or by another concurrent operation.
+                    // Kept for parity with the CLR interop layer, which mapped HRESULT 0x80070002 to
+                    // FileNotFoundException. Source-generated interop surfaces it as COMException
+                    // (handled above), but downstream code may still raise the BCL exception.
                     _logger.LogWarning(ex, "Store not found while attempting deletion: {StorePath}", storePath);
                     throw new AzManException(
                         $"Failed to delete authorization store: the store at '{storePath}' could not be found. It may have already been deleted.", ex);
@@ -309,7 +304,7 @@ internal sealed class StoreManagement
                         return null;
                     }
 
-                    dynamic? authStore = _service.GetAuthStore(storePath);
+                    IAzAuthorizationStore3? authStore = _service.GetAuthStore(storePath);
                     if (authStore == null)
                     {
                         return null;
@@ -331,7 +326,7 @@ internal sealed class StoreManagement
                     }
 
                     // Update cache
-                    authStore.UpdateCache();
+                    authStore.UpdateCache(Variant.Missing);
 
                     // Re-read information
                     var updatedInfo = ReadStoreInfo(authStore, storePath, storeType);
@@ -362,9 +357,9 @@ internal sealed class StoreManagement
             storePath,
             store =>
             {
-                store.Description = description;
-                store.ApplicationData = applicationData;
-                store.GenerateAudits = generateAudits;
+                store.put_Description(description);
+                store.put_ApplicationData(applicationData);
+                store.put_GenerateAudits(AzRolesCom.FromBool(generateAudits));
             },
             "Failed to update store properties");
     }
@@ -382,7 +377,7 @@ internal sealed class StoreManagement
     {
         await RunStoreWriteAsync(
             storePath,
-            store => store.AddPolicyAdministratorName(adminName),
+            store => store.AddPolicyAdministratorName(adminName, Variant.Missing),
             "Failed to add policy administrator",
             $"[AzManService] Added policy administrator: {adminName}");
     }
@@ -396,7 +391,7 @@ internal sealed class StoreManagement
     {
         await RunStoreWriteAsync(
             storePath,
-            store => store.DeletePolicyAdministratorName(adminName),
+            store => store.DeletePolicyAdministratorName(adminName, Variant.Missing),
             "Failed to remove policy administrator",
             $"[AzManService] Removed policy administrator: {adminName}");
     }
@@ -410,7 +405,7 @@ internal sealed class StoreManagement
     {
         await RunStoreWriteAsync(
             storePath,
-            store => store.AddPolicyReaderName(readerName),
+            store => store.AddPolicyReaderName(readerName, Variant.Missing),
             "Failed to add policy reader",
             $"[AzManService] Added policy reader: {readerName}");
     }
@@ -424,7 +419,7 @@ internal sealed class StoreManagement
     {
         await RunStoreWriteAsync(
             storePath,
-            store => store.DeletePolicyReaderName(readerName),
+            store => store.DeletePolicyReaderName(readerName, Variant.Missing),
             "Failed to remove policy reader",
             $"[AzManService] Removed policy reader: {readerName}");
     }
@@ -438,7 +433,7 @@ internal sealed class StoreManagement
     {
         await RunStoreWriteAsync(
             storePath,
-            store => store.AddDelegatedPolicyUserName(userName),
+            store => store.AddDelegatedPolicyUserName(userName, Variant.Missing),
             "Failed to add delegated policy user",
             $"[AzManService] Added delegated policy user: {userName}");
     }
@@ -452,7 +447,7 @@ internal sealed class StoreManagement
     {
         await RunStoreWriteAsync(
             storePath,
-            store => store.DeleteDelegatedPolicyUserName(userName),
+            store => store.DeleteDelegatedPolicyUserName(userName, Variant.Missing),
             "Failed to remove delegated policy user",
             $"[AzManService] Removed delegated policy user: {userName}");
     }
@@ -470,20 +465,20 @@ internal sealed class StoreManagement
             storePath,
             store =>
             {
-                TryUpdateStoreCache(store);
+                try { store.UpdateCache(Variant.Missing); } catch { }
 
                 // Auditing properties:
-                // GenerateAudits â†’ "Runtime application initialization auditing"
-                // ApplyStoreSacl â†’ "Authorization store change auditing"
-                var generateAudits = ComPropertyAccessor.GetBool(store, "GenerateAudits");
-                var applyStoreSacl = ComPropertyAccessor.GetBool(store, "ApplyStoreSacl");
+                // GenerateAudits → "Runtime application initialization auditing"
+                // ApplyStoreSacl → "Authorization store change auditing"
+                bool generateAudits = AzRolesCom.ToBool(store.get_GenerateAudits());
+                bool applyStoreSacl = AzRolesCom.ToBool(store.get_ApplyStoreSacl());
 
                 return new StoreAdvancedProperties
                 {
-                    DomainTimeout = ComPropertyAccessor.GetNullableInt(store, "DomainTimeout"),
-                    ScriptEngineTimeout = ComPropertyAccessor.GetNullableInt(store, "ScriptEngineTimeout"),
-                    MaxScriptEngines = ComPropertyAccessor.GetNullableInt(store, "MaxScriptEngines"),
-                    TargetMachine = ComPropertyAccessor.GetString(store, "TargetMachine"),
+                    DomainTimeout = TryReadInt(store.get_DomainTimeout),
+                    ScriptEngineTimeout = TryReadInt(store.get_ScriptEngineTimeout),
+                    MaxScriptEngines = TryReadInt(store.get_MaxScriptEngines),
+                    TargetMachine = store.get_TargetMachine() ?? string.Empty,
                     GenerateAudits = generateAudits,
                     RuntimeApplicationInitializationAuditing = generateAudits,
                     AuthorizationStoreChangeAuditing = applyStoreSacl
@@ -503,23 +498,23 @@ internal sealed class StoreManagement
             {
                 if (properties.DomainTimeout.HasValue)
                 {
-                    store.DomainTimeout = properties.DomainTimeout.Value;
+                    store.put_DomainTimeout(properties.DomainTimeout.Value);
                 }
                 if (properties.ScriptEngineTimeout.HasValue)
                 {
-                    store.ScriptEngineTimeout = properties.ScriptEngineTimeout.Value;
+                    store.put_ScriptEngineTimeout(properties.ScriptEngineTimeout.Value);
                 }
                 if (properties.MaxScriptEngines.HasValue)
                 {
-                    store.MaxScriptEngines = properties.MaxScriptEngines.Value;
+                    store.put_MaxScriptEngines(properties.MaxScriptEngines.Value);
                 }
                 if (properties.GenerateAudits.HasValue)
                 {
-                    store.GenerateAudits = properties.GenerateAudits.Value;
+                    store.put_GenerateAudits(AzRolesCom.FromBool(properties.GenerateAudits.Value));
                 }
                 if (properties.AuthorizationStoreChangeAuditing.HasValue)
                 {
-                    store.ApplyStoreSacl = properties.AuthorizationStoreChangeAuditing.Value;
+                    store.put_ApplyStoreSacl(AzRolesCom.FromBool(properties.AuthorizationStoreChangeAuditing.Value));
                 }
             },
             "Failed to update store advanced properties",
@@ -558,37 +553,22 @@ internal sealed class StoreManagement
             storePath,
             store =>
             {
-                dynamic dynStore = store;
-                try { dynStore.UpdateCache(); } catch { }
+                try { store.UpdateCache(Variant.Missing); } catch { }
                 return true;
             },
             "Failed to refresh store after schema upgrade");
     }
 
-    private static bool? TryReadBoolProperty(dynamic comObject, params string[] propertyNames)
+    /// <summary>Reads an int property, returning null when the COM read fails.</summary>
+    private static int? TryReadInt(Func<int> getter)
     {
-        foreach (var propertyName in propertyNames)
+        try
         {
-            if (ComPropertyAccessor.HasProperty(comObject, propertyName))
-            {
-                return ComPropertyAccessor.GetBool(comObject, propertyName);
-            }
+            return getter();
         }
-
-        return null;
-    }
-
-    private static void TryUpdateStoreCache(dynamic store)
-    {
-        if (ComPropertyAccessor.HasProperty(store, "UpdateCache"))
+        catch (COMException)
         {
-            try
-            {
-                store.UpdateCache();
-            }
-            catch
-            {
-            }
+            return null;
         }
     }
 
@@ -621,5 +601,3 @@ public class StoreAdvancedProperties
     /// <summary>Authorization store change auditing</summary>
     public bool? AuthorizationStoreChangeAuditing { get; set; }
 }
-
-

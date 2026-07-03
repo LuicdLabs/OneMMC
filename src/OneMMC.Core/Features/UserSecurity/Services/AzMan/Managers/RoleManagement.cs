@@ -1,19 +1,20 @@
-﻿// ============================================================================
+// ============================================================================
 // AzMan Service - Role Management
 // ============================================================================
 // Role management functions: role definition and role assignment creation, deletion, member management
-// 
+//
 // Important notes:
 // - Role Definition is actually a Task with IsRoleDefinition = true
 // - Role Assignment is the actual Role object
 // ============================================================================
 
 using System;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Security.Principal;
 using System.Threading.Tasks;
 using OneMMC.Core.Features.UserSecurity.Models.AzMan;
+using OneMMC.Core.Features.UserSecurity.Services.AzMan.Native;
+using OneMMC.Core.Infrastructure.Interop;
 
 namespace OneMMC.Core.Features.UserSecurity.Services.AzMan;
 
@@ -26,13 +27,13 @@ internal sealed class RoleManagement
         _service = service;
     }
 
-    private Task<T> RunApplicationReadAsync<T>(string storePath, string appName, Func<object, T> func, string errorMessage)
+    private Task<T> RunApplicationReadAsync<T>(string storePath, string appName, Func<IAzApplication, T> func, string errorMessage)
         => _service.RunApplicationReadAsync(storePath, appName, func, errorMessage);
-    private Task RunApplicationWriteAsync(string storePath, string appName, Action<dynamic> action, string errorMessage, string? debugMessage = null, bool submitStore = false)
+    private Task RunApplicationWriteAsync(string storePath, string appName, Action<IAzApplication> action, string errorMessage, string? debugMessage = null, bool submitStore = false)
         => _service.RunApplicationWriteAsync(storePath, appName, action, errorMessage, debugMessage, submitStore);
-    private Task RunRoleWriteAsync(string storePath, string appName, string roleName, Action<dynamic> action, string errorMessage, string? debugMessage = null)
+    private Task RunRoleWriteAsync(string storePath, string appName, string roleName, Action<IAzRole> action, string errorMessage, string? debugMessage = null)
         => _service.RunRoleWriteAsync(storePath, appName, roleName, action, errorMessage, debugMessage);
-    private Task RunTaskWriteAsync(string storePath, string appName, string taskName, Action<dynamic> action, string errorMessage, string? debugMessage = null)
+    private Task RunTaskWriteAsync(string storePath, string appName, string taskName, Action<IAzTask> action, string errorMessage, string? debugMessage = null)
         => _service.RunTaskWriteAsync(storePath, appName, taskName, action, errorMessage, debugMessage);
 
     #region Role Definition Management
@@ -49,14 +50,20 @@ internal sealed class RoleManagement
         return await RunApplicationReadAsync(
             storePath,
             appName,
-            appObj =>
+            app =>
             {
-                dynamic app = appObj;
-                dynamic task = app.CreateTask(name);
-                task.Description = description;
-                task.IsRoleDefinition = true;
-                task.Submit();
-                app.Submit();
+                app.CreateTask(name, Variant.Missing, out IAzTask task);
+                try
+                {
+                    task.put_Description(description);
+                    task.put_IsRoleDefinition(AzRolesCom.FromBool(true));
+                    task.Submit(0, Variant.Missing);
+                    app.Submit(0, Variant.Missing);
+                }
+                finally
+                {
+                    AzRolesCom.Release(task);
+                }
 
                 return new AzRoleDefinitionInfo
                 {
@@ -75,7 +82,7 @@ internal sealed class RoleManagement
         await RunApplicationWriteAsync(
             storePath,
             appName,
-            app => app.DeleteTask(roleName),
+            app => app.DeleteTask(roleName, Variant.Missing),
             "Failed to delete role definition");
     }
 
@@ -88,7 +95,7 @@ internal sealed class RoleManagement
             storePath,
             appName,
             roleDefinitionName,
-            task => task.AddTask(taskName),
+            task => task.AddTask(taskName, Variant.Missing),
             "Failed to add task to role definition");
     }
 
@@ -101,7 +108,7 @@ internal sealed class RoleManagement
             storePath,
             appName,
             roleDefinitionName,
-            task => task.DeleteTask(taskName),
+            task => task.DeleteTask(taskName, Variant.Missing),
             "Failed to remove task from role definition");
     }
 
@@ -121,13 +128,19 @@ internal sealed class RoleManagement
         return await RunApplicationReadAsync(
             storePath,
             appName,
-            appObj =>
+            app =>
             {
-                dynamic app = appObj;
-                dynamic role = app.CreateRole(name);
-                role.Description = description;
-                role.Submit();
-                app.Submit();
+                app.CreateRole(name, Variant.Missing, out IAzRole role);
+                try
+                {
+                    role.put_Description(description);
+                    role.Submit(0, Variant.Missing);
+                    app.Submit(0, Variant.Missing);
+                }
+                finally
+                {
+                    AzRolesCom.Release(role);
+                }
 
                 return new AzRoleAssignmentInfo
                 {
@@ -146,7 +159,7 @@ internal sealed class RoleManagement
         await RunApplicationWriteAsync(
             storePath,
             appName,
-            app => app.DeleteRole(roleName),
+            app => app.DeleteRole(roleName, Variant.Missing),
             "Failed to delete role assignment");
     }
 
@@ -161,7 +174,7 @@ internal sealed class RoleManagement
             storePath,
             appName,
             roleName,
-            role => role.AddMember(memberSid),
+            role => role.AddMember(memberSid, Variant.Missing),
             "Failed to add role member");
     }
 
@@ -174,7 +187,7 @@ internal sealed class RoleManagement
             storePath,
             appName,
             roleName,
-            role => role.AddTask(taskName),
+            role => role.AddTask(taskName, Variant.Missing),
             "Failed to add task to role assignment");
     }
 
@@ -187,7 +200,7 @@ internal sealed class RoleManagement
             storePath,
             appName,
             roleName,
-            role => role.DeleteTask(taskName),
+            role => role.DeleteTask(taskName, Variant.Missing),
             "Failed to remove task from role assignment");
     }
 
@@ -200,7 +213,7 @@ internal sealed class RoleManagement
             storePath,
             appName,
             roleName,
-            role => role.AddOperation(operationName),
+            role => role.AddOperation(operationName, Variant.Missing),
             "Failed to add operation to role assignment",
             $"[AzManService] Added operation '{operationName}' to role assignment '{roleName}'");
     }
@@ -214,7 +227,7 @@ internal sealed class RoleManagement
             storePath,
             appName,
             roleName,
-            role => role.DeleteOperation(operationName),
+            role => role.DeleteOperation(operationName, Variant.Missing),
             "Failed to remove operation from role assignment",
             $"[AzManService] Removed operation '{operationName}' from role assignment '{roleName}'");
     }
@@ -228,7 +241,7 @@ internal sealed class RoleManagement
             storePath,
             appName,
             roleName,
-            role => role.DeleteMember(memberSid),
+            role => role.DeleteMember(memberSid, Variant.Missing),
             "Failed to remove role member",
             $"[AzManService] Removed member from role assignment '{roleName}'");
     }
@@ -242,7 +255,7 @@ internal sealed class RoleManagement
             storePath,
             appName,
             roleName,
-            role => role.AddAppMember(appGroupName),
+            role => role.AddAppMember(appGroupName, Variant.Missing),
             "Failed to add app member to role assignment",
             $"[AzManService] Added app member '{appGroupName}' to role assignment '{roleName}'");
     }
@@ -256,7 +269,7 @@ internal sealed class RoleManagement
             storePath,
             appName,
             roleName,
-            role => role.DeleteAppMember(appGroupName),
+            role => role.DeleteAppMember(appGroupName, Variant.Missing),
             "Failed to remove app member from role assignment",
             $"[AzManService] Removed app member '{appGroupName}' from role assignment '{roleName}'");
     }
@@ -270,7 +283,7 @@ internal sealed class RoleManagement
             storePath,
             appName,
             roleDefinitionName,
-            task => task.AddOperation(operationName),
+            task => task.AddOperation(operationName, Variant.Missing),
             "Failed to add operation to role definition",
             $"[AzManService] Added operation '{operationName}' to role definition '{roleDefinitionName}'");
     }
@@ -284,7 +297,7 @@ internal sealed class RoleManagement
             storePath,
             appName,
             roleDefinitionName,
-            task => task.DeleteOperation(operationName),
+            task => task.DeleteOperation(operationName, Variant.Missing),
             "Failed to remove operation from role definition",
             $"[AzManService] Removed operation '{operationName}' from role definition '{roleDefinitionName}'");
     }
@@ -298,7 +311,7 @@ internal sealed class RoleManagement
             storePath,
             appName,
             roleDefinitionName,
-            task => task.Description = description,
+            task => task.put_Description(description),
             "Failed to update role definition",
             $"[AzManService] Updated role definition '{roleDefinitionName}'");
     }
@@ -312,7 +325,7 @@ internal sealed class RoleManagement
             storePath,
             appName,
             roleName,
-            role => role.Description = description,
+            role => role.put_Description(description),
             "Failed to update role assignment",
             $"[AzManService] Updated role assignment '{roleName}'");
     }
@@ -379,5 +392,3 @@ internal sealed class RoleManagement
         }
     }
 }
-
-

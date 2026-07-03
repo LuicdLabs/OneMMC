@@ -1,8 +1,9 @@
-﻿// ============================================================================
+// ============================================================================
 // AzMan Service - Main Class
 // ============================================================================
 // Provides services for interacting with Windows Authorization Manager (AzMan) COM API.
-// Uses COM Interop through AzRoles.AzAuthorizationStore object to manage authorization policies.
+// Uses source-generated COM interop (Native/AzRolesNative.cs) over the
+// AzRoles.AzAuthorizationStore coclass to manage authorization policies.
 //
 // Supported store types:
 // - XML files (msxml://)
@@ -26,6 +27,8 @@
 // - Managers/ExportImportManagement.cs - Export and import policy operations
 // - Readers/AzManReaders.cs           - Reader helper methods
 // - Infrastructure/AzManInfrastructure.cs - Common helper methods
+// - Native/AzRolesNative.cs           - Source-generated COM interfaces (vtable order from typelib)
+// - Native/AzRolesCom.cs              - Activation + marshalling helpers
 // - AzManException.cs                 - Exception class
 // ============================================================================
 
@@ -34,6 +37,7 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using OneMMC.Core.Features.UserSecurity.Models.AzMan;
+using OneMMC.Core.Features.UserSecurity.Services.AzMan.Native;
 using Microsoft.Extensions.Logging;
 
 namespace OneMMC.Core.Features.UserSecurity.Services.AzMan;
@@ -45,48 +49,21 @@ public partial class AzManService : IDisposable
 {
     #region COM Constants
 
-    // AzMan COM ProgID
-    internal const string AZ_AUTHORIZATION_STORE_PROGID = "AzRoles.AzAuthorizationStore";
-
     // AzMan initialization flags
     internal const int AZ_AZSTORE_FLAG_CREATE = 1;
     internal const int AZ_AZSTORE_FLAG_MANAGE_STORE_ONLY = 0;
     internal const int AZ_AZSTORE_FLAG_BATCH_UPDATE = 4;
-    private const int AZ_AZSTORE_FLAG_AUDIT_IS_CRITICAL = 8;
 
     // AzMan group types (COM API values)
     internal const int AZ_GROUPTYPE_LDAP_QUERY = 1;
     internal const int AZ_GROUPTYPE_BASIC = 2;
     internal const int AZ_GROUPTYPE_BIZRULE = 3;
 
-    // AzMan property IDs (reserved for future use)
-    private const int AZ_PROP_NAME = 1;
-    private const int AZ_PROP_DESCRIPTION = 2;
-    private const int AZ_PROP_WRITABLE = 3;
-    private const int AZ_PROP_APPLICATION_DATA = 4;
-    private const int AZ_PROP_GENERATE_AUDITS = 5;
-    private const int AZ_PROP_AZSTORE_DOMAIN_TIMEOUT = 100;
-    private const int AZ_PROP_AZSTORE_SCRIPT_ENGINE_TIMEOUT = 101;
-    private const int AZ_PROP_AZSTORE_MAX_SCRIPT_ENGINES = 102;
-    private const int AZ_PROP_AZSTORE_MAJOR_VERSION = 103;
-    private const int AZ_PROP_AZSTORE_MINOR_VERSION = 104;
-    private const int AZ_PROP_AZSTORE_TARGET_MACHINE = 105;
-    private const int AZ_PROP_OPERATION_ID = 200;
-    private const int AZ_PROP_TASK_IS_ROLE_DEFINITION = 300;
-    private const int AZ_PROP_TASK_OPERATIONS = 301;
-    private const int AZ_PROP_TASK_BIZRULE = 302;
-    private const int AZ_PROP_TASK_BIZRULE_LANGUAGE = 303;
-    private const int AZ_PROP_TASK_BIZRULE_IMPORTED_PATH = 304;
-    private const int AZ_PROP_GROUP_TYPE = 400;
-    private const int AZ_PROP_GROUP_MEMBERS = 401;
-    private const int AZ_PROP_GROUP_NON_MEMBERS = 402;
-    private const int AZ_PROP_GROUP_LDAP_QUERY = 403;
-
     #endregion
 
     #region Fields
 
-    private readonly Dictionary<string, dynamic> _authStores = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, IAzAuthorizationStore3> _authStores = new(StringComparer.OrdinalIgnoreCase);
     private bool _disposed;
     private readonly object _lockObject = new();
     private readonly List<AzAuthorizationStoreInfo> _openedStores = [];
@@ -107,7 +84,6 @@ public partial class AzManService : IDisposable
     public AzManService(ILogger<AzManService> logger)
     {
         _logger = logger;
-        ComPropertyAccessor.ConfigureLogger(logger);
         _comScheduler = new StaTaskScheduler("AzMan COM");
         _comTaskFactory = new TaskFactory(_comScheduler);
         _infrastructure = new AzManInfrastructure(this);
@@ -140,12 +116,12 @@ public partial class AzManService : IDisposable
 
     #region Internal Service Bridges
 
-    internal dynamic? GetAuthStore(string storePath)
+    internal IAzAuthorizationStore3? GetAuthStore(string storePath)
     {
         return _authStores.TryGetValue(storePath, out var store) ? store : null;
     }
 
-    internal void SetAuthStore(string storePath, dynamic store)
+    internal void SetAuthStore(string storePath, IAzAuthorizationStore3 store)
     {
         _authStores[storePath] = store;
     }
@@ -154,7 +130,7 @@ public partial class AzManService : IDisposable
     {
         if (_authStores.TryGetValue(storePath, out var store))
         {
-            try { Marshal.ReleaseComObject(store); } catch { }
+            try { AzRolesCom.Release(store); } catch { }
             _authStores.Remove(storePath);
         }
     }
@@ -170,43 +146,43 @@ public partial class AzManService : IDisposable
     internal void EnsureXmlStoreSchemaV2(string storeUrl) => _infrastructure.EnsureXmlStoreSchemaV2(storeUrl);
     internal void EnsureAdStoreSchemaV2(string storeUrl) => _infrastructure.EnsureAdStoreSchemaV2(storeUrl);
     internal (int MajorVersion, int MinorVersion) ReadAdStoreSchemaVersion(string storeUrl) => _infrastructure.ReadAdStoreSchemaVersion(storeUrl);
-    internal object GetAuthStoreOrThrow(string storePath) => _infrastructure.GetAuthStoreOrThrow(storePath);
+    internal IAzAuthorizationStore3 GetAuthStoreOrThrow(string storePath) => _infrastructure.GetAuthStoreOrThrow(storePath);
     internal Task RunComAsync(Action action) => _infrastructure.RunComAsync(action);
     internal Task<T> RunComAsync<T>(Func<T> func) => _infrastructure.RunComAsync(func);
-    internal Task RunStoreWriteAsync(string storePath, Action<dynamic> action, string errorMessage, string? debugMessage = null)
+    internal Task RunStoreWriteAsync(string storePath, Action<IAzAuthorizationStore3> action, string errorMessage, string? debugMessage = null)
         => _infrastructure.RunStoreWriteAsync(storePath, action, errorMessage, debugMessage);
-    internal Task<T> RunStoreReadAsync<T>(string storePath, Func<object, T> func, string errorMessage)
+    internal Task<T> RunStoreReadAsync<T>(string storePath, Func<IAzAuthorizationStore3, T> func, string errorMessage)
         => _infrastructure.RunStoreReadAsync(storePath, func, errorMessage);
-    internal Task RunApplicationWriteAsync(string storePath, string appName, Action<dynamic> action, string errorMessage, string? debugMessage = null, bool submitStore = false)
+    internal Task RunApplicationWriteAsync(string storePath, string appName, Action<IAzApplication> action, string errorMessage, string? debugMessage = null, bool submitStore = false)
         => _infrastructure.RunApplicationWriteAsync(storePath, appName, action, errorMessage, debugMessage, submitStore);
-    internal Task<T> RunApplicationReadAsync<T>(string storePath, string appName, Func<object, T> func, string errorMessage)
+    internal Task<T> RunApplicationReadAsync<T>(string storePath, string appName, Func<IAzApplication, T> func, string errorMessage)
         => _infrastructure.RunApplicationReadAsync(storePath, appName, func, errorMessage);
-    internal Task RunStoreGroupWriteAsync(string storePath, string groupName, Action<dynamic> action, string errorMessage, string? debugMessage = null, bool submitStore = true)
+    internal Task RunStoreGroupWriteAsync(string storePath, string groupName, Action<IAzApplicationGroup2> action, string errorMessage, string? debugMessage = null, bool submitStore = true)
         => _infrastructure.RunStoreGroupWriteAsync(storePath, groupName, action, errorMessage, debugMessage, submitStore);
-    internal Task RunAppGroupWriteAsync(string storePath, string appName, string groupName, Action<dynamic> action, string errorMessage, string? debugMessage = null, bool submitApp = true)
+    internal Task RunAppGroupWriteAsync(string storePath, string appName, string groupName, Action<IAzApplicationGroup2> action, string errorMessage, string? debugMessage = null, bool submitApp = true)
         => _infrastructure.RunAppGroupWriteAsync(storePath, appName, groupName, action, errorMessage, debugMessage, submitApp);
-    internal Task RunRoleWriteAsync(string storePath, string appName, string roleName, Action<dynamic> action, string errorMessage, string? debugMessage = null)
+    internal Task RunRoleWriteAsync(string storePath, string appName, string roleName, Action<IAzRole> action, string errorMessage, string? debugMessage = null)
         => _infrastructure.RunRoleWriteAsync(storePath, appName, roleName, action, errorMessage, debugMessage);
-    internal Task RunTaskWriteAsync(string storePath, string appName, string taskName, Action<dynamic> action, string errorMessage, string? debugMessage = null)
+    internal Task RunTaskWriteAsync(string storePath, string appName, string taskName, Action<IAzTask> action, string errorMessage, string? debugMessage = null)
         => _infrastructure.RunTaskWriteAsync(storePath, appName, taskName, action, errorMessage, debugMessage);
-    internal Task RunOperationWriteAsync(string storePath, string appName, string operationName, Action<dynamic> action, string errorMessage, string? debugMessage = null)
+    internal Task RunOperationWriteAsync(string storePath, string appName, string operationName, Action<IAzOperation> action, string errorMessage, string? debugMessage = null)
         => _infrastructure.RunOperationWriteAsync(storePath, appName, operationName, action, errorMessage, debugMessage);
-    internal Task RunScopeWriteAsync(string storePath, string appName, string scopeName, Action<dynamic> action, string errorMessage, string? debugMessage = null, bool submitScope = true, bool submitApp = false)
+    internal Task RunScopeWriteAsync(string storePath, string appName, string scopeName, Action<IAzScope> action, string errorMessage, string? debugMessage = null, bool submitScope = true, bool submitApp = false)
         => _infrastructure.RunScopeWriteAsync(storePath, appName, scopeName, action, errorMessage, debugMessage, submitScope, submitApp);
-    internal Task<T> RunScopeReadAsync<T>(string storePath, string appName, string scopeName, Func<object, T> func, string errorMessage)
+    internal Task<T> RunScopeReadAsync<T>(string storePath, string appName, string scopeName, Func<IAzScope, T> func, string errorMessage)
         => _infrastructure.RunScopeReadAsync(storePath, appName, scopeName, func, errorMessage);
     internal static string ExtractStoreName(string path) => AzManInfrastructure.ExtractStoreName(path);
     internal static string GetComErrorMessage(COMException ex) => AzManInfrastructure.GetComErrorMessage(ex);
     internal void TryReadVersionFromXml(string storeUrl, ref AzAuthorizationStoreInfo info) => _infrastructure.TryReadVersionFromXml(storeUrl, ref info);
 
-    internal AzAuthorizationStoreInfo ReadStoreInfo(dynamic store, string storeUrl, AzStoreType storeType) => _readers.ReadStoreInfo(store, storeUrl, storeType);
-    internal AzApplicationInfo? ReadApplicationInfo(object app) => _readers.ReadApplicationInfo(app);
-    internal AzScopeInfo? ReadScopeInfo(object scope) => _readers.ReadScopeInfo(scope);
-    internal AzApplicationGroupInfo? ReadGroupInfo(object group) => _readers.ReadGroupInfo(group);
-    internal AzRoleAssignmentInfo? ReadRoleAssignmentInfo(object role) => _readers.ReadRoleAssignmentInfo(role);
-    internal AzRoleDefinitionInfo? ReadRoleDefinitionFromTask(object task) => _readers.ReadRoleDefinitionFromTask(task);
-    internal AzTaskInfo? ReadTaskInfo(object task) => _readers.ReadTaskInfo(task);
-    internal AzOperationInfo? ReadOperationInfo(object op) => _readers.ReadOperationInfo(op);
+    internal AzAuthorizationStoreInfo ReadStoreInfo(IAzAuthorizationStore3 store, string storeUrl, AzStoreType storeType) => _readers.ReadStoreInfo(store, storeUrl, storeType);
+    internal AzApplicationInfo? ReadApplicationInfo(IAzApplication app) => _readers.ReadApplicationInfo(app);
+    internal AzScopeInfo? ReadScopeInfo(IAzScope scope) => _readers.ReadScopeInfo(scope);
+    internal AzApplicationGroupInfo? ReadGroupInfo(IAzApplicationGroup2 group) => _readers.ReadGroupInfo(group);
+    internal AzRoleAssignmentInfo? ReadRoleAssignmentInfo(IAzRole role) => _readers.ReadRoleAssignmentInfo(role);
+    internal AzRoleDefinitionInfo? ReadRoleDefinitionFromTask(IAzTask task) => _readers.ReadRoleDefinitionFromTask(task);
+    internal AzTaskInfo? ReadTaskInfo(IAzTask task) => _readers.ReadTaskInfo(task);
+    internal AzOperationInfo? ReadOperationInfo(IAzOperation op) => _readers.ReadOperationInfo(op);
 
     #endregion
 
@@ -383,7 +359,7 @@ public partial class AzManService : IDisposable
                 _openedStores.Clear();
             }
 
-            // Release COM objects
+            // Release COM wrappers on their owning STA thread.
             foreach (var store in _authStores.Values)
             {
                 try
@@ -392,7 +368,7 @@ public partial class AzManService : IDisposable
                     {
                         try
                         {
-                            Marshal.ReleaseComObject(store);
+                            AzRolesCom.Release(store);
                         }
                         catch
                         {
@@ -424,5 +400,3 @@ public partial class AzManService : IDisposable
 
     #endregion
 }
-
-

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Runtime.InteropServices;
 
@@ -41,8 +42,10 @@ internal partial struct Variant : IDisposable
     private const ushort VT_R4 = 4;
     private const ushort VT_R8 = 5;
     private const ushort VT_BSTR = 8;
+    private const ushort VT_DISPATCH = 9;
     private const ushort VT_ERROR = 10;
     private const ushort VT_BOOL = 11;
+    private const ushort VT_UNKNOWN = 13;
     private const ushort VT_I1 = 16;
     private const ushort VT_UI1 = 17;
     private const ushort VT_UI2 = 18;
@@ -51,6 +54,8 @@ internal partial struct Variant : IDisposable
     private const ushort VT_UI8 = 21;
     private const ushort VT_INT = 22;
     private const ushort VT_UINT = 23;
+    private const ushort VT_VARIANT = 12;
+    private const ushort VT_ARRAY = 0x2000;
     private const uint DISP_E_PARAMNOTFOUND = 0x80020004;
 
     /// <summary>An explicitly empty variant (<c>VT_EMPTY</c>).</summary>
@@ -106,13 +111,89 @@ internal partial struct Variant : IDisposable
     }
 
     /// <summary>
-    /// Releases any resource the variant owns (BSTR string or object reference) and resets it to
-    /// <c>VT_EMPTY</c>, via the OLE Automation <c>VariantClear</c>. A no-op for non-owning kinds.
+    /// Wraps the object reference carried by a <c>VT_DISPATCH</c>/<c>VT_UNKNOWN</c> variant as the
+    /// source-generated COM interface <typeparamref name="TInterface"/> (a new <c>UniqueInstance</c>
+    /// wrapper owning its own reference — release it via <see cref="ComActivator.Release"/>), or
+    /// <see langword="null"/> for a null reference or any other variant kind. The variant keeps its own
+    /// reference; the caller still must <see cref="Clear"/>/<see cref="Dispose"/> it.
+    /// </summary>
+    internal readonly TInterface? ToComInterface<TInterface>() where TInterface : class
+    {
+        if ((_vt & VT_TYPEMASK) is not (VT_DISPATCH or VT_UNKNOWN) || _value == 0)
+        {
+            return null;
+        }
+
+        object wrapper = ComActivator.ComWrappers.GetOrCreateObjectForComInstance(_value, CreateObjectFlags.UniqueInstance);
+        return (TInterface)wrapper;
+    }
+
+    /// <summary>
+    /// Reads a <c>VT_ARRAY</c> variant holding a one-dimensional SAFEARRAY of VARIANTs or BSTRs (the
+    /// shape OLE Automation APIs use for "array of strings" properties) into a string list, rendering
+    /// each element via <see cref="ToInvariantString"/> semantics and skipping empty/null elements.
+    /// Returns an empty list for non-array variants. Does not free the array — the caller still owns
+    /// the variant and must <see cref="Clear"/>/<see cref="Dispose"/> it.
+    /// </summary>
+    internal readonly List<string> ToStringList()
+    {
+        var result = new List<string>();
+        if ((_vt & VT_ARRAY) == 0 || _value == 0)
+        {
+            return result;
+        }
+
+        if (SafeArrayGetLBound(_value, 1, out int lower) != 0 ||
+            SafeArrayGetUBound(_value, 1, out int upper) != 0)
+        {
+            return result;
+        }
+
+        ushort elementType = (ushort)(_vt & VT_TYPEMASK);
+        for (int i = lower; i <= upper; i++)
+        {
+            if (elementType == VT_VARIANT)
+            {
+                // SafeArrayGetElement copies the element into the caller's (VT_EMPTY-initialized)
+                // variant; the copy is ours to clear.
+                Variant element = default;
+                if (SafeArrayGetElement(_value, in i, ref element) == 0)
+                {
+                    string? text = element.ToInvariantString();
+                    element.Clear();
+                    if (!string.IsNullOrEmpty(text))
+                    {
+                        result.Add(text);
+                    }
+                }
+            }
+            else if (elementType == VT_BSTR)
+            {
+                // For BSTR arrays the function hands back a freshly allocated copy the caller frees.
+                nint bstr = 0;
+                if (SafeArrayGetElement(_value, in i, ref bstr) == 0 && bstr != 0)
+                {
+                    string text = Marshal.PtrToStringBSTR(bstr);
+                    Marshal.FreeBSTR(bstr);
+                    if (!string.IsNullOrEmpty(text))
+                    {
+                        result.Add(text);
+                    }
+                }
+            }
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Releases any resource the variant owns (BSTR string, object reference, or SAFEARRAY) and resets
+    /// it to <c>VT_EMPTY</c>, via the OLE Automation <c>VariantClear</c>. A no-op for non-owning kinds.
     /// </summary>
     internal void Clear()
     {
-        // VariantClear tolerates every VARTYPE (frees BSTR / Releases IDispatch|IUnknown / ignores
-        // scalars), so it is correct for both caller-built [in] variants and returned [out] variants.
+        // VariantClear tolerates every VARTYPE (frees BSTR/SAFEARRAY / Releases IDispatch|IUnknown /
+        // ignores scalars), so it is correct for both caller-built [in] variants and returned [out] variants.
         VariantClear(ref this);
     }
 
@@ -121,4 +202,16 @@ internal partial struct Variant : IDisposable
 
     [LibraryImport("oleaut32.dll")]
     private static partial int VariantClear(ref Variant pvarg);
+
+    [LibraryImport("oleaut32.dll")]
+    private static partial int SafeArrayGetLBound(nint psa, uint nDim, out int plLbound);
+
+    [LibraryImport("oleaut32.dll")]
+    private static partial int SafeArrayGetUBound(nint psa, uint nDim, out int plUbound);
+
+    [LibraryImport("oleaut32.dll", EntryPoint = "SafeArrayGetElement")]
+    private static partial int SafeArrayGetElement(nint psa, in int rgIndices, ref Variant pv);
+
+    [LibraryImport("oleaut32.dll", EntryPoint = "SafeArrayGetElement")]
+    private static partial int SafeArrayGetElement(nint psa, in int rgIndices, ref nint pv);
 }

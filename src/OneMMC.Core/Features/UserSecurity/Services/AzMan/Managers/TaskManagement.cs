@@ -1,14 +1,15 @@
-﻿// ============================================================================
+// ============================================================================
 // AzMan Service - Task Management
 // ============================================================================
 // Task management functions: create, delete tasks, manage task operations
 // ============================================================================
 
-using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System;
 using OneMMC.Core.Features.UserSecurity.Models.AzMan;
+using OneMMC.Core.Features.UserSecurity.Services.AzMan.Native;
+using OneMMC.Core.Infrastructure.Interop;
 
 namespace OneMMC.Core.Features.UserSecurity.Services.AzMan;
 
@@ -21,11 +22,11 @@ internal sealed class TaskManagement
         _service = service;
     }
 
-    private Task<T> RunApplicationReadAsync<T>(string storePath, string appName, Func<object, T> func, string errorMessage)
+    private Task<T> RunApplicationReadAsync<T>(string storePath, string appName, Func<IAzApplication, T> func, string errorMessage)
         => _service.RunApplicationReadAsync(storePath, appName, func, errorMessage);
-    private Task RunApplicationWriteAsync(string storePath, string appName, Action<dynamic> action, string errorMessage, string? debugMessage = null, bool submitStore = false)
+    private Task RunApplicationWriteAsync(string storePath, string appName, Action<IAzApplication> action, string errorMessage, string? debugMessage = null, bool submitStore = false)
         => _service.RunApplicationWriteAsync(storePath, appName, action, errorMessage, debugMessage, submitStore);
-    private Task RunTaskWriteAsync(string storePath, string appName, string taskName, Action<dynamic> action, string errorMessage, string? debugMessage = null)
+    private Task RunTaskWriteAsync(string storePath, string appName, string taskName, Action<IAzTask> action, string errorMessage, string? debugMessage = null)
         => _service.RunTaskWriteAsync(storePath, appName, taskName, action, errorMessage, debugMessage);
 
     #region Task Management
@@ -42,14 +43,20 @@ internal sealed class TaskManagement
         return await RunApplicationReadAsync(
             storePath,
             appName,
-            appObj =>
+            app =>
             {
-                dynamic app = appObj;
-                dynamic task = app.CreateTask(name);
-                task.Description = description;
-                task.IsRoleDefinition = false;
-                task.Submit();
-                app.Submit();
+                app.CreateTask(name, Variant.Missing, out IAzTask task);
+                try
+                {
+                    task.put_Description(description);
+                    task.put_IsRoleDefinition(AzRolesCom.FromBool(false));
+                    task.Submit(0, Variant.Missing);
+                    app.Submit(0, Variant.Missing);
+                }
+                finally
+                {
+                    AzRolesCom.Release(task);
+                }
 
                 return new AzTaskInfo
                 {
@@ -69,7 +76,7 @@ internal sealed class TaskManagement
         await RunApplicationWriteAsync(
             storePath,
             appName,
-            app => app.DeleteTask(taskName),
+            app => app.DeleteTask(taskName, Variant.Missing),
             "Failed to delete task");
     }
 
@@ -82,7 +89,7 @@ internal sealed class TaskManagement
             storePath,
             appName,
             taskName,
-            task => task.AddOperation(operationName),
+            task => task.AddOperation(operationName, Variant.Missing),
             "Failed to add operation to task");
     }
 
@@ -95,7 +102,7 @@ internal sealed class TaskManagement
             storePath,
             appName,
             taskName,
-            task => task.DeleteOperation(operationName),
+            task => task.DeleteOperation(operationName, Variant.Missing),
             "Failed to remove operation from task");
     }
 
@@ -110,10 +117,10 @@ internal sealed class TaskManagement
             taskName,
             task =>
             {
-                task.Description = description;
+                task.put_Description(description);
                 if (!string.IsNullOrEmpty(applicationData))
                 {
-                    task.ApplicationData = applicationData;
+                    task.put_ApplicationData(applicationData);
                 }
             },
             "Failed to update task",
@@ -129,7 +136,7 @@ internal sealed class TaskManagement
             storePath,
             appName,
             taskName,
-            task => task.AddTask(linkedTaskName),
+            task => task.AddTask(linkedTaskName, Variant.Missing),
             "Failed to add task link",
             $"[AzManService] Added task link '{linkedTaskName}' to task '{taskName}'");
     }
@@ -143,7 +150,7 @@ internal sealed class TaskManagement
             storePath,
             appName,
             taskName,
-            task => task.DeleteTask(linkedTaskName),
+            task => task.DeleteTask(linkedTaskName, Variant.Missing),
             "Failed to remove task link",
             $"[AzManService] Removed task link '{linkedTaskName}' from task '{taskName}'");
     }
@@ -169,8 +176,8 @@ internal sealed class TaskManagement
             task =>
             {
                 // Set language first, then script
-                task.BizRuleLanguage = bizRuleLanguage;
-                task.BizRule = bizRule;
+                task.put_BizRuleLanguage(bizRuleLanguage);
+                task.put_BizRule(bizRule);
             },
             "Failed to set task business rule",
             $"[AzManService] Set business rule for task '{taskName}'");
@@ -188,8 +195,8 @@ internal sealed class TaskManagement
             task =>
             {
                 // Clear script first, then language
-                task.BizRule = "";
-                task.BizRuleLanguage = "";
+                task.put_BizRule("");
+                task.put_BizRuleLanguage("");
             },
             "Failed to clear task business rule",
             $"[AzManService] Cleared business rule for task '{taskName}'");
@@ -214,9 +221,9 @@ internal sealed class TaskManagement
             taskName,
             task =>
             {
-                task.BizRuleLanguage = bizRuleLanguage;
-                task.BizRule = bizRule;
-                task.BizRuleImportedPath = filePath;
+                task.put_BizRuleLanguage(bizRuleLanguage);
+                task.put_BizRule(bizRule);
+                task.put_BizRuleImportedPath(filePath);
             },
             "Failed to import task business rule",
             $"[AzManService] Imported business rule for task '{taskName}' from '{filePath}'");
@@ -249,5 +256,3 @@ internal sealed class TaskManagement
 
     #endregion
 }
-
-

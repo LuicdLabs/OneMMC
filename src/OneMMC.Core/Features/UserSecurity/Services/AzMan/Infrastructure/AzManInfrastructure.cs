@@ -1,4 +1,4 @@
-﻿// ============================================================================
+// ============================================================================
 // AzMan Service - Helper Methods
 // ============================================================================
 // Helper methods: type conversion, error handling, path processing, etc.
@@ -6,13 +6,14 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.DirectoryServices;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
+using OneMMC.Core.Features.UserSecurity.Services.AzMan.Native;
+using OneMMC.Core.Infrastructure.Interop;
 using OneMMC.Core.Localization;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -159,10 +160,10 @@ internal sealed class AzManInfrastructure
     /// </summary>
     /// <remarks>
     /// <para>
-    /// AzRoles COM does NOT natively expose <c>MajorVersion</c>/<c>MinorVersion</c> for 
-    /// AD stores via its COM properties on the <c>IAzAuthorizationStore</c> object directly 
+    /// AzRoles COM does NOT natively expose <c>MajorVersion</c>/<c>MinorVersion</c> for
+    /// AD stores via its COM properties on the <c>IAzAuthorizationStore</c> object directly
     /// (it will always yield <c>1.0</c> if queried dynamically).
-    /// To accurately reflect the stored schema, we read the version attributes directly from 
+    /// To accurately reflect the stored schema, we read the version attributes directly from
     /// the directory using <see cref="System.DirectoryServices.DirectoryEntry"/>.
     /// </para>
     /// </remarks>
@@ -197,7 +198,7 @@ internal sealed class AzManInfrastructure
                 if (entry.Properties.Contains(majorName) && entry.Properties[majorName].Value != null)
                 {
                     major = Convert.ToInt32(entry.Properties[majorName].Value);
-                    
+
                     if (entry.Properties.Contains(minorName) && entry.Properties[minorName].Value != null)
                     {
                         minor = Convert.ToInt32(entry.Properties[minorName].Value);
@@ -214,12 +215,12 @@ internal sealed class AzManInfrastructure
             _logger.LogDebug(
                 "[AzManService] No version attributes found via ADSI for {StoreUrl}. Returning default (1.0).",
                 storeUrl);
-                
+
             return (major, minor);
         }
         catch (System.DirectoryServices.ActiveDirectory.ActiveDirectoryOperationException ex)
         {
-            _logger.LogWarning(ex, 
+            _logger.LogWarning(ex,
                 "[AzManService] Unable to connect to Active Directory for {StoreUrl}. This computer may not be joined to a domain. Returning (1, 0).",
                 storeUrl);
             return (1, 0);
@@ -239,17 +240,12 @@ internal sealed class AzManInfrastructure
     /// </summary>
     private bool TryUpgradeAdStoreViaDedicatedHandle(string storeUrl)
     {
-        var comType = Type.GetTypeFromProgID(AzManService.AZ_AUTHORIZATION_STORE_PROGID);
-        if (comType == null)
-            return false;
-
-        object? tempStore = null;
+        IAzAuthorizationStore3? tempStore = null;
         try
         {
-            tempStore = Activator.CreateInstance(comType)!;
-            dynamic dynStore = tempStore;
-            dynStore.Initialize(AzManService.AZ_AZSTORE_FLAG_MANAGE_STORE_ONLY, storeUrl);
-            dynStore.UpgradeStoresFunctionalLevel(AZ_AZSTORE_NT6_POLICY_LEVEL);
+            tempStore = AzRolesCom.CreateStore();
+            tempStore.Initialize(AzManService.AZ_AZSTORE_FLAG_MANAGE_STORE_ONLY, storeUrl, Variant.Missing);
+            tempStore.UpgradeStoresFunctionalLevel(AZ_AZSTORE_NT6_POLICY_LEVEL);
             return true;
         }
         catch (Exception ex)
@@ -262,7 +258,7 @@ internal sealed class AzManInfrastructure
         finally
         {
             if (tempStore != null)
-                try { Marshal.ReleaseComObject(tempStore); } catch { }
+                try { AzRolesCom.Release(tempStore); } catch { }
         }
     }
 
@@ -367,7 +363,7 @@ internal sealed class AzManInfrastructure
         }
         catch (System.DirectoryServices.ActiveDirectory.ActiveDirectoryOperationException ex)
         {
-            _logger.LogWarning(ex, 
+            _logger.LogWarning(ex,
                 "[AzManService] Unable to connect to Active Directory for {StoreUrl}. This computer may not be joined to a domain.",
                 storeUrl);
             throw new AzManException(
@@ -384,7 +380,7 @@ internal sealed class AzManInfrastructure
     /// <summary>
     /// Get the current authorization store, ensuring it is open.
     /// </summary>
-    internal object GetAuthStoreOrThrow(string storePath)
+    internal IAzAuthorizationStore3 GetAuthStoreOrThrow(string storePath)
     {
         EnsureStoreOpen(storePath);
         return _service.GetAuthStore(storePath)!;
@@ -403,7 +399,7 @@ internal sealed class AzManInfrastructure
     /// <summary>
     /// Run a store write operation with lock, error handling, and Submit.
     /// </summary>
-    internal Task RunStoreWriteAsync(string storePath, Action<dynamic> action, string errorMessage, string? debugMessage = null)
+    internal Task RunStoreWriteAsync(string storePath, Action<IAzAuthorizationStore3> action, string errorMessage, string? debugMessage = null)
     {
         return RunComAsync(() =>
         {
@@ -411,9 +407,9 @@ internal sealed class AzManInfrastructure
             {
                 try
                 {
-                    dynamic store = GetAuthStoreOrThrow(storePath);
+                    IAzAuthorizationStore3 store = GetAuthStoreOrThrow(storePath);
                     action(store);
-                    store.Submit();
+                    store.Submit(0, Variant.Missing);
 
                     if (!string.IsNullOrEmpty(debugMessage))
                     {
@@ -435,7 +431,7 @@ internal sealed class AzManInfrastructure
     /// <summary>
     /// Run a store read operation with lock and error handling.
     /// </summary>
-    internal Task<T> RunStoreReadAsync<T>(string storePath, Func<object, T> func, string errorMessage)
+    internal Task<T> RunStoreReadAsync<T>(string storePath, Func<IAzAuthorizationStore3, T> func, string errorMessage)
     {
         return RunComAsync(() =>
         {
@@ -464,7 +460,7 @@ internal sealed class AzManInfrastructure
     internal Task RunApplicationWriteAsync(
         string storePath,
         string appName,
-        Action<dynamic> action,
+        Action<IAzApplication> action,
         string errorMessage,
         string? debugMessage = null,
         bool submitStore = false)
@@ -475,21 +471,21 @@ internal sealed class AzManInfrastructure
             {
                 try
                 {
-                    dynamic store = GetAuthStoreOrThrow(storePath);
-                    dynamic app = store.OpenApplication(appName);
+                    IAzAuthorizationStore3 store = GetAuthStoreOrThrow(storePath);
+                    store.OpenApplication(appName, Variant.Missing, out IAzApplication app);
                     try
                     {
                         action(app);
-                        app.Submit();
+                        app.Submit(0, Variant.Missing);
                     }
                     finally
                     {
-                        ComPropertyAccessor.ReleaseComObject(app);
+                        AzRolesCom.Release(app);
                     }
 
                     if (submitStore)
                     {
-                        store.Submit();
+                        store.Submit(0, Variant.Missing);
                     }
 
                     if (!string.IsNullOrEmpty(debugMessage))
@@ -512,7 +508,7 @@ internal sealed class AzManInfrastructure
     /// <summary>
     /// Run an application read operation with lock and error handling.
     /// </summary>
-    internal Task<T> RunApplicationReadAsync<T>(string storePath, string appName, Func<object, T> func, string errorMessage)
+    internal Task<T> RunApplicationReadAsync<T>(string storePath, string appName, Func<IAzApplication, T> func, string errorMessage)
     {
         return RunComAsync(() =>
         {
@@ -520,15 +516,15 @@ internal sealed class AzManInfrastructure
             {
                 try
                 {
-                    dynamic store = GetAuthStoreOrThrow(storePath);
-                    object app = store.OpenApplication(appName);
+                    IAzAuthorizationStore3 store = GetAuthStoreOrThrow(storePath);
+                    store.OpenApplication(appName, Variant.Missing, out IAzApplication app);
                     try
                     {
                         return func(app);
                     }
                     finally
                     {
-                        ComPropertyAccessor.ReleaseComObject(app);
+                        AzRolesCom.Release(app);
                     }
                 }
                 catch (COMException ex)
@@ -549,7 +545,7 @@ internal sealed class AzManInfrastructure
     internal Task RunStoreGroupWriteAsync(
         string storePath,
         string groupName,
-        Action<dynamic> action,
+        Action<IAzApplicationGroup2> action,
         string errorMessage,
         string? debugMessage = null,
         bool submitStore = true)
@@ -560,21 +556,21 @@ internal sealed class AzManInfrastructure
             {
                 try
                 {
-                    dynamic store = GetAuthStoreOrThrow(storePath);
-                    dynamic group = store.OpenApplicationGroup(groupName);
+                    IAzAuthorizationStore3 store = GetAuthStoreOrThrow(storePath);
+                    store.OpenApplicationGroup(groupName, Variant.Missing, out IAzApplicationGroup2 group);
                     try
                     {
                         action(group);
-                        group.Submit();
+                        group.Submit(0, Variant.Missing);
                     }
                     finally
                     {
-                        ComPropertyAccessor.ReleaseComObject(group);
+                        AzRolesCom.Release(group);
                     }
 
                     if (submitStore)
                     {
-                        store.Submit();
+                        store.Submit(0, Variant.Missing);
                     }
 
                     if (!string.IsNullOrEmpty(debugMessage))
@@ -601,7 +597,7 @@ internal sealed class AzManInfrastructure
         string storePath,
         string appName,
         string groupName,
-        Action<dynamic> action,
+        Action<IAzApplicationGroup2> action,
         string errorMessage,
         string? debugMessage = null,
         bool submitApp = true)
@@ -612,23 +608,24 @@ internal sealed class AzManInfrastructure
             {
                 try
                 {
-                    dynamic store = GetAuthStoreOrThrow(storePath);
-                    dynamic app = store.OpenApplication(appName);
-                    dynamic group = app.OpenApplicationGroup(groupName);
+                    IAzAuthorizationStore3 store = GetAuthStoreOrThrow(storePath);
+                    store.OpenApplication(appName, Variant.Missing, out IAzApplication app);
+                    IAzApplicationGroup2? group = null;
                     try
                     {
+                        app.OpenApplicationGroup(groupName, Variant.Missing, out group);
                         action(group);
-                        group.Submit();
+                        group.Submit(0, Variant.Missing);
 
                         if (submitApp)
                         {
-                            app.Submit();
+                            app.Submit(0, Variant.Missing);
                         }
                     }
                     finally
                     {
-                        ComPropertyAccessor.ReleaseComObject(group);
-                        ComPropertyAccessor.ReleaseComObject(app);
+                        AzRolesCom.Release(group);
+                        AzRolesCom.Release(app);
                     }
 
                     if (!string.IsNullOrEmpty(debugMessage))
@@ -655,7 +652,7 @@ internal sealed class AzManInfrastructure
         string storePath,
         string appName,
         string roleName,
-        Action<dynamic> action,
+        Action<IAzRole> action,
         string errorMessage,
         string? debugMessage = null)
     {
@@ -665,19 +662,20 @@ internal sealed class AzManInfrastructure
             {
                 try
                 {
-                    dynamic store = GetAuthStoreOrThrow(storePath);
-                    dynamic app = store.OpenApplication(appName);
-                    dynamic role = app.OpenRole(roleName);
+                    IAzAuthorizationStore3 store = GetAuthStoreOrThrow(storePath);
+                    store.OpenApplication(appName, Variant.Missing, out IAzApplication app);
+                    IAzRole? role = null;
                     try
                     {
+                        app.OpenRole(roleName, Variant.Missing, out role);
                         action(role);
-                        role.Submit();
-                        app.Submit();
+                        role.Submit(0, Variant.Missing);
+                        app.Submit(0, Variant.Missing);
                     }
                     finally
                     {
-                        ComPropertyAccessor.ReleaseComObject(role);
-                        ComPropertyAccessor.ReleaseComObject(app);
+                        AzRolesCom.Release(role);
+                        AzRolesCom.Release(app);
                     }
 
                     if (!string.IsNullOrEmpty(debugMessage))
@@ -704,7 +702,7 @@ internal sealed class AzManInfrastructure
         string storePath,
         string appName,
         string taskName,
-        Action<dynamic> action,
+        Action<IAzTask> action,
         string errorMessage,
         string? debugMessage = null)
     {
@@ -714,19 +712,20 @@ internal sealed class AzManInfrastructure
             {
                 try
                 {
-                    dynamic store = GetAuthStoreOrThrow(storePath);
-                    dynamic app = store.OpenApplication(appName);
-                    dynamic task = app.OpenTask(taskName);
+                    IAzAuthorizationStore3 store = GetAuthStoreOrThrow(storePath);
+                    store.OpenApplication(appName, Variant.Missing, out IAzApplication app);
+                    IAzTask? task = null;
                     try
                     {
+                        app.OpenTask(taskName, Variant.Missing, out task);
                         action(task);
-                        task.Submit();
-                        app.Submit();
+                        task.Submit(0, Variant.Missing);
+                        app.Submit(0, Variant.Missing);
                     }
                     finally
                     {
-                        ComPropertyAccessor.ReleaseComObject(task);
-                        ComPropertyAccessor.ReleaseComObject(app);
+                        AzRolesCom.Release(task);
+                        AzRolesCom.Release(app);
                     }
 
                     if (!string.IsNullOrEmpty(debugMessage))
@@ -753,7 +752,7 @@ internal sealed class AzManInfrastructure
         string storePath,
         string appName,
         string operationName,
-        Action<dynamic> action,
+        Action<IAzOperation> action,
         string errorMessage,
         string? debugMessage = null)
     {
@@ -763,19 +762,20 @@ internal sealed class AzManInfrastructure
             {
                 try
                 {
-                    dynamic store = GetAuthStoreOrThrow(storePath);
-                    dynamic app = store.OpenApplication(appName);
-                    dynamic operation = app.OpenOperation(operationName);
+                    IAzAuthorizationStore3 store = GetAuthStoreOrThrow(storePath);
+                    store.OpenApplication(appName, Variant.Missing, out IAzApplication app);
+                    IAzOperation? operation = null;
                     try
                     {
+                        app.OpenOperation(operationName, Variant.Missing, out operation);
                         action(operation);
-                        operation.Submit();
-                        app.Submit();
+                        operation.Submit(0, Variant.Missing);
+                        app.Submit(0, Variant.Missing);
                     }
                     finally
                     {
-                        ComPropertyAccessor.ReleaseComObject(operation);
-                        ComPropertyAccessor.ReleaseComObject(app);
+                        AzRolesCom.Release(operation);
+                        AzRolesCom.Release(app);
                     }
 
                     if (!string.IsNullOrEmpty(debugMessage))
@@ -802,7 +802,7 @@ internal sealed class AzManInfrastructure
         string storePath,
         string appName,
         string scopeName,
-        Action<dynamic> action,
+        Action<IAzScope> action,
         string errorMessage,
         string? debugMessage = null,
         bool submitScope = true,
@@ -814,27 +814,28 @@ internal sealed class AzManInfrastructure
             {
                 try
                 {
-                    dynamic store = GetAuthStoreOrThrow(storePath);
-                    dynamic app = store.OpenApplication(appName);
-                    dynamic scope = app.OpenScope(scopeName);
+                    IAzAuthorizationStore3 store = GetAuthStoreOrThrow(storePath);
+                    store.OpenApplication(appName, Variant.Missing, out IAzApplication app);
+                    IAzScope? scope = null;
                     try
                     {
+                        app.OpenScope(scopeName, Variant.Missing, out scope);
                         action(scope);
 
                         if (submitScope)
                         {
-                            scope.Submit();
+                            scope.Submit(0, Variant.Missing);
                         }
 
                         if (submitApp)
                         {
-                            app.Submit();
+                            app.Submit(0, Variant.Missing);
                         }
                     }
                     finally
                     {
-                        ComPropertyAccessor.ReleaseComObject(scope);
-                        ComPropertyAccessor.ReleaseComObject(app);
+                        AzRolesCom.Release(scope);
+                        AzRolesCom.Release(app);
                     }
 
                     if (!string.IsNullOrEmpty(debugMessage))
@@ -857,7 +858,7 @@ internal sealed class AzManInfrastructure
     /// <summary>
     /// Run a scope read operation with lock and error handling.
     /// </summary>
-    internal Task<T> RunScopeReadAsync<T>(string storePath, string appName, string scopeName, Func<object, T> func, string errorMessage)
+    internal Task<T> RunScopeReadAsync<T>(string storePath, string appName, string scopeName, Func<IAzScope, T> func, string errorMessage)
     {
         return RunComAsync(() =>
         {
@@ -865,17 +866,18 @@ internal sealed class AzManInfrastructure
             {
                 try
                 {
-                    dynamic store = GetAuthStoreOrThrow(storePath);
-                    dynamic app = store.OpenApplication(appName);
-                    object scope = app.OpenScope(scopeName);
+                    IAzAuthorizationStore3 store = GetAuthStoreOrThrow(storePath);
+                    store.OpenApplication(appName, Variant.Missing, out IAzApplication app);
+                    IAzScope? scope = null;
                     try
                     {
+                        app.OpenScope(scopeName, Variant.Missing, out scope);
                         return func(scope);
                     }
                     finally
                     {
-                        ComPropertyAccessor.ReleaseComObject(scope);
-                        ComPropertyAccessor.ReleaseComObject(app);
+                        AzRolesCom.Release(scope);
+                        AzRolesCom.Release(app);
                     }
                 }
                 catch (COMException ex)
@@ -998,7 +1000,3 @@ internal sealed class AzManInfrastructure
 
     #endregion
 }
-
-
-
-
