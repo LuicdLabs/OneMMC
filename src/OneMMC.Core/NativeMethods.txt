@@ -13,6 +13,7 @@ ChangeServiceConfig2
 CloseHandle
 ClosePrinter
 CloseServiceHandle
+CoCreateInstance
 CM_Get_Device_ID
 CM_Locate_DevNode
 CM_Reenumerate_DevNode
