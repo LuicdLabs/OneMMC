@@ -22,7 +22,9 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
+using System.Runtime.InteropServices.Marshalling;
 using System.Security.Principal;
+using OneMMC.Core.Infrastructure.Interop;
 using Windows.Win32.Foundation;
 using Win32Com = Windows.Win32.System.Com;
 using Win32PInvoke = Windows.Win32.PInvoke;
@@ -140,19 +142,45 @@ public sealed class DirectoryObjectPickerOptions
 /// other security principals. This is the same dialog shown by
 /// <c>secpol.msc</c>, <c>services.msc</c>, and other OneMMC.
 /// </summary>
-public static class DirectoryObjectPickerService
+public static partial class DirectoryObjectPickerService
 {
     private static readonly Guid CLSID_DsObjectPicker = new("17D6CCD8-3B7B-11D2-B9E0-00C04FD8DBF7");
 
-    [ComImport, Guid("0C87E64E-3B7A-11D2-B9E0-00C04FD8DBF7")]
-    [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-    private interface IDsObjectPicker
+    // Source-generated ([GeneratedComInterface]) ports of IDsObjectPicker and the minimal IDataObject
+    // surface OneMMC uses, for Native AOT (doc/NativeAotMigration.md, M3). Both are pure IUnknown-derived
+    // (non-dual), so no IDispatch base. Activated via ComActivator (CoCreateInstance + ComWrappers)
+    // rather than Type.GetTypeFromCLSID + Activator.CreateInstance (unsupported under AOT).
+    // Nested types used in [GeneratedComInterface] signatures must be at least `internal` so the
+    // interop source generator's emitted code can reference them (SYSLIB1090).
+    [GeneratedComInterface, Guid("0C87E64E-3B7A-11D2-B9E0-00C04FD8DBF7")]
+    internal partial interface IDsObjectPicker
     {
         [PreserveSig]
         int Initialize(ref DSOP_INIT_INFO pInitInfo);
 
         [PreserveSig]
-        int InvokeDialog(IntPtr hwndParent, out IDataObject? ppdoSelections);
+        int InvokeDialog(nint hwndParent, out IDsSelectionDataObject ppdoSelections);
+    }
+
+    /// <summary>Minimal <c>IDataObject</c>: only <c>GetData</c> (the first vtable slot after IUnknown)
+    /// is called, to retrieve the <c>CFSTR_DSOP_DS_SELECTION_LIST</c> selection blob.</summary>
+    [GeneratedComInterface, Guid("0000010E-0000-0000-C000-000000000046")]
+    internal partial interface IDsSelectionDataObject
+    {
+        [PreserveSig]
+        int GetData(in FORMATETC_Native pformatetcIn, out NativeStorageMediumRaw pmedium);
+    }
+
+    /// <summary>Blittable FORMATETC. The BCL <see cref="FORMATETC"/> carries <c>[MarshalAs]</c> on its
+    /// enum fields, so it cannot be used directly in a source-generated COM signature.</summary>
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct FORMATETC_Native
+    {
+        public short cfFormat;
+        public IntPtr ptd;
+        public uint dwAspect;
+        public int lindex;
+        public uint tymed;
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -183,7 +211,7 @@ public static class DirectoryObjectPickerService
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    private struct DSOP_INIT_INFO
+    internal struct DSOP_INIT_INFO
     {
         public uint cbSize;
         public IntPtr pwzTargetComputer;
@@ -261,9 +289,12 @@ public static class DirectoryObjectPickerService
     private const string CFSTR_DSOP_DS_SELECTION_LIST = "CFSTR_DSOP_DS_SELECTION_LIST";
 
     [StructLayout(LayoutKind.Sequential)]
-    private struct NativeStorageMediumRaw
+    internal struct NativeStorageMediumRaw
     {
-        public Win32Com.TYMED tymed;
+        // TYMED as a plain uint (4-byte ABI, same as the CsWin32 TYMED enum) so the COM source
+        // generator accepts this struct as an `out` parameter; it is reinterpreted to the CsWin32
+        // Win32 STGMEDIUM projection in ReleaseStorageMedium, and only `unionmember` is read here.
+        public uint tymed;
         public IntPtr unionmember;
         public IntPtr pUnkForRelease;
     }
@@ -288,7 +319,7 @@ public static class DirectoryObjectPickerService
     /// Shows the Windows native Directory Object Picker dialog to select
     /// users, groups, or other directory objects.
     /// </summary>
-    public static List<DirectoryObject>? ShowDialog(
+    public static unsafe List<DirectoryObject>? ShowDialog(
         IntPtr ownerHwnd,
         DirectoryObjectPickerOptions options)
     {
@@ -301,31 +332,19 @@ public static class DirectoryObjectPickerService
 
         try
         {
-            var pickerType = Type.GetTypeFromCLSID(CLSID_DsObjectPicker, throwOnError: false);
-            if (pickerType is null)
-            {
-                return null;
-            }
-
-            object? comObj = Activator.CreateInstance(pickerType);
-            picker = comObj as IDsObjectPicker;
-            if (picker is null)
-            {
-                if (comObj is not null)
-                {
-                    Marshal.ReleaseComObject(comObj);
-                }
-
-                return null;
-            }
+            // CoCreateInstance via ComActivator; throws COMException (e.g. REGDB_E_CLASSNOTREG) when the
+            // picker coclass is unavailable, which the catch below turns into null.
+            picker = ComActivator.CreateInstance<IDsObjectPicker>(CLSID_DsObjectPicker);
 
             var scopes = BuildScopes(options, out int scopeCount);
-            int scopeSize = Marshal.SizeOf<DSOP_SCOPE_INIT_INFO>();
+            int scopeSize = Unsafe.SizeOf<DSOP_SCOPE_INIT_INFO>();
             pScopeInfos = Marshal.AllocHGlobal(scopeSize * scopeCount);
 
+            // Blittable struct array → unmanaged buffer via a Span (no reflection-based Marshal.StructureToPtr).
+            var scopeSpan = new Span<DSOP_SCOPE_INIT_INFO>((void*)pScopeInfos, scopeCount);
             for (int i = 0; i < scopeCount; i++)
             {
-                Marshal.StructureToPtr(scopes[i], pScopeInfos + (i * scopeSize), false);
+                scopeSpan[i] = scopes[i];
             }
 
             pAttributeString = Marshal.StringToHGlobalUni("objectSid");
@@ -334,7 +353,7 @@ public static class DirectoryObjectPickerService
 
             var initInfo = new DSOP_INIT_INFO
             {
-                cbSize = (uint)Marshal.SizeOf<DSOP_INIT_INFO>(),
+                cbSize = (uint)Unsafe.SizeOf<DSOP_INIT_INFO>(),
                 pwzTargetComputer = IntPtr.Zero,
                 cDsScopeInfos = (uint)scopeCount,
                 aDsScopeInfos = pScopeInfos,
@@ -382,10 +401,7 @@ public static class DirectoryObjectPickerService
                 Marshal.FreeHGlobal(pScopeInfos);
             }
 
-            if (picker is not null)
-            {
-                Marshal.ReleaseComObject(picker);
-            }
+            ComActivator.Release(picker);
         }
     }
 
@@ -423,7 +439,7 @@ public static class DirectoryObjectPickerService
         {
             scopes.Add(new DSOP_SCOPE_INIT_INFO
             {
-                cbSize = (uint)Marshal.SizeOf<DSOP_SCOPE_INIT_INFO>(),
+                cbSize = (uint)Unsafe.SizeOf<DSOP_SCOPE_INIT_INFO>(),
                 flType = DSOP_SCOPE_TYPE_TARGET_COMPUTER,
                 flScope = BuildScopeFlags(wantWinNt: true, wantLdap: false),
                 FilterFlags = new DSOP_FILTER_FLAGS
@@ -463,7 +479,7 @@ public static class DirectoryObjectPickerService
         {
             scopes.Add(new DSOP_SCOPE_INIT_INFO
             {
-                cbSize = (uint)Marshal.SizeOf<DSOP_SCOPE_INIT_INFO>(),
+                cbSize = (uint)Unsafe.SizeOf<DSOP_SCOPE_INIT_INFO>(),
                 flType = domainScopeTypes,
                 flScope = BuildScopeFlags(wantWinNt: true, wantLdap: true),
                 FilterFlags = new DSOP_FILTER_FLAGS
@@ -481,7 +497,7 @@ public static class DirectoryObjectPickerService
         {
             scopes.Add(new DSOP_SCOPE_INIT_INFO
             {
-                cbSize = (uint)Marshal.SizeOf<DSOP_SCOPE_INIT_INFO>(),
+                cbSize = (uint)Unsafe.SizeOf<DSOP_SCOPE_INIT_INFO>(),
                 flType = DSOP_SCOPE_TYPE_TARGET_COMPUTER,
                 flScope = BuildScopeFlags(wantWinNt: true, wantLdap: false),
                 FilterFlags = new DSOP_FILTER_FLAGS
@@ -592,10 +608,10 @@ public static class DirectoryObjectPickerService
         return flags;
     }
 
-    private static unsafe List<DirectoryObject>? ExtractSelections(IDataObject dataObject)
+    private static unsafe List<DirectoryObject>? ExtractSelections(IDsSelectionDataObject dataObject)
     {
         IntPtr pData = IntPtr.Zero;
-        var medium = new STGMEDIUM();
+        NativeStorageMediumRaw medium = default;
 
         try
         {
@@ -605,16 +621,19 @@ public static class DirectoryObjectPickerService
                 return null;
             }
 
-            var formatEtc = new FORMATETC
+            var formatEtc = new FORMATETC_Native
             {
                 cfFormat = (short)cfFormat,
                 ptd = IntPtr.Zero,
-                dwAspect = DVASPECT.DVASPECT_CONTENT,
+                dwAspect = (uint)DVASPECT.DVASPECT_CONTENT,
                 lindex = -1,
-                tymed = TYMED.TYMED_HGLOBAL,
+                tymed = (uint)TYMED.TYMED_HGLOBAL,
             };
 
-            dataObject.GetData(ref formatEtc, out medium);
+            if (dataObject.GetData(in formatEtc, out medium) != S_OK)
+            {
+                return null;
+            }
 
             pData = (IntPtr)Win32PInvoke.GlobalLock((HGLOBAL)medium.unionmember);
             if (pData == IntPtr.Zero)
@@ -622,20 +641,20 @@ public static class DirectoryObjectPickerService
                 return null;
             }
 
-            uint cItems = (uint)Marshal.ReadInt32(pData, 0);
+            uint cItems = (uint)Unsafe.ReadUnaligned<int>((void*)pData);
             if (cItems == 0)
             {
                 return [];
             }
 
-            int selectionSize = Marshal.SizeOf<DS_SELECTION>();
+            int selectionSize = Unsafe.SizeOf<DS_SELECTION>();
             int headerSize = 8;
 
             var results = new List<DirectoryObject>((int)cItems);
 
             for (int i = 0; i < cItems; i++)
             {
-                var selection = Marshal.PtrToStructure<DS_SELECTION>(pData + headerSize + (i * selectionSize));
+                var selection = Unsafe.Read<DS_SELECTION>((void*)(pData + headerSize + (i * selectionSize)));
 
                 string name = ReadString(selection.pwzName);
                 string adsPath = ReadString(selection.pwzADsPath);
@@ -674,29 +693,32 @@ public static class DirectoryObjectPickerService
                 ReleaseStorageMedium(ref medium);
             }
 
-            Marshal.ReleaseComObject(dataObject);
+            ComActivator.Release(dataObject);
         }
     }
 
-    private static void ReleaseStorageMedium(ref STGMEDIUM medium)
+    private static void ReleaseStorageMedium(ref NativeStorageMediumRaw medium)
     {
-        // IDataObject uses the BCL STGMEDIUM definition, while CsWin32 generates its own Win32 projection.
-        // Reinterpret the layout once so we can release the storage with the generated API safely.
-        ref NativeStorageMediumRaw nativeRaw = ref Unsafe.As<STGMEDIUM, NativeStorageMediumRaw>(ref medium);
-        ref Win32Com.STGMEDIUM nativeMedium = ref Unsafe.As<NativeStorageMediumRaw, Win32Com.STGMEDIUM>(ref nativeRaw);
+        // Our blittable NativeStorageMediumRaw is layout-identical to the CsWin32 Win32 STGMEDIUM
+        // projection; reinterpret once to release the storage with the generated API.
+        ref Win32Com.STGMEDIUM nativeMedium = ref Unsafe.As<NativeStorageMediumRaw, Win32Com.STGMEDIUM>(ref medium);
         Win32PInvoke.ReleaseStgMedium(ref nativeMedium);
     }
 
 
 
-    private static string ExtractFetchedSid(IntPtr pvarFetchedAttributes)
+    private static unsafe string ExtractFetchedSid(IntPtr pvarFetchedAttributes)
     {
         if (pvarFetchedAttributes == IntPtr.Zero) return string.Empty;
 
         try
         {
-            object? obj = Marshal.GetObjectForNativeVariant(pvarFetchedAttributes);
-            if (obj is byte[] sidBytes && sidBytes.Length > 0)
+            // The fetched "objectSid" attribute comes back as a VARIANT holding a SAFEARRAY of bytes.
+            // Read it through the blittable Variant (no reflection-based Marshal.GetObjectForNativeVariant).
+            // The VARIANT is owned by the selection blob, so read only — do not Clear it.
+            Variant variant = Unsafe.Read<Variant>((void*)pvarFetchedAttributes);
+            byte[]? sidBytes = variant.ToByteArray();
+            if (sidBytes is { Length: > 0 })
             {
                 return new SecurityIdentifier(sidBytes, 0).Value;
             }

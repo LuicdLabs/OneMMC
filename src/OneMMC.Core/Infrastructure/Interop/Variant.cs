@@ -187,6 +187,47 @@ internal partial struct Variant : IDisposable
     }
 
     /// <summary>
+    /// Reads a <c>VT_ARRAY | VT_UI1</c> variant (a SAFEARRAY of bytes — the shape a fetched binary
+    /// attribute such as <c>objectSid</c> comes back as) into a byte array, or <see langword="null"/>
+    /// for any other kind. Does not free the variant — the caller keeps ownership.
+    /// </summary>
+    internal readonly byte[]? ToByteArray()
+    {
+        if ((_vt & VT_ARRAY) == 0 || (_vt & VT_TYPEMASK) != VT_UI1 || _value == 0)
+        {
+            return null;
+        }
+
+        if (SafeArrayGetLBound(_value, 1, out int lower) != 0 ||
+            SafeArrayGetUBound(_value, 1, out int upper) != 0)
+        {
+            return null;
+        }
+
+        int count = upper - lower + 1;
+        if (count <= 0)
+        {
+            return null;
+        }
+
+        if (SafeArrayAccessData(_value, out nint pData) != 0 || pData == 0)
+        {
+            return null;
+        }
+
+        try
+        {
+            var result = new byte[count];
+            Marshal.Copy(pData, result, 0, count);
+            return result;
+        }
+        finally
+        {
+            SafeArrayUnaccessData(_value);
+        }
+    }
+
+    /// <summary>
     /// Releases any resource the variant owns (BSTR string, object reference, or SAFEARRAY) and resets
     /// it to <c>VT_EMPTY</c>, via the OLE Automation <c>VariantClear</c>. A no-op for non-owning kinds.
     /// </summary>
@@ -214,4 +255,10 @@ internal partial struct Variant : IDisposable
 
     [LibraryImport("oleaut32.dll", EntryPoint = "SafeArrayGetElement")]
     private static partial int SafeArrayGetElement(nint psa, in int rgIndices, ref nint pv);
+
+    [LibraryImport("oleaut32.dll")]
+    private static partial int SafeArrayAccessData(nint psa, out nint ppvData);
+
+    [LibraryImport("oleaut32.dll")]
+    private static partial int SafeArrayUnaccessData(nint psa);
 }
