@@ -116,6 +116,15 @@ internal partial struct Variant : IDisposable
     internal readonly ushort VarType => _vt;
 
     /// <summary>
+    /// The variant's raw 8-byte value slot (offset 8): the inline scalar bits for value kinds, or the
+    /// pointer for <c>VT_BSTR</c> (BSTR), <c>VT_UNKNOWN</c>/<c>VT_DISPATCH</c> (the interface pointer),
+    /// and <c>VT_ARRAY</c> (the SAFEARRAY). Exposed for the classic-WMI (<c>IWbemClassObject</c>) layer,
+    /// which boxes a returned VARIANT to the CLR type dictated by the property's CIMTYPE (WMI stores both
+    /// <c>CIM_UINT16</c> and <c>CIM_UINT32</c> as <c>VT_I4</c>, so VARTYPE alone is insufficient).
+    /// </summary>
+    internal readonly nint RawValue => _value;
+
+    /// <summary>
     /// Renders the variant's scalar value as an invariant-culture string, mirroring the previous
     /// reflection/RCW behaviour (<c>Convert.ToString(value, CultureInfo.InvariantCulture)</c>) so callers
     /// that string-compare COM property values keep matching. Returns <see langword="null"/> for

@@ -1,0 +1,274 @@
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Runtime.InteropServices;
+using OneMMC.Core.Infrastructure.Interop;
+using Windows.Win32.Foundation;
+using Windows.Win32.System.Variant;
+using Windows.Win32.System.Wmi;
+
+namespace OneMMC.Core.Features.SystemManagement.Infrastructure.WF.Wbem;
+
+/// <summary>
+/// Managed wrapper over a classic-WMI <c>IWbemClassObject*</c> — the marshal-free, Native-AOT-compatible
+/// replacement for <c>Microsoft.Management.Infrastructure.CimInstance</c> in the Windows Firewall feature.
+/// Owns exactly one reference on the underlying object and releases it on <see cref="Dispose"/>.
+/// <para>
+/// Property reads go through <see cref="GetValue"/>, which boxes the returned VARIANT to the same CLR type
+/// the old <c>CimInstance</c> exposed (driven by the property's CIMTYPE — see <see cref="WbemCimType"/>),
+/// so the many <c>value switch</c> / <c>is T[]</c> consumers keep matching. Embedded objects and embedded
+/// object arrays (e.g. IKE <c>Proposals</c>) surface as further <see cref="WbemObject"/>s.
+/// </para>
+/// </summary>
+internal sealed unsafe partial class WbemObject : IDisposable
+{
+    private IWbemClassObject* _object;
+
+    internal WbemObject(IWbemClassObject* obj) => _object = obj;
+
+    /// <summary>The raw pointer (never null for a live wrapper); for the session's write/associator calls.</summary>
+    internal IWbemClassObject* Pointer => _object;
+
+    /// <summary>The object's WMI class name (<c>__CLASS</c> system property).</summary>
+    internal string? ClassName => GetValue("__CLASS") as string;
+
+    /// <summary>The object's full WMI path (<c>__PATH</c> system property) — used for associator queries and delete.</summary>
+    internal string? Path => GetValue("__PATH") as string;
+
+    /// <summary>
+    /// Reads the named property, returning the value boxed to the CLR type the old <c>CimInstance</c>
+    /// produced, or <see langword="null"/> when the property is absent or NULL — matching the old
+    /// <c>CimInstanceProperties[name]?.Value</c> indexer (an unknown name degrades to <see langword="null"/>
+    /// via the returned HRESULT, with no first-chance <see cref="COMException"/>).
+    /// </summary>
+    internal object? GetValue(string name)
+    {
+        Variant variant = default;
+        int cimType = 0;
+        HRESULT hr;
+        fixed (char* pName = name)
+        {
+            hr = RawGet(_object, (PCWSTR)pName, (VARIANT*)&variant, &cimType);
+        }
+
+        if (hr.Failed)
+        {
+            return null;
+        }
+
+        try
+        {
+            ushort vt = (ushort)(variant.VarType & 0x0FFF);
+            if (vt is 0 or 1) // VT_EMPTY / VT_NULL
+            {
+                return null;
+            }
+
+            if (WbemCimType.IsArray(cimType))
+            {
+                return ConvertArray(variant, WbemCimType.BaseType(cimType));
+            }
+
+            int baseType = WbemCimType.BaseType(cimType);
+            return baseType == WbemCimType.CIM_OBJECT
+                ? WrapEmbedded(variant.RawValue)
+                : ConvertScalar(variant, baseType);
+        }
+        finally
+        {
+            variant.Clear();
+        }
+    }
+
+    /// <summary>Boxes a scalar VARIANT to the CLR type dictated by <paramref name="cimType"/>.</summary>
+    private static object? ConvertScalar(in Variant variant, int cimType)
+    {
+        nint raw = variant.RawValue;
+        return cimType switch
+        {
+            WbemCimType.CIM_BOOLEAN => (short)raw != 0,
+            WbemCimType.CIM_UINT8 => (byte)raw,
+            WbemCimType.CIM_SINT8 => (sbyte)raw,
+            WbemCimType.CIM_UINT16 => (ushort)raw,
+            WbemCimType.CIM_SINT16 => (short)raw,
+            WbemCimType.CIM_UINT32 => (uint)raw,
+            WbemCimType.CIM_SINT32 => (int)raw,
+            WbemCimType.CIM_REAL32 => BitConverter.Int32BitsToSingle((int)raw),
+            WbemCimType.CIM_REAL64 => BitConverter.Int64BitsToDouble(raw),
+            WbemCimType.CIM_CHAR16 => (char)(ushort)raw,
+            // WMI returns 64-bit integers as VT_BSTR; parse to the CimInstance CLR type.
+            WbemCimType.CIM_UINT64 => ParseUInt64(raw),
+            WbemCimType.CIM_SINT64 => ParseInt64(raw),
+            // Strings, datetimes (DMTF string) and references all come back as BSTR.
+            WbemCimType.CIM_STRING or WbemCimType.CIM_DATETIME or WbemCimType.CIM_REFERENCE
+                => raw == 0 ? null : Marshal.PtrToStringBSTR(raw),
+            // Unknown/illegal — fall back to the invariant scalar rendering.
+            _ => variant.ToInvariantString()
+        };
+    }
+
+    /// <summary>Boxes a raw integer array element to the CLR type its CIMTYPE base implies (matching CimInstance).</summary>
+    private static object BoxNumeric(long raw, int cimBase) => cimBase switch
+    {
+        WbemCimType.CIM_BOOLEAN => raw != 0,
+        WbemCimType.CIM_UINT8 => (byte)raw,
+        WbemCimType.CIM_SINT8 => (sbyte)raw,
+        WbemCimType.CIM_UINT16 => (ushort)raw,
+        WbemCimType.CIM_SINT16 => (short)raw,
+        WbemCimType.CIM_UINT32 => (uint)raw,
+        WbemCimType.CIM_SINT32 => (int)raw,
+        WbemCimType.CIM_UINT64 => (ulong)raw,
+        WbemCimType.CIM_SINT64 => raw,
+        WbemCimType.CIM_REAL32 => BitConverter.Int32BitsToSingle((int)raw),
+        WbemCimType.CIM_REAL64 => BitConverter.Int64BitsToDouble(raw),
+        WbemCimType.CIM_CHAR16 => (char)(ushort)raw,
+        _ => raw
+    };
+
+    private static object ParseUInt64(nint bstr)
+        => bstr != 0 && ulong.TryParse(Marshal.PtrToStringBSTR(bstr), NumberStyles.Integer, CultureInfo.InvariantCulture, out ulong v) ? v : 0UL;
+
+    private static object ParseInt64(nint bstr)
+        => bstr != 0 && long.TryParse(Marshal.PtrToStringBSTR(bstr), NumberStyles.Integer, CultureInfo.InvariantCulture, out long v) ? v : 0L;
+
+    /// <summary>
+    /// Reads an array-typed VARIANT into the CLR array the old <c>CimInstance</c> produced: a
+    /// <see cref="string"/>[] for string arrays, a <see cref="WbemObject"/>[] for embedded-object arrays
+    /// (e.g. IKE <c>Proposals</c>), or an <see cref="object"/>[] of boxed scalars otherwise.
+    /// </summary>
+    private static object? ConvertArray(in Variant variant, int baseType)
+    {
+        nint psa = variant.RawValue;
+        if (psa == 0 || SafeArrayGetLBound(psa, 1, out int lower) != 0 || SafeArrayGetUBound(psa, 1, out int upper) != 0)
+        {
+            return null;
+        }
+
+        int count = upper - lower + 1;
+        if (count <= 0)
+        {
+            return baseType == WbemCimType.CIM_OBJECT ? Array.Empty<WbemObject>()
+                 : baseType == WbemCimType.CIM_STRING ? Array.Empty<string>()
+                 : Array.Empty<object>();
+        }
+
+        if (baseType == WbemCimType.CIM_OBJECT)
+        {
+            var result = new WbemObject[count];
+            for (int i = lower, j = 0; i <= upper; i++, j++)
+            {
+                // SafeArrayGetElement AddRefs each IUnknown element into our copy; we own it.
+                nint punk = 0;
+                result[j] = SafeArrayGetElement(psa, in i, ref punk) == 0 && punk != 0
+                    ? new WbemObject((IWbemClassObject*)punk)
+                    : null!;
+            }
+            return result;
+        }
+
+        if (baseType == WbemCimType.CIM_STRING || baseType == WbemCimType.CIM_DATETIME || baseType == WbemCimType.CIM_REFERENCE)
+        {
+            var result = new string[count];
+            for (int i = lower, j = 0; i <= upper; i++, j++)
+            {
+                nint bstr = 0;
+                if (SafeArrayGetElement(psa, in i, ref bstr) == 0 && bstr != 0)
+                {
+                    result[j] = Marshal.PtrToStringBSTR(bstr);
+                    Marshal.FreeBSTR(bstr);
+                }
+                else
+                {
+                    result[j] = string.Empty;
+                }
+            }
+            return result;
+        }
+
+        // Numeric/boolean arrays: the SAFEARRAY holds fixed-size elements (e.g. VT_ARRAY|VT_I4 for a
+        // CIM uint16[]), NOT 24-byte VARIANTs, so read the raw buffer by element width and box each value
+        // to the CIMTYPE CLR type the old CimInstance produced.
+        int elementVt = variant.VarType & 0x0FFF;
+        int elementSize = elementVt switch
+        {
+            2 or 18 or 11 => 2,          // VT_I2 / VT_UI2 / VT_BOOL
+            16 or 17 => 1,               // VT_I1 / VT_UI1
+            20 or 21 or 5 => 8,          // VT_I8 / VT_UI8 / VT_R8
+            _ => 4                        // VT_I4 / VT_UI4 / VT_R4 / VT_INT / VT_UINT
+        };
+
+        var objects = new object?[count];
+        if (SafeArrayAccessData(psa, out nint pData) == 0 && pData != 0)
+        {
+            try
+            {
+                for (int j = 0; j < count; j++)
+                {
+                    long raw = elementSize switch
+                    {
+                        1 => Marshal.ReadByte(pData, j),
+                        2 => Marshal.ReadInt16(pData, j * 2),
+                        8 => Marshal.ReadInt64(pData, j * 8),
+                        _ => Marshal.ReadInt32(pData, j * 4)
+                    };
+                    objects[j] = BoxNumeric(raw, baseType);
+                }
+            }
+            finally
+            {
+                SafeArrayUnaccessData(psa);
+            }
+        }
+        return objects;
+    }
+
+    /// <summary>Wraps the IUnknown carried by a scalar embedded-object VARIANT as a new owned <see cref="WbemObject"/>.</summary>
+    private static WbemObject? WrapEmbedded(nint punk)
+    {
+        if (punk == 0)
+        {
+            return null;
+        }
+
+        // The VARIANT still owns its reference and will Release it on Clear(); take our own AddRef so the
+        // returned wrapper's lifetime is independent.
+        Marshal.AddRef(punk);
+        return new WbemObject((IWbemClassObject*)punk);
+    }
+
+    public void Dispose()
+    {
+        if (_object is not null)
+        {
+            Marshal.Release((nint)_object);
+            _object = null;
+        }
+    }
+
+    /// <summary>
+    /// Non-throwing <c>IWbemClassObject::Get</c> (vtable slot 4 — fixed by the COM contract: IUnknown 0–2,
+    /// GetQualifierSet 3, Get 4). Called directly rather than via the throwing friendly wrapper so an
+    /// absent property name degrades to <c>WBEM_E_NOT_FOUND</c> → <see langword="null"/> (matching the old
+    /// <c>CimInstance</c> indexer) with no first-chance <see cref="COMException"/>.
+    /// </summary>
+    private static HRESULT RawGet(IWbemClassObject* obj, PCWSTR name, VARIANT* value, int* cimType)
+    {
+        void** vtbl = *(void***)obj;
+        return ((delegate* unmanaged[Stdcall]<IWbemClassObject*, PCWSTR, int, VARIANT*, int*, int*, HRESULT>)vtbl[4])(obj, name, 0, value, cimType, null);
+    }
+
+    [LibraryImport("oleaut32.dll")]
+    private static partial int SafeArrayGetLBound(nint psa, uint nDim, out int plLbound);
+
+    [LibraryImport("oleaut32.dll")]
+    private static partial int SafeArrayGetUBound(nint psa, uint nDim, out int plUbound);
+
+    [LibraryImport("oleaut32.dll", EntryPoint = "SafeArrayGetElement")]
+    private static partial int SafeArrayGetElement(nint psa, in int rgIndices, ref nint pv);
+
+    [LibraryImport("oleaut32.dll")]
+    private static partial int SafeArrayAccessData(nint psa, out nint ppvData);
+
+    [LibraryImport("oleaut32.dll")]
+    private static partial int SafeArrayUnaccessData(nint psa);
+}

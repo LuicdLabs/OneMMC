@@ -57,6 +57,12 @@ GlobalLock
 GlobalUnlock
 GetVolumeNameForVolumeMountPoint
 IsValidSid
+IWbemLocator
+IWbemServices
+IWbemClassObject
+IWbemContext
+IEnumWbemClassObject
+WbemLocator
 LoadLibraryEx
 LoadString
 LocalFree
