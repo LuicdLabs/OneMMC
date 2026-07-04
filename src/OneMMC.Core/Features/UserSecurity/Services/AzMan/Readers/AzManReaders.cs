@@ -32,7 +32,7 @@ internal sealed class AzManReaders
 
     #region Safe Read Helpers
 
-    private delegate void VariantGetter(out Variant value);
+    private delegate int VariantGetter(out Variant value);
 
     /// <summary>Reads a BSTR property, returning <paramref name="defaultValue"/> on COM failure or null.</summary>
     private string SafeString(Func<string?> getter, string defaultValue = "")
@@ -77,27 +77,23 @@ internal sealed class AzManReaders
     }
 
     /// <summary>
-    /// Reads a VARIANT(SAFEARRAY-of-strings) property, returning an empty list on COM failure
-    /// (e.g. name resolution needs permissions the caller lacks).
+    /// Reads a VARIANT(SAFEARRAY-of-strings) property, returning an empty list when the property is
+    /// unsupported for the store type. The getters are <c>[PreserveSig]</c>, so an unsupported
+    /// property (e.g. <c>PolicyAdministratorsName</c> on an XML store, which returns
+    /// <c>ERROR_NOT_SUPPORTED</c>) degrades via the returned HRESULT rather than a thrown/caught
+    /// <see cref="COMException"/> — matching the previous IDispatch-Invoke(PreserveSig) reader and
+    /// avoiding first-chance exception noise on every store/application read.
     /// </summary>
-    private List<string> SafeStringList(VariantGetter getter)
+    private static List<string> SafeStringList(VariantGetter getter)
     {
+        int hr = getter(out Variant value);
         try
         {
-            getter(out Variant value);
-            try
-            {
-                return value.ToStringList();
-            }
-            finally
-            {
-                value.Clear();
-            }
+            return hr >= 0 ? value.ToStringList() : [];
         }
-        catch (COMException ex)
+        finally
         {
-            _logger.LogDebug("[AzManService] COM string-array read failed: {Message}", ex.Message);
-            return [];
+            value.Clear();
         }
     }
 

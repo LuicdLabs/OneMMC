@@ -80,13 +80,13 @@ internal partial interface IAzAuthorizationStore3 : IDispatch
     [return: MarshalAs(UnmanagedType.BStr)] string? get_TargetMachine();
     int get_ApplyStoreSacl(); // LONG-typed boolean
     void put_ApplyStoreSacl(int value);
-    void get_PolicyAdministratorsName(out Variant pvarAdmins);
-    void get_PolicyReadersName(out Variant pvarReaders);
+    [PreserveSig] int get_PolicyAdministratorsName(out Variant pvarAdmins);
+    [PreserveSig] int get_PolicyReadersName(out Variant pvarReaders);
     void AddPolicyAdministratorName([MarshalAs(UnmanagedType.BStr)] string bstrAdmin, Variant varReserved);
     void DeletePolicyAdministratorName([MarshalAs(UnmanagedType.BStr)] string bstrAdmin, Variant varReserved);
     void AddPolicyReaderName([MarshalAs(UnmanagedType.BStr)] string bstrReader, Variant varReserved);
     void DeletePolicyReaderName([MarshalAs(UnmanagedType.BStr)] string bstrReader, Variant varReserved);
-    void get_DelegatedPolicyUsersName(out Variant pvarUsers);
+    [PreserveSig] int get_DelegatedPolicyUsersName(out Variant pvarUsers);
     void AddDelegatedPolicyUserName([MarshalAs(UnmanagedType.BStr)] string bstrUser, Variant varReserved);
     void DeleteDelegatedPolicyUserName([MarshalAs(UnmanagedType.BStr)] string bstrUser, Variant varReserved);
     void CloseApplication([MarshalAs(UnmanagedType.BStr)] string bstrApplicationName, int lFlags); // unused (placeholder)
@@ -155,13 +155,13 @@ internal partial interface IAzApplication : IDispatch
     void AddDelegatedPolicyUser([MarshalAs(UnmanagedType.BStr)] string bstrUser, Variant varReserved); // unused (placeholder)
     void DeleteDelegatedPolicyUser([MarshalAs(UnmanagedType.BStr)] string bstrUser, Variant varReserved); // unused (placeholder)
     void InitializeClientContextFromStringSid([MarshalAs(UnmanagedType.BStr)] string sidString, int lOptions, Variant varReserved, out nint ppClientContext); // unused (placeholder, IAzClientContext)
-    void get_PolicyAdministratorsName(out Variant pvarAdmins);
-    void get_PolicyReadersName(out Variant pvarReaders);
+    [PreserveSig] int get_PolicyAdministratorsName(out Variant pvarAdmins);
+    [PreserveSig] int get_PolicyReadersName(out Variant pvarReaders);
     void AddPolicyAdministratorName([MarshalAs(UnmanagedType.BStr)] string bstrAdmin, Variant varReserved);
     void DeletePolicyAdministratorName([MarshalAs(UnmanagedType.BStr)] string bstrAdmin, Variant varReserved);
     void AddPolicyReaderName([MarshalAs(UnmanagedType.BStr)] string bstrReader, Variant varReserved);
     void DeletePolicyReaderName([MarshalAs(UnmanagedType.BStr)] string bstrReader, Variant varReserved);
-    void get_DelegatedPolicyUsersName(out Variant pvarUsers);
+    [PreserveSig] int get_DelegatedPolicyUsersName(out Variant pvarUsers);
     void AddDelegatedPolicyUserName([MarshalAs(UnmanagedType.BStr)] string bstrUser, Variant varReserved);
     void DeleteDelegatedPolicyUserName([MarshalAs(UnmanagedType.BStr)] string bstrUser, Variant varReserved);
 }
@@ -202,8 +202,8 @@ internal partial interface IAzScope : IDispatch
     void Submit(int lFlags, Variant varReserved);
     int get_CanBeDelegated(); // unused (placeholder, LONG-typed boolean)
     int get_BizrulesWritable(); // unused (placeholder, LONG-typed boolean)
-    void get_PolicyAdministratorsName(out Variant pvarAdmins); // unused (placeholder)
-    void get_PolicyReadersName(out Variant pvarReaders); // unused (placeholder)
+    [PreserveSig] int get_PolicyAdministratorsName(out Variant pvarAdmins); // unused (placeholder)
+    [PreserveSig] int get_PolicyReadersName(out Variant pvarReaders); // unused (placeholder)
     void AddPolicyAdministratorName([MarshalAs(UnmanagedType.BStr)] string bstrAdmin, Variant varReserved); // unused (placeholder)
     void DeletePolicyAdministratorName([MarshalAs(UnmanagedType.BStr)] string bstrAdmin, Variant varReserved); // unused (placeholder)
     void AddPolicyReaderName([MarshalAs(UnmanagedType.BStr)] string bstrReader, Variant varReserved); // unused (placeholder)
@@ -220,10 +220,10 @@ internal partial interface IAzApplicationGroup2 : IDispatch
     void put_Type(int value);
     [return: MarshalAs(UnmanagedType.BStr)] string? get_LdapQuery();
     void put_LdapQuery([MarshalAs(UnmanagedType.BStr)] string value);
-    void get_AppMembers(out Variant pvarMembers);
-    void get_AppNonMembers(out Variant pvarNonMembers);
-    void get_Members(out Variant pvarMembers);
-    void get_NonMembers(out Variant pvarNonMembers);
+    [PreserveSig] int get_AppMembers(out Variant pvarMembers);
+    [PreserveSig] int get_AppNonMembers(out Variant pvarNonMembers);
+    [PreserveSig] int get_Members(out Variant pvarMembers);
+    [PreserveSig] int get_NonMembers(out Variant pvarNonMembers);
     [return: MarshalAs(UnmanagedType.BStr)] string? get_Description();
     void put_Description([MarshalAs(UnmanagedType.BStr)] string value);
     void AddAppMember([MarshalAs(UnmanagedType.BStr)] string bstrProp, Variant varReserved);
@@ -244,8 +244,8 @@ internal partial interface IAzApplicationGroup2 : IDispatch
     void DeleteMemberName([MarshalAs(UnmanagedType.BStr)] string bstrProp, Variant varReserved); // unused (placeholder)
     void AddNonMemberName([MarshalAs(UnmanagedType.BStr)] string bstrProp, Variant varReserved); // unused (placeholder)
     void DeleteNonMemberName([MarshalAs(UnmanagedType.BStr)] string bstrProp, Variant varReserved); // unused (placeholder)
-    void get_MembersName(out Variant pvarMembersName);
-    void get_NonMembersName(out Variant pvarNonMembersName);
+    [PreserveSig] int get_MembersName(out Variant pvarMembersName);
+    [PreserveSig] int get_NonMembersName(out Variant pvarNonMembersName);
     [return: MarshalAs(UnmanagedType.BStr)] string? get_BizRule();
     void put_BizRule([MarshalAs(UnmanagedType.BStr)] string value);
     [return: MarshalAs(UnmanagedType.BStr)] string? get_BizRuleLanguage();
@@ -276,16 +276,16 @@ internal partial interface IAzRole : IDispatch
     int get_Writable(); // unused (placeholder, LONG-typed boolean)
     void GetProperty(int lPropId, Variant varReserved, out Variant pvarProp); // unused (placeholder)
     void SetProperty(int lPropId, Variant varProp, Variant varReserved); // unused (placeholder)
-    void get_AppMembers(out Variant pvarMembers);
-    void get_Members(out Variant pvarMembers);
-    void get_Operations(out Variant pvarOperations);
-    void get_Tasks(out Variant pvarTasks);
+    [PreserveSig] int get_AppMembers(out Variant pvarMembers);
+    [PreserveSig] int get_Members(out Variant pvarMembers);
+    [PreserveSig] int get_Operations(out Variant pvarOperations);
+    [PreserveSig] int get_Tasks(out Variant pvarTasks);
     void AddPropertyItem(int lPropId, Variant varProp, Variant varReserved); // unused (placeholder)
     void DeletePropertyItem(int lPropId, Variant varProp, Variant varReserved); // unused (placeholder)
     void Submit(int lFlags, Variant varReserved);
     void AddMemberName([MarshalAs(UnmanagedType.BStr)] string bstrProp, Variant varReserved); // unused (placeholder)
     void DeleteMemberName([MarshalAs(UnmanagedType.BStr)] string bstrProp, Variant varReserved); // unused (placeholder)
-    void get_MembersName(out Variant pvarMembersName);
+    [PreserveSig] int get_MembersName(out Variant pvarMembersName);
 }
 
 /// <summary>An AzMan task (a role definition when IsRoleDefinition is set).</summary>
@@ -306,8 +306,8 @@ internal partial interface IAzTask : IDispatch
     void put_BizRuleImportedPath([MarshalAs(UnmanagedType.BStr)] string value);
     int get_IsRoleDefinition(); // LONG-typed boolean
     void put_IsRoleDefinition(int value);
-    void get_Operations(out Variant pvarOperations);
-    void get_Tasks(out Variant pvarTasks);
+    [PreserveSig] int get_Operations(out Variant pvarOperations);
+    [PreserveSig] int get_Tasks(out Variant pvarTasks);
     void AddOperation([MarshalAs(UnmanagedType.BStr)] string bstrProp, Variant varReserved);
     void DeleteOperation([MarshalAs(UnmanagedType.BStr)] string bstrProp, Variant varReserved);
     void AddTask([MarshalAs(UnmanagedType.BStr)] string bstrProp, Variant varReserved);

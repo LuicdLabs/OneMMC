@@ -50,28 +50,23 @@ internal sealed class ExportImportManagement
         }
     }
 
-    /// <summary>Reads a VARIANT(SAFEARRAY-of-strings) property for copying; empty list on COM failure.</summary>
+    /// <summary>Reads a VARIANT(SAFEARRAY-of-strings) property for copying; empty list when the
+    /// property is unsupported (the getters are <c>[PreserveSig]</c> and return the HRESULT rather
+    /// than throwing).</summary>
     private static List<string> CopyStringList(AzManVariantGetter getter)
     {
+        int hr = getter(out Variant value);
         try
         {
-            getter(out Variant value);
-            try
-            {
-                return value.ToStringList();
-            }
-            finally
-            {
-                value.Clear();
-            }
+            return hr >= 0 ? value.ToStringList() : [];
         }
-        catch (COMException)
+        finally
         {
-            return [];
+            value.Clear();
         }
     }
 
-    private delegate void AzManVariantGetter(out Variant value);
+    private delegate int AzManVariantGetter(out Variant value);
 
     #endregion
 
