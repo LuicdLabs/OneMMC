@@ -326,9 +326,9 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
         /// <summary>
         /// Builds the merged list of definitions:
         /// <list type="number">
-        ///   <item>Parse dynamic entries from <c>sceregvl.inf</c>.</item>
+        ///   <item>Parse the runtime entries from <c>sceregvl.inf</c>.</item>
         ///   <item>
-        ///     If dynamic entries exist, enrich them with metadata from
+        ///     If sceregvl.inf entries exist, enrich them with metadata from
         ///     <see cref="_registryEnrichmentMap"/> (stable keys, resource IDs,
         ///     numeric constraints, etc.) and add special definitions.
         ///   </item>
@@ -356,7 +356,7 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
             var merged = new List<SecurityPolicyDefinition>();
             var coveredRegPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-            // ?? Step 1: dynamic definitions are the primary source ??
+            // ?? Step 1: sceregvl.inf definitions are the primary source ??
             foreach (var dynDef in dynamicDefs)
             {
                 string regPath = $"{dynDef.RegistryKeyPath}\\{dynDef.RegistryValueName}";
@@ -386,7 +386,7 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
             // ?? Step 3: add special non-registry definitions ??
             merged.AddRange(specialDefs);
 
-            _logger.LogDebug($"[SecurityOptionsPolicyProvider] Merged: {dynamicDefs.Count} dynamic + " +
+            _logger.LogDebug($"[SecurityOptionsPolicyProvider] Merged: {dynamicDefs.Count} sceregvl.inf + " +
                             $"{merged.Count - dynamicDefs.Count} extras = {merged.Count} total");
 
             return merged;
@@ -395,15 +395,15 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
         /// <summary>
         /// Enriches a dynamically-parsed definition with metadata from the JSON enrichment.
         /// Display name comes from <c>sceregvl.inf</c> (already resolved via <c>SHLoadIndirectString</c>).
-        /// Falls back to <c>wsecedit.dll</c> resource if the dynamic name is empty.
+        /// Falls back to <c>wsecedit.dll</c> resource if the sceregvl.inf name is empty.
         /// </summary>
-        private static SecurityPolicyDefinition EnrichDefinition(SecurityPolicyDefinition dynamic, PolicyDefinitionDto enrichment)
+        private static SecurityPolicyDefinition EnrichDefinition(SecurityPolicyDefinition dynamicDef, PolicyDefinitionDto enrichment)
         {
             var policyType = ParsePolicyType(enrichment.PolicyType);
 
-            // Display name: prefer dynamic (localized from sceregvl.inf), fall back to wsecedit.dll resource
-            var displayName = !string.IsNullOrEmpty(dynamic.DisplayName)
-                ? dynamic.DisplayName
+            // Display name: prefer the sceregvl.inf name (already localized), fall back to wsecedit.dll resource
+            var displayName = !string.IsNullOrEmpty(dynamicDef.DisplayName)
+                ? dynamicDef.DisplayName
                 : SecurityPolicyResourceLoader.Instance.LoadDisplayName(enrichment.ExplainResourceId) ?? enrichment.Key;
 
             return new SecurityPolicyDefinition
@@ -412,14 +412,14 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
                 DisplayName = displayName,
                 Category = SecurityPolicyCategory.SecurityOptions,
                 PolicyType = policyType,
-                RegistryKeyPath = dynamic.RegistryKeyPath,
-                RegistryValueName = dynamic.RegistryValueName,
+                RegistryKeyPath = dynamicDef.RegistryKeyPath,
+                RegistryValueName = dynamicDef.RegistryValueName,
                 MinValue = enrichment.MinValue,
                 MaxValue = enrichment.MaxValue > 0 ? enrichment.MaxValue : long.MaxValue,
                 Unit = enrichment.Unit ?? string.Empty,
                 // Dropdown options come from sceregvl.inf [Strings], already localized.
                 // Falls back to JSON options with app-resource localization.
-                DropdownOptions = GetEnrichedDropdownOptions(dynamic, enrichment),
+                DropdownOptions = GetEnrichedDropdownOptions(dynamicDef, enrichment),
                 AllowNotDefined = enrichment.AllowNotDefined,
                 ExplainResourceId = enrichment.ExplainResourceId,
                 DataSource = PolicyDataSource.SceRegVl
@@ -428,17 +428,17 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
 
         /// <summary>
         /// Returns the best available dropdown options.
-        /// For <see cref="SecurityPolicyType.BitmaskFlags"/> policies, merges dynamic
+        /// For <see cref="SecurityPolicyType.BitmaskFlags"/> policies, merges sceregvl.inf
         /// options from <c>sceregvl.inf</c> with any additional flags defined in JSON
-        /// (e.g., "Future encryption types"). For other types, prefers dynamic options
+        /// (e.g., "Future encryption types"). For other types, prefers sceregvl.inf options
         /// and falls back to JSON.
         /// </summary>
         private static List<PolicyDropdownOption> GetEnrichedDropdownOptions(
-            SecurityPolicyDefinition dynamic, PolicyDefinitionDto enrichment)
+            SecurityPolicyDefinition dynamicDef, PolicyDefinitionDto enrichment)
         {
-            if (dynamic.DropdownOptions.Count > 0)
+            if (dynamicDef.DropdownOptions.Count > 0)
             {
-                // For BitmaskFlags, merge JSON flags that are missing from the dynamic set.
+                // For BitmaskFlags, merge JSON flags that are missing from the sceregvl.inf set.
                 // This ensures flags like "Future encryption types" (added by secpol.msc
                 // but not always present in sceregvl.inf) are always available.
                 var policyType = Enum.TryParse<SecurityPolicyType>(enrichment.PolicyType, true, out var pt)
@@ -447,7 +447,7 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
                 if (policyType == SecurityPolicyType.BitmaskFlags && enrichment.DropdownOptions?.Count > 0)
                 {
                     var dynamicValues = new HashSet<long>();
-                    foreach (var opt in dynamic.DropdownOptions)
+                    foreach (var opt in dynamicDef.DropdownOptions)
                     {
                         if (opt.Value is long lv) dynamicValues.Add(lv);
                         else if (opt.Value is int iv) dynamicValues.Add(iv);
@@ -466,14 +466,14 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
                     if (extraOptions.Count > 0)
                     {
                         LocalizeDropdownOptions(enrichment.Key, extraOptions);
-                        var merged = new List<PolicyDropdownOption>(dynamic.DropdownOptions);
+                        var merged = new List<PolicyDropdownOption>(dynamicDef.DropdownOptions);
                         merged.AddRange(extraOptions);
                         _logger.LogDebug($"[SecurityOptionsPolicyProvider] Merged {extraOptions.Count} extra BitmaskFlags option(s) from JSON for '{enrichment.Key}'");
                         return merged;
                     }
                 }
 
-                return dynamic.DropdownOptions;
+                return dynamicDef.DropdownOptions;
             }
 
             var options = ConvertDropdownOptions(enrichment.DropdownOptions);
