@@ -53,23 +53,13 @@ public static partial class WindowsFirewallSupport
     private static readonly Dictionary<string, string> WellKnownCapabilitySidByName = BuildCapabilitySidLookup();
     private static readonly Dictionary<string, string> WellKnownCapabilityNameBySid = BuildCapabilityNameLookup();
 
-    internal static INetFwPolicy2 CreatePolicy2()
-    {
-        Type fwPolicy2Type = Type.GetTypeFromProgID("HNetCfg.FwPolicy2")
-            ?? throw new InvalidOperationException("Windows Firewall COM policy object is unavailable.");
+    /// <summary>Creates the Windows Firewall policy COM object (<c>HNetCfg.FwPolicy2</c>) via the
+    /// AOT-safe <see cref="FirewallCom"/> activator.</summary>
+    internal static INetFwPolicy2 CreatePolicy2() => FirewallCom.CreatePolicy2();
 
-        return (INetFwPolicy2)(Activator.CreateInstance(fwPolicy2Type)
-            ?? throw new InvalidOperationException("Failed to create Windows Firewall COM policy object."));
-    }
-
-    internal static INetFwRule3 CreateRule()
-    {
-        Type fwRuleType = Type.GetTypeFromProgID("HNetCfg.FWRule")
-            ?? throw new InvalidOperationException("Windows Firewall COM rule object is unavailable.");
-
-        return (INetFwRule3)(Activator.CreateInstance(fwRuleType)
-            ?? throw new InvalidOperationException("Failed to create Windows Firewall COM rule object."));
-    }
+    /// <summary>Creates a Windows Firewall rule COM object (<c>HNetCfg.FWRule</c>) via the AOT-safe
+    /// <see cref="FirewallCom"/> activator.</summary>
+    internal static INetFwRule3 CreateRule() => FirewallCom.CreateRule();
 
     internal static FirewallRuleProtocol ResolveProtocol(int protocolNumber)
     {
@@ -344,34 +334,6 @@ public static partial class WindowsFirewallSupport
             .ToArray();
 
         return normalized.Length == 0 ? defaultValue : string.Join(", ", normalized);
-    }
-
-    internal static string ReadInterfaceAliases(object? interfacesValue)
-    {
-        if (interfacesValue is null)
-        {
-            return string.Empty;
-        }
-
-        if (interfacesValue is string singleValue)
-        {
-            return NormalizeInterfaceAliases(singleValue);
-        }
-
-        if (interfacesValue is IEnumerable<object> enumerable)
-        {
-            return JoinCsv(enumerable.Select(item => item?.ToString() ?? string.Empty));
-        }
-
-        return interfacesValue.ToString() ?? string.Empty;
-    }
-
-    internal static object? BuildInterfaceAliasesVariant(string? aliases)
-    {
-        string[] parsed = ParseCsv(aliases);
-        // The COM INetFwRule::Interfaces property expects null to mean "all interfaces".
-        // An empty SAFEARRAY is not valid and may throw ArgumentException.
-        return parsed.Length == 0 ? null : parsed;
     }
 
     internal static string NormalizeComStringValue(string? value)

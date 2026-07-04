@@ -77,6 +77,41 @@ internal partial struct Variant : IDisposable
     internal static Variant OptionalString(string? value) =>
         string.IsNullOrEmpty(value) ? Missing : FromString(value);
 
+    /// <summary>
+    /// A <c>VT_ARRAY | VT_BSTR</c> variant wrapping a one-dimensional SAFEARRAY of the given strings
+    /// (dispose to free the array + its BSTRs), or an empty (<c>VT_EMPTY</c>) variant when
+    /// <paramref name="values"/> is null/empty — some OLE-automation setters (e.g. the firewall
+    /// <c>INetFwRule::Interfaces</c>) treat an omitted value as "all" and reject an empty SAFEARRAY.
+    /// </summary>
+    internal static Variant FromStringArray(string[]? values)
+    {
+        if (values is null || values.Length == 0)
+        {
+            return Empty;
+        }
+
+        nint psa = SafeArrayCreateVector(VT_BSTR, 0, (uint)values.Length);
+        if (psa == 0)
+        {
+            return Empty;
+        }
+
+        for (int i = 0; i < values.Length; i++)
+        {
+            nint bstr = Marshal.StringToBSTR(values[i] ?? string.Empty);
+            // SafeArrayPutElement copies the BSTR (SysAllocString), so free our local copy after.
+            int hr = SafeArrayPutElement(psa, in i, in bstr);
+            Marshal.FreeBSTR(bstr);
+            if (hr != 0)
+            {
+                SafeArrayDestroy(psa);
+                return Empty;
+            }
+        }
+
+        return new Variant { _vt = VT_ARRAY | VT_BSTR, _value = psa };
+    }
+
     /// <summary>The variant's raw <c>VARTYPE</c> (including any array/byref flags).</summary>
     internal readonly ushort VarType => _vt;
 
@@ -261,4 +296,13 @@ internal partial struct Variant : IDisposable
 
     [LibraryImport("oleaut32.dll")]
     private static partial int SafeArrayUnaccessData(nint psa);
+
+    [LibraryImport("oleaut32.dll")]
+    private static partial nint SafeArrayCreateVector(ushort vt, int lLbound, uint cElements);
+
+    [LibraryImport("oleaut32.dll")]
+    private static partial int SafeArrayPutElement(nint psa, in int rgIndices, in nint pv);
+
+    [LibraryImport("oleaut32.dll")]
+    private static partial int SafeArrayDestroy(nint psa);
 }

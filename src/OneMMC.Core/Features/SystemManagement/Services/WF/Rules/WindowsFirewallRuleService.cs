@@ -35,20 +35,25 @@ public class WindowsFirewallRuleService
 
         List<FirewallRuleModel> rules = [];
         INetFwPolicy2 policy = WindowsFirewallSupport.CreatePolicy2();
+        int policyModifyState = policy.get_LocalPolicyModifyState();
+        policy.get_Rules(out INetFwRules ruleCollection);
         IReadOnlyDictionary<string, uint> compartmentsByRuleName = FirewallBinaryNativeMethods.GetCompartmentIdsByRuleName();
         int targetDirection = direction == FirewallRuleDirection.Inbound
             ? WindowsFirewallSupport.NetFwRuleDirIn
             : WindowsFirewallSupport.NetFwRuleDirOut;
 
-        foreach (INetFwRule3 rule in policy.Rules)
+        foreach (INetFwRule3 rule in FirewallCom.EnumerateRules(ruleCollection))
         {
-            if ((int)rule.Direction != targetDirection)
+            if (rule.get_Direction() != targetDirection)
             {
+                FirewallCom.Release(rule);
                 continue;
             }
 
-            string rawRuleName = rule.Name ?? string.Empty;
+            string rawRuleName = rule.get_Name() ?? string.Empty;
             string resolvedRuleName = WindowsFirewallSupport.ResolveIndirectString(rawRuleName);
+            int secureFlags = rule.get_SecureFlags();
+            int ruleAction = rule.get_Action();
             var model = new FirewallRuleModel
             {
                 Name = rawRuleName,
@@ -56,33 +61,33 @@ public class WindowsFirewallRuleService
                     ? string.Empty
                     : resolvedRuleName,
                 OriginalName = rawRuleName,
-                Description = WindowsFirewallSupport.ResolveIndirectString(rule.Description ?? string.Empty),
-                Grouping = rule.Grouping ?? string.Empty,
-                DisplayGrouping = WindowsFirewallSupport.ResolveIndirectString(rule.Grouping ?? string.Empty),
-                Enabled = rule.Enabled,
+                Description = WindowsFirewallSupport.ResolveIndirectString(rule.get_Description() ?? string.Empty),
+                Grouping = rule.get_Grouping() ?? string.Empty,
+                DisplayGrouping = WindowsFirewallSupport.ResolveIndirectString(rule.get_Grouping() ?? string.Empty),
+                Enabled = FirewallCom.ToBool(rule.get_Enabled()),
                 Direction = direction,
-                Action = (int)rule.Action == WindowsFirewallSupport.NetFwActionAllow ? FirewallRuleAction.Allow : FirewallRuleAction.Block,
-                ConnectionAction = ((int)rule.Action == WindowsFirewallSupport.NetFwActionBlock)
+                Action = ruleAction == WindowsFirewallSupport.NetFwActionAllow ? FirewallRuleAction.Allow : FirewallRuleAction.Block,
+                ConnectionAction = (ruleAction == WindowsFirewallSupport.NetFwActionBlock)
                     ? FirewallConnectionAction.Block
-                    : ((int)rule.SecureFlags > 0 ? FirewallConnectionAction.AllowIfSecure : FirewallConnectionAction.Allow),
-                Program = rule.ApplicationName ?? string.Empty,
-                ServiceName = rule.serviceName ?? string.Empty,
-                Services = rule.serviceName ?? string.Empty,
-                LocalPort = rule.LocalPorts ?? string.Empty,
-                RemotePort = rule.RemotePorts ?? string.Empty,
-                LocalAddress = rule.LocalAddresses ?? string.Empty,
-                RemoteAddress = rule.RemoteAddresses ?? string.Empty,
-                InterfaceTypes = string.IsNullOrWhiteSpace(rule.InterfaceTypes) ? "All" : rule.InterfaceTypes,
-                Interfaces = WindowsFirewallSupport.ReadInterfaceAliases(rule.Interfaces),
-                IcmpTypesAndCodes = rule.IcmpTypesAndCodes ?? string.Empty,
-                LocalAppPackageId = rule.LocalAppPackageId ?? string.Empty,
-                SecureFlags = rule.SecureFlags,
-                LocalUserAuthorizedList = rule.LocalUserAuthorizedList ?? string.Empty,
-                LocalUserOwner = rule.LocalUserOwner ?? string.Empty,
-                RemoteMachineAuthorizedList = rule.RemoteMachineAuthorizedList ?? string.Empty,
-                RemoteUserAuthorizedList = rule.RemoteUserAuthorizedList ?? string.Empty,
-                EdgeTraversalOptions = rule.EdgeTraversalOptions,
-                PolicyModifyState = (FirewallPolicyModifyState)(int)policy.LocalPolicyModifyState
+                    : (secureFlags > 0 ? FirewallConnectionAction.AllowIfSecure : FirewallConnectionAction.Allow),
+                Program = rule.get_ApplicationName() ?? string.Empty,
+                ServiceName = rule.get_serviceName() ?? string.Empty,
+                Services = rule.get_serviceName() ?? string.Empty,
+                LocalPort = rule.get_LocalPorts() ?? string.Empty,
+                RemotePort = rule.get_RemotePorts() ?? string.Empty,
+                LocalAddress = rule.get_LocalAddresses() ?? string.Empty,
+                RemoteAddress = rule.get_RemoteAddresses() ?? string.Empty,
+                InterfaceTypes = string.IsNullOrWhiteSpace(rule.get_InterfaceTypes()) ? "All" : rule.get_InterfaceTypes(),
+                Interfaces = FirewallCom.ReadInterfaces(rule),
+                IcmpTypesAndCodes = rule.get_IcmpTypesAndCodes() ?? string.Empty,
+                LocalAppPackageId = rule.get_LocalAppPackageId() ?? string.Empty,
+                SecureFlags = secureFlags,
+                LocalUserAuthorizedList = rule.get_LocalUserAuthorizedList() ?? string.Empty,
+                LocalUserOwner = rule.get_LocalUserOwner() ?? string.Empty,
+                RemoteMachineAuthorizedList = rule.get_RemoteMachineAuthorizedList() ?? string.Empty,
+                RemoteUserAuthorizedList = rule.get_RemoteUserAuthorizedList() ?? string.Empty,
+                EdgeTraversalOptions = rule.get_EdgeTraversalOptions(),
+                PolicyModifyState = (FirewallPolicyModifyState)policyModifyState
             };
 
             if (TryGetCompartmentId(compartmentsByRuleName, rawRuleName, resolvedRuleName, out uint compartmentId) &&
@@ -91,16 +96,17 @@ public class WindowsFirewallRuleService
                 model.Compartments = compartmentId.ToString(CultureInfo.InvariantCulture);
             }
 
-            int protocolNumber = rule.Protocol;
+            int protocolNumber = rule.get_Protocol();
             model.ProtocolNumber = protocolNumber == WindowsFirewallSupport.NetFwIpProtocolAny ? 256 : protocolNumber;
             model.Protocol = WindowsFirewallSupport.ResolveProtocol(protocolNumber);
 
-            int profiles = rule.Profiles;
+            int profiles = rule.get_Profiles();
             WindowsFirewallSupport.ApplyProfileMask(model, profiles);
             model.IsRuleGroupEnabled = string.IsNullOrWhiteSpace(model.Grouping)
                 || IsRuleGroupEnabled(model.Grouping, (FirewallRuleProfiles)model.ProfilesMask);
             model.DisplayDescription = WindowsFirewallSupport.BuildRuleDescription(model);
             rules.Add(model);
+            FirewallCom.Release(rule);
         }
 
         return rules
@@ -139,46 +145,54 @@ public class WindowsFirewallRuleService
 
         Dictionary<string, PredefinedFirewallRuleGroup> groups = new(StringComparer.OrdinalIgnoreCase);
         INetFwPolicy2 policy = WindowsFirewallSupport.CreatePolicy2();
+        policy.get_Rules(out INetFwRules ruleCollection);
         int targetDirection = direction == FirewallRuleDirection.Inbound
             ? WindowsFirewallSupport.NetFwRuleDirIn
             : WindowsFirewallSupport.NetFwRuleDirOut;
 
-        foreach (INetFwRule3 rule in policy.Rules)
+        foreach (INetFwRule3 rule in FirewallCom.EnumerateRules(ruleCollection))
         {
-            if ((int)rule.Direction != targetDirection)
+            try
             {
-                continue;
-            }
-
-            string grouping = rule.Grouping ?? string.Empty;
-            if (string.IsNullOrWhiteSpace(grouping))
-            {
-                continue;
-            }
-
-            if (!groups.TryGetValue(grouping, out PredefinedFirewallRuleGroup? group))
-            {
-                group = new PredefinedFirewallRuleGroup
+                if (rule.get_Direction() != targetDirection)
                 {
-                    GroupKey = grouping,
-                    DisplayName = WindowsFirewallSupport.ResolveIndirectString(grouping)
-                };
-                groups[grouping] = group;
-            }
+                    continue;
+                }
 
-            string ruleName = rule.Name ?? string.Empty;
-            if (group.Rules.Any(item => string.Equals(item.RuleName, ruleName, StringComparison.OrdinalIgnoreCase)))
-            {
-                continue;
-            }
+                string grouping = rule.get_Grouping() ?? string.Empty;
+                if (string.IsNullOrWhiteSpace(grouping))
+                {
+                    continue;
+                }
 
-            group.Rules.Add(new PredefinedFirewallRuleItem
+                if (!groups.TryGetValue(grouping, out PredefinedFirewallRuleGroup? group))
+                {
+                    group = new PredefinedFirewallRuleGroup
+                    {
+                        GroupKey = grouping,
+                        DisplayName = WindowsFirewallSupport.ResolveIndirectString(grouping)
+                    };
+                    groups[grouping] = group;
+                }
+
+                string ruleName = rule.get_Name() ?? string.Empty;
+                if (group.Rules.Any(item => string.Equals(item.RuleName, ruleName, StringComparison.OrdinalIgnoreCase)))
+                {
+                    continue;
+                }
+
+                group.Rules.Add(new PredefinedFirewallRuleItem
+                {
+                    RuleName = ruleName,
+                    Name = WindowsFirewallSupport.ResolveIndirectString(ruleName),
+                    Description = WindowsFirewallSupport.ResolveIndirectString(rule.get_Description() ?? string.Empty),
+                    Service = rule.get_serviceName() ?? string.Empty
+                });
+            }
+            finally
             {
-                RuleName = ruleName,
-                Name = WindowsFirewallSupport.ResolveIndirectString(ruleName),
-                Description = WindowsFirewallSupport.ResolveIndirectString(rule.Description ?? string.Empty),
-                Service = rule.serviceName ?? string.Empty
-            });
+                FirewallCom.Release(rule);
+            }
         }
 
         return groups.Values
@@ -193,11 +207,11 @@ public class WindowsFirewallRuleService
             return true;
         }
 
-        dynamic policy = WindowsFirewallSupport.CreatePolicy2();
+        INetFwPolicy2 policy = WindowsFirewallSupport.CreatePolicy2();
         int profileMask = profiles == FirewallRuleProfiles.None
             ? WindowsFirewallSupport.NetFwProfile2All
             : WindowsFirewallSupport.NormalizeProfileMask((int)profiles);
-        return policy.IsRuleGroupEnabled(profileMask, groupName);
+        return FirewallCom.ToBool(policy.IsRuleGroupEnabled(profileMask, groupName));
     }
 
     public void SetRuleGroupEnabled(string groupName, bool enabled, FirewallRuleProfiles profiles = FirewallRuleProfiles.All)
@@ -207,23 +221,23 @@ public class WindowsFirewallRuleService
             return;
         }
 
-        dynamic policy = WindowsFirewallSupport.CreatePolicy2();
+        INetFwPolicy2 policy = WindowsFirewallSupport.CreatePolicy2();
         int profileMask = profiles == FirewallRuleProfiles.None
             ? WindowsFirewallSupport.NetFwProfile2All
             : WindowsFirewallSupport.NormalizeProfileMask((int)profiles);
-        policy.EnableRuleGroup(profileMask, groupName, enabled);
+        policy.EnableRuleGroup(profileMask, groupName, FirewallCom.ToVariantBool(enabled));
         _logger.LogInformation("Set rule group {GroupName} enabled={Enabled}.", groupName, enabled);
     }
 
     public FirewallPolicyModifyState GetLocalPolicyModifyState()
     {
-        dynamic policy = WindowsFirewallSupport.CreatePolicy2();
-        return (FirewallPolicyModifyState)(int)policy.LocalPolicyModifyState;
+        INetFwPolicy2 policy = WindowsFirewallSupport.CreatePolicy2();
+        return (FirewallPolicyModifyState)policy.get_LocalPolicyModifyState();
     }
 
     public void RestoreLocalFirewallDefaults()
     {
-        dynamic policy = WindowsFirewallSupport.CreatePolicy2();
+        INetFwPolicy2 policy = WindowsFirewallSupport.CreatePolicy2();
         policy.RestoreLocalFirewallDefaults();
         _logger.LogWarning("Restored local Windows Firewall defaults.");
     }
@@ -241,7 +255,8 @@ public class WindowsFirewallRuleService
 
         INetFwRule3 fwRule = WindowsFirewallSupport.CreateRule();
         ComApplier.ApplyRuleToComObject(rule, fwRule);
-        policy.Rules.Add(fwRule);
+        policy.get_Rules(out INetFwRules ruleCollection);
+        ruleCollection.Add(fwRule);
         ApplyRuleCompartment(rule);
         _logger.LogInformation("Added Windows Firewall rule {RuleName}.", rule.Name);
     }
@@ -254,7 +269,8 @@ public class WindowsFirewallRuleService
         }
 
         INetFwPolicy2 policy = WindowsFirewallSupport.CreatePolicy2();
-        INetFwRule3? existingRule = LookupHelper.FindRule(policy.Rules, ruleName, ruleName);
+        policy.get_Rules(out INetFwRules ruleCollection);
+        INetFwRule3? existingRule = LookupHelper.FindRule(ruleCollection, ruleName, ruleName);
         if (existingRule is null)
         {
             _logger.LogWarning(
@@ -263,9 +279,9 @@ public class WindowsFirewallRuleService
             throw new InvalidOperationException($"Windows Firewall rule '{ruleName}' was not found.");
         }
 
-        existingRule.Enabled = enabled;
-        INetFwRule3? verifiedRule = LookupHelper.FindRule(policy.Rules, ruleName, ruleName);
-        bool verifiedState = verifiedRule?.Enabled ?? !enabled;
+        existingRule.put_Enabled(FirewallCom.ToVariantBool(enabled));
+        INetFwRule3? verifiedRule = LookupHelper.FindRule(ruleCollection, ruleName, ruleName);
+        bool verifiedState = verifiedRule is null ? !enabled : FirewallCom.ToBool(verifiedRule.get_Enabled());
         if (verifiedState != enabled)
         {
             throw new InvalidOperationException(
@@ -279,10 +295,11 @@ public class WindowsFirewallRuleService
     {
         WindowsFirewallSupport.ValidateRule(rule);
         INetFwPolicy2 policy = WindowsFirewallSupport.CreatePolicy2();
+        policy.get_Rules(out INetFwRules ruleCollection);
 
         if (rule.IsPredefined)
         {
-            INetFwRule3? predefinedRule = LookupHelper.FindRule(policy.Rules, rule.OriginalName, rule.Name);
+            INetFwRule3? predefinedRule = LookupHelper.FindRule(ruleCollection, rule.OriginalName, rule.Name);
             if (predefinedRule is null)
             {
                 _logger.LogWarning(
@@ -298,7 +315,7 @@ public class WindowsFirewallRuleService
             return;
         }
 
-        INetFwRule3? existingRule = LookupHelper.FindRule(policy.Rules, rule.OriginalName, rule.Name);
+        INetFwRule3? existingRule = LookupHelper.FindRule(ruleCollection, rule.OriginalName, rule.Name);
         if (existingRule is null)
         {
             _logger.LogWarning(
@@ -310,7 +327,7 @@ public class WindowsFirewallRuleService
 
         if (LookupHelper.ShouldReplaceRule(existingRule, rule))
         {
-            LookupHelper.ReplaceRule(policy.Rules, existingRule, rule);
+            LookupHelper.ReplaceRule(ruleCollection, existingRule, rule);
         }
         else
         {
@@ -350,7 +367,8 @@ public class WindowsFirewallRuleService
     public void DeleteRule(string ruleName)
     {
         INetFwPolicy2 policy = WindowsFirewallSupport.CreatePolicy2();
-        policy.Rules.Remove(ruleName);
+        policy.get_Rules(out INetFwRules ruleCollection);
+        ruleCollection.Remove(ruleName);
         _logger.LogInformation("Deleted Windows Firewall rule {RuleName}.", ruleName);
     }
 

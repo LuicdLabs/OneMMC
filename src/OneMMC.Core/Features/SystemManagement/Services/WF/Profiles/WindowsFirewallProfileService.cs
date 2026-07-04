@@ -6,6 +6,7 @@ using OneMMC.Core.Features.SystemManagement.Interop.WF;
 using OneMMC.Core.Features.SystemManagement.Infrastructure.WF;
 using OneMMC.Core.Features.SystemManagement.Models.WF.Profiles;
 using OneMMC.Core.Features.SystemManagement.Models.WF.Rules;
+using OneMMC.Core.Infrastructure.Interop;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Management.Infrastructure;
@@ -79,18 +80,18 @@ public class WindowsFirewallProfileService
         {
             ProfileType = profileType,
             DisplayName = profileType.ToString(),
-            IsActive = (((int)policy.CurrentProfileTypes) & profileMask) != 0,
-            IsEnabled = policy.get_FirewallEnabled(profileMask),
+            IsActive = (policy.get_CurrentProfileTypes() & profileMask) != 0,
+            IsEnabled = FirewallCom.ToBool(policy.get_FirewallEnabled(profileMask)),
             DefaultInboundAction = policy.get_DefaultInboundAction(profileMask) == WindowsFirewallSupport.NetFwActionAllow
                 ? FirewallDefaultAction.Allow
                 : FirewallDefaultAction.Block,
             DefaultOutboundAction = policy.get_DefaultOutboundAction(profileMask) == WindowsFirewallSupport.NetFwActionAllow
                 ? FirewallDefaultAction.Allow
                 : FirewallDefaultAction.Block,
-            BlockAllInboundTraffic = policy.get_BlockAllInboundTraffic(profileMask),
-            NotificationsDisabled = policy.get_NotificationsDisabled(profileMask),
-            UnicastResponsesToMulticastBroadcastDisabled = policy.get_UnicastResponsesToMulticastBroadcastDisabled(profileMask),
-            PolicyModifyState = (FirewallPolicyModifyState)(int)policy.LocalPolicyModifyState,
+            BlockAllInboundTraffic = FirewallCom.ToBool(policy.get_BlockAllInboundTraffic(profileMask)),
+            NotificationsDisabled = FirewallCom.ToBool(policy.get_NotificationsDisabled(profileMask)),
+            UnicastResponsesToMulticastBroadcastDisabled = FirewallCom.ToBool(policy.get_UnicastResponsesToMulticastBroadcastDisabled(profileMask)),
+            PolicyModifyState = (FirewallPolicyModifyState)policy.get_LocalPolicyModifyState(),
             LoggingSettings = ReadLoggingSettings(profileType)
         };
 
@@ -107,16 +108,16 @@ public class WindowsFirewallProfileService
         INetFwPolicy2 policy = WindowsFirewallSupport.CreatePolicy2();
         int profileMask = (int)profile.ProfileType;
 
-        policy.set_FirewallEnabled(profileMask, profile.IsEnabled);
+        policy.set_FirewallEnabled(profileMask, FirewallCom.ToVariantBool(profile.IsEnabled));
         policy.set_DefaultInboundAction(profileMask, profile.DefaultInboundAction == FirewallDefaultAction.Allow
                 ? WindowsFirewallSupport.NetFwActionAllow
                 : WindowsFirewallSupport.NetFwActionBlock);
         policy.set_DefaultOutboundAction(profileMask, profile.DefaultOutboundAction == FirewallDefaultAction.Allow
                 ? WindowsFirewallSupport.NetFwActionAllow
                 : WindowsFirewallSupport.NetFwActionBlock);
-        policy.set_BlockAllInboundTraffic(profileMask, profile.BlockAllInboundTraffic);
-        policy.set_NotificationsDisabled(profileMask, profile.NotificationsDisabled);
-        policy.set_UnicastResponsesToMulticastBroadcastDisabled(profileMask, profile.UnicastResponsesToMulticastBroadcastDisabled);
+        policy.set_BlockAllInboundTraffic(profileMask, FirewallCom.ToVariantBool(profile.BlockAllInboundTraffic));
+        policy.set_NotificationsDisabled(profileMask, FirewallCom.ToVariantBool(profile.NotificationsDisabled));
+        policy.set_UnicastResponsesToMulticastBroadcastDisabled(profileMask, FirewallCom.ToVariantBool(profile.UnicastResponsesToMulticastBroadcastDisabled));
 
         UpdateProtectedNetworkConnections(profile);
         WriteLoggingSettings(profile.ProfileType, profile.LoggingSettings);
@@ -618,26 +619,23 @@ public class WindowsFirewallProfileService
 
     private static string[] ReadExcludedNetworkConnections(INetFwPolicy2 policy, int profileMask)
     {
-        object? excluded = policy.get_ExcludedInterfaces(profileMask);
-        if (excluded is null)
+        // ExcludedInterfaces is a VARIANT holding a SAFEARRAY of interface aliases (or a single BSTR).
+        policy.get_ExcludedInterfaces(profileMask, out Variant excluded);
+        try
         {
-            return [];
-        }
+            List<string> list = excluded.ToStringList();
+            if (list.Count > 0)
+            {
+                return list.ToArray();
+            }
 
-        if (excluded is string stringValue)
+            string? single = excluded.ToInvariantString();
+            return string.IsNullOrWhiteSpace(single) ? [] : WindowsFirewallSupport.ParseCsv(single);
+        }
+        finally
         {
-            return WindowsFirewallSupport.ParseCsv(stringValue);
+            excluded.Clear();
         }
-
-        if (excluded is Array array)
-        {
-            return array.Cast<object>()
-                .Select(value => value?.ToString() ?? string.Empty)
-                .Where(value => !string.IsNullOrWhiteSpace(value))
-                .ToArray();
-        }
-
-        return [];
     }
 
     private IReadOnlyList<NetworkConnectionItem> BuildProtectedNetworkConnections(INetFwPolicy2 policy, int profileMask)
