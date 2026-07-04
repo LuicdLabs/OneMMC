@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 using OneMMC.Core.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -153,36 +154,44 @@ public sealed partial class WindowsFirewallRuleChangeService : IDisposable
             return;
         }
 
-        _connection ??= new WmiConnection(@"\\.\root\StandardCimv2");
-        foreach (string className in WatchedClassNames)
-        {
-            WmiEventWatcher? watcher = null;
-            try
+        // Create the WmiLight connection + event watchers in the process-wide MTA apartment (see
+        // RunWmiOnMta) so their later teardown never crosses an apartment boundary. Wait for
+        // completion so IsWatching reflects the result before returning.
+        RunWmiOnMta(
+            () =>
             {
-                watcher = _connection.CreateEventWatcher(
-                    $"SELECT * FROM __InstanceOperationEvent WITHIN 2 WHERE TargetInstance ISA \"{className}\"");
-                watcher.EventArrived += OnRuleEventArrived;
-                watcher.Start();
-                _watchers.Add(watcher);
-                watcher = null;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Failed to start Windows Firewall change monitoring for {CimClassName}.", className);
-                if (watcher is not null)
+                _connection ??= new WmiConnection(@"\\.\root\StandardCimv2");
+                foreach (string className in WatchedClassNames)
                 {
-                    watcher.EventArrived -= OnRuleEventArrived;
-                    watcher.Dispose();
+                    WmiEventWatcher? watcher = null;
+                    try
+                    {
+                        watcher = _connection.CreateEventWatcher(
+                            $"SELECT * FROM __InstanceOperationEvent WITHIN 2 WHERE TargetInstance ISA \"{className}\"");
+                        watcher.EventArrived += OnRuleEventArrived;
+                        watcher.Start();
+                        _watchers.Add(watcher);
+                        watcher = null;
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Failed to start Windows Firewall change monitoring for {CimClassName}.", className);
+                        if (watcher is not null)
+                        {
+                            watcher.EventArrived -= OnRuleEventArrived;
+                            watcher.Dispose();
+                        }
+                    }
                 }
-            }
-        }
 
-        IsWatching = _watchers.Count > 0;
-        if (!IsWatching)
-        {
-            _connection.Dispose();
-            _connection = null;
-        }
+                IsWatching = _watchers.Count > 0;
+                if (!IsWatching)
+                {
+                    _connection.Dispose();
+                    _connection = null;
+                }
+            },
+            waitForCompletion: true);
     }
 
     private void RemoveSubscription(EventHandler handler)
@@ -254,33 +263,110 @@ public sealed partial class WindowsFirewallRuleChangeService : IDisposable
 
     private void StopCore()
     {
-        foreach (WmiEventWatcher watcher in _watchers)
+        // Snapshot the WMI objects and detach managed handlers synchronously (thread-safe) so no more
+        // events dispatch, then reset state; the actual COM teardown is marshalled to the MTA below.
+        List<WmiEventWatcher> watchers = [.. _watchers];
+        WmiConnection? connection = _connection;
+        bool wasWatching = IsWatching;
+
+        foreach (WmiEventWatcher watcher in watchers)
         {
-            try
-            {
-                watcher.EventArrived -= OnRuleEventArrived;
-                if (IsWatching)
-                {
-                    watcher.Stop();
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogDebug(ex, "Ignoring error while stopping Windows Firewall change monitoring.");
-            }
-            finally
-            {
-                watcher.Dispose();
-            }
+            watcher.EventArrived -= OnRuleEventArrived;
         }
 
         _watchers.Clear();
-        _connection?.Dispose();
         _connection = null;
         _debounceTimer?.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
         _debounceTimer?.Dispose();
         _debounceTimer = null;
         IsWatching = false;
+
+        if (watchers.Count == 0 && connection is null)
+        {
+            return;
+        }
+
+        // Tear the WmiLight event objects down in the MTA apartment they were created in. Disposing
+        // them from the STA UI thread (page Unloaded) makes WmiEventWatcher.Dispose() ->
+        // IWbemServices::CancelAsyncCall throw RPC_E_WRONG_THREAD (0x8001010E). Fire-and-forget on the
+        // MTA is fine — nothing awaits the teardown and the captured objects stay alive until it runs.
+        RunWmiOnMta(
+            () =>
+            {
+                foreach (WmiEventWatcher watcher in watchers)
+                {
+                    try
+                    {
+                        if (wasWatching)
+                        {
+                            watcher.Stop();
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogDebug(ex, "Ignoring error while stopping Windows Firewall change monitoring.");
+                    }
+                    finally
+                    {
+                        try
+                        {
+                            watcher.Dispose();
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogDebug(ex, "Ignoring error while disposing Windows Firewall change watcher.");
+                        }
+                    }
+                }
+
+                try
+                {
+                    connection?.Dispose();
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogDebug(ex, "Ignoring error while disposing Windows Firewall WMI connection.");
+                }
+            },
+            waitForCompletion: false);
+    }
+
+    /// <summary>
+    /// Runs a WmiLight lifecycle action in the process-wide MTA apartment. WmiLight's event objects
+    /// are COM apartment-affine, so every create/teardown must happen off the STA UI thread and in the
+    /// same (MTA) apartment; otherwise <c>WmiEventWatcher.Dispose()</c> →
+    /// <c>IWbemServices::CancelAsyncCall</c> throws <c>RPC_E_WRONG_THREAD</c> across the boundary. Any
+    /// non-STA thread (the thread pool is MTA) satisfies this, so the action runs inline when already
+    /// off the STA thread, and is marshalled to the thread pool otherwise.
+    /// </summary>
+    private static void RunWmiOnMta(Action action, bool waitForCompletion)
+    {
+        if (Thread.CurrentThread.GetApartmentState() != ApartmentState.STA)
+        {
+            action();
+            return;
+        }
+
+        if (!waitForCompletion)
+        {
+            ThreadPool.QueueUserWorkItem(_ => action());
+            return;
+        }
+
+        var completion = new TaskCompletionSource();
+        ThreadPool.QueueUserWorkItem(_ =>
+        {
+            try
+            {
+                action();
+                completion.TrySetResult();
+            }
+            catch (Exception ex)
+            {
+                completion.TrySetException(ex);
+            }
+        });
+        completion.Task.GetAwaiter().GetResult();
     }
 
     private sealed partial class FirewallChangeSubscription : IDisposable
