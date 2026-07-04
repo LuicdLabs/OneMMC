@@ -367,8 +367,9 @@ FodyWeavers.xsd
 .winapp
 
 # AI Agents
-.claude
+# .claude
 .kiro
 .playwright-mcp
+
 # Native AOT feasibility analysis outputs (see doc/NativeAotAssessment.md)
 eng/aot-logs/
