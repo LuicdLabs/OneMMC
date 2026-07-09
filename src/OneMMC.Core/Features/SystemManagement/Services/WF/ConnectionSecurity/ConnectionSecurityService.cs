@@ -1,8 +1,8 @@
 ﻿using OneMMC.Core.Features.SystemManagement.Models.WF.ConnectionSecurity;
 using OneMMC.Core.Features.SystemManagement.Infrastructure.WF;
+using OneMMC.Core.Features.SystemManagement.Infrastructure.WF.Wbem;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Management.Infrastructure;
 
 namespace OneMMC.Core.Features.SystemManagement.Services.WF.ConnectionSecurity;
 
@@ -22,10 +22,10 @@ public class ConnectionSecurityService
 
     public IReadOnlyList<ConnectionSecurityRuleModel> GetRules()
     {
-        using CimSession session = CimSession.Create(null);
+        using WbemServices session = WbemServices.Connect(WindowsFirewallSupport.StandardCimNamespace);
         List<ConnectionSecurityRuleModel> rules = [];
 
-        foreach (CimInstance instance in session.EnumerateInstances(WindowsFirewallSupport.StandardCimNamespace, "MSFT_NetConSecRule"))
+        foreach (WbemObject instance in session.EnumerateInstances("MSFT_NetConSecRule"))
         {
             using (instance)
             {
@@ -49,7 +49,7 @@ public class ConnectionSecurityService
     {
         WindowsFirewallSupport.ValidateConnectionSecurityRule(rule);
 
-        using CimSession session = CimSession.Create(null);
+        using WbemServices session = WbemServices.Connect(WindowsFirewallSupport.StandardCimNamespace);
         AddRuleInternal(session, rule);
         rule.OriginalName = rule.Name;
         _logger.LogInformation("Added connection security rule {RuleName}.", rule.Name);
@@ -59,12 +59,12 @@ public class ConnectionSecurityService
     {
         WindowsFirewallSupport.ValidateConnectionSecurityRule(rule);
 
-        using CimSession session = CimSession.Create(null);
+        using WbemServices session = WbemServices.Connect(WindowsFirewallSupport.StandardCimNamespace);
         string lookupName = string.IsNullOrWhiteSpace(rule.OriginalName)
             ? rule.Name
             : rule.OriginalName;
 
-        using CimInstance existing = GetRuleInstance(session, lookupName)
+        using WbemObject existing = GetRuleInstance(session, lookupName)
             ?? throw new InvalidOperationException($"Connection security rule '{lookupName}' was not found.");
 
         if (!string.Equals(lookupName, rule.Name, StringComparison.OrdinalIgnoreCase))
@@ -88,12 +88,12 @@ public class ConnectionSecurityService
 
     public void DeleteRule(string name)
     {
-        using CimSession session = CimSession.Create(null);
-        using CimInstance existing = GetRuleInstance(session, name)
+        using WbemServices session = WbemServices.Connect(WindowsFirewallSupport.StandardCimNamespace);
+        using WbemObject existing = GetRuleInstance(session, name)
             ?? throw new InvalidOperationException($"Connection security rule '{name}' was not found.");
 
         AuthManager.DeleteManagedAuthSets(session, name);
-        string policyRuleName = existing.CimInstanceProperties["PolicyRuleName"]?.Value?.ToString() ?? string.Empty;
+        string policyRuleName = existing.GetValue("PolicyRuleName")?.ToString() ?? string.Empty;
         if (!string.IsNullOrWhiteSpace(policyRuleName))
         {
             AuthManager.DeleteManagedAuthSets(session, policyRuleName);
@@ -105,20 +105,20 @@ public class ConnectionSecurityService
 
     public void SetRuleEnabled(string name, bool enabled)
     {
-        using CimSession session = CimSession.Create(null);
-        using CimInstance existing = GetRuleInstance(session, name)
+        using WbemServices session = WbemServices.Connect(WindowsFirewallSupport.StandardCimNamespace);
+        using WbemObject existing = GetRuleInstance(session, name)
             ?? throw new InvalidOperationException($"Connection security rule '{name}' was not found.");
 
         SetRuleEnabledInternal(session, existing, enabled);
         _logger.LogInformation("Set connection security rule {RuleName} enabled={Enabled}.", name, enabled);
     }
 
-    private static void AddRuleInternal(CimSession session, ConnectionSecurityRuleModel rule)
+    private static void AddRuleInternal(WbemServices session, ConnectionSecurityRuleModel rule)
     {
-        using CimInstance skeleton = CreateRuleSkeleton(rule);
-        using CimInstance _ = session.CreateInstance(WindowsFirewallSupport.StandardCimNamespace, skeleton);
+        using WbemObject skeleton = CreateRuleSkeleton(session, rule);
+        session.CreateInstance(skeleton);
 
-        using CimInstance created = GetRuleInstance(session, rule.Name)
+        using WbemObject created = GetRuleInstance(session, rule.Name)
             ?? throw new InvalidOperationException($"Connection security rule '{rule.Name}' was created but could not be queried.");
 
         try
@@ -136,26 +136,26 @@ public class ConnectionSecurityService
         }
     }
 
-    private static CimInstance CreateRuleSkeleton(ConnectionSecurityRuleModel rule)
+    private static WbemObject CreateRuleSkeleton(WbemServices session, ConnectionSecurityRuleModel rule)
     {
-        var instance = new CimInstance("MSFT_NetConSecRule", WindowsFirewallSupport.StandardCimNamespace);
-        instance.CimInstanceProperties.Add(CimProperty.Create("ElementName", rule.Name.Trim(), CimType.String, CimFlags.None));
-        instance.CimInstanceProperties.Add(CimProperty.Create("Description", (rule.Description ?? string.Empty).Trim(), CimType.String, CimFlags.None));
-        instance.CimInstanceProperties.Add(CimProperty.Create("Profiles", ValueHelper.ResolveProfilesMask(rule), CimType.UInt16, CimFlags.None));
-        instance.CimInstanceProperties.Add(CimProperty.Create("InboundSecurity", (ushort)rule.InboundSecurity, CimType.UInt16, CimFlags.None));
-        instance.CimInstanceProperties.Add(CimProperty.Create("OutboundSecurity", (ushort)rule.OutboundSecurity, CimType.UInt16, CimFlags.None));
-        instance.CimInstanceProperties.Add(CimProperty.Create("Mode", ValueHelper.ResolveModeValue(rule.Mode), CimType.UInt16, CimFlags.None));
+        WbemObject instance = session.SpawnInstance("MSFT_NetConSecRule");
+        instance.SetProperty("ElementName", rule.Name.Trim(), WbemType.String);
+        instance.SetProperty("Description", (rule.Description ?? string.Empty).Trim(), WbemType.String);
+        instance.SetProperty("Profiles", ValueHelper.ResolveProfilesMask(rule), WbemType.UInt16);
+        instance.SetProperty("InboundSecurity", (ushort)rule.InboundSecurity, WbemType.UInt16);
+        instance.SetProperty("OutboundSecurity", (ushort)rule.OutboundSecurity, WbemType.UInt16);
+        instance.SetProperty("Mode", ValueHelper.ResolveModeValue(rule.Mode), WbemType.UInt16);
         return instance;
     }
 
-    private static CimInstance? GetRuleInstance(CimSession session, string name)
+    private static WbemObject? GetRuleInstance(WbemServices session, string name)
     {
         if (string.IsNullOrWhiteSpace(name))
         {
             return null;
         }
 
-        foreach (CimInstance instance in session.EnumerateInstances(WindowsFirewallSupport.StandardCimNamespace, "MSFT_NetConSecRule"))
+        foreach (WbemObject instance in session.EnumerateInstances("MSFT_NetConSecRule"))
         {
             if (MatchesRuleName(instance, name))
             {
@@ -168,30 +168,26 @@ public class ConnectionSecurityService
         return null;
     }
 
-    private static bool MatchesRuleName(CimInstance instance, string name)
+    private static bool MatchesRuleName(WbemObject instance, string name)
     {
-        string displayName = instance.CimInstanceProperties["DisplayName"]?.Value?.ToString() ?? string.Empty;
-        string elementName = instance.CimInstanceProperties["ElementName"]?.Value?.ToString() ?? string.Empty;
-        string policyRuleName = instance.CimInstanceProperties["PolicyRuleName"]?.Value?.ToString() ?? string.Empty;
+        string displayName = instance.GetValue("DisplayName")?.ToString() ?? string.Empty;
+        string elementName = instance.GetValue("ElementName")?.ToString() ?? string.Empty;
+        string policyRuleName = instance.GetValue("PolicyRuleName")?.ToString() ?? string.Empty;
 
         return string.Equals(displayName, name, StringComparison.OrdinalIgnoreCase) ||
                string.Equals(elementName, name, StringComparison.OrdinalIgnoreCase) ||
                string.Equals(policyRuleName, name, StringComparison.OrdinalIgnoreCase);
     }
 
-    private static void DeleteRuleInternal(CimSession session, CimInstance instance)
+    private static void DeleteRuleInternal(WbemServices session, WbemObject instance)
     {
-        session.DeleteInstance(WindowsFirewallSupport.StandardCimNamespace, instance);
+        session.DeleteInstance(instance);
     }
 
-    private static void SetRuleEnabledInternal(CimSession session, CimInstance instance, bool enabled)
+    private static void SetRuleEnabledInternal(WbemServices session, WbemObject instance, bool enabled)
     {
         string methodName = enabled ? "Enable" : "Disable";
-        session.InvokeMethod(
-            WindowsFirewallSupport.StandardCimNamespace,
-            instance,
-            methodName,
-            new CimMethodParametersCollection());
+        session.ExecMethod(instance, methodName);
     }
 
 }

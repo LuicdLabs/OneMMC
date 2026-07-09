@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 using OneMMC.Core.Features.SystemManagement.Interop.WF;
 using OneMMC.Core.Features.SystemManagement.Infrastructure.WF;
 using OneMMC.Core.Features.SystemManagement.Models.WF.Rules;
-using Microsoft.Management.Infrastructure;
+using OneMMC.Core.Features.SystemManagement.Infrastructure.WF.Wbem;
 
 namespace OneMMC.Core.Features.SystemManagement.Services.WF.Rules;
 
@@ -234,11 +234,11 @@ internal static class ComApplier
 
             try
             {
-                using CimSession session = CimSession.Create(null);
-                using CimInstance? ruleInstance = CimHelper.GetFirewallRuleInstance(session, ruleName);
+                using WbemServices session = WbemServices.Connect(WindowsFirewallSupport.StandardCimNamespace);
+                using WbemObject? ruleInstance = CimHelper.GetFirewallRuleInstance(session, ruleName);
                 if (ruleInstance is not null)
                 {
-                    using CimInstance? filter = CimHelper.GetSecurityFilterInstance(session, ruleInstance);
+                    using WbemObject? filter = CimHelper.GetSecurityFilterInstance(session, ruleInstance);
                     if (filter is not null)
                     {
                         string wmiPropertyName = propertyName switch
@@ -249,10 +249,9 @@ internal static class ComApplier
                             _ => propertyName
                         };
 
-                        if (filter.CimInstanceProperties[wmiPropertyName] is CimProperty property)
+                        if (filter.TrySetProperty(wmiPropertyName, value))
                         {
-                            property.Value = value;
-                            session.ModifyInstance(WindowsFirewallSupport.StandardCimNamespace, filter);
+                            session.ModifyInstance(filter);
                             return;
                         }
                     }

@@ -1,13 +1,13 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using OneMMC.Core.Features.SystemManagement.Interop.WF;
 using OneMMC.Core.Features.SystemManagement.Infrastructure.WF;
+using OneMMC.Core.Features.SystemManagement.Infrastructure.WF.Wbem;
 using OneMMC.Core.Features.SystemManagement.Models.WF.Authentication;
 using OneMMC.Core.Features.SystemManagement.Models.WF.ConnectionSecurity;
-using Microsoft.Management.Infrastructure;
 
 namespace OneMMC.Core.Features.SystemManagement.Services.WF.ConnectionSecurity;
 
@@ -29,15 +29,15 @@ internal static class AuthManager
     private const ushort AuthMethodPreSharedKey = 2;
     private const string ManagedAuthSetDisplayPrefix = "OneMMC Connection Security";
 
-    internal static string ResolvePhase1AuthSetId(CimSession session, ConnectionSecurityRuleModel rule, string ruleIdentity)
+    internal static string ResolvePhase1AuthSetId(WbemServices session, ConnectionSecurityRuleModel rule, string ruleIdentity)
         => ResolvePhaseAuthSetId(session, rule, ruleIdentity, phase1: true, rule.Phase1AuthSet, rule.FirstAuthMethods, DefaultPhase1AuthSetId);
 
-    internal static string ResolvePhase2AuthSetId(CimSession session, ConnectionSecurityRuleModel rule, string ruleIdentity)
+    internal static string ResolvePhase2AuthSetId(WbemServices session, ConnectionSecurityRuleModel rule, string ruleIdentity)
         => ResolvePhaseAuthSetId(session, rule, ruleIdentity, phase1: false, rule.Phase2AuthSet, rule.SecondAuthMethods, DefaultPhase2AuthSetId);
 
-    internal static string ResolveRuleIdentity(CimInstance instance, ConnectionSecurityRuleModel rule)
+    internal static string ResolveRuleIdentity(WbemObject instance, ConnectionSecurityRuleModel rule)
     {
-        string policyRuleName = instance.CimInstanceProperties["PolicyRuleName"]?.Value?.ToString() ?? string.Empty;
+        string policyRuleName = instance.GetValue("PolicyRuleName")?.ToString() ?? string.Empty;
         if (!string.IsNullOrWhiteSpace(policyRuleName))
         {
             return policyRuleName;
@@ -53,10 +53,10 @@ internal static class AuthManager
             return rule.Name;
         }
 
-        return instance.CimInstanceProperties["ElementName"]?.Value?.ToString() ?? Guid.NewGuid().ToString("N");
+        return instance.GetValue("ElementName")?.ToString() ?? Guid.NewGuid().ToString("N");
     }
 
-    internal static void DeleteManagedAuthSets(CimSession session, string ruleIdentity)
+    internal static void DeleteManagedAuthSets(WbemServices session, string ruleIdentity)
     {
         if (string.IsNullOrWhiteSpace(ruleIdentity))
         {
@@ -67,12 +67,12 @@ internal static class AuthManager
         DeleteManagedAuthSetIfExists(session, phase1: false, ruleIdentity);
     }
 
-    internal static CimInstance? FindSetByCreationClass(CimSession session, string className, string creationClassName)
+    internal static WbemObject? FindSetByCreationClass(WbemServices session, string className, string creationClassName)
     {
-        foreach (CimInstance instance in session.EnumerateInstances(WindowsFirewallSupport.StandardCimNamespace, className))
+        foreach (WbemObject instance in session.EnumerateInstances(className))
         {
             if (string.Equals(
-                    instance.CimInstanceProperties["CreationClassName"]?.Value?.ToString(),
+                    instance.GetValue("CreationClassName")?.ToString(),
                     creationClassName,
                     StringComparison.OrdinalIgnoreCase))
             {
@@ -86,7 +86,7 @@ internal static class AuthManager
     }
 
     private static string ResolvePhaseAuthSetId(
-        CimSession session,
+        WbemServices session,
         ConnectionSecurityRuleModel rule,
         string ruleIdentity,
         bool phase1,
@@ -113,7 +113,7 @@ internal static class AuthManager
             .Select(method => ResolveReferencedAuthSetId(method, phase1))
             .FirstOrDefault(value => !string.IsNullOrWhiteSpace(value));
 
-        CimInstance[] proposals = BuildAuthProposals(authMethods).ToArray();
+        WbemObject[] proposals = BuildAuthProposals(session, authMethods).ToArray();
         if (proposals.Length == 0)
         {
             DeleteManagedAuthSetIfExists(session, phase1, ruleIdentity);
@@ -130,7 +130,7 @@ internal static class AuthManager
         }
         finally
         {
-            foreach (CimInstance proposal in proposals)
+            foreach (WbemObject proposal in proposals)
             {
                 proposal.Dispose();
             }
@@ -165,18 +165,18 @@ internal static class AuthManager
         return string.Empty;
     }
 
-    private static IEnumerable<CimInstance> BuildAuthProposals(IEnumerable<AuthMethodDialogResult> methods)
+    private static IEnumerable<WbemObject> BuildAuthProposals(WbemServices session, IEnumerable<AuthMethodDialogResult> methods)
     {
         foreach (AuthMethodDialogResult method in methods)
         {
-            if (TryBuildAuthProposal(method, out CimInstance? proposal) && proposal is not null)
+            if (TryBuildAuthProposal(session, method, out WbemObject? proposal) && proposal is not null)
             {
                 yield return proposal;
             }
         }
     }
 
-    private static bool TryBuildAuthProposal(AuthMethodDialogResult method, out CimInstance? proposal)
+    private static bool TryBuildAuthProposal(WbemServices session, AuthMethodDialogResult method, out WbemObject? proposal)
     {
         proposal = null;
         string kind = method.Kind ?? string.Empty;
@@ -184,41 +184,42 @@ internal static class AuthManager
         switch (kind)
         {
             case "ComputerKerberos":
-                proposal = CreateKerberosAuthProposal(AuthMethodMachineKerberos);
+                proposal = CreateKerberosAuthProposal(session, AuthMethodMachineKerberos);
                 return true;
 
             case "ComputerNtlm":
-                proposal = CreateBasicAuthProposal(AuthMethodMachineNtlm);
+                proposal = CreateBasicAuthProposal(session, AuthMethodMachineNtlm);
                 return true;
 
             case "UserKerberos":
-                proposal = CreateKerberosAuthProposal(AuthMethodUserKerberos);
+                proposal = CreateKerberosAuthProposal(session, AuthMethodUserKerberos);
                 return true;
 
             case "UserNtlm":
-                proposal = CreateBasicAuthProposal(AuthMethodUserNtlm);
+                proposal = CreateBasicAuthProposal(session, AuthMethodUserNtlm);
                 return true;
 
             case "Anonymous":
-                proposal = CreateBasicAuthProposal(AuthMethodAnonymous);
+                proposal = CreateBasicAuthProposal(session, AuthMethodAnonymous);
                 return true;
 
             case "PresharedKey":
-                proposal = CreatePresharedKeyAuthProposal(method.PresharedKey);
+                proposal = CreatePresharedKeyAuthProposal(session, method.PresharedKey);
                 return true;
 
             case "ComputerCertificate":
                 proposal = CreateCertificateAuthProposal(
+                    session,
                     method,
                     method.HealthCertificateOnly ? AuthMethodMachineHealthCertificate : AuthMethodMachineCertificate);
                 return true;
 
             case "UserCertificate":
-                proposal = CreateCertificateAuthProposal(method, AuthMethodUserCertificate);
+                proposal = CreateCertificateAuthProposal(session, method, AuthMethodUserCertificate);
                 return true;
 
             case "ComputerHealthCertificate":
-                proposal = CreateCertificateAuthProposal(method, AuthMethodMachineHealthCertificate);
+                proposal = CreateCertificateAuthProposal(session, method, AuthMethodMachineHealthCertificate);
                 return true;
 
             default:
@@ -226,68 +227,68 @@ internal static class AuthManager
         }
     }
 
-    private static CimInstance CreateBasicAuthProposal(ushort authenticationMethod)
+    private static WbemObject CreateBasicAuthProposal(WbemServices session, ushort authenticationMethod)
     {
-        var instance = new CimInstance("MSFT_NetIKEBasicAuthProposal", WindowsFirewallSupport.StandardCimNamespace);
-        instance.CimInstanceProperties.Add(CimProperty.Create("AuthenticationMethod", authenticationMethod, CimType.UInt16, CimFlags.None));
+        WbemObject instance = session.SpawnInstance("MSFT_NetIKEBasicAuthProposal");
+        instance.SetProperty("AuthenticationMethod", authenticationMethod, WbemType.UInt16);
         return instance;
     }
 
-    private static CimInstance CreateKerberosAuthProposal(ushort authenticationMethod)
+    private static WbemObject CreateKerberosAuthProposal(WbemServices session, ushort authenticationMethod)
     {
-        var instance = new CimInstance("MSFT_NetIKEKerbAuthProposal", WindowsFirewallSupport.StandardCimNamespace);
-        instance.CimInstanceProperties.Add(CimProperty.Create("AuthenticationMethod", authenticationMethod, CimType.UInt16, CimFlags.None));
+        WbemObject instance = session.SpawnInstance("MSFT_NetIKEKerbAuthProposal");
+        instance.SetProperty("AuthenticationMethod", authenticationMethod, WbemType.UInt16);
         return instance;
     }
 
-    private static CimInstance CreatePresharedKeyAuthProposal(string? key)
+    private static WbemObject CreatePresharedKeyAuthProposal(WbemServices session, string? key)
     {
-        var instance = new CimInstance("MSFT_NetIKEPSKAuthProposal", WindowsFirewallSupport.StandardCimNamespace);
-        instance.CimInstanceProperties.Add(CimProperty.Create("AuthenticationMethod", AuthMethodPreSharedKey, CimType.UInt16, CimFlags.None));
-        instance.CimInstanceProperties.Add(CimProperty.Create("PreSharedKey", key ?? string.Empty, CimType.String, CimFlags.None));
+        WbemObject instance = session.SpawnInstance("MSFT_NetIKEPSKAuthProposal");
+        instance.SetProperty("AuthenticationMethod", AuthMethodPreSharedKey, WbemType.UInt16);
+        instance.SetProperty("PreSharedKey", key ?? string.Empty, WbemType.String);
         return instance;
     }
 
-    private static CimInstance CreateCertificateAuthProposal(AuthMethodDialogResult method, ushort authenticationMethod)
+    private static WbemObject CreateCertificateAuthProposal(WbemServices session, AuthMethodDialogResult method, ushort authenticationMethod)
     {
-        var instance = new CimInstance("MSFT_NetIKECertAuthProposal", WindowsFirewallSupport.StandardCimNamespace);
-        instance.CimInstanceProperties.Add(CimProperty.Create("AuthenticationMethod", authenticationMethod, CimType.UInt16, CimFlags.None));
-        instance.CimInstanceProperties.Add(CimProperty.Create("TrustedCA", method.CaDistinguishedName ?? string.Empty, CimType.String, CimFlags.None));
-        instance.CimInstanceProperties.Add(CimProperty.Create("TrustedCAType", AuthMethodValueMapper.ResolveTrustedCaTypeCode(method.CertificateStoreType), CimType.UInt16, CimFlags.None));
-        instance.CimInstanceProperties.Add(CimProperty.Create("SigningAlgorithm", AuthMethodValueMapper.ResolveSigningAlgorithmCode(method.SigningAlgorithm), CimType.UInt16, CimFlags.None));
-        instance.CimInstanceProperties.Add(CimProperty.Create("MapToAccount", method.CertificateMappingEnabled, CimType.Boolean, CimFlags.None));
+        WbemObject instance = session.SpawnInstance("MSFT_NetIKECertAuthProposal");
+        instance.SetProperty("AuthenticationMethod", authenticationMethod, WbemType.UInt16);
+        instance.SetProperty("TrustedCA", method.CaDistinguishedName ?? string.Empty, WbemType.String);
+        instance.SetProperty("TrustedCAType", AuthMethodValueMapper.ResolveTrustedCaTypeCode(method.CertificateStoreType), WbemType.UInt16);
+        instance.SetProperty("SigningAlgorithm", AuthMethodValueMapper.ResolveSigningAlgorithmCode(method.SigningAlgorithm), WbemType.UInt16);
+        instance.SetProperty("MapToAccount", method.CertificateMappingEnabled, WbemType.Boolean);
 
         AdvancedCertCriteriaResult? advanced = method.AdvancedCriteria;
         if (advanced is not null)
         {
             if (advanced.RequiredEkus.Count > 0)
             {
-                instance.CimInstanceProperties.Add(CimProperty.Create("EKUs", advanced.RequiredEkus.ToArray(), CimType.StringArray, CimFlags.None));
+                instance.SetProperty("EKUs", advanced.RequiredEkus.ToArray(), WbemType.StringArray);
             }
 
             if (!string.IsNullOrWhiteSpace(advanced.CertificateName))
             {
-                instance.CimInstanceProperties.Add(CimProperty.Create("CertName", advanced.CertificateName.Trim(), CimType.String, CimFlags.None));
-                instance.CimInstanceProperties.Add(CimProperty.Create("CertNameType", ResolveCertNameType(advanced.NameTypeTag), CimType.UInt16, CimFlags.None));
+                instance.SetProperty("CertName", advanced.CertificateName.Trim(), WbemType.String);
+                instance.SetProperty("CertNameType", ResolveCertNameType(advanced.NameTypeTag), WbemType.UInt16);
             }
 
             if (!string.IsNullOrWhiteSpace(advanced.Thumbprint))
             {
-                instance.CimInstanceProperties.Add(CimProperty.Create("Thumbprint", advanced.Thumbprint.Trim(), CimType.String, CimFlags.None));
+                instance.SetProperty("Thumbprint", advanced.Thumbprint.Trim(), WbemType.String);
             }
 
             if (advanced.FollowRenewal)
             {
-                instance.CimInstanceProperties.Add(CimProperty.Create("FollowRenewal", true, CimType.Boolean, CimFlags.None));
+                instance.SetProperty("FollowRenewal", true, WbemType.Boolean);
             }
 
             if (string.Equals(advanced.RestrictUsage, "Selection only", StringComparison.OrdinalIgnoreCase))
             {
-                instance.CimInstanceProperties.Add(CimProperty.Create("SelectionCriteria", true, CimType.Boolean, CimFlags.None));
+                instance.SetProperty("SelectionCriteria", true, WbemType.Boolean);
             }
             else if (string.Equals(advanced.RestrictUsage, "Validation only", StringComparison.OrdinalIgnoreCase))
             {
-                instance.CimInstanceProperties.Add(CimProperty.Create("ValidationCriteria", true, CimType.Boolean, CimFlags.None));
+                instance.SetProperty("ValidationCriteria", true, WbemType.Boolean);
             }
         }
 
@@ -326,58 +327,58 @@ internal static class AuthManager
     }
 
     private static void UpsertManagedAuthSet(
-        CimSession session,
+        WbemServices session,
         bool phase1,
         string setId,
         string creationClassName,
         string ruleName,
-        CimInstance[] proposals)
+        WbemObject[] proposals)
     {
         string className = phase1 ? "MSFT_NetIKEP1AuthSet" : "MSFT_NetIKEP2AuthSet";
         string displayName = $"{ManagedAuthSetDisplayPrefix} - {ruleName} - {(phase1 ? "Phase 1" : "Phase 2")}";
 
-        using CimInstance? existing = FindSetByCreationClass(session, className, creationClassName);
+        using WbemObject? existing = FindSetByCreationClass(session, className, creationClassName);
         if (existing is null)
         {
-            using var instance = new CimInstance(className, WindowsFirewallSupport.StandardCimNamespace);
-            instance.CimInstanceProperties.Add(CimProperty.Create("CreationClassName", creationClassName, CimType.String, CimFlags.Key));
-            instance.CimInstanceProperties.Add(CimProperty.Create("PolicyActionName", string.Empty, CimType.String, CimFlags.Key));
-            instance.CimInstanceProperties.Add(CimProperty.Create("PolicyRuleCreationClassName", string.Empty, CimType.String, CimFlags.Key));
-            instance.CimInstanceProperties.Add(CimProperty.Create("PolicyRuleName", string.Empty, CimType.String, CimFlags.Key));
-            instance.CimInstanceProperties.Add(CimProperty.Create("SystemCreationClassName", string.Empty, CimType.String, CimFlags.Key));
-            instance.CimInstanceProperties.Add(CimProperty.Create("SystemName", string.Empty, CimType.String, CimFlags.Key));
-            instance.CimInstanceProperties.Add(CimProperty.Create("DisplayName", displayName, CimType.String, CimFlags.None));
-            instance.CimInstanceProperties.Add(CimProperty.Create("PolicyStoreSource", "PersistentStore", CimType.String, CimFlags.None));
-            instance.CimInstanceProperties.Add(CimProperty.Create("PolicyStoreSourceType", (ushort)1, CimType.UInt16, CimFlags.None));
-            instance.CimInstanceProperties.Add(CimProperty.Create("Proposals", proposals, CimType.InstanceArray, CimFlags.None));
-            using CimInstance _ = session.CreateInstance(WindowsFirewallSupport.StandardCimNamespace, instance);
+            using WbemObject instance = session.SpawnInstance(className);
+            instance.SetProperty("CreationClassName", creationClassName, WbemType.String);
+            instance.SetProperty("PolicyActionName", string.Empty, WbemType.String);
+            instance.SetProperty("PolicyRuleCreationClassName", string.Empty, WbemType.String);
+            instance.SetProperty("PolicyRuleName", string.Empty, WbemType.String);
+            instance.SetProperty("SystemCreationClassName", string.Empty, WbemType.String);
+            instance.SetProperty("SystemName", string.Empty, WbemType.String);
+            instance.SetProperty("DisplayName", displayName, WbemType.String);
+            instance.SetProperty("PolicyStoreSource", "PersistentStore", WbemType.String);
+            instance.SetProperty("PolicyStoreSourceType", (ushort)1, WbemType.UInt16);
+            instance.SetProperty("Proposals", proposals, WbemType.InstanceArray);
+            session.CreateInstance(instance);
             return;
         }
 
-        existing.CimInstanceProperties["DisplayName"].Value = displayName;
-        existing.CimInstanceProperties["Proposals"].Value = proposals;
-        session.ModifyInstance(WindowsFirewallSupport.StandardCimNamespace, existing);
+        existing.SetProperty("DisplayName", displayName);
+        existing.SetProperty("Proposals", proposals);
+        session.ModifyInstance(existing);
     }
 
-    private static void DeleteManagedAuthSetIfExists(CimSession session, bool phase1, string ruleIdentity)
+    private static void DeleteManagedAuthSetIfExists(WbemServices session, bool phase1, string ruleIdentity)
     {
         string setId = BuildManagedAuthSetId(ruleIdentity, phase1);
         string creationClassName = BuildManagedAuthSetCreationClassName(phase1, setId);
         string className = phase1 ? "MSFT_NetIKEP1AuthSet" : "MSFT_NetIKEP2AuthSet";
 
-        using CimInstance? existing = FindSetByCreationClass(session, className, creationClassName);
+        using WbemObject? existing = FindSetByCreationClass(session, className, creationClassName);
         if (existing is null)
         {
             return;
         }
 
-        string displayName = existing.CimInstanceProperties["DisplayName"]?.Value?.ToString() ?? string.Empty;
+        string displayName = existing.GetValue("DisplayName")?.ToString() ?? string.Empty;
         if (!string.IsNullOrWhiteSpace(displayName) &&
             !displayName.StartsWith(ManagedAuthSetDisplayPrefix, StringComparison.OrdinalIgnoreCase))
         {
             return;
         }
 
-        session.DeleteInstance(WindowsFirewallSupport.StandardCimNamespace, existing);
+        session.DeleteInstance(existing);
     }
 }

@@ -1,12 +1,12 @@
-﻿using System;
+using System;
 using System.Globalization;
 using System.Linq;
 using OneMMC.Core.Localization;
 using OneMMC.Core.Features.SystemManagement.Interop.WF;
 using OneMMC.Core.Features.SystemManagement.Infrastructure.WF;
+using OneMMC.Core.Features.SystemManagement.Infrastructure.WF.Wbem;
 using OneMMC.Core.Features.SystemManagement.Models.WF.Authentication;
 using OneMMC.Core.Features.SystemManagement.Models.WF.ConnectionSecurity;
-using Microsoft.Management.Infrastructure;
 
 namespace OneMMC.Core.Features.SystemManagement.Services.WF.ConnectionSecurity;
 
@@ -23,10 +23,10 @@ internal static class RuleMapper
     private const ushort AuthMethodUserCertificate = 65007;
     private const ushort AuthMethodMachineHealthCertificate = 65008;
 
-    internal static ConnectionSecurityRuleModel MapRule(CimSession session, CimInstance instance)
+    internal static ConnectionSecurityRuleModel MapRule(WbemServices session, WbemObject instance)
     {
-        string policyRuleName = instance.CimInstanceProperties["PolicyRuleName"]?.Value?.ToString() ?? string.Empty;
-        string displayName = instance.CimInstanceProperties["DisplayName"]?.Value?.ToString() ?? string.Empty;
+        string policyRuleName = instance.GetValue("PolicyRuleName")?.ToString() ?? string.Empty;
+        string displayName = instance.GetValue("DisplayName")?.ToString() ?? string.Empty;
         if (string.IsNullOrWhiteSpace(displayName))
         {
             displayName = policyRuleName;
@@ -42,32 +42,32 @@ internal static class RuleMapper
         {
             Name = displayName,
             OriginalName = policyRuleName,
-            Description = instance.CimInstanceProperties["Description"]?.Value?.ToString() ?? string.Empty,
+            Description = instance.GetValue("Description")?.ToString() ?? string.Empty,
             Enabled = ValueHelper.ReadEnabled(instance),
             InboundSecurity = ValueHelper.ReadRequirement(instance, "InboundSecurity"),
             OutboundSecurity = ValueHelper.ReadRequirement(instance, "OutboundSecurity"),
             Mode = ValueHelper.ReadMode(instance),
-            MainModeCryptoSet = instance.CimInstanceProperties["MainModeCryptoSet"]?.Value?.ToString() ?? string.Empty,
-            QuickModeCryptoSet = instance.CimInstanceProperties["QuickModeCryptoSet"]?.Value?.ToString() ?? string.Empty,
-            Phase1AuthSet = instance.CimInstanceProperties["Phase1AuthSet"]?.Value?.ToString() ?? string.Empty,
-            Phase2AuthSet = instance.CimInstanceProperties["Phase2AuthSet"]?.Value?.ToString() ?? string.Empty,
-            KeyModule = ValueHelper.ResolveKeyModule(instance.CimInstanceProperties["KeyModule"]?.Value),
+            MainModeCryptoSet = instance.GetValue("MainModeCryptoSet")?.ToString() ?? string.Empty,
+            QuickModeCryptoSet = instance.GetValue("QuickModeCryptoSet")?.ToString() ?? string.Empty,
+            Phase1AuthSet = instance.GetValue("Phase1AuthSet")?.ToString() ?? string.Empty,
+            Phase2AuthSet = instance.GetValue("Phase2AuthSet")?.ToString() ?? string.Empty,
+            KeyModule = ValueHelper.ResolveKeyModule(instance.GetValue("KeyModule")),
             AllowSetKey = ValueHelper.ReadBool(instance, "AllowSetKey"),
             AllowWatchKey = ValueHelper.ReadBool(instance, "AllowWatchKey"),
             BypassTunnelIfEncrypted = ValueHelper.ReadBool(instance, "BypassTunnelIfEncrypted"),
             RequireAuthorization = ValueHelper.ReadBool(instance, "RequireAuthorization"),
-            RemoteTunnelEndpointDnsName = instance.CimInstanceProperties["RemoteTunnelEndpointDNSName"]?.Value?.ToString() ?? string.Empty,
-            Machines = instance.CimInstanceProperties["Machines"]?.Value?.ToString() ?? string.Empty,
-            Users = instance.CimInstanceProperties["Users"]?.Value?.ToString() ?? string.Empty,
-            RuleGroup = instance.CimInstanceProperties["RuleGroup"]?.Value?.ToString() ?? string.Empty,
-            DisplayGroup = instance.CimInstanceProperties["DisplayGroup"]?.Value?.ToString() ?? string.Empty,
-            PolicyStoreSource = instance.CimInstanceProperties["PolicyStoreSource"]?.Value?.ToString() ?? string.Empty
+            RemoteTunnelEndpointDnsName = instance.GetValue("RemoteTunnelEndpointDNSName")?.ToString() ?? string.Empty,
+            Machines = instance.GetValue("Machines")?.ToString() ?? string.Empty,
+            Users = instance.GetValue("Users")?.ToString() ?? string.Empty,
+            RuleGroup = instance.GetValue("RuleGroup")?.ToString() ?? string.Empty,
+            DisplayGroup = instance.GetValue("DisplayGroup")?.ToString() ?? string.Empty,
+            PolicyStoreSource = instance.GetValue("PolicyStoreSource")?.ToString() ?? string.Empty
         };
 
         WindowsFirewallSupport.ApplyProfileMask(model, ValueHelper.ReadInt32(instance, "Profiles", WindowsFirewallSupport.NetFwProfile2All));
         model.TunnelType = ValueHelper.ResolveTunnelType(ValueHelper.ReadPropertyValue(instance, "TunnelType"));
-        model.LocalTunnelEndpoint = ValueHelper.JoinArray(instance.CimInstanceProperties["LocalTunnelEndpoint"]?.Value);
-        model.RemoteTunnelEndpoint = ValueHelper.JoinArray(instance.CimInstanceProperties["RemoteTunnelEndpoint"]?.Value);
+        model.LocalTunnelEndpoint = ValueHelper.JoinArray(instance.GetValue("LocalTunnelEndpoint"));
+        model.RemoteTunnelEndpoint = ValueHelper.JoinArray(instance.GetValue("RemoteTunnelEndpoint"));
         model.Kind = ResolveKind(model);
 
         ApplyAddressFilters(session, instance, model);
@@ -78,70 +78,61 @@ internal static class RuleMapper
         return model;
     }
 
-    private static void ApplyAddressFilters(CimSession session, CimInstance instance, ConnectionSecurityRuleModel model)
+    private static void ApplyAddressFilters(WbemServices session, WbemObject instance, ConnectionSecurityRuleModel model)
     {
-        foreach (CimInstance filter in session.EnumerateAssociatedInstances(
-                     WindowsFirewallSupport.StandardCimNamespace,
+        foreach (WbemObject filter in session.EnumerateAssociatedInstances(
                      instance,
                      "MSFT_NetConSecRuleFilterByAddress",
-                     "MSFT_NetAddressFilter",
-                     null,
-                     null))
+                     "MSFT_NetAddressFilter"))
         {
             using (filter)
             {
-                model.Endpoint1Expression = ValueHelper.JoinArray(filter.CimInstanceProperties["LocalAddress"]?.Value, "Any");
-                model.Endpoint2Expression = ValueHelper.JoinArray(filter.CimInstanceProperties["RemoteAddress"]?.Value, "Any");
+                model.Endpoint1Expression = ValueHelper.JoinArray(filter.GetValue("LocalAddress"), "Any");
+                model.Endpoint2Expression = ValueHelper.JoinArray(filter.GetValue("RemoteAddress"), "Any");
                 return;
             }
         }
     }
 
-    private static void ApplyProtocolFilters(CimSession session, CimInstance instance, ConnectionSecurityRuleModel model)
+    private static void ApplyProtocolFilters(WbemServices session, WbemObject instance, ConnectionSecurityRuleModel model)
     {
-        foreach (CimInstance filter in session.EnumerateAssociatedInstances(
-                     WindowsFirewallSupport.StandardCimNamespace,
+        foreach (WbemObject filter in session.EnumerateAssociatedInstances(
                      instance,
                      "MSFT_NetConSecRuleFilterByProtocolPort",
-                     "MSFT_NetProtocolPortFilter",
-                     null,
-                     null))
+                     "MSFT_NetProtocolPortFilter"))
         {
             using (filter)
             {
-                model.Protocol = filter.CimInstanceProperties["Protocol"]?.Value?.ToString() ?? "Any";
-                model.LocalPort = ValueHelper.JoinArray(filter.CimInstanceProperties["LocalPort"]?.Value, "Any");
-                model.RemotePort = ValueHelper.JoinArray(filter.CimInstanceProperties["RemotePort"]?.Value, "Any");
+                model.Protocol = filter.GetValue("Protocol")?.ToString() ?? "Any";
+                model.LocalPort = ValueHelper.JoinArray(filter.GetValue("LocalPort"), "Any");
+                model.RemotePort = ValueHelper.JoinArray(filter.GetValue("RemotePort"), "Any");
                 return;
             }
         }
     }
 
-    private static void ApplyInterfaceTypeFilters(CimSession session, CimInstance instance, ConnectionSecurityRuleModel model)
+    private static void ApplyInterfaceTypeFilters(WbemServices session, WbemObject instance, ConnectionSecurityRuleModel model)
     {
-        foreach (CimInstance filter in session.EnumerateAssociatedInstances(
-                     WindowsFirewallSupport.StandardCimNamespace,
+        foreach (WbemObject filter in session.EnumerateAssociatedInstances(
                      instance,
                      "MSFT_NetConSecRuleFilterByInterfaceType",
-                     "MSFT_NetInterfaceTypeFilter",
-                     null,
-                     null))
+                     "MSFT_NetInterfaceTypeFilter"))
         {
             using (filter)
             {
-                model.InterfaceTypes = ValueHelper.ResolveInterfaceType(filter.CimInstanceProperties["InterfaceType"]?.Value);
+                model.InterfaceTypes = ValueHelper.ResolveInterfaceType(filter.GetValue("InterfaceType"));
                 return;
             }
         }
     }
 
-    private static void PopulateAuthMethods(CimSession session, ConnectionSecurityRuleModel model)
+    private static void PopulateAuthMethods(WbemServices session, ConnectionSecurityRuleModel model)
     {
         PopulateAuthMethodsFromSet(session, model, phase1: true);
         PopulateAuthMethodsFromSet(session, model, phase1: false);
     }
 
-    private static void PopulateAuthMethodsFromSet(CimSession session, ConnectionSecurityRuleModel model, bool phase1)
+    private static void PopulateAuthMethodsFromSet(WbemServices session, ConnectionSecurityRuleModel model, bool phase1)
     {
         string setId = phase1 ? model.Phase1AuthSet : model.Phase2AuthSet;
         if (string.IsNullOrWhiteSpace(setId))
@@ -149,22 +140,31 @@ internal static class RuleMapper
             return;
         }
 
-        using CimInstance? authSet = FindAuthSetById(session, phase1, setId);
-        if (authSet?.CimInstanceProperties["Proposals"]?.Value is not CimInstance[] proposals || proposals.Length == 0)
+        using WbemObject? authSet = FindAuthSetById(session, phase1, setId);
+        if (authSet?.GetValue("Proposals") is not WbemObject[] proposals || proposals.Length == 0)
         {
             return;
         }
 
-        foreach (CimInstance proposal in proposals)
+        try
         {
-            if (!TryReadAuthMethodFromProposal(proposal, out AuthMethodDialogResult? result) || result is null)
+            foreach (WbemObject proposal in proposals)
             {
-                continue;
+                if (!TryReadAuthMethodFromProposal(proposal, out AuthMethodDialogResult? result) || result is null)
+                {
+                    continue;
+                }
+
+                AddAuthMethod(model, phase1, result);
             }
-
-            AddAuthMethod(model, phase1, result);
         }
-
+        finally
+        {
+            foreach (WbemObject proposal in proposals)
+            {
+                proposal.Dispose();
+            }
+        }
     }
 
     private static void AddAuthMethod(ConnectionSecurityRuleModel model, bool phase1, AuthMethodDialogResult result)
@@ -186,7 +186,7 @@ internal static class RuleMapper
         }
     }
 
-    private static CimInstance? FindAuthSetById(CimSession session, bool phase1, string setId)
+    private static WbemObject? FindAuthSetById(WbemServices session, bool phase1, string setId)
     {
         string normalizedSetId = setId.Trim();
         if (string.Equals(normalizedSetId, "Default", StringComparison.OrdinalIgnoreCase))
@@ -195,11 +195,12 @@ internal static class RuleMapper
         }
 
         string className = phase1 ? "MSFT_NetIKEP1AuthSet" : "MSFT_NetIKEP2AuthSet";
-        foreach (CimInstance set in session.EnumerateInstances(WindowsFirewallSupport.StandardCimNamespace, className))
+        foreach (WbemObject set in session.EnumerateInstances(className))
         {
-            string creationClassName = set.CimInstanceProperties["CreationClassName"]?.Value?.ToString() ?? string.Empty;
+            string creationClassName = set.GetValue("CreationClassName")?.ToString() ?? string.Empty;
             if (string.IsNullOrWhiteSpace(creationClassName))
             {
+                set.Dispose();
                 continue;
             }
 
@@ -222,12 +223,12 @@ internal static class RuleMapper
         return braceIndex >= 0 ? creationClassName[braceIndex..] : creationClassName;
     }
 
-    private static bool TryReadAuthMethodFromProposal(CimInstance proposal, out AuthMethodDialogResult? result)
+    private static bool TryReadAuthMethodFromProposal(WbemObject proposal, out AuthMethodDialogResult? result)
     {
         result = null;
 
-        string className = proposal.CimSystemProperties.ClassName ?? string.Empty;
-        ushort authMethod = ReadUInt16(proposal.CimInstanceProperties["AuthenticationMethod"]?.Value, 0);
+        string className = proposal.ClassName ?? string.Empty;
+        ushort authMethod = ReadUInt16(proposal.GetValue("AuthenticationMethod"), 0);
 
         switch (className)
         {
@@ -238,7 +239,7 @@ internal static class RuleMapper
                 return true;
 
             case "MSFT_NetIKEPSKAuthProposal":
-                string preSharedKey = proposal.CimInstanceProperties["PreSharedKey"]?.Value?.ToString() ?? string.Empty;
+                string preSharedKey = proposal.GetValue("PreSharedKey")?.ToString() ?? string.Empty;
                 result = new AuthMethodDialogResult
                 {
                     Kind = "PresharedKey",
@@ -267,7 +268,7 @@ internal static class RuleMapper
         }
     }
 
-    private static AuthMethodDialogResult ReadCertificateAuthMethodResult(CimInstance proposal, ushort authMethod)
+    private static AuthMethodDialogResult ReadCertificateAuthMethodResult(WbemObject proposal, ushort authMethod)
     {
         string kind = authMethod switch
         {
@@ -283,11 +284,11 @@ internal static class RuleMapper
             _ => GetString("WF_AuthMethod_ComputerCertificateFromCA")
         };
 
-        string signingAlgorithm = AuthMethodValueMapper.GetSigningAlgorithmTag(ReadUInt16(proposal.CimInstanceProperties["SigningAlgorithm"]?.Value, 1));
-        string storeType = AuthMethodValueMapper.GetCertificateStoreTypeTag(ReadUInt16(proposal.CimInstanceProperties["TrustedCAType"]?.Value, 1));
-        string caName = proposal.CimInstanceProperties["TrustedCA"]?.Value?.ToString() ?? string.Empty;
+        string signingAlgorithm = AuthMethodValueMapper.GetSigningAlgorithmTag(ReadUInt16(proposal.GetValue("SigningAlgorithm"), 1));
+        string storeType = AuthMethodValueMapper.GetCertificateStoreTypeTag(ReadUInt16(proposal.GetValue("TrustedCAType"), 1));
+        string caName = proposal.GetValue("TrustedCA")?.ToString() ?? string.Empty;
         bool healthCertificateOnly = authMethod == AuthMethodMachineHealthCertificate;
-        bool certificateMappingEnabled = ReadBoolValue(proposal.CimInstanceProperties["MapToAccount"]?.Value);
+        bool certificateMappingEnabled = ReadBoolValue(proposal.GetValue("MapToAccount"));
         AdvancedCertCriteriaResult? advancedCriteria = ReadAdvancedCertCriteria(proposal);
 
         return new AuthMethodDialogResult
@@ -310,14 +311,14 @@ internal static class RuleMapper
         };
     }
 
-    private static AdvancedCertCriteriaResult? ReadAdvancedCertCriteria(CimInstance proposal)
+    private static AdvancedCertCriteriaResult? ReadAdvancedCertCriteria(WbemObject proposal)
     {
-        string certName = proposal.CimInstanceProperties["CertName"]?.Value?.ToString() ?? string.Empty;
-        string thumbprint = proposal.CimInstanceProperties["Thumbprint"]?.Value?.ToString() ?? string.Empty;
-        string[] requiredEkus = proposal.CimInstanceProperties["EKUs"]?.Value as string[] ?? [];
-        bool followRenewal = ReadBoolValue(proposal.CimInstanceProperties["FollowRenewal"]?.Value);
-        bool selectionCriteria = ReadBoolValue(proposal.CimInstanceProperties["SelectionCriteria"]?.Value);
-        bool validationCriteria = ReadBoolValue(proposal.CimInstanceProperties["ValidationCriteria"]?.Value);
+        string certName = proposal.GetValue("CertName")?.ToString() ?? string.Empty;
+        string thumbprint = proposal.GetValue("Thumbprint")?.ToString() ?? string.Empty;
+        string[] requiredEkus = proposal.GetValue("EKUs") as string[] ?? [];
+        bool followRenewal = ReadBoolValue(proposal.GetValue("FollowRenewal"));
+        bool selectionCriteria = ReadBoolValue(proposal.GetValue("SelectionCriteria"));
+        bool validationCriteria = ReadBoolValue(proposal.GetValue("ValidationCriteria"));
 
         if (string.IsNullOrWhiteSpace(certName) &&
             string.IsNullOrWhiteSpace(thumbprint) &&
@@ -339,7 +340,7 @@ internal static class RuleMapper
         {
             RestrictUsage = restrictUsage,
             RequiredEkus = requiredEkus,
-            NameTypeTag = ResolveCertNameTypeTag(ReadUInt16(proposal.CimInstanceProperties["CertNameType"]?.Value, 0)),
+            NameTypeTag = ResolveCertNameTypeTag(ReadUInt16(proposal.GetValue("CertNameType"), 0)),
             CertificateName = certName,
             Thumbprint = thumbprint,
             FollowRenewal = followRenewal

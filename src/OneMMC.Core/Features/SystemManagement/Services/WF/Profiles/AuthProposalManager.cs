@@ -1,12 +1,12 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using OneMMC.Core.Localization;
 using OneMMC.Core.Features.SystemManagement.Interop.WF;
 using OneMMC.Core.Features.SystemManagement.Infrastructure.WF;
+using OneMMC.Core.Features.SystemManagement.Infrastructure.WF.Wbem;
 using OneMMC.Core.Features.SystemManagement.Models.WF.Authentication;
-using Microsoft.Management.Infrastructure;
 
 namespace OneMMC.Core.Features.SystemManagement.Services.WF.Profiles;
 
@@ -22,15 +22,15 @@ internal static class AuthProposalManager
     private const ushort AuthMethodMachineHealthCertificate = 65008;
     private const ushort AuthMethodPreSharedKey = 2;
 
-    internal static IEnumerable<CimInstance> BuildAuthProposals(IEnumerable<ushort> methods)
+    internal static IEnumerable<WbemObject> BuildAuthProposals(WbemServices session, IEnumerable<ushort> methods)
     {
         foreach (ushort method in methods.Distinct())
         {
-            yield return CreateBasicAuthProposal(method);
+            yield return CreateBasicAuthProposal(session, method);
         }
     }
 
-    internal static IEnumerable<CimInstance> BuildAuthProposals(IEnumerable<AuthMethodDialogResult>? methods)
+    internal static IEnumerable<WbemObject> BuildAuthProposals(WbemServices session, IEnumerable<AuthMethodDialogResult>? methods)
     {
         if (methods is null)
         {
@@ -39,14 +39,14 @@ internal static class AuthProposalManager
 
         foreach (AuthMethodDialogResult method in methods)
         {
-            if (TryBuildAuthProposal(method, out CimInstance? proposal) && proposal is not null)
+            if (TryBuildAuthProposal(session, method, out WbemObject? proposal) && proposal is not null)
             {
                 yield return proposal;
             }
         }
     }
 
-    private static bool TryBuildAuthProposal(AuthMethodDialogResult method, out CimInstance? proposal)
+    private static bool TryBuildAuthProposal(WbemServices session, AuthMethodDialogResult method, out WbemObject? proposal)
     {
         proposal = null;
         string kind = method.Kind ?? string.Empty;
@@ -54,41 +54,42 @@ internal static class AuthProposalManager
         switch (kind)
         {
             case "ComputerKerberos":
-                proposal = CreateKerberosAuthProposal(AuthMethodMachineKerberos);
+                proposal = CreateKerberosAuthProposal(session, AuthMethodMachineKerberos);
                 return true;
 
             case "ComputerNtlm":
-                proposal = CreateBasicAuthProposal(AuthMethodMachineNtlm);
+                proposal = CreateBasicAuthProposal(session, AuthMethodMachineNtlm);
                 return true;
 
             case "UserKerberos":
-                proposal = CreateKerberosAuthProposal(AuthMethodUserKerberos);
+                proposal = CreateKerberosAuthProposal(session, AuthMethodUserKerberos);
                 return true;
 
             case "UserNtlm":
-                proposal = CreateBasicAuthProposal(AuthMethodUserNtlm);
+                proposal = CreateBasicAuthProposal(session, AuthMethodUserNtlm);
                 return true;
 
             case "Anonymous":
-                proposal = CreateBasicAuthProposal(AuthMethodAnonymous);
+                proposal = CreateBasicAuthProposal(session, AuthMethodAnonymous);
                 return true;
 
             case "PresharedKey":
-                proposal = CreatePresharedKeyAuthProposal(method.PresharedKey);
+                proposal = CreatePresharedKeyAuthProposal(session, method.PresharedKey);
                 return true;
 
             case "ComputerCertificate":
                 proposal = CreateCertificateAuthProposal(
+                    session,
                     method,
                     method.HealthCertificateOnly ? AuthMethodMachineHealthCertificate : AuthMethodMachineCertificate);
                 return true;
 
             case "UserCertificate":
-                proposal = CreateCertificateAuthProposal(method, AuthMethodUserCertificate);
+                proposal = CreateCertificateAuthProposal(session, method, AuthMethodUserCertificate);
                 return true;
 
             case "ComputerHealthCertificate":
-                proposal = CreateCertificateAuthProposal(method, AuthMethodMachineHealthCertificate);
+                proposal = CreateCertificateAuthProposal(session, method, AuthMethodMachineHealthCertificate);
                 return true;
 
             case "Phase1AuthSet":
@@ -98,7 +99,7 @@ internal static class AuthProposalManager
             default:
                 if (string.Equals(method.Method, "Anonymous", StringComparison.OrdinalIgnoreCase))
                 {
-                    proposal = CreateBasicAuthProposal(AuthMethodAnonymous);
+                    proposal = CreateBasicAuthProposal(session, AuthMethodAnonymous);
                     return true;
                 }
 
@@ -106,86 +107,86 @@ internal static class AuthProposalManager
         }
     }
 
-    private static CimInstance CreateBasicAuthProposal(ushort authenticationMethod)
+    private static WbemObject CreateBasicAuthProposal(WbemServices session, ushort authenticationMethod)
     {
-        var instance = new CimInstance("MSFT_NetIKEBasicAuthProposal", WindowsFirewallSupport.StandardCimNamespace);
-        instance.CimInstanceProperties.Add(CimProperty.Create("AuthenticationMethod", authenticationMethod, CimType.UInt16, CimFlags.None));
+        WbemObject instance = session.SpawnInstance("MSFT_NetIKEBasicAuthProposal");
+        instance.SetProperty("AuthenticationMethod", authenticationMethod, WbemType.UInt16);
         return instance;
     }
 
-    private static CimInstance CreateKerberosAuthProposal(ushort authenticationMethod)
+    private static WbemObject CreateKerberosAuthProposal(WbemServices session, ushort authenticationMethod)
     {
-        var instance = new CimInstance("MSFT_NetIKEKerbAuthProposal", WindowsFirewallSupport.StandardCimNamespace);
-        instance.CimInstanceProperties.Add(CimProperty.Create("AuthenticationMethod", authenticationMethod, CimType.UInt16, CimFlags.None));
+        WbemObject instance = session.SpawnInstance("MSFT_NetIKEKerbAuthProposal");
+        instance.SetProperty("AuthenticationMethod", authenticationMethod, WbemType.UInt16);
         return instance;
     }
 
-    private static CimInstance CreatePresharedKeyAuthProposal(string? key)
+    private static WbemObject CreatePresharedKeyAuthProposal(WbemServices session, string? key)
     {
-        var instance = new CimInstance("MSFT_NetIKEPSKAuthProposal", WindowsFirewallSupport.StandardCimNamespace);
-        instance.CimInstanceProperties.Add(CimProperty.Create("AuthenticationMethod", AuthMethodPreSharedKey, CimType.UInt16, CimFlags.None));
-        instance.CimInstanceProperties.Add(CimProperty.Create("PreSharedKey", key ?? string.Empty, CimType.String, CimFlags.None));
+        WbemObject instance = session.SpawnInstance("MSFT_NetIKEPSKAuthProposal");
+        instance.SetProperty("AuthenticationMethod", AuthMethodPreSharedKey, WbemType.UInt16);
+        instance.SetProperty("PreSharedKey", key ?? string.Empty, WbemType.String);
         return instance;
     }
 
-    private static CimInstance CreateCertificateAuthProposal(AuthMethodDialogResult method, ushort authenticationMethod)
+    private static WbemObject CreateCertificateAuthProposal(WbemServices session, AuthMethodDialogResult method, ushort authenticationMethod)
     {
-        var instance = new CimInstance("MSFT_NetIKECertAuthProposal", WindowsFirewallSupport.StandardCimNamespace);
-        instance.CimInstanceProperties.Add(CimProperty.Create("AuthenticationMethod", authenticationMethod, CimType.UInt16, CimFlags.None));
-        instance.CimInstanceProperties.Add(CimProperty.Create("TrustedCA", method.CaDistinguishedName ?? string.Empty, CimType.String, CimFlags.None));
-        instance.CimInstanceProperties.Add(CimProperty.Create("TrustedCAType", AuthMethodValueMapper.ResolveTrustedCaTypeCode(method.CertificateStoreType), CimType.UInt16, CimFlags.None));
-        instance.CimInstanceProperties.Add(CimProperty.Create("SigningAlgorithm", AuthMethodValueMapper.ResolveSigningAlgorithmCode(method.SigningAlgorithm), CimType.UInt16, CimFlags.None));
-        instance.CimInstanceProperties.Add(CimProperty.Create("MapToAccount", method.CertificateMappingEnabled, CimType.Boolean, CimFlags.None));
+        WbemObject instance = session.SpawnInstance("MSFT_NetIKECertAuthProposal");
+        instance.SetProperty("AuthenticationMethod", authenticationMethod, WbemType.UInt16);
+        instance.SetProperty("TrustedCA", method.CaDistinguishedName ?? string.Empty, WbemType.String);
+        instance.SetProperty("TrustedCAType", AuthMethodValueMapper.ResolveTrustedCaTypeCode(method.CertificateStoreType), WbemType.UInt16);
+        instance.SetProperty("SigningAlgorithm", AuthMethodValueMapper.ResolveSigningAlgorithmCode(method.SigningAlgorithm), WbemType.UInt16);
+        instance.SetProperty("MapToAccount", method.CertificateMappingEnabled, WbemType.Boolean);
 
         AdvancedCertCriteriaResult? advanced = method.AdvancedCriteria;
         if (advanced is not null)
         {
             if (advanced.RequiredEkus.Count > 0)
             {
-                instance.CimInstanceProperties.Add(CimProperty.Create("EKUs", advanced.RequiredEkus.ToArray(), CimType.StringArray, CimFlags.None));
+                instance.SetProperty("EKUs", advanced.RequiredEkus.ToArray(), WbemType.StringArray);
             }
 
             if (!string.IsNullOrWhiteSpace(advanced.CertificateName))
             {
-                instance.CimInstanceProperties.Add(CimProperty.Create("CertName", advanced.CertificateName.Trim(), CimType.String, CimFlags.None));
-                instance.CimInstanceProperties.Add(CimProperty.Create("CertNameType", ResolveCertNameType(advanced.NameTypeTag), CimType.UInt16, CimFlags.None));
+                instance.SetProperty("CertName", advanced.CertificateName.Trim(), WbemType.String);
+                instance.SetProperty("CertNameType", ResolveCertNameType(advanced.NameTypeTag), WbemType.UInt16);
             }
 
             if (!string.IsNullOrWhiteSpace(advanced.Thumbprint))
             {
-                instance.CimInstanceProperties.Add(CimProperty.Create("Thumbprint", advanced.Thumbprint.Trim(), CimType.String, CimFlags.None));
+                instance.SetProperty("Thumbprint", advanced.Thumbprint.Trim(), WbemType.String);
             }
 
             if (advanced.FollowRenewal)
             {
-                instance.CimInstanceProperties.Add(CimProperty.Create("FollowRenewal", true, CimType.Boolean, CimFlags.None));
+                instance.SetProperty("FollowRenewal", true, WbemType.Boolean);
             }
 
             if (string.Equals(advanced.RestrictUsage, "Selection only", StringComparison.OrdinalIgnoreCase))
             {
-                instance.CimInstanceProperties.Add(CimProperty.Create("SelectionCriteria", true, CimType.Boolean, CimFlags.None));
+                instance.SetProperty("SelectionCriteria", true, WbemType.Boolean);
             }
             else if (string.Equals(advanced.RestrictUsage, "Validation only", StringComparison.OrdinalIgnoreCase))
             {
-                instance.CimInstanceProperties.Add(CimProperty.Create("ValidationCriteria", true, CimType.Boolean, CimFlags.None));
+                instance.SetProperty("ValidationCriteria", true, WbemType.Boolean);
             }
         }
 
         return instance;
     }
 
-    internal static IReadOnlyList<AuthMethodDialogResult> ReadAuthMethodResults(CimInstance? set)
+    internal static IReadOnlyList<AuthMethodDialogResult> ReadAuthMethodResults(WbemObject? set)
     {
-        if (set?.CimInstanceProperties["Proposals"]?.Value is not CimInstance[] proposals || proposals.Length == 0)
+        if (set?.GetValue("Proposals") is not WbemObject[] proposals || proposals.Length == 0)
         {
             return [];
         }
 
         List<AuthMethodDialogResult> methods = [];
-        foreach (CimInstance proposal in proposals)
+        foreach (WbemObject proposal in proposals)
         {
-            ushort authMethod = ValueConverter.ConvertToUInt16(proposal.CimInstanceProperties["AuthenticationMethod"]?.Value, 0);
-            string className = proposal.CimSystemProperties.ClassName ?? string.Empty;
+            ushort authMethod = ValueConverter.ConvertToUInt16(proposal.GetValue("AuthenticationMethod"), 0);
+            string className = proposal.ClassName ?? string.Empty;
 
             switch (className)
             {
@@ -196,7 +197,7 @@ internal static class AuthProposalManager
                     break;
 
                 case "MSFT_NetIKEPSKAuthProposal":
-                    string key = proposal.CimInstanceProperties["PreSharedKey"]?.Value?.ToString() ?? string.Empty;
+                    string key = proposal.GetValue("PreSharedKey")?.ToString() ?? string.Empty;
                     methods.Add(new AuthMethodDialogResult
                     {
                         Kind = "PresharedKey",
@@ -230,7 +231,7 @@ internal static class AuthProposalManager
         return methods;
     }
 
-    private static AuthMethodDialogResult ReadCertificateAuthMethodResult(CimInstance proposal, ushort authMethod)
+    private static AuthMethodDialogResult ReadCertificateAuthMethodResult(WbemObject proposal, ushort authMethod)
     {
         string kind = authMethod switch
         {
@@ -246,11 +247,11 @@ internal static class AuthProposalManager
             _ => GetString("WF_AuthMethod_ComputerCertificateFromCA")
         };
 
-        string signing = AuthMethodValueMapper.GetSigningAlgorithmTag(ValueConverter.ConvertToUInt16(proposal.CimInstanceProperties["SigningAlgorithm"]?.Value, 1));
-        string storeType = AuthMethodValueMapper.GetCertificateStoreTypeTag(ValueConverter.ConvertToUInt16(proposal.CimInstanceProperties["TrustedCAType"]?.Value, 1));
-        string ca = proposal.CimInstanceProperties["TrustedCA"]?.Value?.ToString() ?? string.Empty;
+        string signing = AuthMethodValueMapper.GetSigningAlgorithmTag(ValueConverter.ConvertToUInt16(proposal.GetValue("SigningAlgorithm"), 1));
+        string storeType = AuthMethodValueMapper.GetCertificateStoreTypeTag(ValueConverter.ConvertToUInt16(proposal.GetValue("TrustedCAType"), 1));
+        string ca = proposal.GetValue("TrustedCA")?.ToString() ?? string.Empty;
         bool healthCertificateOnly = authMethod == AuthMethodMachineHealthCertificate;
-        bool certificateMappingEnabled = Convert.ToBoolean(proposal.CimInstanceProperties["MapToAccount"]?.Value ?? false, CultureInfo.InvariantCulture);
+        bool certificateMappingEnabled = Convert.ToBoolean(proposal.GetValue("MapToAccount") ?? false, CultureInfo.InvariantCulture);
         AdvancedCertCriteriaResult? advancedCriteria = ReadAdvancedCertCriteria(proposal);
 
         return new AuthMethodDialogResult
@@ -273,14 +274,14 @@ internal static class AuthProposalManager
         };
     }
 
-    private static AdvancedCertCriteriaResult? ReadAdvancedCertCriteria(CimInstance proposal)
+    private static AdvancedCertCriteriaResult? ReadAdvancedCertCriteria(WbemObject proposal)
     {
-        string certName = proposal.CimInstanceProperties["CertName"]?.Value?.ToString() ?? string.Empty;
-        string thumbprint = proposal.CimInstanceProperties["Thumbprint"]?.Value?.ToString() ?? string.Empty;
-        string[] requiredEkus = proposal.CimInstanceProperties["EKUs"]?.Value as string[] ?? [];
-        bool followRenewal = Convert.ToBoolean(proposal.CimInstanceProperties["FollowRenewal"]?.Value ?? false, CultureInfo.InvariantCulture);
-        bool selectionCriteria = Convert.ToBoolean(proposal.CimInstanceProperties["SelectionCriteria"]?.Value ?? false, CultureInfo.InvariantCulture);
-        bool validationCriteria = Convert.ToBoolean(proposal.CimInstanceProperties["ValidationCriteria"]?.Value ?? false, CultureInfo.InvariantCulture);
+        string certName = proposal.GetValue("CertName")?.ToString() ?? string.Empty;
+        string thumbprint = proposal.GetValue("Thumbprint")?.ToString() ?? string.Empty;
+        string[] requiredEkus = proposal.GetValue("EKUs") as string[] ?? [];
+        bool followRenewal = Convert.ToBoolean(proposal.GetValue("FollowRenewal") ?? false, CultureInfo.InvariantCulture);
+        bool selectionCriteria = Convert.ToBoolean(proposal.GetValue("SelectionCriteria") ?? false, CultureInfo.InvariantCulture);
+        bool validationCriteria = Convert.ToBoolean(proposal.GetValue("ValidationCriteria") ?? false, CultureInfo.InvariantCulture);
 
         if (string.IsNullOrWhiteSpace(certName) &&
             string.IsNullOrWhiteSpace(thumbprint) &&
@@ -302,7 +303,7 @@ internal static class AuthProposalManager
         {
             RestrictUsage = restrictUsage,
             RequiredEkus = requiredEkus,
-            NameTypeTag = ResolveCertNameTypeTag(ValueConverter.ConvertToUInt16(proposal.CimInstanceProperties["CertNameType"]?.Value, 0)),
+            NameTypeTag = ResolveCertNameTypeTag(ValueConverter.ConvertToUInt16(proposal.GetValue("CertNameType"), 0)),
             CertificateName = certName,
             Thumbprint = thumbprint,
             FollowRenewal = followRenewal

@@ -61,6 +61,9 @@ internal partial struct Variant : IDisposable
     /// <summary>An explicitly empty variant (<c>VT_EMPTY</c>).</summary>
     internal static Variant Empty => default;
 
+    /// <summary>A SQL/WMI NULL variant (<c>VT_NULL</c>) — used to clear a WMI property to NULL on Put.</summary>
+    internal static Variant Null => new() { _vt = VT_NULL };
+
     /// <summary>The "truly omitted optional parameter" sentinel (<c>VT_ERROR</c> / <c>DISP_E_PARAMNOTFOUND</c>).</summary>
     internal static Variant Missing => new() { _vt = VT_ERROR, _value = unchecked((nint)DISP_E_PARAMNOTFOUND) };
 

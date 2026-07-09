@@ -171,6 +171,34 @@ internal sealed unsafe partial class WbemServices : IDisposable
     internal void ModifyInstance(WbemObject instance)
         => _services->PutInstance(instance.Pointer, (WBEM_GENERIC_FLAG_TYPE)WbemCimType.WBEM_FLAG_UPDATE_ONLY, null, null);
 
+    /// <summary>
+    /// Invokes the parameterless WMI method <paramref name="methodName"/> on <paramref name="instance"/>
+    /// (<c>ExecMethod</c> against its <c>__PATH</c>, no in-parameters, output ignored) — the equivalent of
+    /// <c>CimSession.InvokeMethod(ns, instance, methodName, new CimMethodParametersCollection())</c>. Used
+    /// for the firewall <c>Enable</c>/<c>Disable</c> connection-security rule methods.
+    /// </summary>
+    internal void ExecMethod(WbemObject instance, string methodName)
+    {
+        string? path = instance.Path;
+        if (string.IsNullOrEmpty(path))
+        {
+            throw new InvalidOperationException("Cannot invoke a WMI method on an instance without a __PATH (was it enumerated/created?).");
+        }
+
+        nint pathBstr = Marshal.StringToBSTR(path);
+        nint methodBstr = Marshal.StringToBSTR(methodName);
+        try
+        {
+            // No in-parameters (pInParams = null); output parameters and call result are ignored.
+            _services->ExecMethod(new BSTR(pathBstr), new BSTR(methodBstr), 0, null, null);
+        }
+        finally
+        {
+            Marshal.FreeBSTR(methodBstr);
+            Marshal.FreeBSTR(pathBstr);
+        }
+    }
+
     /// <summary>Deletes <paramref name="instance"/> from WMI by its <c>__PATH</c>.</summary>
     internal void DeleteInstance(WbemObject instance)
     {

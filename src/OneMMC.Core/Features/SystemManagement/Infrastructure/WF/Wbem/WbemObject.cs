@@ -88,7 +88,9 @@ internal sealed unsafe partial class WbemObject : IDisposable
     /// </summary>
     internal void SetProperty(string name, object? value, WbemType type)
     {
-        Variant variant = BuildVariant(value, type);
+        // A null value clears the property to WMI NULL (VT_NULL) — matching CimProperty.Value = null (e.g.
+        // clearing TunnelType on a non-tunnel connection-security rule); the encoded WbemType is irrelevant.
+        Variant variant = value is null ? Variant.Null : BuildVariant(value, type);
         try
         {
             Put(name, variant);
@@ -106,6 +108,37 @@ internal sealed unsafe partial class WbemObject : IDisposable
     /// </summary>
     internal void SetProperty(string name, object? value)
         => SetProperty(name, value, InferType(value));
+
+    /// <summary>
+    /// Sets <paramref name="name"/> to <paramref name="value"/> only if the property exists on this object,
+    /// returning whether it did — the equivalent of the old "<c>if (CimInstanceProperties[name] is CimProperty p) p.Value = …</c>"
+    /// guard (used for optional properties like <c>TunnelType</c>/<c>OverrideBlockRules</c>).
+    /// </summary>
+    internal bool TrySetProperty(string name, object? value)
+    {
+        if (!HasProperty(name))
+        {
+            return false;
+        }
+
+        SetProperty(name, value);
+        return true;
+    }
+
+    /// <summary>Whether the named property exists on this object (a non-throwing <c>Get</c> that succeeds even for a NULL value).</summary>
+    internal bool HasProperty(string name)
+    {
+        Variant variant = default;
+        int cimType = 0;
+        HRESULT hr;
+        fixed (char* pName = name)
+        {
+            hr = RawGet(_object, (PCWSTR)pName, (VARIANT*)&variant, &cimType);
+        }
+
+        variant.Clear();
+        return hr.Succeeded;
+    }
 
     private static WbemType InferType(object? value) => value switch
     {
@@ -337,10 +370,25 @@ internal sealed unsafe partial class WbemObject : IDisposable
 
     public void Dispose()
     {
-        if (_object is not null)
+        // Suppress before releasing: while Dispose is executing the object is reachable, so the GC cannot be
+        // finalizing it concurrently — this ordering makes the release race-free without locking.
+        GC.SuppressFinalize(this);
+        ReleaseOnce();
+    }
+
+    // Finalizer backstop: the WF services enumerate many WbemObjects through lazy LINQ pipelines and cannot
+    // always dispose each one deterministically (mirroring the old CimInstance, which had a finalizer). The
+    // underlying IWbemClassObject is a free-threaded client-side data object, so releasing it from the
+    // finalizer thread is safe. Explicit Dispose remains the primary, prompt path.
+    ~WbemObject() => ReleaseOnce();
+
+    private void ReleaseOnce()
+    {
+        IWbemClassObject* obj = _object;
+        if (obj is not null)
         {
-            Marshal.Release((nint)_object);
             _object = null;
+            Marshal.Release((nint)obj);
         }
     }
 

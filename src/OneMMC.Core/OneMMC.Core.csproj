@@ -17,7 +17,6 @@
 
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" />
-    <PackageReference Include="Microsoft.Management.Infrastructure" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
     <PackageReference Include="Microsoft.Extensions.Logging" />
     <PackageReference Include="Microsoft.Windows.CsWin32" PrivateAssets="all" />
@@ -32,8 +31,9 @@
     <PackageReference Include="System.DirectoryServices.AccountManagement" />
     <PackageReference Include="System.ServiceProcess.ServiceController" />
     <PackageReference Include="System.Diagnostics.PerformanceCounter" />
-    <!-- AOT-compatible WMI client; replaces System.Management / Microsoft.Management.Infrastructure
-         feature-by-feature per doc/NativeAotMigration.md (M2). -->
+    <!-- AOT-compatible WMI client; replaced System.Management for query/method features per
+         doc/NativeAotMigration.md (M2). (Microsoft.Management.Infrastructure was instead replaced by the
+         marshal-free IWbem wrapper under Features/SystemManagement/Infrastructure/WF/Wbem — WF Half B.) -->
     <PackageReference Include="WmiLight" />
   </ItemGroup>
 

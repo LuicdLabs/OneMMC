@@ -36,9 +36,6 @@ The following components are licensed under the MIT License:
    Copyright (c) .NET Foundation and Contributors
    https://github.com/dotnet/runtime
 
-   Microsoft.Management.Infrastructure 3.0.0
-   Copyright (c) .NET Foundation and Contributors
-
    Microsoft.Windows.CsWin32 0.3.275
    Copyright (c) Microsoft Corporation
    https://github.com/microsoft/CsWin32

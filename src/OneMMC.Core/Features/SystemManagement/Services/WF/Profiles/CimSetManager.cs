@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using System.Linq;
 using OneMMC.Core.Features.SystemManagement.Interop.WF;
 using OneMMC.Core.Features.SystemManagement.Infrastructure.WF;
+using OneMMC.Core.Features.SystemManagement.Infrastructure.WF.Wbem;
 using OneMMC.Core.Features.SystemManagement.Models.WF.Profiles;
-using Microsoft.Management.Infrastructure;
 
 namespace OneMMC.Core.Features.SystemManagement.Services.WF.Profiles;
 
@@ -15,12 +15,12 @@ internal static class CimSetManager
     private const string DefaultPhase2AuthSetCreationClass = "MSFT|FW|P2AuthSet|{E5A5D32A-4BCE-4e4d-B07F-4AB1BA7E5FE4}";
 
     internal static void UpsertAuthSet(
-        CimSession session,
+        WbemServices session,
         string setClassName,
         string creationClassName,
         System.Collections.Generic.IEnumerable<ushort> authenticationMethods)
     {
-        CimInstance[] proposals = AuthProposalManager.BuildAuthProposals(authenticationMethods).ToArray();
+        WbemObject[] proposals = AuthProposalManager.BuildAuthProposals(session, authenticationMethods).ToArray();
         if (proposals.Length == 0)
         {
             DeleteSetIfExists(session, setClassName, creationClassName);
@@ -29,20 +29,20 @@ internal static class CimSetManager
 
         try
         {
-            using CimInstance _ = UpsertSet(session, setClassName, creationClassName, proposals);
+            UpsertSet(session, setClassName, creationClassName, proposals);
         }
         finally
         {
-            foreach (CimInstance proposal in proposals)
+            foreach (WbemObject proposal in proposals)
             {
                 proposal.Dispose();
             }
         }
     }
 
-    internal static CimInstance UpsertMainModeSet(
-        CimSession session,
-        CimInstance[] proposals,
+    internal static void UpsertMainModeSet(
+        WbemServices session,
+        WbemObject[] proposals,
         IpsecDefaultsModel defaults)
     {
         if (proposals.Length == 0)
@@ -50,68 +50,60 @@ internal static class CimSetManager
             throw new ArgumentException("At least one proposal is required.", nameof(proposals));
         }
 
-        CimInstance? existing = GetDefaultMainModeSet(session);
+        using WbemObject? existing = GetDefaultMainModeSet(session);
         if (existing is null)
         {
-            using CimInstance instance = BuildMainModeSetInstance(proposals, defaults);
-            CimInstance created = session.CreateInstance(
-                WindowsFirewallSupport.StandardCimNamespace,
-                instance);
-
-            return created;
+            using WbemObject instance = BuildMainModeSetInstance(session, proposals, defaults);
+            session.CreateInstance(instance);
+            return;
         }
 
-        existing.CimInstanceProperties["Proposals"].Value = proposals;
+        existing.SetProperty("Proposals", proposals);
         ApplyMainModeOptions(existing, defaults);
-        session.ModifyInstance(WindowsFirewallSupport.StandardCimNamespace, existing);
-        return existing;
+        session.ModifyInstance(existing);
     }
 
-    internal static CimInstance UpsertSet(
-        CimSession session,
+    internal static void UpsertSet(
+        WbemServices session,
         string setClassName,
         string creationClassName,
-        CimInstance[] proposals)
+        WbemObject[] proposals)
     {
         if (proposals.Length == 0)
         {
             throw new ArgumentException("At least one proposal is required.", nameof(proposals));
         }
 
-        CimInstance? existing = FindSetByCreationClass(session, setClassName, creationClassName);
+        using WbemObject? existing = FindSetByCreationClass(session, setClassName, creationClassName);
         if (existing is null)
         {
-            using CimInstance instance = BuildPolicySetInstance(setClassName, creationClassName, proposals);
-            CimInstance created = session.CreateInstance(
-                WindowsFirewallSupport.StandardCimNamespace,
-                instance);
-
-            return created;
+            using WbemObject instance = BuildPolicySetInstance(session, setClassName, creationClassName, proposals);
+            session.CreateInstance(instance);
+            return;
         }
 
-        existing.CimInstanceProperties["Proposals"].Value = proposals;
-        session.ModifyInstance(WindowsFirewallSupport.StandardCimNamespace, existing);
-        return existing;
+        existing.SetProperty("Proposals", proposals);
+        session.ModifyInstance(existing);
     }
 
-    internal static void DeleteSetIfExists(CimSession session, string setClassName, string creationClassName)
+    internal static void DeleteSetIfExists(WbemServices session, string setClassName, string creationClassName)
     {
-        using CimInstance? existing = FindSetByCreationClass(session, setClassName, creationClassName);
+        using WbemObject? existing = FindSetByCreationClass(session, setClassName, creationClassName);
         if (existing is not null)
         {
-            session.DeleteInstance(WindowsFirewallSupport.StandardCimNamespace, existing);
+            session.DeleteInstance(existing);
         }
     }
 
-    internal static CimInstance? GetDefaultMainModeSet(CimSession session)
+    internal static WbemObject? GetDefaultMainModeSet(WbemServices session)
         => FindSetByCreationClass(session, "MSFT_NetIKEMMCryptoSet", DefaultMainModeCryptoSetCreationClass);
 
-    internal static CimInstance? FindSetByCreationClass(CimSession session, string setClassName, string creationClassName)
+    internal static WbemObject? FindSetByCreationClass(WbemServices session, string setClassName, string creationClassName)
     {
-        foreach (CimInstance instance in session.EnumerateInstances(WindowsFirewallSupport.StandardCimNamespace, setClassName))
+        foreach (WbemObject instance in session.EnumerateInstances(setClassName))
         {
             if (string.Equals(
-                    instance.CimInstanceProperties["CreationClassName"]?.Value?.ToString(),
+                    instance.GetValue("CreationClassName")?.ToString(),
                     creationClassName,
                     StringComparison.OrdinalIgnoreCase))
             {
@@ -124,13 +116,13 @@ internal static class CimSetManager
         return null;
     }
 
-    internal static CimInstance GetFirewallSettingInstance(CimSession session)
+    internal static WbemObject GetFirewallSettingInstance(WbemServices session)
     {
-        CimInstance? fallback = null;
-        foreach (CimInstance instance in session.EnumerateInstances(WindowsFirewallSupport.StandardCimNamespace, "MSFT_NetSecuritySettingData"))
+        WbemObject? fallback = null;
+        foreach (WbemObject instance in session.EnumerateInstances("MSFT_NetSecuritySettingData"))
         {
             if (string.Equals(
-                    instance.CimInstanceProperties["InstanceID"]?.Value?.ToString(),
+                    instance.GetValue("InstanceID")?.ToString(),
                     "MSFT|GlobalIPSecSettingData",
                     StringComparison.OrdinalIgnoreCase))
             {
@@ -148,13 +140,13 @@ internal static class CimSetManager
         return fallback ?? throw new InvalidOperationException("The firewall IPsec settings instance could not be found.");
     }
 
-    internal static CimInstance GetFirewallProfileInstance(CimSession session, FirewallProfileType profileType)
+    internal static WbemObject GetFirewallProfileInstance(WbemServices session, FirewallProfileType profileType)
     {
         string profileName = profileType.ToString();
-        foreach (CimInstance instance in session.EnumerateInstances(WindowsFirewallSupport.StandardCimNamespace, "MSFT_NetFirewallProfile"))
+        foreach (WbemObject instance in session.EnumerateInstances("MSFT_NetFirewallProfile"))
         {
             if (string.Equals(
-                    instance.CimInstanceProperties["Name"]?.Value?.ToString(),
+                    instance.GetValue("Name")?.ToString(),
                     profileName,
                     StringComparison.OrdinalIgnoreCase))
             {
@@ -167,37 +159,38 @@ internal static class CimSetManager
         throw new InvalidOperationException($"The firewall profile '{profileName}' could not be found.");
     }
 
-    internal static CimInstance[] BuildMainModeProposals(System.Collections.Generic.IEnumerable<MainModeProposalDefinition> proposals)
-        => proposals.Select(BuildMainModeProposal).ToArray();
+    internal static WbemObject[] BuildMainModeProposals(WbemServices session, System.Collections.Generic.IEnumerable<MainModeProposalDefinition> proposals)
+        => proposals.Select(proposal => BuildMainModeProposal(session, proposal)).ToArray();
 
-    internal static CimInstance[] BuildQuickModeProposals(System.Collections.Generic.IEnumerable<QuickModeProposalDefinition> proposals)
-        => proposals.Select(BuildQuickModeProposal).ToArray();
+    internal static WbemObject[] BuildQuickModeProposals(WbemServices session, System.Collections.Generic.IEnumerable<QuickModeProposalDefinition> proposals)
+        => proposals.Select(proposal => BuildQuickModeProposal(session, proposal)).ToArray();
 
-    internal static void ApplyMainModeOptions(CimInstance instance, IpsecDefaultsModel defaults)
+    internal static void ApplyMainModeOptions(WbemObject instance, IpsecDefaultsModel defaults)
     {
-        SetOrAddProperty(instance, "MaxLifetimeMinutes", (uint)Math.Max(0, defaults.MainModeKeyLifetimeMinutes), CimType.UInt32);
-        SetOrAddProperty(instance, "MaxLifetimeSessions", (uint)Math.Max(0, defaults.MainModeKeyLifetimeSessions), CimType.UInt32);
-        SetOrAddProperty(instance, "ForceDiffieHellman", defaults.MainModeForceDiffieHellman, CimType.Boolean);
+        instance.SetProperty("MaxLifetimeMinutes", (uint)Math.Max(0, defaults.MainModeKeyLifetimeMinutes), WbemType.UInt32);
+        instance.SetProperty("MaxLifetimeSessions", (uint)Math.Max(0, defaults.MainModeKeyLifetimeSessions), WbemType.UInt32);
+        instance.SetProperty("ForceDiffieHellman", defaults.MainModeForceDiffieHellman, WbemType.Boolean);
     }
 
-    private static CimInstance BuildPolicySetInstance(string setClassName, string creationClassName, CimInstance[] proposals)
+    private static WbemObject BuildPolicySetInstance(WbemServices session, string setClassName, string creationClassName, WbemObject[] proposals)
     {
-        var instance = new CimInstance(setClassName, WindowsFirewallSupport.StandardCimNamespace);
-        instance.CimInstanceProperties.Add(CimProperty.Create("CreationClassName", creationClassName, CimType.String, CimFlags.Key));
-        instance.CimInstanceProperties.Add(CimProperty.Create("PolicyActionName", string.Empty, CimType.String, CimFlags.Key));
-        instance.CimInstanceProperties.Add(CimProperty.Create("PolicyRuleCreationClassName", string.Empty, CimType.String, CimFlags.Key));
-        instance.CimInstanceProperties.Add(CimProperty.Create("PolicyRuleName", string.Empty, CimType.String, CimFlags.Key));
-        instance.CimInstanceProperties.Add(CimProperty.Create("SystemCreationClassName", string.Empty, CimType.String, CimFlags.Key));
-        instance.CimInstanceProperties.Add(CimProperty.Create("SystemName", string.Empty, CimType.String, CimFlags.Key));
-        instance.CimInstanceProperties.Add(CimProperty.Create("PolicyStoreSource", "PersistentStore", CimType.String, CimFlags.None));
-        instance.CimInstanceProperties.Add(CimProperty.Create("PolicyStoreSourceType", (ushort)1, CimType.UInt16, CimFlags.None));
-        instance.CimInstanceProperties.Add(CimProperty.Create("Proposals", proposals, CimType.InstanceArray, CimFlags.None));
+        WbemObject instance = session.SpawnInstance(setClassName);
+        instance.SetProperty("CreationClassName", creationClassName, WbemType.String);
+        instance.SetProperty("PolicyActionName", string.Empty, WbemType.String);
+        instance.SetProperty("PolicyRuleCreationClassName", string.Empty, WbemType.String);
+        instance.SetProperty("PolicyRuleName", string.Empty, WbemType.String);
+        instance.SetProperty("SystemCreationClassName", string.Empty, WbemType.String);
+        instance.SetProperty("SystemName", string.Empty, WbemType.String);
+        instance.SetProperty("PolicyStoreSource", "PersistentStore", WbemType.String);
+        instance.SetProperty("PolicyStoreSourceType", (ushort)1, WbemType.UInt16);
+        instance.SetProperty("Proposals", proposals, WbemType.InstanceArray);
         return instance;
     }
 
-    private static CimInstance BuildMainModeSetInstance(CimInstance[] proposals, IpsecDefaultsModel defaults)
+    private static WbemObject BuildMainModeSetInstance(WbemServices session, WbemObject[] proposals, IpsecDefaultsModel defaults)
     {
-        CimInstance instance = BuildPolicySetInstance(
+        WbemObject instance = BuildPolicySetInstance(
+            session,
             "MSFT_NetIKEMMCryptoSet",
             DefaultMainModeCryptoSetCreationClass,
             proposals);
@@ -205,35 +198,24 @@ internal static class CimSetManager
         return instance;
     }
 
-    private static void SetOrAddProperty(CimInstance instance, string propertyName, object value, CimType cimType)
+    private static WbemObject BuildMainModeProposal(WbemServices session, MainModeProposalDefinition proposal)
     {
-        if (instance.CimInstanceProperties[propertyName] is CimProperty property)
-        {
-            property.Value = value;
-            return;
-        }
-
-        instance.CimInstanceProperties.Add(CimProperty.Create(propertyName, value, cimType, CimFlags.None));
-    }
-
-    private static CimInstance BuildMainModeProposal(MainModeProposalDefinition proposal)
-    {
-        var instance = new CimInstance("MSFT_NetIKEMMCryptoProposal", WindowsFirewallSupport.StandardCimNamespace);
-        instance.CimInstanceProperties.Add(CimProperty.Create("CipherAlgorithm", proposal.CipherAlgorithm, CimType.UInt16, CimFlags.None));
-        instance.CimInstanceProperties.Add(CimProperty.Create("HashAlgorithm", proposal.HashAlgorithm, CimType.UInt16, CimFlags.None));
-        instance.CimInstanceProperties.Add(CimProperty.Create("GroupId", proposal.GroupId, CimType.UInt16, CimFlags.None));
+        WbemObject instance = session.SpawnInstance("MSFT_NetIKEMMCryptoProposal");
+        instance.SetProperty("CipherAlgorithm", proposal.CipherAlgorithm, WbemType.UInt16);
+        instance.SetProperty("HashAlgorithm", proposal.HashAlgorithm, WbemType.UInt16);
+        instance.SetProperty("GroupId", proposal.GroupId, WbemType.UInt16);
         return instance;
     }
 
-    private static CimInstance BuildQuickModeProposal(QuickModeProposalDefinition proposal)
+    private static WbemObject BuildQuickModeProposal(WbemServices session, QuickModeProposalDefinition proposal)
     {
-        var instance = new CimInstance("MSFT_NetIKEQMCryptoProposal", WindowsFirewallSupport.StandardCimNamespace);
-        instance.CimInstanceProperties.Add(CimProperty.Create("Encapsulation", proposal.Encapsulation, CimType.UInt16, CimFlags.None));
-        instance.CimInstanceProperties.Add(CimProperty.Create("HashAlgorithmAH", proposal.HashAlgorithmAh ?? 0, CimType.UInt16, CimFlags.None));
-        instance.CimInstanceProperties.Add(CimProperty.Create("HashAlgorithmESP", proposal.HashAlgorithmEsp ?? 0, CimType.UInt16, CimFlags.None));
-        instance.CimInstanceProperties.Add(CimProperty.Create("CipherAlgorithm", proposal.CipherAlgorithm ?? 0, CimType.UInt16, CimFlags.None));
-        instance.CimInstanceProperties.Add(CimProperty.Create("MaxLifetimeMinutes", proposal.MaxLifetimeMinutes, CimType.UInt32, CimFlags.None));
-        instance.CimInstanceProperties.Add(CimProperty.Create("MaxLifetimeKilobytes", proposal.MaxLifetimeKilobytes, CimType.UInt64, CimFlags.None));
+        WbemObject instance = session.SpawnInstance("MSFT_NetIKEQMCryptoProposal");
+        instance.SetProperty("Encapsulation", proposal.Encapsulation, WbemType.UInt16);
+        instance.SetProperty("HashAlgorithmAH", proposal.HashAlgorithmAh ?? 0, WbemType.UInt16);
+        instance.SetProperty("HashAlgorithmESP", proposal.HashAlgorithmEsp ?? 0, WbemType.UInt16);
+        instance.SetProperty("CipherAlgorithm", proposal.CipherAlgorithm ?? 0, WbemType.UInt16);
+        instance.SetProperty("MaxLifetimeMinutes", proposal.MaxLifetimeMinutes, WbemType.UInt32);
+        instance.SetProperty("MaxLifetimeKilobytes", proposal.MaxLifetimeKilobytes, WbemType.UInt64);
         return instance;
     }
 }

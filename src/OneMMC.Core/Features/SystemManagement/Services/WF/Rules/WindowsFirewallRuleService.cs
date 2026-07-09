@@ -5,10 +5,10 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using OneMMC.Core.Features.SystemManagement.Interop.WF;
 using OneMMC.Core.Features.SystemManagement.Infrastructure.WF;
+using OneMMC.Core.Features.SystemManagement.Infrastructure.WF.Wbem;
 using OneMMC.Core.Features.SystemManagement.Models.WF.Rules;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Management.Infrastructure;
 
 namespace OneMMC.Core.Features.SystemManagement.Services.WF.Rules;
 
@@ -386,14 +386,14 @@ public class WindowsFirewallRuleService
 
         try
         {
-            using CimSession session = CimSession.Create(null);
-            using CimInstance? ruleInstance = CimHelper.GetFirewallRuleInstance(session, lookupNames);
+            using WbemServices session = WbemServices.Connect(WindowsFirewallSupport.StandardCimNamespace);
+            using WbemObject? ruleInstance = CimHelper.GetFirewallRuleInstance(session, lookupNames);
             if (ruleInstance is null)
             {
                 return false;
             }
 
-            using CimInstance? filter = CimHelper.GetSecurityFilterInstance(session, ruleInstance);
+            using WbemObject? filter = CimHelper.GetSecurityFilterInstance(session, ruleInstance);
             if (filter is null)
             {
                 return false;
@@ -422,25 +422,24 @@ public class WindowsFirewallRuleService
 
         try
         {
-            using CimSession session = CimSession.Create(null);
-            using CimInstance? ruleInstance = CimHelper.GetFirewallRuleInstance(session, lookupNames);
+            using WbemServices session = WbemServices.Connect(WindowsFirewallSupport.StandardCimNamespace);
+            using WbemObject? ruleInstance = CimHelper.GetFirewallRuleInstance(session, lookupNames);
             if (ruleInstance is null)
             {
                 _logger.LogWarning("Firewall rule {RuleName} not found when setting OverrideBlockRules.", FormatRuleNames(lookupNames));
                 return false;
             }
 
-            using CimInstance? filter = CimHelper.GetSecurityFilterInstance(session, ruleInstance);
+            using WbemObject? filter = CimHelper.GetSecurityFilterInstance(session, ruleInstance);
             if (filter is null)
             {
                 _logger.LogWarning("Security filter not found for firewall rule {RuleName}.", FormatRuleNames(lookupNames));
                 return false;
             }
 
-            if (filter.CimInstanceProperties["OverrideBlockRules"] is CimProperty property)
+            if (filter.TrySetProperty("OverrideBlockRules", overrideBlockRules))
             {
-                property.Value = overrideBlockRules;
-                session.ModifyInstance(WindowsFirewallSupport.StandardCimNamespace, filter);
+                session.ModifyInstance(filter);
                 _logger.LogInformation(
                     "Set OverrideBlockRules for firewall rule {RuleName} to {OverrideBlockRules}.",
                     FormatRuleNames(lookupNames),

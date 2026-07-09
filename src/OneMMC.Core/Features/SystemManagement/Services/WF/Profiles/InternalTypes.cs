@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using Microsoft.Management.Infrastructure;
+using OneMMC.Core.Features.SystemManagement.Infrastructure.WF.Wbem;
 
 namespace OneMMC.Core.Features.SystemManagement.Services.WF.Profiles;
 
@@ -13,10 +13,10 @@ internal sealed partial record FirewallSettingSnapshot(
     string RemoteUserTunnelAuthorizationList,
     ushort RequireFullAuthSupport,
     IReadOnlyList<MainModeProposalDefinition> MainModeProposals,
-    CimInstance? DefaultMainModeSet,
-    CimInstance? DefaultQuickModeSet,
-    CimInstance? DefaultPhase1AuthSet,
-    CimInstance? DefaultPhase2AuthSet) : IDisposable
+    WbemObject? DefaultMainModeSet,
+    WbemObject? DefaultQuickModeSet,
+    WbemObject? DefaultPhase1AuthSet,
+    WbemObject? DefaultPhase2AuthSet) : IDisposable
 {
     public bool HasTransportAuthorizations =>
         IsConfigured(RemoteMachineTransportAuthorizationList) || IsConfigured(RemoteUserTransportAuthorizationList);
