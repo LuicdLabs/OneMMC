@@ -1,6 +1,27 @@
 namespace OneMMC.Core.Features.SystemManagement.Infrastructure.WF.Wbem;
 
 /// <summary>
+/// The property value kinds the WF write path sets — the <c>Microsoft.Management.Infrastructure.CimType</c>
+/// subset used by <c>CimProperty.Create</c> across the firewall services. Each maps to a VARIANT encoding
+/// WMI accepts for that CIMTYPE on <c>IWbemClassObject::Put</c> (notably CIM uint16/uint32 → <c>VT_I4</c>
+/// and uint64 → <c>VT_BSTR</c> — the same encoding lesson as the WmiLight method-parameter work).
+/// </summary>
+internal enum WbemType
+{
+    String,
+    Boolean,
+    UInt16,
+    SInt16,
+    UInt32,
+    SInt32,
+    UInt64,
+    SInt64,
+    StringArray,
+    /// <summary>An array of embedded objects (<c>CIM_OBJECT | CIM_FLAG_ARRAY</c>), e.g. IKE Proposals.</summary>
+    InstanceArray
+}
+
+/// <summary>
 /// CIMTYPE_ENUMERATION values (wbemcli.h) and the WMI flag constants used by the marshal-free
 /// <c>IWbemServices</c>/<c>IWbemClassObject</c> layer. These are not projected by CsWin32 (they live in
 /// <c>wbemcli.h</c> as C macros, not a type library), so they are declared here.

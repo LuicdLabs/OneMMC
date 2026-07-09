@@ -67,6 +67,61 @@ internal partial struct Variant : IDisposable
     /// <summary>A <c>VT_I4</c> variant carrying <paramref name="value"/>.</summary>
     internal static Variant FromInt32(int value) => new() { _vt = VT_I4, _value = (nint)(uint)value };
 
+    /// <summary>A <c>VT_BOOL</c> variant (<c>VARIANT_TRUE</c> = -1 / <c>VARIANT_FALSE</c> = 0).</summary>
+    internal static Variant FromBool(bool value) => new() { _vt = VT_BOOL, _value = value ? -1 : 0 };
+
+    /// <summary>
+    /// A <c>VT_ARRAY | VT_UNKNOWN</c> variant wrapping a one-dimensional SAFEARRAY of the given COM
+    /// interface pointers (each <c>AddRef</c>ed into the array by <c>SafeArrayPutElement</c>, so the
+    /// caller keeps its own references) — the shape WMI wants for an embedded-instance array property
+    /// (<c>CIM_OBJECT | CIM_FLAG_ARRAY</c>, e.g. IKE <c>Proposals</c>). Dispose to free the array and
+    /// release its references. Returns an empty (<c>VT_EMPTY</c>) variant when there are no elements.
+    /// </summary>
+    internal static Variant FromComInterfaceArray(ReadOnlySpan<nint> interfaces)
+    {
+        if (interfaces.Length == 0)
+        {
+            return Empty;
+        }
+
+        nint psa = SafeArrayCreateVector(VT_UNKNOWN, 0, (uint)interfaces.Length);
+        if (psa == 0)
+        {
+            return Empty;
+        }
+
+        // Populate the VT_UNKNOWN SAFEARRAY by writing the interface pointers straight into its data buffer
+        // and taking a matching AddRef, rather than via SafeArrayPutElement. SafeArrayPutElement's
+        // VT_UNKNOWN path (which walks the element's vtable to AddRef it) hard-faults here under the
+        // marshal-free/source-generated interop model, whereas the direct write is stable and does the same
+        // work. The array carries FADF_UNKNOWN from SafeArrayCreateVector, so SafeArrayDestroy/VariantClear
+        // Releases each element on teardown — keeping the ref count balanced against these AddRefs.
+        if (SafeArrayAccessData(psa, out nint pData) != 0 || pData == 0)
+        {
+            SafeArrayDestroy(psa);
+            return Empty;
+        }
+
+        try
+        {
+            for (int i = 0; i < interfaces.Length; i++)
+            {
+                nint punk = interfaces[i];
+                Marshal.WriteIntPtr(pData, i * nint.Size, punk);
+                if (punk != 0)
+                {
+                    Marshal.AddRef(punk);
+                }
+            }
+        }
+        finally
+        {
+            SafeArrayUnaccessData(psa);
+        }
+
+        return new Variant { _vt = VT_ARRAY | VT_UNKNOWN, _value = psa };
+    }
+
     /// <summary>A <c>VT_BSTR</c> variant; the returned variant owns the BSTR and must be disposed.</summary>
     internal static Variant FromString(string value) => new() { _vt = VT_BSTR, _value = Marshal.StringToBSTR(value) };
 

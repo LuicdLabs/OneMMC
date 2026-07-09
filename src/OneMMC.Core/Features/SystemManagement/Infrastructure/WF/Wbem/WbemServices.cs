@@ -137,6 +137,60 @@ internal sealed unsafe partial class WbemServices : IDisposable
         }
     }
 
+    /// <summary>
+    /// Creates a new, empty instance of <paramref name="className"/> to populate and then
+    /// <see cref="CreateInstance"/> — the equivalent of <c>new CimInstance(className, ns)</c>. Fetches the
+    /// class definition and spawns a blank instance from it.
+    /// </summary>
+    internal WbemObject SpawnInstance(string className)
+    {
+        nint classBstr = Marshal.StringToBSTR(className);
+        IWbemClassObject* classObject = null;
+        try
+        {
+            _services->GetObject(new BSTR(classBstr), 0, null, &classObject, null);
+            IWbemClassObject* instance;
+            classObject->SpawnInstance(0, &instance);
+            return new WbemObject(instance);
+        }
+        finally
+        {
+            if (classObject is not null)
+            {
+                Marshal.Release((nint)classObject);
+            }
+            Marshal.FreeBSTR(classBstr);
+        }
+    }
+
+    /// <summary>Creates <paramref name="instance"/> in WMI (<c>PutInstance</c>, create-only) — throws if it already exists.</summary>
+    internal void CreateInstance(WbemObject instance)
+        => _services->PutInstance(instance.Pointer, (WBEM_GENERIC_FLAG_TYPE)WbemCimType.WBEM_FLAG_CREATE_ONLY, null, null);
+
+    /// <summary>Persists changes to an existing <paramref name="instance"/> (<c>PutInstance</c>, update-only).</summary>
+    internal void ModifyInstance(WbemObject instance)
+        => _services->PutInstance(instance.Pointer, (WBEM_GENERIC_FLAG_TYPE)WbemCimType.WBEM_FLAG_UPDATE_ONLY, null, null);
+
+    /// <summary>Deletes <paramref name="instance"/> from WMI by its <c>__PATH</c>.</summary>
+    internal void DeleteInstance(WbemObject instance)
+    {
+        string? path = instance.Path;
+        if (string.IsNullOrEmpty(path))
+        {
+            throw new InvalidOperationException("Cannot delete a WMI instance without a __PATH (was it enumerated/created?).");
+        }
+
+        nint pathBstr = Marshal.StringToBSTR(path);
+        try
+        {
+            _services->DeleteInstance(new BSTR(pathBstr), 0, null, null);
+        }
+        finally
+        {
+            Marshal.FreeBSTR(pathBstr);
+        }
+    }
+
     private nint CreateInstanceEnum(string className)
     {
         nint filter = Marshal.StringToBSTR(className);

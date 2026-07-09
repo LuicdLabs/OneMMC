@@ -80,6 +80,105 @@ internal sealed unsafe partial class WbemObject : IDisposable
         }
     }
 
+    /// <summary>
+    /// Sets a property to <paramref name="value"/>, encoded per <paramref name="type"/> — the write
+    /// equivalent of <c>CimProperty.Create(name, value, cimType, …)</c> / <c>CimInstanceProperties.Add</c>.
+    /// For a spawned instance of an existing class every property (and its key qualifier) is already
+    /// declared, so the VARIANT is Put with type 0 and WMI coerces it to the property's declared CIMTYPE.
+    /// </summary>
+    internal void SetProperty(string name, object? value, WbemType type)
+    {
+        Variant variant = BuildVariant(value, type);
+        try
+        {
+            Put(name, variant);
+        }
+        finally
+        {
+            variant.Clear();
+        }
+    }
+
+    /// <summary>
+    /// Sets an existing property's value, inferring the VARIANT encoding from the CLR runtime type — the
+    /// equivalent of <c>CimInstanceProperties[name].Value = value</c>. Used where the old code mutated an
+    /// already-present property (e.g. re-assigning an embedded <c>Proposals</c> array).
+    /// </summary>
+    internal void SetProperty(string name, object? value)
+        => SetProperty(name, value, InferType(value));
+
+    private static WbemType InferType(object? value) => value switch
+    {
+        null or string => WbemType.String,
+        bool => WbemType.Boolean,
+        ushort => WbemType.UInt16,
+        short => WbemType.SInt16,
+        uint => WbemType.UInt32,
+        int => WbemType.SInt32,
+        ulong => WbemType.UInt64,
+        long => WbemType.SInt64,
+        string[] => WbemType.StringArray,
+        WbemObject[] => WbemType.InstanceArray,
+        _ => WbemType.String
+    };
+
+    private static Variant BuildVariant(object? value, WbemType type)
+    {
+        switch (type)
+        {
+            case WbemType.String:
+                return value is null ? Variant.Empty : Variant.FromString(Convert.ToString(value, CultureInfo.InvariantCulture) ?? string.Empty);
+            case WbemType.Boolean:
+                return Variant.FromBool(value is bool b && b);
+            // CIM uint16/uint32/sint16/sint32 are Put as VT_I4 (WMI rejects VT_UI2/VT_UI4 with
+            // WBEM_E_TYPE_MISMATCH — the same encoding rule as the WmiLight method-parameter work).
+            case WbemType.UInt16:
+            case WbemType.SInt16:
+            case WbemType.UInt32:
+            case WbemType.SInt32:
+                return Variant.FromInt32(unchecked((int)Convert.ToInt64(value ?? 0, CultureInfo.InvariantCulture)));
+            // 64-bit CIM integers are Put as decimal strings (VT_BSTR).
+            case WbemType.UInt64:
+            case WbemType.SInt64:
+                return Variant.FromString(Convert.ToString(value ?? 0, CultureInfo.InvariantCulture) ?? "0");
+            case WbemType.StringArray:
+                return Variant.FromStringArray(value as string[]);
+            case WbemType.InstanceArray:
+                return BuildInstanceArray(value as WbemObject[]);
+            default:
+                return Variant.Empty;
+        }
+    }
+
+    private static Variant BuildInstanceArray(WbemObject[]? items)
+    {
+        if (items is null || items.Length == 0)
+        {
+            return Variant.Empty;
+        }
+
+        Span<nint> pointers = items.Length <= 16 ? stackalloc nint[items.Length] : new nint[items.Length];
+        for (int i = 0; i < items.Length; i++)
+        {
+            pointers[i] = (nint)items[i]._object;
+        }
+        return Variant.FromComInterfaceArray(pointers);
+    }
+
+    /// <summary>Non-throwing <c>IWbemClassObject::Put</c> (vtable slot 5); throws on a genuine failure HRESULT.</summary>
+    private void Put(string name, in Variant value)
+    {
+        HRESULT hr;
+        fixed (char* pName = name)
+        fixed (Variant* pVal = &value)
+        {
+            void** vtbl = *(void***)_object;
+            // Put(name, lFlags=0, VARIANT*, Type=0 -> use the class-declared CIMTYPE).
+            hr = ((delegate* unmanaged[Stdcall]<IWbemClassObject*, PCWSTR, int, VARIANT*, int, HRESULT>)vtbl[5])(_object, (PCWSTR)pName, 0, (VARIANT*)pVal, 0);
+        }
+        hr.ThrowOnFailure();
+    }
+
     /// <summary>Boxes a scalar VARIANT to the CLR type dictated by <paramref name="cimType"/>.</summary>
     private static object? ConvertScalar(in Variant variant, int cimType)
     {
