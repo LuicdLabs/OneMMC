@@ -73,7 +73,7 @@ namespace OneMMC.Core.Features.PolicyManagement.Services.GpEdit.Native
     /// Using this interface ensures that changes are visible in gpedit.msc and rsop.msc.
     /// </summary>
     // Source-generated ([GeneratedComInterface]) port of IGroupPolicyObject for Native AOT
-    // (doc/NativeAotMigration.md, M3). This is a pure IUnknown-derived (non-dual) interface, so it
+    // (doc/NativeAot.md, M3). This is a pure IUnknown-derived (non-dual) interface, so it
     // needs no IDispatch base (unlike the Task Scheduler dual interfaces). Member order is the vtable
     // order and is preserved exactly. Windows-fill-buffer parameters that were StringBuilder are
     // typed as nint (a caller-pinned wide-char buffer) because the interop source generator does not

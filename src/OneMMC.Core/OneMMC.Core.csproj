@@ -26,7 +26,7 @@
     <PackageReference Include="System.Diagnostics.EventLog" />
     <PackageReference Include="System.ServiceProcess.ServiceController" />
     <!-- AOT-compatible WMI client; replaced System.Management for query/method features per
-         doc/NativeAotMigration.md (M2). (Microsoft.Management.Infrastructure was instead replaced by the
+         doc/NativeAot.md (M2). (Microsoft.Management.Infrastructure was instead replaced by the
          marshal-free IWbem wrapper under Features/SystemManagement/Infrastructure/WF/Wbem — WF Half B.) -->
     <PackageReference Include="WmiLight" />
   </ItemGroup>

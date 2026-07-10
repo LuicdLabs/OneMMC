@@ -6,7 +6,7 @@ namespace OneMMC.Core.Infrastructure.Wmi;
 /// <summary>
 /// Helpers for enumerating WmiLight objects while releasing native WMI handles promptly.
 /// Mirrors the disposal helper that existed for <c>System.Management</c> before the
-/// WmiLight migration (doc/NativeAotMigration.md, M2).
+/// WmiLight migration (doc/NativeAot.md, M2).
 /// </summary>
 internal static class WmiObjectDisposalExtensions
 {

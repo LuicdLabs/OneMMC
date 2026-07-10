@@ -7,13 +7,14 @@ namespace OneMMC.Core.Features.UserSecurity.Services.AzMan.Native;
 
 // Source-generated ([GeneratedComInterface]) dual interfaces for the Authorization Manager (AzRoles)
 // COM surface. Ported from IDispatch late binding + ProgID-reflection activation for Native AOT
-// (doc/NativeAotMigration.md, M3): late binding and reflection COM activation are unsupported there.
+// (doc/NativeAot.md, M3): late binding and reflection COM activation are unsupported there.
 // The interfaces derive from the source-generated IDispatch base (Infrastructure/Interop/IDispatch.cs)
 // to reproduce the dual vtable layout (IUnknown[3] + IDispatch[4] + members) and are called by vtable.
 //
 // Member ORDER is the authoritative vtable order and must not change. It was transcribed from the type
-// library embedded in %SystemRoot%\System32\azroles.dll on the target OS via eng/Dump-TypeLibVtable.ps1
-// (interface members begin at vtable slot 7). Conventions, all verified against that dump:
+// library embedded in %SystemRoot%\System32\azroles.dll on the target OS via the typelib vtable-dump
+// tool (retired after the migration; in git history — interface members begin at vtable slot 7).
+// Conventions, all verified against that dump:
 //   * AzRoles booleans (GenerateAudits, Writable, ApplyStoreSacl, IsRoleDefinition, ...) are LONG
 //     (I4) properties, NOT VARIANT_BOOL — late binding used to coerce .NET bools silently; typed
 //     callers convert via AzRolesCom.ToBool/FromBool.

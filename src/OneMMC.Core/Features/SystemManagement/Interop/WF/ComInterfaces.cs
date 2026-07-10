@@ -6,7 +6,7 @@ using OneMMC.Core.Infrastructure.Interop;
 namespace OneMMC.Core.Features.SystemManagement.Interop.WF;
 
 // Source-generated ([GeneratedComInterface]) ports of the HNetCfg Windows Firewall automation
-// interfaces (INetFwPolicy2 + the INetFwRule hierarchy), for Native AOT (doc/NativeAotMigration.md,
+// interfaces (INetFwPolicy2 + the INetFwRule hierarchy), for Native AOT (doc/NativeAot.md,
 // M3). Ported from the previous handwritten [ComImport, InterfaceIsDual] declarations: built-in COM
 // interop / RCW dual-interface dispatch is unsupported under AOT, so these derive from the
 // source-generated IDispatch base (Infrastructure/Interop/IDispatch.cs) to reproduce the dual vtable
@@ -14,8 +14,9 @@ namespace OneMMC.Core.Features.SystemManagement.Interop.WF;
 // ComActivator (FirewallCom.CreatePolicy2/CreateRule), not Type.GetTypeFromProgID + Activator.
 //
 // Member ORDER is the authoritative vtable order and must not change; it was transcribed from the
-// type library in %SystemRoot%\System32\FirewallAPI.dll via eng/Dump-TypeLibVtable.ps1 (interface
-// members begin at slot 7). Conventions (all typelib-verified):
+// type library in %SystemRoot%\System32\FirewallAPI.dll via the typelib vtable-dump tool (retired
+// after the migration; in git history — interface members begin at slot 7). Conventions (all
+// typelib-verified):
 //   * IDispatch properties -> explicit get_/put_ methods in declaration (vtable) order.
 //   * NET_FW_* enums are LONG (I4) in the vtable -> `int`.
 //   * VARIANT_BOOL (Enabled, EdgeTraversal, FirewallEnabled, ...) -> raw `short` (-1 true / 0 false);

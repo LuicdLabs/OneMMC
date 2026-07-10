@@ -287,7 +287,7 @@ namespace OneMMC.Core.Features.PolicyManagement.Services.GpEdit.Sources
         /// Invokes a Windows "fill a caller-allocated wide-char buffer" COM method against a pinned
         /// buffer and reads back the resulting null-terminated string. Replaces the
         /// <see cref="System.Text.StringBuilder"/> marshalling the interop source generator does not
-        /// support (doc/NativeAotMigration.md, M3).
+        /// support (doc/NativeAot.md, M3).
         /// </summary>
         private static unsafe int ReadIntoBuffer(int capacity, Func<nint, int, int> fill, out string? value)
         {

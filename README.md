@@ -40,10 +40,9 @@ A modern Windows system management suite built with WinUI 3, designed as a strea
 
 ## 🎯 Native AOT
 
-OneMMC ships as **Native AOT** — a single native executable with faster startup and a ~66% smaller footprint than the former ReadyToRun publish (224 MB → ~74 MB). The M0–M4 migration is complete (2026-07-10): all COM interop is source-generated, WMI/CIM runs on WmiLight and a marshal-free `IWbemServices` wrapper, directory/account/counter access runs on ADSI/NetAPI32/PDH via CsWin32, and the AOT/trim analyzers guard every build.
+OneMMC ships as **Native AOT** — a single native executable with faster startup and a ~69% smaller footprint than the former ReadyToRun publish (224 MB → ~70 MB). The M0–M4 migration is complete (2026-07-10) and `PublishAot` applies to every configuration (Debug and Release): all COM interop is source-generated, WMI/CIM runs on WmiLight and a marshal-free `IWbemServices` wrapper, directory/account/counter access runs on ADSI/NetAPI32/PDH via CsWin32, and the AOT/trim analyzers guard every build.
 
-- Migration plan and sanctioned AOT-compatible replacements: [doc/NativeAotMigration.md](./doc/NativeAotMigration.md)
-- Measured feasibility baseline: [doc/NativeAotAssessment.md](./doc/NativeAotAssessment.md)
+- Native AOT reference (verified state, sanctioned replacements, measured baseline, migration record): [doc/NativeAot.md](./doc/NativeAot.md)
 - Mandatory coding rules for new code: [.github/copilot-instructions.md](./.github/copilot-instructions.md)
 
 ---

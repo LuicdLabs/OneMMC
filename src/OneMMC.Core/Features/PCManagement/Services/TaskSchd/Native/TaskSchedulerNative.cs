@@ -7,7 +7,7 @@ namespace OneMMC.Core.Features.PCManagement.Services.TaskSchd.Native;
 
 // Source-generated ([GeneratedComInterface]) dual interfaces for the minimal Task Scheduler 2.0 COM
 // surface. Ported from the previous handwritten [ComImport, InterfaceIsDual] declarations for Native
-// AOT (doc/NativeAotMigration.md, M3): built-in COM interop / RCW dual-interface dispatch is
+// AOT (doc/NativeAot.md, M3): built-in COM interop / RCW dual-interface dispatch is
 // unsupported under AOT, so these interfaces derive from the source-generated IDispatch base
 // (Infrastructure/Interop/IDispatch.cs) to reproduce the dual vtable layout
 // (IUnknown[3] + IDispatch[4] + members) and are called by vtable with no runtime marshaller.

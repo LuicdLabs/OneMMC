@@ -26,7 +26,7 @@
 
 ## Native AOT Compatibility (Mandatory)
 
-**Native AOT is the project's shipped deployment model** (M0–M4 migration complete; history in `doc/NativeAotMigration.md`, measured baseline in `doc/NativeAotAssessment.md`). The default publish is `PublishAot` and the AOT/trim analyzers are on for every build. Never recommend abandoning or scaling back AOT support because of a current limitation — propose the AOT-compatible alternative instead. All new and modified code must be AOT-compatible:
+**Native AOT is the project's shipped deployment model** (M0–M4 migration complete; the single reference — verified state, measured baseline, migration record — is `doc/NativeAot.md`). `PublishAot` is enabled unconditionally for every configuration (Debug and Release) and the AOT/trim analyzers are on for every build. Never recommend abandoning or scaling back AOT support because of a current limitation — propose the AOT-compatible alternative instead. All new and modified code must be AOT-compatible:
 
 - **No `dynamic`**: call COM through typed `[GeneratedComInterface]`/`ComWrappers` source-generated interfaces. Use `ComVariant` (`System.Runtime.InteropServices.Marshalling`) for VARIANT parameters.
 - **No `Type.GetTypeFromProgID`/`GetTypeFromCLSID` + `Activator.CreateInstance`**: activate COM via `CLSIDFromProgID` + `CoCreateInstance` (CsWin32) and wrap the pointer with `ComWrappers`.

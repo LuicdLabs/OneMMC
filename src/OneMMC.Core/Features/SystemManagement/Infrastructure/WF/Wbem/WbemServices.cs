@@ -18,7 +18,7 @@ namespace OneMMC.Core.Features.SystemManagement.Infrastructure.WF.Wbem;
 /// This layer uses CsWin32's <c>allowMarshaling:false</c> function-pointer-vtable structs (raw
 /// <c>IWbemServices*</c> + manual AddRef/Release, all <c>unsafe</c>) because those interfaces live in
 /// <c>wbemcli.h</c> (not a type library), so CsWin32 emits their vtables correctly from Windows metadata —
-/// hand-authoring would risk silent vtable-order corruption. See doc/NativeAotMigration.md (WF Half B).
+/// hand-authoring would risk silent vtable-order corruption. See doc/NativeAot.md (M2, WF Half B).
 /// </para>
 /// </summary>
 internal sealed unsafe partial class WbemServices : IDisposable

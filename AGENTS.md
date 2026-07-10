@@ -10,7 +10,7 @@ Before starting any task, read `.github/copilot-instructions.md` first. It conta
 
 OneMMC is a **WinUI 3 desktop application** that serves as a modern alternative to Windows MMC (Microsoft Management Console) snap-ins. It provides native UI for system management tasks like Device Manager, Disk Management, Local Users & Groups, Group Policy Editor, Performance Monitor, Certificate Management, and more.
 
-**Native AOT is the project's end-state goal; the codebase is not yet AOT-compatible.** Legacy code still relies on COM interop (`Type.GetTypeFromProgID()`, `Activator.CreateInstance()`, `dynamic`), reflection-based patterns, and system management packages that require the full .NET runtime, so the default publish uses **ReadyToRun (R2R)** as an interim during the migration. All new and modified code must follow the mandatory AOT compatibility rules in `.github/copilot-instructions.md` (§Native AOT Compatibility); the migration plan is `doc/NativeAotMigration.md` and the measured baseline is `doc/NativeAotAssessment.md`. Do not propose abandoning or scaling back AOT support because of a current limitation — propose the AOT-compatible alternative instead. Build/publish with `/p:OneMMCAotAnalysis=true` (wired in `eng/AotAnalysis.props`) to surface AOT/trim diagnostics; that switch must never be enabled by default.
+**Native AOT is the project's shipped deployment model** (the M0–M4 migration is complete). `PublishAot` is enabled unconditionally for every configuration (Debug and Release); all COM interop is source-generated (`[GeneratedComInterface]`/`ComWrappers`/CsWin32 marshal-free structs), WMI/CIM runs on WmiLight plus a marshal-free `IWbemServices` wrapper, and directory/account/counter access runs on ADSI/NetAPI32/PDH via CsWin32. All new and modified code must follow the mandatory AOT compatibility rules in `.github/copilot-instructions.md` (§Native AOT Compatibility); the single Native AOT reference (verified state, mandatory rules, measured baseline, migration record) is `doc/NativeAot.md`. Do not propose abandoning or scaling back AOT support because of a current limitation — propose the AOT-compatible alternative instead. The AOT/trim analyzers run on every build (defaults in `Directory.Build.props`); first-party code builds warning-clean and must stay that way.
 
 ## Build & Run
 
@@ -21,7 +21,7 @@ dotnet build src/OneMMC/OneMMC.csproj
 # Build specific platform
 dotnet build src/OneMMC/OneMMC.csproj -p:Platform=x64
 
-# Publish (Release, self-contained, R2R)
+# Publish (Release, Native AOT — requires the MSVC toolchain for the ILC link step)
 dotnet publish src/OneMMC/OneMMC.csproj -c Release -r win-x64
 ```
 

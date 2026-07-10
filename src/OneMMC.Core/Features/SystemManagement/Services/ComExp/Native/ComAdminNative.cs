@@ -8,7 +8,7 @@ namespace OneMMC.Core.Features.SystemManagement.Services.ComExp.Native;
 // Source-generated ([GeneratedComInterface]) dual interfaces for the minimal COM+ Administration
 // (COMAdmin) surface OneMMC uses to enumerate COM+ applications and application instances. Ported
 // from the previous IDispatch late binding + ProgID-reflection activation for Native AOT
-// (doc/NativeAotMigration.md, M3): late binding and reflection COM activation are unsupported there.
+// (doc/NativeAot.md, M3): late binding and reflection COM activation are unsupported there.
 // These derive from the source-generated IDispatch base (Infrastructure/Interop/IDispatch.cs) to
 // reproduce the dual vtable layout (IUnknown[3] + IDispatch[4] + members) and are called by vtable
 // with no runtime marshaller.

@@ -92,7 +92,7 @@
 
       <!-- WmiLight is consumed through the OneMMC.Core class library, so it must be rooted for
            the AOT publish (documented WmiLight requirement for library encapsulation).
-           See doc/NativeAotMigration.md (M2). -->
+           See doc/NativeAot.md (M2). -->
       <ItemGroup>
         <TrimmerRootAssembly Include="WmiLight" />
       </ItemGroup>
@@ -157,7 +157,7 @@
       </PropertyGroup>
 
       <!-- Publish Properties. Native AOT is the default publish model since the M4 cutover
-           (doc/NativeAotMigration.md); ReadyToRun was the interim vehicle and is retired.
+           (doc/NativeAot.md); ReadyToRun was the interim vehicle and is retired.
            PublishAot is set unconditionally so the AOT analyzers and CsWinRT AOT codegen apply
            to every build; native compilation itself still happens only on `dotnet publish`. -->
       <PropertyGroup>
