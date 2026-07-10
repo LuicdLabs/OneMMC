@@ -1,18 +1,31 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.DirectoryServices.AccountManagement;
-using System.DirectoryServices;
+using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using OneMMC.Core.Features.PCManagement.Models.LusrMgr;
+using Windows.Win32.Foundation;
+using Windows.Win32.NetworkManagement.NetManagement;
+using Windows.Win32.Security;
+using Win32PInvoke = Windows.Win32.PInvoke;
 
 namespace OneMMC.Core.Features.PCManagement.Services.LusrMgr;
 
 /// <summary>
-/// Service/Manager class for handling local users and groups using Directory Services.
+/// Service/Manager class for handling local users and groups via the NetAPI32 SAM
+/// account-management functions (CsWin32, marshal-free) — the Native-AOT-compatible
+/// replacement for <c>System.DirectoryServices.AccountManagement</c>.
 /// </summary>
+/// <remarks>
+/// Error contract (parity with the previous Directory Services implementation):
+/// read methods swallow failures, log at Debug, and return empty results; write methods throw
+/// <see cref="Win32Exception"/> on failure so <c>IAdminService.IsPermissionError</c> recognizes
+/// <c>ERROR_ACCESS_DENIED</c>, except that "target not found" and "membership already in the
+/// requested state" degrade to silent no-ops exactly as the old
+/// <c>FindByIdentity(...)?.X()</c> / <c>Members.Contains(...)</c> patterns did.
+/// </remarks>
 public class LocalUserGroupManager
 {
     private readonly ILogger<LocalUserGroupManager> _logger;
@@ -27,88 +40,84 @@ public class LocalUserGroupManager
         _logger = logger;
     }
 
-    // ADS_USER_FLAG constants
-    private const int ADS_UF_ACCOUNTDISABLE = 2; // the account is disabled
-    private const int ADS_UF_PASSWD_CANT_CHANGE = 64; // the user cannot change their password
-    private const int ADS_UF_DONT_EXPIRE_PASSWD = 65536; // the password never expires
-    private const int ADS_UF_PASSWD_NOTREQD = 32; // the user does not require a password
+    // NET_API_STATUS / Win32 error codes with dedicated no-op semantics (lmerr.h / winerror.h).
+    private const uint NerrSuccess = 0;
+    private const uint ErrorMoreData = 234;               // ERROR_MORE_DATA - continue enumeration
+    private const uint ErrorNoSuchAlias = 1376;           // ERROR_NO_SUCH_ALIAS - local group missing
+    private const uint ErrorMemberNotInAlias = 1377;      // ERROR_MEMBER_NOT_IN_ALIAS - remove: already absent
+    private const uint ErrorMemberInAlias = 1378;         // ERROR_MEMBER_IN_ALIAS - add: already present
+    private const uint ErrorNoSuchMember = 1387;          // ERROR_NO_SUCH_MEMBER - account missing
+    private const uint ErrorInvalidMember = 1388;         // ERROR_INVALID_MEMBER - member type not allowed
+    private const uint NerrGroupNotFound = 2220;          // NERR_GroupNotFound
+    private const uint NerrUserNotFound = 2221;           // NERR_UserNotFound
 
-    private static bool GetUserFlag(int flags, int flag)
-    {
-        return (flags & flag) != 0; // true if the flag is set
-    }
+    // SAM account-control bits (lmaccess.h UF_*; numerically identical to the ADS_UF_* values the
+    // previous Directory Services implementation used, so model semantics are unchanged).
+    private const uint UF_SCRIPT = 0x0001;
+    private const uint UF_ACCOUNTDISABLE = 0x0002;
+    private const uint UF_PASSWD_NOTREQD = 0x0020;
+    private const uint UF_PASSWD_CANT_CHANGE = 0x0040;
+    private const uint UF_NORMAL_ACCOUNT = 0x0200;
+    private const uint UF_DONT_EXPIRE_PASSWD = 0x10000;
 
-    private static void SetUserFlag(ref int flags, int flag, bool value)
-    {
-        if (value)
-        {
-            flags |= flag; // set the flag
-        }
-        else
-        {
-            flags &= ~flag; // clear the flag
-        }
-    }
+    private const uint UserPrivUser = 1;                  // USER_PRIV_USER
+    private const uint MaxPreferredLength = 0xFFFFFFFF;   // MAX_PREFERRED_LENGTH - let NetAPI size the buffer
+
     /// <summary>
     /// Retrieves a list of all local users.
     /// </summary>
     /// <returns>A list of <see cref="LocalUser"/> objects.</returns>
-    public List<LocalUser> GetUsers()
+    public unsafe List<LocalUser> GetUsers()
     {
         var users = new List<LocalUser>();
         try
         {
-            // Get all local users
-            using var context = new PrincipalContext(ContextType.Machine);
-            using var searcher = new PrincipalSearcher(new UserPrincipal(context));
-            foreach (var result in searcher.FindAll())
+            uint resumeHandle = 0;
+            uint status;
+            do
             {
-                if (result is UserPrincipal user)
-                {
-                    // Create a new LocalUser object
-                    var lu = new LocalUser
-                    {
-                        Name = user.Name,
-                        FullName = user.DisplayName,
-                        Description = user.Description,
-                        IsEnabled = user.Enabled ?? true,
-                        PasswordRequired = user.PasswordNotRequired == false,
-                        UserCannotChangePassword = user.UserCannotChangePassword,
-                        PasswordExpires = user.PasswordNeverExpires == false,
-                        PasswordExpired = false
-                    };
-                    try
-                    {
-                        if (user.GetUnderlyingObject() is DirectoryEntry de)
-                        {
-                            // PasswordExpired is an integer value, 0 means not expired, 1 means expired
-                            var val = de.Properties.Contains("PasswordExpired") ? de.Properties["PasswordExpired"].Value : null;
-                            if (val != null)
-                            {
-                                if (int.TryParse(val.ToString(), out var iv))
-                                {
-                                    lu.PasswordExpired = iv != 0;
-                                }
-                                else if (bool.TryParse(val.ToString(), out var bv))
-                                {
-                                    lu.PasswordExpired = bv;
-                                }
-                            }
+                byte* buffer = null;
+                status = Win32PInvoke.NetUserEnum(
+                    servername: default,
+                    3,
+                    NET_USER_ENUM_FILTER_FLAGS.FILTER_NORMAL_ACCOUNT,
+                    out buffer,
+                    MaxPreferredLength,
+                    out uint entriesRead,
+                    out _,
+                    ref resumeHandle);
 
-                            // Read UserFlags
-                            if (de.Properties.Contains("UserFlags") && de.Properties["UserFlags"].Value is int userFlags)
-                            {
-                                lu.IsEnabled = !GetUserFlag(userFlags, ADS_UF_ACCOUNTDISABLE);
-                                lu.UserCannotChangePassword = GetUserFlag(userFlags, ADS_UF_PASSWD_CANT_CHANGE);
-                                lu.PasswordExpires = !GetUserFlag(userFlags, ADS_UF_DONT_EXPIRE_PASSWD);
-                                lu.PasswordRequired = !GetUserFlag(userFlags, ADS_UF_PASSWD_NOTREQD);
-                            }
-                        }
+                try
+                {
+                    if (status != NerrSuccess && status != ErrorMoreData)
+                    {
+                        throw new Win32Exception(unchecked((int)status));
                     }
-                    catch (Exception ex)  { _logger.LogDebug($"Error getting user {user.Name}: {ex.Message}"); }
-                    users.Add(lu); // Add the user to the list
+
+                    var entries = (USER_INFO_3*)buffer;
+                    for (uint index = 0; index < entriesRead; index++)
+                    {
+                        USER_INFO_3* info = entries + index;
+                        uint flags = (uint)info->usri3_flags;
+                        users.Add(new LocalUser
+                        {
+                            Name = ReadString(info->usri3_name),
+                            FullName = ReadString(info->usri3_full_name),
+                            Description = ReadString(info->usri3_comment),
+                            IsEnabled = (flags & UF_ACCOUNTDISABLE) == 0,
+                            PasswordRequired = (flags & UF_PASSWD_NOTREQD) == 0,
+                            UserCannotChangePassword = (flags & UF_PASSWD_CANT_CHANGE) != 0,
+                            PasswordExpires = (flags & UF_DONT_EXPIRE_PASSWD) == 0,
+                            PasswordExpired = info->usri3_password_expired != 0
+                        });
+                    }
+                }
+                finally
+                {
+                    FreeNetApiBuffer(buffer);
                 }
             }
+            while (status == ErrorMoreData);
         }
         catch (Exception ex)
         {
@@ -121,28 +130,53 @@ public class LocalUserGroupManager
     /// Retrieves a list of all local groups.
     /// </summary>
     /// <returns>A list of <see cref="LocalGroup"/> objects.</returns>
-    public List<LocalGroup> GetGroups()
+    public unsafe List<LocalGroup> GetGroups()
     {
         var groups = new List<LocalGroup>();
         try
         {
-            using var context = new PrincipalContext(ContextType.Machine);
-            using var searcher = new PrincipalSearcher(new GroupPrincipal(context));
-            foreach (var result in searcher.FindAll())
+            nuint resumeHandle = 0;
+            uint status;
+            do
             {
-                if (result is GroupPrincipal group)
+                byte* buffer = null;
+                status = Win32PInvoke.NetLocalGroupEnum(
+                    servername: default,
+                    1,
+                    out buffer,
+                    MaxPreferredLength,
+                    out uint entriesRead,
+                    out _,
+                    ref resumeHandle);
+
+                try
                 {
-                    groups.Add(new LocalGroup
+                    if (status != NerrSuccess && status != ErrorMoreData)
                     {
-                        Name = group.Name,
-                        Description = group.Description
-                    });
+                        throw new Win32Exception(unchecked((int)status));
+                    }
+
+                    var entries = (LOCALGROUP_INFO_1*)buffer;
+                    for (uint index = 0; index < entriesRead; index++)
+                    {
+                        LOCALGROUP_INFO_1* info = entries + index;
+                        groups.Add(new LocalGroup
+                        {
+                            Name = ReadString(info->lgrpi1_name),
+                            Description = ReadString(info->lgrpi1_comment)
+                        });
+                    }
+                }
+                finally
+                {
+                    FreeNetApiBuffer(buffer);
                 }
             }
+            while (status == ErrorMoreData);
         }
         catch (Exception ex)
         {
-             _logger.LogDebug($"Error getting groups: {ex.Message}");
+            _logger.LogDebug($"Error getting groups: {ex.Message}");
         }
         return groups.OrderBy(g => g.Name).ToList();
     }
@@ -158,30 +192,35 @@ public class LocalUserGroupManager
     /// <param name="passwordNeverExpires">If true, the password never expires.</param>
     /// <param name="accountDisabled">If true, the account is disabled.</param>
     /// <param name="userMustChangePassword">If true, the user must change password at next logon.</param>
-    public void CreateUser(string username, string password, string fullName, string description, bool userCannotChangePassword, bool passwordNeverExpires, bool accountDisabled, bool userMustChangePassword = false)
+    public unsafe void CreateUser(string username, string password, string fullName, string description, bool userCannotChangePassword, bool passwordNeverExpires, bool accountDisabled, bool userMustChangePassword = false)
     {
-        using var context = new PrincipalContext(ContextType.Machine);
-        using var user = new UserPrincipal(context);
-        user.Name = username;
-        user.SetPassword(password);
-        user.DisplayName = fullName;
-        user.Description = description;
-        user.Save();
+        uint flags = UF_SCRIPT | UF_NORMAL_ACCOUNT;
+        SetUserFlag(ref flags, UF_ACCOUNTDISABLE, accountDisabled);
+        SetUserFlag(ref flags, UF_PASSWD_CANT_CHANGE, userCannotChangePassword);
+        SetUserFlag(ref flags, UF_DONT_EXPIRE_PASSWD, passwordNeverExpires);
 
-        if (user.GetUnderlyingObject() is DirectoryEntry de)
+        fixed (char* pName = username)
+        fixed (char* pPassword = password)
+        fixed (char* pComment = description)
         {
-            // Set UserFlags
-            var userFlagsValue = de.Properties["UserFlags"].Value;
-            int userFlags = userFlagsValue != null ? (int)userFlagsValue : 0;
-            SetUserFlag(ref userFlags, ADS_UF_ACCOUNTDISABLE, accountDisabled);
-            SetUserFlag(ref userFlags, ADS_UF_PASSWD_CANT_CHANGE, userCannotChangePassword);
-            SetUserFlag(ref userFlags, ADS_UF_DONT_EXPIRE_PASSWD, passwordNeverExpires);
-            de.Properties["UserFlags"].Value = userFlags;
+            var info = new USER_INFO_1
+            {
+                usri1_name = pName,
+                usri1_password = pPassword,
+                usri1_priv = (USER_PRIV)UserPrivUser,
+                usri1_comment = pComment,
+                usri1_flags = (USER_ACCOUNT_FLAGS)flags
+            };
 
-            // Set PasswordExpired
-            de.Properties["PasswordExpired"].Value = userMustChangePassword ? 1 : 0;
+            uint status = Win32PInvoke.NetUserAdd(default, 1, (byte*)&info, null);
+            ThrowOnError(status, "NetUserAdd");
+        }
 
-            de.CommitChanges();
+        SetUserFullName(username, fullName);
+
+        if (userMustChangePassword)
+        {
+            SetPasswordExpired(username, mustChangePassword: true);
         }
     }
 
@@ -190,35 +229,54 @@ public class LocalUserGroupManager
     /// </summary>
     /// <param name="groupName">The name of the new group.</param>
     /// <param name="description">The description of the group.</param>
-    public void CreateGroup(string groupName, string description)
+    public unsafe void CreateGroup(string groupName, string description)
     {
-        using var context = new PrincipalContext(ContextType.Machine);
-        using var group = new GroupPrincipal(context);
-        group.Name = groupName;
-        group.Description = description;
-        group.Save();
+        fixed (char* pName = groupName)
+        fixed (char* pComment = description)
+        {
+            var info = new LOCALGROUP_INFO_1
+            {
+                lgrpi1_name = pName,
+                lgrpi1_comment = pComment
+            };
+
+            uint status = Win32PInvoke.NetLocalGroupAdd(default, 1, (byte*)&info, null);
+            ThrowOnError(status, "NetLocalGroupAdd");
+        }
     }
 
     /// <summary>
     /// Deletes a local user.
     /// </summary>
     /// <param name="username">The username of the user to delete.</param>
-    public void DeleteUser(string username)
+    public unsafe void DeleteUser(string username)
     {
-        using var context = new PrincipalContext(ContextType.Machine);
-        using var user = UserPrincipal.FindByIdentity(context, username);
-        user?.Delete();
+        fixed (char* pName = username)
+        {
+            uint status = Win32PInvoke.NetUserDel(default, pName);
+            if (status is NerrSuccess or NerrUserNotFound)
+            {
+                return; // Missing user degrades to a no-op (FindByIdentity-null parity).
+            }
+            ThrowOnError(status, "NetUserDel");
+        }
     }
-    
+
     /// <summary>
     /// Deletes a local group.
     /// </summary>
     /// <param name="groupName">The name of the group to delete.</param>
-    public void DeleteGroup(string groupName)
+    public unsafe void DeleteGroup(string groupName)
     {
-        using var context = new PrincipalContext(ContextType.Machine);
-        using var group = GroupPrincipal.FindByIdentity(context, groupName);
-        group?.Delete();
+        fixed (char* pName = groupName)
+        {
+            uint status = Win32PInvoke.NetLocalGroupDel(default, pName);
+            if (status is NerrSuccess or NerrGroupNotFound or ErrorNoSuchAlias)
+            {
+                return; // Missing group degrades to a no-op (FindByIdentity-null parity).
+            }
+            ThrowOnError(status, "NetLocalGroupDel");
+        }
     }
 
     /// <summary>
@@ -226,11 +284,19 @@ public class LocalUserGroupManager
     /// </summary>
     /// <param name="username">The username.</param>
     /// <param name="newPassword">The new password.</param>
-    public void SetPassword(string username, string newPassword)
+    public unsafe void SetPassword(string username, string newPassword)
     {
-         using var context = new PrincipalContext(ContextType.Machine);
-         using var user = UserPrincipal.FindByIdentity(context, username);
-         user?.SetPassword(newPassword);
+        fixed (char* pName = username)
+        fixed (char* pPassword = newPassword)
+        {
+            var info = new USER_INFO_1003 { usri1003_password = pPassword };
+            uint status = Win32PInvoke.NetUserSetInfo(default, pName, 1003, (byte*)&info, null);
+            if (status is NerrSuccess or NerrUserNotFound)
+            {
+                return;
+            }
+            ThrowOnError(status, "NetUserSetInfo(1003)");
+        }
     }
 
     /// <summary>
@@ -243,32 +309,39 @@ public class LocalUserGroupManager
     /// <param name="passwordNeverExpires">If true, the password never expires.</param>
     /// <param name="accountDisabled">If true, the account is disabled.</param>
     /// <param name="userMustChangePassword">If true, the user must change password at next logon.</param>
-    public void UpdateUser(string username, string fullName, string description, bool userCannotChangePassword, bool passwordNeverExpires, bool accountDisabled, bool userMustChangePassword = false)
+    public unsafe void UpdateUser(string username, string fullName, string description, bool userCannotChangePassword, bool passwordNeverExpires, bool accountDisabled, bool userMustChangePassword = false)
     {
-        using var context = new PrincipalContext(ContextType.Machine);
-        using var user = UserPrincipal.FindByIdentity(context, username);
-        if (user != null)
+        // Read the current flags first; a missing user degrades to a no-op (FindByIdentity-null parity)
+        // and the read-modify-write preserves unrelated bits exactly as the old UserFlags update did.
+        byte* buffer = null;
+        uint flags;
+        fixed (char* pName = username)
         {
-            user.DisplayName = fullName;
-            user.Description = description;
-            user.Save();
-
-            if (user.GetUnderlyingObject() is DirectoryEntry de)
+            uint status = Win32PInvoke.NetUserGetInfo(default, pName, 1, &buffer);
+            if (status == NerrUserNotFound)
             {
-                // Set UserFlags
-                var userFlagsValue = de.Properties["UserFlags"].Value;
-                int userFlags = userFlagsValue != null ? (int)userFlagsValue : 0;
-                SetUserFlag(ref userFlags, ADS_UF_ACCOUNTDISABLE, accountDisabled);
-                SetUserFlag(ref userFlags, ADS_UF_PASSWD_CANT_CHANGE, userCannotChangePassword);
-                SetUserFlag(ref userFlags, ADS_UF_DONT_EXPIRE_PASSWD, passwordNeverExpires);
-                de.Properties["UserFlags"].Value = userFlags;
-
-                // Set PasswordExpired
-                de.Properties["PasswordExpired"].Value = userMustChangePassword ? 1 : 0;
-
-                de.CommitChanges();
+                return;
             }
+            ThrowOnError(status, "NetUserGetInfo(1)");
         }
+
+        try
+        {
+            flags = (uint)((USER_INFO_1*)buffer)->usri1_flags;
+        }
+        finally
+        {
+            FreeNetApiBuffer(buffer);
+        }
+
+        SetUserFlag(ref flags, UF_ACCOUNTDISABLE, accountDisabled);
+        SetUserFlag(ref flags, UF_PASSWD_CANT_CHANGE, userCannotChangePassword);
+        SetUserFlag(ref flags, UF_DONT_EXPIRE_PASSWD, passwordNeverExpires);
+
+        SetUserFullName(username, fullName);
+        SetUserDescription(username, description);
+        SetUserFlags(username, flags);
+        SetPasswordExpired(username, userMustChangePassword);
     }
 
     /// <summary>
@@ -276,14 +349,18 @@ public class LocalUserGroupManager
     /// </summary>
     /// <param name="groupName">The name of the group.</param>
     /// <param name="description">The new description.</param>
-    public void UpdateGroup(string groupName, string description)
+    public unsafe void UpdateGroup(string groupName, string description)
     {
-        using var context = new PrincipalContext(ContextType.Machine);
-        using var group = GroupPrincipal.FindByIdentity(context, groupName);
-        if (group != null)
+        fixed (char* pName = groupName)
+        fixed (char* pComment = description)
         {
-            group.Description = description;
-            group.Save();
+            var info = new LOCALGROUP_INFO_1002 { lgrpi1002_comment = pComment };
+            uint status = Win32PInvoke.NetLocalGroupSetInfo(default, pName, 1002, (byte*)&info, null);
+            if (status is NerrSuccess or NerrGroupNotFound or ErrorNoSuchAlias)
+            {
+                return;
+            }
+            ThrowOnError(status, "NetLocalGroupSetInfo(1002)");
         }
     }
 
@@ -307,19 +384,41 @@ public class LocalUserGroupManager
             var groups = new List<string>();
             try
             {
-                // Use DirectoryEntry to get user groups directly via the WinNT provider.
-                // The original System.DirectoryServices.AccountManagement (PrincipalContext + UserPrincipal)
-                // introduces extra abstraction layers and recursive queries when enumerating groups, leading to slower loading speeds.
-                // Using DirectoryEntry.Invoke("Groups") directly calls the underlying API,
-                // reducing unnecessary overhead and significantly improving the loading speed of User Properties / Group Properties dialogs.
-                using var user = new DirectoryEntry($"WinNT://./{username},user");
-                var groupsObj = user.Invoke("Groups");
-                if (groupsObj is System.Collections.IEnumerable enumerable)
+                unsafe
                 {
-                    foreach (object groupObj in enumerable)
+                    // Level 0 with flags 0 returns the local groups the user is a DIRECT member
+                    // of - the same set the old WinNT provider "Groups" enumeration produced
+                    // (LG_INCLUDE_INDIRECT would add membership through global groups).
+                    uint status = Win32PInvoke.NetUserGetLocalGroups(
+                        servername: default,
+                        username,
+                        0,
+                        0,
+                        out byte* buffer,
+                        MaxPreferredLength,
+                        out uint entriesRead,
+                        out _);
+
+                    try
                     {
-                        using var groupEntry = new DirectoryEntry(groupObj);
-                        groups.Add(groupEntry.Name);
+                        if (status != NerrSuccess)
+                        {
+                            throw new Win32Exception(unchecked((int)status));
+                        }
+
+                        var entries = (LOCALGROUP_USERS_INFO_0*)buffer;
+                        for (uint index = 0; index < entriesRead; index++)
+                        {
+                            string name = ReadString(entries[index].lgrui0_name);
+                            if (name.Length > 0)
+                            {
+                                groups.Add(name);
+                            }
+                        }
+                    }
+                    finally
+                    {
+                        FreeNetApiBuffer(buffer);
                     }
                 }
             }
@@ -344,15 +443,53 @@ public class LocalUserGroupManager
             var members = new List<string>();
             try
             {
-                using var group = new DirectoryEntry($"WinNT://./{groupName},group");
-                var membersObj = group.Invoke("Members");
-                if (membersObj is System.Collections.IEnumerable enumerable)
+                unsafe
                 {
-                    foreach (object memberObj in enumerable)
+                    nuint resumeHandle = 0;
+                    uint status;
+                    do
                     {
-                        using var memberEntry = new DirectoryEntry(memberObj);
-                        members.Add(memberEntry.Name);
+                        byte* buffer = null;
+                        status = Win32PInvoke.NetLocalGroupGetMembers(
+                            servername: default,
+                            groupName,
+                            1,
+                            out buffer,
+                            MaxPreferredLength,
+                            out uint entriesRead,
+                            out _,
+                            ref resumeHandle);
+
+                        try
+                        {
+                            if (status != NerrSuccess && status != ErrorMoreData)
+                            {
+                                throw new Win32Exception(unchecked((int)status));
+                            }
+
+                            var entries = (LOCALGROUP_MEMBERS_INFO_1*)buffer;
+                            for (uint index = 0; index < entriesRead; index++)
+                            {
+                                LOCALGROUP_MEMBERS_INFO_1* info = entries + index;
+                                string name = ReadString(info->lgrmi1_name);
+                                if (name.Length == 0)
+                                {
+                                    // Orphaned SIDs have no resolvable name; surface the SID string
+                                    // like the old WinNT member enumeration did.
+                                    name = ConvertSidToString(info->lgrmi1_sid);
+                                }
+                                if (name.Length > 0)
+                                {
+                                    members.Add(name);
+                                }
+                            }
+                        }
+                        finally
+                        {
+                            FreeNetApiBuffer(buffer);
+                        }
                     }
+                    while (status == ErrorMoreData);
                 }
             }
             catch (Exception ex)
@@ -368,19 +505,20 @@ public class LocalUserGroupManager
     /// </summary>
     /// <param name="username">The username.</param>
     /// <param name="groupName">The group name.</param>
-    public void AddUserToGroup(string username, string groupName)
+    public unsafe void AddUserToGroup(string username, string groupName)
     {
-        using var context = new PrincipalContext(ContextType.Machine);
-        using var group = GroupPrincipal.FindByIdentity(context, groupName);
-        using var user = UserPrincipal.FindByIdentity(context, username);
-        
-        if (group != null && user != null)
+        fixed (char* pGroup = groupName)
+        fixed (char* pUser = username)
         {
-            if (!group.Members.Contains(user))
+            var member = new LOCALGROUP_MEMBERS_INFO_3 { lgrmi3_domainandname = pUser };
+            uint status = Win32PInvoke.NetLocalGroupAddMembers(default, pGroup, 3, (byte*)&member, 1);
+            if (status is NerrSuccess or ErrorMemberInAlias // already a member (Members.Contains parity)
+                or NerrGroupNotFound or ErrorNoSuchAlias or NerrUserNotFound or ErrorNoSuchMember
+                or ErrorInvalidMember)                      // member kind SAM rejects (old code silently skipped non-user principals)
             {
-                group.Members.Add(user);
-                group.Save();
+                return;
             }
+            ThrowOnError(status, "NetLocalGroupAddMembers");
         }
     }
 
@@ -389,21 +527,158 @@ public class LocalUserGroupManager
     /// </summary>
     /// <param name="username">The username.</param>
     /// <param name="groupName">The group name.</param>
-    public void RemoveUserFromGroup(string username, string groupName)
+    public unsafe void RemoveUserFromGroup(string username, string groupName)
     {
-        using var context = new PrincipalContext(ContextType.Machine);
-        using var group = GroupPrincipal.FindByIdentity(context, groupName);
-        using var user = UserPrincipal.FindByIdentity(context, username);
-
-        if (group != null && user != null)
+        fixed (char* pGroup = groupName)
+        fixed (char* pUser = username)
         {
-             if (group.Members.Contains(user))
-             {
-                 group.Members.Remove(user);
-                 group.Save();
-             }
+            var member = new LOCALGROUP_MEMBERS_INFO_3 { lgrmi3_domainandname = pUser };
+            uint status = Win32PInvoke.NetLocalGroupDelMembers(default, pGroup, 3, (byte*)&member, 1);
+            if (status is NerrSuccess or ErrorMemberNotInAlias // not a member (Members.Contains parity)
+                or NerrGroupNotFound or ErrorNoSuchAlias or NerrUserNotFound or ErrorNoSuchMember)
+            {
+                return;
+            }
+            ThrowOnError(status, "NetLocalGroupDelMembers");
         }
     }
+
+    // ====================================================================
+    // NetUserSetInfo helpers (single-element information levels)
+    // ====================================================================
+
+    /// <summary>Sets the full name (info level 1011); a missing user is a no-op.</summary>
+    private unsafe void SetUserFullName(string username, string fullName)
+    {
+        fixed (char* pName = username)
+        fixed (char* pFullName = fullName)
+        {
+            var info = new USER_INFO_1011 { usri1011_full_name = pFullName };
+            uint status = Win32PInvoke.NetUserSetInfo(default, pName, 1011, (byte*)&info, null);
+            if (status is NerrSuccess or NerrUserNotFound)
+            {
+                return;
+            }
+            ThrowOnError(status, "NetUserSetInfo(1011)");
+        }
+    }
+
+    /// <summary>Sets the description/comment (info level 1007); a missing user is a no-op.</summary>
+    private unsafe void SetUserDescription(string username, string description)
+    {
+        fixed (char* pName = username)
+        fixed (char* pComment = description)
+        {
+            var info = new USER_INFO_1007 { usri1007_comment = pComment };
+            uint status = Win32PInvoke.NetUserSetInfo(default, pName, 1007, (byte*)&info, null);
+            if (status is NerrSuccess or NerrUserNotFound)
+            {
+                return;
+            }
+            ThrowOnError(status, "NetUserSetInfo(1007)");
+        }
+    }
+
+    /// <summary>Writes the full UF_* flag word (info level 1008); a missing user is a no-op.</summary>
+    private unsafe void SetUserFlags(string username, uint flags)
+    {
+        fixed (char* pName = username)
+        {
+            var info = new USER_INFO_1008 { usri1008_flags = (USER_ACCOUNT_FLAGS)flags };
+            uint status = Win32PInvoke.NetUserSetInfo(default, pName, 1008, (byte*)&info, null);
+            if (status is NerrSuccess or NerrUserNotFound)
+            {
+                return;
+            }
+            ThrowOnError(status, "NetUserSetInfo(1008)");
+        }
+    }
+
+    /// <summary>
+    /// Sets or clears "user must change password at next logon". There is no 10xx information
+    /// level for <c>password_expired</c>, so this is the documented level-4 read-modify-write
+    /// (the fetched <c>usri4_password</c> is null, which NetUserSetInfo treats as "unchanged").
+    /// Writing 0 cannot un-expire a genuinely expired password - same limitation the old WinNT
+    /// <c>PasswordExpired</c> property had. A missing user is a no-op.
+    /// </summary>
+    private unsafe void SetPasswordExpired(string username, bool mustChangePassword)
+    {
+        fixed (char* pName = username)
+        {
+            byte* buffer = null;
+            uint status = Win32PInvoke.NetUserGetInfo(default, pName, 4, &buffer);
+            if (status == NerrUserNotFound)
+            {
+                return;
+            }
+            ThrowOnError(status, "NetUserGetInfo(4)");
+
+            try
+            {
+                ((USER_INFO_4*)buffer)->usri4_password_expired = mustChangePassword ? 1u : 0u;
+                status = Win32PInvoke.NetUserSetInfo(default, pName, 4, buffer, null);
+                ThrowOnError(status, "NetUserSetInfo(4)");
+            }
+            finally
+            {
+                FreeNetApiBuffer(buffer);
+            }
+        }
+    }
+
+    // ====================================================================
+    // Shared helpers
+    // ====================================================================
+
+    private static void SetUserFlag(ref uint flags, uint flag, bool value)
+    {
+        if (value)
+        {
+            flags |= flag;
+        }
+        else
+        {
+            flags &= ~flag;
+        }
+    }
+
+    private static unsafe string ReadString(PWSTR value) =>
+        value.Value is null ? string.Empty : value.ToString();
+
+    private static unsafe string ConvertSidToString(PSID sid)
+    {
+        if (sid.Value is null || !Win32PInvoke.ConvertSidToStringSid(sid, out PWSTR sidString))
+        {
+            return string.Empty;
+        }
+
+        try
+        {
+            return sidString.ToString();
+        }
+        finally
+        {
+            Win32PInvoke.LocalFree(new HLOCAL(sidString.Value));
+        }
+    }
+
+    private static unsafe void FreeNetApiBuffer(byte* buffer)
+    {
+        if (buffer is not null)
+        {
+            _ = Win32PInvoke.NetApiBufferFree(buffer);
+        }
+    }
+
+    private static void ThrowOnError(uint status, string operationName)
+    {
+        if (status == NerrSuccess)
+        {
+            return;
+        }
+
+        var exception = new Win32Exception(unchecked((int)status));
+        exception.Data["OperationName"] = operationName;
+        throw exception;
+    }
 }
-
-
