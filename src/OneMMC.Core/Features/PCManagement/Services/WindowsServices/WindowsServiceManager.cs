@@ -366,7 +366,7 @@ namespace OneMMC.Core.Features.PCManagement.Services.WindowsServices
                  if (hService.IsInvalid) throw new Exception("Failed to open service.");
 
                  int count = 3;
-                 int actionSize = Marshal.SizeOf(typeof(SC_ACTION));
+                 int actionSize = Marshal.SizeOf<SC_ACTION>();
                  IntPtr actionsPtr = Marshal.AllocHGlobal(actionSize * count);
 
                  try
@@ -500,7 +500,7 @@ namespace OneMMC.Core.Features.PCManagement.Services.WindowsServices
 
                          if (failureActions.cActions > 0 && failureActions.lpsaActions != IntPtr.Zero)
                          {
-                             int actionSize = Marshal.SizeOf(typeof(SC_ACTION));
+                             int actionSize = Marshal.SizeOf<SC_ACTION>();
 
                              if (failureActions.cActions > 0)
                              {

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.Marshalling;
 using System.Security.AccessControl;
 using System.Security.Principal;
 using Microsoft.Extensions.Logging;
@@ -376,12 +377,13 @@ public struct AclEditorSiObjectInfo
 }
 
 /// <summary>
-/// COM-visible callback interface consumed by the native Windows ACL editor.
+/// Callback interface consumed by the native Windows ACL editor (aclui
+/// <c>ISecurityInformation</c>). Source-generated so the managed implementation gets an
+/// AOT-compatible COM-callable wrapper (built-in COM interop is unavailable under Native AOT).
 /// </summary>
-[ComVisible(true)]
+[GeneratedComInterface]
 [Guid("965FC360-16FF-11d0-91CB-00AA00BBB723")]
-[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-public interface IAclEditorSecurityInformation
+public partial interface IAclEditorSecurityInformation
 {
     /// <summary>Gets display metadata for the edited object.</summary>
     [PreserveSig]
@@ -413,12 +415,11 @@ public interface IAclEditorSecurityInformation
 }
 
 /// <summary>
-/// COM-visible extension callback for secondary security descriptors.
+/// Extension callback for secondary security descriptors (aclui <c>ISecurityInformation4</c>).
 /// </summary>
-[ComVisible(true)]
+[GeneratedComInterface]
 [Guid("EA961070-CD14-4621-ACE4-F63C03E583E4")]
-[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-public interface IAclEditorSecurityInformation4
+public partial interface IAclEditorSecurityInformation4
 {
     /// <summary>Gets secondary security objects shown by the editor.</summary>
     [PreserveSig]
@@ -426,12 +427,11 @@ public interface IAclEditorSecurityInformation4
 }
 
 /// <summary>
-/// COM-visible callback used by the editor to calculate effective permissions.
+/// Callback used by the editor to calculate effective permissions (aclui <c>IEffectivePermission</c>).
 /// </summary>
-[ComVisible(true)]
+[GeneratedComInterface]
 [Guid("3853DC76-9F35-407c-88A1-D19344365FBC")]
-[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-public interface IAclEditorEffectivePermission
+public partial interface IAclEditorEffectivePermission
 {
     /// <summary>Calculates granted access for the selected security principal.</summary>
     [PreserveSig]
@@ -447,12 +447,12 @@ public interface IAclEditorEffectivePermission
 }
 
 /// <summary>
-/// COM-visible callback used by the native editor to retrieve the canonical resource path.
+/// Callback used by the native editor to retrieve the canonical resource path
+/// (aclui <c>ISecurityInformation3</c>).
 /// </summary>
-[ComVisible(true)]
+[GeneratedComInterface]
 [Guid("E2CDC9CC-31BD-4F8F-8C8B-B641AF516A1A")]
-[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-public interface IAclEditorSecurityInformation3
+public partial interface IAclEditorSecurityInformation3
 {
     /// <summary>Gets the full resource path represented by the edited object.</summary>
     [PreserveSig]
@@ -464,12 +464,12 @@ public interface IAclEditorSecurityInformation3
 }
 
 /// <summary>
-/// COM-visible callback used by the native editor to resolve inherited ACE sources.
+/// Callback used by the native editor to resolve inherited ACE sources
+/// (aclui <c>ISecurityObjectTypeInfo</c>).
 /// </summary>
-[ComVisible(true)]
+[GeneratedComInterface]
 [Guid("FC3066EB-79EF-444B-9111-D18A75EBF2FA")]
-[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-public interface IAclEditorSecurityObjectTypeInfo
+public partial interface IAclEditorSecurityObjectTypeInfo
 {
     /// <summary>Returns the ancestor source for each ACE in the supplied ACL.</summary>
     [PreserveSig]
@@ -546,10 +546,10 @@ public sealed partial class AclEditorService
     }
 
     /// <summary>
-    /// COM callback object consumed by the native ACL editor.
+    /// COM callback object consumed by the native ACL editor. Its COM-callable wrapper is
+    /// produced by the source-generated ComWrappers (<see cref="Interop.ComActivator.ComWrappers"/>).
     /// </summary>
-    [ComVisible(true)]
-    [ClassInterface(ClassInterfaceType.None)]
+    [GeneratedComClass]
     public sealed partial class EditableSecurityInformation :
         IAclEditorSecurityInformation,
         IAclEditorSecurityInformation4,
@@ -609,9 +609,25 @@ public sealed partial class AclEditorService
                 _secondarySecurityInformation = new EditableSecurityInformation(
                     CreateSecondaryRequest(request.SecondarySecurity),
                     logger);
-                _secondarySecurityInformationPointer = Marshal.GetComInterfaceForObject(
-                    _secondarySecurityInformation,
-                    typeof(IAclEditorSecurityInformation));
+
+                // The native editor expects an ISecurityInformation* in SI_SECURITY_OBJECT, so QI
+                // the source-generated CCW to that exact interface (replaces the built-in-interop
+                // Marshal.GetComInterfaceForObject, which Native AOT does not support).
+                nint unknown = Interop.ComActivator.ComWrappers.GetOrCreateComInterfaceForObject(
+                    _secondarySecurityInformation, CreateComInterfaceFlags.None);
+                try
+                {
+                    Guid securityInformationIid = new("965FC360-16FF-11d0-91CB-00AA00BBB723");
+                    int hr = Marshal.QueryInterface(unknown, in securityInformationIid, out _secondarySecurityInformationPointer);
+                    if (hr < 0)
+                    {
+                        Marshal.ThrowExceptionForHR(hr);
+                    }
+                }
+                finally
+                {
+                    Marshal.Release(unknown);
+                }
             }
         }
 
@@ -1133,9 +1149,11 @@ public sealed partial class AclEditorService
 /// Native interop for the Windows ACL editor.
 /// </summary>
 /// <remarks>
-/// This remains hand-authored because the workflow relies on a managed
-/// <c>ISecurityInformation</c> callback object whose COM marshalling is more
-/// predictable when kept in one dedicated wrapper.
+/// This remains hand-authored because the workflow passes a MANAGED
+/// <c>ISecurityInformation</c> callback object into aclui: the interface types are this
+/// project's <c>[GeneratedComInterface]</c> definitions (source-generated COM-callable
+/// wrapper, AOT-compatible), which CsWin32's marshal-free projection of
+/// <c>EditSecurityAdvanced</c> could not accept.
 /// </remarks>
 internal static class AclEditorNativeMethods
 {
@@ -1147,8 +1165,46 @@ internal static class AclEditorNativeMethods
     [DllImport("aclui.dll", ExactSpelling = true)]
     internal static extern int EditSecurityAdvanced(
         IntPtr hwndOwner,
-        [MarshalAs(UnmanagedType.Interface)] IAclEditorSecurityInformation securityInformation,
+        IntPtr securityInformation,
         uint pageType);
+
+    /// <summary>
+    /// Invokes the ACL editor with a source-generated COM-callable wrapper for
+    /// <paramref name="securityInformation"/> - the Native-AOT-compatible replacement for the
+    /// built-in interface marshalling the old P/Invoke signature relied on (IL2050).
+    /// aclui types the parameter as <c>ISecurityInformation*</c> and calls its methods without
+    /// a QI, so the wrapper's IUnknown must be queried to that exact interface first.
+    /// </summary>
+    internal static int EditSecurityAdvanced(
+        IntPtr hwndOwner,
+        AclEditorService.EditableSecurityInformation securityInformation,
+        uint pageType)
+    {
+        nint unknown = OneMMC.Core.Infrastructure.Interop.ComActivator.ComWrappers
+            .GetOrCreateComInterfaceForObject(securityInformation, CreateComInterfaceFlags.None);
+        try
+        {
+            Guid securityInformationIid = new("965FC360-16FF-11d0-91CB-00AA00BBB723");
+            int hr = Marshal.QueryInterface(unknown, in securityInformationIid, out nint callback);
+            if (hr < 0)
+            {
+                return hr;
+            }
+
+            try
+            {
+                return EditSecurityAdvanced(hwndOwner, callback, pageType);
+            }
+            finally
+            {
+                Marshal.Release(callback);
+            }
+        }
+        finally
+        {
+            Marshal.Release(unknown);
+        }
+    }
 
     [DllImport("advapi32.dll", SetLastError = true)]
     internal static extern uint GetSecurityDescriptorLength(IntPtr securityDescriptor);
