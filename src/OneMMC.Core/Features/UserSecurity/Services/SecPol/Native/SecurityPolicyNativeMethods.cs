@@ -445,24 +445,11 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
 
         #endregion
 
-        #region NetUserGetInfo / SetInfo (Account status)
+        #region Account status (UF_* flags)
 
-        /// <summary>Retrieves information about a user account.</summary>
-        [DllImport("netapi32.dll", CharSet = CharSet.Unicode)]
-        internal static extern int NetUserGetInfo(
-            string? serverName,
-            string userName,
-            int level,
-            out IntPtr bufPtr);
-
-        /// <summary>Sets information about a user account.</summary>
-        [DllImport("netapi32.dll", CharSet = CharSet.Unicode)]
-        internal static extern int NetUserSetInfo(
-            string? serverName,
-            string userName,
-            int level,
-            IntPtr buf,
-            out int paramErr);
+        // NetUserGetInfo/NetUserSetInfo and their USER_INFO_* buffers moved to the CsWin32
+        // projection (NativeMethods.txt) during the M4 Native AOT migration - the handwritten
+        // imports duplicated generated ones. Only the flag constants remain here.
 
         // USER_MODALS_INFO_2 - Domain name and SID
         [StructLayout(LayoutKind.Sequential)]
@@ -470,27 +457,6 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
         {
             public IntPtr usrmod2_domain_name;  // LPWSTR
             public IntPtr usrmod2_domain_id;    // PSID
-        }
-
-        // USER_INFO_1 - Basic user information including flags
-        [StructLayout(LayoutKind.Sequential)]
-        public struct USER_INFO_1
-        {
-            public IntPtr usri1_name;
-            public IntPtr usri1_password;
-            public uint usri1_password_age;
-            public uint usri1_priv;
-            public IntPtr usri1_home_dir;
-            public IntPtr usri1_comment;
-            public uint usri1_flags;
-            public IntPtr usri1_script_path;
-        }
-
-        // USER_INFO_1008 - User flags only (for enabling/disabling accounts)
-        [StructLayout(LayoutKind.Sequential)]
-        public struct USER_INFO_1008
-        {
-            public uint usri1008_flags;
         }
 
         // User account flags

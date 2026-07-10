@@ -133,7 +133,7 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
 
         #region NetUserModals Helpers
 
-        internal static bool TryGetUserModalsInfo<T>(int level, out T info, out int result) where T : struct
+        internal static unsafe bool TryGetUserModalsInfo<T>(int level, out T info, out int result) where T : unmanaged
         {
             result = NetUserModalsGet(null, level, out IntPtr bufPtr);
             if (result != NERR_Success)
@@ -144,7 +144,9 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
 
             try
             {
-                info = Marshal.PtrToStructure<T>(bufPtr);
+                // USER_MODALS_INFO_* are blittable, so a direct read avoids the
+                // reflection-based Marshal.PtrToStructure (AOT/trim unsafe, IL2091).
+                info = System.Runtime.CompilerServices.Unsafe.Read<T>((void*)bufPtr);
                 return true;
             }
             finally
@@ -153,7 +155,7 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
             }
         }
 
-        internal static T GetUserModalsInfoOrThrow<T>(int level) where T : struct
+        internal static T GetUserModalsInfoOrThrow<T>(int level) where T : unmanaged
         {
             if (!TryGetUserModalsInfo(level, out T info, out int result))
                 throw new InvalidOperationException($"NetUserModalsGet({level}) failed with error {result}");
@@ -161,10 +163,10 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
             return info;
         }
 
-        internal static void SetUserModalsInfoOrThrow<T>(int level, T info) where T : struct
+        internal static unsafe void SetUserModalsInfoOrThrow<T>(int level, T info) where T : unmanaged
         {
-            using var writeBuffer = new HGlobalBuffer(Marshal.SizeOf<T>());
-            Marshal.StructureToPtr(info, writeBuffer.Pointer, false);
+            using var writeBuffer = new HGlobalBuffer(sizeof(T));
+            System.Runtime.CompilerServices.Unsafe.Write((void*)writeBuffer.Pointer, info);
             int result = NetUserModalsSet(null, level, writeBuffer.Pointer, out int paramErr);
             if (result != NERR_Success)
                 throw new InvalidOperationException($"NetUserModalsSet({level}) failed with error {result}, param={paramErr}");
@@ -793,12 +795,12 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
             }
         }
 
-        internal static bool ReadBuiltInAccountEnabled(int rid)
+        internal static unsafe bool ReadBuiltInAccountEnabled(int rid)
         {
             try
             {
                 string accountName = ReadBuiltInAccountName(rid);
-                int netResult = NetUserGetInfo(null, accountName, 1, out IntPtr bufPtr);
+                uint netResult = Windows.Win32.PInvoke.NetUserGetInfo(default, accountName, 1, out byte* buffer);
                 if (netResult != NERR_Success)
                 {
                     _logger.LogDebug($"[PolicyNativeHelpers] NetUserGetInfo failed for '{accountName}': {netResult}");
@@ -807,14 +809,13 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
 
                 try
                 {
-                    var userInfo = Marshal.PtrToStructure<SecurityPolicyNativeMethods.USER_INFO_1>(bufPtr);
-                    uint flags = userInfo.usri1_flags;
+                    uint flags = (uint)((Windows.Win32.NetworkManagement.NetManagement.USER_INFO_1*)buffer)->usri1_flags;
                     bool isDisabled = (flags & UF_ACCOUNTDISABLE) != 0;
                     return !isDisabled;
                 }
                 finally
                 {
-                    NetApiBufferFree(bufPtr);
+                    _ = Windows.Win32.PInvoke.NetApiBufferFree(buffer);
                 }
             }
             catch (Exception ex)
@@ -824,36 +825,43 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
             }
         }
 
-        internal static void WriteBuiltInAccountEnabled(int rid, bool enable)
+        internal static unsafe void WriteBuiltInAccountEnabled(int rid, bool enable)
         {
             string accountName = ReadBuiltInAccountName(rid);
 
-            int netResult = NetUserGetInfo(null, accountName, 1, out IntPtr bufPtr);
+            uint netResult = Windows.Win32.PInvoke.NetUserGetInfo(default, accountName, 1, out byte* buffer);
             if (netResult != NERR_Success)
                 throw new InvalidOperationException($"NetUserGetInfo failed for '{accountName}': {netResult}");
 
+            uint flags;
             try
             {
-                var userInfo = Marshal.PtrToStructure<SecurityPolicyNativeMethods.USER_INFO_1>(bufPtr);
-                uint flags = userInfo.usri1_flags;
-
-                if (enable)
-                    flags &= ~UF_ACCOUNTDISABLE;
-                else
-                    flags |= UF_ACCOUNTDISABLE;
-
-                using var writeBuffer = new HGlobalBuffer(sizeof(uint));
-                Marshal.WriteInt32(writeBuffer.Pointer, (int)flags);
-                netResult = NetUserSetInfo(null, accountName, 1008, writeBuffer.Pointer, out int paramErr);
-                if (netResult != NERR_Success)
-                    throw new InvalidOperationException($"NetUserSetInfo(1008) failed for '{accountName}': {netResult}, param={paramErr}");
-
-                _logger.LogDebug($"[PolicyNativeHelpers] Set account '{accountName}' enabled={enable}");
+                flags = (uint)((Windows.Win32.NetworkManagement.NetManagement.USER_INFO_1*)buffer)->usri1_flags;
             }
             finally
             {
-                NetApiBufferFree(bufPtr);
+                _ = Windows.Win32.PInvoke.NetApiBufferFree(buffer);
             }
+
+            if (enable)
+                flags &= ~UF_ACCOUNTDISABLE;
+            else
+                flags |= UF_ACCOUNTDISABLE;
+
+            var info = new Windows.Win32.NetworkManagement.NetManagement.USER_INFO_1008
+            {
+                usri1008_flags = (Windows.Win32.NetworkManagement.NetManagement.USER_ACCOUNT_FLAGS)flags
+            };
+            netResult = Windows.Win32.PInvoke.NetUserSetInfo(
+                default,
+                accountName,
+                1008,
+                new Span<byte>(&info, sizeof(Windows.Win32.NetworkManagement.NetManagement.USER_INFO_1008)),
+                out uint paramErr);
+            if (netResult != NERR_Success)
+                throw new InvalidOperationException($"NetUserSetInfo(1008) failed for '{accountName}': {netResult}, param={paramErr}");
+
+            _logger.LogDebug($"[PolicyNativeHelpers] Set account '{accountName}' enabled={enable}");
         }
 
         #endregion
