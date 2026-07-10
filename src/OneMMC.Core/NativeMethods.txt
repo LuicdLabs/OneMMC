@@ -1,5 +1,11 @@
 AddPrinterConnection
 AdjustTokenPrivileges
+ADsOpenObject
+IADs
+IADsContainer
+IADsDeleteOps
+IDirectorySearch
+FreeADsMem
 AttachVirtualDisk
 AuditEnumerateCategories
 AuditEnumerateSubCategories

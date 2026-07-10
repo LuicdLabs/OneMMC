@@ -6,7 +6,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.DirectoryServices;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -14,6 +13,7 @@ using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using OneMMC.Core.Features.UserSecurity.Services.AzMan.Native;
 using OneMMC.Core.Infrastructure.Interop;
+using OneMMC.Core.Infrastructure.Interop.Adsi;
 using OneMMC.Core.Localization;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -132,7 +132,7 @@ internal sealed class AzManInfrastructure
     ///   <item>Open a dedicated <c>MANAGE_STORE_ONLY</c> handle and call
     ///         <c>UpgradeStoresFunctionalLevel(1)</c> (NT6 level).</item>
     ///   <item>Write version attributes directly via ADSI
-    ///         (<see cref="System.DirectoryServices.DirectoryEntry"/>).</item>
+    ///         (the marshal-free <see cref="AdsiObject"/> wrapper).</item>
     /// </list>
     /// </summary>
     internal void EnsureAdStoreSchemaV2(string storeUrl)
@@ -164,7 +164,7 @@ internal sealed class AzManInfrastructure
     /// AD stores via its COM properties on the <c>IAzAuthorizationStore</c> object directly
     /// (it will always yield <c>1.0</c> if queried dynamically).
     /// To accurately reflect the stored schema, we read the version attributes directly from
-    /// the directory using <see cref="System.DirectoryServices.DirectoryEntry"/>.
+    /// the directory using the marshal-free <see cref="AdsiObject"/> wrapper.
     /// </para>
     /// </remarks>
     /// <returns>
@@ -179,11 +179,8 @@ internal sealed class AzManInfrastructure
 
         try
         {
-            using var entry = new DirectoryEntry(ldapPath);
-            entry.RefreshCache();
-
-            int major = 1;
-            int minor = 0;
+            using var entry = Adsi.BindObject(ldapPath);
+            entry.GetInfo();
 
             var candidates = new[]
             {
@@ -195,30 +192,30 @@ internal sealed class AzManInfrastructure
 
             foreach (var (majorName, minorName) in candidates)
             {
-                if (entry.Properties.Contains(majorName) && entry.Properties[majorName].Value != null)
+                if (!TryReadInt32Attribute(entry, majorName, out int major))
                 {
-                    major = Convert.ToInt32(entry.Properties[majorName].Value);
-
-                    if (entry.Properties.Contains(minorName) && entry.Properties[minorName].Value != null)
-                    {
-                        minor = Convert.ToInt32(entry.Properties[minorName].Value);
-                    }
-
-                    _logger.LogDebug(
-                        "[AzManService] AD store schema version read as {Major}.{Minor} via ADSI ({MajorName}/{MinorName}): {StoreUrl}",
-                        major, minor, majorName, minorName, storeUrl);
-
-                    return (major, minor);
+                    continue;
                 }
+
+                if (!TryReadInt32Attribute(entry, minorName, out int minor))
+                {
+                    minor = 0;
+                }
+
+                _logger.LogDebug(
+                    "[AzManService] AD store schema version read as {Major}.{Minor} via ADSI ({MajorName}/{MinorName}): {StoreUrl}",
+                    major, minor, majorName, minorName, storeUrl);
+
+                return (major, minor);
             }
 
             _logger.LogDebug(
                 "[AzManService] No version attributes found via ADSI for {StoreUrl}. Returning default (1.0).",
                 storeUrl);
 
-            return (major, minor);
+            return (1, 0);
         }
-        catch (System.DirectoryServices.ActiveDirectory.ActiveDirectoryOperationException ex)
+        catch (COMException ex) when (Adsi.IsDirectoryUnavailable(ex.ErrorCode))
         {
             _logger.LogWarning(ex,
                 "[AzManService] Unable to connect to Active Directory for {StoreUrl}. This computer may not be joined to a domain. Returning (1, 0).",
@@ -231,6 +228,24 @@ internal sealed class AzManInfrastructure
                 "[AzManService] ReadAdStoreSchemaVersion via ADSI failed for {StoreUrl}: {Message}. Returning (1, 0).",
                 storeUrl, ex.Message);
             return (1, 0);
+        }
+    }
+
+    /// <summary>
+    /// Reads an attribute as Int32 through the non-throwing <see cref="AdsiObject.TryGet"/>
+    /// (an absent attribute is a failure HRESULT, not a first-chance exception).
+    /// </summary>
+    private static bool TryReadInt32Attribute(AdsiObject entry, string attributeName, out int value)
+    {
+        value = 0;
+        if (entry.TryGet(attributeName, out Variant variant) < 0)
+        {
+            return false;
+        }
+
+        using (variant)
+        {
+            return int.TryParse(variant.ToInvariantString(), out value);
         }
     }
 
@@ -276,16 +291,21 @@ internal sealed class AzManInfrastructure
 
         try
         {
-            using var entry = new DirectoryEntry(ldapPath);
-            entry.RefreshCache();
+            // Enumerate the object's populated attributes through a base-scope search - the
+            // replacement for walking a DirectoryEntry property cache.
+            List<(string Name, string Value)> attributes;
+            using (var searcher = Adsi.BindSearcher(ldapPath))
+            {
+                attributes = searcher.ReadAllAttributes();
+            }
 
             // Log every attribute at DEBUG level so the actual AD schema naming is visible
             // in diagnostics — useful when the candidate list needs to be extended.
             if (_logger.IsEnabled(LogLevel.Debug))
             {
                 var sb = new StringBuilder();
-                foreach (PropertyValueCollection pvc in entry.Properties)
-                    sb.Append(pvc.PropertyName).Append('=').Append(pvc.Value).Append("; ");
+                foreach (var (name, value) in attributes)
+                    sb.Append(name).Append('=').Append(value).Append("; ");
                 _logger.LogDebug(
                     "[AzManService] AD store ADSI properties at {LdapPath}: [{Properties}]",
                     ldapPath, sb.ToString());
@@ -293,21 +313,22 @@ internal sealed class AzManInfrastructure
 
             // Phase 1 – discover version attributes from already-populated properties.
             string? majorAttr = null, minorAttr = null;
-            foreach (PropertyValueCollection pvc in entry.Properties)
+            foreach (var (name, _) in attributes)
             {
-                var lower = pvc.PropertyName.ToLowerInvariant();
+                var lower = name.ToLowerInvariant();
                 if (majorAttr == null && lower.Contains("major") && lower.Contains("version"))
-                    majorAttr = pvc.PropertyName;
+                    majorAttr = name;
                 else if (minorAttr == null && lower.Contains("minor") && lower.Contains("version"))
-                    minorAttr = pvc.PropertyName;
+                    minorAttr = name;
             }
 
             if (majorAttr != null)
             {
-                entry.Properties[majorAttr].Value = 2;
+                using var entry = Adsi.BindObject(ldapPath);
+                PutInt32(entry, majorAttr, 2);
                 if (minorAttr != null)
-                    entry.Properties[minorAttr].Value = 0;
-                entry.CommitChanges();
+                    PutInt32(entry, minorAttr, 0);
+                entry.SetInfo();
                 _logger.LogInformation(
                     "[AzManService] Set AD store schema to 2.0 via ADSI (discovered attrs {Major}/{Minor}): {LdapPath}",
                     majorAttr, minorAttr, ldapPath);
@@ -329,12 +350,12 @@ internal sealed class AzManInfrastructure
             {
                 try
                 {
-                    // Use a fresh DirectoryEntry for each attempt so prior failed writes
+                    // Use a fresh bind for each attempt so prior failed writes
                     // don't pollute the property cache.
-                    using var attempt = new DirectoryEntry(ldapPath);
-                    attempt.Properties[majorName].Value = 2;
-                    attempt.Properties[minorName].Value = 0;
-                    attempt.CommitChanges();
+                    using var attempt = Adsi.BindObject(ldapPath);
+                    PutInt32(attempt, majorName, 2);
+                    PutInt32(attempt, minorName, 0);
+                    attempt.SetInfo();
                     _logger.LogInformation(
                         "[AzManService] Set AD store schema to 2.0 via ADSI (candidate attrs {Major}/{Minor}): {LdapPath}",
                         majorName, minorName, ldapPath);
@@ -361,7 +382,7 @@ internal sealed class AzManInfrastructure
 
             throw new AzManException(message);
         }
-        catch (System.DirectoryServices.ActiveDirectory.ActiveDirectoryOperationException ex)
+        catch (COMException ex) when (Adsi.IsDirectoryUnavailable(ex.ErrorCode))
         {
             _logger.LogWarning(ex,
                 "[AzManService] Unable to connect to Active Directory for {StoreUrl}. This computer may not be joined to a domain.",
@@ -375,6 +396,13 @@ internal sealed class AzManInfrastructure
             throw new AzManException(
                 $"Failed to set AD store schema to version 2.0 via ADSI: {ex.Message}", ex);
         }
+    }
+
+    /// <summary>Puts one integer attribute into the entry's property cache.</summary>
+    private static void PutInt32(AdsiObject entry, string attributeName, int value)
+    {
+        using Variant variant = Variant.FromInt32(value);
+        entry.Put(attributeName, in variant);
     }
 
     /// <summary>

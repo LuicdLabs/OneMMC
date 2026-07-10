@@ -92,7 +92,7 @@ internal sealed class StoreManagement
                     // For AD stores: EnsureAdStoreSchemaV2 tries two strategies:
                     //   1. UpgradeStoresFunctionalLevel(1) via a fresh MANAGE_STORE_ONLY handle
                     //      (the CREATE/BATCH_UPDATE open modes cause E_INVALIDARG).
-                    //   2. ADSI DirectoryEntry attribute write as fallback.
+                    //   2. ADSI attribute write (marshal-free AdsiObject) as fallback.
                     // Failure is non-fatal: the store exists at schema 1.0 and can be upgraded
                     // later via Store Properties dialog.
                     if (parameters.StoreType == AzStoreType.ActiveDirectory)
