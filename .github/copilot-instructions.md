@@ -26,7 +26,7 @@
 
 ## Native AOT Compatibility (Mandatory)
 
-**Native AOT is the project's end-state goal.** The migration plan is `doc/NativeAotMigration.md`; the measured baseline is `doc/NativeAotAssessment.md`. The default publish remains ReadyToRun only as an interim until the migration milestones complete. Never recommend abandoning or scaling back AOT support because of a current limitation — propose the AOT-compatible alternative instead. All new and modified code must be AOT-compatible:
+**Native AOT is the project's shipped deployment model** (M0–M4 migration complete; history in `doc/NativeAotMigration.md`, measured baseline in `doc/NativeAotAssessment.md`). The default publish is `PublishAot` and the AOT/trim analyzers are on for every build. Never recommend abandoning or scaling back AOT support because of a current limitation — propose the AOT-compatible alternative instead. All new and modified code must be AOT-compatible:
 
 - **No `dynamic`**: call COM through typed `[GeneratedComInterface]`/`ComWrappers` source-generated interfaces. Use `ComVariant` (`System.Runtime.InteropServices.Marshalling`) for VARIANT parameters.
 - **No `Type.GetTypeFromProgID`/`GetTypeFromCLSID` + `Activator.CreateInstance`**: activate COM via `CLSIDFromProgID` + `CoCreateInstance` (CsWin32) and wrap the pointer with `ComWrappers`.
@@ -38,7 +38,7 @@
 - **`[ObservableProperty]` goes on partial properties, not fields** (fixes MVVMTK0045; `LangVersion=preview` already supports this).
 - **JSON must use a source-generated `JsonSerializerContext`** — no reflection-based `JsonSerializer` overloads.
 - **No reflection-dependent patterns** (`Assembly.Load*`, `Type.GetType(string)`, `MakeGenericType`, `Reflection.Emit`); keep DI registrations explicit as they are today.
-- **Verification**: when touching interop, serialization, or XAML, run `dotnet build src/OneMMC/OneMMC.csproj -c Release -p:Platform=x64 -p:OneMMCAotAnalysis=true` and introduce no new `IL2xxx`/`IL3xxx`/`CsWinRT1xxx`/`MVVMTK0045` warnings. The switch must never be enabled by default.
+- **Verification**: the AOT/trim analyzers run on every build (defaults in `Directory.Build.props`); `dotnet build src/OneMMC/OneMMC.csproj -c Release -p:Platform=x64` must introduce no new `IL2xxx`/`IL3xxx`/`CsWinRT1xxx`/`MVVMTK0045` warnings — first-party code builds warning-clean.
 
 ## Architecture Boundaries
 - **Core may reference Windows App SDK platform APIs**: `OneMMC.Core` may reference `Microsoft.WindowsAppSDK` and `Microsoft.UI.*` only for reusable Windows-native services such as file/folder pickers, native OS dialogs, interop helpers, and image conversion helpers. Dependency still flows one way: UI → Core only.

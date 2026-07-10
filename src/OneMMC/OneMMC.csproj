@@ -81,6 +81,10 @@
         <PackageReference Include="System.Drawing.Common" />
         <PackageReference Include="System.IO.FileSystem.AccessControl" />
         <PackageReference Include="System.Windows.Extensions" />
+        <!-- Direct reference (Core also references it): WmiLight's build/ props+targets do not flow
+             transitively, and the app project needs them for PublishWmiLightStaticallyLinked to fold
+             WmiLight.Native.dll into the AOT executable. -->
+        <PackageReference Include="WmiLight" />
       </ItemGroup>
       <ItemGroup>
         <ProjectReference Include="..\OneMMC.Core\OneMMC.Core.csproj" />

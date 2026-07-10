@@ -8,8 +8,12 @@ build or publish behavior, the analysis builds and experimental publishes were e
 results are aggregated here to decide whether a full-codebase refactor toward Native AOT is
 worthwhile.
 
-**The default build remains ReadyToRun + self-contained. Nothing in this evaluation changes
-shipped behavior.** The switch must never be enabled by default.
+**Historical note (2026-07-10):** this document records the Stage 1 evaluation as measured on
+2026-07-02, when the default build was ReadyToRun + self-contained and the analysis ran behind an
+opt-in switch. The migration it motivated is complete — the default publish is now **Native AOT**
+and the analyzers are on for every build — so the switch (`OneMMCAotAnalysis` /
+`eng/AotAnalysis.props`) was dissolved at the M4 cutover; its analyzer settings live in
+`Directory.Build.props` as defaults. The commands below are preserved as originally run.
 
 ### Evaluation infrastructure
 
@@ -292,9 +296,10 @@ What the measurements mean under that goal:
    publish + launch is the gate that proves it.
 3. **The payoff is real** - 224.4 MB → 75.7 MB (-66%), 276 → 16 files, plus AOT startup
    characteristics, once the gates are met.
-4. **Interim publish stays ReadyToRun** so the app remains shippable during migration. R2R is a
-   transition vehicle; it is retired at the M4 cutover when the default publish flips to
-   `PublishAot`.
+4. **Interim publish stayed ReadyToRun** so the app remained shippable during migration. R2R was
+   a transition vehicle; it was retired at the M4 cutover (2026-07-10) when the default publish
+   flipped to `PublishAot`.
 
-Re-run the four commands above at every phase gate and after each .NET SDK / Windows App SDK
-upgrade; the warning counts per feature area are the progress metric.
+The four commands above were re-run at every phase gate; since the M4 cutover the equivalent
+checks are a plain `dotnet build`/`dotnet publish` (analyzers are default-on). Re-run them after
+each .NET SDK / Windows App SDK upgrade.

@@ -38,9 +38,9 @@ A modern Windows system management suite built with WinUI 3, designed as a strea
 - Built directly on Win32 APIs, COM, WMI, and CIM for low-level and high-performance system management integration
 - Avoids unnecessary abstraction layers to preserve compatibility with existing Windows management infrastructure
 
-## 🎯 Native AOT Roadmap
+## 🎯 Native AOT
 
-OneMMC is migrating to **Native AOT** as its end-state deployment model — a single native executable with faster startup and a ~66% smaller footprint (measured: 224 MB → 76 MB). Release publishes remain self-contained **ReadyToRun** as an interim until the migration milestones are met.
+OneMMC ships as **Native AOT** — a single native executable with faster startup and a ~66% smaller footprint than the former ReadyToRun publish (224 MB → ~74 MB). The M0–M4 migration is complete (2026-07-10): all COM interop is source-generated, WMI/CIM runs on WmiLight and a marshal-free `IWbemServices` wrapper, directory/account/counter access runs on ADSI/NetAPI32/PDH via CsWin32, and the AOT/trim analyzers guard every build.
 
 - Migration plan and sanctioned AOT-compatible replacements: [doc/NativeAotMigration.md](./doc/NativeAotMigration.md)
 - Measured feasibility baseline: [doc/NativeAotAssessment.md](./doc/NativeAotAssessment.md)
