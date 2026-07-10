@@ -6,6 +6,23 @@
     <UseWinUI>true</UseWinUI>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <WinUISDKReferences>false</WinUISDKReferences>
+    <!-- Concrete build platforms this library supports (matches the app's x64/ARM64 RuntimeIdentifiers).
+         Declaring these instead of the implicit AnyCPU-only default lets OneMMC.slnx map the solution
+         platform onto a matching project platform, which (a) satisfies Visual Studio's strict
+         solution-configuration validation and (b) builds this library for the same architecture as the
+         app, avoiding a CS8012 processor mismatch. -->
+    <Platforms>x64;ARM64</Platforms>
+    <!-- CsWin32 emits architecture-specific P/Invokes (e.g. SetupAPI's pointer-sized SP_DEVINFO_DATA)
+         that it cannot generate for AnyCPU (PInvoke005), because it keys the target architecture off
+         Roslyn's CompilationOptions.Platform (the csc /platform: switch = PlatformTarget). Solution
+         builds map this library to a concrete platform (see OneMMC.slnx), but building the .csproj
+         directly with no -p:Platform evaluates it as AnyCPU and the SetupAPI interop in
+         DeviceManagerService fails to compile. As a fallback for that direct-build case, target x64
+         (the documented default platform) when the platform is AnyCPU/unspecified so csc — and
+         therefore CsWin32 — emits x64 P/Invokes. An explicit -p:Platform=x64|ARM64|x86 sets Platform
+         to a concrete value, so this condition is skipped and PlatformTarget follows that platform.
+         PlatformTarget (unlike Platform) is not forced as a solution-level global, so it is honored. -->
+    <PlatformTarget Condition="'$(Platform)' == '' or '$(Platform)' == 'AnyCPU'">x64</PlatformTarget>
     </PropertyGroup>
   <!-- Global usings: available in every .cs file without explicit using directives -->
   <ItemGroup>
