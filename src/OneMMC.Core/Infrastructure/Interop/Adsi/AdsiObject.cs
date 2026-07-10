@@ -13,7 +13,7 @@ namespace OneMMC.Core.Infrastructure.Interop.Adsi;
 /// property-cache read/write (<c>GetInfo</c>/<c>Get</c>/<c>Put</c>/<c>SetInfo</c>), child
 /// management through <c>IADsContainer</c>, and subtree delete through <c>IADsDeleteOps</c>.
 /// </summary>
-internal sealed unsafe class AdsiObject : IDisposable
+internal sealed unsafe partial class AdsiObject : IDisposable
 {
     private IADs* _object;
 

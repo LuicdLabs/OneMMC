@@ -14,7 +14,7 @@ namespace OneMMC.Core.Infrastructure.Interop.Adsi;
 /// Results are materialized eagerly (the result sets involved — GPO containers and printer
 /// connection policies — are small).
 /// </summary>
-internal sealed unsafe class AdsiSearcher : IDisposable
+internal sealed unsafe partial class AdsiSearcher : IDisposable
 {
     // ADS_SCOPEENUM values (iads.h).
     private const uint AdsScopeBase = 0;

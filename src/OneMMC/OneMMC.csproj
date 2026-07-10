@@ -87,8 +87,8 @@
       </ItemGroup>
 
       <!-- WmiLight is consumed through the OneMMC.Core class library, so it must be rooted for
-           trimmed/AOT publishes (documented WmiLight requirement for library encapsulation).
-           Inert in the default (non-trimmed) R2R publish. See doc/NativeAotMigration.md (M2). -->
+           the AOT publish (documented WmiLight requirement for library encapsulation).
+           See doc/NativeAotMigration.md (M2). -->
       <ItemGroup>
         <TrimmerRootAssembly Include="WmiLight" />
       </ItemGroup>
@@ -152,10 +152,16 @@
         <HasPackageAndPublishMenu>true</HasPackageAndPublishMenu>
       </PropertyGroup>
 
-      <!-- Publish Properties. PublishReadyToRun is disabled during AOT analysis runs
-           (/p:OneMMCAotAnalysis=true) because ReadyToRun and PublishAot are mutually exclusive. -->
-      <PropertyGroup Condition="'$(Configuration)' == 'Release' and '$(OneMMCAotAnalysis)' != 'true'">
-        <PublishReadyToRun>True</PublishReadyToRun>
+      <!-- Publish Properties. Native AOT is the default publish model since the M4 cutover
+           (doc/NativeAotMigration.md); ReadyToRun was the interim vehicle and is retired.
+           PublishAot is set unconditionally so the AOT analyzers and CsWinRT AOT codegen apply
+           to every build; native compilation itself still happens only on `dotnet publish`. -->
+      <PropertyGroup>
+        <PublishAot>true</PublishAot>
+        <!-- CsWinRT's AOT optimizer emits unsafe code; Core already allows it, the app must too. -->
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <!-- Fold WmiLight's native shim into the executable instead of shipping WmiLight.Native.dll. -->
+        <PublishWmiLightStaticallyLinked>true</PublishWmiLightStaticallyLinked>
       </PropertyGroup>
       <PropertyGroup Condition="'$(Configuration)' == 'Release'">
         <SelfContained>true</SelfContained>
