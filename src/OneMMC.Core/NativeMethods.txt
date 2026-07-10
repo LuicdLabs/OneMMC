@@ -125,6 +125,15 @@ OpenProcessToken
 OpenSCManager
 OpenService
 OpenVirtualDisk
+PdhAddCounter
+PdhAddEnglishCounter
+PdhCloseQuery
+PdhCollectQueryData
+PdhEnumObjectItems
+PdhEnumObjects
+PdhGetFormattedCounterValue
+PdhMakeCounterPath
+PdhOpenQuery
 PickIconDlg
 PrinterProperties
 QueryServiceConfig2
