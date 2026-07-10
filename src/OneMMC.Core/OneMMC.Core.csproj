@@ -27,10 +27,7 @@
     <PackageReference Include="Serilog.Sinks.File" />
     <PackageReference Include="System.Drawing.Common" />
     <PackageReference Include="System.Diagnostics.EventLog" />
-    <PackageReference Include="System.DirectoryServices" />
-    <PackageReference Include="System.DirectoryServices.AccountManagement" />
     <PackageReference Include="System.ServiceProcess.ServiceController" />
-    <PackageReference Include="System.Diagnostics.PerformanceCounter" />
     <!-- AOT-compatible WMI client; replaced System.Management for query/method features per
          doc/NativeAotMigration.md (M2). (Microsoft.Management.Infrastructure was instead replaced by the
          marshal-free IWbem wrapper under Features/SystemManagement/Infrastructure/WF/Wbem — WF Half B.) -->
