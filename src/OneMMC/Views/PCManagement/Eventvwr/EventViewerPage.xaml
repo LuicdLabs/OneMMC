@@ -5,6 +5,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="using:CommunityToolkit.WinUI.Controls"
     xmlns:converters="using:OneMMC.Converters"
+    xmlns:ctl="using:OneMMC.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="using:OneMMC.Views"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -100,7 +101,7 @@
             </Border>
 
             <!--  GridSplitter  -->
-            <controls:GridSplitter
+            <ctl:AotGridSplitter
                 Grid.Column="1"
                 Width="12"
                 ResizeBehavior="BasedOnAlignment"
@@ -207,7 +208,7 @@
                 </Grid>
 
                 <!--  GridSplitter  -->
-                <controls:GridSplitter
+                <ctl:AotGridSplitter
                     Grid.Row="1"
                     Height="12"
                     HorizontalAlignment="Stretch"

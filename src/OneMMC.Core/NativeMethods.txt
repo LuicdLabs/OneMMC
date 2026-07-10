@@ -23,6 +23,15 @@ CoCreateInstance
 CM_Get_Device_ID
 CM_Locate_DevNode
 CM_Reenumerate_DevNode
+SetupDiGetClassDevs
+SetupDiEnumDeviceInfo
+SetupDiDestroyDeviceInfoList
+SetupDiGetDeviceRegistryProperty
+SetupDiSetClassInstallParams
+SetupDiCallClassInstaller
+SP_DEVINFO_DATA
+SP_PROPCHANGE_PARAMS
+SP_REMOVEDEVICE_PARAMS
 CertFreeCertificateContext
 CertFreeCRLContext
 CertFreeCTLContext
