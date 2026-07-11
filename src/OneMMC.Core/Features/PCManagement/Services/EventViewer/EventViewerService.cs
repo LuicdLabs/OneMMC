@@ -22,6 +22,9 @@ public partial class EventViewerService : IDisposable
     private readonly ILogger<EventViewerService> _logger;
     private EventLogWatcher? _activeWatcher;
     private bool _disposed;
+    private readonly object _providerNamesGate = new();
+    private HashSet<string>? _registeredProviderNames;
+    private bool _providerNameEnumerationFailed;
 
     /// <summary>
     /// The five standard Windows Logs shown at the top of the tree.
@@ -576,6 +579,49 @@ public partial class EventViewerService : IDisposable
     // ========================================================================
 
     /// <summary>
+    /// Determines whether publisher metadata is registered for the given provider name.
+    /// Records whose publisher is no longer registered (e.g. events left behind by
+    /// uninstalled software) make <see cref="EventRecord.FormatDescription()"/>,
+    /// <see cref="EventRecord.TaskDisplayName"/> and <see cref="EventRecord.KeywordsDisplayNames"/>
+    /// each throw and swallow an <see cref="EventLogNotFoundException"/> internally on every
+    /// access. Pre-filtering against the registered provider list avoids that per-record
+    /// exception overhead (and the first-chance exception noise while debugging); the
+    /// XML/raw fallbacks produce the same display values for such records either way.
+    /// </summary>
+    private bool HasProviderMetadata(string? providerName)
+    {
+        if (string.IsNullOrEmpty(providerName))
+            return false;
+
+        var registered = _registeredProviderNames;
+        if (registered is null && !_providerNameEnumerationFailed)
+        {
+            lock (_providerNamesGate)
+            {
+                registered = _registeredProviderNames;
+                if (registered is null && !_providerNameEnumerationFailed)
+                {
+                    try
+                    {
+                        registered = new HashSet<string>(
+                            EventLogSession.GlobalSession.GetProviderNames(),
+                            StringComparer.OrdinalIgnoreCase);
+                        _registeredProviderNames = registered;
+                    }
+                    catch (Exception ex)
+                    {
+                        _providerNameEnumerationFailed = true;
+                        _logger.LogDebug(ex, "Failed to enumerate event providers; provider metadata lookups will not be pre-filtered.");
+                    }
+                }
+            }
+        }
+
+        // When the provider list is unavailable, assume metadata exists so resolution still runs.
+        return registered?.Contains(providerName) ?? true;
+    }
+
+    /// <summary>
     /// Converts an <see cref="EventRecord"/> to an <see cref="EventLogEntry"/> model.
     /// </summary>
     private EventLogEntry MapEventRecord(EventRecord record)
@@ -598,11 +644,12 @@ public partial class EventViewerService : IDisposable
         }
         catch { xmlData = string.Empty; }
 
-        var taskDisplay = ResolveTaskCategory(record, xmlData);
+        var hasProviderMetadata = HasProviderMetadata(record.ProviderName);
+        var taskDisplay = ResolveTaskCategory(record, xmlData, hasProviderMetadata);
         var opCodeDisplay = ResolveOpCode(record, xmlData);
-        var keywordsDisplay = ResolveKeywords(record, xmlData);
+        var keywordsDisplay = ResolveKeywords(record, xmlData, hasProviderMetadata);
 
-        var message = ExtractMessage(record, xmlData);
+        var message = ExtractMessage(record, xmlData, hasProviderMetadata);
 
         string userName = "N/A";
         try
@@ -637,17 +684,20 @@ public partial class EventViewerService : IDisposable
         };
     }
 
-    private static string ExtractMessage(EventRecord record, string xmlData)
+    private static string ExtractMessage(EventRecord record, string xmlData, bool hasProviderMetadata)
     {
-        try
+        if (hasProviderMetadata)
         {
-            var formattedMessage = record.FormatDescription();
-            if (!string.IsNullOrWhiteSpace(formattedMessage))
-                return formattedMessage;
-        }
-        catch
-        {
-            // Fall back to XML parsing when message metadata is unavailable.
+            try
+            {
+                var formattedMessage = record.FormatDescription();
+                if (!string.IsNullOrWhiteSpace(formattedMessage))
+                    return formattedMessage;
+            }
+            catch
+            {
+                // Fall back to XML parsing when message metadata is unavailable.
+            }
         }
 
         return ExtractMessageFromXml(xmlData);
@@ -695,12 +745,15 @@ public partial class EventViewerService : IDisposable
     /// Resolves the human-readable Task Category display name matching native eventvwr.msc.
     /// Uses provider metadata first, then falls back to XML-derived values and finally the raw task id.
     /// </summary>
-    private static string ResolveTaskCategory(EventRecord record, string xmlData)
+    private static string ResolveTaskCategory(EventRecord record, string xmlData, bool hasProviderMetadata)
     {
         // Native metadata is the most accurate source when the provider publishes a localized task name.
-        var taskDisplayName = TryGetDisplayName(() => record.TaskDisplayName);
-        if (!string.IsNullOrWhiteSpace(taskDisplayName))
-            return taskDisplayName;
+        if (hasProviderMetadata)
+        {
+            var taskDisplayName = TryGetDisplayName(() => record.TaskDisplayName);
+            if (!string.IsNullOrWhiteSpace(taskDisplayName))
+                return taskDisplayName;
+        }
 
         // Some callers may provide rendered XML that already includes the resolved task display name.
         var xmlValue = ExtractRenderingInfoValue(xmlData, "Task");
@@ -751,9 +804,11 @@ public partial class EventViewerService : IDisposable
     /// Resolves the human-readable Keywords display string matching native eventvwr.msc.
     /// Uses provider metadata first, then XML-derived values, then a conservative raw bitmask fallback.
     /// </summary>
-    private static string ResolveKeywords(EventRecord record, string xmlData)
+    private static string ResolveKeywords(EventRecord record, string xmlData, bool hasProviderMetadata)
     {
-        var keywordsDisplayNames = TryGetDisplayNames(() => record.KeywordsDisplayNames);
+        var keywordsDisplayNames = hasProviderMetadata
+            ? TryGetDisplayNames(() => record.KeywordsDisplayNames)
+            : null;
         if (keywordsDisplayNames is not null)
             return string.Join(", ", keywordsDisplayNames);
 
