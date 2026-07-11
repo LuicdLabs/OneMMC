@@ -204,4 +204,12 @@
   <data name="EventViewer_LoadMore" xml:space="preserve">
     <value>載入更多</value>
   </data>
+
+  <!-- Incremental loading status -->
+  <data name="EventViewer_Status_LoadedFilteredFormat" xml:space="preserve">
+    <value>已載入 {0} 個事件，其中 {1} 個符合篩選</value>
+  </data>
+  <data name="EventViewer_Status_LoadLimitReached" xml:space="preserve">
+    <value>已達載入上限，請縮小篩選條件或匯出記錄檔</value>
+  </data>
 </root>

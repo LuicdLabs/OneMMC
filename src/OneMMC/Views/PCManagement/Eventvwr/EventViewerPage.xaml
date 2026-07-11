@@ -142,14 +142,20 @@
                     </Grid>
 
                     <!--  Events ListView  -->
+                    <!--  The ViewModel's Events collection implements ISupportIncrementalLoading,
+                          so the ListView pulls older batches itself: prefetching starts two
+                          viewports before the end, and continues automatically while a text
+                          filter leaves the viewport unfilled (background search).  -->
                     <ListView
                         x:Name="EventsListView"
                         Grid.Row="1"
                         Margin="12,0,12,0"
+                        DataFetchSize="2"
+                        IncrementalLoadingThreshold="2"
+                        IncrementalLoadingTrigger="Edge"
                         ItemsSource="{x:Bind ViewModel.Events, Mode=OneWay}"
                         SelectedItem="{x:Bind ViewModel.SelectedEvent, Mode=TwoWay}"
-                        SelectionMode="Single"
-                        Loaded="EventsListView_Loaded">
+                        SelectionMode="Single">
                         <ListView.ItemTemplate>
                             <DataTemplate x:DataType="models:EventLogEntry">
                                 <Grid Padding="4,6" ColumnSpacing="10">

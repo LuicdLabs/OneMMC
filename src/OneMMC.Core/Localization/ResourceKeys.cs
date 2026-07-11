@@ -1155,6 +1155,8 @@ public static class EventViewerKeys
     // Status messages
     public const string StatusLoading = "EventViewer_Status_Loading";
     public const string StatusLoadedFormat = "EventViewer_Status_LoadedFormat";
+    public const string StatusLoadedFilteredFormat = "EventViewer_Status_LoadedFilteredFormat";   // "{0} events loaded, {1} match the filter"
+    public const string StatusLoadLimitReached = "EventViewer_Status_LoadLimitReached";
     public const string StatusNoEvents = "EventViewer_Status_NoEvents";
     public const string StatusMonitoring = "EventViewer_Status_Monitoring";
 

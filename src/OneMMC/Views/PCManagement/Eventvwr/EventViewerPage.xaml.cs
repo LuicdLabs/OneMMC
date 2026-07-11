@@ -18,7 +18,6 @@ public sealed partial class EventViewerPage : Page
     public LocalizedStrings LocalizedStrings { get; } = LocalizedStrings.Instance;
 
     private int _previousDetailTabIndex = 0;
-    private ScrollViewer? _eventsScrollViewer;
 
     public EventViewerPage()
     {
@@ -47,12 +46,6 @@ public sealed partial class EventViewerPage : Page
 
     private void EventViewerPage_Unloaded(object sender, RoutedEventArgs e)
     {
-        if (_eventsScrollViewer is not null)
-        {
-            _eventsScrollViewer.ViewChanged -= ScrollViewer_ViewChanged;
-            _eventsScrollViewer = null;
-        }
-
         // Defer BackStack/ForwardStack clearing — the Unloaded event may fire
         // while a parent Frame navigation is still in progress, and WinUI 3
         // throws COMException 0x800710DD if the stacks are modified at that point.
@@ -322,52 +315,6 @@ public sealed partial class EventViewerPage : Page
     private async void OnAdminPermissionRequired(object? sender, EventArgs e)
     {
         await AdminDialogHelper.ShowAdminRequiredDialogAsync(XamlRoot);
-    }
-
-    private void EventsListView_Loaded(object sender, RoutedEventArgs e)
-    {
-        var scrollViewer = GetScrollViewer(EventsListView);
-        if (scrollViewer != null)
-        {
-            if (!ReferenceEquals(_eventsScrollViewer, scrollViewer))
-            {
-                if (_eventsScrollViewer is not null)
-                {
-                    _eventsScrollViewer.ViewChanged -= ScrollViewer_ViewChanged;
-                }
-
-                _eventsScrollViewer = scrollViewer;
-                _eventsScrollViewer.ViewChanged += ScrollViewer_ViewChanged;
-            }
-        }
-    }
-
-    private ScrollViewer? GetScrollViewer(DependencyObject depObj)
-    {
-        if (depObj is ScrollViewer viewer) return viewer;
-
-        for (int i = 0; i < Microsoft.UI.Xaml.Media.VisualTreeHelper.GetChildrenCount(depObj); i++)
-        {
-            var child = Microsoft.UI.Xaml.Media.VisualTreeHelper.GetChild(depObj, i);
-            var result = GetScrollViewer(child);
-            if (result != null) return result;
-        }
-        return null;
-    }
-
-    private void ScrollViewer_ViewChanged(object? sender, ScrollViewerViewChangedEventArgs e)
-    {
-        if (sender is ScrollViewer scrollViewer)
-        {
-            // Trigger load when scrolled near the bottom (50 pixels threshold)
-            if (scrollViewer.VerticalOffset >= scrollViewer.ScrollableHeight - 50)
-            {
-                if (ViewModel.CanLoadMore && !ViewModel.IsLoading)
-                {
-                    _ = ViewModel.LoadMoreEventsAsync();
-                }
-            }
-        }
     }
 }
 

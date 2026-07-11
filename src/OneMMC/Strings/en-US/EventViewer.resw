@@ -204,4 +204,12 @@
   <data name="EventViewer_LoadMore" xml:space="preserve">
     <value>Load More</value>
   </data>
+
+  <!-- Incremental loading status -->
+  <data name="EventViewer_Status_LoadedFilteredFormat" xml:space="preserve">
+    <value>{0} events loaded, {1} match the filter</value>
+  </data>
+  <data name="EventViewer_Status_LoadLimitReached" xml:space="preserve">
+    <value>Load limit reached — narrow the filter or export the log</value>
+  </data>
 </root>
