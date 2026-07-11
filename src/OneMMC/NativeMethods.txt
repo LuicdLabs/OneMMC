@@ -1,1 +1,2 @@
+GetDpiForWindow
 SetForegroundWindow

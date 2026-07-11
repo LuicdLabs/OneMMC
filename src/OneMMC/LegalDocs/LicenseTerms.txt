@@ -54,6 +54,6 @@ ADDITIONAL TERMS
       disk partitions, user accounts, or group policies) can affect
       system stability. Use this software with care.
 
-    c. LuicdLabs is not responsible for any system instability,
-       data loss, or unintended configuration changes resulting from
-       the use of this software.
+   c. LuicdLabs is not responsible for any system instability,
+      data loss, or unintended configuration changes resulting from
+      the use of this software.
