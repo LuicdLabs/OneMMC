@@ -66,8 +66,8 @@ namespace OneMMC.Views.Settings
             return await File.ReadAllTextAsync(fullPath);
         }
 
-        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, EntryPoint = "GetCurrentPackageId")]
-        private static extern int GetCurrentPackageId(ref uint bufferLength, IntPtr buffer);
+        [LibraryImport("kernel32.dll", EntryPoint = "GetCurrentPackageId")]
+        private static partial int GetCurrentPackageId(ref uint bufferLength, IntPtr buffer);
 
         private static bool IsPackaged()
         {

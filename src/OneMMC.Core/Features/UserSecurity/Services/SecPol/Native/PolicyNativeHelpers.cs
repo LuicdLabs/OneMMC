@@ -559,15 +559,15 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
             if (sid == IntPtr.Zero || !IsValidSid(sid))
                 return string.Empty;
 
-            var name = new StringBuilder(256);
-            var domain = new StringBuilder(256);
-            int nameLen = name.Capacity;
-            int domainLen = domain.Capacity;
+            Span<char> name = stackalloc char[256];
+            Span<char> domain = stackalloc char[256];
+            int nameLen = name.Length;
+            int domainLen = domain.Length;
 
             if (LookupAccountSid(null, sid, name, ref nameLen, domain, ref domainLen, out _))
             {
-                string domainStr = domain.ToString();
-                string nameStr = name.ToString();
+                string domainStr = domain[..domainLen].ToString();
+                string nameStr = name[..nameLen].ToString();
 
                 if (!string.IsNullOrEmpty(domainStr) &&
                     !domainStr.Equals("BUILTIN", StringComparison.OrdinalIgnoreCase) &&
@@ -587,8 +587,8 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
         internal static IntPtr LookupAccountSidByName(string accountName)
         {
             int sidLen = 0;
-            int domainLen = 256;
-            var domain = new StringBuilder(domainLen);
+            Span<char> domain = stackalloc char[256];
+            int domainLen = domain.Length;
 
             LookupAccountName(null, accountName, IntPtr.Zero, ref sidLen, domain, ref domainLen, out _);
 
@@ -606,7 +606,7 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
             }
 
             IntPtr sid = Marshal.AllocHGlobal(sidLen);
-            domainLen = domain.Capacity;
+            domainLen = domain.Length;
 
             if (LookupAccountName(null, accountName, sid, ref sidLen, domain, ref domainLen, out _))
                 return sid;
