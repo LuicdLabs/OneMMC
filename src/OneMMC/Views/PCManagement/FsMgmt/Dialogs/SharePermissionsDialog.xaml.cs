@@ -305,12 +305,16 @@ public sealed partial class SharePermissionsDialog : UserControl
             FullResourceName = _folderPath,
             PageTitle = string.Empty,
             SecurityDescriptorSddl = securityDescriptorSddl,
+            // OneMMC runs elevated (requireAdministrator), so it always holds WRITE_OWNER for
+            // editable objects. Setting SI_OWNER_ELEVATION_REQUIRED would place a shield on the
+            // owner "Change" control and route it through ISecurityInformation3::OpenElevatedEditor
+            // - an in-process re-entry that cannot actually elevate - which prevented the owner
+            // from ever being changed. Omit it so owner edits use the normal direct path.
             ObjectInformationFlags = AclEditorObjectFlags.Advanced
                                      | AclEditorObjectFlags.Container
                                      | AclEditorObjectFlags.EditOwner
                                      | AclEditorObjectFlags.EditAudits
-                                     | AclEditorObjectFlags.EditEffective
-                                     | AclEditorObjectFlags.OwnerElevationRequired,
+                                     | AclEditorObjectFlags.EditEffective,
             PageType = pageType,
             MapGenericAccess = MapFileSystemGenericAccess,
             GenericMapping = new AclEditorGenericMapping
@@ -592,15 +596,24 @@ public sealed partial class SharePermissionsDialog : UserControl
 
     private static IEnumerable<AclEditorAccessEntry> CreateFileSystemAccessEntries()
     {
+        // For a folder, basic permissions propagate to subfolders and files (container + object
+        // inherit), matching Windows Explorer's defaults. "List folder contents" is the
+        // container-only variant of "Read & execute" (propagates to subfolders, not files) and
+        // carries the same access mask. Without these inheritance flags the editor granted
+        // "this folder only" ACEs and lit the basic checkboxes for ACEs that Windows classifies
+        // as special permissions.
+        const uint folderAndFiles = AclEditorAceFlags.ContainerInherit | AclEditorAceFlags.ObjectInherit;
+        const uint subfoldersOnly = AclEditorAceFlags.ContainerInherit;
+
         return
         [
-            CreateFileSystemAccessEntry(FileAllAccess, FsMgmtKeys.PermissionFullControl),
-            CreateFileSystemAccessEntry((uint)FileSystemRights.Modify, FsMgmtKeys.PermissionModify),
-            CreateFileSystemAccessEntry(FileGenericRead | FileGenericExecute, FsMgmtKeys.PermissionReadExecute),
-            CreateFileSystemAccessEntry((uint)FileSystemRights.ListDirectory, FsMgmtKeys.PermissionListFolder),
-            CreateFileSystemAccessEntry(FileGenericRead, FsMgmtKeys.PermissionRead),
-            CreateFileSystemAccessEntry(FileGenericWrite, FsMgmtKeys.PermissionWrite),
-            CreateFileSystemAccessEntry(DeleteAccess, FsMgmtKeys.PermissionDelete)
+            CreateFileSystemAccessEntry(FileAllAccess, FsMgmtKeys.PermissionFullControl, folderAndFiles),
+            CreateFileSystemAccessEntry((uint)FileSystemRights.Modify, FsMgmtKeys.PermissionModify, folderAndFiles),
+            CreateFileSystemAccessEntry(FileGenericRead | FileGenericExecute, FsMgmtKeys.PermissionReadExecute, folderAndFiles),
+            CreateFileSystemAccessEntry(FileGenericRead | FileGenericExecute, FsMgmtKeys.PermissionListFolder, subfoldersOnly, containersOnly: true),
+            CreateFileSystemAccessEntry(FileGenericRead, FsMgmtKeys.PermissionRead, folderAndFiles),
+            CreateFileSystemAccessEntry(FileGenericWrite, FsMgmtKeys.PermissionWrite, folderAndFiles),
+            CreateFileSystemAccessEntry(DeleteAccess, FsMgmtKeys.PermissionDelete, folderAndFiles)
         ];
     }
 
@@ -640,12 +653,18 @@ public sealed partial class SharePermissionsDialog : UserControl
         ];
     }
 
-    private static AclEditorAccessEntry CreateFileSystemAccessEntry(uint mask, string resourceKey)
+    private static AclEditorAccessEntry CreateFileSystemAccessEntry(
+        uint mask,
+        string resourceKey,
+        uint inheritFlags = 0,
+        bool containersOnly = false)
     {
         return new AclEditorAccessEntry
         {
             Mask = mask,
-            Name = LocalizedString(resourceKey, resourceKey)
+            Name = LocalizedString(resourceKey, resourceKey),
+            InheritFlags = inheritFlags,
+            AppliesToContainersOnly = containersOnly
         };
     }
 
