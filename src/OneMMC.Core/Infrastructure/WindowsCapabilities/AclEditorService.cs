@@ -560,6 +560,18 @@ public sealed partial class AclEditorService
         };
     }
 
+    /// <summary>
+    /// Maps an <see cref="AclEditorPageType"/> to the <c>uSIPage</c> (SI_PAGE_TYPE) argument passed
+    /// to the native <c>EditSecurityAdvanced</c> function.
+    /// </summary>
+    /// <remarks>
+    /// The advanced editor's TAB SET is fixed by the object-information flags (and always contains a
+    /// Permissions/DACL page); <c>uSIPage</c> only selects which of those tabs opens activated. Each
+    /// advanced case therefore keeps <c>SI_PAGE_PERM</c> as the base page and carries the tab to
+    /// activate in the high word via <see cref="CombinePageActivation"/>. The basic
+    /// <see cref="AclEditorPageType.Permissions"/> page is shown through <c>EditSecurity</c> by the
+    /// caller and never reaches this method, so it falls through to the raw enum value.
+    /// </remarks>
     private static uint GetNativePageType(AclEditorPageType pageType)
     {
         return pageType switch
@@ -573,6 +585,12 @@ public sealed partial class AclEditorService
         };
     }
 
+    /// <summary>
+    /// Packs a base page and the page to activate into the single <c>uSIPage</c> value understood by
+    /// <c>EditSecurityAdvanced</c>, mirroring the aclui.h <c>COMBINE_PAGE_ACTIVATION</c> macro: the
+    /// base <c>SI_PAGE_TYPE</c> occupies the low word and the <c>SI_PAGE_ACTIVATED</c> value the high
+    /// word.
+    /// </summary>
     private static uint CombinePageActivation(AclEditorPageType pageType, AclEditorActivatedPageType activationType)
     {
         return ((uint)activationType << 16) | (uint)pageType;
