@@ -39,7 +39,7 @@ body:
     attributes:
       label: "Log file"
       description: |
-        Upload your log file.
+        Upload your .log file.
 
         Usually located at:
         %LOCALAPPDATA%\OneMMC\Logs\

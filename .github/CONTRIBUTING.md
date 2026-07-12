@@ -17,11 +17,11 @@ OneMMC is in an early dogfooding stage and can affect critical system components
 
 Recommended environment:
 
-- Windows 11 Pro, Windows Server 2025, or a supported Windows 10/11 build for WinUI 3 development.
-- .NET 10 SDK.
+- Windows Pro edition, Windows Server series.  Home edition may lacks some MMC snap-ins features
+- .NET 10 SDK
 - Latest Windows App SDK version
-- Windows 10 SDK 10.0.19041.0 or newer.
-- Visual Studio 2026 (recommended) or 2022 17.8+ with WinUI, .NET desktop, and C++ desktop workloads.
+- Windows 10 SDK 10.0.19041.0 or newer
+- Visual Studio 2026 (or newer) with WinUI, .NET desktop, and C++ desktop workloads
 
 Open `OneMMC.slnx` in Visual Studio, set `OneMMC` as the startup project, and use the unpackaged launch profile for local debugging.
 
@@ -142,7 +142,7 @@ Use CsWin32 by default for Win32 APIs.
 
 - Add supported APIs to the project-level `NativeMethods.txt`.
 - Call generated `Windows.Win32.PInvoke` members where possible.
-- Handwritten `[DllImport]` or `[LibraryImport]` requires a documented exception.
+- Handwritten `[LibraryImport]` requires a documented exception.
 - Prefer `NativeLibrary` plus delegate binding for isolated metadata gaps.
 - Keep handwritten interop centralized in native helper/wrapper files.
 
@@ -170,3 +170,4 @@ Before requesting review, confirm:
 - Native interop uses CsWin32 unless a documented exception is necessary.
 - New/modified code follows the Native AOT compatibility rules (no `dynamic`, no ProgID/CLSID + `Activator` COM activation, no new `System.Management`/`Microsoft.Management.Infrastructure` usage, `{x:Bind}` in new XAML), and a build (analyzers are on by default) introduces no new AOT/trim warnings for touched interop, serialization, or XAML code.
 - Manual verification notes are included because there are no automated test projects yet.
+

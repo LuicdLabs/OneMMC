@@ -20,7 +20,7 @@
     - Use `Constants` classes for compile-time constants.
 - **Native Interop**:
     - Treat **CsWin32 as the default** for Win32 interop. Add supported APIs to the project-level `NativeMethods.txt` and call generated `Windows.Win32.PInvoke` members instead of creating new handwritten imports.
-    - Only keep handwritten `[DllImport]` / `[LibraryImport]` for explicit exceptions such as unsupported exports, APIs that CsWin32 cannot emit for the active target configuration or architecture, unavoidable BCL/COM marshalling gaps, or mixed native workflows where a partial conversion would introduce a second unsafe marshalling model.
+    - Only keep handwritten `[LibraryImport]` for explicit exceptions such as unsupported exports, APIs that CsWin32 cannot emit for the active target configuration or architecture, unavoidable BCL/COM marshalling gaps, or mixed native workflows where a partial conversion would introduce a second unsafe marshalling model.
     - For one-off missing exports, prefer `NativeLibrary` + delegate binding over a new static import.
     - Any handwritten interop that remains must be centralized in a native wrapper/helper file and documented with the reason CsWin32 could not be used directly.
 

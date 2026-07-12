@@ -1,4 +1,4 @@
-﻿<div style="display: flex; align-items: center; justify-content: left;">
+<div style="display: flex; align-items: center; justify-content: left;">
   <picture>
     <img height="120" src="./doc/images/AppLogo.png" />
   </picture>
@@ -19,12 +19,13 @@ A modern Windows system management suite built with WinUI 3, designed as a strea
 > [!IMPORTANT]
 > **AI-Assisted Development Disclaimer**
 >
-> This application is developed through a collaborative process combining AI-generated code and manual debugging by the author. As a result, the codebase may contain:
+> This project is developed with AI assistance and manually reviewed by the author.
 >
-> - Unforeseen bugs, logic errors, or security vulnerabilities inherent to AI-generated code
-> - Code patterns that are difficult to maintain, or structural and architectural design issues that require ongoing remediation — resolving these is a primary development priority
+> The codebase may still contain bugs, logic errors, security issues, or design decisions. Structural improvements and refactoring are ongoing.
 >
-> **Before deploying or using this software in any real environment, you must evaluate its stability and robustness in an isolated virtual machine or test environment.** The author assumes no responsibility for any system instability, data loss, or damage resulting from the use of this software.
+> Please test the software in **isolated environment** before using it on production or with important data.
+>
+> Use this software **at your own risk**. The author accepts **no liability** for any damage or data loss resulting from its use.
 
 <picture>
   <img src="./doc/images/AppScreenShot.png" />
@@ -35,15 +36,12 @@ A modern Windows system management suite built with WinUI 3, designed as a strea
 - Built with WinUI 3, featuring native Dark Mode support, high-DPI awareness, smooth motions, and modern Fluent Design UI/UX behaviors
 - Designed following the [Windows 11 design principles](https://learn.microsoft.com/en-us/windows/apps/design/design-principles), with improved visual hierarchy, simplified workflows, and optimized touch/tablet experience
 - Consolidates commonly used administrative tools (Services, Device Manager, Event Viewer, Disk Management, Local Users and Groups, and more) into a unified experience
-- Built directly on Win32 APIs, COM, WMI, and CIM for low-level and high-performance system management integration
+- Built with **100% native Win32 APIs, COM, WMI, and CIM** for maximum performance and direct windows integration
 - Avoids unnecessary abstraction layers to preserve compatibility with existing Windows management infrastructure
 
-## 🎯 Native AOT
+## 🚀 Native AOT
 
-OneMMC ships as **Native AOT** — a single native executable with faster startup and a ~69% smaller footprint than the former ReadyToRun publish (224 MB → ~70 MB). The M0–M4 migration is complete (2026-07-10) and `PublishAot` applies to every configuration (Debug and Release): all COM interop is source-generated, WMI/CIM runs on WmiLight and a marshal-free `IWbemServices` wrapper, directory/account/counter access runs on ADSI/NetAPI32/PDH via CsWin32, and the AOT/trim analyzers guard every build.
-
-- Native AOT reference (verified state, sanctioned replacements, measured baseline, migration record): [doc/NativeAot.md](./doc/NativeAot.md)
-- Mandatory coding rules for new code: [.github/copilot-instructions.md](./.github/copilot-instructions.md)
+OneMMC ships as   Native AOT. a single native executable with faster startup and a \~69% smaller footprint than ReadyToRun publish (224 MB → \~70 MB). The `PublishAot` applies to every configuration (Debug and Release): all COM interop is source-generated, WMI/CIM runs on WmiLight and a marshal-free `IWbemServices` wrapper, directory/account/counter access runs on ADSI/NetAPI32/PDH via CsWin32, and the AOT/trim analyzers guard every build.
 
 ---
 
@@ -52,7 +50,7 @@ OneMMC ships as **Native AOT** — a single native executable with faster startu
 ### Prerequisites
 
 - Windows 10 May 2020 Update (version 2004, 10.0.19041.0) or newer
-- Visual Studio 2026 (recommended) or Visual Studio 2022 17.8+ with the following workloads:
+- Visual Studio 2026 (or newer) with the following workloads:
     - Desktop development with C++
     - WinUI application development
     - .NET desktop development
