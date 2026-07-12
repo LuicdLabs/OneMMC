@@ -17,6 +17,7 @@
         <converters:NullToBoolConverter x:Key="NullToBoolConverter" />
         <converters:NullToVisibilityConverter x:Key="NullToVisibilityConverter" />
         <converters:LevelToColorConverter x:Key="LevelToColorConverter" />
+        <converters:LevelToGlyphConverter x:Key="LevelToGlyphConverter" />
         <Style x:Key="SecondaryTextBlockStyle" TargetType="TextBlock">
             <Setter Property="Foreground" Value="{ThemeResource TextFillColorSecondaryBrush}" />
         </Style>
@@ -158,45 +159,40 @@
                         SelectionMode="Single">
                         <ListView.ItemTemplate>
                             <DataTemplate x:DataType="models:EventLogEntry">
-                                <Grid Padding="4,6" ColumnSpacing="10">
+                                <Grid Padding="4,4" ColumnSpacing="10">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto" />
                                         <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
                                     </Grid.ColumnDefinitions>
 
-                                    <!--  Level indicator  -->
-                                    <Border
+                                    <!--  Severity icon (replaces redundant level text line)  -->
+                                    <FontIcon
                                         Grid.Column="0"
-                                        Width="4"
-                                        Height="36"
                                         VerticalAlignment="Center"
-                                        Background="{x:Bind Level, Converter={StaticResource LevelToColorConverter}}"
-                                        CornerRadius="2" />
+                                        FontSize="18"
+                                        Foreground="{x:Bind Level, Converter={StaticResource LevelToColorConverter}}"
+                                        Glyph="{x:Bind Level, Converter={StaticResource LevelToGlyphConverter}}"
+                                        ToolTipService.ToolTip="{x:Bind LocalizedLevel}" />
 
                                     <!--  Event content  -->
-                                    <StackPanel Grid.Column="1" Spacing="2">
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="Auto" />
-                                                <ColumnDefinition Width="*" />
-                                            </Grid.ColumnDefinitions>
-                                            <TextBlock
-                                                Grid.Column="0"
-                                                FontWeight="SemiBold"
-                                                Text="{x:Bind LocalizedLevel}" />
-                                            <TextBlock
-                                                Grid.Column="1"
-                                                HorizontalAlignment="Right"
-                                                FontSize="12"
-                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                Text="{x:Bind TimeCreated}" />
-                                        </Grid>
+                                    <StackPanel
+                                        Grid.Column="1"
+                                        VerticalAlignment="Center"
+                                        Spacing="2">
                                         <TextBlock
-                                            FontSize="12"
-                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                            FontWeight="SemiBold"
                                             Text="{x:Bind SummaryLine}"
                                             TextTrimming="CharacterEllipsis" />
                                     </StackPanel>
+
+                                    <!--  Timestamp  -->
+                                    <TextBlock
+                                        Grid.Column="2"
+                                        VerticalAlignment="Center"
+                                        FontSize="12"
+                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                        Text="{x:Bind TimeCreated}" />
                                 </Grid>
                             </DataTemplate>
                         </ListView.ItemTemplate>
