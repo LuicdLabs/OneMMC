@@ -175,7 +175,14 @@ internal sealed unsafe partial class WbemObject : IDisposable
             case WbemType.SInt64:
                 return Variant.FromString(Convert.ToString(value ?? 0, CultureInfo.InvariantCulture) ?? "0");
             case WbemType.StringArray:
-                return Variant.FromStringArray(value as string[]);
+                // An empty/null string array must be Put as VT_NULL, not the VT_EMPTY that
+                // FromStringArray returns for empty input. WMI rejects VT_EMPTY on strongly-typed
+                // array properties (e.g. MSFT_NetFirewallProfile.DisabledInterfaceAliases) with
+                // WBEM_E_TYPE_MISMATCH (0x80041005). VT_NULL clears the property to WMI NULL, which
+                // every WMI provider accepts regardless of the declared CIM type.
+                return value is string[] { Length: > 0 } stringArray
+                    ? Variant.FromStringArray(stringArray)
+                    : Variant.Null;
             case WbemType.InstanceArray:
                 return BuildInstanceArray(value as WbemObject[]);
             default:
@@ -185,9 +192,11 @@ internal sealed unsafe partial class WbemObject : IDisposable
 
     private static Variant BuildInstanceArray(WbemObject[]? items)
     {
+        // VT_NULL for an empty/null array — see the StringArray case in BuildVariant for why
+        // VT_EMPTY is rejected by WMI (WBEM_E_TYPE_MISMATCH) on strongly-typed array properties.
         if (items is null || items.Length == 0)
         {
-            return Variant.Empty;
+            return Variant.Null;
         }
 
         Span<nint> pointers = items.Length <= 16 ? stackalloc nint[items.Length] : new nint[items.Length];
