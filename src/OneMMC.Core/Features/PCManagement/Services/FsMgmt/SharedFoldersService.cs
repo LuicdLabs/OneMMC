@@ -115,7 +115,7 @@ public sealed class SharedFoldersService
     /// Disconnects all SMB sessions.
     /// </summary>
     public Task DisconnectAllSessionsAsync() =>
-        Task.Run(() => DisconnectSession(clientName: null, userName: null));
+        Task.Run(DisconnectAllSessions);
 
     /// <summary>
     /// Closes one open SMB file.
@@ -473,6 +473,32 @@ public sealed class SharedFoldersService
                 default,
                 clientNamePointer is null ? default : new PWSTR(clientNamePointer),
                 userNamePointer is null ? default : new PWSTR(userNamePointer));
+        }
+    }
+
+    private void DisconnectAllSessions()
+    {
+        // NetSessionDel cannot delete every session in a single call: passing a null client name
+        // and a null user name together fails with ERROR_INVALID_PARAMETER (87). Enumerate the
+        // sessions and disconnect each one individually, continuing past per-session failures so a
+        // single stuck session does not block the rest.
+        Win32Exception? firstFailure = null;
+        foreach (SharedFolderSession session in EnumerateSessions())
+        {
+            try
+            {
+                DisconnectSession(session.ClientName, session.UserName);
+            }
+            catch (Win32Exception ex)
+            {
+                firstFailure ??= ex;
+                _logger.LogWarning(ex, "Failed to disconnect SMB session for client '{ClientName}'.", session.ClientName);
+            }
+        }
+
+        if (firstFailure is not null)
+        {
+            throw firstFailure;
         }
     }
 
