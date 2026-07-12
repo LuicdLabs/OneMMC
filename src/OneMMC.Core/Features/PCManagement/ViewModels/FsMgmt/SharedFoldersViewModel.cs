@@ -21,6 +21,7 @@ public sealed partial class SharedFoldersViewModel : ObservableObject
     private readonly List<SharedFolderShare> _allShares = [];
     private readonly List<SharedFolderSession> _allSessions = [];
     private readonly List<SharedFolderOpenFile> _allOpenFiles = [];
+    private bool _isPolling;
     [ObservableProperty]
     public partial ObservableCollection<SharedFolderShare> Shares { get; set; } = [];
 
@@ -35,6 +36,14 @@ public sealed partial class SharedFoldersViewModel : ObservableObject
 
     [ObservableProperty]
     public partial bool IsLoading { get; set; }
+
+    /// <summary>Gets or sets whether live monitoring (change-driven auto-update) is active.</summary>
+    [ObservableProperty]
+    public partial bool IsAutoRefreshEnabled { get; set; }
+
+    /// <summary>Gets or sets the localized live monitoring status shown in the page header.</summary>
+    [ObservableProperty]
+    public partial string AutoRefreshStatus { get; set; } = string.Empty;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SharedFoldersViewModel"/> class.
@@ -79,10 +88,22 @@ public sealed partial class SharedFoldersViewModel : ObservableObject
     /// Loads shares, sessions, and open files from the local Server service.
     /// </summary>
     [RelayCommand]
-    public async Task LoadAsync()
+    public Task LoadAsync() => RefreshDataAsync(showLoading: true);
+
+    /// <summary>
+    /// Fetches the current Server-service state and merges it into the displayed lists.
+    /// </summary>
+    /// <param name="showLoading">
+    /// When <see langword="true"/>, drives the loading indicator and logs the operation (explicit
+    /// loads and manual refreshes). Quiet live-monitoring polls pass <see langword="false"/>.
+    /// </param>
+    private async Task RefreshDataAsync(bool showLoading)
     {
-        IsLoading = true;
-        _logger.LogInformation("Loading Shared Folders state.");
+        if (showLoading)
+        {
+            IsLoading = true;
+            _logger.LogInformation("Loading Shared Folders state.");
+        }
 
         try
         {
@@ -102,11 +123,15 @@ public sealed partial class SharedFoldersViewModel : ObservableObject
             _allOpenFiles.AddRange(openFiles);
 
             ApplyFilter();
-            _logger.LogInformation(
-                "Loaded Shared Folders state. Shares={ShareCount}, Sessions={SessionCount}, OpenFiles={OpenFileCount}",
-                Shares.Count,
-                Sessions.Count,
-                OpenFiles.Count);
+
+            if (showLoading)
+            {
+                _logger.LogInformation(
+                    "Loaded Shared Folders state. Shares={ShareCount}, Sessions={SessionCount}, OpenFiles={OpenFileCount}",
+                    Shares.Count,
+                    Sessions.Count,
+                    OpenFiles.Count);
+            }
         }
         catch (Exception ex)
         {
@@ -114,7 +139,10 @@ public sealed partial class SharedFoldersViewModel : ObservableObject
         }
         finally
         {
-            IsLoading = false;
+            if (showLoading)
+            {
+                IsLoading = false;
+            }
         }
     }
 
@@ -123,6 +151,48 @@ public sealed partial class SharedFoldersViewModel : ObservableObject
     /// </summary>
     [RelayCommand]
     public Task RefreshAsync() => LoadAsync();
+
+    /// <summary>
+    /// Enables or disables live monitoring. The page owns the actual dispatcher timer; this method
+    /// keeps the observable state in sync with the toggle.
+    /// </summary>
+    /// <param name="enabled">Whether live monitoring should be active.</param>
+    public void SetAutoRefresh(bool enabled)
+    {
+        IsAutoRefreshEnabled = enabled;
+        AutoRefreshStatus = enabled ? GetString(FsMgmtKeys.AutoRefreshActive) : string.Empty;
+
+        if (!enabled)
+        {
+            _isPolling = false;
+        }
+    }
+
+    /// <summary>
+    /// Polls the Server service and applies only the differences to the displayed lists, so the UI
+    /// changes solely when the underlying Windows state changes (a session connects or disconnects,
+    /// a connection count changes, connected/idle time advances, a file is opened or closed). The
+    /// page invokes this once per second while live monitoring is active.
+    /// </summary>
+    public async Task OnAutoRefreshTickAsync()
+    {
+        // Skip while disabled, while a poll is still running, or while an explicit load/mutation is
+        // in flight (that path refreshes the same data and manages its own loading state).
+        if (!IsAutoRefreshEnabled || _isPolling || IsLoading)
+        {
+            return;
+        }
+
+        _isPolling = true;
+        try
+        {
+            await RefreshDataAsync(showLoading: false);
+        }
+        finally
+        {
+            _isPolling = false;
+        }
+    }
 
     /// <summary>
     /// Creates a new share and refreshes the page.
@@ -209,6 +279,7 @@ public sealed partial class SharedFoldersViewModel : ObservableObject
         Sessions.Clear();
         OpenFiles.Clear();
         FilterText = string.Empty;
+        _isPolling = false;
         NotifySectionDescriptions();
     }
 
@@ -240,32 +311,148 @@ public sealed partial class SharedFoldersViewModel : ObservableObject
     {
         string filter = FilterText.Trim();
 
-        Shares = new ObservableCollection<SharedFolderShare>(
-            string.IsNullOrWhiteSpace(filter)
-                ? _allShares
-                : _allShares.Where(share =>
-                    Contains(share.Name, filter)
-                    || Contains(share.Path, filter)
-                    || Contains(share.Description, filter)));
+        List<SharedFolderShare> shares = (string.IsNullOrWhiteSpace(filter)
+            ? _allShares
+            : _allShares.Where(share =>
+                Contains(share.Name, filter)
+                || Contains(share.Path, filter)
+                || Contains(share.Description, filter))).ToList();
 
-        Sessions = new ObservableCollection<SharedFolderSession>(
-            string.IsNullOrWhiteSpace(filter)
-                ? _allSessions
-                : _allSessions.Where(session =>
-                    Contains(session.ClientName, filter)
-                    || Contains(session.UserName, filter)
-                    || Contains(session.ClientType, filter)));
+        List<SharedFolderSession> sessions = (string.IsNullOrWhiteSpace(filter)
+            ? _allSessions
+            : _allSessions.Where(session =>
+                Contains(session.ClientName, filter)
+                || Contains(session.ClientDisplayName, filter)
+                || Contains(session.UserName, filter)
+                || Contains(session.ClientType, filter))).ToList();
 
-        OpenFiles = new ObservableCollection<SharedFolderOpenFile>(
-            string.IsNullOrWhiteSpace(filter)
-                ? _allOpenFiles
-                : _allOpenFiles.Where(file =>
-                    Contains(file.Path, filter)
-                    || Contains(file.UserName, filter)
-                    || file.Id.ToString().Contains(filter, StringComparison.OrdinalIgnoreCase)));
+        List<SharedFolderOpenFile> openFiles = (string.IsNullOrWhiteSpace(filter)
+            ? _allOpenFiles
+            : _allOpenFiles.Where(file =>
+                Contains(file.Path, filter)
+                || Contains(file.UserName, filter)
+                || file.Id.ToString().Contains(filter, StringComparison.OrdinalIgnoreCase))).ToList();
+
+        // Merge in place so unchanged rows keep their instances and are never re-rendered. The UI
+        // updates only where Windows state actually changed — added/removed sessions, changed
+        // connection counts, or advancing connected/idle time — instead of rebuilding on a timer.
+        ReconcileCollection(Shares, shares, ShareIdentityEquals, ShareValueEquals);
+        ReconcileCollection(Sessions, sessions, SessionIdentityEquals, SessionValueEquals);
+        ReconcileCollection(OpenFiles, openFiles, OpenFileIdentityEquals, OpenFileValueEquals);
 
         NotifySectionDescriptions();
     }
+
+    /// <summary>
+    /// Synchronises <paramref name="target"/> to <paramref name="desired"/> in place: unchanged
+    /// items keep their existing instance (no change notification is raised), reordered items are
+    /// moved, items whose values changed are replaced, new items are inserted, and removed items
+    /// are deleted. Keeping the bound collection stable means only genuinely changed rows re-render.
+    /// </summary>
+    /// <typeparam name="T">The item type.</typeparam>
+    /// <param name="target">The bound collection to update in place.</param>
+    /// <param name="desired">The desired final contents, in order.</param>
+    /// <param name="identityEquals">Returns whether two items represent the same entity.</param>
+    /// <param name="valueEquals">Returns whether two same-identity items are visually identical.</param>
+    private static void ReconcileCollection<T>(
+        ObservableCollection<T> target,
+        IReadOnlyList<T> desired,
+        Func<T, T, bool> identityEquals,
+        Func<T, T, bool> valueEquals)
+    {
+        // Pass 1: remove items no longer present, so a disconnect is a single Remove rather than a
+        // cascade of Move events pulling the survivors forward.
+        for (int index = target.Count - 1; index >= 0; index--)
+        {
+            T current = target[index];
+            if (!ContainsIdentity(desired, current, identityEquals))
+            {
+                target.RemoveAt(index);
+            }
+        }
+
+        // Pass 2: insert new items, move any that are genuinely out of order, and replace items
+        // whose values changed. Unchanged items keep their instance and raise no notification.
+        for (int index = 0; index < desired.Count; index++)
+        {
+            T desiredItem = desired[index];
+
+            int existingIndex = -1;
+            for (int search = index; search < target.Count; search++)
+            {
+                if (identityEquals(target[search], desiredItem))
+                {
+                    existingIndex = search;
+                    break;
+                }
+            }
+
+            if (existingIndex < 0)
+            {
+                target.Insert(index, desiredItem);
+            }
+            else
+            {
+                if (existingIndex != index)
+                {
+                    target.Move(existingIndex, index);
+                }
+
+                if (!valueEquals(target[index], desiredItem))
+                {
+                    target[index] = desiredItem;
+                }
+            }
+        }
+    }
+
+    private static bool ContainsIdentity<T>(IReadOnlyList<T> items, T candidate, Func<T, T, bool> identityEquals)
+    {
+        for (int index = 0; index < items.Count; index++)
+        {
+            if (identityEquals(items[index], candidate))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool ShareIdentityEquals(SharedFolderShare a, SharedFolderShare b) =>
+        string.Equals(a.Name, b.Name, StringComparison.OrdinalIgnoreCase);
+
+    private static bool ShareValueEquals(SharedFolderShare a, SharedFolderShare b) =>
+        a.CurrentUses == b.CurrentUses
+        && a.MaxUses == b.MaxUses
+        && a.Type == b.Type
+        && a.IsAdministrative == b.IsAdministrative
+        && a.OfflineSetting == b.OfflineSetting
+        && string.Equals(a.Path, b.Path, StringComparison.OrdinalIgnoreCase)
+        && string.Equals(a.Description, b.Description, StringComparison.Ordinal)
+        && string.Equals(a.SecurityDescriptorSddl, b.SecurityDescriptorSddl, StringComparison.Ordinal);
+
+    private static bool SessionIdentityEquals(SharedFolderSession a, SharedFolderSession b) =>
+        string.Equals(a.ClientName, b.ClientName, StringComparison.OrdinalIgnoreCase)
+        && string.Equals(a.UserName, b.UserName, StringComparison.OrdinalIgnoreCase);
+
+    private static bool SessionValueEquals(SharedFolderSession a, SharedFolderSession b) =>
+        a.OpenCount == b.OpenCount
+        && a.ActiveTime == b.ActiveTime
+        && a.IdleTime == b.IdleTime
+        && a.IsGuest == b.IsGuest
+        && string.Equals(a.ResolvedClientName, b.ResolvedClientName, StringComparison.OrdinalIgnoreCase)
+        && string.Equals(a.ClientType, b.ClientType, StringComparison.Ordinal)
+        && string.Equals(a.Transport, b.Transport, StringComparison.Ordinal);
+
+    private static bool OpenFileIdentityEquals(SharedFolderOpenFile a, SharedFolderOpenFile b) =>
+        a.Id == b.Id;
+
+    private static bool OpenFileValueEquals(SharedFolderOpenFile a, SharedFolderOpenFile b) =>
+        a.Permissions == b.Permissions
+        && a.LockCount == b.LockCount
+        && string.Equals(a.Path, b.Path, StringComparison.OrdinalIgnoreCase)
+        && string.Equals(a.UserName, b.UserName, StringComparison.OrdinalIgnoreCase);
 
     private void NotifySectionDescriptions()
     {

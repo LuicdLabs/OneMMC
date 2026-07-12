@@ -6,6 +6,7 @@ using OneMMC.Views.FsMgmt;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Windows.System;
+using DispatcherQueueTimer = Microsoft.UI.Dispatching.DispatcherQueueTimer;
 
 namespace OneMMC.Views;
 
@@ -24,6 +25,10 @@ public sealed partial class SharedFoldersPage : Page
     /// </summary>
     public SharedFoldersViewModel ViewModel { get; }
 
+    private DispatcherQueueTimer? _autoRefreshTimer;
+    private bool _isAdminDialogOpen;
+    private bool _adminRequiredSeen;
+
     public SharedFoldersPage()
     {
         ViewModel = App.GetRequiredService<SharedFoldersViewModel>();
@@ -36,18 +41,101 @@ public sealed partial class SharedFoldersPage : Page
 
     private async void SharedFoldersPage_Loaded(object sender, RoutedEventArgs e)
     {
+        _adminRequiredSeen = false;
         await ViewModel.LoadAsync();
+
+        // Turn on live monitoring by default so the page stays current without pressing Refresh.
+        // Skipped when the initial load needed elevation, to avoid re-prompting every interval.
+        if (!_adminRequiredSeen && !LiveMonitorMenuItem.IsChecked)
+        {
+            ApplyLiveMonitoring(true);
+        }
     }
 
     private void SharedFoldersPage_Unloaded(object sender, RoutedEventArgs e)
     {
+        StopAutoRefreshTimer();
+        if (_autoRefreshTimer is not null)
+        {
+            _autoRefreshTimer.Tick -= AutoRefreshTimer_Tick;
+            _autoRefreshTimer = null;
+        }
+
         ViewModel.AdminPermissionRequired -= ViewModel_AdminPermissionRequired;
         ViewModel.ClearCachedData();
     }
 
     private async void ViewModel_AdminPermissionRequired(object? sender, EventArgs e)
     {
-        await AdminDialogHelper.ShowAdminRequiredDialogAsync(XamlRoot);
+        _adminRequiredSeen = true;
+
+        // Live monitoring would otherwise re-trigger this prompt on every refresh interval, so
+        // stop it after the first permission failure.
+        if (LiveMonitorMenuItem.IsChecked)
+        {
+            ApplyLiveMonitoring(false);
+        }
+
+        if (_isAdminDialogOpen)
+        {
+            return;
+        }
+
+        _isAdminDialogOpen = true;
+        try
+        {
+            await AdminDialogHelper.ShowAdminRequiredDialogAsync(XamlRoot);
+        }
+        finally
+        {
+            _isAdminDialogOpen = false;
+        }
+    }
+
+    private void LiveMonitorMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        // ToggleMenuFlyoutItem flips IsChecked before raising Click, so it already holds the new state.
+        ApplyLiveMonitoring(LiveMonitorMenuItem.IsChecked);
+    }
+
+    private void ApplyLiveMonitoring(bool enabled)
+    {
+        LiveMonitorMenuItem.IsChecked = enabled;
+        ViewModel.SetAutoRefresh(enabled);
+
+        if (enabled)
+        {
+            StartAutoRefreshTimer();
+        }
+        else
+        {
+            StopAutoRefreshTimer();
+        }
+    }
+
+    private void StartAutoRefreshTimer()
+    {
+        _autoRefreshTimer ??= CreateAutoRefreshTimer();
+        _autoRefreshTimer.Start();
+    }
+
+    private void StopAutoRefreshTimer()
+    {
+        _autoRefreshTimer?.Stop();
+    }
+
+    private DispatcherQueueTimer CreateAutoRefreshTimer()
+    {
+        DispatcherQueueTimer timer = DispatcherQueue.CreateTimer();
+        timer.Interval = TimeSpan.FromSeconds(1);
+        timer.IsRepeating = true;
+        timer.Tick += AutoRefreshTimer_Tick;
+        return timer;
+    }
+
+    private async void AutoRefreshTimer_Tick(DispatcherQueueTimer sender, object args)
+    {
+        await ViewModel.OnAutoRefreshTickAsync();
     }
 
     private void SearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
@@ -118,9 +206,9 @@ public sealed partial class SharedFoldersPage : Page
             return;
         }
 
-        string client = string.IsNullOrWhiteSpace(session.ClientName)
+        string client = string.IsNullOrWhiteSpace(session.ClientDisplayName)
             ? session.UserName
-            : session.ClientName;
+            : session.ClientDisplayName;
         bool confirmed = await ConfirmAsync(
             LocalizedStrings.FsMgmt_ConfirmDisconnectSession_Title,
             string.Format(LocalizedStrings.FsMgmt_ConfirmDisconnectSession_MessageFormat, client),
@@ -178,26 +266,19 @@ public sealed partial class SharedFoldersPage : Page
 
     private async Task<bool> ConfirmAsync(string title, string message, string primaryButtonText)
     {
-        var modalWindow = new ModalDialogWindow(new ModalDialogOptions
+        var dialog = new ContentDialog
         {
             Title = title,
-            Content = new TextBlock
-            {
-                Text = message,
-                TextWrapping = TextWrapping.Wrap
-            },
-            OwnerXamlRoot = XamlRoot,
-            RequestedTheme = App.CurrentTheme,
-            ThemeChangeSubscribe = handler => App.ThemeChanged += handler,
-            ThemeChangeUnsubscribe = handler => App.ThemeChanged -= handler,
+            Content = new TextBlock { Text = message, TextWrapping = TextWrapping.Wrap },
             PrimaryButtonText = primaryButtonText,
             CloseButtonText = LocalizedStrings.Common_CancelButton,
-            DefaultButton = WindowDialogResult.None,
-            Width = 500,
-            Height = 220
-        });
+            DefaultButton = ContentDialogButton.Close,
+            XamlRoot = XamlRoot,
+            RequestedTheme = App.CurrentTheme,
+            Style = Application.Current.Resources["DefaultContentDialogStyle"] as Style
+        };
 
-        return await modalWindow.ShowDialogAsync() == WindowDialogResult.Primary;
+        return await dialog.ShowAsync() == ContentDialogResult.Primary;
     }
 
     private static T? GetTag<T>(object sender) where T : class

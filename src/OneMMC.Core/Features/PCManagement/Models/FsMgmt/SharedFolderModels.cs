@@ -164,8 +164,18 @@ public sealed class SharedFolderShare
 /// </summary>
 public sealed class SharedFolderSession
 {
-    /// <summary>Gets or initializes the client computer name.</summary>
+    /// <summary>
+    /// Gets or initializes the raw client identifier reported by the Server service. This is often
+    /// a transport address (for example <c>[fe80::4725:c576:5cba:9c94]</c>) rather than a computer
+    /// name. It is preserved verbatim because <c>NetSessionDel</c> requires the original value.
+    /// </summary>
     public string ClientName { get; init; } = string.Empty;
+
+    /// <summary>
+    /// Gets the client computer name resolved from <see cref="ClientName"/> when it is a network
+    /// address. Filled in by the service after enumeration; empty when no name could be resolved.
+    /// </summary>
+    public string ResolvedClientName { get; internal set; } = string.Empty;
 
     /// <summary>Gets or initializes the user name.</summary>
     public string UserName { get; init; } = string.Empty;
@@ -187,6 +197,24 @@ public sealed class SharedFolderSession
 
     /// <summary>Gets or initializes whether the session was established by a guest account.</summary>
     public bool IsGuest { get; init; }
+
+    /// <summary>
+    /// Gets the best available client display value: the resolved computer name when one is
+    /// available, otherwise the raw client identifier reported by the Server service.
+    /// </summary>
+    public string ClientDisplayName => string.IsNullOrWhiteSpace(ResolvedClientName)
+        ? ClientName
+        : ResolvedClientName;
+
+    /// <summary>
+    /// Gets the raw client address to show beneath the resolved computer name, or an empty string
+    /// when no name was resolved (so the address is not displayed twice).
+    /// </summary>
+    public string ClientAddressCaption =>
+        !string.IsNullOrWhiteSpace(ResolvedClientName)
+        && !string.Equals(ResolvedClientName, ClientName, StringComparison.OrdinalIgnoreCase)
+            ? ClientName
+            : string.Empty;
 
     /// <summary>Gets the localized secondary line used by the session card.</summary>
     public string DetailsLine => string.Format(

@@ -981,6 +981,8 @@ public static class FsMgmtKeys
     public const string PermissionFilesOnly = "FsMgmt_Permissions_FilesOnly";
     public const string DurationDaysFormat = "FsMgmt_Duration_DaysFormat";
     public const string DurationHoursFormat = "FsMgmt_Duration_HoursFormat";
+    public const string AutoRefreshLabel = "FsMgmt_AutoRefresh_Label";
+    public const string AutoRefreshActive = "FsMgmt_AutoRefresh_Active";
 }
 
 /// <summary>

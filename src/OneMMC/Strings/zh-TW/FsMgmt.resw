@@ -148,6 +148,12 @@
   <data name="FsMgmt_Duration_HoursFormat" xml:space="preserve">
     <value>{0}小時 {1}分鐘 {2}秒</value>
   </data>
+  <data name="FsMgmt_AutoRefresh_Label" xml:space="preserve">
+    <value>即時監控</value>
+  </data>
+  <data name="FsMgmt_AutoRefresh_Active" xml:space="preserve">
+    <value>即時監控中 · 有變化才更新</value>
+  </data>
   <data name="FsMgmt_AddShare_Title" xml:space="preserve">
     <value>新增共用資料夾</value>
   </data>
