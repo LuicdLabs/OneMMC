@@ -440,51 +440,33 @@ public sealed class SharedFoldersService
 
     private void DisconnectSession(string? clientName, string? userName)
     {
-        uint status = InvokeNetSessionDel(clientName, userName);
-        if (status == NerrSuccess)
+        // NetSessionEnum reports the client name without a leading "\\", but NetSessionDel matches
+        // sessions by their UNC computer name. Passing the bare name fails (NERR_InvalidComputer,
+        // 2351) for address-form names such as "[fe80::4725:c576:5cba:9c94]", so promote it to UNC
+        // form. Verified against a live IPv6 session: NetSessionDel(null, "\\[fe80::...]", "guest")
+        // returns NERR_Success, while the bare "[fe80::...]" returns 2351.
+        string? uncClientName = string.IsNullOrEmpty(clientName)
+            ? null
+            : clientName.StartsWith(@"\\", StringComparison.Ordinal)
+                ? clientName
+                : @"\\" + clientName;
+
+        uint status = InvokeNetSessionDel(uncClientName, userName);
+
+        // Success, or the session no longer existing, both satisfy the request:
+        // NERR_ClientNameNotFound means there is nothing left to disconnect (for example a
+        // short-lived loopback session torn down between enumeration and this call).
+        if (status is NerrSuccess or NerrClientNameNotFound)
         {
             return;
-        }
-
-        // NetSessionDel reports NERR_ClientNameNotFound (2312) when no session matches the supplied
-        // client name. That is common here because the client name is frequently a transport
-        // address (for example an IPv6 literal such as "[fe80::4725:c576:5cba:9c94]"), and because
-        // short-lived loopback sessions are often torn down between enumeration and this call.
-        if (status == NerrClientNameNotFound)
-        {
-            // "Disconnect all" (no client name) with nothing to remove is a no-op, not a failure.
-            if (string.IsNullOrEmpty(clientName))
-            {
-                return;
-            }
-
-            // If the session is already gone, the requested outcome has been achieved.
-            if (!SessionExists(clientName, userName))
-            {
-                _logger.LogDebug("SMB session for client '{ClientName}' was already disconnected.", clientName);
-                return;
-            }
-
-            // The session persists but the exact client name did not match. Retry once with the
-            // address stripped of its surrounding brackets, which some clients register without.
-            string unbracketed = StripBrackets(clientName);
-            if (!string.Equals(unbracketed, clientName, StringComparison.Ordinal))
-            {
-                status = InvokeNetSessionDel(unbracketed, userName);
-                if (status == NerrSuccess
-                    || (status == NerrClientNameNotFound && !SessionExists(clientName, userName)))
-                {
-                    return;
-                }
-            }
         }
 
         ThrowNativeError(status, "NetSessionDel");
     }
 
-    private unsafe uint InvokeNetSessionDel(string? clientName, string? userName)
+    private unsafe uint InvokeNetSessionDel(string? uncClientName, string? userName)
     {
-        fixed (char* clientNamePointer = clientName)
+        fixed (char* clientNamePointer = uncClientName)
         fixed (char* userNamePointer = userName)
         {
             return Win32PInvoke.NetSessionDel(
@@ -492,38 +474,6 @@ public sealed class SharedFoldersService
                 clientNamePointer is null ? default : new PWSTR(clientNamePointer),
                 userNamePointer is null ? default : new PWSTR(userNamePointer));
         }
-    }
-
-    private bool SessionExists(string clientName, string? userName)
-    {
-        try
-        {
-            foreach (SharedFolderSession session in EnumerateSessions())
-            {
-                if (string.Equals(session.ClientName, clientName, StringComparison.OrdinalIgnoreCase)
-                    && string.Equals(session.UserName, userName ?? string.Empty, StringComparison.OrdinalIgnoreCase))
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-        catch (Exception ex)
-        {
-            // If existence cannot be confirmed, assume the session is still present so the caller
-            // surfaces the original failure rather than silently reporting a false success.
-            _logger.LogDebug(ex, "Could not re-enumerate SMB sessions while verifying disconnect.");
-            return true;
-        }
-    }
-
-    private static string StripBrackets(string clientName)
-    {
-        string trimmed = clientName.Trim();
-        return trimmed.Length >= 2 && trimmed[0] == '[' && trimmed[^1] == ']'
-            ? trimmed[1..^1]
-            : trimmed;
     }
 
     private void CloseOpenFile(uint fileId)
