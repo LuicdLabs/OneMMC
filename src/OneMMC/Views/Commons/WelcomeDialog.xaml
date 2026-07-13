@@ -36,7 +36,7 @@
             Grid.Row="0"
             VerticalScrollBarVisibility="Auto"
             HorizontalScrollBarVisibility="Disabled"
-            MaxHeight="420"
+            MaxHeight="450"
             Padding="0,0,12,0">
             <StackPanel>
 

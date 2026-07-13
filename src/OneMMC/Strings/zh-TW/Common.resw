@@ -262,7 +262,7 @@
     <value>操作失敗</value>
   </data>
   <data name="Common_ErrorTitle" xml:space="preserve">
-    <value>錯誤</value>
+    <value>出了點小差錯</value>
   </data>
   <data name="Common_SuccessTitle" xml:space="preserve">
     <value>成功</value>

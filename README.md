@@ -10,22 +10,22 @@
 A modern Windows system management suite built with WinUI 3, designed as a streamlined and contemporary alternative to the legacy Microsoft Management Console (MMC)
 
 > [!WARNING]
-> This App is currently in an early dogfooding stage and remains under active development.
+> This App is currently in an early dogfooding stage and remains under active development
 >
-> Parts of the codebase are incomplete and may directly modify critical system components, including disks, services, users, and group policies.
+> Parts of the codebase are incomplete and may directly modify critical system components, including disks, services, users, and group policies
 >
-> Use only in isolated test environments or virtual machines.
+> Use only in isolated test environments or virtual machines
 
 > [!IMPORTANT]
 > **AI-Assisted Development Disclaimer**
 >
-> This project is developed with AI assistance and manually reviewed by the author.
+> This project is developed with AI assistance and manually debugged/reviewed by the author
 >
-> The codebase may still contain bugs, logic errors, security issues, or design decisions. Structural improvements and refactoring are ongoing.
+> The codebase may still contain bugs, logic errors, security issues, or design decisions. Structural improvements and refactoring are ongoing
 >
-> Please test the software in **isolated environment** before using it on production or with important data.
+> Please test the software in **isolated environment** before using it on production
 >
-> Use this software **at your own risk**. The author accepts **no liability** for any damage or data loss resulting from its use.
+> Use this software **at your own risk**. The author accepts **no liability** for any damage or data loss resulting from its use
 
 <picture>
   <img src="./doc/images/AppScreenShot.png" />
@@ -41,7 +41,7 @@ A modern Windows system management suite built with WinUI 3, designed as a strea
 
 ## 🚀 Native AOT
 
-OneMMC ships as   Native AOT. a single native executable with faster startup and a \~69% smaller footprint than ReadyToRun publish (224 MB → \~70 MB). The `PublishAot` applies to every configuration (Debug and Release): all COM interop is source-generated, WMI/CIM runs on WmiLight and a marshal-free `IWbemServices` wrapper, directory/account/counter access runs on ADSI/NetAPI32/PDH via CsWin32, and the AOT/trim analyzers guard every build.
+OneMMC ships as Native AOT. a single native executable with faster startup and a \~69% smaller footprint than ReadyToRun publish (224 MB → \~70 MB). The `PublishAot` applies to every configuration (Debug and Release): all COM interop is source-generated, WMI/CIM runs on WmiLight and a marshal-free `IWbemServices` wrapper, directory/account/counter access runs on ADSI/NetAPI32/PDH via CsWin32, and the AOT/trim analyzers guard every build
 
 ---
 

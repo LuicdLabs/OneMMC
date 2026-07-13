@@ -118,10 +118,10 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="GroupPolicy_WindowsEditionNotice_Title" xml:space="preserve">
-    <value>Windows 版本通知</value>
+    <value>Windows 版本提示</value>
   </data>
   <data name="GroupPolicy_WindowsEditionNotice_Message" xml:space="preserve">
-    <value>警告：您的 Windows 版本不完全支援群組原則。政策設定會直接寫入登錄，可能會立即生效；某些系統設定可能需要重新啟動。若要完整支援，請升級到專業版、企業版或教育版。</value>
+    <value>您的 Windows 版本不完全支援群組原則。政策設定會直接寫入登錄，可能會立即生效；某些系統設定可能需要重新啟動。若要完整支援，請升級到專業版、企業版或教育版。</value>
   </data>
   <data name="PolicyListHeader_Policy" xml:space="preserve">
     <value>政策</value>
