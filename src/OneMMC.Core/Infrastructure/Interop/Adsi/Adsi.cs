@@ -15,7 +15,7 @@ namespace OneMMC.Core.Infrastructure.Interop.Adsi;
 /// function-pointer-vtable structs (<c>IADs*</c>/<c>IADsContainer*</c>/<c>IDirectorySearch*</c>/
 /// <c>IADsDeleteOps*</c>, raw AddRef/Release, all <c>unsafe</c>): the vtable order comes from
 /// Windows metadata, so hand-authoring (and its silent vtable-corruption risk) is avoided. See
-/// doc/NativeAot.md (M4).
+/// <c>doc/NativeAot.md</c>, "Directory and account APIs".
 /// </para>
 /// <para>
 /// Threading: ADSI LDAP objects aggregate the free-threaded marshaler, so binding and using them

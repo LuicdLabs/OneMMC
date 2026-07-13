@@ -1,299 +1,450 @@
 # Native AOT
 
-**Native AOT is OneMMC's shipped deployment model.** `PublishAot` is set **unconditionally** in
-`src/OneMMC/OneMMC.csproj`, so it applies to every configuration — Debug and Release alike. The
-AOT/trim analyzers run on every build (defaults in `Directory.Build.props`), first-party code
-builds warning-clean, and `dotnet publish` produces a single native executable in either
-configuration. Native compilation itself still happens only on `dotnet publish`; a plain
-`dotnet build` / VS F5 keeps the normal CoreCLR inner loop.
+## Table of Contents
 
-This is the single reference for OneMMC's Native AOT support: the current verified state, the
-mandatory coding rules (sanctioned replacements), the measured baseline the migration started
-from, and the M0–M4 migration record with the engineering facts learned along the way. It
-consolidates and supersedes the former `doc/NativeAotAssessment.md`, `doc/NativeAotMigration.md`,
-and `doc/M4.md` (all preserved in git history).
+- [Overview](#overview)
+- [Document Scope](#document-scope)
+- [Related Files and Entry Points](#related-files-and-entry-points)
+- [Current Shipped Model](#current-shipped-model)
+- [Why Native AOT Changes the Design](#why-native-aot-changes-the-design)
+- [Core Engineering Principles](#core-engineering-principles)
+- [Developer Guidelines](#developer-guidelines)
+- [Deep Dive](#deep-dive)
+  - [COM Interop Model](#com-interop-model)
+  - [WMI and CIM Model](#wmi-and-cim-model)
+  - [Directory and Account Access Model](#directory-and-account-access-model)
+  - [Performance Counter Model](#performance-counter-model)
+  - [XAML and MVVM Constraints](#xaml-and-mvvm-constraints)
+  - [JSON and Serialization Constraints](#json-and-serialization-constraints)
+- [Verification Workflow](#verification-workflow)
+- [Known Upstream Risks](#known-upstream-risks)
+- [References](#references)
+- [Appendix A: Current Verified State (2026-07-10)](#appendix-a-current-verified-state-2026-07-10)
+- [Appendix B: Stage 1 Assessment Baseline (2026-07-02)](#appendix-b-stage-1-assessment-baseline-2026-07-02)
+- [Appendix C: Migration Record (M0-M4)](#appendix-c-migration-record-m0-m4)
+- [Appendix D: Sanctioned Replacements Summary](#appendix-d-sanctioned-replacements-summary)
 
-## Current state (full-enablement verification, 2026-07-10)
+## Overview
+
+Native AOT is OneMMC's shipped deployment model. `PublishAot` is enabled unconditionally in
+`src/OneMMC/OneMMC.csproj`, so every configuration is developed under the same AOT/trim analyzer
+rules even though native code generation itself still happens only on `dotnet publish`.
+
+This document is the repository's single Native AOT reference. It is meant to work as both:
+
+- a developer guide for day-to-day implementation choices
+- an engineering note that explains why those choices exist
+
+It also preserves the measured baseline and the M0-M4 migration record so future changes can keep
+their historical context without forcing every reader to start from migration history first.
+
+## Document Scope
+
+Read this document when you are:
+
+- adding or modifying COM interop
+- adding or modifying WMI/CIM access
+- touching ADSI, NetAPI32, or PDH-backed functionality
+- changing XAML binding patterns, WinRT ABI-facing classes, or MVVM Toolkit properties
+- adding JSON serialization paths
+- changing build, publish, trim, or analyzer configuration
+
+If you only need the historical migration story, jump to the appendices. For implementation work,
+start with **Developer Guidelines** and the relevant **Deep Dive** section.
+
+## Related Files and Entry Points
+
+| Item | Path | Purpose |
+|---|---|---|
+| App publish settings | `src/OneMMC/OneMMC.csproj` | Enables `PublishAot` and configures AOT publish behavior |
+| Analyzer defaults | `Directory.Build.props` | Enables AOT, trim, and single-file analyzers for every build |
+| COM activator | `src/OneMMC.Core/Infrastructure/Interop/ComActivator.cs` | Standard COM coclass activation path |
+| Dual-interface base | `src/OneMMC.Core/Infrastructure/Interop/IDispatch.cs` | Source-generated base for dual COM vtable layout |
+| ADSI layer | `src/OneMMC.Core/Infrastructure/Interop/Adsi/` | AOT-safe replacement for `System.DirectoryServices*` consumers |
+| Shared WMI helpers | `src/OneMMC.Core/Infrastructure/Wmi/` | WmiLight helper extensions and utilities |
+| Windows Firewall WMI wrapper | `src/OneMMC.Core/Features/SystemManagement/Infrastructure/WF/Wbem/` | Marshal-free `IWbemServices` wrapper for advanced WMI instance CRUD |
+| AzMan COM example | `src/OneMMC.Core/Features/UserSecurity/Services/AzMan/Native/AzRolesNative.cs` | Large dual-interface COM port |
+| COM+ example | `src/OneMMC.Core/Features/SystemManagement/Services/ComExp/Native/ComAdminNative.cs` | Typed COM automation port |
+| Task Scheduler example | `src/OneMMC.Core/Features/PCManagement/Services/TaskSchd/Native/TaskSchedulerNative.cs` | Dual-interface COM port with explicit ABI rules |
+| Group Policy example | `src/OneMMC.Core/Features/PolicyManagement/Services/GpEdit/Native/NativeMethods.cs` | Non-dual COM interface port |
+| PerfMon example | `src/OneMMC.Core/Features/PCManagement/Services/PerfMon/` | PDH-backed counter implementation |
+
+## Current Shipped Model
+
+The repository is intentionally built around compile-time metadata and explicit ABI contracts
+instead of runtime discovery:
+
+- COM interop is source-generated with `[GeneratedComInterface]` and `ComWrappers`.
+- WMI/CIM work uses **WmiLight** or the in-house marshal-free `IWbemServices` wrapper.
+- Directory and account access uses ADSI and NetAPI32 via CsWin32 instead of
+  `System.DirectoryServices*`.
+- Performance counters use PDH via CsWin32 instead of
+  `System.Diagnostics.PerformanceCounter`.
+- New XAML uses `{x:Bind}`, not `{Binding}`.
+- JSON serialization uses source-generated `JsonSerializerContext`.
+- AOT, trim, and single-file analyzers are enabled for every build in `Directory.Build.props`.
+
+The practical rule is straightforward: if a pattern depends on runtime code generation, built-in
+COM marshalling, reflection-only metadata lookup, or runtime XAML property-path discovery, it is
+usually the wrong fit for this repository.
+
+## Why Native AOT Changes the Design
+
+Native AOT is not just a publish option. It changes which implementation strategies are dependable:
+
+- the old RCW/CCW-style COM convenience model is not available for ad-hoc `dynamic`,
+  `[ComImport]`, or `Activator.CreateInstance(Type.GetTypeFromProgID(...))` patterns
+- trimmed metadata makes reflection-based binding and serializer discovery fragile
+- source-generated code and explicit ABI declarations are more trustworthy than runtime marshalling
+- analyzer cleanliness matters because many AOT failures are design issues caught before runtime
+
+That is why OneMMC standardizes on explicit, source-generated, marshal-free paths even where the
+old desktop .NET idioms would have been shorter.
+
+## Core Engineering Principles
+
+1. Prefer compile-time knowledge over runtime discovery.
+2. Prefer source-generated interop over built-in runtime marshalling.
+3. Prefer narrow, explicit native wrappers over broad convenience APIs that hide ABI details.
+4. Treat analyzer warnings as design feedback, not publish-time cleanup.
+5. Keep comments in interop-heavy files aligned with the actual ABI reasoning.
+
+## Developer Guidelines
+
+These rules are normative for all new and modified code.
+
+| Do not add | Use instead |
+|---|---|
+| `dynamic` over COM | Typed `[GeneratedComInterface]` interfaces and `ComWrappers` |
+| `Type.GetTypeFromProgID` / `GetTypeFromCLSID` + `Activator.CreateInstance` | `CoCreateInstance` through `ComActivator` |
+| New `[ComImport]` interfaces | `[GeneratedComInterface]` |
+| `System.Management` | WmiLight, or the marshal-free `IWbemServices` wrapper when instance CRUD is required |
+| `Microsoft.Management.Infrastructure` | Same as above |
+| `System.DirectoryServices*` | NetAPI32 and ADSI via CsWin32 |
+| `System.Diagnostics.PerformanceCounter` | PDH via CsWin32 |
+| New `{Binding}` in XAML | `{x:Bind}` |
+| Reflection-based `JsonSerializer` overloads | Source-generated `JsonSerializerContext` |
+| `[ObservableProperty]` on fields | `[ObservableProperty]` on partial properties |
+| Non-`partial` WinRT ABI-facing classes | `partial` classes |
+| Reflection-dependent activation or type synthesis | Explicit registrations and compile-time known types |
+
+Quick review checklist:
+
+- Is this code relying on runtime marshalling?
+- Is this code relying on reflection to discover types, members, or bindings?
+- Is this code introducing a managed wrapper that already has an approved native replacement?
+- Is there already a repository pattern for this feature area that we should copy instead?
+
+## Deep Dive
+
+### COM Interop Model
+
+#### Overview
+
+Use this model whenever a feature talks to a COM automation server, shell component, or Win32 COM
+API.
+
+#### Standard pattern
+
+1. Use CsWin32 for metadata-backed Win32 COM types whenever possible.
+2. For custom or dual interfaces, declare `[GeneratedComInterface]` interfaces with exact member
+   order.
+3. Derive from `Core/Infrastructure/Interop/IDispatch.cs` only when the interface is actually
+   dual and needs the `IUnknown[3] + IDispatch[4] + members` layout.
+4. Activate coclasses through `Core/Infrastructure/Interop/ComActivator.cs`.
+5. Keep ABI details explicit: `get_`/`put_` accessors, raw `short` for `VARIANT_BOOL` when
+   needed, explicit optional `VARIANT` parameters, and placeholder members to preserve slot order.
+
+#### Why this model exists
+
+Native AOT has no fallback RCW behavior to correct layout or activation mistakes at runtime. If
+the interface shape is wrong, the failure is immediate and can be catastrophic.
+
+#### Code-level examples
+
+- `src/OneMMC.Core/Infrastructure/Interop/ComActivator.cs`
+- `src/OneMMC.Core/Infrastructure/Interop/IDispatch.cs`
+- `src/OneMMC.Core/Features/UserSecurity/Services/AzMan/Native/AzRolesNative.cs`
+- `src/OneMMC.Core/Features/SystemManagement/Services/ComExp/Native/ComAdminNative.cs`
+- `src/OneMMC.Core/Features/PCManagement/Services/TaskSchd/Native/TaskSchedulerNative.cs`
+- `src/OneMMC.Core/Features/PolicyManagement/Services/GpEdit/Native/NativeMethods.cs`
+
+#### Design notes
+
+- Dual interfaces must preserve exact vtable order.
+- Optional COM arguments that late binding once filled automatically now need explicit values.
+- Type-library-derived conventions belong in comments because they are part of the contract.
+
+### WMI and CIM Model
+
+#### Overview
+
+OneMMC uses two sanctioned paths, chosen by capability:
+
+- **WmiLight** for query, method, and event-subscription scenarios
+- the in-house marshal-free **`IWbemServices` wrapper** for WMI instance create/modify/delete
+  scenarios that WmiLight cannot represent
+
+#### Standard pattern
+
+1. Start with WmiLight for ordinary query-style work.
+2. Add shared helper code under `Core/Infrastructure/Wmi/` when multiple features need the same
+   disposal or conversion rules.
+3. Use `Features/SystemManagement/Infrastructure/WF/Wbem/` as the reference design when classic
+   WMI COM is required.
+4. Preserve type fidelity. WMI-facing VARTYPE choices, CIM type expectations, and handle lifetime
+   matter.
+
+#### Why this model exists
+
+`System.Management` and `Microsoft.Management.Infrastructure` were major AOT blockers in the
+original assessment. Replacing them was required to ship the AOT build, not just to clean up code.
+
+#### Code-level examples
+
+- `src/OneMMC.Core/Infrastructure/Wmi/`
+- `src/OneMMC.Core/Features/SystemManagement/Infrastructure/WF/Wbem/`
+
+#### Design notes
+
+- WmiLight is the default, not the fallback.
+- The classic WMI COM wrapper exists because some write paths need instance CRUD support that
+  WmiLight does not expose.
+- Dispose behavior is part of correctness because the underlying resources are native.
+
+### Directory and Account Access Model
+
+#### Overview
+
+Do not add new `System.DirectoryServices` or `System.DirectoryServices.AccountManagement` usage.
+
+#### Standard pattern
+
+- Use NetAPI32 for local users and groups.
+- Use ADSI via `Core/Infrastructure/Interop/Adsi/` when LDAP or ADSI object access is required.
+
+#### Why this model exists
+
+These managed wrappers depend on runtime marshalling patterns that do not fit the repository's AOT
+model. ADSI and NetAPI32 keep the ABI explicit and under repository control.
+
+#### Code-level examples
+
+- `src/OneMMC.Core/Infrastructure/Interop/Adsi/`
+- `src/OneMMC.Core/Features/UserSecurity/Services/LusrMgr/`
+
+### Performance Counter Model
+
+#### Overview
+
+Use PDH through CsWin32 for performance counter work.
+
+#### Standard pattern
+
+- model per-counter query ownership clearly
+- handle counter paths explicitly
+- use `PdhAddEnglishCounterW` fallback where localized names differ
+
+#### Why this model exists
+
+`System.Diagnostics.PerformanceCounter` is not part of the approved AOT-compatible dependency set,
+and PDH gives the repository exact control over lifetime, localization behavior, and failure
+handling.
+
+#### Code-level examples
+
+- `src/OneMMC.Core/Features/PCManagement/Services/PerfMon/`
+
+### XAML and MVVM Constraints
+
+#### Overview
+
+All new XAML must use `{x:Bind}`. When touching nearby existing UI, convert remaining `{Binding}`
+paths if that work is naturally part of the same change.
+
+#### Standard pattern
+
+- use `x:DataType` for strongly typed templates
+- avoid `DisplayMemberPath` and `SelectedValuePath`; prefer `ItemTemplate` or `ToString()`
+- keep WinRT ABI-facing classes `partial`
+- apply `[ObservableProperty]` to partial properties, not fields
+
+#### Why this model exists
+
+The original AOT startup crash was caused by trimmed XAML metadata combined with non-`partial`
+WinRT classes. The solution was structural and remains a standing repository rule.
+
+### JSON and Serialization Constraints
+
+#### Overview
+
+Every serialization path must use a source-generated `JsonSerializerContext`.
+
+#### Why this model exists
+
+Reflection-based serializer overloads are fragile under trimming and unnecessary in a codebase
+whose payload types are known at compile time.
+
+#### Code-level examples
+
+- `src/OneMMC/Models/AppSettings.cs`
+- `src/OneMMC.Core/Features/UserSecurity/ViewModels/AzMan/AuthorizationManagerViewModel.cs`
+- `src/OneMMC.Core/Features/PCManagement/Services/PerfMon/PerformanceMonitorService.cs`
+
+## Verification Workflow
+
+Run these after interop, project configuration, or dependency changes:
+
+```powershell
+dotnet build src/OneMMC/OneMMC.csproj -c Debug -p:Platform=x64
+dotnet build src/OneMMC/OneMMC.csproj -c Release -p:Platform=x64
+dotnet publish src/OneMMC/OneMMC.csproj -c Release -r win-x64 -p:Platform=x64
+dotnet publish src/OneMMC/OneMMC.csproj -c Debug -r win-x64 -p:Platform=x64
+```
+
+Expected outcomes:
+
+- no new `IL2xxx`, `IL3xxx`, `CsWinRT1xxx`, or `MVVMTK0045` warnings in first-party code
+- publish succeeds with the MSVC toolchain available for the ILC link step
+- the published executable boots and the log under `%LOCALAPPDATA%\OneMMC\Logs\` stays free of
+  `[ERR]`, `[FTL]`, and unexpected exception entries
+
+Notes:
+
+- `dotnet build` and VS F5 still run the normal CoreCLR inner loop
+- `dotnet publish` is the step that actually produces native code
+- analyzers are enabled in normal builds on purpose so AOT regressions are caught while coding
+
+## Known Upstream Risks
+
+- WinUI/XAML AOT support is still evolving upstream. OneMMC avoids the unstable paths by staying
+  `{x:Bind}`-only.
+- The .NET runtime AOT navigation hang tracked at `dotnet/runtime#104582` has not reproduced in
+  this repository, but it should be re-checked on SDK or Windows App SDK upgrades.
+- WmiLight is a small external dependency. The fallback plan remains vendoring or forking it, or
+  using the classic WMI COM wrapper where feature scope allows.
+
+## References
+
+- `AGENTS.md`
+- `.github/copilot-instructions.md`
+- `Directory.Build.props`
+- `src/OneMMC/OneMMC.csproj`
+- `src/OneMMC.Core/Infrastructure/Interop/ComActivator.cs`
+- `src/OneMMC.Core/Infrastructure/Interop/IDispatch.cs`
+- `src/OneMMC.Core/Infrastructure/Interop/Adsi/Adsi.cs`
+- `src/OneMMC.Core/Infrastructure/Wmi/`
+- `src/OneMMC.Core/Features/SystemManagement/Infrastructure/WF/Wbem/`
+- `src/OneMMC.Core/Features/PCManagement/Services/PerfMon/`
+- `https://github.com/dotnet/runtime/issues/104582`
+- `https://github.com/PowerShell/MMI/issues/54`
+
+## Appendix A: Current Verified State (2026-07-10)
 
 | Check | Result |
 |---|---|
 | `dotnet build` Debug x64, full rebuild, all analyzers on | 0 warnings / 0 errors |
 | `dotnet build` Release x64, full rebuild, all analyzers on | 0 warnings / 0 errors |
-| `dotnet publish` **Release** win-x64 (ILC + link) | Succeeded, **0 warnings** (including dependencies) |
-| `dotnet publish` **Debug** win-x64 (ILC + link) | Succeeded, 0 warnings — `PublishAot` implies self-contained, no Debug-only settings needed |
-| Release payload (excl. symbols) | **70.4 MB / 13 files** (`OneMMC.exe` 28.8 MB; remainder is Windows App SDK runtime: onnxruntime/DirectML/WebView2 + resources). Former R2R baseline: 224.4 MB / 276 files |
-| WmiLight native shim | Statically linked into the exe (`PublishWmiLightStaticallyLinked`); no `WmiLight.Native.dll` ships |
-| UIA navigation smoke on the Release AOT exe | PASS — all 7 top-level pages selected, process alive/responding, 0 errors or exceptions in the Serilog log |
-| Debug AOT exe boot smoke | Boots to the main window, responsive, 0 log errors |
+| `dotnet publish` Release win-x64 (ILC + link) | Succeeded, 0 warnings |
+| `dotnet publish` Debug win-x64 (ILC + link) | Succeeded, 0 warnings |
+| Release payload (excluding symbols) | 70.4 MB / 13 files |
+| WmiLight native shim | Statically linked into the exe |
+| Release AOT UIA navigation smoke | PASS |
+| Debug AOT boot smoke | PASS |
 
-Source-level gates (all grep-verified; residual text hits are XML-doc comments describing the
-replaced APIs, which is the accepted convention):
+Repository-wide gates verified at that point:
 
-- 0 `dynamic` late binding, 0 `[ComImport]`, 0 `Type.GetTypeFromProgID`/`GetTypeFromCLSID` +
-  `Activator.CreateInstance` — every COM interop is source-generated.
-- 0 `System.Management`, 0 `Microsoft.Management.Infrastructure`, 0 `System.DirectoryServices*`,
-  0 `System.Diagnostics.PerformanceCounter` — the packages are gone from the dependency graph.
-- 0 `{Binding}` in XAML (all `{x:Bind}`), 0 `DisplayMemberPath`/`SelectedValuePath`.
+- 0 `dynamic` late binding
+- 0 `[ComImport]`
+- 0 `Type.GetTypeFromProgID` / `GetTypeFromCLSID` + `Activator.CreateInstance`
+- 0 `System.Management`
+- 0 `Microsoft.Management.Infrastructure`
+- 0 `System.DirectoryServices*`
+- 0 `System.Diagnostics.PerformanceCounter`
+- 0 `{Binding}` in XAML
 
-`IsAotCompatible`/`IsTrimmable` are deliberately **not** set on `OneMMC.Core`: they would stamp
-`AssemblyMetadata("IsTrimmable")` and change packaging semantics, while the analyzer properties in
-`Directory.Build.props` produce the identical warning stream. The app is the only consumer, and
-everything is trimmed under `PublishAot` regardless.
+`IsAotCompatible` and `IsTrimmable` remain intentionally unset on `OneMMC.Core`. The analyzer
+properties in `Directory.Build.props` produce the needed warning stream without changing the
+library's packaging semantics.
 
-## How to verify
+## Appendix B: Stage 1 Assessment Baseline (2026-07-02)
 
-```powershell
-# Analyzer-guarded builds (either configuration; must stay 0-warning in first-party code)
-dotnet build src/OneMMC/OneMMC.csproj -c Debug -p:Platform=x64
-dotnet build src/OneMMC/OneMMC.csproj -c Release -p:Platform=x64
-
-# Native AOT publish (either configuration; requires the MSVC toolchain for the ILC link step)
-dotnet publish src/OneMMC/OneMMC.csproj -c Release -r win-x64 -p:Platform=x64
-dotnet publish src/OneMMC/OneMMC.csproj -c Debug -r win-x64 -p:Platform=x64
-```
-
-- The link step invokes a bare `vswhere.exe`. In a non-Developer shell, prepend
-  `%ProgramFiles(x86)%\Microsoft Visual Studio\Installer` to `PATH` first, or the publish fails
-  with `MSB3073` (exit 123) after ILC has already compiled successfully.
-- Smoke-test the published exe by launching it and navigating the top-level pages, then check the
-  Serilog log (`%LOCALAPPDATA%\OneMMC\Logs\`) for `[ERR]`/`[FTL]`/exceptions. A reusable UIA
-  driver for this existed as `eng/Drive-AotSmokeNavigation.ps1` (Windows PowerShell 5.1) until the
-  evaluation tooling was retired — recover it from git history if automation is needed again.
-- Re-run all of the above after every .NET SDK or Windows App SDK upgrade, and re-check the
-  [known upstream risks](#known-upstream-risks).
-
-## Terminology: WMI, MI, CIM, MMI (and which is which)
-
-| Name | What it is | AOT status |
-|---|---|---|
-| **CIM** | The DMTF data-model standard (classes, instances, namespaces) that all of the below implement | n/a (a standard, not an API) |
-| **Classic WMI COM API** | `IWbemLocator`/`IWbemServices` (wbemcli.h), the original WMI client API | Usable under AOT only via marshal-free COM (CsWin32 `allowMarshaling: false` or `[GeneratedComInterface]`) — this is what the in-house WF `Wbem` wrapper does |
-| **`System.Management`** | The original .NET wrapper over classic WMI COM (`ManagementObjectSearcher`) | **Not AOT/trim compatible** (official); removed in M2 |
-| **MI API ("WMI v2")** | The native C API in `mi.h` (`MI_Application_*`, `MI_Session_*`) | Native C API — AOT-neutral, but has no supported managed binding (see next row) |
-| **MMI — `Microsoft.Management.Infrastructure`** | The managed .NET binding of the MI API (`CimSession`, `CimInstance`); what PowerShell's CIM cmdlets use | **Confirmed NOT AOT compatible**: crashes with `MissingInteropDataException` in delegate marshalling ([PowerShell/MMI#54](https://github.com/PowerShell/MMI/issues/54)); targets netstandard1.6 (cannot carry annotations); repo archived 2024-06-14 — will never be fixed. Removed in M2 (WF Half B) |
-| **WmiLight** | Third-party MIT-licensed WMI client (queries, methods, event subscriptions) over classic WMI with its own native shim | **Native AOT supported since 5.0**; `PublishWmiLightStaticallyLinked` folds the shim into the exe |
-
-## Sanctioned replacements (normative)
-
-All code MUST use the right-hand column. These rules are enforced by the always-on analyzers and
-by review; the day-to-day summary lives in
-[.github/copilot-instructions.md](../.github/copilot-instructions.md) (§Native AOT Compatibility).
-
-| Forbidden pattern (AOT-incompatible) | Sanctioned AOT-compatible replacement |
-|---|---|
-| `dynamic` over COM (IDispatch late binding) | Typed COM interfaces via `[GeneratedComInterface]`/`ComWrappers` source generation; the in-house blittable `Variant` (`Core/Infrastructure/Interop`) for VARIANT parameters |
-| `Type.GetTypeFromProgID` / `GetTypeFromCLSID` + `Activator.CreateInstance` | `CoCreateInstance` via CsWin32 wrapped by `ComActivator` (`Core/Infrastructure/Interop`) |
-| Handwritten `[ComImport]` interfaces | `[GeneratedComInterface]` (source-generated, marshal-free) |
-| `System.Management` (`ManagementObjectSearcher`, …) | **WmiLight** (primary), or classic WMI COM (`IWbemServices`) via CsWin32 `allowMarshaling: false` (no-dependency fallback; the WF `Wbem` wrapper is the in-repo example) |
-| `Microsoft.Management.Infrastructure` (`CimSession`, …) | Same as above — WmiLight for read/query/method/events; the `Wbem` wrapper for instance CRUD (`PutInstance`) |
-| `System.DirectoryServices(.AccountManagement)` | NetAPI32 (`NetUserEnum`, `NetLocalGroup*`, …) and ADSI (`ADsOpenObject`, `IADs*`, `IDirectorySearch`) via CsWin32 |
-| `System.Diagnostics.PerformanceCounter` | PDH API (`PdhOpenQuery`, `PdhCollectQueryData`, …) via CsWin32 |
-| `{Binding}` in XAML | `{x:Bind}` (compile-time generated); no `DisplayMemberPath`/`SelectedValuePath` (reflection property paths) — use `ItemTemplate` or `ToString()` |
-| Reflection-based `JsonSerializer` calls | Source-generated `JsonSerializerContext` |
-| `[ObservableProperty]` on fields (MVVMTK0045) | `[ObservableProperty]` on partial properties |
-| Non-`partial` classes crossing the WinRT ABI (CsWinRT1028/1029) | Mark the class (and containing types) `partial` |
-| Reflection-dependent patterns (`Assembly.Load*`, `Type.GetType(string)`, `MakeGenericType`, `Reflection.Emit`) | Not used anywhere; keep DI registrations explicit |
-
-Engineering notes:
-
-- **CsWin32 for AOT**: `"allowMarshaling": false` is set in `NativeMethods.json` so generated code
-  avoids the runtime marshaler. For COM interfaces present in Win32 metadata (IWbem*, IADs*,
-  PDH/NetAPI structs), CsWin32 emits marshal-free function-pointer-vtable structs with **vtable
-  order taken from Windows metadata** — prefer this over hand-authoring whenever the interface is
-  projected, because hand-authoring risks silent vtable-order corruption.
-- **Dual (IDispatch-based) automation interfaces** written by hand as `[GeneratedComInterface]`
-  derive from the in-house source-gen `IDispatch` base to reproduce the dual vtable
-  (IUnknown[3] + IDispatch[4] + members) and declare explicit `get_`/`put_` accessors in exact
-  vtable order.
-- **WmiLight deployment**: OneMMC.Core is a class library, so the app project carries
-  `<TrimmerRootAssembly Include="WmiLight" />` (documented WmiLight requirement for library
-  encapsulation under AOT) plus `<PublishWmiLightStaticallyLinked>true</...>`, and references the
-  package directly so its build props/targets apply. WmiLight risk: single-maintainer project
-  (MIT) — mitigations are vendoring/forking, or falling back to the classic WMI COM wrapper.
-- **XAML metadata**: `{Binding}`-free XAML plus `partial` classes is the reliable path; use
-  `TrimmerRootDescriptor` only as a last resort for types genuinely reachable only dynamically
-  (none needed so far).
-
-## Stage 1 assessment (2026-07-02) — the measured baseline
-
-Recorded from the original feasibility evaluation, run when the default build was ReadyToRun +
-self-contained and the analyzers sat behind an opt-in switch (`OneMMCAotAnalysis`, since
-dissolved). Environment: .NET SDK 10.0.301, Windows App SDK 2.2.0, VS 18 MSVC toolchain,
-Windows 11 Pro 26200, `net10.0-windows10.0.19041.0` Release x64.
+Environment: .NET SDK 10.0.301, Windows App SDK 2.2.0, VS 18 MSVC toolchain, Windows 11 Pro
+26200, `net10.0-windows10.0.19041.0` Release x64.
 
 | Run | Outcome | Distinct warning sites |
 |---|---|---:|
-| A — baseline (analyzers off) | 0 warnings (default build proven unchanged) | 0 |
-| B — analyzer build (Roslyn) | Succeeded | 1,144 |
-| C — trim-only publish (ILLink) | Succeeded (runtime correctness not implied) | 1,604 |
-| D — full Native AOT publish (ILC) | **Compiled, but crashed at startup** | 2,381 |
-| E — default R2R publish (regression check) | 0 warnings | 0 |
+| A - baseline (analyzers off) | 0 warnings | 0 |
+| B - analyzer build | Succeeded | 1,144 |
+| C - trim-only publish | Succeeded | 1,604 |
+| D - full Native AOT publish | Compiled, but crashed at startup | 2,381 |
+| E - default ReadyToRun publish | 0 warnings | 0 |
 
 | Publish mode | Size | Files | Boots? |
 |---|---:|---:|---|
-| R2R self-contained (then-default) | 224.4 MB | 276 | Yes |
-| Trimmed (experimental) | 78.7 MB | 118 | Not validated |
-| Native AOT (Run D) | 75.7 MB | 16 | **No — `0xC000027B` at startup** |
+| ReadyToRun self-contained (then-default) | 224.4 MB | 276 | Yes |
+| Trimmed experimental publish | 78.7 MB | 118 | Not validated |
+| Native AOT | 75.7 MB | 16 | No - `0xC000027B` at startup |
 
-Key findings that shaped the migration:
+Key findings:
 
-- **The boot crash was XAML-side**: stowed exception in `Microsoft.UI.Xaml.dll`
-  (`STATUS_STOWED_EXCEPTION`, HRESULT `E_INVALIDARG`) caused by 74 non-`partial` WinRT classes and
-  ~925 reflection-based `{Binding}` expressions. Fixing exactly that (M0) made the app boot (M1) —
-  no additional metadata rooting was ever needed.
-- **1,237 of the 2,381 Run D warning sites sat inside dependency packages**
-  (`System.Management`, MMI, `System.DirectoryServices*`, `Microsoft.CSharp` RuntimeBinder, WinRT
-  generic marshallers) — fixable only by replacing the packages/patterns, which is what M2–M4 did.
-- **Hard blockers by scale**: ~175 `dynamic`-over-COM call sites (AzMan ~150), 13 ProgID/CLSID
-  activations, 121 `System.Management` sites, 467 MMI sites (all WF), ~925 `{Binding}`.
-  Compile success under AOT does **not** imply runtime success: built-in COM interop and
-  `Microsoft.CSharp.RuntimeBinder` simply do not exist under Native AOT, so those sites compile
-  and then throw (or, for trimmed `{Binding}`, fail silently — the worst mode for an admin tool).
-- **Structurally favorable**: DI fully explicit, no `Reflection.Emit`/`MakeGenericType`/
-  `Assembly.Load*`/`XmlSerializer`/`BinaryFormatter` anywhere; CsWin32 and CommunityToolkit.Mvvm
-  source generators already AOT-friendly.
-- **Decision (2026-07-02)**: Native AOT adopted as the end-state; ReadyToRun kept as the interim
-  publish so the app stayed shippable throughout; retired at the M4 cutover.
+- the startup failure was a XAML-side problem: non-`partial` WinRT classes plus reflection-based
+  `{Binding}` created a stowed exception in `Microsoft.UI.Xaml.dll`
+- a large share of the warnings came from dependency packages, not from OneMMC's own code
+- the biggest hard blockers were `dynamic` COM, runtime COM activation, `System.Management`, MMI,
+  `System.DirectoryServices*`, and XAML binding metadata
+- the codebase was already structurally favorable because DI was explicit and source generators
+  were already in use
 
-## Migration record (M0–M4)
+## Appendix C: Migration Record (M0-M4)
 
-Sequencing: M0 (mechanical hygiene) unblocked M1 (boot). M2 ran before M3 because WMI replacements
-were self-contained per feature, while M3 (AzMan) was the largest rewrite. M4 replaced the last
-packages and flipped the default publish. Every phase gate was re-verified with analyzer builds +
-AOT publishes + feature smoke tests; destructive paths were only ever verified against disposable
-resources (a scratch VHD, throwaway firewall rules/IPsec sets, throwaway AzMan stores, a
-disposable local test user), never production state.
+This section is historical reference. New code should cite the topic sections above, not the
+stage names below.
 
-### M0 — hygiene (DONE 2026-07-02)
+### M0 - hygiene (DONE 2026-07-02)
 
-74 CsWinRT1028 classes made `partial`; 26 MVVMTK0045 sites converted to partial properties;
-source-generated `JsonSerializerContext` for all 7 JSON sites; **all ~925 `{Binding}` converted to
-`{x:Bind}`** (localized strings bind `{x:Bind prefix:LocalizedStrings.Instance.KEY}`; item
-templates use `x:DataType`; item classes hoisted to namespace scope; template→page-VM `Command`
-bindings became `Click` + `Tag="{x:Bind}"` handlers). Reflection property paths also removed:
-XAML `DisplayMemberPath`/`SelectedValuePath` (WMC1510) and runtime `DisplayMemberPath`
-assignments replaced with `ItemTemplate`s or `ToString()`. Gate: 0 CsWinRT1028/1029, 0 MVVMTK0045,
-0 WMC1510, `{Binding}` = 0.
+- marked 74 CsWinRT1028 classes as `partial`
+- converted 26 MVVMTK0045 sites to partial properties
+- added source-generated `JsonSerializerContext` for all JSON paths
+- converted all remaining `{Binding}` to `{x:Bind}` and removed reflection property-path helpers
 
-### M1 — boot under AOT (DONE 2026-07-03)
+### M1 - boot under AOT (DONE 2026-07-03)
 
-M0 alone eliminated the `0xC000027B` startup crash — the AOT-published app booted to the main
-window and a UIA smoke run navigated all top-level pages (payload then: 73.8 MB / 14 files). The
-GC-race navigation hang (dotnet/runtime#104582) did not manifest. Startup-path audit (DI
-bootstrap, `AppSettings` JSON, App/MainWindow) found everything already explicit/source-generated.
+- re-published after M0
+- the AOT executable booted successfully and passed top-level navigation smoke
+- no metadata-rooting workaround was needed once the structural XAML issues were fixed
 
-### M2 — WMI/CIM migration (DONE 2026-07-09)
+### M2 - WMI/CIM migration (DONE 2026-07-09)
 
-**Half A — `System.Management` → WmiLight** (TPM, WindowsServices, DevMgmt, DiskMgmt, ComExp DTC,
-WF event watcher). Facts that matter for future WMI work:
+- replaced `System.Management` feature paths with WmiLight
+- replaced the Windows Firewall MMI write path with the marshal-free `IWbemServices` wrapper
+- established the repository's current WMI rules: WmiLight first, classic WMI COM when instance
+  CRUD requires it
 
-- Shared plumbing lives in `Core/Infrastructure/Wmi/`: `WmiObjectDisposalExtensions.DisposeItems`
-  (prompt native-handle release), `WmiPropertyExtensions.GetPropertySafe`, `DmtfDateTimeConverter`
-  (WmiLight returns CIM datetimes as raw DMTF strings), and `WmiMethodParameterExtensions`.
-- **WMI providers demand specific VARTYPEs for method parameters**: VT_I4 for CIM uint16/uint32,
-  VT_BSTR for uint64, VT_I2 for char16. WmiLight's native VT_UI2/VT_UI8 encodings are rejected
-  with `WBEM_E_TYPE_MISMATCH` (0x80041005) — caught live on `MSFT_Disk.Initialize`.
-- Embedded out-parameter objects surface as `WmiObject`/`WmiObject[]`; DiskMgmt's destructive
-  paths (Initialize/CreateVolume/Shrink) were verified against a disposable 100 MB VHD.
+### M3 - COM and `dynamic` rewrite (DONE 2026-07-04)
 
-**Half B — MMI → marshal-free `IWbemServices` wrapper** (Windows Firewall: ~489 sites in 14 files;
-WmiLight could not replace MMI here because the WF write path is instance CRUD —
-`ModifyInstance`/`CreateInstance`/`DeleteInstance` with instances built from scratch including
-**embedded instance arrays** (IKE proposals), and WmiLight has no `PutInstance` surface at all).
-The replacement is `Features/SystemManagement/Infrastructure/WF/Wbem/` (`WbemServices`,
-`WbemObject`, `WbemCimType`) over CsWin32's marshal-free IWbem structs. Facts:
+- replaced late-bound COM and `[ComImport]` patterns with typed `[GeneratedComInterface]` code
+- added the reusable `ComActivator`, source-generated `IDispatch` base, and shared variant helpers
+- ported AzMan, COM+, Task Scheduler, Group Policy, firewall automation, and related COM surfaces
+  to explicit ABI-safe interop
 
-- `wbemcli.h` interfaces have no type library, so CsWin32 projection (vtable order from Windows
-  metadata) was the only trustworthy source; hand-authoring was rejected for that reason.
-- **`CoSetProxyBlanket` is mandatory** after `ConnectServer` (MMI did it internally); without the
-  DCOM blanket every call fails `WBEM_E_ACCESS_DENIED`. It is one of the few handwritten imports
-  (CsWin32 does not project it).
-- **Box returned VARIANTs by the property's CIMTYPE, not the VARTYPE**: WMI stores both
-  `CIM_UINT16` and `CIM_UINT32` as `VT_I4`, and consumers pattern-match on the exact CLR type.
-  Read-parity was proven against MMI: 1,626 properties through both stacks, 0 value and 0
-  CLR-type mismatches.
-- Property `Get`/`Put` are declared PreserveSig-style (non-throwing) so an absent property
-  degrades to `null` like the `CimInstance` indexer — no first-chance `COMException` noise.
-- `SpawnInstance` requires a live session (`GetObject` on the class) — unlike `new CimInstance`,
-  so the session is threaded into instance builders.
-- **`SafeArrayPutElement` on a VT_UNKNOWN SAFEARRAY hard-faults the process** under the
-  source-generated/marshal-free interop model. Populate via `SafeArrayAccessData` + direct
-  pointer write + `Marshal.AddRef` instead; `FADF_UNKNOWN` still balances releases.
-- `WbemObject` carries a finalizer backstop (`IWbemClassObject` is a free-threaded data object,
-  safe to release from the finalizer thread) because lazy LINQ enumeration cannot always dispose
-  deterministically.
-- Write path was round-trip-verified against MMI on a disposable `MSFT_NetIKEMMCryptoSet` and a
-  disposable connection-security rule (create → read back through both stacks → modify → delete),
-  then all 14 WF files were converted and the MMI package reference removed.
+### M4 - package replacements and cutover (DONE 2026-07-10)
 
-### M3 — COM/`dynamic` rewrite (DONE 2026-07-04)
+- replaced Local Users and Groups internals with NetAPI32
+- replaced PerfMon internals with PDH
+- added the in-house ADSI layer and removed the last `System.DirectoryServices*` consumers
+- made `PublishAot` unconditional and dissolved the old opt-in analyzer switch into
+  `Directory.Build.props`
 
-All late-binding/`[ComImport]` COM became typed `[GeneratedComInterface]` calls. Reusable
-foundation in `Core/Infrastructure/Interop/`: `ComActivator` (CsWin32 `CoCreateInstance` +
-`StrategyBasedComWrappers`), the source-gen `IDispatch` base, and the blittable 24-byte `Variant`
-(chosen over `ComVariant` to avoid assembly-wide `[DisableRuntimeMarshalling]`, which would have
-forced converting the remaining runtime-marshalled handwritten P/Invoke files first). Facts:
+## Appendix D: Sanctioned Replacements Summary
 
-- **Vtable order is authoritative and must come from the binary**: dual-interface members were
-  transcribed from each machine's own type library (azroles.dll, FirewallAPI.dll, COMAdmin)
-  with a dumper script (`eng/Dump-TypeLibVtable.ps1`, retired with the eng tooling — in git
-  history) that decoded slots and parameter/return types. Dual members begin at vtable slot 7.
-- **Coclass `ThreadingModel` matters**: GroupPolicyObject is Apartment (STA-affine) — activation
-  must happen on an STA thread; Task Scheduler/COMAdmin/HNetCfg/DsObjectPicker are Both/Free.
-- **AzMan specifics** (the flagship rewrite, ~150 `dynamic` sites): AzRoles booleans are LONG
-  (I4), not VARIANT_BOOL; nearly every mutator takes a trailing optional `VARIANT varReserved`;
-  string-list getters return VARIANT-wrapped SAFEARRAYs (`Variant.ToStringList()`); a parent must
-  be `Submit()`ted before children can be created on it (else `0x80072089`); collections are
-  **one-based** (`Item(0)` → `E_INVALIDARG`). XML (`msxml://`) stores do not support the
-  policy-admin getters (`0x80070032`) — those getters are declared `[PreserveSig] int` so the
-  HRESULT degrades to an empty list instead of throwing first-chance exceptions.
-- **Source-generator constraints**: BCL `FORMATETC`/`STGMEDIUM` cannot appear in generated
-  signatures (SYSLIB1051 — use a blittable mirror struct and a plain `uint tymed`); nested types
-  in generated COM signatures must be `internal`+ (SYSLIB1090).
-- **WF HNetCfg**: the rule collection only enumerates via `IEnumVARIANT` (source-gen port) and
-  `INetFwRule2/3` use interface inheritance so a wrapper IS-A its bases (correct QI on `Add`).
-  `Variant.FromStringArray` builds the VT_ARRAY|VT_BSTR `Interfaces` VARIANT.
-- **Gate lesson**: "0 `dynamic`" means the late-binding *keyword*, not the word — SecPol's hits
-  were an identifier/comments (renamed for grep hygiene); domain prose like "dynamic disk" stays.
+For quick review, this is the shortest form of the repository rule set:
 
-### M4 — package replacements + cutover (DONE 2026-07-10)
-
-- **LusrMgr → NetAPI32** (drop-in backend swap, public surface unchanged): `NetUserEnum` level 3,
-  `NetLocalGroup*`, `NetUserGetLocalGroups` (flags 0 = direct membership, pinned to old WinNT
-  semantics); flags via level-1008 RMW; `password_expired` via level-4 RMW (no 10xx level exists
-  for it); silent no-op/success mappings pinned to the old FindByIdentity/Contains behavior
-  (NERR_UserNotFound/GroupNotFound, ERROR_MEMBER_IN_ALIAS/NOT_IN_ALIAS); other statuses throw
-  `Win32Exception(status)` so `IsPermissionError` keeps recognizing access-denied. Verified with a
-  disposable local test user round-trip, elevated and non-elevated.
-- **PerfMon → PDH**: per-counter query topology (one `PDH_HQUERY`+`PDH_HCOUNTER` per cache entry)
-  for exact `NextValue()` semantic parity and fault isolation; `PdhAddCounterW` with
-  `PdhAddEnglishCounterW` fallback (fixes the latent hardcoded-English-counter bug on
-  non-English OSes); enumeration via `PdhEnumObjectsW`/`PdhEnumObjectItemsW` (PDH has no
-  category/counter help text — documented behavior change).
-- **ADSI wrapper** (`Core/Infrastructure/Interop/Adsi/`) over CsWin32 `IADs*`/`IDirectorySearch`
-  replaced the three `System.DirectoryServices` consumers (deployed-printer lookup, GPO printer
-  deployment, AzMan AD store schema). The in-house `Variant` casts directly to CsWin32's
-  `VARIANT*`. **Honest caveat**: this machine is not domain-joined — off-domain degradation
-  paths are verified live; the domain-joined happy paths are structurally verified (metadata
-  vtables + docs transcription), lab pass pending.
-- **Packages dropped**: `System.DirectoryServices`, `System.DirectoryServices.AccountManagement`,
-  `System.Diagnostics.PerformanceCounter` (with `System.Management` and MMI already gone in M2);
-  `ThirdPartyNotices.txt` refreshed (WmiLight added, stale versions fixed).
-- **Cutover**: default publish flipped to `PublishAot` — set **unconditionally** so the analyzers
-  and CsWinRT AOT codegen guard every build; Debug F5 still runs CoreCLR. The `OneMMCAotAnalysis`
-  opt-in switch (`eng/AotAnalysis.props`) was dissolved into `Directory.Build.props` defaults:
-  `EnableAotAnalyzer`, `EnableTrimAnalyzer`, `EnableSingleFileAnalyzer`,
-  `CsWinRTAotWarningLevel=2`, `TrimmerSingleWarn=false`, `SuppressTrimAnalysisWarnings=false`.
-- **Full enablement verified 2026-07-10** on both configurations — see
-  [Current state](#current-state-full-enablement-verification-2026-07-10). With that, the
-  evaluation-era tooling (`eng/` scripts and `eng/aot-logs/`) was retired; recover from git
-  history if needed.
-
-## Known upstream risks (track, do not block on)
-
-- WinUI/XAML `{Binding}` and metadata rooting under AOT are still maturing upstream (WASDK
-  release notes: "Later releases will enhance both C#/WinRT and the XAML Compiler to automate
-  rooting") — irrelevant while the codebase stays `{x:Bind}`-only, but re-check on upgrades.
-- .NET runtime GC-race navigation hang under AOT:
-  [dotnet/runtime#104582](https://github.com/dotnet/runtime/issues/104582) — has never
-  manifested here; re-test at each SDK/WASDK upgrade.
+- COM: `[GeneratedComInterface]` + `ComActivator` + `ComWrappers`
+- WMI/CIM: WmiLight, or `IWbemServices` wrapper for advanced write paths
+- Directory/account APIs: NetAPI32 + ADSI
+- Counters: PDH
+- XAML: `{x:Bind}`
+- JSON: source-generated contexts
+- WinRT ABI: `partial` classes
+- MVVM Toolkit: partial properties for `[ObservableProperty]`

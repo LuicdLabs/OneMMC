@@ -10,7 +10,7 @@ namespace OneMMC.Core.Infrastructure.Interop;
 /// interface's own members. Deriving a <see cref="GeneratedComInterfaceAttribute"/> interface from
 /// this base reproduces that layout so early-bound vtable calls land on the correct slots — the
 /// AOT-safe replacement for CLR RCW dual-interface dispatch and for <c>dynamic</c>/IDispatch late
-/// binding (doc/NativeAot.md, M3).
+/// binding described in <c>doc/NativeAot.md</c> ("COM interop").
 /// </summary>
 /// <remarks>
 /// The four members below are vtable placeholders only; OneMMC calls the derived interfaces by

@@ -6,7 +6,8 @@ namespace OneMMC.Core.Infrastructure.Wmi;
 /// <summary>
 /// Tolerant property accessors for <see cref="WmiObject"/>. Consolidates the per-file
 /// <c>GetWmiPropertySafe</c> helpers that existed for <c>System.Management</c> objects
-/// before the WmiLight migration (doc/NativeAot.md, M2).
+/// before the repository standardized on WmiLight for Native AOT-safe WMI access
+/// (see <c>doc/NativeAot.md</c>, "WMI and CIM").
 /// </summary>
 internal static class WmiPropertyExtensions
 {

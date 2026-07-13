@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <OutputType>WinExe</OutputType>
         <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
@@ -92,7 +92,7 @@
 
       <!-- WmiLight is consumed through the OneMMC.Core class library, so it must be rooted for
            the AOT publish (documented WmiLight requirement for library encapsulation).
-           See doc/NativeAot.md (M2). -->
+           See doc/NativeAot.md ("WMI and CIM"). -->
       <ItemGroup>
         <TrimmerRootAssembly Include="WmiLight" />
       </ItemGroup>
@@ -156,8 +156,8 @@
         <HasPackageAndPublishMenu>true</HasPackageAndPublishMenu>
       </PropertyGroup>
 
-      <!-- Publish Properties. Native AOT is the default publish model since the M4 cutover
-           (doc/NativeAot.md); ReadyToRun was the interim vehicle and is retired.
+      <!-- Publish Properties. Native AOT is the default publish model; see doc/NativeAot.md for
+           the developer guidance, current verified state, and historical migration notes.
            PublishAot is set unconditionally so the AOT analyzers and CsWinRT AOT codegen apply
            to every build; native compilation itself still happens only on `dotnet publish`. -->
       <PropertyGroup>

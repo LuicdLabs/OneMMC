@@ -6,8 +6,9 @@ using OneMMC.Core.Infrastructure.Interop;
 namespace OneMMC.Core.Features.UserSecurity.Services.AzMan.Native;
 
 // Source-generated ([GeneratedComInterface]) dual interfaces for the Authorization Manager (AzRoles)
-// COM surface. Ported from IDispatch late binding + ProgID-reflection activation for Native AOT
-// (doc/NativeAot.md, M3): late binding and reflection COM activation are unsupported there.
+// COM surface. Ported from IDispatch late binding + ProgID-reflection activation to the repository's
+// Native AOT COM pattern; see doc/NativeAot.md ("COM interop"). Late binding and reflection-based
+// COM activation are unsupported here.
 // The interfaces derive from the source-generated IDispatch base (Infrastructure/Interop/IDispatch.cs)
 // to reproduce the dual vtable layout (IUnknown[3] + IDispatch[4] + members) and are called by vtable.
 //

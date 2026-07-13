@@ -11,7 +11,8 @@ namespace OneMMC.Core.Infrastructure.Interop;
 /// interfaces. Replaces the reflection/built-in-COM idiom
 /// <c>Type.GetTypeFromCLSID(clsid)</c> + <c>Activator.CreateInstance(type)</c>, which is unsupported
 /// under Native AOT, with <c>CoCreateInstance</c> (CsWin32) + <see cref="ComWrappers"/>-based wrapping.
-/// Shared by every Native AOT COM migration (doc/NativeAot.md, M3).
+/// This is the repository's standard COM activation path; see <c>doc/NativeAot.md</c>,
+/// "COM interop".
 /// </summary>
 internal static class ComActivator
 {

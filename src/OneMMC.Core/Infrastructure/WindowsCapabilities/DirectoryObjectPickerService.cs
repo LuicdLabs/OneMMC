@@ -1,4 +1,4 @@
-﻿// ============================================================================
+// ============================================================================
 // Directory Object Picker Service
 // ============================================================================
 // Provides a unified wrapper around the Windows native Directory Object Picker
@@ -147,9 +147,10 @@ public static partial class DirectoryObjectPickerService
     private static readonly Guid CLSID_DsObjectPicker = new("17D6CCD8-3B7B-11D2-B9E0-00C04FD8DBF7");
 
     // Source-generated ([GeneratedComInterface]) ports of IDsObjectPicker and the minimal IDataObject
-    // surface OneMMC uses, for Native AOT (doc/NativeAot.md, M3). Both are pure IUnknown-derived
-    // (non-dual), so no IDispatch base. Activated via ComActivator (CoCreateInstance + ComWrappers)
-    // rather than Type.GetTypeFromCLSID + Activator.CreateInstance (unsupported under AOT).
+    // surface OneMMC uses, following the Native AOT COM guidance in doc/NativeAot.md ("COM interop").
+    // Both are pure IUnknown-derived (non-dual), so no IDispatch base. Activated via ComActivator
+    // (CoCreateInstance + ComWrappers) rather than Type.GetTypeFromCLSID + Activator.CreateInstance
+    // (unsupported under AOT).
     // Nested types used in [GeneratedComInterface] signatures must be at least `internal` so the
     // interop source generator's emitted code can reference them (SYSLIB1090).
     [GeneratedComInterface, Guid("0C87E64E-3B7A-11D2-B9E0-00C04FD8DBF7")]

@@ -6,11 +6,12 @@ using OneMMC.Core.Infrastructure.Interop;
 namespace OneMMC.Core.Features.SystemManagement.Interop.WF;
 
 // Source-generated ([GeneratedComInterface]) ports of the HNetCfg Windows Firewall automation
-// interfaces (INetFwPolicy2 + the INetFwRule hierarchy), for Native AOT (doc/NativeAot.md,
-// M3). Ported from the previous handwritten [ComImport, InterfaceIsDual] declarations: built-in COM
-// interop / RCW dual-interface dispatch is unsupported under AOT, so these derive from the
-// source-generated IDispatch base (Infrastructure/Interop/IDispatch.cs) to reproduce the dual vtable
-// (IUnknown[3] + IDispatch[4] + members) and are called by vtable. Coclasses are activated via
+// interfaces (INetFwPolicy2 + the INetFwRule hierarchy), following the repository's Native AOT COM
+// guidance; see doc/NativeAot.md ("COM interop"). Ported from the previous handwritten
+// [ComImport, InterfaceIsDual] declarations: built-in COM interop / RCW dual-interface dispatch is
+// unsupported under AOT, so these derive from the source-generated IDispatch base
+// (Infrastructure/Interop/IDispatch.cs) to reproduce the dual vtable (IUnknown[3] + IDispatch[4]
+// + members) and are called by vtable. Coclasses are activated via
 // ComActivator (FirewallCom.CreatePolicy2/CreateRule), not Type.GetTypeFromProgID + Activator.
 //
 // Member ORDER is the authoritative vtable order and must not change; it was transcribed from the

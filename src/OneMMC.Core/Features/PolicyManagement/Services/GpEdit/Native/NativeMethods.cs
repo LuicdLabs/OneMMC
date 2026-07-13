@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.Marshalling;
 using Windows.Win32.Foundation;
@@ -72,14 +72,14 @@ namespace OneMMC.Core.Features.PolicyManagement.Services.GpEdit.Native
     /// This is the official Windows interface for programmatically editing local and remote GPOs.
     /// Using this interface ensures that changes are visible in gpedit.msc and rsop.msc.
     /// </summary>
-    // Source-generated ([GeneratedComInterface]) port of IGroupPolicyObject for Native AOT
-    // (doc/NativeAot.md, M3). This is a pure IUnknown-derived (non-dual) interface, so it
-    // needs no IDispatch base (unlike the Task Scheduler dual interfaces). Member order is the vtable
-    // order and is preserved exactly. Windows-fill-buffer parameters that were StringBuilder are
-    // typed as nint (a caller-pinned wide-char buffer) because the interop source generator does not
-    // marshal StringBuilder; the LPStruct Guids become `in Guid` (a pointer to the Guid), which is the
-    // ABI-equivalent blittable form. Members OneMMC never calls keep their vtable slots with opaque
-    // signatures.
+    // Source-generated ([GeneratedComInterface]) port of IGroupPolicyObject following the
+    // repository's Native AOT COM guidance; see doc/NativeAot.md ("COM interop"). This is a pure
+    // IUnknown-derived (non-dual) interface, so it needs no IDispatch base (unlike the Task
+    // Scheduler dual interfaces). Member order is the vtable order and is preserved exactly.
+    // Windows-fill-buffer parameters that were StringBuilder are typed as nint (a caller-pinned
+    // wide-char buffer) because the interop source generator does not marshal StringBuilder; the
+    // LPStruct Guids become `in Guid` (a pointer to the Guid), which is the ABI-equivalent
+    // blittable form. Members OneMMC never calls keep their vtable slots with opaque signatures.
     [GeneratedComInterface]
     [Guid("EA502723-A23D-11d1-A7D3-0000F87571E3")]
     public partial interface IGroupPolicyObject

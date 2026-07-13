@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
     <TargetPlatformMinVersion>10.0.19041.0</TargetPlatformMinVersion>
@@ -43,8 +43,9 @@
     <PackageReference Include="System.Diagnostics.EventLog" />
     <PackageReference Include="System.ServiceProcess.ServiceController" />
     <!-- AOT-compatible WMI client; replaced System.Management for query/method features per
-         doc/NativeAot.md (M2). (Microsoft.Management.Infrastructure was instead replaced by the
-         marshal-free IWbem wrapper under Features/SystemManagement/Infrastructure/WF/Wbem — WF Half B.) -->
+         doc/NativeAot.md ("WMI and CIM"). Microsoft.Management.Infrastructure was instead replaced
+         by the marshal-free IWbem wrapper under Features/SystemManagement/Infrastructure/WF/Wbem
+         for the Windows Firewall write paths. -->
     <PackageReference Include="WmiLight" />
   </ItemGroup>
 
