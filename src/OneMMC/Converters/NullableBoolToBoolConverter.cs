@@ -8,7 +8,7 @@ namespace OneMMC.Converters
     /// Null values are converted to false.
     /// Supports two-way binding for checkbox scenarios with nullable backing properties.
     /// </summary>
-    public class NullableBoolToBoolConverter : IValueConverter
+    public partial class NullableBoolToBoolConverter : IValueConverter
     {
         /// <summary>
         /// Converts a nullable boolean to a non-nullable boolean.

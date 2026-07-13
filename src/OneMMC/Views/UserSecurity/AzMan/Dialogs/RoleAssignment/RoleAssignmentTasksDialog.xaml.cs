@@ -358,7 +358,7 @@ public sealed partial class RoleAssignmentTasksDialog : ContentDialog
 /// <summary>
 /// Simple item selection dialog
 /// </summary>
-public sealed class SelectItemDialog : ContentDialog
+public sealed partial class SelectItemDialog : ContentDialog
 {
     private readonly ListView _listView;
 

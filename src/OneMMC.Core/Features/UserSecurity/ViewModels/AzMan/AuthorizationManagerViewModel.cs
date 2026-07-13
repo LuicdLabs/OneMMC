@@ -239,6 +239,12 @@ internal class StorePersistenceModel
     public string Name { get; set; } = string.Empty;
 }
 
+/// <summary>
+/// Source-generated JSON context so store persistence works without reflection (Native AOT compatible).
+/// </summary>
+[System.Text.Json.Serialization.JsonSerializable(typeof(List<StorePersistenceModel>))]
+internal sealed partial class AzManStoresJsonContext : System.Text.Json.Serialization.JsonSerializerContext;
+
 #endregion
 
 #region Authorization Manager ViewModel
@@ -246,7 +252,7 @@ internal class StorePersistenceModel
 /// <summary>
 /// Main ViewModel for managing authorization stores
 /// </summary>
-public class AuthorizationManagerViewModel : LoadingViewModelBase, IDisposable
+public partial class AuthorizationManagerViewModel : LoadingViewModelBase, IDisposable
 {
     private const string StoresFileName = "AzManStores.json";
 
@@ -473,7 +479,7 @@ public class AuthorizationManagerViewModel : LoadingViewModelBase, IDisposable
                 return;
 
             string json = await System.IO.File.ReadAllTextAsync(filePath);
-            var savedStores = System.Text.Json.JsonSerializer.Deserialize<List<StorePersistenceModel>>(json);
+            var savedStores = System.Text.Json.JsonSerializer.Deserialize(json, AzManStoresJsonContext.Default.ListStorePersistenceModel);
 
             if (savedStores == null)
                 return;
@@ -564,7 +570,7 @@ public class AuthorizationManagerViewModel : LoadingViewModelBase, IDisposable
                 Name = s.Name
             }).ToList();
 
-            string json = System.Text.Json.JsonSerializer.Serialize(persistenceList);
+            string json = System.Text.Json.JsonSerializer.Serialize(persistenceList, AzManStoresJsonContext.Default.ListStorePersistenceModel);
             System.IO.File.WriteAllText(filePath, json);
         }
         catch (Exception ex)
@@ -597,7 +603,7 @@ public class AuthorizationManagerViewModel : LoadingViewModelBase, IDisposable
 /// <summary>
 /// ViewModel for managing a single authorization store
 /// </summary>
-public class AuthorizationStoreViewModel : LoadingViewModelBase
+public partial class AuthorizationStoreViewModel : LoadingViewModelBase
 {
     private readonly AzManService _azManService;
     private AzAuthorizationStoreInfo? _store;
@@ -807,7 +813,7 @@ public class AuthorizationStoreViewModel : LoadingViewModelBase
 /// <summary>
 /// ViewModel for managing a single authorization application
 /// </summary>
-public class AuthApplicationViewModel : LoadingViewModelBase
+public partial class AuthApplicationViewModel : LoadingViewModelBase
 {
     private readonly AzManService _azManService;
     private string _storePath = string.Empty;

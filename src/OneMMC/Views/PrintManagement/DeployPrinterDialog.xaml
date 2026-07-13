@@ -10,8 +10,8 @@
     MinWidth="720"
     PrimaryButtonClick="PrimaryButton_Click"
     SecondaryButtonClick="SecondaryButton_Click"
-    IsPrimaryButtonEnabled="{Binding HasPendingChanges}"
-    IsSecondaryButtonEnabled="{Binding HasPendingChanges}">
+    IsPrimaryButtonEnabled="{x:Bind _viewModel.HasPendingChanges, Mode=OneWay}"
+    IsSecondaryButtonEnabled="{x:Bind _viewModel.HasPendingChanges, Mode=OneWay}">
 
     <ContentDialog.Resources>
         <converters:GpoPrinterConnectionTypeConverter x:Key="GpoPrinterConnectionTypeConverter" />
@@ -39,7 +39,7 @@
             <TextBox
                 Grid.Column="1"
                 IsReadOnly="True"
-                Text="{Binding ConnectionPath}" />
+                Text="{x:Bind _viewModel.ConnectionPath}" />
         </Grid>
 
         <TextBlock
@@ -60,7 +60,7 @@
             <TextBox
                 Grid.Column="1"
                 IsReadOnly="True"
-                Text="{Binding SelectedGpoName}" />
+                Text="{x:Bind _viewModel.SelectedGpoName, Mode=OneWay}" />
             <Button
                 Grid.Column="2"
                 Content="{x:Bind LocalizedStrings.PrintMgmt_DeployDialogBrowseButton}">
@@ -69,18 +69,18 @@
                         <StackPanel MinWidth="420" Spacing="8">
                             <InfoBar
                                 IsClosable="True"
-                                IsOpen="{Binding GpoLoadError, Converter={StaticResource StringToBoolConverter}}"
-                                Message="{Binding GpoLoadError}"
+                                IsOpen="{x:Bind _viewModel.GpoLoadError, Converter={StaticResource StringToBoolConverter}, Mode=OneWay}"
+                                Message="{x:Bind _viewModel.GpoLoadError, Mode=OneWay}"
                                 Severity="Error" />
                             <ProgressRing
                                 HorizontalAlignment="Center"
-                                IsActive="{Binding IsGpoLoading}"
-                                Visibility="{Binding IsGpoLoading, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                IsActive="{x:Bind _viewModel.IsGpoLoading, Mode=OneWay}"
+                                Visibility="{x:Bind _viewModel.IsGpoLoading, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}" />
                             <ListView
                                 x:Name="GpoListView"
                                 IsItemClickEnabled="True"
                                 ItemClick="GpoListView_ItemClick"
-                                ItemsSource="{Binding AvailableGpos}">
+                                ItemsSource="{x:Bind _viewModel.AvailableGpos}">
                                 <ListView.ItemTemplate>
                                     <DataTemplate x:DataType="models:GroupPolicyObjectInfo">
                                         <StackPanel Margin="0,4">
@@ -108,15 +108,15 @@
             <StackPanel Grid.Column="0" Spacing="6">
                 <CheckBox
                     Content="{x:Bind LocalizedStrings.PrintMgmt_DeployDialogPerUser}"
-                    IsChecked="{Binding ApplyToUsers, Mode=TwoWay}" />
+                    IsChecked="{x:Bind _viewModel.ApplyToUsers, Mode=TwoWay}" />
                 <CheckBox
                     Content="{x:Bind LocalizedStrings.PrintMgmt_DeployDialogPerMachine}"
-                    IsChecked="{Binding ApplyToComputers, Mode=TwoWay}" />
+                    IsChecked="{x:Bind _viewModel.ApplyToComputers, Mode=TwoWay}" />
             </StackPanel>
             <Button
                 Grid.Column="1"
                 VerticalAlignment="Top"
-                IsEnabled="{Binding CanAdd}"
+                IsEnabled="{x:Bind _viewModel.CanAdd, Mode=OneWay}"
                 Click="AddDeployment_Click"
                 Content="{x:Bind LocalizedStrings.PrintMgmt_DeployDialogAddButton}" />
         </Grid>
@@ -129,8 +129,8 @@
 
             <ListView
                 Grid.Column="0"
-                ItemsSource="{Binding Deployments}"
-                SelectedItem="{Binding SelectedDeployment, Mode=TwoWay}">
+                ItemsSource="{x:Bind _viewModel.Deployments}"
+                SelectedItem="{x:Bind _viewModel.SelectedDeployment, Mode=TwoWay}">
                 <ListView.Header>
                     <Grid ColumnSpacing="12" Padding="0,0,0,6">
                         <Grid.ColumnDefinitions>
@@ -172,11 +172,11 @@
 
             <StackPanel Grid.Column="1" Spacing="8">
                 <Button
-                    IsEnabled="{Binding CanRemove}"
+                    IsEnabled="{x:Bind _viewModel.CanRemove, Mode=OneWay}"
                     Click="RemoveDeployment_Click"
                     Content="{x:Bind LocalizedStrings.PrintMgmt_DeployDialogRemoveButton}" />
                 <Button
-                    IsEnabled="{Binding CanRemoveAll}"
+                    IsEnabled="{x:Bind _viewModel.CanRemoveAll, Mode=OneWay}"
                     Click="RemoveAllDeployments_Click"
                     Content="{x:Bind LocalizedStrings.PrintMgmt_DeployDialogRemoveAllButton}" />
             </StackPanel>

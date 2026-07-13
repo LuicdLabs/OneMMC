@@ -194,9 +194,14 @@ public sealed partial class ServicesDialog : UserControl
         ValidationInfoBar.IsOpen = false;
     }
 
-    public class ServiceItem
-    {
-        public string DisplayName { get; set; } = string.Empty;
-        public string ShortName { get; set; } = string.Empty;
-    }
+}
+
+/// <summary>
+/// Service row in the services picker. Namespace-level so it can be
+/// referenced from XAML via x:DataType for compiled (AOT-safe) bindings.
+/// </summary>
+public class ServiceItem
+{
+    public string DisplayName { get; set; } = string.Empty;
+    public string ShortName { get; set; } = string.Empty;
 }

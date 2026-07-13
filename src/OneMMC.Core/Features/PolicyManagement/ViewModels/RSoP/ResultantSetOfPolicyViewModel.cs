@@ -305,32 +305,34 @@ namespace OneMMC.Core.Features.PolicyManagement.ViewModels.RSoP
             _disposed = true;
         }
 
-        /// <summary>
-        /// Represents a tree item in the RSoP tree view.
-        /// </summary>
-        public class RSoPTreeItem
+    }
+
+    /// <summary>
+    /// Represents a tree item in the RSoP tree view.
+    /// Declared at namespace level so XAML compiled bindings (x:Bind casts) can reference it.
+    /// </summary>
+    public partial class RSoPTreeItem
+    {
+        /// <summary>Gets the display name of this tree node.</summary>
+        public string Name { get; }
+
+        /// <summary>Gets the underlying ADMX category, if any.</summary>
+        public PolicyManagerCategory? Category { get; }
+
+        /// <summary>Gets whether this is under computer configuration.</summary>
+        public bool IsComputerConfiguration { get; }
+
+        /// <summary>Gets the child tree items.</summary>
+        public ObservableCollection<RSoPTreeItem> Children { get; } = new();
+
+        private readonly ResultantSetOfPolicyViewModel _viewModel;
+
+        public RSoPTreeItem(string name, PolicyManagerCategory? category, bool isComputer, ResultantSetOfPolicyViewModel viewModel)
         {
-            /// <summary>Gets the display name of this tree node.</summary>
-            public string Name { get; }
-
-            /// <summary>Gets the underlying ADMX category, if any.</summary>
-            public PolicyManagerCategory? Category { get; }
-
-            /// <summary>Gets whether this is under computer configuration.</summary>
-            public bool IsComputerConfiguration { get; }
-
-            /// <summary>Gets the child tree items.</summary>
-            public ObservableCollection<RSoPTreeItem> Children { get; } = new();
-
-            private readonly ResultantSetOfPolicyViewModel _viewModel;
-
-            public RSoPTreeItem(string name, PolicyManagerCategory? category, bool isComputer, ResultantSetOfPolicyViewModel viewModel)
-            {
-                Name = name;
-                Category = category;
-                IsComputerConfiguration = isComputer;
-                _viewModel = viewModel;
-            }
+            Name = name;
+            Category = category;
+            IsComputerConfiguration = isComputer;
+            _viewModel = viewModel;
         }
     }
 }

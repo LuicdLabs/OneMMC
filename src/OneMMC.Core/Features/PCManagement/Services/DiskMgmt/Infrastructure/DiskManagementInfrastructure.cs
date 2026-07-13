@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Management;
 using OneMMC.Core.Features.PCManagement.Models.DiskMgmt;
 using OneMMC.Core.Features.PCManagement.Services.DiskMgmt.Common;
 using OneMMC.Core.Infrastructure.Wmi;
+using WmiLight;
 
 namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
 {
@@ -54,26 +54,21 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
 
             try
             {
-                var scope = new ManagementScope(DiskManagementConstants.StorageWmiScope);
-                scope.Connect();
+                using var storageConnection = new WmiConnection(DiskManagementConstants.StorageWmiScope);
 
                 var systemDriveLetter = GetSystemDriveLetter();
                 var driveLetterChar = systemDriveLetter.TrimEnd(':');
-                
+
                 // Method 1: Query MSFT_Partition directly by DriveLetter (char format)
                 try
                 {
-                    var partitionQuery = new ObjectQuery($"SELECT DiskNumber FROM MSFT_Partition WHERE DriveLetter = '{driveLetterChar}'");
-                    using var partitionSearcher = new ManagementObjectSearcher(scope, partitionQuery);
+                    var partitionQuery = $"SELECT DiskNumber FROM MSFT_Partition WHERE DriveLetter = '{driveLetterChar}'";
 
-                    foreach (ManagementObject partition in partitionSearcher.GetAndDispose())
+                    foreach (WmiObject partition in storageConnection.CreateQuery(partitionQuery).DisposeItems())
                     {
-                        using (partition) // Ensure proper disposal
-                        {
-                            var diskNumber = GetWmiPropertySafe<uint>(partition, "DiskNumber");
-                            _cachedSystemDiskIndex = diskNumber;
-                            return diskNumber;
-                        }
+                        var diskNumber = partition.GetPropertySafe<uint>("DiskNumber");
+                        _cachedSystemDiskIndex = diskNumber;
+                        return diskNumber;
                     }
                 }
                 catch (Exception ex)
@@ -84,18 +79,14 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
                 // Method 2: Fallback - Use Win32_LogicalDiskToPartition association
                 try
                 {
-                    using var assocSearcher = new ManagementObjectSearcher(
-                        DiskManagementConstants.CimV2WmiScope,
-                        $"ASSOCIATORS OF {{Win32_LogicalDisk.DeviceID='{systemDriveLetter}'}} WHERE AssocClass=Win32_LogicalDiskToPartition");
+                    using var cimConnection = new WmiConnection(DiskManagementConstants.CimV2WmiScope);
 
-                    foreach (ManagementObject partition in assocSearcher.GetAndDispose())
+                    foreach (WmiObject partition in cimConnection.CreateQuery(
+                        $"ASSOCIATORS OF {{Win32_LogicalDisk.DeviceID='{systemDriveLetter}'}} WHERE AssocClass=Win32_LogicalDiskToPartition").DisposeItems())
                     {
-                        using (partition) // Ensure proper disposal
-                        {
-                            var diskIndex = GetWmiPropertySafe<uint>(partition, "DiskIndex");
-                            _cachedSystemDiskIndex = diskIndex;
-                            return diskIndex;
-                        }
+                        var diskIndex = partition.GetPropertySafe<uint>("DiskIndex");
+                        _cachedSystemDiskIndex = diskIndex;
+                        return diskIndex;
                     }
                 }
                 catch (Exception ex)
@@ -106,20 +97,15 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
                 // Method 3: Last resort - scan all partitions
                 try
                 {
-                    using var allPartitionsSearcher = new ManagementObjectSearcher(scope, 
-                        new ObjectQuery("SELECT DiskNumber, DriveLetter FROM MSFT_Partition"));
-
-                    foreach (ManagementObject partition in allPartitionsSearcher.GetAndDispose())
+                    foreach (WmiObject partition in storageConnection.CreateQuery(
+                        "SELECT DiskNumber, DriveLetter FROM MSFT_Partition").DisposeItems())
                     {
-                        using (partition) // Ensure proper disposal
+                        var letter = partition.GetPropertySafe<char>("DriveLetter");
+                        if (letter != '\0' && $"{letter}:" == systemDriveLetter)
                         {
-                            var letter = GetWmiPropertySafe<char>(partition, "DriveLetter");
-                            if (letter != '\0' && $"{letter}:" == systemDriveLetter)
-                            {
-                                var diskNumber = GetWmiPropertySafe<uint>(partition, "DiskNumber");
-                                _cachedSystemDiskIndex = diskNumber;
-                                return diskNumber;
-                            }
+                            var diskNumber = partition.GetPropertySafe<uint>("DiskNumber");
+                            _cachedSystemDiskIndex = diskNumber;
+                            return diskNumber;
                         }
                     }
                 }
@@ -274,89 +260,6 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
         #endregion
 
         #region Helper Methods
-
-        /// <summary>
-        /// Safely get WMI property value
-        /// </summary>
-        private static T GetWmiPropertySafe<T>(ManagementBaseObject obj, string propertyName, T defaultValue = default!)
-        {
-            try
-            {
-                var value = obj[propertyName];
-                if (value == null) return defaultValue;
-
-                var targetType = typeof(T);
-                var underlyingType = Nullable.GetUnderlyingType(targetType) ?? targetType;
-
-                if (underlyingType == typeof(string))
-                    return (T)(object)(value.ToString()?.Trim() ?? "");
-                
-                if (underlyingType == typeof(bool))
-                    return (T)(object)Convert.ToBoolean(value);
-                
-                if (underlyingType == typeof(uint))
-                    return (T)(object)Convert.ToUInt32(value);
-                
-                if (underlyingType == typeof(ushort))
-                    return (T)(object)Convert.ToUInt16(value);
-                
-                if (underlyingType == typeof(ulong))
-                    return (T)(object)Convert.ToUInt64(value);
-                
-                if (underlyingType == typeof(int))
-                    return (T)(object)Convert.ToInt32(value);
-
-                if (underlyingType == typeof(char))
-                    return (T)(object)Convert.ToChar(value);
-
-                return (T)Convert.ChangeType(value, underlyingType);
-            }
-            catch
-            {
-                return defaultValue;
-            }
-        }
-
-        private static string SafeString(object? value, string defaultValue = "")
-        {
-            try { return value?.ToString()?.Trim() ?? defaultValue; }
-            catch { return defaultValue; }
-        }
-
-        private static ulong SafeULong(object? value, ulong defaultValue = 0)
-        {
-            try
-            {
-                if (value == null) return defaultValue;
-                if (value is ulong ulongVal) return ulongVal;
-                if (value is long longVal && longVal >= 0) return (ulong)longVal;
-                if (value is uint uintVal) return uintVal;
-                if (value is int intVal && intVal >= 0) return (ulong)intVal;
-                if (value is string strVal && ulong.TryParse(strVal, out var parsed)) return parsed;
-                return Convert.ToUInt64(value);
-            }
-            catch { return defaultValue; }
-        }
-
-        private static uint SafeUInt(object? value, uint defaultValue = 0)
-        {
-            try
-            {
-                if (value == null) return defaultValue;
-                if (value is uint uintVal) return uintVal;
-                if (value is int intVal && intVal >= 0) return (uint)intVal;
-                if (value is long longVal && longVal >= 0 && longVal <= uint.MaxValue) return (uint)longVal;
-                if (value is string strVal && uint.TryParse(strVal, out var parsed)) return parsed;
-                return Convert.ToUInt32(value);
-            }
-            catch { return defaultValue; }
-        }
-
-        private static bool SafeBool(object? value, bool defaultValue = false)
-        {
-            try { return Convert.ToBoolean(value ?? defaultValue); }
-            catch { return defaultValue; }
-        }
 
         /// <summary>
         /// Check if drive letter is already in use

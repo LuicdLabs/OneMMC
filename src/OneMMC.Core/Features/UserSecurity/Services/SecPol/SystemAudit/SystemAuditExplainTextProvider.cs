@@ -141,12 +141,12 @@ internal sealed class SystemAuditExplainTextProvider
 
     private static string? LoadStringResource(IntPtr module, uint resourceId)
     {
-        var builder = new StringBuilder(16384);
-        int length = SecurityPolicyNativeMethods.LoadString(module, resourceId, builder, builder.Capacity);
+        char[] buffer = new char[16384];
+        int length = SecurityPolicyNativeMethods.LoadString(module, resourceId, buffer, buffer.Length);
         if (length <= 0)
             return null;
 
-        return builder.ToString();
+        return new string(buffer, 0, length);
     }
 
     private static bool TrySplitExplainResource(string raw, out string displayName, out string explainText)

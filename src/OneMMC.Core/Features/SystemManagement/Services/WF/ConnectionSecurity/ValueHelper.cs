@@ -4,13 +4,13 @@ using System.Linq;
 using OneMMC.Core.Features.SystemManagement.Interop.WF;
 using OneMMC.Core.Features.SystemManagement.Infrastructure.WF;
 using OneMMC.Core.Features.SystemManagement.Models.WF.ConnectionSecurity;
-using Microsoft.Management.Infrastructure;
+using OneMMC.Core.Features.SystemManagement.Infrastructure.WF.Wbem;
 
 namespace OneMMC.Core.Features.SystemManagement.Services.WF.ConnectionSecurity;
 
 internal static class ValueHelper
 {
-    internal static bool ReadEnabled(CimInstance instance)
+    internal static bool ReadEnabled(WbemObject instance)
     {
         int enabled = ReadInt32(instance, "Enabled", 1);
         return enabled != 0 && enabled != 2;
@@ -21,9 +21,9 @@ internal static class ValueHelper
            string.Equals(value, "Any", StringComparison.OrdinalIgnoreCase) ||
            string.Equals(value, "*", StringComparison.OrdinalIgnoreCase);
 
-    internal static bool ReadBool(CimInstance instance, string propertyName)
+    internal static bool ReadBool(WbemObject instance, string propertyName)
     {
-        object? value = instance.CimInstanceProperties[propertyName]?.Value;
+        object? value = instance.GetValue(propertyName);
         return value switch
         {
             bool boolValue => boolValue,
@@ -35,7 +35,7 @@ internal static class ValueHelper
         };
     }
 
-    internal static int ReadInt32(CimInstance instance, string propertyName, int defaultValue)
+    internal static int ReadInt32(WbemObject instance, string propertyName, int defaultValue)
     {
         object? value = ReadPropertyValue(instance, propertyName);
         return value is null
@@ -43,19 +43,13 @@ internal static class ValueHelper
             : Convert.ToInt32(value, CultureInfo.InvariantCulture);
     }
 
-    internal static object? ReadPropertyValue(CimInstance instance, string propertyName)
-        => instance.CimInstanceProperties[propertyName]?.Value;
+    internal static object? ReadPropertyValue(WbemObject instance, string propertyName)
+        => instance.GetValue(propertyName);
 
-    internal static void SetPropertyValueIfPresent(CimInstance instance, string propertyName, object? value)
-    {
-        CimProperty? property = instance.CimInstanceProperties[propertyName];
-        if (property is not null)
-        {
-            property.Value = value;
-        }
-    }
+    internal static void SetPropertyValueIfPresent(WbemObject instance, string propertyName, object? value)
+        => instance.TrySetProperty(propertyName, value);
 
-    internal static ConnectionSecurityRequirement ReadRequirement(CimInstance instance, string propertyName)
+    internal static ConnectionSecurityRequirement ReadRequirement(WbemObject instance, string propertyName)
     {
         return ReadInt32(instance, propertyName, 0) switch
         {
@@ -65,7 +59,7 @@ internal static class ValueHelper
         };
     }
 
-    internal static ConnectionSecurityMode ReadMode(CimInstance instance)
+    internal static ConnectionSecurityMode ReadMode(WbemObject instance)
         => ReadInt32(instance, "Mode", 1) == 2
             ? ConnectionSecurityMode.Tunnel
             : ConnectionSecurityMode.Transport;

@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
     <TargetPlatformMinVersion>10.0.19041.0</TargetPlatformMinVersion>
@@ -6,8 +6,23 @@
     <UseWinUI>true</UseWinUI>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <WinUISDKReferences>false</WinUISDKReferences>
-    <!-- OneMMC is not NativeAOT; enabling WinUI in Core triggers MVVM Toolkit WinRT/AOT guidance for existing ViewModels. -->
-    <NoWarn>$(NoWarn);MVVMTK0045</NoWarn>
+    <!-- Concrete build platforms this library supports (matches the app's x64/ARM64 RuntimeIdentifiers).
+         Declaring these instead of the implicit AnyCPU-only default lets OneMMC.slnx map the solution
+         platform onto a matching project platform, which (a) satisfies Visual Studio's strict
+         solution-configuration validation and (b) builds this library for the same architecture as the
+         app, avoiding a CS8012 processor mismatch. -->
+    <Platforms>x64;ARM64</Platforms>
+    <!-- CsWin32 emits architecture-specific P/Invokes (e.g. SetupAPI's pointer-sized SP_DEVINFO_DATA)
+         that it cannot generate for AnyCPU (PInvoke005), because it keys the target architecture off
+         Roslyn's CompilationOptions.Platform (the csc /platform: switch = PlatformTarget). Solution
+         builds map this library to a concrete platform (see OneMMC.slnx), but building the .csproj
+         directly with no -p:Platform evaluates it as AnyCPU and the SetupAPI interop in
+         DeviceManagerService fails to compile. As a fallback for that direct-build case, target x64
+         (the documented default platform) when the platform is AnyCPU/unspecified so csc — and
+         therefore CsWin32 — emits x64 P/Invokes. An explicit -p:Platform=x64|ARM64|x86 sets Platform
+         to a concrete value, so this condition is skipped and PlatformTarget follows that platform.
+         PlatformTarget (unlike Platform) is not forced as a solution-level global, so it is honored. -->
+    <PlatformTarget Condition="'$(Platform)' == '' or '$(Platform)' == 'AnyCPU'">x64</PlatformTarget>
     </PropertyGroup>
   <!-- Global usings: available in every .cs file without explicit using directives -->
   <ItemGroup>
@@ -16,7 +31,6 @@
 
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" />
-    <PackageReference Include="Microsoft.Management.Infrastructure" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
     <PackageReference Include="Microsoft.Extensions.Logging" />
     <PackageReference Include="Microsoft.Windows.CsWin32" PrivateAssets="all" />
@@ -27,11 +41,12 @@
     <PackageReference Include="Serilog.Sinks.File" />
     <PackageReference Include="System.Drawing.Common" />
     <PackageReference Include="System.Diagnostics.EventLog" />
-    <PackageReference Include="System.DirectoryServices" />
-    <PackageReference Include="System.DirectoryServices.AccountManagement" />
-    <PackageReference Include="System.Management" />
     <PackageReference Include="System.ServiceProcess.ServiceController" />
-    <PackageReference Include="System.Diagnostics.PerformanceCounter" />
+    <!-- AOT-compatible WMI client; replaced System.Management for query/method features per
+         doc/NativeAot.md ("WMI and CIM"). Microsoft.Management.Infrastructure was instead replaced
+         by the marshal-free IWbem wrapper under Features/SystemManagement/Infrastructure/WF/Wbem
+         for the Windows Firewall write paths. -->
+    <PackageReference Include="WmiLight" />
   </ItemGroup>
 
   <ItemGroup>

@@ -15,6 +15,7 @@
     x:Class="OneMMC.Views.UserSecurity.AzMan.AuthorizationManagerPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:localization="using:OneMMC.Localization"
     xmlns:azman="using:OneMMC.Core.Features.UserSecurity.Models.AzMan"
     xmlns:cwuc="using:CommunityToolkit.WinUI.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -208,7 +209,7 @@
                                         BorderThickness="0"
                                         Click="OnCloseStoreClick"
                                         Tag="{x:Bind}"
-                                        ToolTipService.ToolTip="{Binding ElementName=Root, Path=LocalizedStrings.AuthorizationManagerPage_CloseStoreTooltip}">
+                                        ToolTipService.ToolTip="{x:Bind localization:LocalizedStrings.Instance.AuthorizationManagerPage_CloseStoreTooltip}">
                                         <FontIcon FontSize="14" Glyph="&#xE8BB;" />
                                     </Button>
                                 </StackPanel>

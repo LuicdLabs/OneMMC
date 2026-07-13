@@ -45,6 +45,10 @@ namespace OneMMC
         private readonly IAdminService _adminService;
 
         private const double MinimumWidthForTitleBarAppTitle = 900;
+
+        // Minimum window size in DIPs at 100% scale; converted to physical pixels at startup.
+        private const int MinimumWindowWidthDips = 700;
+        private const int MinimumWindowHeightDips = 325;
         private bool _welcomeDialogRequested;
         private OverlappedPresenterState _windowState = OverlappedPresenterState.Restored;
         private int? _windowX;
@@ -136,8 +140,12 @@ namespace OneMMC
             };
 
             OverlappedPresenter presenter = OverlappedPresenter.Create();
-            presenter.PreferredMinimumWidth = 700;
-            presenter.PreferredMinimumHeight = 325;
+            // PreferredMinimum* take physical pixels; scale the 100%-DIP design minimums by the
+            // startup monitor's DPI. Not re-applied on DPI change (acceptable known limitation).
+            double minSizeScale = DpiScaleHelper.GetScaleForWindow(
+                Win32Interop.GetWindowFromWindowId(AppWindow.Id));
+            presenter.PreferredMinimumWidth = (int)Math.Round(MinimumWindowWidthDips * minSizeScale);
+            presenter.PreferredMinimumHeight = (int)Math.Round(MinimumWindowHeightDips * minSizeScale);
             AppWindow.SetPresenter(presenter);
 
             RestoreWindowPlacement();
@@ -491,7 +499,7 @@ namespace OneMMC
             }
 
             // Capture the click target before awaiting — the event args are only valid synchronously.
-            var crumb = (BreadcrumbNavigationService.Breadcrumb)args.Item;
+            var crumb = (Breadcrumb)args.Item;
             var index = args.Index;
 
             // Resolve unsaved edits first so the breadcrumb trail is only truncated when the user actually

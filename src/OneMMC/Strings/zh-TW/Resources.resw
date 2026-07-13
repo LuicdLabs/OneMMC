@@ -130,16 +130,16 @@
     <value>發生了未預期的錯誤：{0} 請重新啟動應用程式。</value>
   </data>
   <data name="WelcomeDialog_Title" xml:space="preserve">
-    <value>全新可替代 MMC 的現代化體驗</value>
+    <value>歡迎使用 OneMMC</value>
   </data>
   <data name="WelcomeDialog_Description" xml:space="preserve">
-    <value>一款以 WinUI 3 打造的現代化 Windows 系統管理套件，旨在成為傳統 Microsoft Management Console (MMC) 的簡潔且現代化的替代方案</value>
+    <value>一款以 WinUI 3 打造的現代化且統一的 Windows 系統管理套件，旨在成為傳統 Microsoft Management Console (MMC) 的簡潔且現代化的替代方案</value>
   </data>
   <data name="WelcomeDialog_FeaturesHeader" xml:space="preserve">
     <value>功能特色</value>
   </data>
   <data name="WelcomeDialog_Feature1" xml:space="preserve">
-    <value>採用 WinUI 3 建構，具備原生深色模式支援、高 DPI 感知、流暢動畫以及現代化 Fluent Design UI/UX 體驗</value>
+    <value>具備原生深色模式支援、高 DPI 感知、流暢動畫以及現代化 Fluent Design UI/UX 體驗</value>
   </data>
   <data name="WelcomeDialog_Feature2" xml:space="preserve">
     <value>遵循 Windows 11 設計原則，具備更佳的視覺層級、簡化的工作流程，以及針觸控/平板最佳化的操作體驗</value>
@@ -148,13 +148,13 @@
     <value>整合常用的系統管理工具（服務、裝置管理員、事件檢視器、磁碟管理、本機使用者和群組等）為統一的體驗</value>
   </data>
   <data name="WelcomeDialog_Feature4" xml:space="preserve">
-    <value>直接基於 Win32 API、COM、WMI 和 CIM 建構，以實現低階且高效能的系統管理整合</value>
+    <value>100% 採用純原生 Win32 API、COM、WMI 與 CIM 架構，以實現最佳效能並與 Windows 深度整合</value>
   </data>
   <data name="WelcomeDialog_Feature5" xml:space="preserve">
     <value>避免不必要的抽象層，以保留與現有 Windows 管理基礎設施的相容性</value>
   </data>
   <data name="WelcomeDialog_WarningTitle" xml:space="preserve">
-    <value>警告</value>
+    <value>注意</value>
   </data>
   <data name="WelcomeDialog_WarningMessage" xml:space="preserve">
     <value>該軟體正在開發中。可能會修改您的系統元件。請在隔離環境或虛擬機器中使用</value>

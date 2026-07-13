@@ -1,7 +1,7 @@
-﻿using System;
+using System;
 using System.Runtime.InteropServices;
-using System.Text;
 using OneMMC.Core.Features.PolicyManagement.Services.GpEdit.Native;
+using OneMMC.Core.Infrastructure.Interop;
 using OneMMC.Core.Infrastructure.PolicyStorage;
 using Microsoft.Win32;
 using Microsoft.Extensions.Logging;
@@ -14,7 +14,7 @@ namespace OneMMC.Core.Features.PolicyManagement.Services.GpEdit.Sources
     /// This wrapper provides a managed interface for manipulating Group Policy Objects
     /// through the official Windows API, ensuring changes are visible in gpedit.msc and rsop.msc.
     /// </summary>
-    public class GroupPolicyObjectWrapper : IDisposable
+    public partial class GroupPolicyObjectWrapper : IDisposable
     {
         private static ILogger _logger = NullLogger.Instance;
         private IGroupPolicyObject? _gpo;
@@ -42,14 +42,14 @@ namespace OneMMC.Core.Features.PolicyManagement.Services.GpEdit.Sources
             var wrapper = new GroupPolicyObjectWrapper();
             try
             {
-                wrapper._gpo = (IGroupPolicyObject)new GroupPolicyObjectClass();
+                wrapper._gpo = ComActivator.CreateInstance<IGroupPolicyObject>(GroupPolicyObjectClsid.GroupPolicyObject);
                 uint flags = forEditing ? (uint)GpoOpenFlags.Editing : (uint)GpoOpenFlags.LoadRegistry;
                 int hr = wrapper._gpo.OpenLocalMachineGPO(flags);
                 
                 if (hr != 0)
                 {
                     _logger.LogDebug($"[GPO] OpenLocalMachineGPO failed with HRESULT: 0x{hr:X8}");
-                    Marshal.ReleaseComObject(wrapper._gpo);
+                    ComActivator.Release(wrapper._gpo);
                     wrapper._gpo = null;
                     return null;
                 }
@@ -62,7 +62,7 @@ namespace OneMMC.Core.Features.PolicyManagement.Services.GpEdit.Sources
                 _logger.LogDebug($"[GPO] Exception opening GPO: {ex.Message}");
                 if (wrapper._gpo != null)
                 {
-                    Marshal.ReleaseComObject(wrapper._gpo);
+                    ComActivator.Release(wrapper._gpo);
                     wrapper._gpo = null;
                 }
                 return null;
@@ -80,14 +80,14 @@ namespace OneMMC.Core.Features.PolicyManagement.Services.GpEdit.Sources
             var wrapper = new GroupPolicyObjectWrapper();
             try
             {
-                wrapper._gpo = (IGroupPolicyObject)new GroupPolicyObjectClass();
+                wrapper._gpo = ComActivator.CreateInstance<IGroupPolicyObject>(GroupPolicyObjectClsid.GroupPolicyObject);
                 uint flags = forEditing ? (uint)GpoOpenFlags.Editing : (uint)GpoOpenFlags.LoadRegistry;
                 int hr = wrapper._gpo.OpenRemoteMachineGPO(computerName, flags);
                 
                 if (hr != 0)
                 {
                     _logger.LogDebug($"[GPO] OpenRemoteMachineGPO failed with HRESULT: 0x{hr:X8}");
-                    Marshal.ReleaseComObject(wrapper._gpo);
+                    ComActivator.Release(wrapper._gpo);
                     wrapper._gpo = null;
                     return null;
                 }
@@ -99,7 +99,7 @@ namespace OneMMC.Core.Features.PolicyManagement.Services.GpEdit.Sources
                 _logger.LogDebug($"[GPO] Exception opening remote GPO: {ex.Message}");
                 if (wrapper._gpo != null)
                 {
-                    Marshal.ReleaseComObject(wrapper._gpo);
+                    ComActivator.Release(wrapper._gpo);
                     wrapper._gpo = null;
                 }
                 return null;
@@ -247,16 +247,15 @@ namespace OneMMC.Core.Features.PolicyManagement.Services.GpEdit.Sources
             try
             {
                 uint section = isUser ? (uint)GpoSection.User : (uint)GpoSection.Machine;
-                var pathBuilder = new StringBuilder(260);
-                int hr = _gpo.GetFileSysPath(section, pathBuilder, pathBuilder.Capacity);
-                
+                int hr = ReadIntoBuffer(260, (ptr, cch) => _gpo.GetFileSysPath(section, ptr, cch), out string? path);
+
                 if (hr != 0)
                 {
                     _logger.LogDebug($"[GPO] GetFileSysPath failed with HRESULT: 0x{hr:X8}");
                     return null;
                 }
 
-                return pathBuilder.ToString();
+                return path;
             }
             catch (Exception ex)
             {
@@ -275,15 +274,30 @@ namespace OneMMC.Core.Features.PolicyManagement.Services.GpEdit.Sources
 
             try
             {
-                var nameBuilder = new StringBuilder(260);
-                int hr = _gpo.GetDisplayName(nameBuilder, nameBuilder.Capacity);
-                
-                if (hr != 0) return null;
-                return nameBuilder.ToString();
+                int hr = ReadIntoBuffer(260, (ptr, cch) => _gpo.GetDisplayName(ptr, cch), out string? name);
+                return hr != 0 ? null : name;
             }
             catch
             {
                 return null;
+            }
+        }
+
+        /// <summary>
+        /// Invokes a Windows "fill a caller-allocated wide-char buffer" COM method against a pinned
+        /// buffer and reads back the resulting null-terminated string. Replaces the
+        /// <see cref="System.Text.StringBuilder"/> marshalling the interop source generator does not
+        /// support; see <c>doc/NativeAot.md</c>, "COM interop".
+        /// </summary>
+        private static unsafe int ReadIntoBuffer(int capacity, Func<nint, int, int> fill, out string? value)
+        {
+            Span<char> buffer = capacity <= 512 ? stackalloc char[capacity] : new char[capacity];
+            buffer.Clear();
+            fixed (char* p = buffer)
+            {
+                int hr = fill((nint)p, capacity);
+                value = hr == 0 ? new string(p) : null;
+                return hr;
             }
         }
 
@@ -296,8 +310,8 @@ namespace OneMMC.Core.Features.PolicyManagement.Services.GpEdit.Sources
             try
             {
                 // Try to create the COM object
-                var gpo = (IGroupPolicyObject)new GroupPolicyObjectClass();
-                Marshal.ReleaseComObject(gpo);
+                var gpo = ComActivator.CreateInstance<IGroupPolicyObject>(GroupPolicyObjectClsid.GroupPolicyObject);
+                ComActivator.Release(gpo);
                 return true;
             }
             catch
@@ -331,7 +345,7 @@ namespace OneMMC.Core.Features.PolicyManagement.Services.GpEdit.Sources
             {
                 try
                 {
-                    Marshal.ReleaseComObject(_gpo);
+                    ComActivator.Release(_gpo);
                 }
                 catch (Exception ex)
                 {
@@ -344,5 +358,4 @@ namespace OneMMC.Core.Features.PolicyManagement.Services.GpEdit.Sources
         }
     }
 }
-
 

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Runtime.InteropServices;
+using OneMMC.Core.Infrastructure.Interop;
 
 namespace OneMMC.Core.Features.PCManagement.Services.TaskSchd.Native;
 
@@ -8,7 +9,7 @@ namespace OneMMC.Core.Features.PCManagement.Services.TaskSchd.Native;
 /// declared in <see cref="ITaskService"/> and friends. Centralizes the few low-level idioms
 /// (coclass creation, VARIANT sentinels, OLE-automation date conversion, safe release) so the
 /// service implementation stays readable. See <c>TaskSchedulerNative.cs</c> for the rationale
-/// behind the handwritten COM interfaces.
+/// behind the source-generated COM interfaces.
 /// </summary>
 internal static class TaskSchedulerCom
 {
@@ -40,29 +41,32 @@ internal static class TaskSchedulerCom
     /// <summary>
     /// VARIANT sentinel for a <b>truly omitted</b> optional parameter (VT_ERROR / DISP_E_PARAMNOTFOUND).
     /// Use for <see cref="ITaskService.Connect"/> arguments that should fall back to the local session.
+    /// Non-allocating, so it is shareable and never needs disposal.
     /// </summary>
-    internal static readonly object MissingVariant = Type.Missing;
+    internal static Variant MissingVariant => Variant.Missing;
 
     /// <summary>
     /// VARIANT sentinel for an <b>explicit empty</b> value (VT_EMPTY). Use for value parameters such as
     /// <see cref="IRegisteredTask.Run"/> <c>params</c> where the API expects a present-but-empty VARIANT.
+    /// Non-allocating, so it is shareable and never needs disposal.
     /// </summary>
-    internal static readonly object? EmptyVariant = null;
+    internal static Variant EmptyVariant => Variant.Empty;
+
+    /// <summary>
+    /// Builds a VARIANT for an optional string argument: a <c>VT_BSTR</c> when a value is present
+    /// (the caller <b>must dispose</b> the returned variant to free the BSTR) or the
+    /// <see cref="MissingVariant"/> sentinel otherwise (safe to dispose — it is a no-op).
+    /// </summary>
+    internal static Variant OptionalBstr(string? value) => Variant.OptionalString(value);
 
     /// <summary>Creates the Task Scheduler coclass and returns its <see cref="ITaskService"/> interface.</summary>
     /// <remarks>
-    /// CsWin32 does not emit coclass activation; the RCW from <see cref="Activator.CreateInstance(Type)"/>
-    /// casts cleanly to the handwritten dual interface (validated). Caller is responsible for calling
-    /// <see cref="ITaskService.Connect"/> before any other method, and for releasing the returned object.
+    /// Activated via <see cref="ComActivator"/> (CoCreateInstance + ComWrappers) rather than reflection,
+    /// so it is Native AOT-safe. Caller is responsible for calling <see cref="ITaskService.Connect"/>
+    /// before any other method, and for releasing the returned object via <see cref="Release"/>.
     /// </remarks>
-    internal static ITaskService CreateTaskService()
-    {
-        Type type = Type.GetTypeFromCLSID(ClsidTaskScheduler)
-            ?? throw new InvalidOperationException("The Task Scheduler coclass (Schedule.Service) is not registered on this system.");
-        object instance = Activator.CreateInstance(type)
-            ?? throw new InvalidOperationException("Failed to create the Task Scheduler service COM object.");
-        return (ITaskService)instance;
-    }
+    internal static ITaskService CreateTaskService() =>
+        ComActivator.CreateInstance<ITaskService>(ClsidTaskScheduler);
 
     /// <summary>
     /// Converts an OLE automation date (as returned by <see cref="IRegisteredTask.LastRunTime"/> and
@@ -89,12 +93,12 @@ internal static class TaskSchedulerCom
         }
     }
 
-    /// <summary>Releases a COM object reference if it is a runtime-callable wrapper; ignores managed objects and nulls.</summary>
-    internal static void Release(object? comObject)
-    {
-        if (comObject is not null && Marshal.IsComObject(comObject))
-        {
-            Marshal.ReleaseComObject(comObject);
-        }
-    }
+    /// <summary>Converts a raw <c>VARIANT_BOOL</c> (as returned by the get_ accessors) to a <see cref="bool"/>.</summary>
+    internal static bool ToBool(short variantBool) => variantBool != 0;
+
+    /// <summary>Converts a <see cref="bool"/> to a raw <c>VARIANT_BOOL</c> (-1 = true, 0 = false).</summary>
+    internal static short ToVariantBool(bool value) => value ? (short)-1 : (short)0;
+
+    /// <summary>Releases a source-generated COM wrapper; ignores managed objects and nulls.</summary>
+    internal static void Release(object? comObject) => ComActivator.Release(comObject);
 }

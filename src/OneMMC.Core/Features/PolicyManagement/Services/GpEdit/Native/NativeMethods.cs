@@ -1,5 +1,6 @@
-﻿using System;
+using System;
 using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.Marshalling;
 using Windows.Win32.Foundation;
 using Windows.Win32.System.Registry;
 using Windows.Win32.UI.Shell;
@@ -71,105 +72,76 @@ namespace OneMMC.Core.Features.PolicyManagement.Services.GpEdit.Native
     /// This is the official Windows interface for programmatically editing local and remote GPOs.
     /// Using this interface ensures that changes are visible in gpedit.msc and rsop.msc.
     /// </summary>
-    [ComImport]
+    // Source-generated ([GeneratedComInterface]) port of IGroupPolicyObject following the
+    // repository's Native AOT COM guidance; see doc/NativeAot.md ("COM interop"). This is a pure
+    // IUnknown-derived (non-dual) interface, so it needs no IDispatch base (unlike the Task
+    // Scheduler dual interfaces). Member order is the vtable order and is preserved exactly.
+    // Windows-fill-buffer parameters that were StringBuilder are typed as nint (a caller-pinned
+    // wide-char buffer) because the interop source generator does not marshal StringBuilder; the
+    // LPStruct Guids become `in Guid` (a pointer to the Guid), which is the ABI-equivalent
+    // blittable form. Members OneMMC never calls keep their vtable slots with opaque signatures.
+    [GeneratedComInterface]
     [Guid("EA502723-A23D-11d1-A7D3-0000F87571E3")]
-    [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-    public interface IGroupPolicyObject
+    public partial interface IGroupPolicyObject
     {
-        /// <summary>
-        /// Creates a new GPO in Active Directory.
-        /// </summary>
+        /// <summary>Creates a new GPO in Active Directory. (Unused; vtable placeholder.)</summary>
         [PreserveSig]
         int New(
             [MarshalAs(UnmanagedType.LPWStr)] string pszDomainName,
             [MarshalAs(UnmanagedType.LPWStr)] string pszDisplayName,
             uint dwFlags);
 
-        /// <summary>
-        /// Opens a domain-based GPO.
-        /// </summary>
+        /// <summary>Opens a domain-based GPO. (Unused; vtable placeholder.)</summary>
         [PreserveSig]
         int OpenDSGPO(
             [MarshalAs(UnmanagedType.LPWStr)] string pszPath,
             uint dwFlags);
 
-        /// <summary>
-        /// Opens the local machine's GPO for the specified machine.
-        /// </summary>
+        /// <summary>Opens the local machine's GPO for the specified machine.</summary>
         [PreserveSig]
         int OpenLocalMachineGPO(uint dwFlags);
 
-        /// <summary>
-        /// Opens the local GPO for a remote machine.
-        /// </summary>
+        /// <summary>Opens the local GPO for a remote machine.</summary>
         [PreserveSig]
         int OpenRemoteMachineGPO(
             [MarshalAs(UnmanagedType.LPWStr)] string pszComputerName,
             uint dwFlags);
 
-        /// <summary>
-        /// Saves the GPO. Changes to the registry portion are saved.
-        /// </summary>
+        /// <summary>Saves the GPO. Changes to the registry portion are saved.</summary>
         [PreserveSig]
         int Save(
             [MarshalAs(UnmanagedType.Bool)] bool bMachine,
             [MarshalAs(UnmanagedType.Bool)] bool bAdd,
-            [MarshalAs(UnmanagedType.LPStruct)] Guid pGuidExtension,
-            [MarshalAs(UnmanagedType.LPStruct)] Guid pGuid);
+            in Guid pGuidExtension,
+            in Guid pGuid);
 
-        /// <summary>
-        /// Deletes the GPO.
-        /// </summary>
+        /// <summary>Deletes the GPO. (Unused; vtable placeholder.)</summary>
         [PreserveSig]
         int Delete();
 
-        /// <summary>
-        /// Gets the name (GUID) of the GPO.
-        /// </summary>
+        /// <summary>Gets the name (GUID) of the GPO into a caller-allocated buffer. (Unused; placeholder.)</summary>
         [PreserveSig]
-        int GetName(
-            [MarshalAs(UnmanagedType.LPWStr)] System.Text.StringBuilder pszName,
-            int cchMaxLength);
+        int GetName(nint pszName, int cchMaxLength);
 
-        /// <summary>
-        /// Gets the display name of the GPO.
-        /// </summary>
+        /// <summary>Gets the display name of the GPO into a caller-allocated wide-char buffer.</summary>
         [PreserveSig]
-        int GetDisplayName(
-            [MarshalAs(UnmanagedType.LPWStr)] System.Text.StringBuilder pszName,
-            int cchMaxLength);
+        int GetDisplayName(nint pszName, int cchMaxLength);
 
-        /// <summary>
-        /// Sets the display name of the GPO.
-        /// </summary>
+        /// <summary>Sets the display name of the GPO. (Unused; vtable placeholder.)</summary>
         [PreserveSig]
         int SetDisplayName([MarshalAs(UnmanagedType.LPWStr)] string pszName);
 
-        /// <summary>
-        /// Gets the path to the GPO.
-        /// </summary>
+        /// <summary>Gets the path to the GPO into a caller-allocated buffer. (Unused; placeholder.)</summary>
         [PreserveSig]
-        int GetPath(
-            [MarshalAs(UnmanagedType.LPWStr)] System.Text.StringBuilder pszPath,
-            int cchMaxPath);
+        int GetPath(nint pszPath, int cchMaxPath);
 
-        /// <summary>
-        /// Gets the Active Directory path of the GPO.
-        /// </summary>
+        /// <summary>Gets the Active Directory path of the GPO. (Unused; vtable placeholder.)</summary>
         [PreserveSig]
-        int GetDSPath(
-            uint dwSection,
-            [MarshalAs(UnmanagedType.LPWStr)] System.Text.StringBuilder pszPath,
-            int cchMaxPath);
+        int GetDSPath(uint dwSection, nint pszPath, int cchMaxPath);
 
-        /// <summary>
-        /// Gets the file system path of the GPO.
-        /// </summary>
+        /// <summary>Gets the file system path of the GPO into a caller-allocated wide-char buffer.</summary>
         [PreserveSig]
-        int GetFileSysPath(
-            uint dwSection,
-            [MarshalAs(UnmanagedType.LPWStr)] System.Text.StringBuilder pszPath,
-            int cchMaxPath);
+        int GetFileSysPath(uint dwSection, nint pszPath, int cchMaxPath);
 
         /// <summary>
         /// Gets a handle to the root of the registry data.
@@ -178,39 +150,27 @@ namespace OneMMC.Core.Features.PolicyManagement.Services.GpEdit.Native
         [PreserveSig]
         int GetRegistryKey(
             uint dwSection,
-            out IntPtr hKey);
+            out nint hKey);
 
-        /// <summary>
-        /// Gets options for the GPO.
-        /// </summary>
+        /// <summary>Gets options for the GPO. (Unused; vtable placeholder.)</summary>
         [PreserveSig]
         int GetOptions(out uint dwOptions);
 
-        /// <summary>
-        /// Sets options for the GPO.
-        /// </summary>
+        /// <summary>Sets options for the GPO. (Unused; vtable placeholder.)</summary>
         [PreserveSig]
         int SetOptions(uint dwOptions, uint dwMask);
 
-        /// <summary>
-        /// Queries the GPO type.
-        /// </summary>
+        /// <summary>Queries the GPO type. (Unused; vtable placeholder.)</summary>
         [PreserveSig]
-        int GetType(out uint gpoType);
+        int GetGpoType(out uint gpoType);
 
-        /// <summary>
-        /// Gets the machine name associated with this GPO.
-        /// </summary>
+        /// <summary>Gets the machine name associated with this GPO. (Unused; vtable placeholder.)</summary>
         [PreserveSig]
-        int GetMachineName(
-            [MarshalAs(UnmanagedType.LPWStr)] System.Text.StringBuilder pszName,
-            int cchMaxLength);
+        int GetMachineName(nint pszName, int cchMaxLength);
 
-        /// <summary>
-        /// Gets property sheet page extensions.
-        /// </summary>
+        /// <summary>Gets property sheet page extensions. (Unused; vtable placeholder.)</summary>
         [PreserveSig]
-        int GetPropertySheetPages(out IntPtr hPages, out uint uPageCount);
+        int GetPropertySheetPages(out nint hPages, out uint uPageCount);
     }
 
     /// <summary>
@@ -244,13 +204,13 @@ namespace OneMMC.Core.Features.PolicyManagement.Services.GpEdit.Native
         public static readonly Guid MmcSnapInGuid = new Guid("8FC0B734-A0E1-11D1-A7D3-0000F87571E3");
     }
 
-    /// <summary>
-    /// COM class ID for GroupPolicyObject.
-    /// </summary>
-    [ComImport]
-    [Guid("EA502722-A23D-11D1-A7D3-0000F87571E3")]
-    public class GroupPolicyObjectClass
+    /// <summary>CLSID of the <c>GroupPolicyObject</c> coclass, activated via
+    /// <see cref="OneMMC.Core.Infrastructure.Interop.ComActivator"/> (AOT-safe) rather than a
+    /// reflection-activated coclass.</summary>
+    public static class GroupPolicyObjectClsid
     {
+        /// <summary>{EA502722-A23D-11D1-A7D3-0000F87571E3}</summary>
+        public static readonly Guid GroupPolicyObject = new("EA502722-A23D-11D1-A7D3-0000F87571E3");
     }
 
     #endregion

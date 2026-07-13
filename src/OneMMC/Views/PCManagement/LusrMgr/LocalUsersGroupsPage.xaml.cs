@@ -225,5 +225,37 @@ public sealed partial class LocalUsersGroupsPage : Page
             ViewModel.Reload();
         }
     }
+
+    private void EditUserButton_Click(object sender, RoutedEventArgs e)
+    {
+        if ((sender as FrameworkElement)?.Tag is LocalUser user)
+        {
+            ViewModel.EditUserCommand?.Execute(user);
+        }
+    }
+
+    private void DeleteUserButton_Click(object sender, RoutedEventArgs e)
+    {
+        if ((sender as FrameworkElement)?.Tag is LocalUser user)
+        {
+            ViewModel.DeleteUserCommand?.Execute(user);
+        }
+    }
+
+    private void EditGroupButton_Click(object sender, RoutedEventArgs e)
+    {
+        if ((sender as FrameworkElement)?.Tag is LocalGroup group)
+        {
+            ViewModel.EditGroupCommand?.Execute(group);
+        }
+    }
+
+    private void DeleteGroupButton_Click(object sender, RoutedEventArgs e)
+    {
+        if ((sender as FrameworkElement)?.Tag is LocalGroup group)
+        {
+            ViewModel.DeleteGroupCommand?.Execute(group);
+        }
+    }
 }
 

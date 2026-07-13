@@ -9,6 +9,7 @@ using System.Runtime.InteropServices.WindowsRuntime;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 using Windows.Storage;
+using Windows.Win32;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
@@ -161,12 +162,11 @@ namespace OneMMC.Views
 
         public SettingsViewModel ViewModel => _viewModel;
 
-        [DllImport("user32.dll")]
-        private static extern short GetAsyncKeyState(int vKey);
-
         private static bool IsShiftPressed()
         {
-            return (GetAsyncKeyState(0xA0) & 0x8000) != 0 || (GetAsyncKeyState(0xA1) & 0x8000) != 0;
+            // VK_LSHIFT / VK_RSHIFT; high bit set means the key is currently down.
+            return (PInvoke.GetAsyncKeyState(0xA0) & 0x8000) != 0
+                || (PInvoke.GetAsyncKeyState(0xA1) & 0x8000) != 0;
         }
     }
 }

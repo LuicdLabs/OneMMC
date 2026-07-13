@@ -3,6 +3,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="using:CommunityToolkit.WinUI.Controls"
+    xmlns:ctl="using:OneMMC.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:vm="using:OneMMC.Core.Features.PolicyManagement.ViewModels.GpEdit"
@@ -57,15 +58,15 @@
                 ItemInvoked="PolicyTree_ItemInvoked"
                 SelectionMode="Single">
                 <TreeView.ItemTemplate>
-                    <DataTemplate>
+                    <DataTemplate x:DataType="TreeViewNode">
                         <Grid Height="30">
-                            <TextBlock VerticalAlignment="Center" Text="{Binding Content.Name}" />
+                            <TextBlock VerticalAlignment="Center" Text="{x:Bind ((vm:GroupPolicyTreeItem)Content).Name}" />
                         </Grid>
                     </DataTemplate>
                 </TreeView.ItemTemplate>
             </TreeView>
 
-            <controls:GridSplitter
+            <ctl:AotGridSplitter
                 Grid.Column="1"
                 Width="12"
                 ResizeBehavior="BasedOnAlignment"

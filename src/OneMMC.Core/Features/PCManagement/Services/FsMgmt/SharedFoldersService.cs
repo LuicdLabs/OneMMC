@@ -17,6 +17,7 @@ public sealed class SharedFoldersService
 {
     private const uint NerrSuccess = 0;
     private const uint ErrorMoreData = 234;
+    private const uint NerrClientNameNotFound = 2312;
     private const uint MaxPreferredLength = 0xFFFFFFFF;
 
     private const uint StypeDiskTree = 0x00000000;
@@ -42,6 +43,8 @@ public sealed class SharedFoldersService
     private const uint CscCacheNone = 0x0030;
 
     private readonly ILogger<SharedFoldersService> _logger;
+    private int _lastLoggedResolvedCount = -1;
+    private int _lastLoggedSessionCount = -1;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SharedFoldersService"/> class.
@@ -60,11 +63,17 @@ public sealed class SharedFoldersService
         Task.Run<IReadOnlyList<SharedFolderShare>>(EnumerateShares);
 
     /// <summary>
-    /// Enumerates SMB sessions on the local computer.
+    /// Enumerates SMB sessions on the local computer, resolving each client's raw transport address
+    /// to a friendly computer name where possible.
     /// </summary>
     /// <returns>The active SMB sessions.</returns>
-    public Task<IReadOnlyList<SharedFolderSession>> GetSessionsAsync() =>
-        Task.Run<IReadOnlyList<SharedFolderSession>>(EnumerateSessions);
+    public async Task<IReadOnlyList<SharedFolderSession>> GetSessionsAsync()
+    {
+        IReadOnlyList<SharedFolderSession> sessions =
+            await Task.Run<IReadOnlyList<SharedFolderSession>>(EnumerateSessions).ConfigureAwait(false);
+        await ResolveClientNamesAsync(sessions).ConfigureAwait(false);
+        return sessions;
+    }
 
     /// <summary>
     /// Enumerates files opened remotely through SMB.
@@ -106,7 +115,7 @@ public sealed class SharedFoldersService
     /// Disconnects all SMB sessions.
     /// </summary>
     public Task DisconnectAllSessionsAsync() =>
-        Task.Run(() => DisconnectSession(clientName: null, userName: null));
+        Task.Run(DisconnectAllSessions);
 
     /// <summary>
     /// Closes one open SMB file.
@@ -243,6 +252,64 @@ public sealed class SharedFoldersService
             .ToList();
     }
 
+    /// <summary>
+    /// Fills in <see cref="SharedFolderSession.ResolvedClientName"/> for each session by resolving
+    /// the raw client address reported by the Server service to a friendly computer name. Failures
+    /// are non-fatal: the sessions are still returned with their raw client addresses.
+    /// </summary>
+    private async Task ResolveClientNamesAsync(IReadOnlyList<SharedFolderSession> sessions)
+    {
+        if (sessions.Count == 0)
+        {
+            return;
+        }
+
+        string[] clientNames = sessions
+            .Select(session => session.ClientName)
+            .Where(clientName => !string.IsNullOrWhiteSpace(clientName))
+            .ToArray();
+
+        if (clientNames.Length == 0)
+        {
+            return;
+        }
+
+        try
+        {
+            IReadOnlyDictionary<string, string> resolved =
+                await SmbClientNameResolver.ResolveAsync(clientNames).ConfigureAwait(false);
+
+            int resolvedCount = 0;
+            foreach (SharedFolderSession session in sessions)
+            {
+                if (!string.IsNullOrWhiteSpace(session.ClientName)
+                    && resolved.TryGetValue(session.ClientName, out string? name)
+                    && !string.IsNullOrWhiteSpace(name))
+                {
+                    session.ResolvedClientName = name;
+                    resolvedCount++;
+                }
+            }
+
+            // Live monitoring resolves names every second; only log when the outcome changes so the
+            // debug log is not flooded with identical steady-state lines.
+            if (resolvedCount != _lastLoggedResolvedCount || sessions.Count != _lastLoggedSessionCount)
+            {
+                _lastLoggedResolvedCount = resolvedCount;
+                _lastLoggedSessionCount = sessions.Count;
+                _logger.LogDebug(
+                    "Resolved {ResolvedCount} of {SessionCount} SMB session client names.",
+                    resolvedCount,
+                    sessions.Count);
+            }
+        }
+        catch (Exception ex)
+        {
+            // Name resolution only enriches the display; never let it hide the sessions themselves.
+            _logger.LogDebug(ex, "Resolving SMB session client names failed; showing raw client addresses.");
+        }
+    }
+
     private unsafe IReadOnlyList<SharedFolderOpenFile> EnumerateOpenFiles()
     {
         var result = new List<SharedFolderOpenFile>();
@@ -371,20 +438,67 @@ public sealed class SharedFoldersService
         }
     }
 
-    private unsafe void DisconnectSession(string? clientName, string? userName)
+    private void DisconnectSession(string? clientName, string? userName)
     {
-        fixed (char* clientNamePointer = clientName)
+        // NetSessionEnum reports the client name without a leading "\\", but NetSessionDel matches
+        // sessions by their UNC computer name. Passing the bare name fails (NERR_InvalidComputer,
+        // 2351) for address-form names such as "[fe80::4725:c576:5cba:9c94]", so promote it to UNC
+        // form. Verified against a live IPv6 session: NetSessionDel(null, "\\[fe80::...]", "guest")
+        // returns NERR_Success, while the bare "[fe80::...]" returns 2351.
+        string? uncClientName = string.IsNullOrEmpty(clientName)
+            ? null
+            : clientName.StartsWith(@"\\", StringComparison.Ordinal)
+                ? clientName
+                : @"\\" + clientName;
+
+        uint status = InvokeNetSessionDel(uncClientName, userName);
+
+        // Success, or the session no longer existing, both satisfy the request:
+        // NERR_ClientNameNotFound means there is nothing left to disconnect (for example a
+        // short-lived loopback session torn down between enumeration and this call).
+        if (status is NerrSuccess or NerrClientNameNotFound)
+        {
+            return;
+        }
+
+        ThrowNativeError(status, "NetSessionDel");
+    }
+
+    private unsafe uint InvokeNetSessionDel(string? uncClientName, string? userName)
+    {
+        fixed (char* clientNamePointer = uncClientName)
         fixed (char* userNamePointer = userName)
         {
-            uint status = Win32PInvoke.NetSessionDel(
+            return Win32PInvoke.NetSessionDel(
                 default,
                 clientNamePointer is null ? default : new PWSTR(clientNamePointer),
                 userNamePointer is null ? default : new PWSTR(userNamePointer));
+        }
+    }
 
-            if (status != NerrSuccess)
+    private void DisconnectAllSessions()
+    {
+        // NetSessionDel cannot delete every session in a single call: passing a null client name
+        // and a null user name together fails with ERROR_INVALID_PARAMETER (87). Enumerate the
+        // sessions and disconnect each one individually, continuing past per-session failures so a
+        // single stuck session does not block the rest.
+        Win32Exception? firstFailure = null;
+        foreach (SharedFolderSession session in EnumerateSessions())
+        {
+            try
             {
-                ThrowNativeError(status, "NetSessionDel");
+                DisconnectSession(session.ClientName, session.UserName);
             }
+            catch (Win32Exception ex)
+            {
+                firstFailure ??= ex;
+                _logger.LogWarning(ex, "Failed to disconnect SMB session for client '{ClientName}'.", session.ClientName);
+            }
+        }
+
+        if (firstFailure is not null)
+        {
+            throw firstFailure;
         }
     }
 

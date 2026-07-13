@@ -4,10 +4,10 @@ using System.Diagnostics;
 using Debug = System.Diagnostics.Trace;
 using System.IO;
 using System.Linq;
-using System.Management;
 using OneMMC.Core.Features.PCManagement.Services.DiskMgmt.Common;
 using OneMMC.Core.Features.PCManagement.Models.DiskMgmt;
 using OneMMC.Core.Infrastructure.Wmi;
+using WmiLight;
 
 namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
 {
@@ -34,10 +34,9 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
             {
                 var msftDisks = GetMsftDiskInfo();
 
-                using var searcher = new ManagementObjectSearcher(
-                    DiskManagementConstants.CimV2WmiScope, "SELECT * FROM Win32_DiskDrive");
+                using var connection = new WmiConnection(DiskManagementConstants.CimV2WmiScope);
 
-                foreach (ManagementObject disk in searcher.GetAndDispose())
+                foreach (WmiObject disk in connection.CreateQuery("SELECT * FROM Win32_DiskDrive"))
                 {
                     using (disk)
                     {
@@ -205,28 +204,24 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
 
             try
             {
-                var scope = new ManagementScope(DiskManagementConstants.StorageWmiScope);
-                scope.Connect();
+                using var connection = new WmiConnection(DiskManagementConstants.StorageWmiScope);
 
-                using var searcher = new ManagementObjectSearcher(scope,
-                    new ObjectQuery("SELECT * FROM MSFT_Disk"));
-
-                foreach (ManagementObject disk in searcher.GetAndDispose())
+                foreach (WmiObject disk in connection.CreateQuery("SELECT * FROM MSFT_Disk"))
                 {
                     using (disk)
                     {
                         try
                         {
-                            var number = GetWmiPropertySafe<uint>(disk, "Number");
-                            var partStyle = GetWmiPropertySafe<ushort>(disk, "PartitionStyle");
-                            var health = GetWmiPropertySafe<ushort>(disk, "HealthStatus");
+                            var number = disk.GetPropertySafe<uint>("Number");
+                            var partStyle = disk.GetPropertySafe<ushort>("PartitionStyle");
+                            var health = disk.GetPropertySafe<ushort>("HealthStatus");
 
                             result[number] = new MsftDiskData
                             {
                                 PartitionStyle = partStyle switch { 1 => "MBR", 2 => "GPT", _ => "RAW" },
                                 HealthStatus = health switch { 0 => "Healthy", 1 => "Warning", 2 => "Unhealthy", _ => "Unknown" },
-                                IsOffline = GetWmiPropertySafe<bool>(disk, "IsOffline"),
-                                IsReadOnly = GetWmiPropertySafe<bool>(disk, "IsReadOnly")
+                                IsOffline = disk.GetPropertySafe<bool>("IsOffline"),
+                                IsReadOnly = disk.GetPropertySafe<bool>("IsReadOnly")
                             };
                         }
                         catch (Exception ex)
@@ -277,25 +272,23 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
 
             try
             {
-                var scope = new ManagementScope(DiskManagementConstants.StorageWmiScope);
-                scope.Connect();
+                using var connection = new WmiConnection(DiskManagementConstants.StorageWmiScope);
 
-                var query = new ObjectQuery($"SELECT * FROM MSFT_Partition WHERE DiskNumber = {diskIndex}");
-                using var searcher = new ManagementObjectSearcher(scope, query);
+                var query = $"SELECT * FROM MSFT_Partition WHERE DiskNumber = {diskIndex}";
 
-                foreach (ManagementObject partition in searcher.GetAndDispose())
+                foreach (WmiObject partition in connection.CreateQuery(query))
                 {
                     using (partition)
                     {
                         try
                         {
-                            var partitionNumber = GetWmiPropertySafe<uint>(partition, "PartitionNumber");
-                            var gptTypeStr = GetWmiPropertySafe<string>(partition, "GptType") ?? "";
-                            var offset = GetWmiPropertySafe<ulong>(partition, "Offset");
-                            var size = GetWmiPropertySafe<ulong>(partition, "Size");
-                            var driveLetter = GetWmiPropertySafe<char>(partition, "DriveLetter");
-                            var isBoot = GetWmiPropertySafe<bool>(partition, "IsBoot");
-                            var isSystem = GetWmiPropertySafe<bool>(partition, "IsSystem");
+                            var partitionNumber = partition.GetPropertySafe<uint>("PartitionNumber");
+                            var gptTypeStr = partition.GetPropertySafe<string>("GptType") ?? "";
+                            var offset = partition.GetPropertySafe<ulong>("Offset");
+                            var size = partition.GetPropertySafe<ulong>("Size");
+                            var driveLetter = partition.GetPropertySafe<char>("DriveLetter");
+                            var isBoot = partition.GetPropertySafe<bool>("IsBoot");
+                            var isSystem = partition.GetPropertySafe<bool>("IsSystem");
 
                             Guid gptGuid = Guid.Empty;
                             string typeStr = "Unknown";
@@ -355,11 +348,10 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
 
             try
             {
-                using var searcher = new ManagementObjectSearcher(
-                    DiskManagementConstants.CimV2WmiScope,
-                    $"SELECT * FROM Win32_DiskPartition WHERE DiskIndex = {diskIndex}");
+                using var connection = new WmiConnection(DiskManagementConstants.CimV2WmiScope);
 
-                foreach (ManagementObject partition in searcher.GetAndDispose())
+                foreach (WmiObject partition in connection.CreateQuery(
+                    $"SELECT * FROM Win32_DiskPartition WHERE DiskIndex = {diskIndex}"))
                 {
                     using (partition)
                     {
@@ -503,9 +495,8 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
                 // Enrich with WMI data (manufacturer, media type, etc.)
                 try
                 {
-                    using var searcher = new ManagementObjectSearcher(
-                        DiskManagementConstants.CimV2WmiScope, "SELECT * FROM Win32_CDROMDrive");
-                    foreach (ManagementObject cdrom in searcher.GetAndDispose())
+                    using var connection = new WmiConnection(DiskManagementConstants.CimV2WmiScope);
+                    foreach (WmiObject cdrom in connection.CreateQuery("SELECT * FROM Win32_CDROMDrive"))
                     {
                         using (cdrom)
                         {
@@ -540,24 +531,20 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
 
             try
             {
-                var scope = new ManagementScope(DiskManagementConstants.StorageWmiScope);
-                scope.Connect();
+                using var connection = new WmiConnection(DiskManagementConstants.StorageWmiScope);
 
-                using var searcher = new ManagementObjectSearcher(scope,
-                    new ObjectQuery("SELECT * FROM MSFT_StoragePool WHERE IsPrimordial = FALSE"));
-
-                foreach (ManagementObject pool in searcher.GetAndDispose())
+                foreach (WmiObject pool in connection.CreateQuery("SELECT * FROM MSFT_StoragePool WHERE IsPrimordial = FALSE"))
                 {
                     using (pool)
                     {
                         pools.Add(new StoragePoolInfo
                         {
-                            FriendlyName = GetWmiPropertySafe<string>(pool, "FriendlyName") ?? "",
-                            HealthStatus = GetWmiPropertySafe<ushort>(pool, "HealthStatus"),
-                            OperationalStatus = GetWmiPropertySafe<ushort>(pool, "OperationalStatus"),
-                            Size = GetWmiPropertySafe<ulong>(pool, "Size"),
-                            AllocatedSize = GetWmiPropertySafe<ulong>(pool, "AllocatedSize"),
-                            IsReadOnly = GetWmiPropertySafe<bool>(pool, "IsReadOnly")
+                            FriendlyName = pool.GetPropertySafe<string>("FriendlyName") ?? "",
+                            HealthStatus = pool.GetPropertySafe<ushort>("HealthStatus"),
+                            OperationalStatus = pool.GetPropertySafe<ushort>("OperationalStatus"),
+                            Size = pool.GetPropertySafe<ulong>("Size"),
+                            AllocatedSize = pool.GetPropertySafe<ulong>("AllocatedSize"),
+                            IsReadOnly = pool.GetPropertySafe<bool>("IsReadOnly")
                         });
                     }
                 }
@@ -580,11 +567,9 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
 
             try
             {
-                using var assocSearcher = new ManagementObjectSearcher(
-                    DiskManagementConstants.CimV2WmiScope,
-                    "SELECT * FROM Win32_LogicalDiskToPartition");
+                using var connection = new WmiConnection(DiskManagementConstants.CimV2WmiScope);
 
-                foreach (ManagementObject assoc in assocSearcher.GetAndDispose())
+                foreach (WmiObject assoc in connection.CreateQuery("SELECT * FROM Win32_LogicalDiskToPartition"))
                 {
                     using (assoc)
                     {
@@ -673,11 +658,10 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
         {
             try
             {
-                using var partSearcher = new ManagementObjectSearcher(
-                    DiskManagementConstants.CimV2WmiScope,
-                    $"SELECT Type FROM Win32_DiskPartition WHERE DiskIndex = {diskIndex}");
+                using var connection = new WmiConnection(DiskManagementConstants.CimV2WmiScope);
 
-                foreach (ManagementObject partition in partSearcher.GetAndDispose())
+                foreach (WmiObject partition in connection.CreateQuery(
+                    $"SELECT Type FROM Win32_DiskPartition WHERE DiskIndex = {diskIndex}"))
                 {
                     using (partition)
                     {
@@ -689,11 +673,8 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
                     }
                 }
 
-                using var diskSearcher = new ManagementObjectSearcher(
-                    DiskManagementConstants.CimV2WmiScope,
-                    $"SELECT Partitions FROM Win32_DiskDrive WHERE Index = {diskIndex}");
-
-                foreach (ManagementObject disk in diskSearcher.GetAndDispose())
+                foreach (WmiObject disk in connection.CreateQuery(
+                    $"SELECT Partitions FROM Win32_DiskDrive WHERE Index = {diskIndex}"))
                 {
                     using (disk)
                     {
@@ -715,48 +696,6 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
         }
 
         private static string FormatSize(ulong bytes) => FormatHelper.FormatSize(bytes);
-
-        private static T GetWmiPropertySafe<T>(ManagementBaseObject obj, string propertyName, T defaultValue = default!)
-        {
-            try
-            {
-                var value = obj[propertyName];
-                if (value == null) return defaultValue;
-
-                var targetType = typeof(T);
-                var underlyingType = Nullable.GetUnderlyingType(targetType) ?? targetType;
-
-                if (underlyingType == typeof(string))
-                    return (T)(object)(value.ToString()?.Trim() ?? "");
-
-                if (underlyingType == typeof(bool))
-                    return (T)(object)Convert.ToBoolean(value);
-
-                if (underlyingType == typeof(uint))
-                    return (T)(object)Convert.ToUInt32(value);
-
-                if (underlyingType == typeof(ushort))
-                    return (T)(object)Convert.ToUInt16(value);
-
-                if (underlyingType == typeof(ulong))
-                    return (T)(object)Convert.ToUInt64(value);
-
-                if (underlyingType == typeof(int))
-                    return (T)(object)Convert.ToInt32(value);
-
-                if (underlyingType == typeof(char))
-                {
-                    var str = value.ToString();
-                    return (T)(object)(!string.IsNullOrEmpty(str) ? str[0] : '\0');
-                }
-
-                return (T)Convert.ChangeType(value, underlyingType);
-            }
-            catch
-            {
-                return defaultValue;
-            }
-        }
 
         private static string SafeString(object? value, string defaultValue = "")
         {

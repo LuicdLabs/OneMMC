@@ -8,9 +8,9 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
     Style="{StaticResource DefaultContentDialogStyle}"
-    Title="{Binding WelcomeDialog_Title, Source={StaticResource LocalizedStrings}}"
+    Title="{x:Bind local:LocalizedStrings.Instance.WelcomeDialog_Title}"
     CloseButtonText=""
-    PrimaryButtonText="{Binding WelcomeDialog_LetsExplore, Source={StaticResource LocalizedStrings}}"
+    PrimaryButtonText="{x:Bind local:LocalizedStrings.Instance.WelcomeDialog_LetsExplore}"
     PrimaryButtonStyle="{StaticResource AccentButtonStyle}"
     IsPrimaryButtonEnabled="True">
 
@@ -36,7 +36,7 @@
             Grid.Row="0"
             VerticalScrollBarVisibility="Auto"
             HorizontalScrollBarVisibility="Disabled"
-            MaxHeight="420"
+            MaxHeight="450"
             Padding="0,0,12,0">
             <StackPanel>
 
@@ -45,13 +45,13 @@
                     TextWrapping="Wrap"
                     Style="{StaticResource BodyTextBlockStyle}"
                     Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                    Text="{Binding WelcomeDialog_Description, Source={StaticResource LocalizedStrings}}"
+                    Text="{x:Bind local:LocalizedStrings.Instance.WelcomeDialog_Description}"
                     Margin="0,0,0,16"/>
 
                 <!-- Features Header -->
                 <TextBlock
                     Style="{StaticResource BodyStrongTextBlockStyle}"
-                    Text="{Binding WelcomeDialog_FeaturesHeader, Source={StaticResource LocalizedStrings}}"
+                    Text="{x:Bind local:LocalizedStrings.Instance.WelcomeDialog_FeaturesHeader}"
                     Margin="0,0,0,8"/>
 
                 <!-- Feature List -->
@@ -59,14 +59,14 @@
                     x:Name="FeatureList"
                     Margin="0,0,0,16">
                     <ItemsControl.ItemTemplate>
-                        <DataTemplate>
+                        <DataTemplate x:DataType="x:String">
                             <Grid Margin="0,4,0,0">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
                                 <TextBlock Text="&#x2022;" Margin="0,0,8,0" VerticalAlignment="Top"/>
-                                <TextBlock Grid.Column="1" Text="{Binding}" TextWrapping="Wrap"/>
+                                <TextBlock Grid.Column="1" Text="{x:Bind}" TextWrapping="Wrap"/>
                             </Grid>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
@@ -77,8 +77,8 @@
                     IsOpen="True"
                     IsClosable="False"
                     Severity="Warning"
-                    Title="{Binding WelcomeDialog_WarningTitle, Source={StaticResource LocalizedStrings}}"
-                    Message="{Binding WelcomeDialog_WarningMessage, Source={StaticResource LocalizedStrings}}"
+                    Title="{x:Bind local:LocalizedStrings.Instance.WelcomeDialog_WarningTitle}"
+                    Message="{x:Bind local:LocalizedStrings.Instance.WelcomeDialog_WarningMessage}"
                     Margin="0,0,0,4"/>
 
             </StackPanel>
@@ -89,7 +89,7 @@
             Grid.Row="1"
             x:Name="RemindCheckBox"
             IsChecked="False"
-            Content="{Binding WelcomeDialog_RemindAfter30Days, Source={StaticResource LocalizedStrings}}"
+            Content="{x:Bind local:LocalizedStrings.Instance.WelcomeDialog_RemindAfter30Days}"
             Margin="0,12,0,0"
             VerticalAlignment="Center"/>
     </Grid>

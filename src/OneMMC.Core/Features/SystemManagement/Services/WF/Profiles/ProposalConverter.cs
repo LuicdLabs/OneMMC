@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using OneMMC.Core.Features.SystemManagement.Infrastructure.WF;
+using OneMMC.Core.Features.SystemManagement.Infrastructure.WF.Wbem;
 using OneMMC.Core.Features.SystemManagement.Models.WF.Profiles;
-using Microsoft.Management.Infrastructure;
 
 namespace OneMMC.Core.Features.SystemManagement.Services.WF.Profiles;
 
@@ -169,26 +169,26 @@ internal static class ProposalConverter
         return methods;
     }
 
-    internal static IReadOnlyList<DataIntegrityAlgorithmEntry> ReadIntegrityAlgorithms(CimInstance? set)
+    internal static IReadOnlyList<DataIntegrityAlgorithmEntry> ReadIntegrityAlgorithms(WbemObject? set)
     {
-        if (set?.CimInstanceProperties["Proposals"]?.Value is not CimInstance[] proposals || proposals.Length == 0)
+        if (set?.GetValue("Proposals") is not WbemObject[] proposals || proposals.Length == 0)
         {
             return [];
         }
 
         List<DataIntegrityAlgorithmEntry> result = [];
-        foreach (CimInstance proposal in proposals)
+        foreach (WbemObject proposal in proposals)
         {
-            ushort encapsulation = ValueConverter.ConvertToUInt16(proposal.CimInstanceProperties["Encapsulation"]?.Value, 0);
-            ushort cipher = ValueConverter.ConvertToUInt16(proposal.CimInstanceProperties["CipherAlgorithm"]?.Value, 0);
+            ushort encapsulation = ValueConverter.ConvertToUInt16(proposal.GetValue("Encapsulation"), 0);
+            ushort cipher = ValueConverter.ConvertToUInt16(proposal.GetValue("CipherAlgorithm"), 0);
 
             if (cipher != 0)
             {
                 continue;
             }
 
-            ushort hashAh = ValueConverter.ConvertToUInt16(proposal.CimInstanceProperties["HashAlgorithmAH"]?.Value, 0);
-            ushort hashEsp = ValueConverter.ConvertToUInt16(proposal.CimInstanceProperties["HashAlgorithmESP"]?.Value, 0);
+            ushort hashAh = ValueConverter.ConvertToUInt16(proposal.GetValue("HashAlgorithmAH"), 0);
+            ushort hashEsp = ValueConverter.ConvertToUInt16(proposal.GetValue("HashAlgorithmESP"), 0);
             ushort hash = encapsulation == QuickModeEncapsulationAh ? hashAh : hashEsp != 0 ? hashEsp : hashAh;
             if (!TryResolveQuickModeHashName(hash, preferAead: false, 0, out string? integrityName))
             {
@@ -206,33 +206,33 @@ internal static class ProposalConverter
             {
                 Protocol = protocol,
                 IntegrityAlgorithm = integrityName!,
-                MinutesLifetime = (int)ValueConverter.ConvertToUInt32(proposal.CimInstanceProperties["MaxLifetimeMinutes"]?.Value, 60),
-                KilobytesLifetime = (int)ValueConverter.ConvertToUInt64(proposal.CimInstanceProperties["MaxLifetimeKilobytes"]?.Value, 100000)
+                MinutesLifetime = (int)ValueConverter.ConvertToUInt32(proposal.GetValue("MaxLifetimeMinutes"), 60),
+                KilobytesLifetime = (int)ValueConverter.ConvertToUInt64(proposal.GetValue("MaxLifetimeKilobytes"), 100000)
             });
         }
 
         return result;
     }
 
-    internal static IReadOnlyList<IntegrityEncryptionAlgorithmEntry> ReadIntegrityEncryptionAlgorithms(CimInstance? set)
+    internal static IReadOnlyList<IntegrityEncryptionAlgorithmEntry> ReadIntegrityEncryptionAlgorithms(WbemObject? set)
     {
-        if (set?.CimInstanceProperties["Proposals"]?.Value is not CimInstance[] proposals || proposals.Length == 0)
+        if (set?.GetValue("Proposals") is not WbemObject[] proposals || proposals.Length == 0)
         {
             return [];
         }
 
         List<IntegrityEncryptionAlgorithmEntry> result = [];
-        foreach (CimInstance proposal in proposals)
+        foreach (WbemObject proposal in proposals)
         {
-            ushort encapsulation = ValueConverter.ConvertToUInt16(proposal.CimInstanceProperties["Encapsulation"]?.Value, 0);
-            ushort cipher = ValueConverter.ConvertToUInt16(proposal.CimInstanceProperties["CipherAlgorithm"]?.Value, 0);
+            ushort encapsulation = ValueConverter.ConvertToUInt16(proposal.GetValue("Encapsulation"), 0);
+            ushort cipher = ValueConverter.ConvertToUInt16(proposal.GetValue("CipherAlgorithm"), 0);
             if (!TryResolveQuickModeCipherName(cipher, out string? encryptionName))
             {
                 continue;
             }
 
-            ushort hashAh = ValueConverter.ConvertToUInt16(proposal.CimInstanceProperties["HashAlgorithmAH"]?.Value, 0);
-            ushort hashEsp = ValueConverter.ConvertToUInt16(proposal.CimInstanceProperties["HashAlgorithmESP"]?.Value, 0);
+            ushort hashAh = ValueConverter.ConvertToUInt16(proposal.GetValue("HashAlgorithmAH"), 0);
+            ushort hashEsp = ValueConverter.ConvertToUInt16(proposal.GetValue("HashAlgorithmESP"), 0);
             ushort hash = hashEsp != 0 ? hashEsp : hashAh;
             if (!TryResolveQuickModeHashName(hash, preferAead: true, cipher, out string? integrityName))
             {
@@ -244,37 +244,37 @@ internal static class ProposalConverter
                 Protocol = encapsulation == QuickModeEncapsulationAhEsp ? "ESP and AH" : "ESP",
                 IntegrityAlgorithm = integrityName!,
                 EncryptionAlgorithm = encryptionName!,
-                MinutesLifetime = (int)ValueConverter.ConvertToUInt32(proposal.CimInstanceProperties["MaxLifetimeMinutes"]?.Value, 60),
-                KilobytesLifetime = (int)ValueConverter.ConvertToUInt64(proposal.CimInstanceProperties["MaxLifetimeKilobytes"]?.Value, 100000)
+                MinutesLifetime = (int)ValueConverter.ConvertToUInt32(proposal.GetValue("MaxLifetimeMinutes"), 60),
+                KilobytesLifetime = (int)ValueConverter.ConvertToUInt64(proposal.GetValue("MaxLifetimeKilobytes"), 100000)
             });
         }
 
         return result;
     }
 
-    internal static IReadOnlyList<MainModeProposalDefinition> ReadMainModeProposals(CimInstance? set)
+    internal static IReadOnlyList<MainModeProposalDefinition> ReadMainModeProposals(WbemObject? set)
     {
-        if (set?.CimInstanceProperties["Proposals"]?.Value is not CimInstance[] proposals || proposals.Length == 0)
+        if (set?.GetValue("Proposals") is not WbemObject[] proposals || proposals.Length == 0)
         {
             return [];
         }
 
         return proposals.Select(proposal => new MainModeProposalDefinition(
-                ValueConverter.ConvertToUInt16(proposal.CimInstanceProperties["CipherAlgorithm"]?.Value, 0),
-                ValueConverter.ConvertToUInt16(proposal.CimInstanceProperties["HashAlgorithm"]?.Value, 0),
-                ValueConverter.ConvertToUInt16(proposal.CimInstanceProperties["GroupId"]?.Value, 0)))
+                ValueConverter.ConvertToUInt16(proposal.GetValue("CipherAlgorithm"), 0),
+                ValueConverter.ConvertToUInt16(proposal.GetValue("HashAlgorithm"), 0),
+                ValueConverter.ConvertToUInt16(proposal.GetValue("GroupId"), 0)))
             .ToList();
     }
 
-    internal static ushort[] ReadAuthMethods(CimInstance? set)
+    internal static ushort[] ReadAuthMethods(WbemObject? set)
     {
-        if (set?.CimInstanceProperties["Proposals"]?.Value is not CimInstance[] proposals || proposals.Length == 0)
+        if (set?.GetValue("Proposals") is not WbemObject[] proposals || proposals.Length == 0)
         {
             return [];
         }
 
         return proposals
-            .Select(proposal => ValueConverter.ConvertToUInt16(proposal.CimInstanceProperties["AuthenticationMethod"]?.Value, 0))
+            .Select(proposal => ValueConverter.ConvertToUInt16(proposal.GetValue("AuthenticationMethod"), 0))
             .Where(method => method != 0)
             .ToArray();
     }

@@ -20,9 +20,25 @@
     - Use `Constants` classes for compile-time constants.
 - **Native Interop**:
     - Treat **CsWin32 as the default** for Win32 interop. Add supported APIs to the project-level `NativeMethods.txt` and call generated `Windows.Win32.PInvoke` members instead of creating new handwritten imports.
-    - Only keep handwritten `[DllImport]` / `[LibraryImport]` for explicit exceptions such as unsupported exports, APIs that CsWin32 cannot emit for the active target configuration or architecture, unavoidable BCL/COM marshalling gaps, or mixed native workflows where a partial conversion would introduce a second unsafe marshalling model.
+    - Only keep handwritten `[LibraryImport]` for explicit exceptions such as unsupported exports, APIs that CsWin32 cannot emit for the active target configuration or architecture, unavoidable BCL/COM marshalling gaps, or mixed native workflows where a partial conversion would introduce a second unsafe marshalling model.
     - For one-off missing exports, prefer `NativeLibrary` + delegate binding over a new static import.
     - Any handwritten interop that remains must be centralized in a native wrapper/helper file and documented with the reason CsWin32 could not be used directly.
+
+## Native AOT Compatibility
+
+**Native AOT is the project's shipped deployment model** (the single reference — verified state, measured baseline, migration record — is `doc/NativeAot.md`). `PublishAot` is enabled unconditionally for every configuration (Debug and Release) and the AOT/trim analyzers are on for every build. Never recommend abandoning or scaling back AOT support because of a current limitation — propose the AOT-compatible alternative instead. All new and modified code must be AOT-compatible:
+
+- **No `dynamic`**: call COM through typed `[GeneratedComInterface]`/`ComWrappers` source-generated interfaces. Use `ComVariant` (`System.Runtime.InteropServices.Marshalling`) for VARIANT parameters.
+- **No `Type.GetTypeFromProgID`/`GetTypeFromCLSID` + `Activator.CreateInstance`**: activate COM via `CLSIDFromProgID` + `CoCreateInstance` (CsWin32) and wrap the pointer with `ComWrappers`.
+- **No new `[ComImport]` interfaces**: use `[GeneratedComInterface]` instead.
+- **No new `System.Management` or `Microsoft.Management.Infrastructure` usage**: both are AOT-incompatible and MMI is archived upstream ([PowerShell/MMI#54](https://github.com/PowerShell/MMI/issues/54)). Use **WmiLight** for WMI/CIM queries, method calls, and event subscriptions; classic WMI COM (`IWbemServices`) via CsWin32 with `allowMarshaling: false` is the no-dependency fallback.
+- **No new `System.DirectoryServices*` or `System.Diagnostics.PerformanceCounter` usage**: use NetAPI32/LSA and PDH via CsWin32.
+- **`{x:Bind}` only in new XAML**; never add new `{Binding}`. Convert nearby `{Binding}` to `{x:Bind}` when touching existing XAML.
+- **Classes crossing the WinRT ABI must be `partial`**: fix CsWinRT1028/1029 diagnostics in any file you touch.
+- **`[ObservableProperty]` goes on partial properties, not fields** (fixes MVVMTK0045; `LangVersion=preview` already supports this).
+- **JSON must use a source-generated `JsonSerializerContext`** — no reflection-based `JsonSerializer` overloads.
+- **No reflection-dependent patterns** (`Assembly.Load*`, `Type.GetType(string)`, `MakeGenericType`, `Reflection.Emit`); keep DI registrations explicit as they are today.
+- **Verification**: the AOT/trim analyzers run on every build (defaults in `Directory.Build.props`); `dotnet build src/OneMMC/OneMMC.csproj -c Release -p:Platform=x64` must introduce no new `IL2xxx`/`IL3xxx`/`CsWinRT1xxx`/`MVVMTK0045` warnings — first-party code builds warning-clean.
 
 ## Architecture Boundaries
 - **Core may reference Windows App SDK platform APIs**: `OneMMC.Core` may reference `Microsoft.WindowsAppSDK` and `Microsoft.UI.*` only for reusable Windows-native services such as file/folder pickers, native OS dialogs, interop helpers, and image conversion helpers. Dependency still flows one way: UI → Core only.
@@ -90,69 +106,3 @@
 - **Avoid Redundancy**: Do not write comments that simply restate what the code does (e.g., `// Set x to 5` for `x = 5;`).
 - **TODO Comments**: Use TODO comments sparingly and include context about what needs to be done and why.
 - **Workarounds**: Document any workarounds, hacks, or non-standard implementations with clear explanations of why they exist.
-
-# CLAUDE.md
-
-Behavioral guidelines to reduce common LLM coding mistakes. Merge with project-specific instructions as needed.
-
-**Tradeoff:** These guidelines bias toward caution over speed. For trivial tasks, use judgment.
-
-## 1. Think Before Coding
-
-**Don't assume. Don't hide confusion. Surface tradeoffs.**
-
-Before implementing:
-- State your assumptions explicitly. If uncertain, ask.
-- If multiple interpretations exist, present them - don't pick silently.
-- If a simpler approach exists, say so. Push back when warranted.
-- If something is unclear, stop. Name what's confusing. Ask.
-
-## 2. Simplicity First
-
-**Minimum code that solves the problem. Nothing speculative.**
-
-- No features beyond what was asked.
-- No abstractions for single-use code.
-- No "flexibility" or "configurability" that wasn't requested.
-- No error handling for impossible scenarios.
-- If you write 200 lines and it could be 50, rewrite it.
-
-Ask yourself: "Would a senior engineer say this is overcomplicated?" If yes, simplify.
-
-## 3. Surgical Changes
-
-**Touch only what you must. Clean up only your own mess.**
-
-When editing existing code:
-- Don't "improve" adjacent code, comments, or formatting.
-- Don't refactor things that aren't broken.
-- Match existing style, even if you'd do it differently.
-- If you notice unrelated dead code, mention it - don't delete it.
-
-When your changes create orphans:
-- Remove imports/variables/functions that YOUR changes made unused.
-- Don't remove pre-existing dead code unless asked.
-
-The test: Every changed line should trace directly to the user's request.
-
-## 4. Goal-Driven Execution
-
-**Define success criteria. Loop until verified.**
-
-Transform tasks into verifiable goals:
-- "Add validation" → "Write tests for invalid inputs, then make them pass"
-- "Fix the bug" → "Write a test that reproduces it, then make it pass"
-- "Refactor X" → "Ensure tests pass before and after"
-
-For multi-step tasks, state a brief plan:
-```
-1. [Step] → verify: [check]
-2. [Step] → verify: [check]
-3. [Step] → verify: [check]
-```
-
-Strong success criteria let you loop independently. Weak criteria ("make it work") require constant clarification.
-
----
-
-**These guidelines are working if:** fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, and clarifying questions come before implementation rather than after mistakes.

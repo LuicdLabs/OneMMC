@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace OneMMC.Core.Features.UserSecurity.Services.AzMan;
 
-internal sealed class StaTaskScheduler : TaskScheduler, IDisposable
+internal sealed partial class StaTaskScheduler : TaskScheduler, IDisposable
 {
     private readonly BlockingCollection<Task> _tasks = new();
     private readonly Thread _thread;

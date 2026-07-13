@@ -6,13 +6,12 @@
     xmlns:local="using:OneMMC.Localization"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    PrimaryButtonText="{Binding Common_OKButton, Source={StaticResource LocalizedStrings}}"
-    SecondaryButtonText="{Binding Common_CancelButton, Source={StaticResource LocalizedStrings}}"
+    PrimaryButtonText="{x:Bind local:LocalizedStrings.Instance.Common_OKButton}"
+    SecondaryButtonText="{x:Bind local:LocalizedStrings.Instance.Common_CancelButton}"
     Style="{StaticResource DefaultContentDialogStyle}"
     mc:Ignorable="d">
 
     <ContentDialog.Resources>
-        <local:LocalizedStrings x:Key="LocalizedStrings" />
     </ContentDialog.Resources>
 
     <ScrollViewer
@@ -48,7 +47,7 @@
         <!-- Authorized principals -->
         <StackPanel Grid.Row="2" Margin="0,12,0,6" Spacing="4">
             <TextBlock x:Name="AuthorizedLabel" FontWeight="SemiBold" />
-            <CheckBox x:Name="OnlyAllowCheckBox" Content="{Binding WF_Common_OnlyAllowConnectionsFromTheseUsers, Source={StaticResource LocalizedStrings}}"
+            <CheckBox x:Name="OnlyAllowCheckBox" Content="{x:Bind local:LocalizedStrings.Instance.WF_Common_OnlyAllowConnectionsFromTheseUsers}"
                       Checked="OnlyAllowCheckBox_Changed" Unchecked="OnlyAllowCheckBox_Changed" />
         </StackPanel>
 
@@ -81,17 +80,17 @@
                     -->
                     <Button
                         x:Name="AuthAddButton"
-                        Content="{Binding Common_AddButton, Source={StaticResource LocalizedStrings}}"
+                        Content="{x:Bind local:LocalizedStrings.Instance.Common_AddButton}"
                         Click="AuthAddButton_Click"
                         Visibility="Collapsed" />
                     <DropDownButton
                         x:Name="AuthAddDropDown"
-                        Content="{Binding Common_AddButton, Source={StaticResource LocalizedStrings}}">
+                        Content="{x:Bind local:LocalizedStrings.Instance.Common_AddButton}">
                         <DropDownButton.Flyout>
                             <MenuFlyout Placement="Bottom">
                                 <MenuFlyoutItem
                                     x:Name="AuthAddLocalUserItem"
-                                    Text="{Binding WF_Principals_LocalUser, Source={StaticResource LocalizedStrings}}"
+                                    Text="{x:Bind local:LocalizedStrings.Instance.WF_Principals_LocalUser}"
                                     Click="AuthAddLocalUserItem_Click">
                                     <MenuFlyoutItem.Icon>
                                         <FontIcon Glyph="&#xE77B;" />
@@ -99,7 +98,7 @@
                                 </MenuFlyoutItem>
                                 <MenuFlyoutItem
                                     x:Name="AuthAddAppPackageItem"
-                                    Text="{Binding WF_Principals_ApplicationPackageProperties, Source={StaticResource LocalizedStrings}}"
+                                    Text="{x:Bind local:LocalizedStrings.Instance.WF_Principals_ApplicationPackageProperties}"
                                     Click="AuthAddAppPackageItem_Click">
                                     <MenuFlyoutItem.Icon>
                                         <FontIcon Glyph="&#xE7B8;" />
@@ -108,7 +107,7 @@
                             </MenuFlyout>
                         </DropDownButton.Flyout>
                     </DropDownButton>
-                    <Button x:Name="AuthDeleteButton" Content="{Binding Common_RemoveButton, Source={StaticResource LocalizedStrings}}" Click="AuthDeleteButton_Click" />
+                    <Button x:Name="AuthDeleteButton" Content="{x:Bind local:LocalizedStrings.Instance.Common_RemoveButton}" Click="AuthDeleteButton_Click" />
                 </StackPanel>
             </Grid>
         </Border>
@@ -116,7 +115,7 @@
         <!-- Exception principals -->
         <StackPanel Grid.Row="4" Margin="0,12,0,6" Spacing="4">
             <TextBlock x:Name="ExceptionLabel" FontWeight="SemiBold" />
-            <CheckBox x:Name="SkipRuleCheckBox" Content="{Binding WF_Principals_SkipThisRuleForConnectionsFromTheseUsers, Source={StaticResource LocalizedStrings}}"
+            <CheckBox x:Name="SkipRuleCheckBox" Content="{x:Bind local:LocalizedStrings.Instance.WF_Principals_SkipThisRuleForConnectionsFromTheseUsers}"
                       Checked="SkipRuleCheckBox_Changed" Unchecked="SkipRuleCheckBox_Changed" />
         </StackPanel>
 
@@ -145,17 +144,17 @@
                     Spacing="8">
                     <Button
                         x:Name="ExcAddButton"
-                        Content="{Binding Common_AddButton, Source={StaticResource LocalizedStrings}}"
+                        Content="{x:Bind local:LocalizedStrings.Instance.Common_AddButton}"
                         Click="ExcAddButton_Click"
                         Visibility="Collapsed" />
                     <DropDownButton
                         x:Name="ExcAddDropDown"
-                        Content="{Binding Common_AddButton, Source={StaticResource LocalizedStrings}}">
+                        Content="{x:Bind local:LocalizedStrings.Instance.Common_AddButton}">
                         <DropDownButton.Flyout>
                             <MenuFlyout Placement="Bottom">
                                 <MenuFlyoutItem
                                     x:Name="ExcAddLocalUserItem"
-                                    Text="{Binding WF_Principals_LocalUser, Source={StaticResource LocalizedStrings}}"
+                                    Text="{x:Bind local:LocalizedStrings.Instance.WF_Principals_LocalUser}"
                                     Click="ExcAddLocalUserItem_Click">
                                     <MenuFlyoutItem.Icon>
                                         <FontIcon Glyph="&#xE77B;" />
@@ -163,7 +162,7 @@
                                 </MenuFlyoutItem>
                                 <MenuFlyoutItem
                                     x:Name="ExcAddAppPackageItem"
-                                    Text="{Binding WF_Principals_ApplicationPackageProperties, Source={StaticResource LocalizedStrings}}"
+                                    Text="{x:Bind local:LocalizedStrings.Instance.WF_Principals_ApplicationPackageProperties}"
                                     Click="ExcAddAppPackageItem_Click">
                                     <MenuFlyoutItem.Icon>
                                         <FontIcon Glyph="&#xE7B8;" />
@@ -172,7 +171,7 @@
                             </MenuFlyout>
                         </DropDownButton.Flyout>
                     </DropDownButton>
-                    <Button x:Name="ExcDeleteButton" Content="{Binding Common_RemoveButton, Source={StaticResource LocalizedStrings}}" Click="ExcDeleteButton_Click" />
+                    <Button x:Name="ExcDeleteButton" Content="{x:Bind local:LocalizedStrings.Instance.Common_RemoveButton}" Click="ExcDeleteButton_Click" />
                 </StackPanel>
             </Grid>
         </Border>

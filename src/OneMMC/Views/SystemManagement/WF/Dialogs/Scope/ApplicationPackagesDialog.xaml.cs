@@ -228,10 +228,15 @@ public sealed partial class ApplicationPackagesDialog : ContentDialog
         return normalized;
     }
 
-    public class PackageItem
-    {
-        public string Name { get; set; } = string.Empty;
-        public string User { get; set; } = string.Empty;
-        public string LocalAppPackageId { get; set; } = string.Empty;
-    }
+}
+
+/// <summary>
+/// Application package row in the packages picker. Namespace-level so it can be
+/// referenced from XAML via x:DataType for compiled (AOT-safe) bindings.
+/// </summary>
+public class PackageItem
+{
+    public string Name { get; set; } = string.Empty;
+    public string User { get; set; } = string.Empty;
+    public string LocalAppPackageId { get; set; } = string.Empty;
 }

@@ -1,8 +1,15 @@
 ﻿<Solution>
   <Configurations>
+    <!-- "Any CPU" is MSBuild's preferred default solution platform, so a plain `dotnet build` (no
+         -p:Platform) selects it. Every project below maps "Any CPU" to its x64 build (the documented
+         default platform), so the default build is a runnable x64 build instead of the alphabetically
+         first real platform (ARM64). Selecting ARM64/x64 explicitly still maps through unchanged.
+         Only x64/ARM64 are offered: both projects declare exactly those <Platforms> (matching the
+         app's win-x64/win-arm64 RuntimeIdentifiers), and every mapping below must reference a project
+         platform that actually exists or Visual Studio rejects the solution. -->
+    <Platform Name="Any CPU" />
     <Platform Name="ARM64" />
     <Platform Name="x64" />
-    <Platform Name="x86" />
   </Configurations>
   <Folder Name="/Solution Items/">
     <File Path="Directory.Build.props" />
@@ -11,11 +18,15 @@
     <File Path="README.md" />
   </Folder>
   <Folder Name="/src/">
-    <Project Path="src/OneMMC.Core/OneMMC.Core.csproj" Id="a18e2b0a-aa3a-4fbd-af6d-547fae061554" />
-    <Project Path="src/OneMMC/OneMMC.csproj">
+    <Project Path="src/OneMMC.Core/OneMMC.Core.csproj" Id="a18e2b0a-aa3a-4fbd-af6d-547fae061554">
+      <Platform Solution="*|Any CPU" Project="x64" />
       <Platform Solution="*|ARM64" Project="ARM64" />
       <Platform Solution="*|x64" Project="x64" />
-      <Platform Solution="*|x86" Project="x86" />
+    </Project>
+    <Project Path="src/OneMMC/OneMMC.csproj">
+      <Platform Solution="*|Any CPU" Project="x64" />
+      <Platform Solution="*|ARM64" Project="ARM64" />
+      <Platform Solution="*|x64" Project="x64" />
       <Deploy />
     </Project>
   </Folder>

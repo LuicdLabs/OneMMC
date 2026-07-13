@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <OutputType>WinExe</OutputType>
         <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
@@ -79,12 +79,22 @@
         <PackageReference Include="Serilog.Extensions.Logging" />
         <PackageReference Include="Serilog.Sinks.File" />
         <PackageReference Include="System.Drawing.Common" />
-        <PackageReference Include="System.DirectoryServices.AccountManagement" />
         <PackageReference Include="System.IO.FileSystem.AccessControl" />
         <PackageReference Include="System.Windows.Extensions" />
+        <!-- Direct reference (Core also references it): WmiLight's build/ props+targets do not flow
+             transitively, and the app project needs them for PublishWmiLightStaticallyLinked to fold
+             WmiLight.Native.dll into the AOT executable. -->
+        <PackageReference Include="WmiLight" />
       </ItemGroup>
       <ItemGroup>
         <ProjectReference Include="..\OneMMC.Core\OneMMC.Core.csproj" />
+      </ItemGroup>
+
+      <!-- WmiLight is consumed through the OneMMC.Core class library, so it must be rooted for
+           the AOT publish (documented WmiLight requirement for library encapsulation).
+           See doc/NativeAot.md ("WMI and CIM"). -->
+      <ItemGroup>
+        <TrimmerRootAssembly Include="WmiLight" />
       </ItemGroup>
       <ItemGroup>
         <Folder Include="Views\CertificatesCredential\CertLM\" />
@@ -146,9 +156,18 @@
         <HasPackageAndPublishMenu>true</HasPackageAndPublishMenu>
       </PropertyGroup>
 
-      <!-- Publish Properties -->
+      <!-- Publish Properties. Native AOT is the default publish model; see doc/NativeAot.md for
+           the developer guidance, current verified state, and historical migration notes.
+           PublishAot is set unconditionally so the AOT analyzers and CsWinRT AOT codegen apply
+           to every build; native compilation itself still happens only on `dotnet publish`. -->
+      <PropertyGroup>
+        <PublishAot>true</PublishAot>
+        <!-- CsWinRT's AOT optimizer emits unsafe code; Core already allows it, the app must too. -->
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <!-- Fold WmiLight's native shim into the executable instead of shipping WmiLight.Native.dll. -->
+        <PublishWmiLightStaticallyLinked>true</PublishWmiLightStaticallyLinked>
+      </PropertyGroup>
       <PropertyGroup Condition="'$(Configuration)' == 'Release'">
-        <PublishReadyToRun>True</PublishReadyToRun>
         <SelfContained>true</SelfContained>
       </PropertyGroup>
       <PropertyGroup>

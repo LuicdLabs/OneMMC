@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.ServiceProcess;
-using System.Management;
 using System.ComponentModel;
 using OneMMC.Core.Features.PCManagement.Models.Services;
 using System.Threading.Tasks;
@@ -11,6 +10,7 @@ using System.Runtime.InteropServices;
 using System.IO;
 using OneMMC.Core.Infrastructure.Wmi;
 using Microsoft.Extensions.Logging;
+using WmiLight;
 using Windows.Win32.Foundation;
 using Windows.Win32.Security;
 using Windows.Win32.System.Services;
@@ -79,9 +79,9 @@ namespace OneMMC.Core.Features.PCManagement.Services.WindowsServices
                 var wmiData = new Dictionary<string, ServiceWmiData>();
                 try
                 {
-                    using (var searcher = new ManagementObjectSearcher("SELECT Name, StartMode, DelayedAutoStart, StartName, PathName, Description, ProcessId FROM Win32_Service"))
+                    using (var connection = new WmiConnection())
                     {
-                        foreach (ManagementObject obj in searcher.GetAndDispose())
+                        foreach (WmiObject obj in connection.CreateQuery("SELECT Name, StartMode, DelayedAutoStart, StartName, PathName, Description, ProcessId FROM Win32_Service").DisposeItems())
                         {
                             var name = obj["Name"]?.ToString();
                             if (!string.IsNullOrEmpty(name))
@@ -327,17 +327,19 @@ namespace OneMMC.Core.Features.PCManagement.Services.WindowsServices
         {
              await Task.Run(() =>
             {
-                using (var searcher = new ManagementObjectSearcher($"SELECT * FROM Win32_Service WHERE Name = '{serviceName}'"))
+                using (var connection = new WmiConnection())
                 {
-                    foreach (ManagementObject service in searcher.GetAndDispose())
+                    foreach (WmiObject service in connection.CreateQuery($"SELECT * FROM Win32_Service WHERE Name = '{serviceName}'").DisposeItems())
                     {
-                        var parameters = service.GetMethodParameters("Change");
-                        parameters["StartName"] = username;
+                        using WmiMethod changeMethod = service.GetMethod("Change");
+                        using WmiMethodParameters parameters = changeMethod.CreateInParameters();
+                        parameters.SetPropertyValue("StartName", username);
                         if (!string.IsNullOrEmpty(password))
                         {
-                            parameters["StartPassword"] = password;
+                            parameters.SetPropertyValue("StartPassword", password);
                         }
-                        service.InvokeMethod("Change", parameters, null);
+                        service.ExecuteMethod<uint>(changeMethod, parameters, out WmiMethodParameters changeOutParams);
+                        changeOutParams?.Dispose();
                     }
                 }
             });
@@ -364,7 +366,7 @@ namespace OneMMC.Core.Features.PCManagement.Services.WindowsServices
                  if (hService.IsInvalid) throw new Exception("Failed to open service.");
 
                  int count = 3;
-                 int actionSize = Marshal.SizeOf(typeof(SC_ACTION));
+                 int actionSize = Marshal.SizeOf<SC_ACTION>();
                  IntPtr actionsPtr = Marshal.AllocHGlobal(actionSize * count);
 
                  try
@@ -498,7 +500,7 @@ namespace OneMMC.Core.Features.PCManagement.Services.WindowsServices
 
                          if (failureActions.cActions > 0 && failureActions.lpsaActions != IntPtr.Zero)
                          {
-                             int actionSize = Marshal.SizeOf(typeof(SC_ACTION));
+                             int actionSize = Marshal.SizeOf<SC_ACTION>();
 
                              if (failureActions.cActions > 0)
                              {

@@ -10,7 +10,7 @@ using OneMMC.Core.Features.PCManagement.Services.DiskMgmt;
 
 namespace OneMMC.Core.Features.PCManagement.ViewModels.DiskMgmt
 {
-    public class DiskManagementViewModel : INotifyPropertyChanged
+    public partial class DiskManagementViewModel : INotifyPropertyChanged
     {
         private readonly DiskManagementService _diskService;
         private ObservableCollection<PhysicalDiskInfo> _physicalDisks;

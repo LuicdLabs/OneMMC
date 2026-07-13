@@ -4,4 +4,24 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>preview</LangVersion>
   </PropertyGroup>
+
+  <!--
+    Native AOT is the shipped publish model; see doc/NativeAot.md for the developer guidance and
+    engineering rationale. The AOT/trim/single-file analyzers therefore guard every build.
+    IsAotCompatible/IsTrimmable are deliberately NOT set on the library - they would stamp
+    AssemblyMetadata("IsTrimmable") and change packaging semantics; the analyzer properties below
+    produce the identical warning stream without that.
+  -->
+  <PropertyGroup>
+    <EnableAotAnalyzer>true</EnableAotAnalyzer>
+    <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+    <EnableSingleFileAnalyzer>true</EnableSingleFileAnalyzer>
+
+    <!-- CsWinRT: strictest AOT diagnostics (CsWinRT1028/1029/1030 partial-class/ABI checks). -->
+    <CsWinRTAotWarningLevel>2</CsWinRTAotWarningLevel>
+
+    <!-- Report every trim-warning site instead of one collapsed warning per assembly. -->
+    <TrimmerSingleWarn>false</TrimmerSingleWarn>
+    <SuppressTrimAnalysisWarnings>false</SuppressTrimAnalysisWarnings>
+  </PropertyGroup>
 </Project>

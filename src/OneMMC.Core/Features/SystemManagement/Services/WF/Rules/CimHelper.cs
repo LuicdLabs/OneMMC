@@ -1,13 +1,12 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+using System.Collections.Generic;
 using OneMMC.Core.Features.SystemManagement.Infrastructure.WF;
-using Microsoft.Management.Infrastructure;
+using OneMMC.Core.Features.SystemManagement.Infrastructure.WF.Wbem;
 
 namespace OneMMC.Core.Features.SystemManagement.Services.WF.Rules;
 
 internal static class CimHelper
 {
-    internal static CimInstance? GetFirewallRuleInstance(CimSession session, params string?[] ruleNames)
+    internal static WbemObject? GetFirewallRuleInstance(WbemServices session, params string?[] ruleNames)
     {
         HashSet<string> candidateNames = BuildCandidateNames(ruleNames);
         if (candidateNames.Count == 0)
@@ -15,7 +14,7 @@ internal static class CimHelper
             return null;
         }
 
-        foreach (CimInstance instance in session.EnumerateInstances(WindowsFirewallSupport.StandardCimNamespace, "MSFT_NetFirewallRule"))
+        foreach (WbemObject instance in session.EnumerateInstances("MSFT_NetFirewallRule"))
         {
             if (MatchesRuleName(instance, candidateNames))
             {
@@ -28,15 +27,12 @@ internal static class CimHelper
         return null;
     }
 
-    internal static CimInstance? GetSecurityFilterInstance(CimSession session, CimInstance ruleInstance)
+    internal static WbemObject? GetSecurityFilterInstance(WbemServices session, WbemObject ruleInstance)
     {
-        foreach (CimInstance filter in session.EnumerateAssociatedInstances(
-                WindowsFirewallSupport.StandardCimNamespace,
+        foreach (WbemObject filter in session.EnumerateAssociatedInstances(
                 ruleInstance,
                 "MSFT_NetFirewallRuleFilterBySecurity",
-                "MSFT_NetNetworkLayerSecurityFilter",
-                null,
-                null))
+                "MSFT_NetNetworkLayerSecurityFilter"))
         {
             return filter;
         }
@@ -67,7 +63,7 @@ internal static class CimHelper
         return candidateNames;
     }
 
-    private static bool MatchesRuleName(CimInstance instance, IReadOnlySet<string> candidateNames)
+    private static bool MatchesRuleName(WbemObject instance, IReadOnlySet<string> candidateNames)
     {
         foreach (string propertyName in new[] { "DisplayName", "ElementName", "PolicyRuleName", "InstanceID", "Name" })
         {
@@ -94,17 +90,12 @@ internal static class CimHelper
         return false;
     }
 
-    private static string GetPropertyValue(CimInstance instance, string propertyName)
-    {
-        CimProperty? property = instance.CimInstanceProperties
-            .FirstOrDefault(item => string.Equals(item.Name, propertyName, StringComparison.OrdinalIgnoreCase));
+    private static string GetPropertyValue(WbemObject instance, string propertyName)
+        => instance.GetValue(propertyName)?.ToString() ?? string.Empty;
 
-        return property?.Value?.ToString() ?? string.Empty;
-    }
-
-    internal static bool ReadBool(CimInstance instance, string propertyName)
+    internal static bool ReadBool(WbemObject instance, string propertyName)
     {
-        object? value = instance.CimInstanceProperties[propertyName]?.Value;
+        object? value = instance.GetValue(propertyName);
         return value switch
         {
             bool boolValue => boolValue,

@@ -549,7 +549,8 @@ public sealed partial class PerformanceMonitorPage : Page
         await ViewModel.LoadCategoriesAsync();
 
         // Create UI components
-        var categoryCombo = new ComboBox { ItemsSource = ViewModel.Categories, DisplayMemberPath = "Name", PlaceholderText = LocalizedStrings.PerfMon_SelectCategory, Width = 400, Margin = new Thickness(0, 0, 0, 16) };
+        // Items render via PerformanceCounterCategoryInfo/CounterInfo.ToString() (no reflection-based DisplayMemberPath).
+        var categoryCombo = new ComboBox { ItemsSource = ViewModel.Categories, PlaceholderText = LocalizedStrings.PerfMon_SelectCategory, Width = 400, Margin = new Thickness(0, 0, 0, 16) };
         var counterList = new ListView { SelectionMode = ListViewSelectionMode.Multiple, Height = 300, Width = 400 };
         var instancePanel = new StackPanel { Margin = new Thickness(0, 16, 0, 0), Visibility = Visibility.Collapsed };
         var instanceCombo = new ComboBox { PlaceholderText = LocalizedStrings.PerfMon_SelectInstance, Width = 400 };
@@ -574,7 +575,6 @@ public sealed partial class PerformanceMonitorPage : Page
             ViewModel.SelectedCategory = cat;
             await ViewModel.LoadCountersForCategoryAsync();
             counterList.ItemsSource = ViewModel.AvailableCounters;
-            counterList.DisplayMemberPath = "Name";
             instanceCombo.ItemsSource = ViewModel.Instances;
             instancePanel.Visibility = ViewModel.Instances.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
             if (ViewModel.Instances.Count > 0) instanceCombo.SelectedIndex = 0;

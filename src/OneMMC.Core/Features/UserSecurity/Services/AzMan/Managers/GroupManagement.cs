@@ -1,4 +1,4 @@
-﻿// ============================================================================
+// ============================================================================
 // AzMan Service - Group Management
 // ============================================================================
 // Group management functions: create, delete, update groups, manage group members
@@ -9,6 +9,8 @@ using System.Security.Principal;
 using System.Threading.Tasks;
 using System;
 using OneMMC.Core.Features.UserSecurity.Models.AzMan;
+using OneMMC.Core.Features.UserSecurity.Services.AzMan.Native;
+using OneMMC.Core.Infrastructure.Interop;
 using Microsoft.Extensions.Logging;
 
 namespace OneMMC.Core.Features.UserSecurity.Services.AzMan;
@@ -24,18 +26,27 @@ internal sealed class GroupManagement
 
     private ILogger<AzManService> _logger => _service.Logger;
 
-    private Task<T> RunStoreReadAsync<T>(string storePath, Func<object, T> func, string errorMessage)
+    private Task<T> RunStoreReadAsync<T>(string storePath, Func<IAzAuthorizationStore3, T> func, string errorMessage)
         => _service.RunStoreReadAsync(storePath, func, errorMessage);
-    private Task<T> RunApplicationReadAsync<T>(string storePath, string appName, Func<object, T> func, string errorMessage)
+    private Task<T> RunApplicationReadAsync<T>(string storePath, string appName, Func<IAzApplication, T> func, string errorMessage)
         => _service.RunApplicationReadAsync(storePath, appName, func, errorMessage);
-    private Task RunStoreWriteAsync(string storePath, Action<dynamic> action, string errorMessage, string? debugMessage = null)
+    private Task RunStoreWriteAsync(string storePath, Action<IAzAuthorizationStore3> action, string errorMessage, string? debugMessage = null)
         => _service.RunStoreWriteAsync(storePath, action, errorMessage, debugMessage);
-    private Task RunApplicationWriteAsync(string storePath, string appName, Action<dynamic> action, string errorMessage, string? debugMessage = null, bool submitStore = false)
+    private Task RunApplicationWriteAsync(string storePath, string appName, Action<IAzApplication> action, string errorMessage, string? debugMessage = null, bool submitStore = false)
         => _service.RunApplicationWriteAsync(storePath, appName, action, errorMessage, debugMessage, submitStore);
-    private Task RunStoreGroupWriteAsync(string storePath, string groupName, Action<dynamic> action, string errorMessage, string? debugMessage = null, bool submitStore = true)
+    private Task RunStoreGroupWriteAsync(string storePath, string groupName, Action<IAzApplicationGroup2> action, string errorMessage, string? debugMessage = null, bool submitStore = true)
         => _service.RunStoreGroupWriteAsync(storePath, groupName, action, errorMessage, debugMessage, submitStore);
-    private Task RunAppGroupWriteAsync(string storePath, string appName, string groupName, Action<dynamic> action, string errorMessage, string? debugMessage = null, bool submitApp = true)
+    private Task RunAppGroupWriteAsync(string storePath, string appName, string groupName, Action<IAzApplicationGroup2> action, string errorMessage, string? debugMessage = null, bool submitApp = true)
         => _service.RunAppGroupWriteAsync(storePath, appName, groupName, action, errorMessage, debugMessage, submitApp);
+
+    /// <summary>Throws when the group is not a Basic group (only Basic groups have editable member lists).</summary>
+    private static void EnsureBasicGroup(IAzApplicationGroup2 group, string groupName)
+    {
+        if (group.get_Type() != AzManService.AZ_GROUPTYPE_BASIC)
+        {
+            throw new AzManException($"Cannot modify members of group '{groupName}' because it is not a Basic group.");
+        }
+    }
 
     #region Group Management
 
@@ -49,34 +60,39 @@ internal sealed class GroupManagement
     /// <param name="ldapQuery">LDAP query (for LDAP query groups only)</param>
     /// <returns>Created group information</returns>
     public async Task<AzApplicationGroupInfo> CreateStoreGroupAsync(
-        string storePath, 
-        string name, 
+        string storePath,
+        string name,
         AzGroupType groupType,
         string description = "",
         string ldapQuery = "")
     {
         return await RunStoreReadAsync(
             storePath,
-            storeObj =>
+            store =>
             {
-                dynamic store = storeObj;
-                dynamic group = store.CreateApplicationGroup(name);
-
-                // Set group type using COM API values (enum values match COM constants)
-                group.Type = (int)groupType;
-
-                if (!string.IsNullOrEmpty(description))
+                store.CreateApplicationGroup(name, Variant.Missing, out IAzApplicationGroup2 group);
+                try
                 {
-                    group.Description = description;
-                }
+                    // Set group type using COM API values (enum values match COM constants)
+                    group.put_Type((int)groupType);
 
-                if (groupType == AzGroupType.LdapQuery && !string.IsNullOrEmpty(ldapQuery))
+                    if (!string.IsNullOrEmpty(description))
+                    {
+                        group.put_Description(description);
+                    }
+
+                    if (groupType == AzGroupType.LdapQuery && !string.IsNullOrEmpty(ldapQuery))
+                    {
+                        group.put_LdapQuery(ldapQuery);
+                    }
+
+                    group.Submit(0, Variant.Missing);
+                    store.Submit(0, Variant.Missing);
+                }
+                finally
                 {
-                    group.LdapQuery = ldapQuery;
+                    AzRolesCom.Release(group);
                 }
-
-                group.Submit();
-                store.Submit();
 
                 _logger.LogInformation("Successfully created store group: {GroupName}", name);
                 return new AzApplicationGroupInfo
@@ -104,26 +120,31 @@ internal sealed class GroupManagement
         return await RunApplicationReadAsync(
             storePath,
             appName,
-            appObj =>
+            app =>
             {
-                dynamic app = appObj;
-                dynamic group = app.CreateApplicationGroup(name);
-
-                // Set group type using COM API values (enum values match COM constants)
-                group.Type = (int)groupType;
-
-                if (!string.IsNullOrEmpty(description))
+                app.CreateApplicationGroup(name, Variant.Missing, out IAzApplicationGroup2 group);
+                try
                 {
-                    group.Description = description;
-                }
+                    // Set group type using COM API values (enum values match COM constants)
+                    group.put_Type((int)groupType);
 
-                if (groupType == AzGroupType.LdapQuery && !string.IsNullOrEmpty(ldapQuery))
+                    if (!string.IsNullOrEmpty(description))
+                    {
+                        group.put_Description(description);
+                    }
+
+                    if (groupType == AzGroupType.LdapQuery && !string.IsNullOrEmpty(ldapQuery))
+                    {
+                        group.put_LdapQuery(ldapQuery);
+                    }
+
+                    group.Submit(0, Variant.Missing);
+                    app.Submit(0, Variant.Missing);
+                }
+                finally
                 {
-                    group.LdapQuery = ldapQuery;
+                    AzRolesCom.Release(group);
                 }
-
-                group.Submit();
-                app.Submit();
 
                 return new AzApplicationGroupInfo
                 {
@@ -143,7 +164,7 @@ internal sealed class GroupManagement
     {
         await RunStoreWriteAsync(
             storePath,
-            store => store.DeleteApplicationGroup(groupName),
+            store => store.DeleteApplicationGroup(groupName, Variant.Missing),
             "Failed to delete group",
             $"[AzManService] Successfully deleted store group: {groupName}");
     }
@@ -156,7 +177,7 @@ internal sealed class GroupManagement
         await RunApplicationWriteAsync(
             storePath,
             appName,
-            app => app.DeleteApplicationGroup(groupName),
+            app => app.DeleteApplicationGroup(groupName, Variant.Missing),
             "Failed to delete application group",
             $"[AzManService] Successfully deleted application group: {groupName}");
     }
@@ -171,12 +192,12 @@ internal sealed class GroupManagement
             groupName,
             group =>
             {
-                group.Description = description;
+                group.put_Description(description);
 
                 // Only LDAP query groups can set LdapQuery
-                if (!string.IsNullOrEmpty(ldapQuery) && (int)group.Type == AzManService.AZ_GROUPTYPE_LDAP_QUERY)
+                if (!string.IsNullOrEmpty(ldapQuery) && group.get_Type() == AzManService.AZ_GROUPTYPE_LDAP_QUERY)
                 {
-                    group.LdapQuery = ldapQuery;
+                    group.put_LdapQuery(ldapQuery);
                 }
             },
             "Failed to update group");
@@ -192,8 +213,8 @@ internal sealed class GroupManagement
             groupName,
             group =>
             {
-                group.BizRuleLanguage = bizRuleLanguage;
-                group.BizRule = bizRule;
+                group.put_BizRuleLanguage(bizRuleLanguage);
+                group.put_BizRule(bizRule);
             },
             "Failed to set group business rule");
     }
@@ -213,18 +234,15 @@ internal sealed class GroupManagement
             groupName,
             group =>
             {
-                if ((int)group.Type != AzManService.AZ_GROUPTYPE_BASIC)
-                {
-                    throw new AzManException($"Cannot modify members of group '{groupName}' because it is not a Basic group.");
-                }
+                EnsureBasicGroup(group, groupName);
 
                 if (isAppGroup)
                 {
-                    group.AddAppMember(memberSid);
+                    group.AddAppMember(memberSid, Variant.Missing);
                 }
                 else
                 {
-                    group.AddMember(memberSid);
+                    group.AddMember(memberSid, Variant.Missing);
                 }
             },
             $"Failed to add group member (SID: {memberSid})");
@@ -245,18 +263,15 @@ internal sealed class GroupManagement
             groupName,
             group =>
             {
-                if ((int)group.Type != AzManService.AZ_GROUPTYPE_BASIC)
-                {
-                    throw new AzManException($"Cannot modify members of group '{groupName}' because it is not a Basic group.");
-                }
+                EnsureBasicGroup(group, groupName);
 
                 if (isAppGroup)
                 {
-                    group.DeleteAppMember(memberSid);
+                    group.DeleteAppMember(memberSid, Variant.Missing);
                 }
                 else
                 {
-                    group.DeleteMember(memberSid);
+                    group.DeleteMember(memberSid, Variant.Missing);
                 }
             },
             "Failed to remove group member");
@@ -275,11 +290,8 @@ internal sealed class GroupManagement
             groupName,
             group =>
             {
-                if ((int)group.Type != AzManService.AZ_GROUPTYPE_BASIC)
-                {
-                    throw new AzManException($"Cannot modify members of group '{groupName}' because it is not a Basic group.");
-                }
-                group.AddMember(memberSid);
+                EnsureBasicGroup(group, groupName);
+                group.AddMember(memberSid, Variant.Missing);
             },
             $"Failed to add group member (SID: {memberSid})");
     }
@@ -297,11 +309,8 @@ internal sealed class GroupManagement
             groupName,
             group =>
             {
-                if ((int)group.Type != AzManService.AZ_GROUPTYPE_BASIC)
-                {
-                    throw new AzManException($"Cannot modify members of group '{groupName}' because it is not a Basic group.");
-                }
-                group.DeleteMember(memberSid);
+                EnsureBasicGroup(group, groupName);
+                group.DeleteMember(memberSid, Variant.Missing);
             },
             "Failed to remove group member");
     }
@@ -317,11 +326,8 @@ internal sealed class GroupManagement
             groupName,
             group =>
             {
-                if ((int)group.Type != AzManService.AZ_GROUPTYPE_BASIC)
-                {
-                    throw new AzManException($"Cannot modify members of group '{groupName}' because it is not a Basic group.");
-                }
-                group.AddAppMember(appGroupName);
+                EnsureBasicGroup(group, groupName);
+                group.AddAppMember(appGroupName, Variant.Missing);
             },
             "Failed to add app member to group",
             $"[AzManService] Added app member '{appGroupName}' to group '{groupName}'");
@@ -338,11 +344,8 @@ internal sealed class GroupManagement
             groupName,
             group =>
             {
-                if ((int)group.Type != AzManService.AZ_GROUPTYPE_BASIC)
-                {
-                    throw new AzManException($"Cannot modify members of group '{groupName}' because it is not a Basic group.");
-                }
-                group.DeleteAppMember(appGroupName);
+                EnsureBasicGroup(group, groupName);
+                group.DeleteAppMember(appGroupName, Variant.Missing);
             },
             "Failed to remove app member from group",
             $"[AzManService] Removed app member '{appGroupName}' from group '{groupName}'");
@@ -363,18 +366,15 @@ internal sealed class GroupManagement
             groupName,
             group =>
             {
-                if ((int)group.Type != AzManService.AZ_GROUPTYPE_BASIC)
-                {
-                    throw new AzManException($"Cannot modify members of group '{groupName}' because it is not a Basic group.");
-                }
+                EnsureBasicGroup(group, groupName);
 
                 if (isAppGroup)
                 {
-                    group.AddAppNonMember(memberSid);
+                    group.AddAppNonMember(memberSid, Variant.Missing);
                 }
                 else
                 {
-                    group.AddNonMember(memberSid);
+                    group.AddNonMember(memberSid, Variant.Missing);
                 }
             },
             "Failed to add group non-member",
@@ -396,18 +396,15 @@ internal sealed class GroupManagement
             groupName,
             group =>
             {
-                if ((int)group.Type != AzManService.AZ_GROUPTYPE_BASIC)
-                {
-                    throw new AzManException($"Cannot modify members of group '{groupName}' because it is not a Basic group.");
-                }
+                EnsureBasicGroup(group, groupName);
 
                 if (isAppGroup)
                 {
-                    group.DeleteAppNonMember(memberSid);
+                    group.DeleteAppNonMember(memberSid, Variant.Missing);
                 }
                 else
                 {
-                    group.DeleteNonMember(memberSid);
+                    group.DeleteNonMember(memberSid, Variant.Missing);
                 }
             },
             "Failed to remove group non-member",
@@ -427,11 +424,8 @@ internal sealed class GroupManagement
             groupName,
             group =>
             {
-                if ((int)group.Type != AzManService.AZ_GROUPTYPE_BASIC)
-                {
-                    throw new AzManException($"Cannot modify members of group '{groupName}' because it is not a Basic group.");
-                }
-                group.AddNonMember(memberSid);
+                EnsureBasicGroup(group, groupName);
+                group.AddNonMember(memberSid, Variant.Missing);
             },
             "Failed to add group non-member",
             $"[AzManService] Added non-member to app group '{groupName}'");
@@ -450,11 +444,8 @@ internal sealed class GroupManagement
             groupName,
             group =>
             {
-                if ((int)group.Type != AzManService.AZ_GROUPTYPE_BASIC)
-                {
-                    throw new AzManException($"Cannot modify members of group '{groupName}' because it is not a Basic group.");
-                }
-                group.DeleteNonMember(memberSid);
+                EnsureBasicGroup(group, groupName);
+                group.DeleteNonMember(memberSid, Variant.Missing);
             },
             "Failed to remove group non-member",
             $"[AzManService] Removed non-member from app group '{groupName}'");
@@ -471,11 +462,8 @@ internal sealed class GroupManagement
             groupName,
             group =>
             {
-                if ((int)group.Type != AzManService.AZ_GROUPTYPE_BASIC)
-                {
-                    throw new AzManException($"Cannot modify members of group '{groupName}' because it is not a Basic group.");
-                }
-                group.AddAppNonMember(appGroupName);
+                EnsureBasicGroup(group, groupName);
+                group.AddAppNonMember(appGroupName, Variant.Missing);
             },
             "Failed to add app non-member to group",
             $"[AzManService] Added app non-member '{appGroupName}' to group '{groupName}'");
@@ -492,11 +480,8 @@ internal sealed class GroupManagement
             groupName,
             group =>
             {
-                if ((int)group.Type != AzManService.AZ_GROUPTYPE_BASIC)
-                {
-                    throw new AzManException($"Cannot modify members of group '{groupName}' because it is not a Basic group.");
-                }
-                group.DeleteAppNonMember(appGroupName);
+                EnsureBasicGroup(group, groupName);
+                group.DeleteAppNonMember(appGroupName, Variant.Missing);
             },
             "Failed to remove app non-member from group",
             $"[AzManService] Removed app non-member '{appGroupName}' from group '{groupName}'");
@@ -513,12 +498,12 @@ internal sealed class GroupManagement
             groupName,
             group =>
             {
-                group.Description = description;
+                group.put_Description(description);
 
                 // Only LDAP query groups can set LdapQuery
-                if (!string.IsNullOrEmpty(ldapQuery) && (int)group.Type == AzManService.AZ_GROUPTYPE_LDAP_QUERY)
+                if (!string.IsNullOrEmpty(ldapQuery) && group.get_Type() == AzManService.AZ_GROUPTYPE_LDAP_QUERY)
                 {
-                    group.LdapQuery = ldapQuery;
+                    group.put_LdapQuery(ldapQuery);
                 }
             },
             "Failed to update application group",
@@ -536,8 +521,8 @@ internal sealed class GroupManagement
             groupName,
             group =>
             {
-                group.BizRuleLanguage = bizRuleLanguage;
-                group.BizRule = bizRule;
+                group.put_BizRuleLanguage(bizRuleLanguage);
+                group.put_BizRule(bizRule);
             },
             "Failed to set application group business rule",
             $"[AzManService] Updated business rule for app group '{groupName}'");
@@ -565,5 +550,3 @@ internal sealed class GroupManagement
         }
     }
 }
-
-

@@ -17,7 +17,7 @@ namespace OneMMC.Core.Features.PolicyManagement.Services.GpEdit.Manager
     /// Provides policy management using direct registry access.
     /// This is the primary mode for Windows Home editions or when direct registry access is preferred.
     /// </summary>
-    public sealed class RegistryPolicyService : IPolicyService
+    public sealed partial class RegistryPolicyService : IPolicyService
     {
         private static ILogger _logger = NullLogger.Instance;
         private readonly string _rootKeyPath;

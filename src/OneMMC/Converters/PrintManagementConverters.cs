@@ -10,7 +10,7 @@ namespace OneMMC.Converters;
 /// <summary>
 /// Converter for formatting print form size display.
 /// </summary>
-public class PrintFormSizeConverter : IValueConverter
+public partial class PrintFormSizeConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, string language)
     {
@@ -33,7 +33,7 @@ public class PrintFormSizeConverter : IValueConverter
 /// <summary>
 /// Converter for formatting print port printer display.
 /// </summary>
-public class PrintPortPrinterConverter : IValueConverter
+public partial class PrintPortPrinterConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, string language)
     {
@@ -55,7 +55,7 @@ public class PrintPortPrinterConverter : IValueConverter
 /// <summary>
 /// Converter that returns Visible when collection count is 0, Collapsed otherwise.
 /// </summary>
-public class CollectionEmptyToVisibilityConverter : IValueConverter
+public partial class CollectionEmptyToVisibilityConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, string language)
     {
@@ -79,7 +79,7 @@ public class CollectionEmptyToVisibilityConverter : IValueConverter
 /// <summary>
 /// Converter that returns Collapsed when collection count is 0, Visible otherwise.
 /// </summary>
-public class CollectionNotEmptyToVisibilityConverter : IValueConverter
+public partial class CollectionNotEmptyToVisibilityConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, string language)
     {
@@ -103,7 +103,7 @@ public class CollectionNotEmptyToVisibilityConverter : IValueConverter
 /// <summary>
 /// Converter for GPO printer deployment connection type display.
 /// </summary>
-public class GpoPrinterConnectionTypeConverter : IValueConverter
+public partial class GpoPrinterConnectionTypeConverter : IValueConverter
 {
     public object Convert(object value, Type targetType, object parameter, string language)
     {

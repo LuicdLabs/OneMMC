@@ -1,4 +1,4 @@
-﻿// ============================================================================
+// ============================================================================
 // AzMan Service - Operation Management
 // ============================================================================
 // Operation management functions: create, delete, update operations
@@ -8,6 +8,8 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System;
 using OneMMC.Core.Features.UserSecurity.Models.AzMan;
+using OneMMC.Core.Features.UserSecurity.Services.AzMan.Native;
+using OneMMC.Core.Infrastructure.Interop;
 using Microsoft.Extensions.Logging;
 
 namespace OneMMC.Core.Features.UserSecurity.Services.AzMan;
@@ -23,11 +25,11 @@ internal sealed class OperationManagement
 
     private ILogger<AzManService> _logger => _service.Logger;
 
-    private Task<T> RunApplicationReadAsync<T>(string storePath, string appName, Func<object, T> func, string errorMessage)
+    private Task<T> RunApplicationReadAsync<T>(string storePath, string appName, Func<IAzApplication, T> func, string errorMessage)
         => _service.RunApplicationReadAsync(storePath, appName, func, errorMessage);
-    private Task RunApplicationWriteAsync(string storePath, string appName, Action<dynamic> action, string errorMessage, string? debugMessage = null, bool submitStore = false)
+    private Task RunApplicationWriteAsync(string storePath, string appName, Action<IAzApplication> action, string errorMessage, string? debugMessage = null, bool submitStore = false)
         => _service.RunApplicationWriteAsync(storePath, appName, action, errorMessage, debugMessage, submitStore);
-    private Task RunOperationWriteAsync(string storePath, string appName, string operationName, Action<dynamic> action, string errorMessage, string? debugMessage = null)
+    private Task RunOperationWriteAsync(string storePath, string appName, string operationName, Action<IAzOperation> action, string errorMessage, string? debugMessage = null)
         => _service.RunOperationWriteAsync(storePath, appName, operationName, action, errorMessage, debugMessage);
 
     #region Operation Management
@@ -45,14 +47,20 @@ internal sealed class OperationManagement
         return await RunApplicationReadAsync(
             storePath,
             appName,
-            appObj =>
+            app =>
             {
-                dynamic app = appObj;
-                dynamic operation = app.CreateOperation(name);
-                operation.Description = description;
-                operation.OperationID = operationId;
-                operation.Submit();
-                app.Submit();
+                app.CreateOperation(name, Variant.Missing, out IAzOperation operation);
+                try
+                {
+                    operation.put_Description(description);
+                    operation.put_OperationID(operationId);
+                    operation.Submit(0, Variant.Missing);
+                    app.Submit(0, Variant.Missing);
+                }
+                finally
+                {
+                    AzRolesCom.Release(operation);
+                }
 
                 _logger.LogInformation("Created operation {OperationName} with ID {OperationId}", name, operationId);
                 return new AzOperationInfo
@@ -73,7 +81,7 @@ internal sealed class OperationManagement
         await RunApplicationWriteAsync(
             storePath,
             appName,
-            app => app.DeleteOperation(operationName),
+            app => app.DeleteOperation(operationName, Variant.Missing),
             "Failed to delete operation",
             $"[AzManService] Deleted operation '{operationName}'");
     }
@@ -89,14 +97,14 @@ internal sealed class OperationManagement
             operationName,
             operation =>
             {
-                operation.Description = description;
+                operation.put_Description(description);
                 if (applicationData != null)
                 {
-                    operation.ApplicationData = applicationData;
+                    operation.put_ApplicationData(applicationData);
                 }
                 if (operationId.HasValue)
                 {
-                    operation.OperationID = operationId.Value;
+                    operation.put_OperationID(operationId.Value);
                 }
             },
             "Failed to update operation",
@@ -111,18 +119,23 @@ internal sealed class OperationManagement
         return await RunApplicationReadAsync(
             storePath,
             appName,
-            appObj =>
+            app =>
             {
-                dynamic app = appObj;
-                dynamic operation = app.OpenOperation(operationName);
-
-                return new AzOperationInfo
+                app.OpenOperation(operationName, Variant.Missing, out IAzOperation operation);
+                try
                 {
-                    Name = ComPropertyAccessor.GetString(operation, "Name"),
-                    Description = ComPropertyAccessor.GetString(operation, "Description"),
-                    OperationId = ComPropertyAccessor.GetInt(operation, "OperationID"),
-                    ApplicationData = ComPropertyAccessor.GetString(operation, "ApplicationData")
-                };
+                    return new AzOperationInfo
+                    {
+                        Name = operation.get_Name() ?? string.Empty,
+                        Description = operation.get_Description() ?? string.Empty,
+                        OperationId = operation.get_OperationID(),
+                        ApplicationData = operation.get_ApplicationData() ?? string.Empty
+                    };
+                }
+                finally
+                {
+                    AzRolesCom.Release(operation);
+                }
             },
             "Failed to get operation");
     }
@@ -135,19 +148,14 @@ internal sealed class OperationManagement
         return await RunApplicationReadAsync(
             storePath,
             appName,
-            appObj =>
+            app =>
             {
                 int maxId = 0;
-                var operations = ComPropertyAccessor.GetCollection(appObj, "Operations", (object op) =>
+                foreach (int id in ReadOperationIds(app))
                 {
-                    return new { Id = ComPropertyAccessor.GetInt(op, "OperationID") };
-                });
-
-                foreach (var op in operations)
-                {
-                    if (op.Id > maxId)
+                    if (id > maxId)
                     {
-                        maxId = op.Id;
+                        maxId = id;
                     }
                 }
 
@@ -164,16 +172,11 @@ internal sealed class OperationManagement
         return await RunApplicationReadAsync(
             storePath,
             appName,
-            appObj =>
+            app =>
             {
-                var operations = ComPropertyAccessor.GetCollection(appObj, "Operations", (object op) =>
+                foreach (int id in ReadOperationIds(app))
                 {
-                    return new { Id = ComPropertyAccessor.GetInt(op, "OperationID") };
-                });
-
-                foreach (var op in operations)
-                {
-                    if (op.Id == operationId)
+                    if (id == operationId)
                     {
                         return true;
                     }
@@ -183,7 +186,35 @@ internal sealed class OperationManagement
             "Failed to check operation ID");
     }
 
+    /// <summary>Reads every operation's OperationID; unreadable entries are skipped.</summary>
+    private List<int> ReadOperationIds(IAzApplication app)
+    {
+        var result = new List<int>();
+        app.get_Operations(out IAzOperations operations);
+        try
+        {
+            foreach (IAzOperation op in operations.Items())
+            {
+                try
+                {
+                    result.Add(op.get_OperationID());
+                }
+                catch (COMException ex)
+                {
+                    _logger.LogDebug("[AzManService] Failed to read OperationID: {Message}", ex.Message);
+                }
+                finally
+                {
+                    AzRolesCom.Release(op);
+                }
+            }
+        }
+        finally
+        {
+            AzRolesCom.Release(operations);
+        }
+        return result;
+    }
+
     #endregion
 }
-
-

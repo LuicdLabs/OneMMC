@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
-using System.Management;
 using OneMMC.Core.Features.PCManagement.Models.DiskMgmt;
 using OneMMC.Core.Features.PCManagement.Services.DiskMgmt.Common;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using WmiLight;
 
 namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
 {
@@ -88,8 +88,8 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
         {
             try
             {
-                var scope = new ManagementScope(DiskManagementConstants.StorageWmiScope);
-                scope.Connect();
+                using var connection = new WmiConnection(DiskManagementConstants.StorageWmiScope);
+                connection.Open();
                 DiagnosticLogger.LogInfo("Disk rescan completed â€” WMI scope reconnected.");
             }
             catch (Exception ex)

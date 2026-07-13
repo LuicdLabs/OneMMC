@@ -68,14 +68,14 @@
                           SelectionMode="Single"
                           Padding="4">
                     <ListView.ItemTemplate>
-                        <DataTemplate>
+                        <DataTemplate x:DataType="x:String">
                             <Grid Padding="8,4" ColumnSpacing="12">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="*" />
                                 </Grid.ColumnDefinitions>
                                 <FontIcon Grid.Column="0" Glyph="&#xE77B;" FontSize="16" />
-                                <TextBlock Grid.Column="1" Text="{Binding}" VerticalAlignment="Center" />
+                                <TextBlock Grid.Column="1" Text="{x:Bind}" VerticalAlignment="Center" />
                             </Grid>
                         </DataTemplate>
                     </ListView.ItemTemplate>

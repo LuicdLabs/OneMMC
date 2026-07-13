@@ -9,7 +9,6 @@
     mc:Ignorable="d">
 
     <UserControl.Resources>
-        <local:LocalizedStrings x:Key="LocalizedStrings" />
     </UserControl.Resources>
 
     <Grid MinWidth="520" MinHeight="440">
@@ -22,15 +21,15 @@
 
         <!-- Endpoint 1 -->
         <StackPanel Grid.Row="0" Margin="0,0,0,8" Spacing="8">
-            <TextBlock FontWeight="SemiBold" Text="{Binding WF_RemoteEndpoints_Endpoint1, Source={StaticResource LocalizedStrings}}" />
+            <TextBlock FontWeight="SemiBold" Text="{x:Bind local:LocalizedStrings.Instance.WF_RemoteEndpoints_Endpoint1}" />
             <RadioButton
                 x:Name="Endpoint1AnyRadio"
-                Content="{Binding WF_Common_AnyIPAddress, Source={StaticResource LocalizedStrings}}"
+                Content="{x:Bind local:LocalizedStrings.Instance.WF_Common_AnyIPAddress}"
                 GroupName="Endpoint1Group"
                 IsChecked="True" />
             <RadioButton
                 x:Name="Endpoint1SpecificRadio"
-                Content="{Binding WF_Common_TheseIPAddresses, Source={StaticResource LocalizedStrings}}"
+                Content="{x:Bind local:LocalizedStrings.Instance.WF_Common_TheseIPAddresses}"
                 GroupName="Endpoint1Group" />
         </StackPanel>
 
@@ -57,24 +56,24 @@
                     Background="{ThemeResource SubtleFillColorSecondaryBrush}"
                     Orientation="Horizontal"
                     Spacing="8">
-                    <Button x:Name="Endpoint1AddButton" Content="{Binding Common_AddButton, Source={StaticResource LocalizedStrings}}" IsEnabled="False" Click="Endpoint1AddButton_Click" />
-                    <Button x:Name="Endpoint1EditButton" Content="{Binding Common_EditButton, Source={StaticResource LocalizedStrings}}" IsEnabled="False" Click="Endpoint1EditButton_Click" />
-                    <Button x:Name="Endpoint1DeleteButton" Content="{Binding Common_DeleteButton, Source={StaticResource LocalizedStrings}}" IsEnabled="False" Click="Endpoint1DeleteButton_Click" />
+                    <Button x:Name="Endpoint1AddButton" Content="{x:Bind local:LocalizedStrings.Instance.Common_AddButton}" IsEnabled="False" Click="Endpoint1AddButton_Click" />
+                    <Button x:Name="Endpoint1EditButton" Content="{x:Bind local:LocalizedStrings.Instance.Common_EditButton}" IsEnabled="False" Click="Endpoint1EditButton_Click" />
+                    <Button x:Name="Endpoint1DeleteButton" Content="{x:Bind local:LocalizedStrings.Instance.Common_DeleteButton}" IsEnabled="False" Click="Endpoint1DeleteButton_Click" />
                 </StackPanel>
             </Grid>
         </Border>
 
         <!-- Endpoint 2 -->
         <StackPanel Grid.Row="2" Margin="0,12,0,8" Spacing="8">
-            <TextBlock FontWeight="SemiBold" Text="{Binding WF_RemoteEndpoints_Endpoint2, Source={StaticResource LocalizedStrings}}" />
+            <TextBlock FontWeight="SemiBold" Text="{x:Bind local:LocalizedStrings.Instance.WF_RemoteEndpoints_Endpoint2}" />
             <RadioButton
                 x:Name="Endpoint2AnyRadio"
-                Content="{Binding WF_Common_AnyIPAddress, Source={StaticResource LocalizedStrings}}"
+                Content="{x:Bind local:LocalizedStrings.Instance.WF_Common_AnyIPAddress}"
                 GroupName="Endpoint2Group"
                 IsChecked="True" />
             <RadioButton
                 x:Name="Endpoint2SpecificRadio"
-                Content="{Binding WF_Common_TheseIPAddresses, Source={StaticResource LocalizedStrings}}"
+                Content="{x:Bind local:LocalizedStrings.Instance.WF_Common_TheseIPAddresses}"
                 GroupName="Endpoint2Group" />
         </StackPanel>
 
@@ -101,9 +100,9 @@
                     Background="{ThemeResource SubtleFillColorSecondaryBrush}"
                     Orientation="Horizontal"
                     Spacing="8">
-                    <Button x:Name="Endpoint2AddButton" Content="{Binding Common_AddButton, Source={StaticResource LocalizedStrings}}" IsEnabled="False" Click="Endpoint2AddButton_Click" />
-                    <Button x:Name="Endpoint2EditButton" Content="{Binding Common_EditButton, Source={StaticResource LocalizedStrings}}" IsEnabled="False" Click="Endpoint2EditButton_Click" />
-                    <Button x:Name="Endpoint2DeleteButton" Content="{Binding Common_DeleteButton, Source={StaticResource LocalizedStrings}}" IsEnabled="False" Click="Endpoint2DeleteButton_Click" />
+                    <Button x:Name="Endpoint2AddButton" Content="{x:Bind local:LocalizedStrings.Instance.Common_AddButton}" IsEnabled="False" Click="Endpoint2AddButton_Click" />
+                    <Button x:Name="Endpoint2EditButton" Content="{x:Bind local:LocalizedStrings.Instance.Common_EditButton}" IsEnabled="False" Click="Endpoint2EditButton_Click" />
+                    <Button x:Name="Endpoint2DeleteButton" Content="{x:Bind local:LocalizedStrings.Instance.Common_DeleteButton}" IsEnabled="False" Click="Endpoint2DeleteButton_Click" />
                 </StackPanel>
             </Grid>
         </Border>

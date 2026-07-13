@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.Runtime.InteropServices;
-using System.Text;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -19,7 +18,7 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
     /// string references (<c>@wsecedit.dll,-59001</c>) used in <c>sceregvl.inf</c>.
     /// </para>
     /// </summary>
-    public sealed class SecurityPolicyResourceLoader : IDisposable
+    public sealed partial class SecurityPolicyResourceLoader : IDisposable
     {
         private IntPtr _wseceditHandle = IntPtr.Zero;
         private bool _disposed;
@@ -64,16 +63,16 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
                 if (_wseceditHandle == IntPtr.Zero)
                     return null;
 
-                var sb = new StringBuilder(8192);
+                char[] buffer = new char[8192];
                 int length = SecurityPolicyNativeMethods.LoadString(
                     _wseceditHandle,
                     (uint)resourceId,
-                    sb,
-                    sb.Capacity);
+                    buffer,
+                    buffer.Length);
 
                 if (length > 0)
                 {
-                    return sb.ToString();
+                    return new string(buffer, 0, length);
                 }
 
                 if (logNotFound)
@@ -203,11 +202,13 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
 
         private static bool TryResolveIndirectStringCore(string source, out string? resolved)
         {
-            var sb = new StringBuilder(1024);
-            int hr = SecurityPolicyNativeMethods.SHLoadIndirectString(source, sb, (uint)sb.Capacity, IntPtr.Zero);
+            char[] buffer = new char[1024];
+            int hr = SecurityPolicyNativeMethods.SHLoadIndirectString(source, buffer, (uint)buffer.Length, IntPtr.Zero);
             if (hr == 0)
             {
-                string result = sb.ToString();
+                // The buffer is filled null-terminated; take everything up to the first NUL.
+                int end = Array.IndexOf(buffer, '\0');
+                string result = new string(buffer, 0, end >= 0 ? end : buffer.Length);
                 if (!string.IsNullOrEmpty(result))
                 {
                     resolved = result;
@@ -349,10 +350,11 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
                 return null;
 
             int bufferLength = 0;
+            Span<char> probe = stackalloc char[1];
             _ = SecurityPolicyNativeMethods.LookupPrivilegeDisplayName(
                 null,
                 privilegeConstant,
-                new StringBuilder(1),
+                probe,
                 ref bufferLength,
                 out _);
 
@@ -360,7 +362,7 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
             if (lastError != SecurityPolicyNativeMethods.ERROR_INSUFFICIENT_BUFFER || bufferLength <= 0)
                 return null;
 
-            var buffer = new StringBuilder(bufferLength + 1);
+            char[] buffer = new char[bufferLength + 1];
             if (!SecurityPolicyNativeMethods.LookupPrivilegeDisplayName(
                 null,
                 privilegeConstant,
@@ -371,7 +373,7 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
                 return null;
             }
 
-            var displayName = buffer.ToString().Trim();
+            var displayName = new string(buffer, 0, bufferLength).Trim();
             return string.IsNullOrEmpty(displayName) ? null : displayName;
         }
 

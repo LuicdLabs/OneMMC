@@ -5,6 +5,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="using:CommunityToolkit.WinUI.Controls"
     xmlns:converters="using:OneMMC.Converters"
+    xmlns:ctl="using:OneMMC.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="using:OneMMC.Views"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -16,6 +17,7 @@
         <converters:NullToBoolConverter x:Key="NullToBoolConverter" />
         <converters:NullToVisibilityConverter x:Key="NullToVisibilityConverter" />
         <converters:LevelToColorConverter x:Key="LevelToColorConverter" />
+        <converters:LevelToGlyphConverter x:Key="LevelToGlyphConverter" />
         <Style x:Key="SecondaryTextBlockStyle" TargetType="TextBlock">
             <Setter Property="Foreground" Value="{ThemeResource TextFillColorSecondaryBrush}" />
         </Style>
@@ -100,7 +102,7 @@
             </Border>
 
             <!--  GridSplitter  -->
-            <controls:GridSplitter
+            <ctl:AotGridSplitter
                 Grid.Column="1"
                 Width="12"
                 ResizeBehavior="BasedOnAlignment"
@@ -141,55 +143,56 @@
                     </Grid>
 
                     <!--  Events ListView  -->
+                    <!--  The ViewModel's Events collection implements ISupportIncrementalLoading,
+                          so the ListView pulls older batches itself: prefetching starts two
+                          viewports before the end, and continues automatically while a text
+                          filter leaves the viewport unfilled (background search).  -->
                     <ListView
                         x:Name="EventsListView"
                         Grid.Row="1"
                         Margin="12,0,12,0"
+                        DataFetchSize="2"
+                        IncrementalLoadingThreshold="2"
+                        IncrementalLoadingTrigger="Edge"
                         ItemsSource="{x:Bind ViewModel.Events, Mode=OneWay}"
                         SelectedItem="{x:Bind ViewModel.SelectedEvent, Mode=TwoWay}"
-                        SelectionMode="Single"
-                        Loaded="EventsListView_Loaded">
+                        SelectionMode="Single">
                         <ListView.ItemTemplate>
                             <DataTemplate x:DataType="models:EventLogEntry">
-                                <Grid Padding="4,6" ColumnSpacing="10">
+                                <Grid Padding="4,4" ColumnSpacing="10">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto" />
                                         <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
                                     </Grid.ColumnDefinitions>
 
-                                    <!--  Level indicator  -->
-                                    <Border
+                                    <!--  Severity icon (replaces redundant level text line)  -->
+                                    <FontIcon
                                         Grid.Column="0"
-                                        Width="4"
-                                        Height="36"
                                         VerticalAlignment="Center"
-                                        Background="{x:Bind Level, Converter={StaticResource LevelToColorConverter}}"
-                                        CornerRadius="2" />
+                                        FontSize="18"
+                                        Foreground="{x:Bind Level, Converter={StaticResource LevelToColorConverter}}"
+                                        Glyph="{x:Bind Level, Converter={StaticResource LevelToGlyphConverter}}"
+                                        ToolTipService.ToolTip="{x:Bind LocalizedLevel}" />
 
                                     <!--  Event content  -->
-                                    <StackPanel Grid.Column="1" Spacing="2">
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="Auto" />
-                                                <ColumnDefinition Width="*" />
-                                            </Grid.ColumnDefinitions>
-                                            <TextBlock
-                                                Grid.Column="0"
-                                                FontWeight="SemiBold"
-                                                Text="{x:Bind LocalizedLevel}" />
-                                            <TextBlock
-                                                Grid.Column="1"
-                                                HorizontalAlignment="Right"
-                                                FontSize="12"
-                                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                                Text="{x:Bind TimeCreated}" />
-                                        </Grid>
+                                    <StackPanel
+                                        Grid.Column="1"
+                                        VerticalAlignment="Center"
+                                        Spacing="2">
                                         <TextBlock
-                                            FontSize="12"
-                                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                            FontWeight="SemiBold"
                                             Text="{x:Bind SummaryLine}"
                                             TextTrimming="CharacterEllipsis" />
                                     </StackPanel>
+
+                                    <!--  Timestamp  -->
+                                    <TextBlock
+                                        Grid.Column="2"
+                                        VerticalAlignment="Center"
+                                        FontSize="12"
+                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                        Text="{x:Bind TimeCreated}" />
                                 </Grid>
                             </DataTemplate>
                         </ListView.ItemTemplate>
@@ -207,7 +210,7 @@
                 </Grid>
 
                 <!--  GridSplitter  -->
-                <controls:GridSplitter
+                <ctl:AotGridSplitter
                     Grid.Row="1"
                     Height="12"
                     HorizontalAlignment="Stretch"

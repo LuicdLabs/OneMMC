@@ -12,7 +12,6 @@
     mc:Ignorable="d">
 
     <Page.Resources>
-        <local:LocalizedStrings x:Key="LocalizedStrings" />
         <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
         <converters:NullToBoolConverter x:Key="NullToBoolConverter" />
         <converters:StringVisibilityConverter x:Key="StringVisibilityConverter" />
@@ -104,8 +103,8 @@
                                 <!-- Toggle -->
                                 <ToggleSwitch
                                     IsOn="{x:Bind Enabled, Mode=OneWay}"
-                                    OnContent="{Binding WF_State_On, Source={StaticResource LocalizedStrings}}"
-                                    OffContent="{Binding WF_State_Off, Source={StaticResource LocalizedStrings}}"
+                                    OnContent="{x:Bind local:LocalizedStrings.Instance.WF_State_On}"
+                                    OffContent="{x:Bind local:LocalizedStrings.Instance.WF_State_Off}"
                                     MinWidth="0"
                                     Loaded="RuleToggle_Loaded"
                                     Toggled="RuleToggle_Toggled"

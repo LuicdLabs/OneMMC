@@ -16,7 +16,6 @@
     Style="{StaticResource DefaultContentDialogStyle}">
 
     <ContentDialog.Resources>
-        <localization:LocalizedStrings x:Key="LocalizedStrings" />
     </ContentDialog.Resources>
 
     <Grid MinWidth="450" MinHeight="350">

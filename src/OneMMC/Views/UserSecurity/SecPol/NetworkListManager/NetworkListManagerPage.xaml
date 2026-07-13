@@ -12,7 +12,6 @@
     mc:Ignorable="d">
 
     <Page.Resources>
-        <localization:LocalizedStrings x:Key="LocalizedStringsResource" />
         <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
     </Page.Resources>
 
@@ -80,13 +79,13 @@
                                 </controls:SettingsExpander.HeaderIcon>
                                 <controls:SettingsExpander.Items>
                                     <controls:SettingsCard
-                                        Header="{Binding Source={StaticResource LocalizedStringsResource}, Path=NetworkListManager_NetworkName_Header}"
+                                        Header="{x:Bind localization:LocalizedStrings.Instance.NetworkListManager_NetworkName_Header}"
                                         HeaderIcon="{x:Null}"
                                         Visibility="{x:Bind IsIdentifiedNetwork, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}">
                                         <StackPanel HorizontalAlignment="Left" Spacing="8">
                                             <Button
                                                 Click="NetworkNameConfigure_Click"
-                                                Content="{Binding Source={StaticResource LocalizedStringsResource}, Path=NetworkListManager_ConfigureButton}"
+                                                Content="{x:Bind localization:LocalizedStrings.Instance.NetworkListManager_ConfigureButton}"
                                                 Width="120" />
                                             <TextBlock
                                                 Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}"
@@ -96,7 +95,7 @@
                                     </controls:SettingsCard>
 
                                     <controls:SettingsCard
-                                        Header="{Binding Source={StaticResource LocalizedStringsResource}, Path=NetworkListManager_NetworkNameUserPermissions_Header}"
+                                        Header="{x:Bind localization:LocalizedStrings.Instance.NetworkListManager_NetworkNameUserPermissions_Header}"
                                         HeaderIcon="{x:Null}"
                                         Visibility="{x:Bind IsIdentifiedNetwork, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}">
                                         <ComboBox
@@ -104,20 +103,20 @@
                                             SelectedIndex="{x:Bind NamePermissionIndex, Mode=TwoWay}"
                                             SelectionChanged="PolicyComboBox_SelectionChanged"
                                             Tag="NamePermission">
-                                            <ComboBoxItem Content="{Binding Source={StaticResource LocalizedStringsResource}, Path=Policy_State_NotConfigured}" />
-                                            <ComboBoxItem Content="{Binding Source={StaticResource LocalizedStringsResource}, Path=NetworkListManager_UserCanChangeName}" />
-                                            <ComboBoxItem Content="{Binding Source={StaticResource LocalizedStringsResource}, Path=NetworkListManager_UserCannotChangeName}" />
+                                            <ComboBoxItem Content="{x:Bind localization:LocalizedStrings.Instance.Policy_State_NotConfigured}" />
+                                            <ComboBoxItem Content="{x:Bind localization:LocalizedStrings.Instance.NetworkListManager_UserCanChangeName}" />
+                                            <ComboBoxItem Content="{x:Bind localization:LocalizedStrings.Instance.NetworkListManager_UserCannotChangeName}" />
                                         </ComboBox>
                                     </controls:SettingsCard>
 
                                     <controls:SettingsCard
-                                        Header="{Binding Source={StaticResource LocalizedStringsResource}, Path=NetworkListManager_NetworkIcon_Header}"
+                                        Header="{x:Bind localization:LocalizedStrings.Instance.NetworkListManager_NetworkIcon_Header}"
                                         HeaderIcon="{x:Null}"
                                         Visibility="{x:Bind IsIdentifiedNetwork, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}">
                                         <StackPanel HorizontalAlignment="Left" Spacing="8">
                                             <Button
                                                 Click="NetworkIconConfigure_Click"
-                                                Content="{Binding Source={StaticResource LocalizedStringsResource}, Path=NetworkListManager_ConfigureButton}"
+                                                Content="{x:Bind localization:LocalizedStrings.Instance.NetworkListManager_ConfigureButton}"
                                                 Width="120" />
                                             <TextBlock
                                                 Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}"
@@ -127,7 +126,7 @@
                                     </controls:SettingsCard>
 
                                     <controls:SettingsCard
-                                        Header="{Binding Source={StaticResource LocalizedStringsResource}, Path=NetworkListManager_NetworkIconUserPermissions_Header}"
+                                        Header="{x:Bind localization:LocalizedStrings.Instance.NetworkListManager_NetworkIconUserPermissions_Header}"
                                         HeaderIcon="{x:Null}"
                                         Visibility="{x:Bind IsIdentifiedNetwork, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}">
                                         <ComboBox
@@ -135,14 +134,14 @@
                                             SelectedIndex="{x:Bind IconPermissionIndex, Mode=TwoWay}"
                                             SelectionChanged="PolicyComboBox_SelectionChanged"
                                             Tag="IconPermission">
-                                            <ComboBoxItem Content="{Binding Source={StaticResource LocalizedStringsResource}, Path=Policy_State_NotConfigured}" />
-                                            <ComboBoxItem Content="{Binding Source={StaticResource LocalizedStringsResource}, Path=NetworkListManager_UserCanChangeIcon}" />
-                                            <ComboBoxItem Content="{Binding Source={StaticResource LocalizedStringsResource}, Path=NetworkListManager_UserCannotChangeIcon}" />
+                                            <ComboBoxItem Content="{x:Bind localization:LocalizedStrings.Instance.Policy_State_NotConfigured}" />
+                                            <ComboBoxItem Content="{x:Bind localization:LocalizedStrings.Instance.NetworkListManager_UserCanChangeIcon}" />
+                                            <ComboBoxItem Content="{x:Bind localization:LocalizedStrings.Instance.NetworkListManager_UserCannotChangeIcon}" />
                                         </ComboBox>
                                     </controls:SettingsCard>
 
                                     <controls:SettingsCard
-                                        Header="{Binding Source={StaticResource LocalizedStringsResource}, Path=NetworkListManager_NetworkLocationType_Header}"
+                                        Header="{x:Bind localization:LocalizedStrings.Instance.NetworkListManager_NetworkLocationType_Header}"
                                         HeaderIcon="{x:Null}"
                                         Visibility="{x:Bind ShowsLocationType, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}">
                                         <ComboBox
@@ -150,14 +149,14 @@
                                             SelectedIndex="{x:Bind LocationTypeIndex, Mode=TwoWay}"
                                             SelectionChanged="PolicyComboBox_SelectionChanged"
                                             Tag="LocationType">
-                                            <ComboBoxItem Content="{Binding Source={StaticResource LocalizedStringsResource}, Path=Policy_State_NotConfigured}" />
-                                            <ComboBoxItem Content="{Binding Source={StaticResource LocalizedStringsResource}, Path=NetworkListManager_Private_Option}" />
-                                            <ComboBoxItem Content="{Binding Source={StaticResource LocalizedStringsResource}, Path=NetworkListManager_Public_Option}" />
+                                            <ComboBoxItem Content="{x:Bind localization:LocalizedStrings.Instance.Policy_State_NotConfigured}" />
+                                            <ComboBoxItem Content="{x:Bind localization:LocalizedStrings.Instance.NetworkListManager_Private_Option}" />
+                                            <ComboBoxItem Content="{x:Bind localization:LocalizedStrings.Instance.NetworkListManager_Public_Option}" />
                                         </ComboBox>
                                     </controls:SettingsCard>
 
                                     <controls:SettingsCard
-                                        Header="{Binding Source={StaticResource LocalizedStringsResource}, Path=NetworkListManager_NetworkLocationTypeUserPermissions_Header}"
+                                        Header="{x:Bind localization:LocalizedStrings.Instance.NetworkListManager_NetworkLocationTypeUserPermissions_Header}"
                                         HeaderIcon="{x:Null}"
                                         Visibility="{x:Bind ShowsLocationPermission, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}">
                                         <ComboBox
@@ -165,14 +164,14 @@
                                             SelectedIndex="{x:Bind LocationPermissionIndex, Mode=TwoWay}"
                                             SelectionChanged="PolicyComboBox_SelectionChanged"
                                             Tag="LocationPermission">
-                                            <ComboBoxItem Content="{Binding Source={StaticResource LocalizedStringsResource}, Path=Policy_State_NotConfigured}" />
-                                            <ComboBoxItem Content="{Binding Source={StaticResource LocalizedStringsResource}, Path=NetworkListManager_UserCanChangeLocation}" />
-                                            <ComboBoxItem Content="{Binding Source={StaticResource LocalizedStringsResource}, Path=NetworkListManager_UserCannotChangeLocation}" />
+                                            <ComboBoxItem Content="{x:Bind localization:LocalizedStrings.Instance.Policy_State_NotConfigured}" />
+                                            <ComboBoxItem Content="{x:Bind localization:LocalizedStrings.Instance.NetworkListManager_UserCanChangeLocation}" />
+                                            <ComboBoxItem Content="{x:Bind localization:LocalizedStrings.Instance.NetworkListManager_UserCannotChangeLocation}" />
                                         </ComboBox>
                                     </controls:SettingsCard>
 
                                     <controls:SettingsCard
-                                        Header="{Binding Source={StaticResource LocalizedStringsResource}, Path=NetworkListManager_AllNetworksName_Header}"
+                                        Header="{x:Bind localization:LocalizedStrings.Instance.NetworkListManager_AllNetworksName_Header}"
                                         HeaderIcon="{x:Null}"
                                         Visibility="{x:Bind IsAllNetworks, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}">
                                         <ComboBox
@@ -180,14 +179,14 @@
                                             SelectedIndex="{x:Bind NamePermissionIndex, Mode=TwoWay}"
                                             SelectionChanged="PolicyComboBox_SelectionChanged"
                                             Tag="NamePermission">
-                                            <ComboBoxItem Content="{Binding Source={StaticResource LocalizedStringsResource}, Path=Policy_State_NotConfigured}" />
-                                            <ComboBoxItem Content="{Binding Source={StaticResource LocalizedStringsResource}, Path=NetworkListManager_UserCanChangeName}" />
-                                            <ComboBoxItem Content="{Binding Source={StaticResource LocalizedStringsResource}, Path=NetworkListManager_UserCannotChangeName}" />
+                                            <ComboBoxItem Content="{x:Bind localization:LocalizedStrings.Instance.Policy_State_NotConfigured}" />
+                                            <ComboBoxItem Content="{x:Bind localization:LocalizedStrings.Instance.NetworkListManager_UserCanChangeName}" />
+                                            <ComboBoxItem Content="{x:Bind localization:LocalizedStrings.Instance.NetworkListManager_UserCannotChangeName}" />
                                         </ComboBox>
                                     </controls:SettingsCard>
 
                                     <controls:SettingsCard
-                                        Header="{Binding Source={StaticResource LocalizedStringsResource}, Path=NetworkListManager_AllNetworksLocation_Header}"
+                                        Header="{x:Bind localization:LocalizedStrings.Instance.NetworkListManager_AllNetworksLocation_Header}"
                                         HeaderIcon="{x:Null}"
                                         Visibility="{x:Bind IsAllNetworks, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}">
                                         <ComboBox
@@ -195,14 +194,14 @@
                                             SelectedIndex="{x:Bind LocationPermissionIndex, Mode=TwoWay}"
                                             SelectionChanged="PolicyComboBox_SelectionChanged"
                                             Tag="LocationPermission">
-                                            <ComboBoxItem Content="{Binding Source={StaticResource LocalizedStringsResource}, Path=Policy_State_NotConfigured}" />
-                                            <ComboBoxItem Content="{Binding Source={StaticResource LocalizedStringsResource}, Path=NetworkListManager_UserCanChangeLocation}" />
-                                            <ComboBoxItem Content="{Binding Source={StaticResource LocalizedStringsResource}, Path=NetworkListManager_UserCannotChangeLocation}" />
+                                            <ComboBoxItem Content="{x:Bind localization:LocalizedStrings.Instance.Policy_State_NotConfigured}" />
+                                            <ComboBoxItem Content="{x:Bind localization:LocalizedStrings.Instance.NetworkListManager_UserCanChangeLocation}" />
+                                            <ComboBoxItem Content="{x:Bind localization:LocalizedStrings.Instance.NetworkListManager_UserCannotChangeLocation}" />
                                         </ComboBox>
                                     </controls:SettingsCard>
 
                                     <controls:SettingsCard
-                                        Header="{Binding Source={StaticResource LocalizedStringsResource}, Path=NetworkListManager_AllNetworksIcon_Header}"
+                                        Header="{x:Bind localization:LocalizedStrings.Instance.NetworkListManager_AllNetworksIcon_Header}"
                                         HeaderIcon="{x:Null}"
                                         Visibility="{x:Bind IsAllNetworks, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}">
                                         <ComboBox
@@ -210,9 +209,9 @@
                                             SelectedIndex="{x:Bind IconPermissionIndex, Mode=TwoWay}"
                                             SelectionChanged="PolicyComboBox_SelectionChanged"
                                             Tag="IconPermission">
-                                            <ComboBoxItem Content="{Binding Source={StaticResource LocalizedStringsResource}, Path=Policy_State_NotConfigured}" />
-                                            <ComboBoxItem Content="{Binding Source={StaticResource LocalizedStringsResource}, Path=NetworkListManager_UserCanChangeIcon}" />
-                                            <ComboBoxItem Content="{Binding Source={StaticResource LocalizedStringsResource}, Path=NetworkListManager_UserCannotChangeIcon}" />
+                                            <ComboBoxItem Content="{x:Bind localization:LocalizedStrings.Instance.Policy_State_NotConfigured}" />
+                                            <ComboBoxItem Content="{x:Bind localization:LocalizedStrings.Instance.NetworkListManager_UserCanChangeIcon}" />
+                                            <ComboBoxItem Content="{x:Bind localization:LocalizedStrings.Instance.NetworkListManager_UserCannotChangeIcon}" />
                                         </ComboBox>
                                     </controls:SettingsCard>
                                 </controls:SettingsExpander.Items>

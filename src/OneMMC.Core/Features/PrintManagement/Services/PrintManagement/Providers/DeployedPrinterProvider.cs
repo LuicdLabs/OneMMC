@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using OneMMC.Core.Features.PrintManagement.Models.PrintManagement;
 using OneMMC.Core.Features.PrintManagement.Services.PrintManagement.Native;
+using OneMMC.Core.Infrastructure.Interop.Adsi;
 using Microsoft.Extensions.Logging;
 
 namespace OneMMC.Core.Features.PrintManagement.Services.PrintManagement.Providers;
@@ -46,36 +48,23 @@ internal class DeployedPrinterProvider
     {
         try
         {
-            var domain = System.DirectoryServices.ActiveDirectory.Domain.GetCurrentDomain();
-            if (domain == null)
-                return;
-
-            string dn = domain.GetDirectoryEntry().Properties["distinguishedName"]?.Value?.ToString() ?? string.Empty;
+            string dn = Adsi.GetDefaultNamingContext();
             if (string.IsNullOrEmpty(dn))
                 return;
 
-            using var searcher = new System.DirectoryServices.DirectorySearcher();
-            searcher.SearchRoot = new System.DirectoryServices.DirectoryEntry($"LDAP://CN=Policies,CN=System,{dn}");
-            searcher.Filter = "(objectClass=msPrint-ConnectionPolicy)";
-            searcher.SearchScope = System.DirectoryServices.SearchScope.Subtree;
-            searcher.PropertiesToLoad.Add("uNCName");
-            searcher.PropertiesToLoad.Add("serverName");
-            searcher.PropertiesToLoad.Add("printerName");
-            searcher.PropertiesToLoad.Add("distinguishedName");
+            using var searcher = Adsi.BindSearcher($"LDAP://CN=Policies,CN=System,{dn}");
+            var results = searcher.Search(
+                "(objectClass=msPrint-ConnectionPolicy)",
+                ["uNCName", "serverName", "printerName", "distinguishedName"]);
 
-            using var results = searcher.FindAll();
             var gpoNames = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
-            foreach (System.DirectoryServices.SearchResult result in results)
+            foreach (AdsiSearcher.Row result in results)
             {
                 ProcessADPrinterResult(result, printers, gpoNames, dn);
             }
         }
-        catch (System.DirectoryServices.ActiveDirectory.ActiveDirectoryObjectNotFoundException)
-        {
-            _logger.LogInformation("Active Directory domain not found, cannot fetch deployed printers from AD.");
-        }
-        catch (System.DirectoryServices.ActiveDirectory.ActiveDirectoryOperationException)
+        catch (COMException ex) when (Adsi.IsDirectoryUnavailable(ex.ErrorCode))
         {
             _logger.LogInformation("Unable to connect to Active Directory. This computer may not be joined to a domain.");
         }
@@ -86,16 +75,15 @@ internal class DeployedPrinterProvider
     }
 
     private void ProcessADPrinterResult(
-        System.DirectoryServices.SearchResult result,
+        AdsiSearcher.Row result,
         Dictionary<string, PrinterInfo> printers,
         Dictionary<string, string> gpoNames,
         string dn)
     {
-        var props = result.Properties;
-        string distinguishedName = props["distinguishedName"].Count > 0 ? props["distinguishedName"][0]?.ToString() ?? "" : "";
-        string unc = props["uNCName"].Count > 0 ? props["uNCName"][0]?.ToString() ?? "" : "";
-        string server = props["serverName"].Count > 0 ? props["serverName"][0]?.ToString() ?? "" : "";
-        string printerName = props["printerName"].Count > 0 ? props["printerName"][0]?.ToString() ?? "" : "";
+        string distinguishedName = result["distinguishedName"];
+        string unc = result["uNCName"];
+        string server = result["serverName"];
+        string printerName = result["printerName"];
 
         if (string.IsNullOrEmpty(printerName) && !string.IsNullOrEmpty(unc))
         {
@@ -198,15 +186,14 @@ internal class DeployedPrinterProvider
 
         try
         {
-            using var gpoSearcher = new System.DirectoryServices.DirectorySearcher();
-            gpoSearcher.SearchRoot = new System.DirectoryServices.DirectoryEntry($"LDAP://CN=Policies,CN=System,{dn}");
-            gpoSearcher.Filter = $"(&(objectClass=groupPolicyContainer)(cn={gpoGuid}))";
-            gpoSearcher.PropertiesToLoad.Add("displayName");
-
-            var gpoResult = gpoSearcher.FindOne();
-            if (gpoResult != null && gpoResult.Properties["displayName"].Count > 0)
+            using var gpoSearcher = Adsi.BindSearcher($"LDAP://CN=Policies,CN=System,{dn}");
+            var gpoResult = gpoSearcher.Search(
+                $"(&(objectClass=groupPolicyContainer)(cn={gpoGuid}))",
+                ["displayName"],
+                firstOnly: true).FirstOrDefault();
+            if (gpoResult is not null && gpoResult["displayName"].Length > 0)
             {
-                string name = gpoResult.Properties["displayName"][0]?.ToString() ?? gpoGuid;
+                string name = gpoResult["displayName"];
                 gpoNames[gpoGuid] = name;
                 return name;
             }

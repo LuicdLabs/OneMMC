@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using Microsoft.Management.Infrastructure;
+using OneMMC.Core.Features.SystemManagement.Infrastructure.WF.Wbem;
 using OneMMC.Core.Features.SystemManagement.Interop.WF;
 using OneMMC.Core.Features.SystemManagement.Models.WF.Authentication;
 using OneMMC.Core.Features.SystemManagement.Models.WF.ConnectionSecurity;
@@ -46,21 +46,21 @@ public class FirewallMonitoringService
     /// </summary>
     public IReadOnlyList<MainModeSecurityAssociationModel> GetMainModeSecurityAssociations(bool deduplicate = true)
     {
-        using CimSession session = CimSession.Create(null);
-        IEnumerable<CimInstance> instances = session
-            .EnumerateInstances(WindowsFirewallSupport.StandardCimNamespace, "MSFT_NetMainModeSA")
+        using WbemServices session = WbemServices.Connect(WindowsFirewallSupport.StandardCimNamespace);
+        IEnumerable<WbemObject> instances = session
+            .EnumerateInstances("MSFT_NetMainModeSA")
             .Where(IsDisplayableMainMode);
 
         IEnumerable<MainModeSecurityAssociationModel> items = instances.Select(instance => new MainModeSecurityAssociationModel
         {
-            LocalEndpoint = instance.CimInstanceProperties["LocalEndpoint"]?.Value?.ToString() ?? string.Empty,
-            RemoteEndpoint = instance.CimInstanceProperties["RemoteEndpoint"]?.Value?.ToString() ?? string.Empty,
-            MainMode = ResolveKeyModule(instance.CimInstanceProperties["KeyModule"]?.Value),
-            FirstAuthMethod = instance.CimInstanceProperties["LocalFirstId"]?.Value?.ToString() ?? string.Empty,
-            SecondAuthMethod = instance.CimInstanceProperties["LocalSecondId"]?.Value?.ToString() ?? string.Empty,
-            CipherAlgorithm = ResolveCipher(instance.CimInstanceProperties["CipherAlgorithm"]?.Value),
-            HashAlgorithm = ResolveHash(instance.CimInstanceProperties["HashAlgorithm"]?.Value),
-            KeyExchange = ResolveGroup(instance.CimInstanceProperties["GroupId"]?.Value)
+            LocalEndpoint = instance.GetValue("LocalEndpoint")?.ToString() ?? string.Empty,
+            RemoteEndpoint = instance.GetValue("RemoteEndpoint")?.ToString() ?? string.Empty,
+            MainMode = ResolveKeyModule(instance.GetValue("KeyModule")),
+            FirstAuthMethod = instance.GetValue("LocalFirstId")?.ToString() ?? string.Empty,
+            SecondAuthMethod = instance.GetValue("LocalSecondId")?.ToString() ?? string.Empty,
+            CipherAlgorithm = ResolveCipher(instance.GetValue("CipherAlgorithm")),
+            HashAlgorithm = ResolveHash(instance.GetValue("HashAlgorithm")),
+            KeyExchange = ResolveGroup(instance.GetValue("GroupId"))
         }).Select(item =>
         {
             item.Name = BuildMainModeDisplayName(item.LocalEndpoint, item.RemoteEndpoint);
@@ -88,9 +88,9 @@ public class FirewallMonitoringService
     /// </summary>
     public IReadOnlyList<QuickModeSecurityAssociationModel> GetQuickModeSecurityAssociations(bool deduplicate = true)
     {
-        using CimSession session = CimSession.Create(null);
-        IEnumerable<CimInstance> instances = session
-            .EnumerateInstances(WindowsFirewallSupport.StandardCimNamespace, "MSFT_NetQuickModeSA")
+        using WbemServices session = WbemServices.Connect(WindowsFirewallSupport.StandardCimNamespace);
+        IEnumerable<WbemObject> instances = session
+            .EnumerateInstances("MSFT_NetQuickModeSA")
             .Where(IsInboundAssociation);
 
         IEnumerable<QuickModeSecurityAssociationModel> items = instances.Select(instance =>
@@ -98,13 +98,13 @@ public class FirewallMonitoringService
             (string ahIntegrity, string espIntegrity, string espEncryption) = ResolveQuickModeAlgorithms(instance);
             return new QuickModeSecurityAssociationModel
             {
-                Name = instance.CimInstanceProperties["LocalEndpoint"]?.Value?.ToString() ?? string.Empty,
-                Description = instance.CimInstanceProperties["RemoteEndpoint"]?.Value?.ToString() ?? string.Empty,
-                LocalAddress = instance.CimInstanceProperties["LocalEndpoint"]?.Value?.ToString() ?? string.Empty,
-                LocalPort = ResolvePort(instance.CimInstanceProperties["LocalPort"]?.Value),
-                RemoteAddress = instance.CimInstanceProperties["RemoteEndpoint"]?.Value?.ToString() ?? string.Empty,
-                RemotePort = ResolvePort(instance.CimInstanceProperties["RemotePort"]?.Value),
-                Protocol = ResolveProtocol(instance.CimInstanceProperties["IpProtocol"]?.Value),
+                Name = instance.GetValue("LocalEndpoint")?.ToString() ?? string.Empty,
+                Description = instance.GetValue("RemoteEndpoint")?.ToString() ?? string.Empty,
+                LocalAddress = instance.GetValue("LocalEndpoint")?.ToString() ?? string.Empty,
+                LocalPort = ResolvePort(instance.GetValue("LocalPort")),
+                RemoteAddress = instance.GetValue("RemoteEndpoint")?.ToString() ?? string.Empty,
+                RemotePort = ResolvePort(instance.GetValue("RemotePort")),
+                Protocol = ResolveProtocol(instance.GetValue("IpProtocol")),
                 AhIntegrity = ahIntegrity,
                 EspIntegrity = espIntegrity,
                 EspEncryption = espEncryption
@@ -266,9 +266,9 @@ public class FirewallMonitoringService
         return protocol == FirewallRuleProtocol.Custom ? code.ToString(CultureInfo.InvariantCulture) : protocol.ToString();
     }
 
-    private static bool IsInboundAssociation(CimInstance instance)
+    private static bool IsInboundAssociation(WbemObject instance)
     {
-        if (instance.CimInstanceProperties["InboundDirection"]?.Value is bool inbound)
+        if (instance.GetValue("InboundDirection") is bool inbound)
         {
             return inbound;
         }
@@ -276,7 +276,7 @@ public class FirewallMonitoringService
         return true;
     }
 
-    private static bool IsDisplayableMainMode(CimInstance instance)
+    private static bool IsDisplayableMainMode(WbemObject instance)
     {
         // Rule-based SA entries usually carry policy linkage, while VPN IKEv2 SA entries do not.
         if (!string.IsNullOrWhiteSpace(TryGetString(instance, "MmTargetName")) ||
@@ -295,7 +295,7 @@ public class FirewallMonitoringService
         return false;
     }
 
-    private static (string AhIntegrity, string EspIntegrity, string EspEncryption) ResolveQuickModeAlgorithms(CimInstance instance)
+    private static (string AhIntegrity, string EspIntegrity, string EspEncryption) ResolveQuickModeAlgorithms(WbemObject instance)
     {
         const int IpsecTransformAh = 1;
         const int IpsecTransformEspAuth = 2;
@@ -368,12 +368,12 @@ public class FirewallMonitoringService
         return $"{local} <-> {remote}";
     }
 
-    private static string? TryGetString(CimInstance instance, string propertyName)
-        => instance.CimInstanceProperties[propertyName]?.Value?.ToString();
+    private static string? TryGetString(WbemObject instance, string propertyName)
+        => instance.GetValue(propertyName)?.ToString();
 
-    private static int? TryGetInt32(CimInstance instance, string propertyName)
+    private static int? TryGetInt32(WbemObject instance, string propertyName)
     {
-        object? value = instance.CimInstanceProperties[propertyName]?.Value;
+        object? value = instance.GetValue(propertyName);
         if (value is null)
         {
             return null;
@@ -393,9 +393,9 @@ public class FirewallMonitoringService
         }
     }
 
-    private static ulong? TryGetUInt64(CimInstance instance, string propertyName)
+    private static ulong? TryGetUInt64(WbemObject instance, string propertyName)
     {
-        object? value = instance.CimInstanceProperties[propertyName]?.Value;
+        object? value = instance.GetValue(propertyName);
         if (value is null)
         {
             return null;

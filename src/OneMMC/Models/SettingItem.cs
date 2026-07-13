@@ -1,12 +1,11 @@
 ﻿using System.Windows.Input;
-using OneMMC.Models;
+using OneMMC.Core.Localization;
+using OneMMC.Localization;
 
 namespace OneMMC.Models;
 
 public class SettingItem
 {
-    private OneMMC.Localization.LocalizedStrings _localizedStrings = OneMMC.Localization.LocalizedStrings.Instance;
-
     public string Glyph { get; set; }
     public string Title { get; set; }
     public string Subtitle { get; set; }
@@ -17,7 +16,9 @@ public class SettingItem
         get => string.Empty; // Not used for getting
         set
         {
-            Title = _localizedStrings.GetType().GetProperty(value)?.GetValue(_localizedStrings)?.ToString() ?? string.Empty;
+            // All SettingItem_* keys live in Settings.resw; resolve the resource directly
+            // instead of reflecting over LocalizedStrings properties (trimmed under AOT, IL2075).
+            Title = LocalizationService.Instance.GetString(ResourceFileNames.Settings, value);
         }
     }
 
@@ -26,7 +27,7 @@ public class SettingItem
         get => string.Empty; // Not used for getting
         set
         {
-            Subtitle = _localizedStrings.GetType().GetProperty(value)?.GetValue(_localizedStrings)?.ToString() ?? string.Empty;
+            Subtitle = LocalizationService.Instance.GetString(ResourceFileNames.Settings, value);
         }
     }
 

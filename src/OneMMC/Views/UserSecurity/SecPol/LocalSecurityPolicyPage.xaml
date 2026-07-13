@@ -10,7 +10,6 @@
     mc:Ignorable="d">
 
     <Page.Resources>
-        <local:LocalizedStrings x:Key="LocalizedStrings" />
     </Page.Resources>
 
     <Grid>
@@ -18,12 +17,6 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-
-        <!--  CommandBar  -->
-        <CommandBar Grid.Row="0" DefaultLabelPosition="Right">
-            <!-- <AppBarButton Icon="Refresh" Label="Refresh" /> -->
-            <AppBarButton Icon="More" />
-        </CommandBar>
 
         <!--  Content  -->
         <ScrollViewer Grid.Row="1">

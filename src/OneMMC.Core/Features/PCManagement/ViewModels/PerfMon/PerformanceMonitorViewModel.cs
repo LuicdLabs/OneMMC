@@ -375,10 +375,8 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.PerfMon
             {
                 // Load counter list
                 AvailableCounters = new ObservableCollection<CounterInfo>(await _performanceService.GetCountersAsync(SelectedCategory.Name));
-                // If multi-instance category, load instance list
-                Instances = SelectedCategory.IsMultiInstance
-                    ? new ObservableCollection<string>(await _performanceService.GetInstancesAsync(SelectedCategory.Name))
-                    : new ObservableCollection<string>();
+                // Load instance list; single-instance categories yield an empty list
+                Instances = new ObservableCollection<string>(await _performanceService.GetInstancesAsync(SelectedCategory.Name));
             }
             catch (Exception ex) { StatusMessage = $"Error loading counters: {ex.Message}"; }
             finally { IsLoading = false; }
@@ -433,7 +431,7 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.PerfMon
             { StatusMessage = "Counter already exists"; return true; }
 
             // Create counter instance
-            if (_performanceService.CreateCounter(counter) == null)
+            if (!_performanceService.CreateCounter(counter))
             { StatusMessage = $"Failed to create counter: {counter.DisplayName}"; return false; }
 
             AddCounterToCollection(counter, $"Added counter: {counter.DisplayName}");
@@ -551,7 +549,7 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.PerfMon
             {
                 return;
             }
-            var created = await Task.Run(() => _performanceService.CreateCounter(counter) != null);
+            var created = await Task.Run(() => _performanceService.CreateCounter(counter));
             if (!created)
             {
                 StatusMessage = $"Failed to create counter: {counter.DisplayName}";

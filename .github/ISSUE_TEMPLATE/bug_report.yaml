@@ -39,10 +39,10 @@ body:
     attributes:
       label: "Log file"
       description: |
-        Upload your log file.
+        Upload your .log file.
 
         Usually located at:
-        %LOCALAPPDATA%\ManagementTools\Logs\
+        %LOCALAPPDATA%\OneMMC\Logs\
 
   - type: input
     id: app_version

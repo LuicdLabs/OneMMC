@@ -262,7 +262,7 @@
     <value>Operation failed</value>
   </data>
   <data name="Common_ErrorTitle" xml:space="preserve">
-    <value>Error</value>
+    <value>Something slipped</value>
   </data>
   <data name="Common_SuccessTitle" xml:space="preserve">
     <value>Success</value>
@@ -271,22 +271,22 @@
     <value>Information</value>
   </data>
   <data name="Common_AdminRequired_Title" xml:space="preserve">
-    <value>Administrator Privileges Required</value>
+    <value>Administrator Permissions Required</value>
   </data>
   <data name="Common_AdminRequired_Message" xml:space="preserve">
-    <value>This operation requires administrator privileges. Please use "Run as Administrator" to restart and make changes.</value>
+    <value>This operation requires administrator permissions. Please use "Run as Administrator" to restart and make changes.</value>
   </data>
   <data name="Common_AdminRequired_Close" xml:space="preserve">
     <value>OK</value>
   </data>
   <data name="Common_AdminRequired_InfoBarMessage" xml:space="preserve">
-    <value>Some features require administrator privileges. Click "Run as Administrator" to restart with elevated permissions.</value>
+    <value>Some features require administrator permissions. Click "Run as Administrator" to restart with elevated permissions.</value>
   </data>
   <data name="Common_RunAsAdministrator" xml:space="preserve">
     <value>Run as Administrator</value>
   </data>
   <data name="Common_AccessDenied_Generic" xml:space="preserve">
-    <value>Insufficient permissions. Please run as administrator.</value>
+    <value>Access Denied. Please run as administrator.</value>
   </data>
   <data name="Common_ViewDetails" xml:space="preserve">
     <value>View Details</value>

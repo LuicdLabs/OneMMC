@@ -367,6 +367,6 @@ FodyWeavers.xsd
 .winapp
 
 # AI Agents
-.claude
+# .claude
 .kiro
 .playwright-mcp

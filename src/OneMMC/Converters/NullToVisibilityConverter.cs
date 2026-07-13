@@ -9,7 +9,7 @@ namespace OneMMC.Converters
     /// Returns Visible if the value is not null, Collapsed if it is null.
     /// Commonly used to show/hide UI elements based on data availability.
     /// </summary>
-    public class NullToVisibilityConverter : IValueConverter
+    public partial class NullToVisibilityConverter : IValueConverter
     {
         /// <summary>
         /// Converts an object to Visibility based on null check.

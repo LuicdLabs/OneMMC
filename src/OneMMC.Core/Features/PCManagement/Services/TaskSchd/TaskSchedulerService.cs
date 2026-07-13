@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using OneMMC.Core.Infrastructure.Interop;
 using System.Threading;
 using System.Threading.Tasks;
 using OneMMC.Core.Features.PCManagement.Models.TaskSchd;
@@ -15,7 +16,7 @@ namespace OneMMC.Core.Features.PCManagement.Services.TaskSchd;
 /// cached per connection target. Tasks are written via <c>RegisterTask(xml)</c> and read via
 /// <c>IRegisteredTask.Xml</c>, with <see cref="TaskXmlMapper"/> doing the model&lt;-&gt;XML mapping.
 /// </summary>
-public sealed class TaskSchedulerService : ITaskSchedulerService, IDisposable
+public sealed partial class TaskSchedulerService : ITaskSchedulerService, IDisposable
 {
     private readonly ILogger<TaskSchedulerService> _logger;
     private readonly StaComExecutor _executor = new("TaskScheduler COM");
@@ -39,7 +40,7 @@ public sealed class TaskSchedulerService : ITaskSchedulerService, IDisposable
             ReleaseService();
             _connection = connection ?? TaskSchedulerConnection.Local;
             var service = Connect(_connection);
-            if (!service.Connected)
+            if (!TaskSchedulerCom.ToBool(service.get_Connected()))
             {
                 throw new InvalidOperationException("The Task Scheduler service did not report a connected state.");
             }
@@ -72,10 +73,12 @@ public sealed class TaskSchedulerService : ITaskSchedulerService, IDisposable
             try
             {
                 folder.GetTasks(includeHidden ? TaskSchedulerCom.TaskEnumHidden : TaskSchedulerCom.NoFlags, out tasks);
-                var result = new List<TaskInfo>(tasks.Count);
-                for (int i = 1; i <= tasks.Count; i++)
+                int count = tasks.get_Count();
+                var result = new List<TaskInfo>(count);
+                for (int i = 1; i <= count; i++)
                 {
-                    tasks.get_Item(i, out var task);
+                    using var index = Variant.FromInt32(i);
+                    tasks.get_Item(index, out var task);
                     try
                     {
                         result.Add(ToTaskInfo(task, folderPath));
@@ -100,7 +103,7 @@ public sealed class TaskSchedulerService : ITaskSchedulerService, IDisposable
 
     /// <inheritdoc />
     public Task<TaskDefinitionModel> GetTaskDefinitionAsync(string taskPath, CancellationToken cancellationToken = default) =>
-        _executor.RunAsync(() => WithTask(taskPath, (task, _) => TaskXmlMapper.Parse(task.Xml)));
+        _executor.RunAsync(() => WithTask(taskPath, (task, _) => TaskXmlMapper.Parse(task.get_Xml())));
 
     /// <inheritdoc />
     public Task RegisterTaskAsync(string folderPath, string taskName, TaskDefinitionModel definition, string? password = null, CancellationToken cancellationToken = default) =>
@@ -121,7 +124,7 @@ public sealed class TaskSchedulerService : ITaskSchedulerService, IDisposable
 
     /// <inheritdoc />
     public Task<string> ExportTaskAsync(string taskPath, CancellationToken cancellationToken = default) =>
-        _executor.RunAsync(() => WithTask(taskPath, (task, _) => task.Xml));
+        _executor.RunAsync(() => WithTask(taskPath, (task, _) => task.get_Xml()));
 
     /// <inheritdoc />
     public Task DeleteTaskAsync(string taskPath, CancellationToken cancellationToken = default) =>
@@ -144,7 +147,7 @@ public sealed class TaskSchedulerService : ITaskSchedulerService, IDisposable
     public Task SetTaskEnabledAsync(string taskPath, bool enabled, CancellationToken cancellationToken = default) =>
         _executor.RunAsync(() => WithTask(taskPath, (task, _) =>
         {
-            task.Enabled = enabled;
+            task.put_Enabled(TaskSchedulerCom.ToVariantBool(enabled));
             return (object?)null;
         }));
 
@@ -152,7 +155,7 @@ public sealed class TaskSchedulerService : ITaskSchedulerService, IDisposable
     public Task RunTaskAsync(string taskPath, CancellationToken cancellationToken = default) =>
         _executor.RunAsync(() => WithTask(taskPath, (task, _) =>
         {
-            task.Run(TaskSchedulerCom.EmptyVariant!, out var running);
+            task.Run(TaskSchedulerCom.EmptyVariant, out var running);
             TaskSchedulerCom.Release(running);
             return (object?)null;
         }));
@@ -172,7 +175,7 @@ public sealed class TaskSchedulerService : ITaskSchedulerService, IDisposable
             task.GetInstances(TaskSchedulerCom.NoFlags, out var running);
             try
             {
-                return running.Count;
+                return running.get_Count();
             }
             finally
             {
@@ -255,11 +258,15 @@ public sealed class TaskSchedulerService : ITaskSchedulerService, IDisposable
     private ITaskService Connect(TaskSchedulerConnection connection)
     {
         var service = TaskSchedulerCom.CreateTaskService();
-        service.Connect(
-            connection.IsRemote ? connection.Server! : TaskSchedulerCom.MissingVariant,
-            string.IsNullOrEmpty(connection.User) ? TaskSchedulerCom.MissingVariant : connection.User,
-            string.IsNullOrEmpty(connection.Domain) ? TaskSchedulerCom.MissingVariant : connection.Domain,
-            string.IsNullOrEmpty(connection.Password) ? TaskSchedulerCom.MissingVariant : connection.Password);
+        // Each VT_BSTR variant owns a BSTR we must free after the call; the Missing sentinel is a
+        // non-allocating shared value, so disposing its copy here is a harmless no-op.
+        using var server = connection.IsRemote
+            ? Variant.FromString(connection.Server!)
+            : TaskSchedulerCom.MissingVariant;
+        using var user = TaskSchedulerCom.OptionalBstr(connection.User);
+        using var domain = TaskSchedulerCom.OptionalBstr(connection.Domain);
+        using var password = TaskSchedulerCom.OptionalBstr(connection.Password);
+        service.Connect(server, user, domain, password);
         return service;
     }
 
@@ -293,27 +300,28 @@ public sealed class TaskSchedulerService : ITaskSchedulerService, IDisposable
         var service = GetService();
         service.GetFolder(NormalizeFolder(folderPath), out var folder);
         IRegisteredTask? registered = null;
+        // VT_BSTR variants own BSTRs freed in the finally; Missing-sentinel copies dispose as no-ops.
+        Variant userId = TaskSchedulerCom.MissingVariant;
+        Variant pwd = TaskSchedulerCom.MissingVariant;
         try
         {
-            object userId = TaskSchedulerCom.MissingVariant;
-            object pwd = TaskSchedulerCom.MissingVariant;
             switch (principal.LogonType)
             {
                 case TaskLogonType.Password:
                 case TaskLogonType.InteractiveTokenOrPassword:
                     if (!string.IsNullOrEmpty(principal.UserId))
                     {
-                        userId = principal.UserId;
+                        userId = Variant.FromString(principal.UserId);
                     }
                     if (!string.IsNullOrEmpty(password))
                     {
-                        pwd = password;
+                        pwd = Variant.FromString(password);
                     }
                     break;
                 case TaskLogonType.S4U:
                     if (!string.IsNullOrEmpty(principal.UserId))
                     {
-                        userId = principal.UserId;
+                        userId = Variant.FromString(principal.UserId);
                     }
                     break;
             }
@@ -330,6 +338,8 @@ public sealed class TaskSchedulerService : ITaskSchedulerService, IDisposable
         }
         finally
         {
+            userId.Dispose();
+            pwd.Dispose();
             TaskSchedulerCom.Release(registered);
             TaskSchedulerCom.Release(folder);
         }
@@ -344,12 +354,14 @@ public sealed class TaskSchedulerService : ITaskSchedulerService, IDisposable
         folder.GetFolders(TaskSchedulerCom.NoFlags, out var subFolders);
         try
         {
-            for (int i = 1; i <= subFolders.Count; i++)
+            int subCount = subFolders.get_Count();
+            for (int i = 1; i <= subCount; i++)
             {
-                subFolders.get_Item(i, out var child);
+                using var index = Variant.FromInt32(i);
+                subFolders.get_Item(index, out var child);
                 try
                 {
-                    var childName = child.Name;
+                    var childName = child.get_Name();
                     EmptyFolder(child);
                     folder.DeleteFolder(childName, TaskSchedulerCom.NoFlags);
                 }
@@ -368,12 +380,14 @@ public sealed class TaskSchedulerService : ITaskSchedulerService, IDisposable
         folder.GetTasks(TaskSchedulerCom.TaskEnumHidden, out var tasks);
         try
         {
-            for (int i = 1; i <= tasks.Count; i++)
+            int taskCount = tasks.get_Count();
+            for (int i = 1; i <= taskCount; i++)
             {
-                tasks.get_Item(i, out var task);
+                using var index = Variant.FromInt32(i);
+                tasks.get_Item(index, out var task);
                 try
                 {
-                    folder.DeleteTask(task.Name, TaskSchedulerCom.NoFlags);
+                    folder.DeleteTask(task.get_Name(), TaskSchedulerCom.NoFlags);
                 }
                 finally
                 {
@@ -389,13 +403,15 @@ public sealed class TaskSchedulerService : ITaskSchedulerService, IDisposable
 
     private TaskFolderNode BuildFolderNode(ITaskFolder folder)
     {
-        var node = new TaskFolderNode { Name = folder.Name, Path = folder.Path };
+        var node = new TaskFolderNode { Name = folder.get_Name(), Path = folder.get_Path() };
         folder.GetFolders(TaskSchedulerCom.NoFlags, out var children);
         try
         {
-            for (int i = 1; i <= children.Count; i++)
+            int childCount = children.get_Count();
+            for (int i = 1; i <= childCount; i++)
             {
-                children.get_Item(i, out var child);
+                using var index = Variant.FromInt32(i);
+                children.get_Item(index, out var child);
                 try
                 {
                     node.Children.Add(BuildFolderNode(child));
@@ -420,7 +436,7 @@ public sealed class TaskSchedulerService : ITaskSchedulerService, IDisposable
         {
             try
             {
-                author = TaskXmlMapper.Parse(task.Xml).RegistrationInfo.Author;
+                author = TaskXmlMapper.Parse(task.get_Xml()).RegistrationInfo.Author;
             }
             catch (Exception)
             {
@@ -430,15 +446,15 @@ public sealed class TaskSchedulerService : ITaskSchedulerService, IDisposable
 
         return new TaskInfo
         {
-            Name = task.Name,
-            Path = task.Path,
+            Name = task.get_Name(),
+            Path = task.get_Path(),
             FolderPath = folderPath,
-            State = (TaskState)task.State,
-            Enabled = task.Enabled,
-            LastRunTime = TaskSchedulerCom.FromOleDate(task.LastRunTime),
-            LastTaskResult = task.LastTaskResult,
-            NextRunTime = TaskSchedulerCom.FromOleDate(task.NextRunTime),
-            NumberOfMissedRuns = task.NumberOfMissedRuns,
+            State = (TaskState)task.get_State(),
+            Enabled = TaskSchedulerCom.ToBool(task.get_Enabled()),
+            LastRunTime = TaskSchedulerCom.FromOleDate(task.get_LastRunTime()),
+            LastTaskResult = task.get_LastTaskResult(),
+            NextRunTime = TaskSchedulerCom.FromOleDate(task.get_NextRunTime()),
+            NumberOfMissedRuns = task.get_NumberOfMissedRuns(),
             Author = author,
         };
     }

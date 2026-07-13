@@ -16,7 +16,6 @@
 		<converters:NullToBoolConverter x:Key="NullToBoolConverter" />
 		<converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
 		<converters:NullableBoolToBoolConverter x:Key="NullableBoolToBoolConverter" />
-		<localization:LocalizedStrings x:Key="LocalizedStrings" />
         <SolidColorBrush x:Key="NavigationViewContentBackground" Color="Transparent"/>
 		<!--  Other app resources here  -->
 		<Style TargetType="StackPanel">

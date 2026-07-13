@@ -7,7 +7,7 @@ namespace OneMMC.Core.Features.Certificates.ViewModels;
 /// <summary>
 /// View-model for the current-user certificate management page.
 /// </summary>
-public sealed class CurrentUserCertificatesViewModel : CertificateStoresViewModelBase
+public sealed partial class CurrentUserCertificatesViewModel : CertificateStoresViewModelBase
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="CurrentUserCertificatesViewModel"/> class.

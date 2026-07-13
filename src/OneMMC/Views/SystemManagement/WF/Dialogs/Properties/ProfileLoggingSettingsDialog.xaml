@@ -6,13 +6,12 @@
     xmlns:local="using:OneMMC.Localization"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    CloseButtonText="{Binding Common_CancelButton, Source={StaticResource LocalizedStrings}}"
-    PrimaryButtonText="{Binding Common_OKButton, Source={StaticResource LocalizedStrings}}"
+    CloseButtonText="{x:Bind local:LocalizedStrings.Instance.Common_CancelButton}"
+    PrimaryButtonText="{x:Bind local:LocalizedStrings.Instance.Common_OKButton}"
     Style="{StaticResource DefaultContentDialogStyle}"
     mc:Ignorable="d">
 
     <ContentDialog.Resources>
-        <local:LocalizedStrings x:Key="LocalizedStrings" />
     </ContentDialog.Resources>
 
     <ScrollViewer
@@ -30,16 +29,16 @@
                 <TextBlock
                     Grid.Column="0"
                     VerticalAlignment="Center"
-                    Text="{Binding WF_ProfileLoggingSettings_Name, Source={StaticResource LocalizedStrings}}" />
+                    Text="{x:Bind local:LocalizedStrings.Instance.WF_ProfileLoggingSettings_Name}" />
                 <TextBox
                     x:Name="LogFilePathTextBox"
                     Grid.Column="1"
-                    Text="{Binding WF_ProfileLoggingSettings_System32LogFilesFirewallPfirewallLog, Source={StaticResource LocalizedStrings}}" />
+                    Text="{x:Bind local:LocalizedStrings.Instance.WF_ProfileLoggingSettings_System32LogFilesFirewallPfirewallLog}" />
                 <Button
                     Grid.Column="2"
                     MinWidth="120"
                     Click="BrowseButton_Click"
-                    Content="{Binding WF_Common_Browse, Source={StaticResource LocalizedStrings}}" />
+                    Content="{x:Bind local:LocalizedStrings.Instance.WF_Common_Browse}" />
             </Grid>
 
             <Grid ColumnSpacing="10">
@@ -50,7 +49,7 @@
                 <TextBlock
                     Grid.Column="0"
                     VerticalAlignment="Center"
-                    Text="{Binding WF_ProfileLoggingSettings_SizeLimitKB, Source={StaticResource LocalizedStrings}}" />
+                    Text="{x:Bind local:LocalizedStrings.Instance.WF_ProfileLoggingSettings_SizeLimitKB}" />
                 <NumberBox
                     x:Name="SizeLimitNumberBox"
                     Grid.Column="1"
@@ -68,13 +67,13 @@
                 <TextBlock
                     Grid.Column="0"
                     VerticalAlignment="Center"
-                    Text="{Binding WF_ProfileLoggingSettings_LogDroppedPackets, Source={StaticResource LocalizedStrings}}" />
+                    Text="{x:Bind local:LocalizedStrings.Instance.WF_ProfileLoggingSettings_LogDroppedPackets}" />
                 <ComboBox
                     x:Name="LogDroppedPacketsComboBox"
                     Grid.Column="1"
                     SelectedIndex="1">
-                    <ComboBoxItem Content="{Binding WF_Common_Yes, Source={StaticResource LocalizedStrings}}" Tag="Yes" />
-                    <ComboBoxItem Content="{Binding WF_Common_NoDefault, Source={StaticResource LocalizedStrings}}" Tag="No (default)" />
+                    <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_Common_Yes}" Tag="Yes" />
+                    <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_Common_NoDefault}" Tag="No (default)" />
                 </ComboBox>
             </Grid>
 
@@ -86,24 +85,24 @@
                 <TextBlock
                     Grid.Column="0"
                     VerticalAlignment="Center"
-                    Text="{Binding WF_ProfileLoggingSettings_LogSuccessfulConnections, Source={StaticResource LocalizedStrings}}" />
+                    Text="{x:Bind local:LocalizedStrings.Instance.WF_ProfileLoggingSettings_LogSuccessfulConnections}" />
                 <ComboBox
                     x:Name="LogSuccessfulConnectionsComboBox"
                     Grid.Column="1"
                     SelectedIndex="1">
-                    <ComboBoxItem Content="{Binding WF_Common_Yes, Source={StaticResource LocalizedStrings}}" Tag="Yes" />
-                    <ComboBoxItem Content="{Binding WF_Common_NoDefault, Source={StaticResource LocalizedStrings}}" Tag="No (default)" />
+                    <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_Common_Yes}" Tag="Yes" />
+                    <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_Common_NoDefault}" Tag="No (default)" />
                 </ComboBox>
             </Grid>
 
             <TextBlock
                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                Text="{Binding WF_ProfileLoggingSettings_NoteIfYouAreConfiguringTheLogFileNameOnGroupPolicy, Source={StaticResource LocalizedStrings}}"
+                Text="{x:Bind local:LocalizedStrings.Instance.WF_ProfileLoggingSettings_NoteIfYouAreConfiguringTheLogFileNameOnGroupPolicy}"
                 TextWrapping="Wrap" />
 
             <TextBlock
                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                Text="{Binding WF_ProfileLoggingSettings_DefaultPathForTheLogFileIsSystemrootSystem32LogfilesFirewallPfirewall, Source={StaticResource LocalizedStrings}}"
+                Text="{x:Bind local:LocalizedStrings.Instance.WF_ProfileLoggingSettings_DefaultPathForTheLogFileIsSystemrootSystem32LogfilesFirewallPfirewall}"
                 TextWrapping="Wrap" />
         </StackPanel>
     </ScrollViewer>

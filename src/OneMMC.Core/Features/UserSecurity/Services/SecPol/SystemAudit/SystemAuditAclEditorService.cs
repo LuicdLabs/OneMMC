@@ -60,6 +60,65 @@ public sealed class SystemAuditAclEditorService
     /// <summary>
     /// Opens the Windows ACL editor on the Auditing page for the supplied Global Object Access item.
     /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Windows' own Global Object Access Auditing UI (Local Security Policy, under Advanced Audit
+    /// Policy Configuration / Global Object Access Auditing / File system or Registry / Configure)
+    /// shows an "Advanced Security Settings for Global File SACL" (or "...Global Registry SACL")
+    /// dialog that contains ONLY an Auditing tab: no Permissions tab, and no Name/Owner header. That
+    /// is because a global SACL is an audit-only object which has no DACL (and no owner) to edit.
+    /// </para>
+    /// <para>
+    /// This method instead drives the public Windows access-control editor (aclui) through
+    /// <see cref="AclEditorService.EditSecurity"/>, which for any non-basic page invokes the native
+    /// <c>EditSecurityAdvanced</c> function. <c>EditSecurityAdvanced</c> renders the STANDARD
+    /// advanced security property sheet, and that sheet ALWAYS includes a Permissions (DACL) tab in
+    /// addition to the Auditing tab. Consequently our dialog shows an extra Permissions tab that the
+    /// native dialog does not, and on that tab aclui prints its built-in "No permissions have been
+    /// assigned for this object / this is a potential security risk..." text, because the audit-only
+    /// security descriptor built by <see cref="AclEditorRequest.EmptySecurityDescriptorFactory"/>
+    /// deliberately carries a SACL but no DACL.
+    /// </para>
+    /// <para>
+    /// There is no public aclui flag or function that removes the Permissions page from the advanced
+    /// sheet. The relevant SI_OBJECT_INFO dwFlags were all evaluated and ruled out:
+    /// </para>
+    /// <list type="bullet">
+    ///   <item><description>
+    ///     <c>SI_EDIT_PERMS</c> is <c>0x00000000</c>, the always-on default. Its documentation states
+    ///     the basic security page ALWAYS displays the DACL controls, and that they can only be
+    ///     disabled with <c>SI_READONLY</c>, never hidden. There is no "no permissions page" bit.
+    ///   </description></item>
+    ///   <item><description>
+    ///     <c>SI_NO_ADDITIONAL_PERMISSION</c> (<c>0x00200000</c>) hides only the "Special Permissions"
+    ///     sub-tab shown inside the advanced Permissions page, not the Permissions page itself.
+    ///   </description></item>
+    ///   <item><description>
+    ///     <c>SI_READONLY</c> / <c>SI_VIEW_ONLY</c> only make the pages non-editable; they do not
+    ///     remove the Permissions tab, and they would also freeze the Auditing tab we need editable.
+    ///   </description></item>
+    ///   <item><description>
+    ///     <c>CreateSecurityPage</c> (the only other public aclui entry point) likewise creates the
+    ///     BASIC DACL page. aclui exposes no "auditing-only" page factory.
+    ///   </description></item>
+    /// </list>
+    /// <para>
+    /// Native secpol produces its audit-only dialog through a wsecedit-internal UI that is not
+    /// reachable from the public aclui surface, so third-party callers cannot reproduce it by tuning
+    /// flags. Fully matching the native dialog would require replacing this aclui call with a bespoke
+    /// auditing editor: a SACL entry list (Principal / Type / Access / Inherited from) plus an
+    /// "Auditing Entry" add/edit dialog, built from the access masks and inherit types already
+    /// defined in this class (see <see cref="CreateAccessEntries"/> and <see cref="CreateInheritEntries"/>),
+    /// the SDDL round-trip in <see cref="ApplyResult"/>, and the existing directory object picker.
+    /// That larger change is intentionally deferred; this path knowingly shows the extra Permissions
+    /// tab as an accepted, documented deviation from native.
+    /// </para>
+    /// <para>
+    /// References (Microsoft Learn, header aclui.h): the SI_OBJECT_INFO dwFlags table
+    /// (ns-aclui-si_object_info), EditSecurityAdvanced (nf-aclui-editsecurityadvanced), and
+    /// CreateSecurityPage (nf-aclui-createsecuritypage).
+    /// </para>
+    /// </remarks>
     /// <param name="subcategory">The item whose SACL is being edited.</param>
     /// <param name="ownerWindowHandle">The owner window handle.</param>
     public void EditGlobalObjectAccessPolicy(AuditSubcategoryValue subcategory, IntPtr ownerWindowHandle)
@@ -73,7 +132,15 @@ public sealed class SystemAuditAclEditorService
             ObjectName = objectName,
             PageTitle = objectName,
             SecurityDescriptorSddl = subcategory.GlobalSaclSddl,
+
+            // Requests the advanced sheet's Auditing page. Note: aclui's EditSecurityAdvanced still
+            // adds a Permissions (DACL) tab that native's audit-only Global File/Registry SACL dialog
+            // omits, and no aclui flag can remove it. See the detailed remarks on this method.
             PageType = AclEditorPageType.Auditing,
+
+            // EditAudits shows the Auditing page; NoAclProtect/NoTreeApply hide the inheritance
+            // controls that do not apply to a global SACL. EditOwner is intentionally absent so no
+            // Owner page is offered. (None of these suppress the always-present Permissions tab.)
             ObjectInformationFlags =
                 AclEditorObjectFlags.Advanced
                 | AclEditorObjectFlags.EditAudits

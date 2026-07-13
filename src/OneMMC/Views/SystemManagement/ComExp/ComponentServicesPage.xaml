@@ -16,7 +16,6 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="ms-appx:///CommunityToolkit.WinUI.Controls.SettingsControls/SettingsExpander/SettingsExpander.xaml" />
             </ResourceDictionary.MergedDictionaries>
-            <local:LocalizedStrings x:Key="LocalizedStrings" />
         </ResourceDictionary>
     </Page.Resources>
 
@@ -85,7 +84,7 @@
                                             <MenuFlyoutItem
                                                 Click="ComPlusApplicationProperties_Click"
                                                 Tag="{x:Bind}"
-                                                Text="{Binding Source={StaticResource LocalizedStrings}, Path=ComExp_PropertiesButton}">
+                                                Text="{x:Bind local:LocalizedStrings.Instance.ComExp_PropertiesButton}">
                                                 <MenuFlyoutItem.Icon>
                                                     <FontIcon Glyph="&#xE946;" />
                                                 </MenuFlyoutItem.Icon>

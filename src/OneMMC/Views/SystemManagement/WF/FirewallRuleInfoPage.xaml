@@ -11,7 +11,6 @@
     mc:Ignorable="d">
 
     <Page.Resources>
-        <local:LocalizedStrings x:Key="LocalizedStrings" />
         <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
         <converters:StringVisibilityConverter x:Key="StringVisibilityConverter" />
     </Page.Resources>
@@ -272,23 +271,23 @@
                                 x:Name="ProtocolTypeBox"
                                 MinWidth="160"
                                 SelectionChanged="ProtocolTypeBox_SelectionChanged">
-                                <ComboBoxItem Content="{Binding WF_Common_Any, Source={StaticResource LocalizedStrings}}" Tag="Any" />
-                                <ComboBoxItem Content="{Binding WF_Common_Custom, Source={StaticResource LocalizedStrings}}" Tag="Custom" />
-                                <ComboBoxItem Content="{Binding WF_FirewallRuleInfo_HOPOPT0, Source={StaticResource LocalizedStrings}}" Tag="HOPOPT" />
-                                <ComboBoxItem Content="{Binding WF_FirewallRuleInfo_ICMPv41, Source={StaticResource LocalizedStrings}}" Tag="ICMPv4" />
-                                <ComboBoxItem Content="{Binding WF_FirewallRuleInfo_IGMP2, Source={StaticResource LocalizedStrings}}" Tag="IGMP" />
-                                <ComboBoxItem Content="{Binding WF_FirewallRuleInfo_TCP6, Source={StaticResource LocalizedStrings}}" Tag="TCP" />
-                                <ComboBoxItem Content="{Binding WF_FirewallRuleInfo_UDP17, Source={StaticResource LocalizedStrings}}" Tag="UDP" />
-                                <ComboBoxItem Content="{Binding WF_FirewallRuleInfo_IPv641, Source={StaticResource LocalizedStrings}}" Tag="IPv6" />
-                                <ComboBoxItem Content="{Binding WF_FirewallRuleInfo_IPv6Route43, Source={StaticResource LocalizedStrings}}" Tag="IPv6Route" />
-                                <ComboBoxItem Content="{Binding WF_FirewallRuleInfo_IPv6Frag44, Source={StaticResource LocalizedStrings}}" Tag="IPv6Frag" />
-                                <ComboBoxItem Content="{Binding WF_FirewallRuleInfo_GRE47, Source={StaticResource LocalizedStrings}}" Tag="GRE" />
-                                <ComboBoxItem Content="{Binding WF_FirewallRuleInfo_ICMPv658, Source={StaticResource LocalizedStrings}}" Tag="ICMPv6" />
-                                <ComboBoxItem Content="{Binding WF_FirewallRuleInfo_IPv6NoNxt59, Source={StaticResource LocalizedStrings}}" Tag="IPv6NoNxt" />
-                                <ComboBoxItem Content="{Binding WF_FirewallRuleInfo_IPv6Opts60, Source={StaticResource LocalizedStrings}}" Tag="IPv6Opts" />
-                                <ComboBoxItem Content="{Binding WF_FirewallRuleInfo_VRRP112, Source={StaticResource LocalizedStrings}}" Tag="VRRP" />
-                                <ComboBoxItem Content="{Binding WF_FirewallRuleInfo_PGM113, Source={StaticResource LocalizedStrings}}" Tag="PGM" />
-                                <ComboBoxItem Content="{Binding WF_FirewallRuleInfo_L2TP115, Source={StaticResource LocalizedStrings}}" Tag="L2TP" />
+                                <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_Common_Any}" Tag="Any" />
+                                <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_Common_Custom}" Tag="Custom" />
+                                <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_FirewallRuleInfo_HOPOPT0}" Tag="HOPOPT" />
+                                <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_FirewallRuleInfo_ICMPv41}" Tag="ICMPv4" />
+                                <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_FirewallRuleInfo_IGMP2}" Tag="IGMP" />
+                                <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_FirewallRuleInfo_TCP6}" Tag="TCP" />
+                                <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_FirewallRuleInfo_UDP17}" Tag="UDP" />
+                                <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_FirewallRuleInfo_IPv641}" Tag="IPv6" />
+                                <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_FirewallRuleInfo_IPv6Route43}" Tag="IPv6Route" />
+                                <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_FirewallRuleInfo_IPv6Frag44}" Tag="IPv6Frag" />
+                                <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_FirewallRuleInfo_GRE47}" Tag="GRE" />
+                                <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_FirewallRuleInfo_ICMPv658}" Tag="ICMPv6" />
+                                <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_FirewallRuleInfo_IPv6NoNxt59}" Tag="IPv6NoNxt" />
+                                <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_FirewallRuleInfo_IPv6Opts60}" Tag="IPv6Opts" />
+                                <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_FirewallRuleInfo_VRRP112}" Tag="VRRP" />
+                                <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_FirewallRuleInfo_PGM113}" Tag="PGM" />
+                                <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_FirewallRuleInfo_L2TP115}" Tag="L2TP" />
                             </ComboBox>
                         </controls:SettingsCard>
                         <controls:SettingsCard Header="{x:Bind LocalizedStrings.WF_Protocol_Number}">
@@ -317,7 +316,7 @@
                             <TextBox
                                 x:Name="LocalPortInputBox"
                                 MinWidth="160"
-                                PlaceholderText="{Binding WF_FirewallRuleInfo_EG8044380808090, Source={StaticResource LocalizedStrings}}"
+                                PlaceholderText="{x:Bind local:LocalizedStrings.Instance.WF_FirewallRuleInfo_EG8044380808090}"
                                 Text="{x:Bind Rule.LocalPort, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                         </controls:SettingsCard>
                         <controls:SettingsCard Header="{x:Bind LocalizedStrings.WF_Field_RemotePort}">
@@ -336,7 +335,7 @@
                             <TextBox
                                 x:Name="RemotePortInputBox"
                                 MinWidth="160"
-                                PlaceholderText="{Binding WF_FirewallRuleInfo_EG80443, Source={StaticResource LocalizedStrings}}"
+                                PlaceholderText="{x:Bind local:LocalizedStrings.Instance.WF_FirewallRuleInfo_EG80443}"
                                 Text="{x:Bind Rule.RemotePort, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                         </controls:SettingsCard>
                         <controls:SettingsCard Header="{x:Bind LocalizedStrings.WF_Protocol_ICMP}">
@@ -367,23 +366,23 @@
                                 x:Name="CsrProtocolTypeBox"
                                 MinWidth="200"
                                 SelectionChanged="CsrProtocolTypeBox_SelectionChanged">
-                                <ComboBoxItem Content="{Binding WF_Common_Any, Source={StaticResource LocalizedStrings}}" Tag="256" />
-                                <ComboBoxItem Content="{Binding WF_Common_Custom, Source={StaticResource LocalizedStrings}}" Tag="-1" />
-                                <ComboBoxItem Content="{Binding WF_FirewallRuleInfo_HOPOPT0, Source={StaticResource LocalizedStrings}}" Tag="0" />
-                                <ComboBoxItem Content="{Binding WF_FirewallRuleInfo_ICMPv41, Source={StaticResource LocalizedStrings}}" Tag="1" />
-                                <ComboBoxItem Content="{Binding WF_FirewallRuleInfo_IGMP2, Source={StaticResource LocalizedStrings}}" Tag="2" />
-                                <ComboBoxItem Content="{Binding WF_FirewallRuleInfo_TCP6, Source={StaticResource LocalizedStrings}}" Tag="6" />
-                                <ComboBoxItem Content="{Binding WF_FirewallRuleInfo_UDP17, Source={StaticResource LocalizedStrings}}" Tag="17" />
-                                <ComboBoxItem Content="{Binding WF_FirewallRuleInfo_IPv641, Source={StaticResource LocalizedStrings}}" Tag="41" />
-                                <ComboBoxItem Content="{Binding WF_FirewallRuleInfo_IPv6Route43, Source={StaticResource LocalizedStrings}}" Tag="43" />
-                                <ComboBoxItem Content="{Binding WF_FirewallRuleInfo_IPv6Frag44, Source={StaticResource LocalizedStrings}}" Tag="44" />
-                                <ComboBoxItem Content="{Binding WF_FirewallRuleInfo_GRE47, Source={StaticResource LocalizedStrings}}" Tag="47" />
-                                <ComboBoxItem Content="{Binding WF_FirewallRuleInfo_ICMPv658, Source={StaticResource LocalizedStrings}}" Tag="58" />
-                                <ComboBoxItem Content="{Binding WF_FirewallRuleInfo_IPv6NoNxt59, Source={StaticResource LocalizedStrings}}" Tag="59" />
-                                <ComboBoxItem Content="{Binding WF_FirewallRuleInfo_IPv6Opts60, Source={StaticResource LocalizedStrings}}" Tag="60" />
-                                <ComboBoxItem Content="{Binding WF_FirewallRuleInfo_VRRP112, Source={StaticResource LocalizedStrings}}" Tag="112" />
-                                <ComboBoxItem Content="{Binding WF_FirewallRuleInfo_PGM113, Source={StaticResource LocalizedStrings}}" Tag="113" />
-                                <ComboBoxItem Content="{Binding WF_FirewallRuleInfo_L2TP115, Source={StaticResource LocalizedStrings}}" Tag="115" />
+                                <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_Common_Any}" Tag="256" />
+                                <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_Common_Custom}" Tag="-1" />
+                                <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_FirewallRuleInfo_HOPOPT0}" Tag="0" />
+                                <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_FirewallRuleInfo_ICMPv41}" Tag="1" />
+                                <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_FirewallRuleInfo_IGMP2}" Tag="2" />
+                                <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_FirewallRuleInfo_TCP6}" Tag="6" />
+                                <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_FirewallRuleInfo_UDP17}" Tag="17" />
+                                <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_FirewallRuleInfo_IPv641}" Tag="41" />
+                                <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_FirewallRuleInfo_IPv6Route43}" Tag="43" />
+                                <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_FirewallRuleInfo_IPv6Frag44}" Tag="44" />
+                                <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_FirewallRuleInfo_GRE47}" Tag="47" />
+                                <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_FirewallRuleInfo_ICMPv658}" Tag="58" />
+                                <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_FirewallRuleInfo_IPv6NoNxt59}" Tag="59" />
+                                <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_FirewallRuleInfo_IPv6Opts60}" Tag="60" />
+                                <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_FirewallRuleInfo_VRRP112}" Tag="112" />
+                                <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_FirewallRuleInfo_PGM113}" Tag="113" />
+                                <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_FirewallRuleInfo_L2TP115}" Tag="115" />
                             </ComboBox>
                         </controls:SettingsCard>
                         <controls:SettingsCard Header="{x:Bind LocalizedStrings.WF_Protocol_Number}">
@@ -412,7 +411,7 @@
                             <TextBox
                                 x:Name="CsrEndpoint1PortInputBox"
                                 MinWidth="160"
-                                PlaceholderText="{Binding WF_FirewallRuleInfo_EG80443, Source={StaticResource LocalizedStrings}}"
+                                PlaceholderText="{x:Bind local:LocalizedStrings.Instance.WF_FirewallRuleInfo_EG80443}"
                                 Text="{x:Bind Rule.LocalPort, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                         </controls:SettingsCard>
                         <controls:SettingsCard Header="{x:Bind LocalizedStrings.WF_CSR_Endpoint2Port}">
@@ -431,7 +430,7 @@
                             <TextBox
                                 x:Name="CsrEndpoint2PortInputBox"
                                 MinWidth="160"
-                                PlaceholderText="{Binding WF_FirewallRuleInfo_EG80443, Source={StaticResource LocalizedStrings}}"
+                                PlaceholderText="{x:Bind local:LocalizedStrings.Instance.WF_FirewallRuleInfo_EG80443}"
                                 Text="{x:Bind Rule.RemotePort, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                         </controls:SettingsCard>
                     </controls:SettingsExpander.Items>

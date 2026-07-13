@@ -34,7 +34,6 @@ public sealed partial class DeployPrinterDialog : ContentDialog
         _logger = App.GetRequiredService<ILogger<DeployPrinterDialog>>();
         _viewModel = new DeployPrinterDialogViewModel(printerName, connectionPath);
 
-        DataContext = _viewModel;
         XamlRoot = xamlRoot;
         RequestedTheme = App.CurrentTheme;
         Style = Application.Current.Resources["DefaultContentDialogStyle"] as Style;

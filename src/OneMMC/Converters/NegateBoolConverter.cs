@@ -8,7 +8,7 @@ namespace OneMMC.Converters
     /// Useful for binding scenarios where you need the opposite of a boolean property,
     /// such as disabling a button when something is enabled.
     /// </summary>
-    public class NegateBoolConverter : IValueConverter
+    public partial class NegateBoolConverter : IValueConverter
     {
         /// <summary>
         /// Converts a boolean value to its negated form.

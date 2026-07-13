@@ -9,6 +9,7 @@ using CommunityToolkit.Mvvm.Input;
 using OneMMC.Core.Features.PCManagement.Models.EventViewer;
 using OneMMC.Core.Features.PCManagement.Services.EventViewer;
 using OneMMC.Core.Infrastructure.Admin;
+using OneMMC.Core.Localization;
 using Microsoft.Extensions.Logging;
 
 namespace OneMMC.Core.Features.PCManagement.ViewModels.EventViewer;
@@ -23,9 +24,20 @@ public partial class EventViewerViewModel : ObservableObject, IDisposable
     private readonly ILogger<EventViewerViewModel> _logger;
     private readonly IAdminService _adminService;
     private readonly SynchronizationContext? _syncContext;
+    private readonly SemaphoreSlim _fetchGate = new(1, 1);
     private CancellationTokenSource? _loadCts;
     private List<EventLogEntry> _allEvents = [];
+    private int _queryGeneration;
     private bool _disposed;
+
+    /// <summary>Number of events requested per read batch.</summary>
+    private const int BatchSize = 200;
+
+    /// <summary>
+    /// Upper bound on events retained per query. Keeps memory bounded and stops the
+    /// automatic filter scan from walking an arbitrarily large log to its end.
+    /// </summary>
+    private const int MaxLoadedEvents = 20_000;
 
     // ========================================================================
     // Observable Properties
@@ -43,9 +55,13 @@ public partial class EventViewerViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     public partial EventLogTreeNode? SelectedNode { get; set; }
 
-    /// <summary>Filtered events displayed in the list.</summary>
-    [ObservableProperty]
-    public partial ObservableCollection<EventLogEntry> Events { get; set; } = [];
+    /// <summary>
+    /// Events visible in the list — the client-side filtered projection of everything
+    /// loaded so far. The instance never changes: batches are appended in place so the
+    /// ListView keeps its scroll position and selection, and the ListView pulls further
+    /// batches itself through incremental loading whenever its viewport is unfilled.
+    /// </summary>
+    public IncrementalEventLogCollection Events { get; }
 
     /// <summary>Currently selected event for the details panel.</summary>
     [ObservableProperty]
@@ -92,6 +108,7 @@ public partial class EventViewerViewModel : ObservableObject, IDisposable
         _logger = logger;
         _adminService = adminService;
         _syncContext = SynchronizationContext.Current;
+        Events = new IncrementalEventLogCollection(HasMoreEvents, FetchNextBatchAsync);
     }
 
     // ========================================================================
@@ -145,34 +162,39 @@ public partial class EventViewerViewModel : ObservableObject, IDisposable
     // ========================================================================
 
     /// <summary>
-    /// Loads the first batch of events from the selected log.
+    /// Loads the first batch of events from the selected log. Subsequent batches are
+    /// pulled automatically by the ListView through <see cref="FetchNextBatchAsync"/>.
     /// </summary>
     [RelayCommand]
     public async Task LoadEventsAsync()
     {
         if (string.IsNullOrEmpty(SelectedLogName)) return;
 
+        // Invalidate any in-flight incremental batch before taking over the query state.
+        _queryGeneration++;
+        var generation = _queryGeneration;
         _loadCts?.Cancel();
         _loadCts = new CancellationTokenSource();
         var ct = _loadCts.Token;
 
         IsLoading = true;
         StatusMessage = string.Empty;
-        _allEvents.Clear();
-        Events.Clear();
         SelectedEvent = null;
 
+        await _fetchGate.WaitAsync(CancellationToken.None);
         try
         {
-            // Use existing filter when loading events
-            var xpathQuery = BuildXPathQuery();
-            var events = await _eventViewerService.ReadEventsAsync(SelectedLogName, xpathQuery, 200, ct);
+            _allEvents = [];
+            CanLoadMore = false;
+            Events.ResetWith([]);
+
+            var events = await _eventViewerService.ReadEventsAsync(SelectedLogName, BuildXPathQuery(), BatchSize, ct);
+            if (generation != _queryGeneration) return;
+
             _allEvents = events;
-            CanLoadMore = events.Count >= 200;
-            ApplyFilter();
-            StatusMessage = events.Count > 0
-                ? $"{_allEvents.Count} events loaded"
-                : string.Empty;
+            CanLoadMore = events.Count >= BatchSize;
+            Events.ResetWith(events.Where(MatchesClientFilter));
+            UpdateStatusMessage();
         }
         catch (OperationCanceledException) { }
         catch (Exception ex)
@@ -184,37 +206,103 @@ public partial class EventViewerViewModel : ObservableObject, IDisposable
         }
         finally
         {
-            IsLoading = false;
+            _fetchGate.Release();
+
+            // Only the query that still owns the state may clear the loading flag;
+            // a newer query started meanwhile has already set it for itself.
+            if (generation == _queryGeneration)
+            {
+                IsLoading = false;
+            }
         }
     }
 
-    /// <summary>
-    /// Loads the next batch of events for pagination.
-    /// </summary>
-    [RelayCommand]
-    public async Task LoadMoreEventsAsync()
-    {
-        if (string.IsNullOrEmpty(SelectedLogName) || !CanLoadMore || _allEvents.Count == 0) return;
+    // ========================================================================
+    // Incremental Loading
+    // ========================================================================
 
-        IsLoading = true;
+    /// <summary>
+    /// Whether the ListView may pull another batch: a log is selected and loaded, the
+    /// last batch was full, and the retention cap has not been reached.
+    /// </summary>
+    private bool HasMoreEvents() =>
+        !_disposed
+        && !string.IsNullOrEmpty(SelectedLogName)
+        && CanLoadMore
+        && _allEvents.Count > 0
+        && _allEvents.Count < MaxLoadedEvents;
+
+    /// <summary>
+    /// Reads the next batch behind the pagination cursor, retains it, and appends the
+    /// entries matching the current client-side filter to <see cref="Events"/>.
+    /// The ListView keeps calling this while its viewport is unfilled, which is what
+    /// makes a text search continue into older events until enough matches are visible,
+    /// the end of the log is reached, or <see cref="MaxLoadedEvents"/> is hit.
+    /// </summary>
+    /// <returns>The number of entries appended to the visible collection.</returns>
+    private async Task<int> FetchNextBatchAsync(CancellationToken viewCt)
+    {
+        if (!HasMoreEvents()) return 0;
+
         try
         {
-            var lastId = _allEvents[^1].RecordId;
-            var xpathQuery = BuildXPathQuery();
-            var more = await _eventViewerService.ReadMoreEventsAsync(SelectedLogName, xpathQuery, lastId, 200);
-            _allEvents.AddRange(more);
-            CanLoadMore = more.Count >= 200;
-            ApplyFilter();
-            StatusMessage = $"{_allEvents.Count} events loaded";
+            await _fetchGate.WaitAsync(viewCt);
+        }
+        catch (OperationCanceledException)
+        {
+            return 0;
+        }
+
+        try
+        {
+            var generation = _queryGeneration;
+            var logName = SelectedLogName;
+            if (logName is null || !HasMoreEvents()) return 0;
+
+            using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(
+                viewCt, _loadCts?.Token ?? CancellationToken.None);
+
+            // Keep reading until at least one entry becomes visible or the log/cap is
+            // exhausted: the ListView stops re-requesting after a zero-progress result,
+            // which would otherwise stall a text search whose matches lie further back.
+            var appended = 0;
+            do
+            {
+                var lastId = _allEvents[^1].RecordId;
+                var batch = await _eventViewerService.ReadMoreEventsAsync(
+                    logName, BuildXPathQuery(), lastId, BatchSize, linkedCts.Token);
+
+                // The query changed while the batch was in flight — discard silently.
+                if (generation != _queryGeneration) return 0;
+
+                _allEvents.AddRange(batch);
+                CanLoadMore = batch.Count >= BatchSize;
+
+                var visible = batch.Where(MatchesClientFilter).ToList();
+                Events.AppendRange(visible);
+                appended += visible.Count;
+                UpdateStatusMessage();
+            }
+            while (appended == 0 && HasMoreEvents());
+
+            return appended;
+        }
+        catch (OperationCanceledException)
+        {
+            return 0;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to load more events.");
+            _logger.LogError(ex, "Failed to load more events from {LogName}.", SelectedLogName);
             StatusMessage = $"Error: {ex.Message}";
+
+            // Stop further automatic pulls; otherwise the ListView would retry in a loop.
+            CanLoadMore = false;
+            return 0;
         }
         finally
         {
-            IsLoading = false;
+            _fetchGate.Release();
         }
     }
 
@@ -222,70 +310,78 @@ public partial class EventViewerViewModel : ObservableObject, IDisposable
     // Filtering
     // ========================================================================
 
-    partial void OnFilterTextChanged(string value) => ApplyFilter();
+    partial void OnFilterTextChanged(string value) => RebuildVisibleEvents();
 
     partial void OnSelectedLevelFilterChanged(byte? value)
     {
-        // When the level filter changes, always reload from the server with XPath
-        // to ensure we get fresh data and avoid empty list issues
+        // Level filtering happens server-side via XPath, so a fresh query is required.
         if (!string.IsNullOrEmpty(SelectedLogName))
         {
-            _ = ReloadWithFilterAsync();
+            _ = LoadEventsAsync();
         }
     }
 
-    private async Task ReloadWithFilterAsync()
+    /// <summary>
+    /// Rebuilds the visible collection from the retained events after a text-filter
+    /// change. This resets the view to the top; when too few rows match to fill the
+    /// viewport, the ListView automatically pulls older batches to continue the search.
+    /// </summary>
+    private void RebuildVisibleEvents()
     {
-        if (string.IsNullOrEmpty(SelectedLogName)) return;
-
-        _loadCts?.Cancel();
-        _loadCts = new CancellationTokenSource();
-        var ct = _loadCts.Token;
-
-        IsLoading = true;
-        try
-        {
-            var xpathQuery = BuildXPathQuery();
-            var events = await _eventViewerService.ReadEventsAsync(SelectedLogName, xpathQuery, 200, ct);
-            _allEvents = events;
-            CanLoadMore = events.Count >= 200;
-            ApplyFilter();
-            StatusMessage = $"{_allEvents.Count} events loaded";
-        }
-        catch (OperationCanceledException) { }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to reload events with filter.");
-            StatusMessage = $"Error: {ex.Message}";
-        }
-        finally
-        {
-            IsLoading = false;
-        }
+        Events.ResetWith(_allEvents.Where(MatchesClientFilter));
+        UpdateStatusMessage();
     }
 
-    private void ApplyFilter()
+    /// <summary>
+    /// Client-side filter for a single entry. The level check is normally redundant
+    /// (levels are filtered server-side) but keeps retained batches consistent when
+    /// the level filter changes while a batch is in flight.
+    /// </summary>
+    private bool MatchesClientFilter(EventLogEntry entry)
     {
-        IEnumerable<EventLogEntry> filtered = _allEvents;
+        if (SelectedLevelFilter.HasValue && entry.Level != SelectedLevelFilter.Value)
+            return false;
 
-        // Level filter (client-side, for when all events are already loaded)
-        if (SelectedLevelFilter.HasValue)
+        if (string.IsNullOrWhiteSpace(FilterText))
+            return true;
+
+        var text = FilterText;
+        return (entry.Source?.Contains(text, StringComparison.OrdinalIgnoreCase) ?? false)
+            || entry.EventId.ToString().Contains(text, StringComparison.OrdinalIgnoreCase)
+            || (entry.Message?.Contains(text, StringComparison.OrdinalIgnoreCase) ?? false)
+            || (entry.TaskCategory?.Contains(text, StringComparison.OrdinalIgnoreCase) ?? false);
+    }
+
+    /// <summary>
+    /// Updates the status bar with loaded/matching counts and, when applicable, the
+    /// retention-cap notice.
+    /// </summary>
+    private void UpdateStatusMessage()
+    {
+        if (_allEvents.Count == 0)
         {
-            filtered = filtered.Where(e => e.Level == SelectedLevelFilter.Value);
+            StatusMessage = LocalizationProvider.Current.GetString(
+                ResourceFileNames.EventViewer, EventViewerKeys.StatusNoEvents);
+            return;
         }
 
-        // Text filter
-        if (!string.IsNullOrWhiteSpace(FilterText))
+        var status = string.IsNullOrWhiteSpace(FilterText)
+            ? string.Format(
+                LocalizationProvider.Current.GetString(ResourceFileNames.EventViewer, EventViewerKeys.StatusLoadedFormat),
+                _allEvents.Count)
+            : string.Format(
+                LocalizationProvider.Current.GetString(ResourceFileNames.EventViewer, EventViewerKeys.StatusLoadedFilteredFormat),
+                _allEvents.Count,
+                Events.Count);
+
+        if (_allEvents.Count >= MaxLoadedEvents)
         {
-            var text = FilterText;
-            filtered = filtered.Where(e =>
-                (e.Source?.Contains(text, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                e.EventId.ToString().Contains(text, StringComparison.OrdinalIgnoreCase) ||
-                (e.Message?.Contains(text, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                (e.TaskCategory?.Contains(text, StringComparison.OrdinalIgnoreCase) ?? false));
+            var capNotice = LocalizationProvider.Current.GetString(
+                ResourceFileNames.EventViewer, EventViewerKeys.StatusLoadLimitReached);
+            status = $"{status} — {capNotice}";
         }
 
-        Events = new ObservableCollection<EventLogEntry>(filtered);
+        StatusMessage = status;
     }
 
     private string BuildXPathQuery()
@@ -320,6 +416,9 @@ public partial class EventViewerViewModel : ObservableObject, IDisposable
         try
         {
             await _eventViewerService.ClearLogAsync(SelectedLogName, backupPath);
+
+            // Invalidate any in-flight incremental batch so it cannot repopulate the list.
+            _queryGeneration++;
             _allEvents.Clear();
             Events.Clear();
             SelectedEvent = null;
@@ -390,6 +489,7 @@ public partial class EventViewerViewModel : ObservableObject, IDisposable
     {
         if (_disposed) return;
         _disposed = true;
+        _queryGeneration++;
         _loadCts?.Cancel();
         _loadCts?.Dispose();
         _eventViewerService.Dispose();

@@ -8,7 +8,7 @@ namespace OneMMC.Converters
     /// Returns true if the value is not null, false if it is null.
     /// Useful for enabling/disabling controls based on whether data is loaded.
     /// </summary>
-    public class NullToBoolConverter : IValueConverter
+    public partial class NullToBoolConverter : IValueConverter
     {
         /// <summary>
         /// Converts an object to a boolean based on null check.

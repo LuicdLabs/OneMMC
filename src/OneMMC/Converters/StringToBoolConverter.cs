@@ -7,7 +7,7 @@ namespace OneMMC.Converters
     /// Converts a string to a boolean: returns true when the input string is not null or empty.
     /// Useful for enabling/disabling controls based on whether text input has content.
     /// </summary>
-    public class StringToBoolConverter : IValueConverter
+    public partial class StringToBoolConverter : IValueConverter
     {
         /// <summary>
         /// Converts a string to a boolean based on whether it has content.

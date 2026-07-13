@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.DirectoryServices;
-using System.DirectoryServices.ActiveDirectory;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using OneMMC.Core.Features.PrintManagement.Models.PrintManagement;
+using OneMMC.Core.Infrastructure.Interop;
+using OneMMC.Core.Infrastructure.Interop.Adsi;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -64,23 +65,13 @@ public sealed class GpoPrinterDeploymentService
                 ")" +
                 ")";
 
-            using var searcher = new DirectorySearcher(new DirectoryEntry(searchRoot))
+            using var searcher = Adsi.BindSearcher(searchRoot);
+            foreach (AdsiSearcher.Row result in searcher.Search(filter, ["uNCName", "serverName", "printerName", "distinguishedName"]))
             {
-                Filter = filter,
-                SearchScope = SearchScope.Subtree
-            };
-
-            searcher.PropertiesToLoad.Add("uNCName");
-            searcher.PropertiesToLoad.Add("serverName");
-            searcher.PropertiesToLoad.Add("printerName");
-            searcher.PropertiesToLoad.Add("distinguishedName");
-
-            foreach (SearchResult result in searcher.FindAll())
-            {
-                string distinguishedName = GetProperty(result, "distinguishedName");
-                string unc = GetProperty(result, "uNCName");
-                string server = GetProperty(result, "serverName");
-                string printer = GetProperty(result, "printerName");
+                string distinguishedName = result["distinguishedName"];
+                string unc = result["uNCName"];
+                string server = result["serverName"];
+                string printer = result["printerName"];
 
                 string gpoGuid = ExtractGpoGuid(distinguishedName);
                 string gpoName = ResolveGpoName(gpoGuid, gpoNames, domainDn);
@@ -123,22 +114,13 @@ public sealed class GpoPrinterDeploymentService
             string domainDn = GetDomainDistinguishedName();
             string searchRoot = $"LDAP://CN=Policies,CN=System,{domainDn}";
 
-            using var searcher = new DirectorySearcher(new DirectoryEntry(searchRoot))
-            {
-                Filter = "(objectClass=groupPolicyContainer)",
-                SearchScope = SearchScope.Subtree
-            };
-
-            searcher.PropertiesToLoad.Add("displayName");
-            searcher.PropertiesToLoad.Add("name");
-            searcher.PropertiesToLoad.Add("distinguishedName");
-
+            using var searcher = Adsi.BindSearcher(searchRoot);
             var gpos = new List<GroupPolicyObjectInfo>();
-            foreach (SearchResult result in searcher.FindAll())
+            foreach (AdsiSearcher.Row result in searcher.Search("(objectClass=groupPolicyContainer)", ["displayName", "name", "distinguishedName"]))
             {
-                string guid = GetProperty(result, "name");
-                string displayName = GetProperty(result, "displayName");
-                string distinguishedName = GetProperty(result, "distinguishedName");
+                string guid = result["name"];
+                string displayName = result["displayName"];
+                string distinguishedName = result["distinguishedName"];
 
                 if (string.IsNullOrWhiteSpace(displayName))
                 {
@@ -180,17 +162,17 @@ public sealed class GpoPrinterDeploymentService
                 throw new ArgumentException("Invalid printer connection path.", nameof(connectionPath));
             }
 
-            using var gpoEntry = new DirectoryEntry(gpoPath);
+            using var gpoEntry = Adsi.BindObject(gpoPath);
             using var scopeEntry = GetScopeEntry(gpoEntry, scope);
             using var printersEntry = EnsureChildContainer(scopeEntry, "Printers");
 
             string entryName = Guid.NewGuid().ToString("B");
-            using var policyEntry = printersEntry.Children.Add($"CN={entryName}", "msPrint-ConnectionPolicy");
+            using var policyEntry = printersEntry.CreateChild("msPrint-ConnectionPolicy", $"CN={entryName}");
 
-            policyEntry.Properties["uNCName"].Value = connectionPath;
-            policyEntry.Properties["serverName"].Value = $"\\\\{serverName}";
-            policyEntry.Properties["printerName"].Value = printerName;
-            policyEntry.CommitChanges();
+            PutString(policyEntry, "uNCName", connectionPath);
+            PutString(policyEntry, "serverName", $"\\\\{serverName}");
+            PutString(policyEntry, "printerName", printerName);
+            policyEntry.SetInfo();
 
             _logger.LogInformation(
                 "Added GPO printer deployment {ConnectionPath} to {GpoGuid} ({Scope})",
@@ -209,7 +191,7 @@ public sealed class GpoPrinterDeploymentService
 
         return Task.Run(() =>
         {
-            using var entry = new DirectoryEntry($"LDAP://{distinguishedName}");
+            using var entry = Adsi.BindObject($"LDAP://{distinguishedName}");
             entry.DeleteTree();
             _logger.LogInformation("Removed GPO printer deployment {DistinguishedName}", distinguishedName);
         });
@@ -219,8 +201,7 @@ public sealed class GpoPrinterDeploymentService
     {
         try
         {
-            Domain domain = Domain.GetCurrentDomain();
-            string? dn = domain.GetDirectoryEntry().Properties["distinguishedName"]?.Value?.ToString();
+            string dn = Adsi.GetDefaultNamingContext();
             if (string.IsNullOrWhiteSpace(dn))
             {
                 throw new InvalidOperationException("Unable to resolve the Active Directory domain.");
@@ -228,42 +209,49 @@ public sealed class GpoPrinterDeploymentService
 
             return dn;
         }
-        catch (ActiveDirectoryObjectNotFoundException ex)
-        {
-            throw new InvalidOperationException("Active Directory domain not found.", ex);
-        }
-        catch (ActiveDirectoryOperationException ex)
+        catch (COMException ex) when (Adsi.IsDirectoryUnavailable(ex.ErrorCode))
         {
             throw new InvalidOperationException("Unable to connect to Active Directory.", ex);
         }
+        catch (COMException ex)
+        {
+            throw new InvalidOperationException("Active Directory domain not found.", ex);
+        }
     }
 
-    private static DirectoryEntry GetScopeEntry(DirectoryEntry gpoEntry, GpoPrinterDeploymentScope scope)
+    private static AdsiObject GetScopeEntry(AdsiObject gpoEntry, GpoPrinterDeploymentScope scope)
     {
         string scopeName = scope == GpoPrinterDeploymentScope.PerUser ? "User" : "Machine";
         try
         {
-            return gpoEntry.Children.Find($"CN={scopeName}", "container");
+            return gpoEntry.GetChild("container", $"CN={scopeName}");
         }
-        catch (DirectoryServicesCOMException)
+        catch (COMException)
         {
-            return gpoEntry.Children.Find($"CN={scopeName}");
+            return gpoEntry.GetChild(className: null, $"CN={scopeName}");
         }
     }
 
-    private static DirectoryEntry EnsureChildContainer(DirectoryEntry parent, string name)
+    private static AdsiObject EnsureChildContainer(AdsiObject parent, string name)
     {
         try
         {
-            return parent.Children.Find($"CN={name}", "container");
+            return parent.GetChild("container", $"CN={name}");
         }
-        catch (DirectoryServicesCOMException)
+        catch (COMException)
         {
-            using var created = parent.Children.Add($"CN={name}", "container");
-            created.CommitChanges();
+            using var created = parent.CreateChild("container", $"CN={name}");
+            created.SetInfo();
         }
 
-        return parent.Children.Find($"CN={name}", "container");
+        return parent.GetChild("container", $"CN={name}");
+    }
+
+    /// <summary>Puts one string attribute into the entry's property cache.</summary>
+    private static void PutString(AdsiObject entry, string attribute, string value)
+    {
+        using Variant variant = Variant.FromString(value);
+        entry.Put(attribute, in variant);
     }
 
     private static string EscapeLdapFilterValue(string value)
@@ -274,16 +262,6 @@ public sealed class GpoPrinterDeploymentService
             .Replace("(", "\\28", StringComparison.Ordinal)
             .Replace(")", "\\29", StringComparison.Ordinal)
             .Replace("\0", "\\00", StringComparison.Ordinal);
-    }
-
-    private static string GetProperty(SearchResult result, string propertyName)
-    {
-        if (result.Properties[propertyName].Count > 0)
-        {
-            return result.Properties[propertyName][0]?.ToString() ?? string.Empty;
-        }
-
-        return string.Empty;
     }
 
     private static string ExtractGpoGuid(string distinguishedName)
@@ -315,15 +293,14 @@ public sealed class GpoPrinterDeploymentService
 
         try
         {
-            using var gpoSearcher = new DirectorySearcher();
-            gpoSearcher.SearchRoot = new DirectoryEntry($"LDAP://CN=Policies,CN=System,{domainDn}");
-            gpoSearcher.Filter = $"(&(objectClass=groupPolicyContainer)(cn={EscapeLdapFilterValue(gpoGuid)}))";
-            gpoSearcher.PropertiesToLoad.Add("displayName");
-
-            SearchResult? gpoResult = gpoSearcher.FindOne();
-            if (gpoResult != null && gpoResult.Properties["displayName"].Count > 0)
+            using var gpoSearcher = Adsi.BindSearcher($"LDAP://CN=Policies,CN=System,{domainDn}");
+            AdsiSearcher.Row? gpoResult = gpoSearcher.Search(
+                $"(&(objectClass=groupPolicyContainer)(cn={EscapeLdapFilterValue(gpoGuid)}))",
+                ["displayName"],
+                firstOnly: true).FirstOrDefault();
+            if (gpoResult is not null && gpoResult["displayName"].Length > 0)
             {
-                string name = gpoResult.Properties["displayName"][0]?.ToString() ?? gpoGuid;
+                string name = gpoResult["displayName"];
                 gpoNames[gpoGuid] = name;
                 return name;
             }

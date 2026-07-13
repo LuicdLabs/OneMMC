@@ -387,22 +387,31 @@ namespace OneMMC.Core.Features.PCManagement.Models.PerfMon
         
         /// <summary>
         /// Category description text.
-        /// From Windows performance counter CategoryHelp.
+        /// Empty with the PDH backend - PDH object enumeration exposes no help text
+        /// (the System.Diagnostics CategoryHelp had no PDH equivalent).
         /// </summary>
         public string Description { get; set; } = string.Empty;
-        
+
         /// <summary>
         /// Target computer name.
         /// "." indicates local machine.
         /// </summary>
         public string MachineName { get; set; } = ".";
-        
+
         /// <summary>
         /// Whether it's a multi-instance category.
-        /// true: Category contains multiple instances (e.g., Processor has _Total, 0, 1, etc.)
-        /// false: Category is single-instance
+        /// Not pre-populated by the PDH backend (probing every category upfront would be
+        /// costly); instance presence is determined per selection via
+        /// PerformanceMonitorService.GetInstancesAsync, which returns an empty list for
+        /// single-instance categories.
         /// </summary>
         public bool IsMultiInstance { get; set; }
+
+        /// <summary>
+        /// Returns <see cref="Name"/> so list controls can display the category without a
+        /// reflection-based DisplayMemberPath (AOT/trimming compatibility).
+        /// </summary>
+        public override string ToString() => Name;
     }
 
     // ========================================================================
@@ -424,6 +433,12 @@ namespace OneMMC.Core.Features.PCManagement.Models.PerfMon
         /// From Windows performance counter CounterHelp.
         /// </summary>
         public string Description { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Returns <see cref="Name"/> so list controls can display the counter without a
+        /// reflection-based DisplayMemberPath (AOT/trimming compatibility).
+        /// </summary>
+        public override string ToString() => Name;
     }
 
     // ========================================================================

@@ -73,13 +73,13 @@ namespace OneMMC.Views.PolicyManagement.GpEdit
 
         private void RootNodes_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
         {
-            if (sender is ObservableCollection<GroupPolicyEditorViewModel.GroupPolicyTreeItem> rootNodes)
+            if (sender is ObservableCollection<GroupPolicyTreeItem> rootNodes)
             {
                 if (e.Action == NotifyCollectionChangedAction.Add && e.NewItems != null)
                 {
                     foreach (var item in e.NewItems)
                     {
-                        if (item is GroupPolicyEditorViewModel.GroupPolicyTreeItem treeItem)
+                        if (item is GroupPolicyTreeItem treeItem)
                         {
                             var node = CreateTreeNode(treeItem);
                             PolicyTree.RootNodes.Add(node);
@@ -98,7 +98,7 @@ namespace OneMMC.Views.PolicyManagement.GpEdit
             }
         }
 
-        private TreeViewNode CreateTreeNode(GroupPolicyEditorViewModel.GroupPolicyTreeItem item)
+        private TreeViewNode CreateTreeNode(GroupPolicyTreeItem item)
         {
             var node = new TreeViewNode() { Content = item };
             foreach (var child in item.Children)
@@ -111,7 +111,7 @@ namespace OneMMC.Views.PolicyManagement.GpEdit
         private void PolicyTree_ItemInvoked(TreeView sender, TreeViewItemInvokedEventArgs args)
         {
             if (args.InvokedItem is TreeViewNode node && 
-                node.Content is GroupPolicyEditorViewModel.GroupPolicyTreeItem treeItem)
+                node.Content is GroupPolicyTreeItem treeItem)
             {
                 ViewModel.SelectedNode = treeItem;
             }

@@ -84,4 +84,5 @@ public partial class LocalizedStrings
     public string FsMgmt_Permissions_Advanced => GetResource(ResourceFileNames.FsMgmt, "FsMgmt_Permissions_Advanced");
     public string FsMgmt_Guest_Yes => GetResource(ResourceFileNames.FsMgmt, "FsMgmt_Guest_Yes");
     public string FsMgmt_Guest_No => GetResource(ResourceFileNames.FsMgmt, "FsMgmt_Guest_No");
+    public string FsMgmt_AutoRefresh_Label => GetResource(ResourceFileNames.FsMgmt, "FsMgmt_AutoRefresh_Label");
 }

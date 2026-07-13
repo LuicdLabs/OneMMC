@@ -1,5 +1,110 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
   <resheader name="resmimetype">
     <value>text/microsoft-resx</value>
   </resheader>
@@ -12,8 +117,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-
-  <!-- CommandBar -->
   <data name="WF_NewRule" xml:space="preserve">
     <value>New Rule</value>
   </data>
@@ -32,8 +135,6 @@
   <data name="WF_LoadingRules" xml:space="preserve">
     <value>Loading firewall rules...</value>
   </data>
-
-  <!-- Column headers -->
   <data name="WF_Column_Name" xml:space="preserve">
     <value>Name</value>
   </data>
@@ -49,8 +150,6 @@
   <data name="WF_Column_Profile" xml:space="preserve">
     <value>Profile</value>
   </data>
-
-  <!-- Dialog titles -->
   <data name="WF_AddInboundRule_Title" xml:space="preserve">
     <value>New Inbound Rule</value>
   </data>
@@ -63,16 +162,12 @@
   <data name="WF_EditOutboundRule_Title" xml:space="preserve">
     <value>Edit Outbound Rule</value>
   </data>
-
-  <!-- Direction labels -->
   <data name="WF_Direction_Inbound" xml:space="preserve">
     <value>Inbound</value>
   </data>
   <data name="WF_Direction_Outbound" xml:space="preserve">
     <value>Outbound</value>
   </data>
-
-  <!-- Dialog tabs -->
   <data name="WF_Tab_General" xml:space="preserve">
     <value>General</value>
   </data>
@@ -85,8 +180,6 @@
   <data name="WF_Tab_Advanced" xml:space="preserve">
     <value>Advanced</value>
   </data>
-
-  <!-- Dialog fields -->
   <data name="WF_Field_Name" xml:space="preserve">
     <value>Name</value>
   </data>
@@ -126,16 +219,12 @@
   <data name="WF_Field_Profile" xml:space="preserve">
     <value>Profiles</value>
   </data>
-
-  <!-- Action values -->
   <data name="WF_Action_Allow" xml:space="preserve">
     <value>Allow the connection</value>
   </data>
   <data name="WF_Action_Block" xml:space="preserve">
     <value>Block the connection</value>
   </data>
-
-  <!-- Profile values -->
   <data name="WF_Profile_Domain" xml:space="preserve">
     <value>Domain</value>
   </data>
@@ -145,8 +234,6 @@
   <data name="WF_Profile_Public" xml:space="preserve">
     <value>Public</value>
   </data>
-
-  <!-- Validation errors -->
   <data name="WF_Error_NameRequired" xml:space="preserve">
     <value>Please enter a name for this rule.</value>
   </data>
@@ -183,8 +270,6 @@
   <data name="WF_RuleUnavailable_Message" xml:space="preserve">
     <value>This rule was removed outside this page. Go back or refresh the rules list.</value>
   </data>
-
-  <!-- Page breadcrumb labels -->
   <data name="WF_InboundRules_PageTitle" xml:space="preserve">
     <value>Inbound Rules</value>
   </data>
@@ -197,13 +282,9 @@
   <data name="WF_ConnectionSecurityRules_PageTitle" xml:space="preserve">
     <value>Connection Security Rules</value>
   </data>
-
-  <!-- Connection Security Rules -->
   <data name="WF_Rule_On" xml:space="preserve">
     <value>On</value>
   </data>
-
-  <!-- Rule Info page -->
   <data name="WF_Rule_Apply" xml:space="preserve">
     <value>Apply</value>
   </data>
@@ -213,8 +294,6 @@
   <data name="WF_Rule_Enable" xml:space="preserve">
     <value>Enable</value>
   </data>
-
-  <!-- Section headers -->
   <data name="WF_Section_General" xml:space="preserve">
     <value>General</value>
   </data>
@@ -242,8 +321,6 @@
   <data name="WF_Section_RemoteComputers" xml:space="preserve">
     <value>Remote Computers</value>
   </data>
-
-  <!-- Action section -->
   <data name="WF_Action_ConnectionAction" xml:space="preserve">
     <value>Connection action</value>
   </data>
@@ -259,8 +336,6 @@
   <data name="WF_AllowIfSecure_OverrideBlockRules_Desc_Inbound" xml:space="preserve">
     <value>Useful for tools that must always be available, such as remote administration tools. If you specify this option, you must also specify an authorized computer or computer group.</value>
   </data>
-
-  <!-- Programs & Services -->
   <data name="WF_ProgramsServices_SpecifiedConditions" xml:space="preserve">
     <value>Specified conditions</value>
   </data>
@@ -294,8 +369,6 @@
   <data name="WF_Program_PathPlaceholder" xml:space="preserve">
     <value>e.g. %ProgramFiles%\App\app.exe</value>
   </data>
-
-  <!-- Protocols and ports -->
   <data name="WF_Protocol_Type" xml:space="preserve">
     <value>Protocol type</value>
   </data>
@@ -317,13 +390,9 @@
   <data name="WF_Port_InputRemotePort" xml:space="preserve">
     <value>Input for remote port</value>
   </data>
-
-  <!-- Scope -->
   <data name="WF_Scope_ManageIPAddress" xml:space="preserve">
     <value>Manage Local &amp; Remote IP address</value>
   </data>
-
-  <!-- Advanced -->
   <data name="WF_Advanced_Profiles" xml:space="preserve">
     <value>Profiles</value>
   </data>
@@ -366,8 +435,6 @@
   <data name="WF_EdgeTraversal_DeferToApp_Desc" xml:space="preserve">
     <value>Let each application decide whether to allow unsolicited traffic from the Internet through a NAT edge device.</value>
   </data>
-
-  <!-- Local Principals / Remote Users / Remote Computers -->
   <data name="WF_LocalPrincipals_Manage" xml:space="preserve">
     <value>Manage Authorized users and Exceptions</value>
   </data>
@@ -377,13 +444,9 @@
   <data name="WF_RemoteComputers_Manage" xml:space="preserve">
     <value>Manage Authorized computers and Exceptions</value>
   </data>
-
-  <!-- Connection Security Rules - Remote Computers -->
   <data name="WF_CSR_RemoteEndpoints_Manage" xml:space="preserve">
     <value>Manage remote endpoints</value>
   </data>
-
-  <!-- Connection Security Rules - Protocols and Ports -->
   <data name="WF_CSR_Endpoint1Port" xml:space="preserve">
     <value>Endpoint 1 port</value>
   </data>
@@ -396,8 +459,6 @@
   <data name="WF_CSR_Endpoint2Port_Input" xml:space="preserve">
     <value>Input for endpoint 2 port</value>
   </data>
-
-  <!-- Connection Security Rules - Authentication -->
   <data name="WF_Section_Authentication" xml:space="preserve">
     <value>Authentication</value>
   </data>
@@ -443,13 +504,9 @@
   <data name="WF_CSR_CustomizeMethods" xml:space="preserve">
     <value>Customize methods</value>
   </data>
-
-  <!-- Connection Security Rules - Advanced -->
   <data name="WF_CSR_ConfigureIPsec" xml:space="preserve">
     <value>Configure IPsec channel</value>
   </data>
-
-  <!-- Buttons -->
   <data name="WF_Button_Customize" xml:space="preserve">
     <value>Customize</value>
   </data>
@@ -471,8 +528,6 @@
   <data name="WF_PredefinedRule_InfoBar_Message" xml:space="preserve">
     <value>Some properties of this predefined rule cannot be modified.</value>
   </data>
-
-  <!-- Validation / Scope dialogs -->
   <data name="WF_Validation_ProgramPathRequired" xml:space="preserve">
     <value>Please choose a program path before applying this rule.</value>
   </data>
@@ -566,7 +621,6 @@
   <data name="WF_RemoteComputersDialog_SelectionRequired" xml:space="preserve">
     <value>Specify at least one computer for each enabled list before saving.</value>
   </data>
-  <!-- WF XAML semantic UI strings -->
   <data name="WF_AddFirstAuthMethod_ComputerCertificateFromThisCertificationAuthorityCA" xml:space="preserve">
     <value>Computer certificate from this certification authority (CA):</value>
   </data>
@@ -1605,7 +1659,6 @@
   <data name="WF_WindowsFirewallProperties_SpecifySettingsThatControlWindowsDefenderFirewallBehavior" xml:space="preserve">
     <value>Specify settings that control Windows Defender Firewall behavior</value>
   </data>
-  <!-- WF code-behind UI strings -->
   <data name="WF_RestoreLocalDefaults_Title" xml:space="preserve">
     <value>Restore local firewall defaults</value>
   </data>
@@ -1631,10 +1684,10 @@
     <value>Outbound connections that do not match a rule are {0}.</value>
   </data>
   <data name="WF_State_On" xml:space="preserve">
-    <value>on</value>
+    <value>On</value>
   </data>
   <data name="WF_State_Off" xml:space="preserve">
-    <value>off</value>
+    <value>Off</value>
   </data>
   <data name="WF_Traffic_Blocked" xml:space="preserve">
     <value>blocked</value>
@@ -1834,7 +1887,6 @@
   <data name="WF_AlgorithmDescription_Sha1" xml:space="preserve">
     <value>Stronger than MD5, uses slightly more resources.</value>
   </data>
-  <!-- WF monitoring code strings -->
   <data name="WF_Monitoring_PropertiesTitleFormat" xml:space="preserve">
     <value>{0} Properties</value>
   </data>
@@ -1895,7 +1947,6 @@
   <data name="WF_Monitoring_Label_Service" xml:space="preserve">
     <value>Service</value>
   </data>
-  <!-- WF authentication dialog code strings -->
   <data name="WF_AddFirstAuthenticationMethod_Title" xml:space="preserve">
     <value>Add First Authentication Method</value>
   </data>

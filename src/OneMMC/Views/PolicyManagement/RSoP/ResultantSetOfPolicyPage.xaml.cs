@@ -80,13 +80,13 @@ public sealed partial class ResultantSetOfPolicyPage : Page
 
     private void RootNodes_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
-        if (sender is ObservableCollection<ResultantSetOfPolicyViewModel.RSoPTreeItem> rootNodes)
+        if (sender is ObservableCollection<RSoPTreeItem> rootNodes)
         {
             if (e.Action == NotifyCollectionChangedAction.Add && e.NewItems != null)
             {
                 foreach (var item in e.NewItems)
                 {
-                    if (item is ResultantSetOfPolicyViewModel.RSoPTreeItem treeItem)
+                    if (item is RSoPTreeItem treeItem)
                     {
                         var node = CreateTreeNode(treeItem);
                         PolicyTree.RootNodes.Add(node);
@@ -105,7 +105,7 @@ public sealed partial class ResultantSetOfPolicyPage : Page
         }
     }
 
-    private TreeViewNode CreateTreeNode(ResultantSetOfPolicyViewModel.RSoPTreeItem item)
+    private TreeViewNode CreateTreeNode(RSoPTreeItem item)
     {
         var node = new TreeViewNode() { Content = item };
         foreach (var child in item.Children)
@@ -118,7 +118,7 @@ public sealed partial class ResultantSetOfPolicyPage : Page
     private void PolicyTree_ItemInvoked(TreeView sender, TreeViewItemInvokedEventArgs args)
     {
         if (args.InvokedItem is TreeViewNode node &&
-            node.Content is ResultantSetOfPolicyViewModel.RSoPTreeItem treeItem)
+            node.Content is RSoPTreeItem treeItem)
         {
             ViewModel.SelectedNode = treeItem;
         }

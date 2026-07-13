@@ -6,15 +6,14 @@
     xmlns:local="using:OneMMC.Localization"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    Title="{Binding WF_NewConnectionSecurityRule_NewConnectionSecurityRule, Source={StaticResource LocalizedStrings}}"
+    Title="{x:Bind local:LocalizedStrings.Instance.WF_NewConnectionSecurityRule_NewConnectionSecurityRule}"
     DefaultButton="Primary"
-    PrimaryButtonText="{Binding Common_CreateButton, Source={StaticResource LocalizedStrings}}"
-    SecondaryButtonText="{Binding Common_CancelButton, Source={StaticResource LocalizedStrings}}"
+    PrimaryButtonText="{x:Bind local:LocalizedStrings.Instance.Common_CreateButton}"
+    SecondaryButtonText="{x:Bind local:LocalizedStrings.Instance.Common_CancelButton}"
     Style="{StaticResource DefaultContentDialogStyle}"
     mc:Ignorable="d">
 
     <ContentDialog.Resources>
-        <local:LocalizedStrings x:Key="LocalizedStrings" />
     </ContentDialog.Resources>
 
     <ScrollViewer
@@ -30,46 +29,46 @@
                 TextWrapping="Wrap"
                 Visibility="Collapsed" />
 
-            <TextBlock FontWeight="SemiBold" Text="{Binding WF_Common_Type, Source={StaticResource LocalizedStrings}}" />
+            <TextBlock FontWeight="SemiBold" Text="{x:Bind local:LocalizedStrings.Instance.WF_Common_Type}" />
             <ComboBox
                 x:Name="RuleTypeBox"
                 Width="Auto"
                 HorizontalAlignment="Stretch"
                 SelectedIndex="0"
                 SelectionChanged="RuleTypeBox_SelectionChanged">
-                <ComboBoxItem Content="{Binding WF_NewConnectionSecurityRule_Isolation, Source={StaticResource LocalizedStrings}}" Tag="Isolation" />
-                <ComboBoxItem Content="{Binding WF_NewConnectionSecurityRule_AuthenticationExemption, Source={StaticResource LocalizedStrings}}" Tag="AuthenticationExemption" />
-                <ComboBoxItem Content="{Binding WF_NewConnectionSecurityRule_ServerToServer, Source={StaticResource LocalizedStrings}}" Tag="ServerToServer" />
-                <ComboBoxItem Content="{Binding WF_NewConnectionSecurityRule_Tunnel, Source={StaticResource LocalizedStrings}}" Tag="Tunnel" />
-                <ComboBoxItem Content="{Binding WF_Common_Custom, Source={StaticResource LocalizedStrings}}" Tag="Custom" />
+                <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_NewConnectionSecurityRule_Isolation}" Tag="Isolation" />
+                <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_NewConnectionSecurityRule_AuthenticationExemption}" Tag="AuthenticationExemption" />
+                <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_NewConnectionSecurityRule_ServerToServer}" Tag="ServerToServer" />
+                <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_NewConnectionSecurityRule_Tunnel}" Tag="Tunnel" />
+                <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_Common_Custom}" Tag="Custom" />
             </ComboBox>
 
             <StackPanel
                 x:Name="TunnelTypeSection"
                 Spacing="10"
                 Visibility="Collapsed">
-                <TextBlock FontWeight="SemiBold" Text="{Binding WF_NewConnectionSecurityRule_WhatTypeOfTunnelWouldYouLikeToCreate, Source={StaticResource LocalizedStrings}}" />
+                <TextBlock FontWeight="SemiBold" Text="{x:Bind local:LocalizedStrings.Instance.WF_NewConnectionSecurityRule_WhatTypeOfTunnelWouldYouLikeToCreate}" />
                 <ComboBox
                     x:Name="TunnelTypeBox"
                     Width="Auto"
                     HorizontalAlignment="Stretch"
                     SelectedIndex="0"
                     SelectionChanged="TunnelTypeBox_SelectionChanged">
-                    <ComboBoxItem Content="{Binding WF_NewConnectionSecurityRule_CustomConfiguration, Source={StaticResource LocalizedStrings}}" Tag="CustomConfiguration" />
-                    <ComboBoxItem Content="{Binding WF_NewConnectionSecurityRule_ClientToGateway, Source={StaticResource LocalizedStrings}}" Tag="ClientToGateway" />
-                    <ComboBoxItem Content="{Binding WF_NewConnectionSecurityRule_GatewayToClient, Source={StaticResource LocalizedStrings}}" Tag="GatewayToClient" />
+                    <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_NewConnectionSecurityRule_CustomConfiguration}" Tag="CustomConfiguration" />
+                    <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_NewConnectionSecurityRule_ClientToGateway}" Tag="ClientToGateway" />
+                    <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_NewConnectionSecurityRule_GatewayToClient}" Tag="GatewayToClient" />
                 </ComboBox>
                 <TextBlock x:Name="TunnelTypeDescriptionTextBlock" TextWrapping="Wrap" />
 
-                <TextBlock FontWeight="SemiBold" Text="{Binding WF_NewConnectionSecurityRule_WouldYouLikeToExemptIPsecProtectedConnectionsFromThisTunnel, Source={StaticResource LocalizedStrings}}" />
+                <TextBlock FontWeight="SemiBold" Text="{x:Bind local:LocalizedStrings.Instance.WF_NewConnectionSecurityRule_WouldYouLikeToExemptIPsecProtectedConnectionsFromThisTunnel}" />
                 <RadioButton x:Name="TunnelExemptYesRadio" GroupName="TunnelExemptGroup">
-                    <TextBlock Text="{Binding WF_NewConnectionSecurityRule_YesIfANetworkConnectionIsAlreadyProtectedByIPsecThroughAnother, Source={StaticResource LocalizedStrings}}" TextWrapping="Wrap" />
+                    <TextBlock Text="{x:Bind local:LocalizedStrings.Instance.WF_NewConnectionSecurityRule_YesIfANetworkConnectionIsAlreadyProtectedByIPsecThroughAnother}" TextWrapping="Wrap" />
                 </RadioButton>
                 <RadioButton
                     x:Name="TunnelExemptNoRadio"
                     GroupName="TunnelExemptGroup"
                     IsChecked="True">
-                    <TextBlock Text="{Binding WF_NewConnectionSecurityRule_NoSendAllNetworkTrafficThatMatchesThisRuleThroughTheTunnel, Source={StaticResource LocalizedStrings}}" TextWrapping="Wrap" />
+                    <TextBlock Text="{x:Bind local:LocalizedStrings.Instance.WF_NewConnectionSecurityRule_NoSendAllNetworkTrafficThatMatchesThisRuleThroughTheTunnel}" TextWrapping="Wrap" />
                 </RadioButton>
 
                 <Grid
@@ -83,14 +82,14 @@
                     <TextBlock
                         Grid.Column="0"
                         VerticalAlignment="Center"
-                        Text="{Binding WF_NewConnectionSecurityRule_KeyingModule, Source={StaticResource LocalizedStrings}}" />
+                        Text="{x:Bind local:LocalizedStrings.Instance.WF_NewConnectionSecurityRule_KeyingModule}" />
                     <ComboBox
                         x:Name="TunnelKeyModuleBox"
                         Grid.Column="1"
                         HorizontalAlignment="Stretch"
                         SelectedIndex="0">
-                        <ComboBoxItem Content="{Binding WF_Common_Default, Source={StaticResource LocalizedStrings}}" Tag="Default" />
-                        <ComboBoxItem Content="{Binding WF_NewConnectionSecurityRule_IKEv2, Source={StaticResource LocalizedStrings}}" Tag="IKEv2" />
+                        <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_Common_Default}" Tag="Default" />
+                        <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_NewConnectionSecurityRule_IKEv2}" Tag="IKEv2" />
                     </ComboBox>
                 </Grid>
             </StackPanel>
@@ -99,7 +98,7 @@
                 x:Name="ExemptComputersSection"
                 Spacing="10"
                 Visibility="Collapsed">
-                <TextBlock FontWeight="SemiBold" Text="{Binding WF_NewConnectionSecurityRule_ExemptComputers, Source={StaticResource LocalizedStrings}}" />
+                <TextBlock FontWeight="SemiBold" Text="{x:Bind local:LocalizedStrings.Instance.WF_NewConnectionSecurityRule_ExemptComputers}" />
                 <Grid ColumnSpacing="8">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
@@ -116,15 +115,15 @@
                         <Button
                             MinWidth="120"
                             Click="ExemptAddButton_Click"
-                            Content="{Binding Common_AddButton, Source={StaticResource LocalizedStrings}}" />
+                            Content="{x:Bind local:LocalizedStrings.Instance.Common_AddButton}" />
                         <Button
                             MinWidth="120"
                             Click="ExemptEditButton_Click"
-                            Content="{Binding Common_EditButton, Source={StaticResource LocalizedStrings}}" />
+                            Content="{x:Bind local:LocalizedStrings.Instance.Common_EditButton}" />
                         <Button
                             MinWidth="120"
                             Click="ExemptRemoveButton_Click"
-                            Content="{Binding Common_RemoveButton, Source={StaticResource LocalizedStrings}}" />
+                            Content="{x:Bind local:LocalizedStrings.Instance.Common_RemoveButton}" />
                     </StackPanel>
                 </Grid>
             </StackPanel>
@@ -133,7 +132,7 @@
                 x:Name="EndpointsSection"
                 Spacing="10"
                 Visibility="Collapsed">
-                <TextBlock FontWeight="SemiBold" Text="{Binding WF_NewConnectionSecurityRule_Endpoints, Source={StaticResource LocalizedStrings}}" />
+                <TextBlock FontWeight="SemiBold" Text="{x:Bind local:LocalizedStrings.Instance.WF_NewConnectionSecurityRule_Endpoints}" />
                 <Grid ColumnSpacing="8">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="2*" />
@@ -142,12 +141,12 @@
                     <TextBlock
                         Grid.Column="0"
                         VerticalAlignment="Center"
-                        Text="{Binding WF_NewConnectionSecurityRule_ConfigureIPEndpoints, Source={StaticResource LocalizedStrings}}" />
+                        Text="{x:Bind local:LocalizedStrings.Instance.WF_NewConnectionSecurityRule_ConfigureIPEndpoints}" />
                     <Button
                         Grid.Column="1"
                         MinWidth="160"
                         Click="ConfigureEndpointsButton_Click"
-                        Content="{Binding WF_Button_Configure, Source={StaticResource LocalizedStrings}}" />
+                        Content="{x:Bind local:LocalizedStrings.Instance.WF_Button_Configure}" />
                 </Grid>
                 <Grid ColumnSpacing="8">
                     <Grid.ColumnDefinitions>
@@ -158,28 +157,28 @@
                         x:Name="InterfaceTypesValueTextBlock"
                         Grid.Column="0"
                         VerticalAlignment="Center"
-                        Text="{Binding WF_Common_AllInterfaceTypes, Source={StaticResource LocalizedStrings}}" />
+                        Text="{x:Bind local:LocalizedStrings.Instance.WF_Common_AllInterfaceTypes}" />
                     <Button
                         Grid.Column="1"
                         MinWidth="160"
                         Click="CustomizeInterfaceTypesButton_Click"
-                        Content="{Binding WF_NewConnectionSecurityRule_CustomizeInterfaceTypes, Source={StaticResource LocalizedStrings}}" />
+                        Content="{x:Bind local:LocalizedStrings.Instance.WF_NewConnectionSecurityRule_CustomizeInterfaceTypes}" />
                 </Grid>
             </StackPanel>
 
             <StackPanel x:Name="RequirementsSection" Spacing="10">
-                <TextBlock FontWeight="SemiBold" Text="{Binding WF_NewConnectionSecurityRule_Requirements, Source={StaticResource LocalizedStrings}}" />
+                <TextBlock FontWeight="SemiBold" Text="{x:Bind local:LocalizedStrings.Instance.WF_NewConnectionSecurityRule_Requirements}" />
                 <ComboBox
                     x:Name="RequirementsBox"
                     Width="Auto"
                     HorizontalAlignment="Stretch"
                     SelectedIndex="0"
                     SelectionChanged="RequirementsBox_SelectionChanged">
-                    <ComboBoxItem Content="{Binding WF_CSR_AuthMode_DoNotAuthenticate, Source={StaticResource LocalizedStrings}}" Tag="DoNotAuthenticate" />
-                    <ComboBoxItem Content="{Binding WF_CSR_AuthMode_RequestInboundOutbound, Source={StaticResource LocalizedStrings}}" Tag="RequestInboundOutbound" />
-                    <ComboBoxItem Content="{Binding WF_CSR_AuthMode_RequireInboundRequestOutbound, Source={StaticResource LocalizedStrings}}" Tag="RequireInboundRequestOutbound" />
-                    <ComboBoxItem Content="{Binding WF_CSR_AuthMode_RequireInboundOutbound, Source={StaticResource LocalizedStrings}}" Tag="RequireInboundOutbound" />
-                    <ComboBoxItem Content="{Binding WF_CSR_AuthMode_RequireInboundClearOutbound, Source={StaticResource LocalizedStrings}}" Tag="RequireInboundClearOutbound" />
+                    <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_CSR_AuthMode_DoNotAuthenticate}" Tag="DoNotAuthenticate" />
+                    <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_CSR_AuthMode_RequestInboundOutbound}" Tag="RequestInboundOutbound" />
+                    <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_CSR_AuthMode_RequireInboundRequestOutbound}" Tag="RequireInboundRequestOutbound" />
+                    <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_CSR_AuthMode_RequireInboundOutbound}" Tag="RequireInboundOutbound" />
+                    <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_CSR_AuthMode_RequireInboundClearOutbound}" Tag="RequireInboundClearOutbound" />
                 </ComboBox>
             </StackPanel>
 
@@ -187,7 +186,7 @@
                 x:Name="TunnelEndpointsSection"
                 Spacing="10"
                 Visibility="Collapsed">
-                <TextBlock FontWeight="SemiBold" Text="{Binding WF_NewConnectionSecurityRule_TunnelEndpoints, Source={StaticResource LocalizedStrings}}" />
+                <TextBlock FontWeight="SemiBold" Text="{x:Bind local:LocalizedStrings.Instance.WF_NewConnectionSecurityRule_TunnelEndpoints}" />
                 <Grid ColumnSpacing="8">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="2*" />
@@ -196,29 +195,29 @@
                     <TextBlock
                         Grid.Column="0"
                         VerticalAlignment="Center"
-                        Text="{Binding WF_Common_ConfigureTunnelEndpoints, Source={StaticResource LocalizedStrings}}" />
+                        Text="{x:Bind local:LocalizedStrings.Instance.WF_Common_ConfigureTunnelEndpoints}" />
                     <Button
                         Grid.Column="1"
                         MinWidth="160"
                         Click="ConfigureTunnelEndpointsButton_Click"
-                        Content="{Binding WF_Button_Configure, Source={StaticResource LocalizedStrings}}" />
+                        Content="{x:Bind local:LocalizedStrings.Instance.WF_Button_Configure}" />
                 </Grid>
             </StackPanel>
 
             <StackPanel x:Name="AuthenticationMethodSection" Spacing="10">
-                <TextBlock FontWeight="SemiBold" Text="{Binding WF_CSR_AuthenticationMethod, Source={StaticResource LocalizedStrings}}" />
+                <TextBlock FontWeight="SemiBold" Text="{x:Bind local:LocalizedStrings.Instance.WF_CSR_AuthenticationMethod}" />
                 <ComboBox
                     x:Name="AuthenticationMethodBox"
                     Width="Auto"
                     HorizontalAlignment="Stretch"
                     SelectedIndex="4"
                     SelectionChanged="AuthenticationMethodBox_SelectionChanged">
-                    <ComboBoxItem Content="{Binding WF_Common_Default, Source={StaticResource LocalizedStrings}}" Tag="Default" />
-                    <ComboBoxItem Content="{Binding WF_CSR_AuthMethod_ComputerAndUser, Source={StaticResource LocalizedStrings}}" Tag="ComputerAndUser" />
-                    <ComboBoxItem Content="{Binding WF_Common_ComputerKerberosV5, Source={StaticResource LocalizedStrings}}" Tag="Computer" />
-                    <ComboBoxItem Content="{Binding WF_Common_UserKerberosV5, Source={StaticResource LocalizedStrings}}" Tag="User" />
-                    <ComboBoxItem Content="{Binding WF_Tab_Advanced, Source={StaticResource LocalizedStrings}}" Tag="Advanced" />
-                    <ComboBoxItem Content="{Binding WF_NewConnectionSecurityRule_ComputerCertificate, Source={StaticResource LocalizedStrings}}" Tag="ComputerCertificate" />
+                    <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_Common_Default}" Tag="Default" />
+                    <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_CSR_AuthMethod_ComputerAndUser}" Tag="ComputerAndUser" />
+                    <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_Common_ComputerKerberosV5}" Tag="Computer" />
+                    <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_Common_UserKerberosV5}" Tag="User" />
+                    <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_Tab_Advanced}" Tag="Advanced" />
+                    <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_NewConnectionSecurityRule_ComputerCertificate}" Tag="ComputerCertificate" />
                 </ComboBox>
 
                 <StackPanel
@@ -239,7 +238,7 @@
                             Grid.Row="0"
                             Grid.Column="0"
                             VerticalAlignment="Center"
-                            Text="{Binding WF_NewConnectionSecurityRule_SigningAlgorithm, Source={StaticResource LocalizedStrings}}" />
+                            Text="{x:Bind local:LocalizedStrings.Instance.WF_NewConnectionSecurityRule_SigningAlgorithm}" />
                         <ComboBox
                             x:Name="SigningAlgorithmBox"
                             Grid.Row="0"
@@ -247,16 +246,16 @@
                             Width="Auto"
                             HorizontalAlignment="Stretch"
                             SelectedIndex="0">
-                            <ComboBoxItem Content="{Binding WF_SigningAlgorithm_RsaDefault, Source={StaticResource LocalizedStrings}}" Tag="RSA" />
-                            <ComboBoxItem Content="{Binding WF_SigningAlgorithm_EcdsaP256, Source={StaticResource LocalizedStrings}}" Tag="ECDSA-P256" />
-                            <ComboBoxItem Content="{Binding WF_SigningAlgorithm_EcdsaP384, Source={StaticResource LocalizedStrings}}" Tag="ECDSA-P384" />
+                            <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_SigningAlgorithm_RsaDefault}" Tag="RSA" />
+                            <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_SigningAlgorithm_EcdsaP256}" Tag="ECDSA-P256" />
+                            <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_SigningAlgorithm_EcdsaP384}" Tag="ECDSA-P384" />
                         </ComboBox>
 
                         <TextBlock
                             Grid.Row="1"
                             Grid.Column="0"
                             VerticalAlignment="Center"
-                            Text="{Binding WF_NewConnectionSecurityRule_CertificateStoreType, Source={StaticResource LocalizedStrings}}" />
+                            Text="{x:Bind local:LocalizedStrings.Instance.WF_NewConnectionSecurityRule_CertificateStoreType}" />
                         <ComboBox
                             x:Name="CertificateStoreTypeBox"
                             Grid.Row="1"
@@ -264,8 +263,8 @@
                             Width="Auto"
                             HorizontalAlignment="Stretch"
                             SelectedIndex="0">
-                            <ComboBoxItem Content="{Binding WF_CertificateStore_RootCADefault, Source={StaticResource LocalizedStrings}}" Tag="RootCA" />
-                            <ComboBoxItem Content="{Binding WF_CertificateStore_IntermediateCA, Source={StaticResource LocalizedStrings}}" Tag="IntermediateCA" />
+                            <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_CertificateStore_RootCADefault}" Tag="RootCA" />
+                            <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_CertificateStore_IntermediateCA}" Tag="IntermediateCA" />
                         </ComboBox>
                     </Grid>
 
@@ -277,15 +276,15 @@
                         <TextBox
                             x:Name="CertificateAuthorityNameTextBox"
                             Grid.Column="0"
-                            PlaceholderText="{Binding WF_NewConnectionSecurityRule_CAName, Source={StaticResource LocalizedStrings}}" />
+                            PlaceholderText="{x:Bind local:LocalizedStrings.Instance.WF_NewConnectionSecurityRule_CAName}" />
                         <Button
                             Grid.Column="1"
                             MinWidth="160"
                             Click="BrowseCertificateAuthorityButton_Click"
-                            Content="{Binding Common_BrowseButton, Source={StaticResource LocalizedStrings}}" />
+                            Content="{x:Bind local:LocalizedStrings.Instance.Common_BrowseButton}" />
                     </Grid>
 
-                    <CheckBox x:Name="AcceptHealthCertificatesCheckBox" Content="{Binding WF_Common_AcceptOnlyHealthCertificates, Source={StaticResource LocalizedStrings}}" />
+                    <CheckBox x:Name="AcceptHealthCertificatesCheckBox" Content="{x:Bind local:LocalizedStrings.Instance.WF_Common_AcceptOnlyHealthCertificates}" />
                 </StackPanel>
 
                 <Grid
@@ -299,13 +298,13 @@
                     <TextBlock
                         Grid.Column="0"
                         VerticalAlignment="Center"
-                        Text="{Binding WF_CSR_CustomizeMethods, Source={StaticResource LocalizedStrings}}" />
+                        Text="{x:Bind local:LocalizedStrings.Instance.WF_CSR_CustomizeMethods}" />
                     <Button
                         x:Name="CustomizeMethodsButton"
                         Grid.Column="1"
                         MinWidth="160"
                         Click="CustomizeMethodsButton_Click"
-                        Content="{Binding WF_Button_Customize, Source={StaticResource LocalizedStrings}}" />
+                        Content="{x:Bind local:LocalizedStrings.Instance.WF_Button_Customize}" />
                 </Grid>
             </StackPanel>
 
@@ -313,7 +312,7 @@
                 x:Name="ProtocolsAndPortsSection"
                 Spacing="10"
                 Visibility="Collapsed">
-                <TextBlock FontWeight="SemiBold" Text="{Binding WF_Section_ProtocolsPorts, Source={StaticResource LocalizedStrings}}" />
+                <TextBlock FontWeight="SemiBold" Text="{x:Bind local:LocalizedStrings.Instance.WF_Section_ProtocolsPorts}" />
                 <Grid ColumnSpacing="10" RowSpacing="10">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="2*" />
@@ -332,24 +331,24 @@
                         Grid.Row="0"
                         Grid.Column="0"
                         VerticalAlignment="Center"
-                        Text="{Binding WF_Protocol_Type, Source={StaticResource LocalizedStrings}}" />
+                        Text="{x:Bind local:LocalizedStrings.Instance.WF_Protocol_Type}" />
                     <ComboBox
                         x:Name="ProtocolTypeBox"
                         Grid.Row="0"
                         Grid.Column="1"
                         SelectedIndex="0"
                         SelectionChanged="ProtocolTypeBox_SelectionChanged">
-                        <ComboBoxItem Content="{Binding WF_Common_Any, Source={StaticResource LocalizedStrings}}" Tag="Any" />
-                        <ComboBoxItem Content="{Binding WF_Common_TCP, Source={StaticResource LocalizedStrings}}" Tag="TCP" />
-                        <ComboBoxItem Content="{Binding WF_Common_UDP, Source={StaticResource LocalizedStrings}}" Tag="UDP" />
-                        <ComboBoxItem Content="{Binding WF_Common_Custom, Source={StaticResource LocalizedStrings}}" Tag="Custom" />
+                        <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_Common_Any}" Tag="Any" />
+                        <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_Common_TCP}" Tag="TCP" />
+                        <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_Common_UDP}" Tag="UDP" />
+                        <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_Common_Custom}" Tag="Custom" />
                     </ComboBox>
 
                     <TextBlock
                         Grid.Row="1"
                         Grid.Column="0"
                         VerticalAlignment="Center"
-                        Text="{Binding WF_Protocol_Number, Source={StaticResource LocalizedStrings}}" />
+                        Text="{x:Bind local:LocalizedStrings.Instance.WF_Protocol_Number}" />
                     <NumberBox
                         x:Name="ProtocolNumberBox"
                         Grid.Row="1"
@@ -363,15 +362,15 @@
                         Grid.Row="2"
                         Grid.Column="0"
                         VerticalAlignment="Center"
-                        Text="{Binding WF_CSR_Endpoint1Port, Source={StaticResource LocalizedStrings}}" />
+                        Text="{x:Bind local:LocalizedStrings.Instance.WF_CSR_Endpoint1Port}" />
                     <ComboBox
                         x:Name="Endpoint1PortBox"
                         Grid.Row="2"
                         Grid.Column="1"
                         SelectedIndex="0"
                         SelectionChanged="Endpoint1PortBox_SelectionChanged">
-                        <ComboBoxItem Content="{Binding WF_Port_AllPorts, Source={StaticResource LocalizedStrings}}" Tag="AllPorts" />
-                        <ComboBoxItem Content="{Binding WF_Port_SpecificPorts, Source={StaticResource LocalizedStrings}}" Tag="SpecificPorts" />
+                        <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_Port_AllPorts}" Tag="AllPorts" />
+                        <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_Port_SpecificPorts}" Tag="SpecificPorts" />
                     </ComboBox>
 
                     <TextBlock
@@ -379,7 +378,7 @@
                         Grid.Row="3"
                         Grid.Column="0"
                         VerticalAlignment="Center"
-                        Text="{Binding WF_CSR_Endpoint1Port_Input, Source={StaticResource LocalizedStrings}}"
+                        Text="{x:Bind local:LocalizedStrings.Instance.WF_CSR_Endpoint1Port_Input}"
                         Visibility="Collapsed" />
                     <TextBox
                         x:Name="Endpoint1PortInputTextBox"
@@ -391,15 +390,15 @@
                         Grid.Row="4"
                         Grid.Column="0"
                         VerticalAlignment="Center"
-                        Text="{Binding WF_CSR_Endpoint2Port, Source={StaticResource LocalizedStrings}}" />
+                        Text="{x:Bind local:LocalizedStrings.Instance.WF_CSR_Endpoint2Port}" />
                     <ComboBox
                         x:Name="Endpoint2PortBox"
                         Grid.Row="4"
                         Grid.Column="1"
                         SelectedIndex="0"
                         SelectionChanged="Endpoint2PortBox_SelectionChanged">
-                        <ComboBoxItem Content="{Binding WF_Port_AllPorts, Source={StaticResource LocalizedStrings}}" Tag="AllPorts" />
-                        <ComboBoxItem Content="{Binding WF_Port_SpecificPorts, Source={StaticResource LocalizedStrings}}" Tag="SpecificPorts" />
+                        <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_Port_AllPorts}" Tag="AllPorts" />
+                        <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_Port_SpecificPorts}" Tag="SpecificPorts" />
                     </ComboBox>
 
                     <TextBlock
@@ -407,7 +406,7 @@
                         Grid.Row="5"
                         Grid.Column="0"
                         VerticalAlignment="Center"
-                        Text="{Binding WF_CSR_Endpoint2Port_Input, Source={StaticResource LocalizedStrings}}"
+                        Text="{x:Bind local:LocalizedStrings.Instance.WF_CSR_Endpoint2Port_Input}"
                         Visibility="Collapsed" />
                     <TextBox
                         x:Name="Endpoint2PortInputTextBox"
@@ -418,21 +417,21 @@
             </StackPanel>
 
             <StackPanel x:Name="ProfileSection" Spacing="10">
-                <TextBlock FontWeight="SemiBold" Text="{Binding WF_Field_Profile, Source={StaticResource LocalizedStrings}}" />
-                <TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="{Binding WF_Advanced_ProfilesDescription, Source={StaticResource LocalizedStrings}}" />
-                <CheckBox x:Name="DomainCheckBox" Content="{Binding WF_Profile_Domain, Source={StaticResource LocalizedStrings}}" IsChecked="True" />
+                <TextBlock FontWeight="SemiBold" Text="{x:Bind local:LocalizedStrings.Instance.WF_Field_Profile}" />
+                <TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="{x:Bind local:LocalizedStrings.Instance.WF_Advanced_ProfilesDescription}" />
+                <CheckBox x:Name="DomainCheckBox" Content="{x:Bind local:LocalizedStrings.Instance.WF_Profile_Domain}" IsChecked="True" />
                 <CheckBox
                     x:Name="PrivateCheckBox"
-                    Content="{Binding WF_Profile_Private, Source={StaticResource LocalizedStrings}}"
+                    Content="{x:Bind local:LocalizedStrings.Instance.WF_Profile_Private}"
                     IsChecked="True" />
-                <CheckBox x:Name="PublicCheckBox" Content="{Binding WF_Profile_Public, Source={StaticResource LocalizedStrings}}" IsChecked="True" />
+                <CheckBox x:Name="PublicCheckBox" Content="{x:Bind local:LocalizedStrings.Instance.WF_Profile_Public}" IsChecked="True" />
             </StackPanel>
 
             <StackPanel x:Name="NameSection" Spacing="10">
-                <TextBlock FontWeight="SemiBold" Text="{Binding WF_Field_Name, Source={StaticResource LocalizedStrings}}" />
-                <TextBlock Text="{Binding WF_Common_RuleName, Source={StaticResource LocalizedStrings}}" />
+                <TextBlock FontWeight="SemiBold" Text="{x:Bind local:LocalizedStrings.Instance.WF_Field_Name}" />
+                <TextBlock Text="{x:Bind local:LocalizedStrings.Instance.WF_Common_RuleName}" />
                 <TextBox x:Name="RuleNameTextBox" />
-                <TextBlock Text="{Binding WF_Common_DescriptionOptional, Source={StaticResource LocalizedStrings}}" />
+                <TextBlock Text="{x:Bind local:LocalizedStrings.Instance.WF_Common_DescriptionOptional}" />
                 <TextBox
                     x:Name="RuleDescriptionTextBox"
                     Height="130"

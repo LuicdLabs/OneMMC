@@ -11,7 +11,7 @@ using Microsoft.Extensions.Logging;
 
 namespace OneMMC.Core.Features.PCManagement.ViewModels.DevMgmt
 {
-    public class DeviceManagerViewModel : INotifyPropertyChanged
+    public partial class DeviceManagerViewModel : INotifyPropertyChanged
     {
         private readonly DeviceManagerService _deviceManagerService;
         private readonly ILogger<DeviceManagerViewModel> _logger;

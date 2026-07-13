@@ -2,13 +2,13 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Management;
 using System.Runtime.InteropServices;
 using System.Text;
 using OneMMC.Core.Infrastructure.Admin;
 using OneMMC.Core.Infrastructure.Wmi;
 using OneMMC.Core.Localization;
 using Microsoft.Extensions.Logging;
+using WmiLight;
 using Windows.Win32.Devices.DeviceAndDriverInstallation;
 using Windows.Win32.Foundation;
 using Win32PInvoke = Windows.Win32.PInvoke;
@@ -26,110 +26,24 @@ namespace OneMMC.Core.Features.PCManagement.Services.DevMgmt
             _adminService = adminService;
         }
 
-        // CsWin32 does not emit these SetupAPI signatures for AnyCPU builds (PInvoke005),
-        // so this device-installation path stays on handwritten interop as a documented exception.
-        [DllImport("setupapi.dll", SetLastError = true, CharSet = CharSet.Auto)]
-        private static extern IntPtr SetupDiGetClassDevs(
-            ref Guid classGuid,
-            IntPtr enumerator,
-            IntPtr hwndParent,
-            uint flags);
-
-        [DllImport("setupapi.dll", SetLastError = true)]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        private static extern bool SetupDiEnumDeviceInfo(
-            IntPtr deviceInfoSet,
-            uint memberIndex,
-            ref SP_DEVINFO_DATA deviceInfoData);
-
-        [DllImport("setupapi.dll", SetLastError = true)]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        private static extern bool SetupDiDestroyDeviceInfoList(IntPtr deviceInfoSet);
-
-        [DllImport("setupapi.dll", CharSet = CharSet.Auto, SetLastError = true)]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        private static extern bool SetupDiGetDeviceRegistryProperty(
-            IntPtr deviceInfoSet,
-            ref SP_DEVINFO_DATA deviceInfoData,
-            uint property,
-            out uint propertyRegDataType,
-            byte[] propertyBuffer,
-            uint propertyBufferSize,
-            out uint requiredSize);
-
-        [DllImport("setupapi.dll", SetLastError = true)]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        private static extern bool SetupDiSetClassInstallParams(
-            IntPtr deviceInfoSet,
-            ref SP_DEVINFO_DATA deviceInfoData,
-            ref PropertyChangeParameters classInstallParams,
-            int classInstallParamsSize);
-
-        [DllImport("setupapi.dll", SetLastError = true)]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        private static extern bool SetupDiSetClassInstallParams(
-            IntPtr deviceInfoSet,
-            ref SP_DEVINFO_DATA deviceInfoData,
-            ref RemoveDeviceParameters classInstallParams,
-            int classInstallParamsSize);
-
-        [DllImport("setupapi.dll", SetLastError = true)]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        private static extern bool SetupDiCallClassInstaller(
-            uint installFunction,
-            IntPtr deviceInfoSet,
-            ref SP_DEVINFO_DATA deviceInfoData);
-
+        // Native device enumeration/installation runs through CsWin32-generated SETUPAPI.dll interop
+        // (Win32PInvoke.SetupDi*, the SP_* structs and SETUP_DI_*/DI_FUNCTION enums). The HDEVINFO from
+        // SetupDiGetClassDevs is wrapped in a SafeHandle that calls SetupDiDestroyDeviceInfoList on
+        // dispose, so no handwritten [DllImport] remains here.
         private const int CR_SUCCESS = 0;
 
-        [StructLayout(LayoutKind.Sequential)]
-        private struct SP_DEVINFO_DATA
+        /// <summary>
+        /// Sets the full class-install parameter block for a device (SP_PROPCHANGE_PARAMS /
+        /// SP_REMOVEDEVICE_PARAMS). CsWin32's in-header overload only marshals
+        /// <c>sizeof(SP_CLASSINSTALL_HEADER)</c>; SetupDiSetClassInstallParams needs the whole block, so
+        /// the parameter struct is handed over as raw bytes with its real size.
+        /// </summary>
+        private static bool SetClassInstallParams<T>(SafeHandle deviceInfoSet, in SP_DEVINFO_DATA deviceInfoData, in T parameters)
+            where T : unmanaged
         {
-            public uint cbSize;
-            public Guid ClassGuid;
-            public uint DevInst;
-            public IntPtr Reserved;
+            ReadOnlySpan<byte> bytes = MemoryMarshal.AsBytes(new ReadOnlySpan<T>(in parameters));
+            return Win32PInvoke.SetupDiSetClassInstallParams(deviceInfoSet, deviceInfoData, bytes);
         }
-
-        [StructLayout(LayoutKind.Sequential)]
-        private struct SP_CLASSINSTALL_HEADER
-        {
-            public uint cbSize;
-            public uint InstallFunction;
-        }
-
-        [StructLayout(LayoutKind.Sequential)]
-        private struct PropertyChangeParameters
-        {
-            public SP_CLASSINSTALL_HEADER ClassInstallHeader;
-            public uint StateChange;
-            public uint Scope;
-            public uint HwProfile;
-        }
-
-        [StructLayout(LayoutKind.Sequential)]
-        private struct RemoveDeviceParameters
-        {
-            public SP_CLASSINSTALL_HEADER ClassInstallHeader;
-            public uint Scope;
-            public uint HwProfile;
-        }
-
-        private const uint DIGCF_PRESENT = 0x00000002;
-        private const uint DIGCF_ALLCLASSES = 0x00000004;
-        private const uint SPDRP_DEVICEDESC = 0x00000000;
-        private const uint SPDRP_HARDWAREID = 0x00000001;
-        private const uint SPDRP_CLASS = 0x00000007;
-        private const uint SPDRP_DRIVER = 0x00000009;
-        private const uint SPDRP_MFG = 0x0000000B;
-        private const uint SPDRP_LOCATION_INFORMATION = 0x0000000D;
-        private const uint SPDRP_PHYSICAL_DEVICE_OBJECT_NAME = 0x0000000E;
-        private const uint SPDRP_DEVICE_POWER_DATA = 0x0000001E;
-        private const uint DIF_PROPERTYCHANGE = 0x00000012;
-        private const uint DIF_REMOVE = 0x00000005;
-        private const uint DICS_ENABLE = 0x00000001;
-        private const uint DICS_DISABLE = 0x00000002;
-        private const uint DICS_FLAG_GLOBAL = 0x00000001;
 
         /// <summary>
         /// Get all device categories
@@ -140,9 +54,9 @@ namespace OneMMC.Core.Features.PCManagement.Services.DevMgmt
 
             try
             {
-                using (var searcher = new ManagementObjectSearcher("SELECT * FROM Win32_PnPEntity"))
+                using (var connection = new WmiConnection())
                 {
-                    foreach (ManagementObject device in searcher.GetAndDispose())
+                    foreach (WmiObject device in connection.CreateQuery("SELECT * FROM Win32_PnPEntity").DisposeItems())
                     {
                         var className = device["PNPClass"]?.ToString() ?? "Unknown";
                         var classGuid = device["ClassGuid"]?.ToString() ?? "";
@@ -197,9 +111,9 @@ namespace OneMMC.Core.Features.PCManagement.Services.DevMgmt
             try
             {
                 var query = $"SELECT * FROM Win32_PnPEntity WHERE DeviceID='{deviceId.Replace("\\", "\\\\")}'";
-                using (var searcher = new ManagementObjectSearcher(query))
+                using (var connection = new WmiConnection())
                 {
-                    foreach (ManagementObject device in searcher.GetAndDispose())
+                    foreach (WmiObject device in connection.CreateQuery(query).DisposeItems())
                     {
                         properties.Name = device["Caption"]?.ToString() ?? string.Empty;
                         properties.Description = device["Description"]?.ToString() ?? string.Empty;
@@ -249,9 +163,9 @@ namespace OneMMC.Core.Features.PCManagement.Services.DevMgmt
             try
             {
                 var query = $"SELECT * FROM Win32_PnPSignedDriver WHERE DeviceID='{deviceId.Replace("\\", "\\\\")}'";
-                using (var searcher = new ManagementObjectSearcher(query))
+                using (var connection = new WmiConnection())
                 {
-                    foreach (ManagementObject driver in searcher.GetAndDispose())
+                    foreach (WmiObject driver in connection.CreateQuery(query).DisposeItems())
                     {
                         driverInfo.DriverVersion = driver["DriverVersion"]?.ToString() ?? string.Empty;
                         
@@ -278,7 +192,7 @@ namespace OneMMC.Core.Features.PCManagement.Services.DevMgmt
         
         public bool EnableDevice(string deviceId)
         {
-            return ChangeDeviceState(deviceId, DICS_ENABLE);
+            return ChangeDeviceState(deviceId, SETUP_DI_STATE_CHANGE.DICS_ENABLE);
         }
 
         /// <summary>
@@ -286,86 +200,82 @@ namespace OneMMC.Core.Features.PCManagement.Services.DevMgmt
         /// </summary>
         public bool DisableDevice(string deviceId)
         {
-            return ChangeDeviceState(deviceId, DICS_DISABLE);
+            return ChangeDeviceState(deviceId, SETUP_DI_STATE_CHANGE.DICS_DISABLE);
         }
 
         /// <summary>
         /// Change device state
         /// </summary>
-        private bool ChangeDeviceState(string deviceId, uint newState)
+        private bool ChangeDeviceState(string deviceId, SETUP_DI_STATE_CHANGE newState)
         {
             try
             {
-                Guid guid = Guid.Empty;
-                IntPtr deviceInfoSet = SetupDiGetClassDevs(ref guid, IntPtr.Zero, IntPtr.Zero, DIGCF_PRESENT | DIGCF_ALLCLASSES);
+                using var deviceInfoSet = Win32PInvoke.SetupDiGetClassDevs(
+                    ClassGuid: null,
+                    Enumerator: null,
+                    hwndParent: default,
+                    Flags: SETUP_DI_GET_CLASS_DEVS_FLAGS.DIGCF_PRESENT | SETUP_DI_GET_CLASS_DEVS_FLAGS.DIGCF_ALLCLASSES);
 
-                if (deviceInfoSet == IntPtr.Zero || deviceInfoSet == new IntPtr(-1))
+                if (deviceInfoSet.IsInvalid)
                 {
                     _logger.LogDebug($"Failed to get device info set. Error: {Marshal.GetLastWin32Error()}");
                     return false;
                 }
 
-                try
+                var deviceInfoData = new SP_DEVINFO_DATA
                 {
-                    var deviceInfoData = new SP_DEVINFO_DATA
+                    cbSize = (uint)Marshal.SizeOf<SP_DEVINFO_DATA>(),
+                };
+
+                uint index = 0;
+                while (Win32PInvoke.SetupDiEnumDeviceInfo(deviceInfoSet, index, ref deviceInfoData))
+                {
+                    string currentPnpDeviceId = GetPnpDeviceId(deviceInfoData.DevInst);
+                    string currentHardwareId = GetDeviceId(deviceInfoSet, deviceInfoData);
+
+                    _logger.LogDebug($"Checking device: PNP={currentPnpDeviceId}, HW={currentHardwareId}");
+
+                    if (!string.IsNullOrEmpty(currentPnpDeviceId) && currentPnpDeviceId.Equals(deviceId, StringComparison.OrdinalIgnoreCase) ||
+                        !string.IsNullOrEmpty(currentHardwareId) && currentHardwareId.Equals(deviceId, StringComparison.OrdinalIgnoreCase))
                     {
-                        cbSize = (uint)Marshal.SizeOf<SP_DEVINFO_DATA>(),
-                    };
+                        _logger.LogDebug($"Found matching device: {currentPnpDeviceId}");
 
-                    uint index = 0;
-                    while (SetupDiEnumDeviceInfo(deviceInfoSet, index, ref deviceInfoData))
-                    {
-                        string currentPnpDeviceId = GetPnpDeviceId(deviceInfoData.DevInst);
-                        string currentHardwareId = GetDeviceId(deviceInfoSet, deviceInfoData);
-
-                        _logger.LogDebug($"Checking device: PNP={currentPnpDeviceId}, HW={currentHardwareId}");
-
-                        if (!string.IsNullOrEmpty(currentPnpDeviceId) && currentPnpDeviceId.Equals(deviceId, StringComparison.OrdinalIgnoreCase) ||
-                            !string.IsNullOrEmpty(currentHardwareId) && currentHardwareId.Equals(deviceId, StringComparison.OrdinalIgnoreCase))
+                        var parameters = new SP_PROPCHANGE_PARAMS
                         {
-                            _logger.LogDebug($"Found matching device: {currentPnpDeviceId}");
-
-                            var parameters = new PropertyChangeParameters
+                            ClassInstallHeader = new SP_CLASSINSTALL_HEADER
                             {
-                                ClassInstallHeader = new SP_CLASSINSTALL_HEADER
-                                {
-                                    cbSize = (uint)Marshal.SizeOf<SP_CLASSINSTALL_HEADER>(),
-                                    InstallFunction = DIF_PROPERTYCHANGE,
-                                },
-                                StateChange = newState,
-                                Scope = DICS_FLAG_GLOBAL,
-                                HwProfile = 0,
-                            };
+                                cbSize = (uint)Marshal.SizeOf<SP_CLASSINSTALL_HEADER>(),
+                                InstallFunction = DI_FUNCTION.DIF_PROPERTYCHANGE,
+                            },
+                            StateChange = newState,
+                            Scope = SETUP_DI_PROPERTY_CHANGE_SCOPE.DICS_FLAG_GLOBAL,
+                            HwProfile = 0,
+                        };
 
-                            if (SetupDiSetClassInstallParams(deviceInfoSet, ref deviceInfoData, ref parameters, Marshal.SizeOf<PropertyChangeParameters>()))
+                        if (SetClassInstallParams(deviceInfoSet, deviceInfoData, parameters))
+                        {
+                            bool result = Win32PInvoke.SetupDiCallClassInstaller(DI_FUNCTION.DIF_PROPERTYCHANGE, deviceInfoSet, deviceInfoData);
+                            if (!result)
                             {
-                                bool result = SetupDiCallClassInstaller(DIF_PROPERTYCHANGE, deviceInfoSet, ref deviceInfoData);
-                                if (!result)
-                                {
-                                    int error = Marshal.GetLastWin32Error();
-                                    _logger.LogDebug($"SetupDiCallClassInstaller failed. Error: {error}");
-                                }
-                                else
-                                {
-                                    _logger.LogDebug("Device state changed successfully");
-                                }
-
-                                return result;
+                                int error = Marshal.GetLastWin32Error();
+                                _logger.LogDebug($"SetupDiCallClassInstaller failed. Error: {error}");
+                            }
+                            else
+                            {
+                                _logger.LogDebug("Device state changed successfully");
                             }
 
-                            int lastError = Marshal.GetLastWin32Error();
-                            _logger.LogDebug($"SetupDiSetClassInstallParams failed. Error: {lastError}");
+                            return result;
                         }
 
-                        index++;
+                        int lastError = Marshal.GetLastWin32Error();
+                        _logger.LogDebug($"SetupDiSetClassInstallParams failed. Error: {lastError}");
                     }
 
-                    _logger.LogDebug($"Device not found: {deviceId}");
+                    index++;
                 }
-                finally
-                {
-                    SetupDiDestroyDeviceInfoList(deviceInfoSet);
-                }
+
+                _logger.LogDebug($"Device not found: {deviceId}");
             }
             catch (Exception ex)
             {
@@ -385,17 +295,16 @@ namespace OneMMC.Core.Features.PCManagement.Services.DevMgmt
         /// <summary>
         /// Get device ID
         /// </summary>
-        private string GetDeviceId(IntPtr deviceInfoSet, SP_DEVINFO_DATA deviceInfoData)
+        private string GetDeviceId(SafeHandle deviceInfoSet, in SP_DEVINFO_DATA deviceInfoData)
         {
-            byte[] buffer = new byte[1024];
+            Span<byte> buffer = new byte[1024];
 
-            if (SetupDiGetDeviceRegistryProperty(
+            if (Win32PInvoke.SetupDiGetDeviceRegistryProperty(
                 deviceInfoSet,
-                ref deviceInfoData,
-                SPDRP_HARDWAREID,
+                in deviceInfoData,
+                SETUP_DI_REGISTRY_PROPERTY.SPDRP_HARDWAREID,
                 out _,
                 buffer,
-                (uint)buffer.Length,
                 out _))
             {
                 return Encoding.Unicode.GetString(buffer).TrimEnd('\0');
@@ -427,73 +336,69 @@ namespace OneMMC.Core.Features.PCManagement.Services.DevMgmt
         {
             try
             {
-                Guid guid = Guid.Empty;
-                IntPtr deviceInfoSet = SetupDiGetClassDevs(ref guid, IntPtr.Zero, IntPtr.Zero, DIGCF_PRESENT | DIGCF_ALLCLASSES);
+                using var deviceInfoSet = Win32PInvoke.SetupDiGetClassDevs(
+                    ClassGuid: null,
+                    Enumerator: null,
+                    hwndParent: default,
+                    Flags: SETUP_DI_GET_CLASS_DEVS_FLAGS.DIGCF_PRESENT | SETUP_DI_GET_CLASS_DEVS_FLAGS.DIGCF_ALLCLASSES);
 
-                if (deviceInfoSet == IntPtr.Zero || deviceInfoSet == new IntPtr(-1))
+                if (deviceInfoSet.IsInvalid)
                 {
                     _logger.LogDebug($"Failed to get device info set for uninstall. Error: {Marshal.GetLastWin32Error()}");
                     return false;
                 }
 
-                try
+                var deviceInfoData = new SP_DEVINFO_DATA
                 {
-                    var deviceInfoData = new SP_DEVINFO_DATA
-                    {
-                        cbSize = (uint)Marshal.SizeOf<SP_DEVINFO_DATA>(),
-                    };
+                    cbSize = (uint)Marshal.SizeOf<SP_DEVINFO_DATA>(),
+                };
 
-                    uint index = 0;
-                    while (SetupDiEnumDeviceInfo(deviceInfoSet, index, ref deviceInfoData))
-                    {
-                        string currentPnpDeviceId = GetPnpDeviceId(deviceInfoData.DevInst);
-                        string currentHardwareId = GetDeviceId(deviceInfoSet, deviceInfoData);
+                uint index = 0;
+                while (Win32PInvoke.SetupDiEnumDeviceInfo(deviceInfoSet, index, ref deviceInfoData))
+                {
+                    string currentPnpDeviceId = GetPnpDeviceId(deviceInfoData.DevInst);
+                    string currentHardwareId = GetDeviceId(deviceInfoSet, deviceInfoData);
 
-                        if (!string.IsNullOrEmpty(currentPnpDeviceId) && currentPnpDeviceId.Equals(deviceId, StringComparison.OrdinalIgnoreCase) ||
-                            !string.IsNullOrEmpty(currentHardwareId) && currentHardwareId.Equals(deviceId, StringComparison.OrdinalIgnoreCase))
+                    if (!string.IsNullOrEmpty(currentPnpDeviceId) && currentPnpDeviceId.Equals(deviceId, StringComparison.OrdinalIgnoreCase) ||
+                        !string.IsNullOrEmpty(currentHardwareId) && currentHardwareId.Equals(deviceId, StringComparison.OrdinalIgnoreCase))
+                    {
+                        _logger.LogDebug($"Found device to uninstall: {currentPnpDeviceId}");
+
+                        var removeParams = new SP_REMOVEDEVICE_PARAMS
                         {
-                            _logger.LogDebug($"Found device to uninstall: {currentPnpDeviceId}");
-
-                            var removeParams = new RemoveDeviceParameters
+                            ClassInstallHeader = new SP_CLASSINSTALL_HEADER
                             {
-                                ClassInstallHeader = new SP_CLASSINSTALL_HEADER
-                                {
-                                    cbSize = (uint)Marshal.SizeOf<SP_CLASSINSTALL_HEADER>(),
-                                    InstallFunction = DIF_REMOVE,
-                                },
-                                Scope = 1,
-                                HwProfile = 0,
-                            };
+                                cbSize = (uint)Marshal.SizeOf<SP_CLASSINSTALL_HEADER>(),
+                                InstallFunction = DI_FUNCTION.DIF_REMOVE,
+                            },
+                            Scope = SETUP_DI_REMOVE_DEVICE_SCOPE.DI_REMOVEDEVICE_GLOBAL,
+                            HwProfile = 0,
+                        };
 
-                            if (SetupDiSetClassInstallParams(deviceInfoSet, ref deviceInfoData, ref removeParams, Marshal.SizeOf<RemoveDeviceParameters>()))
+                        if (SetClassInstallParams(deviceInfoSet, deviceInfoData, removeParams))
+                        {
+                            bool result = Win32PInvoke.SetupDiCallClassInstaller(DI_FUNCTION.DIF_REMOVE, deviceInfoSet, deviceInfoData);
+                            if (!result)
                             {
-                                bool result = SetupDiCallClassInstaller(DIF_REMOVE, deviceInfoSet, ref deviceInfoData);
-                                if (!result)
-                                {
-                                    int error = Marshal.GetLastWin32Error();
-                                    _logger.LogDebug($"SetupDiCallClassInstaller (DIF_REMOVE) failed. Error: {error}");
-                                }
-                                else
-                                {
-                                    _logger.LogDebug("Device uninstalled successfully");
-                                }
-
-                                return result;
+                                int error = Marshal.GetLastWin32Error();
+                                _logger.LogDebug($"SetupDiCallClassInstaller (DIF_REMOVE) failed. Error: {error}");
+                            }
+                            else
+                            {
+                                _logger.LogDebug("Device uninstalled successfully");
                             }
 
-                            int lastError = Marshal.GetLastWin32Error();
-                            _logger.LogDebug($"SetupDiSetClassInstallParams (DIF_REMOVE) failed. Error: {lastError}");
+                            return result;
                         }
 
-                        index++;
+                        int lastError = Marshal.GetLastWin32Error();
+                        _logger.LogDebug($"SetupDiSetClassInstallParams (DIF_REMOVE) failed. Error: {lastError}");
                     }
 
-                    _logger.LogDebug($"Device not found for uninstall: {deviceId}");
+                    index++;
                 }
-                finally
-                {
-                    SetupDiDestroyDeviceInfoList(deviceInfoSet);
-                }
+
+                _logger.LogDebug($"Device not found for uninstall: {deviceId}");
             }
             catch (Exception ex)
             {
@@ -678,10 +583,10 @@ namespace OneMMC.Core.Features.PCManagement.Services.DevMgmt
 
             try
             {
-                using (var searcher = new ManagementObjectSearcher(
-                    "SELECT * FROM Win32_PnPEntity WHERE ConfigManagerErrorCode = 22"))
+                using (var connection = new WmiConnection())
                 {
-                    foreach (ManagementObject device in searcher.GetAndDispose())
+                    foreach (WmiObject device in connection.CreateQuery(
+                        "SELECT * FROM Win32_PnPEntity WHERE ConfigManagerErrorCode = 22").DisposeItems())
                     {
                         var deviceInfo = new DeviceInfo
                         {

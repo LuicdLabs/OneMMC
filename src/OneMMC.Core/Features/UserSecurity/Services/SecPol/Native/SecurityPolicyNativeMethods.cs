@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Runtime.InteropServices;
 
 namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
@@ -8,9 +8,13 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
     /// This file is an explicit CsWin32 exception because the workflow mixes
     /// unsupported SAM exports with shared hand-authored LSA/NetAPI/registry
     /// layouts; splitting only part of the graph into generated projections
-    /// would add duplicate marshalling models without improving safety.
+    /// would add duplicate marshalling models without improving safety. The
+    /// imports use source-generated <see cref="LibraryImportAttribute"/> for
+    /// Native AOT (no runtime marshalling stubs). Because <c>[LibraryImport]</c>
+    /// never appends the ANSI/Unicode suffix that <c>CharSet.Unicode</c> did,
+    /// every Unicode export names its <c>W</c> entry point explicitly.
     /// </summary>
-    internal static class SecurityPolicyNativeMethods
+    internal static partial class SecurityPolicyNativeMethods
     {
         #region Net API (Password Policy / Account Lockout)
 
@@ -18,8 +22,8 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
         /// Retrieves global information for all users and groups in the security database.
         /// Level 0: password policy, Level 1: server role, Level 2: not used, Level 3: lockout policy.
         /// </summary>
-        [DllImport("netapi32.dll", CharSet = CharSet.Unicode)]
-        internal static extern int NetUserModalsGet(
+        [LibraryImport("netapi32.dll", StringMarshalling = StringMarshalling.Utf16)]
+        internal static partial int NetUserModalsGet(
             string? serverName,
             int level,
             out IntPtr bufPtr);
@@ -27,16 +31,16 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
         /// <summary>
         /// Sets global information for all users and groups in the security database.
         /// </summary>
-        [DllImport("netapi32.dll", CharSet = CharSet.Unicode)]
-        internal static extern int NetUserModalsSet(
+        [LibraryImport("netapi32.dll", StringMarshalling = StringMarshalling.Utf16)]
+        internal static partial int NetUserModalsSet(
             string? serverName,
             int level,
             IntPtr buf,
             out int paramErr);
 
         /// <summary>Frees memory allocated by Net* functions.</summary>
-        [DllImport("netapi32.dll")]
-        internal static extern int NetApiBufferFree(IntPtr buffer);
+        [LibraryImport("netapi32.dll")]
+        internal static partial int NetApiBufferFree(IntPtr buffer);
 
         // USER_MODALS_INFO_0 - Password policy
         [StructLayout(LayoutKind.Sequential)]
@@ -85,57 +89,57 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
         }
 
         /// <summary>Opens the local LSA policy object.</summary>
-        [DllImport("advapi32.dll", SetLastError = true, PreserveSig = true)]
-        internal static extern uint LsaOpenPolicy(
+        [LibraryImport("advapi32.dll", SetLastError = true)]
+        internal static partial uint LsaOpenPolicy(
             ref LSA_UNICODE_STRING systemName,
             ref LSA_OBJECT_ATTRIBUTES objectAttributes,
             uint desiredAccess,
             out IntPtr policyHandle);
 
         /// <summary>Closes an LSA handle.</summary>
-        [DllImport("advapi32.dll", SetLastError = true, PreserveSig = true)]
-        internal static extern uint LsaClose(IntPtr objectHandle);
+        [LibraryImport("advapi32.dll", SetLastError = true)]
+        internal static partial uint LsaClose(IntPtr objectHandle);
 
         /// <summary>Frees LSA-allocated memory.</summary>
-        [DllImport("advapi32.dll", SetLastError = true, PreserveSig = true)]
-        internal static extern uint LsaFreeMemory(IntPtr buffer);
+        [LibraryImport("advapi32.dll", SetLastError = true)]
+        internal static partial uint LsaFreeMemory(IntPtr buffer);
 
         /// <summary>Enumerates the rights (privileges) assigned to an account SID.</summary>
-        [DllImport("advapi32.dll", SetLastError = true, PreserveSig = true)]
-        internal static extern uint LsaEnumerateAccountRights(
+        [LibraryImport("advapi32.dll", SetLastError = true)]
+        internal static partial uint LsaEnumerateAccountRights(
             IntPtr policyHandle,
             IntPtr accountSid,
             out IntPtr userRights,
             out uint countOfRights);
 
         /// <summary>Enumerates accounts that have a specified right.</summary>
-        [DllImport("advapi32.dll", SetLastError = true, PreserveSig = true)]
-        internal static extern uint LsaEnumerateAccountsWithUserRight(
+        [LibraryImport("advapi32.dll", SetLastError = true)]
+        internal static partial uint LsaEnumerateAccountsWithUserRight(
             IntPtr policyHandle,
             ref LSA_UNICODE_STRING userRight,
             out IntPtr enumerationBuffer,
             out uint countReturned);
 
         /// <summary>Adds rights to an account.</summary>
-        [DllImport("advapi32.dll", SetLastError = true, PreserveSig = true)]
-        internal static extern uint LsaAddAccountRights(
+        [LibraryImport("advapi32.dll", SetLastError = true)]
+        internal static partial uint LsaAddAccountRights(
             IntPtr policyHandle,
             IntPtr accountSid,
             LSA_UNICODE_STRING[] userRights,
             uint countOfRights);
 
         /// <summary>Removes rights from an account.</summary>
-        [DllImport("advapi32.dll", SetLastError = true, PreserveSig = true)]
-        internal static extern uint LsaRemoveAccountRights(
+        [LibraryImport("advapi32.dll", SetLastError = true)]
+        internal static partial uint LsaRemoveAccountRights(
             IntPtr policyHandle,
             IntPtr accountSid,
-            bool allRights,
+            [MarshalAs(UnmanagedType.Bool)] bool allRights,
             LSA_UNICODE_STRING[] userRights,
             uint countOfRights);
 
         /// <summary>Converts an NTSTATUS to a Win32 error code.</summary>
-        [DllImport("advapi32.dll")]
-        internal static extern int LsaNtStatusToWinError(uint status);
+        [LibraryImport("advapi32.dll")]
+        internal static partial int LsaNtStatusToWinError(uint status);
 
         // LSA_ENUMERATION_INFORMATION structure
         [StructLayout(LayoutKind.Sequential)]
@@ -161,56 +165,56 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
 
         #region SID Lookup
 
-        [DllImport("advapi32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        [LibraryImport("advapi32.dll", EntryPoint = "LookupAccountSidW", StringMarshalling = StringMarshalling.Utf16, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        internal static extern bool LookupAccountSid(
+        internal static partial bool LookupAccountSid(
             string? systemName,
             IntPtr sid,
-            System.Text.StringBuilder name,
+            Span<char> name,
             ref int nameLength,
-            System.Text.StringBuilder domainName,
+            Span<char> domainName,
             ref int domainNameLength,
             out int use);
 
-        [DllImport("advapi32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        [LibraryImport("advapi32.dll", EntryPoint = "LookupAccountNameW", StringMarshalling = StringMarshalling.Utf16, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        internal static extern bool LookupAccountName(
+        internal static partial bool LookupAccountName(
             string? systemName,
             string accountName,
             IntPtr sid,
             ref int sidLength,
-            System.Text.StringBuilder domainName,
+            Span<char> domainName,
             ref int domainNameLength,
             out int use);
 
-        [DllImport("advapi32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        [LibraryImport("advapi32.dll", EntryPoint = "ConvertSidToStringSidW", StringMarshalling = StringMarshalling.Utf16, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        internal static extern bool ConvertSidToStringSid(
+        internal static partial bool ConvertSidToStringSid(
             IntPtr sid,
             out string stringSid);
 
-        [DllImport("advapi32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        [LibraryImport("advapi32.dll", EntryPoint = "ConvertStringSidToSidW", StringMarshalling = StringMarshalling.Utf16, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        internal static extern bool ConvertStringSidToSid(
+        internal static partial bool ConvertStringSidToSid(
             string stringSid,
             out IntPtr sid);
 
-        [DllImport("kernel32.dll")]
-        internal static extern IntPtr LocalFree(IntPtr hMem);
+        [LibraryImport("kernel32.dll")]
+        internal static partial IntPtr LocalFree(IntPtr hMem);
 
         /// <summary>Check if a SID is valid.</summary>
-        [DllImport("advapi32.dll")]
+        [LibraryImport("advapi32.dll")]
         [return: MarshalAs(UnmanagedType.Bool)]
-        internal static extern bool IsValidSid(IntPtr sid);
+        internal static partial bool IsValidSid(IntPtr sid);
 
         /// <summary>Gets the length of a SID.</summary>
-        [DllImport("advapi32.dll")]
-        internal static extern int GetLengthSid(IntPtr sid);
+        [LibraryImport("advapi32.dll")]
+        internal static partial int GetLengthSid(IntPtr sid);
 
         /// <summary>Copies a SID.</summary>
-        [DllImport("advapi32.dll")]
+        [LibraryImport("advapi32.dll")]
         [return: MarshalAs(UnmanagedType.Bool)]
-        internal static extern bool CopySid(int destinationSidLength, IntPtr destinationSid, IntPtr sourceSid);
+        internal static partial bool CopySid(int destinationSidLength, IntPtr destinationSid, IntPtr sourceSid);
 
         #endregion
 
@@ -226,65 +230,65 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
         }
 
         /// <summary>Queries audit policy for a set of subcategories.</summary>
-        [DllImport("advapi32.dll", SetLastError = true)]
+        [LibraryImport("advapi32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        internal static extern bool AuditQuerySystemPolicy(
-            [MarshalAs(UnmanagedType.LPArray)] Guid[] subCategoryGuids,
+        internal static partial bool AuditQuerySystemPolicy(
+            Guid[] subCategoryGuids,
             uint policyCount,
             out IntPtr auditPolicy);
 
         /// <summary>Sets audit policy for subcategories.</summary>
-        [DllImport("advapi32.dll", SetLastError = true)]
+        [LibraryImport("advapi32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        internal static extern bool AuditSetSystemPolicy(
+        internal static partial bool AuditSetSystemPolicy(
             IntPtr auditPolicy,
             uint policyCount);
 
         /// <summary>Enumerates audit subcategories for a given category.</summary>
-        [DllImport("advapi32.dll", SetLastError = true)]
+        [LibraryImport("advapi32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        internal static extern bool AuditEnumerateSubCategories(
+        internal static partial bool AuditEnumerateSubCategories(
             ref Guid auditCategoryGuid,
             [MarshalAs(UnmanagedType.Bool)] bool retrieveAllSubCategories,
             out IntPtr subCategoryGuids,
             out uint subCategoryCount);
 
         /// <summary>Enumerates audit policy categories.</summary>
-        [DllImport("advapi32.dll", SetLastError = true)]
+        [LibraryImport("advapi32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        internal static extern bool AuditEnumerateCategories(
+        internal static partial bool AuditEnumerateCategories(
             out IntPtr categoryGuids,
             out uint categoryCount);
 
         /// <summary>Looks up the display name for an audit category.</summary>
-        [DllImport("advapi32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        [LibraryImport("advapi32.dll", EntryPoint = "AuditLookupCategoryNameW", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        internal static extern bool AuditLookupCategoryName(
+        internal static partial bool AuditLookupCategoryName(
             ref Guid pAuditCategoryGuid,
             out IntPtr ppszCategoryName);
 
         /// <summary>Looks up the display name for an audit subcategory.</summary>
-        [DllImport("advapi32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        [LibraryImport("advapi32.dll", EntryPoint = "AuditLookupSubCategoryNameW", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        internal static extern bool AuditLookupSubCategoryName(
+        internal static partial bool AuditLookupSubCategoryName(
             ref Guid pAuditSubCategoryGuid,
             out IntPtr ppszSubCategoryName);
 
         /// <summary>Free memory returned by Audit* functions.</summary>
-        [DllImport("advapi32.dll")]
-        internal static extern void AuditFree(IntPtr buffer);
+        [LibraryImport("advapi32.dll")]
+        internal static partial void AuditFree(IntPtr buffer);
 
         /// <summary>Queries the effective Global Object Access Auditing SACL for a resource manager.</summary>
-        [DllImport("advapi32.dll", CharSet = CharSet.Unicode, SetLastError = true, EntryPoint = "AuditQueryGlobalSaclW")]
+        [LibraryImport("advapi32.dll", EntryPoint = "AuditQueryGlobalSaclW", StringMarshalling = StringMarshalling.Utf16, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        internal static extern bool AuditQueryGlobalSacl(
+        internal static partial bool AuditQueryGlobalSacl(
             string objectTypeName,
             out IntPtr sacl);
 
         /// <summary>Sets the effective Global Object Access Auditing SACL for a resource manager.</summary>
-        [DllImport("advapi32.dll", CharSet = CharSet.Unicode, SetLastError = true, EntryPoint = "AuditSetGlobalSaclW")]
+        [LibraryImport("advapi32.dll", EntryPoint = "AuditSetGlobalSaclW", StringMarshalling = StringMarshalling.Utf16, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        internal static extern bool AuditSetGlobalSacl(
+        internal static partial bool AuditSetGlobalSacl(
             string objectTypeName,
             IntPtr sacl);
 
@@ -298,16 +302,16 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
 
         #region Registry API (for Security Options)
 
-        [DllImport("advapi32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-        internal static extern int RegOpenKeyEx(
+        [LibraryImport("advapi32.dll", EntryPoint = "RegOpenKeyExW", StringMarshalling = StringMarshalling.Utf16, SetLastError = true)]
+        internal static partial int RegOpenKeyEx(
             IntPtr hKey,
             string subKey,
             int options,
             int samDesired,
             out IntPtr phkResult);
 
-        [DllImport("advapi32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-        internal static extern int RegQueryValueEx(
+        [LibraryImport("advapi32.dll", EntryPoint = "RegQueryValueExW", StringMarshalling = StringMarshalling.Utf16, SetLastError = true)]
+        internal static partial int RegQueryValueEx(
             IntPtr hKey,
             string valueName,
             IntPtr reserved,
@@ -315,8 +319,8 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
             IntPtr data,
             ref int dataSize);
 
-        [DllImport("advapi32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-        internal static extern int RegSetValueEx(
+        [LibraryImport("advapi32.dll", EntryPoint = "RegSetValueExW", StringMarshalling = StringMarshalling.Utf16, SetLastError = true)]
+        internal static partial int RegSetValueEx(
             IntPtr hKey,
             string valueName,
             int reserved,
@@ -324,8 +328,8 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
             IntPtr data,
             int dataSize);
 
-        [DllImport("advapi32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-        internal static extern int RegSetValueEx(
+        [LibraryImport("advapi32.dll", EntryPoint = "RegSetValueExW", StringMarshalling = StringMarshalling.Utf16, SetLastError = true)]
+        internal static partial int RegSetValueEx(
             IntPtr hKey,
             string valueName,
             int reserved,
@@ -333,14 +337,14 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
             byte[] data,
             int dataSize);
 
-        [DllImport("advapi32.dll", SetLastError = true)]
-        internal static extern int RegCloseKey(IntPtr hKey);
+        [LibraryImport("advapi32.dll", SetLastError = true)]
+        internal static partial int RegCloseKey(IntPtr hKey);
 
-        [DllImport("advapi32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-        internal static extern int RegDeleteValue(IntPtr hKey, string valueName);
+        [LibraryImport("advapi32.dll", EntryPoint = "RegDeleteValueW", StringMarshalling = StringMarshalling.Utf16, SetLastError = true)]
+        internal static partial int RegDeleteValue(IntPtr hKey, string valueName);
 
-        [DllImport("advapi32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-        internal static extern int RegCreateKeyEx(
+        [LibraryImport("advapi32.dll", EntryPoint = "RegCreateKeyExW", StringMarshalling = StringMarshalling.Utf16, SetLastError = true)]
+        internal static partial int RegCreateKeyEx(
             IntPtr hKey,
             string subKey,
             int reserved,
@@ -371,49 +375,42 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
         #region LSA Account Domain Information (Password complexity via SAM)
 
         /// <summary>Connects to the SAM server.</summary>
-        [DllImport("samlib.dll")]
-        internal static extern int SamConnect(
+        [LibraryImport("samlib.dll")]
+        internal static partial int SamConnect(
             ref LSA_UNICODE_STRING serverName,
             out IntPtr serverHandle,
             uint desiredAccess,
             IntPtr objectAttributes);
 
         /// <summary>Closes a SAM handle.</summary>
-        [DllImport("samlib.dll")]
-        internal static extern int SamCloseHandle(IntPtr handle);
-
-        /// <summary>Looks up a domain by name in the SAM database.</summary>
-        [DllImport("samlib.dll")]
-        internal static extern int SamLookupDomainInSam(
-            IntPtr serverHandle,
-            ref LSA_UNICODE_STRING name,
-            out IntPtr domainId);
+        [LibraryImport("samlib.dll")]
+        internal static partial int SamCloseHandle(IntPtr handle);
 
         /// <summary>Opens a domain handle in the SAM database.</summary>
-        [DllImport("samlib.dll")]
-        internal static extern int SamOpenDomain(
+        [LibraryImport("samlib.dll")]
+        internal static partial int SamOpenDomain(
             IntPtr serverHandle,
             uint desiredAccess,
             IntPtr domainId,
             out IntPtr domainHandle);
 
         /// <summary>Queries information about a SAM domain.</summary>
-        [DllImport("samlib.dll")]
-        internal static extern int SamQueryInformationDomain(
+        [LibraryImport("samlib.dll")]
+        internal static partial int SamQueryInformationDomain(
             IntPtr domainHandle,
             int domainInformationClass,
             out IntPtr buffer);
 
         /// <summary>Sets information about a SAM domain.</summary>
-        [DllImport("samlib.dll")]
-        internal static extern int SamSetInformationDomain(
+        [LibraryImport("samlib.dll")]
+        internal static partial int SamSetInformationDomain(
             IntPtr domainHandle,
             int domainInformationClass,
             IntPtr buffer);
 
         /// <summary>Frees SAM-allocated memory.</summary>
-        [DllImport("samlib.dll")]
-        internal static extern int SamFreeMemory(IntPtr buffer);
+        [LibraryImport("samlib.dll")]
+        internal static partial int SamFreeMemory(IntPtr buffer);
 
         // DOMAIN_PASSWORD_INFORMATION structure (DomainPasswordInformation class = 1)
         [StructLayout(LayoutKind.Sequential)]
@@ -445,24 +442,11 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
 
         #endregion
 
-        #region NetUserGetInfo / SetInfo (Account status)
+        #region Account status (UF_* flags)
 
-        /// <summary>Retrieves information about a user account.</summary>
-        [DllImport("netapi32.dll", CharSet = CharSet.Unicode)]
-        internal static extern int NetUserGetInfo(
-            string? serverName,
-            string userName,
-            int level,
-            out IntPtr bufPtr);
-
-        /// <summary>Sets information about a user account.</summary>
-        [DllImport("netapi32.dll", CharSet = CharSet.Unicode)]
-        internal static extern int NetUserSetInfo(
-            string? serverName,
-            string userName,
-            int level,
-            IntPtr buf,
-            out int paramErr);
+        // NetUserGetInfo/NetUserSetInfo and their USER_INFO_* buffers moved to the CsWin32
+        // projection (NativeMethods.txt) during the M4 Native AOT migration - the handwritten
+        // imports duplicated generated ones. Only the flag constants remain here.
 
         // USER_MODALS_INFO_2 - Domain name and SID
         [StructLayout(LayoutKind.Sequential)]
@@ -470,27 +454,6 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
         {
             public IntPtr usrmod2_domain_name;  // LPWSTR
             public IntPtr usrmod2_domain_id;    // PSID
-        }
-
-        // USER_INFO_1 - Basic user information including flags
-        [StructLayout(LayoutKind.Sequential)]
-        public struct USER_INFO_1
-        {
-            public IntPtr usri1_name;
-            public IntPtr usri1_password;
-            public uint usri1_password_age;
-            public uint usri1_priv;
-            public IntPtr usri1_home_dir;
-            public IntPtr usri1_comment;
-            public uint usri1_flags;
-            public IntPtr usri1_script_path;
-        }
-
-        // USER_INFO_1008 - User flags only (for enabling/disabling accounts)
-        [StructLayout(LayoutKind.Sequential)]
-        public struct USER_INFO_1008
-        {
-            public uint usri1008_flags;
         }
 
         // User account flags
@@ -501,32 +464,32 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
 
         #region Token Privileges (for SeSecurityPrivilege)
 
-        [DllImport("advapi32.dll", SetLastError = true)]
+        [LibraryImport("advapi32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        internal static extern bool OpenProcessToken(
+        internal static partial bool OpenProcessToken(
             IntPtr processHandle,
             uint desiredAccess,
             out IntPtr tokenHandle);
 
-        [DllImport("advapi32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        [LibraryImport("advapi32.dll", EntryPoint = "LookupPrivilegeValueW", StringMarshalling = StringMarshalling.Utf16, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        internal static extern bool LookupPrivilegeValue(
+        internal static partial bool LookupPrivilegeValue(
             string? systemName,
             string name,
             out LUID luid);
 
-        [DllImport("advapi32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        [LibraryImport("advapi32.dll", EntryPoint = "LookupPrivilegeDisplayNameW", StringMarshalling = StringMarshalling.Utf16, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        internal static extern bool LookupPrivilegeDisplayName(
+        internal static partial bool LookupPrivilegeDisplayName(
             string? systemName,
             string name,
-            System.Text.StringBuilder displayName,
+            Span<char> displayName,
             ref int cchDisplayName,
             out int languageId);
 
-        [DllImport("advapi32.dll", SetLastError = true)]
+        [LibraryImport("advapi32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        internal static extern bool AdjustTokenPrivileges(
+        internal static partial bool AdjustTokenPrivileges(
             IntPtr tokenHandle,
             [MarshalAs(UnmanagedType.Bool)] bool disableAllPrivileges,
             ref TOKEN_PRIVILEGES newState,
@@ -534,12 +497,12 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
             IntPtr previousState,
             IntPtr returnLength);
 
-        [DllImport("kernel32.dll")]
-        internal static extern IntPtr GetCurrentProcess();
+        [LibraryImport("kernel32.dll")]
+        internal static partial IntPtr GetCurrentProcess();
 
-        [DllImport("kernel32.dll", SetLastError = true)]
+        [LibraryImport("kernel32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        internal static extern bool CloseHandle(IntPtr hObject);
+        internal static partial bool CloseHandle(IntPtr hObject);
 
         [StructLayout(LayoutKind.Sequential)]
         public struct LUID
@@ -573,24 +536,24 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
         #region DLL String Resource Loading
 
         /// <summary>Loads a DLL as a data file for reading resources.</summary>
-        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-        internal static extern IntPtr LoadLibraryEx(
+        [LibraryImport("kernel32.dll", EntryPoint = "LoadLibraryExW", StringMarshalling = StringMarshalling.Utf16, SetLastError = true)]
+        internal static partial IntPtr LoadLibraryEx(
             string lpFileName,
             IntPtr hFile,
             uint dwFlags);
 
         /// <summary>Loads a string resource from a loaded module.</summary>
-        [DllImport("user32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-        internal static extern int LoadString(
+        [LibraryImport("user32.dll", EntryPoint = "LoadStringW", StringMarshalling = StringMarshalling.Utf16, SetLastError = true)]
+        internal static partial int LoadString(
             IntPtr hInstance,
             uint uID,
-            System.Text.StringBuilder lpBuffer,
+            Span<char> lpBuffer,
             int nBufferMax);
 
         /// <summary>Frees a loaded library module.</summary>
-        [DllImport("kernel32.dll", SetLastError = true)]
+        [LibraryImport("kernel32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
-        internal static extern bool FreeLibrary(IntPtr hModule);
+        internal static partial bool FreeLibrary(IntPtr hModule);
 
         internal const uint LOAD_LIBRARY_AS_DATAFILE = 0x00000002; // LOAD_LIBRARY_AS_DATAFILE
 
@@ -598,10 +561,10 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
         /// Resolves an indirect string such as <c>@wsecedit.dll,-59001</c> to its
         /// localized value via the MUI resource system.
         /// </summary>
-        [DllImport("shlwapi.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-        internal static extern int SHLoadIndirectString(
+        [LibraryImport("shlwapi.dll", StringMarshalling = StringMarshalling.Utf16, SetLastError = true)]
+        internal static partial int SHLoadIndirectString(
             string pszSource,
-            System.Text.StringBuilder pszOutBuf,
+            Span<char> pszOutBuf,
             uint cchOutBuf,
             IntPtr ppvReserved);
 
@@ -610,15 +573,15 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
         #region LsaQueryInformationPolicy / LsaSetInformationPolicy (Audit)
 
         /// <summary>Queries information about the LSA policy.</summary>
-        [DllImport("advapi32.dll", SetLastError = true, PreserveSig = true)]
-        internal static extern uint LsaQueryInformationPolicy(
+        [LibraryImport("advapi32.dll", SetLastError = true)]
+        internal static partial uint LsaQueryInformationPolicy(
             IntPtr policyHandle,
             int informationClass,
             out IntPtr buffer);
 
         /// <summary>Sets information about the LSA policy.</summary>
-        [DllImport("advapi32.dll", SetLastError = true, PreserveSig = true)]
-        internal static extern uint LsaSetInformationPolicy(
+        [LibraryImport("advapi32.dll", SetLastError = true)]
+        internal static partial uint LsaSetInformationPolicy(
             IntPtr policyHandle,
             int informationClass,
             IntPtr buffer);
@@ -649,5 +612,3 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
         #endregion
     }
 }
-
-

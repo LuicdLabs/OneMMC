@@ -981,6 +981,8 @@ public static class FsMgmtKeys
     public const string PermissionFilesOnly = "FsMgmt_Permissions_FilesOnly";
     public const string DurationDaysFormat = "FsMgmt_Duration_DaysFormat";
     public const string DurationHoursFormat = "FsMgmt_Duration_HoursFormat";
+    public const string AutoRefreshLabel = "FsMgmt_AutoRefresh_Label";
+    public const string AutoRefreshActive = "FsMgmt_AutoRefresh_Active";
 }
 
 /// <summary>
@@ -1155,6 +1157,8 @@ public static class EventViewerKeys
     // Status messages
     public const string StatusLoading = "EventViewer_Status_Loading";
     public const string StatusLoadedFormat = "EventViewer_Status_LoadedFormat";
+    public const string StatusLoadedFilteredFormat = "EventViewer_Status_LoadedFilteredFormat";   // "{0} events loaded, {1} match the filter"
+    public const string StatusLoadLimitReached = "EventViewer_Status_LoadLimitReached";
     public const string StatusNoEvents = "EventViewer_Status_NoEvents";
     public const string StatusMonitoring = "EventViewer_Status_Monitoring";
 

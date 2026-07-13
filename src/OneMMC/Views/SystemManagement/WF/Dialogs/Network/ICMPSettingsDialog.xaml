@@ -9,7 +9,6 @@
     mc:Ignorable="d">
 
     <UserControl.Resources>
-        <local:LocalizedStrings x:Key="LocalizedStrings" />
     </UserControl.Resources>
 
     <StackPanel MinWidth="440" Spacing="8">
@@ -17,18 +16,18 @@
         <!--  Description  -->
         <TextBlock
             Margin="0,0,0,4"
-            Text="{Binding WF_ICMPSettings_ApplyThisRuleToTheFollowingInternetControlMessageProtocolICMPConnections, Source={StaticResource LocalizedStrings}}"
+            Text="{x:Bind local:LocalizedStrings.Instance.WF_ICMPSettings_ApplyThisRuleToTheFollowingInternetControlMessageProtocolICMPConnections}"
             TextWrapping="Wrap" />
 
         <!--  All / Specific radio buttons  -->
         <RadioButton
             x:Name="AllTypesRadio"
-            Content="{Binding WF_ICMPSettings_AllICMPTypesA, Source={StaticResource LocalizedStrings}}"
+            Content="{x:Bind local:LocalizedStrings.Instance.WF_ICMPSettings_AllICMPTypesA}"
             GroupName="IcmpGroup"
             IsChecked="True" />
         <RadioButton
             x:Name="SpecificTypesRadio"
-            Content="{Binding WF_ICMPSettings_SpecificICMPTypesS, Source={StaticResource LocalizedStrings}}"
+            Content="{x:Bind local:LocalizedStrings.Instance.WF_ICMPSettings_SpecificICMPTypesS}"
             GroupName="IcmpGroup" />
 
         <!--  Specific ICMP type checkboxes  -->
@@ -41,17 +40,17 @@
                 VerticalScrollBarVisibility="Auto"
                 VerticalScrollMode="Enabled">
                 <StackPanel x:Name="IcmpCheckBoxPanel" Padding="4,4,4,4" Spacing="2">
-                    <CheckBox x:Name="CbPacketTooBig"        Content="{Binding WF_ICMPSettings_PacketTooBig, Source={StaticResource LocalizedStrings}}" Tag="2:*" />
-                    <CheckBox x:Name="CbDestUnreachable"     Content="{Binding WF_ICMPSettings_DestinationUnreachable, Source={StaticResource LocalizedStrings}}" Tag="3:*" />
-                    <CheckBox x:Name="CbSourceQuench"        Content="{Binding WF_ICMPSettings_SourceQuench, Source={StaticResource LocalizedStrings}}" Tag="4:*" />
-                    <CheckBox x:Name="CbRedirect"            Content="{Binding WF_ICMPSettings_Redirect, Source={StaticResource LocalizedStrings}}" Tag="5:*" />
-                    <CheckBox x:Name="CbEchoRequest"         Content="{Binding WF_ICMPSettings_EchoRequest, Source={StaticResource LocalizedStrings}}" Tag="8:*" />
-                    <CheckBox x:Name="CbRouterAdvertisement" Content="{Binding WF_ICMPSettings_RouterAdvertisement, Source={StaticResource LocalizedStrings}}" Tag="9:*" />
-                    <CheckBox x:Name="CbRouterSolicitation"  Content="{Binding WF_ICMPSettings_RouterSolicitation, Source={StaticResource LocalizedStrings}}" Tag="10:*" />
-                    <CheckBox x:Name="CbTimeExceeded"        Content="{Binding WF_ICMPSettings_TimeExceeded, Source={StaticResource LocalizedStrings}}" Tag="11:*" />
-                    <CheckBox x:Name="CbParameterProblem"    Content="{Binding WF_ICMPSettings_ParameterProblem, Source={StaticResource LocalizedStrings}}" Tag="12:*" />
-                    <CheckBox x:Name="CbTimestampRequest"    Content="{Binding WF_ICMPSettings_TimestampRequest, Source={StaticResource LocalizedStrings}}" Tag="13:*" />
-                    <CheckBox x:Name="CbAddressMaskRequest"  Content="{Binding WF_ICMPSettings_AddressMaskRequest, Source={StaticResource LocalizedStrings}}" Tag="17:*" />
+                    <CheckBox x:Name="CbPacketTooBig"        Content="{x:Bind local:LocalizedStrings.Instance.WF_ICMPSettings_PacketTooBig}" Tag="2:*" />
+                    <CheckBox x:Name="CbDestUnreachable"     Content="{x:Bind local:LocalizedStrings.Instance.WF_ICMPSettings_DestinationUnreachable}" Tag="3:*" />
+                    <CheckBox x:Name="CbSourceQuench"        Content="{x:Bind local:LocalizedStrings.Instance.WF_ICMPSettings_SourceQuench}" Tag="4:*" />
+                    <CheckBox x:Name="CbRedirect"            Content="{x:Bind local:LocalizedStrings.Instance.WF_ICMPSettings_Redirect}" Tag="5:*" />
+                    <CheckBox x:Name="CbEchoRequest"         Content="{x:Bind local:LocalizedStrings.Instance.WF_ICMPSettings_EchoRequest}" Tag="8:*" />
+                    <CheckBox x:Name="CbRouterAdvertisement" Content="{x:Bind local:LocalizedStrings.Instance.WF_ICMPSettings_RouterAdvertisement}" Tag="9:*" />
+                    <CheckBox x:Name="CbRouterSolicitation"  Content="{x:Bind local:LocalizedStrings.Instance.WF_ICMPSettings_RouterSolicitation}" Tag="10:*" />
+                    <CheckBox x:Name="CbTimeExceeded"        Content="{x:Bind local:LocalizedStrings.Instance.WF_ICMPSettings_TimeExceeded}" Tag="11:*" />
+                    <CheckBox x:Name="CbParameterProblem"    Content="{x:Bind local:LocalizedStrings.Instance.WF_ICMPSettings_ParameterProblem}" Tag="12:*" />
+                    <CheckBox x:Name="CbTimestampRequest"    Content="{x:Bind local:LocalizedStrings.Instance.WF_ICMPSettings_TimestampRequest}" Tag="13:*" />
+                    <CheckBox x:Name="CbAddressMaskRequest"  Content="{x:Bind local:LocalizedStrings.Instance.WF_ICMPSettings_AddressMaskRequest}" Tag="17:*" />
                 </StackPanel>
             </ScrollViewer>
         </Border>
@@ -60,7 +59,7 @@
         <TextBlock
             Margin="0,4,0,0"
             FontWeight="SemiBold"
-            Text="{Binding WF_ICMPSettings_ThisICMPType, Source={StaticResource LocalizedStrings}}" />
+            Text="{x:Bind local:LocalizedStrings.Instance.WF_ICMPSettings_ThisICMPType}" />
 
         <Grid ColumnSpacing="8">
             <Grid.ColumnDefinitions>
@@ -74,7 +73,7 @@
             <TextBlock
                 Grid.Column="0"
                 VerticalAlignment="Center"
-                Text="{Binding WF_ICMPSettings_TypeT, Source={StaticResource LocalizedStrings}}" />
+                Text="{x:Bind local:LocalizedStrings.Instance.WF_ICMPSettings_TypeT}" />
             <NumberBox
                 x:Name="TypeNumberBox"
                 Grid.Column="1"
@@ -87,7 +86,7 @@
             <TextBlock
                 Grid.Column="2"
                 VerticalAlignment="Center"
-                Text="{Binding WF_ICMPSettings_CodeC, Source={StaticResource LocalizedStrings}}" />
+                Text="{x:Bind local:LocalizedStrings.Instance.WF_ICMPSettings_CodeC}" />
             <ComboBox
                 x:Name="CodeComboBox"
                 Grid.Column="3"
@@ -99,7 +98,7 @@
                 Grid.Column="4"
                 MinWidth="80"
                 Click="AddTypeButton_Click"
-                Content="{Binding WF_ICMPSettings_AddD, Source={StaticResource LocalizedStrings}}"
+                Content="{x:Bind local:LocalizedStrings.Instance.WF_ICMPSettings_AddD}"
                 IsEnabled="False" />
         </Grid>
 

@@ -12,7 +12,8 @@
 //   ├── ModalDialogOptions  – immutable configuration bag passed at construction time
 //   ├── BuildDialogRoot()   – constructs the XAML visual tree (content + button row)
 //   ├── ConfigurePresenter()– sets OverlappedPresenter flags (modal, non-resizable …)
-//   ├── ResizeAndCenter()   – sizes the AppWindow and centers it over the owner window
+//   ├── ResizeAndCenter()   – DPI-scales the DIP size to physical pixels, clamps it to the
+//   │                         target monitor's work area, and centers over the owner window
 //   ├── ApplyTheme()        – propagates ElementTheme to the root grid and title bar
 //   └── TaskCompletionSource<WindowDialogResult> – bridges the async Show/Close cycle
 
@@ -129,10 +130,16 @@ public sealed class ModalDialogOptions
     /// </summary>
     public bool IsPrimaryButtonLeading { get; init; }
 
-    /// <summary>Initial dialog width in raw pixels (device pixels, not DIPs).</summary>
+    /// <summary>
+    /// Initial dialog width in device-independent pixels (DIPs at 100% scale).
+    /// Converted to physical pixels for the target monitor's DPI when the window is sized.
+    /// </summary>
     public int Width { get; init; } = 640;
 
-    /// <summary>Initial dialog height in raw pixels (device pixels, not DIPs).</summary>
+    /// <summary>
+    /// Initial dialog height in device-independent pixels (DIPs at 100% scale).
+    /// Converted to physical pixels for the target monitor's DPI when the window is sized.
+    /// </summary>
     public int Height { get; init; } = 520;
 
     /// <summary>
@@ -493,7 +500,11 @@ public sealed class ModalDialogWindow : Window
     /// <summary>
     /// Configures the <see cref="OverlappedPresenter"/> to match standard dialog behavior:
     /// <list type="bullet">
- private void ConfigurePresenter()
+    ///   <item>Modal when an owner window is available.</item>
+    ///   <item>Non-resizable, non-maximizable, non-minimizable.</item>
+    /// </list>
+    /// </summary>
+    private void ConfigurePresenter()
     {
         var presenter = OverlappedPresenter.CreateForDialog();
         bool hasOwner = SetWindowOwner();
@@ -506,28 +517,64 @@ public sealed class ModalDialogWindow : Window
     }
 
     /// <summary>
-    /// Resizes the <see cref="AppWindow"/> to the dimensions specified in
-    /// <see cref="ModalDialogOptions"/> and centers it over the owner window.
+    /// Sizes the <see cref="AppWindow"/> and centers it over the owner window.
+    ///
+    /// <para><see cref="ModalDialogOptions.Width"/>/<see cref="ModalDialogOptions.Height"/> are
+    /// DIPs (100%-scale design values), while <see cref="AppWindow"/>.Resize takes physical
+    /// pixels; the size is therefore multiplied by the DPI scale of the monitor hosting the
+    /// owner (PerMonitorV2: WinUI scales the XAML content automatically, but never the window
+    /// frame). The still-hidden dialog is first moved onto the owner's monitor so the later
+    /// centering move cannot cross a DPI boundary and re-scale the just-set size via the
+    /// framework's WM_DPICHANGED handling, and the result is clamped to that monitor's work
+    /// area so oversized dialogs stay on screen.</para>
     ///
     /// <para>Centering algorithm:<br/>
     /// <c>x = ownerLeft + max(0, (ownerWidth  - dialogWidth)  / 2)</c><br/>
     /// <c>y = ownerTop  + max(0, (ownerHeight - dialogHeight) / 2)</c><br/>
-    /// The <c>max(0, …)</c> guard prevents negative coordinates when the dialog is
-    /// wider or taller than the owner.</para>
+    /// The <c>max(0, …)</c> guard prevents negative coordinates when the dialog is wider or
+    /// taller than the owner; the final position is clamped into the work area.</para>
     ///
-    /// When no owner HWND is available the window is left at its default OS position.
+    /// When no owner HWND is available the window keeps its default OS position and uses the
+    /// scale of whatever monitor hosts it.
     /// </summary>
     private void ResizeAndCenter()
     {
-        AppWindow.Resize(new SizeInt32(_options.Width, _options.Height));
-
-        if (_ownerHwnd == nint.Zero)
+        // Resolve the owner AppWindow first: it anchors the target monitor and centering.
+        AppWindow? ownerAppWindow = null;
+        if (_ownerHwnd != nint.Zero)
         {
-            return;
+            var ownerWindowId = Microsoft.UI.Win32Interop.GetWindowIdFromWindow(_ownerHwnd);
+            ownerAppWindow = AppWindow.GetFromWindowId(ownerWindowId);
         }
 
-        var ownerWindowId = Microsoft.UI.Win32Interop.GetWindowIdFromWindow(_ownerHwnd);
-        var ownerAppWindow = AppWindow.GetFromWindowId(ownerWindowId);
+        // Land the still-hidden dialog on the owner's monitor BEFORE sizing so a later
+        // cross-monitor move cannot re-scale the explicit size via WM_DPICHANGED handling.
+        if (ownerAppWindow is not null)
+        {
+            AppWindow.Move(ownerAppWindow.Position);
+        }
+
+        // Options.Width/Height are DIPs (100%-scale design values); convert to physical
+        // pixels for the monitor that will host the dialog (owner's monitor when owned).
+        nint scaleHwnd = _ownerHwnd != nint.Zero
+            ? _ownerHwnd
+            : Microsoft.UI.Win32Interop.GetWindowFromWindowId(AppWindow.Id);
+        double scale = DpiScaleHelper.GetScaleForWindow(scaleHwnd);
+        int width = (int)Math.Round(_options.Width * scale);
+        int height = (int)Math.Round(_options.Height * scale);
+
+        // Clamp to the hosting monitor's work area so oversized dialogs stay on screen.
+        var anchorWindowId = ownerAppWindow?.Id ?? AppWindow.Id;
+        var displayArea = DisplayArea.GetFromWindowId(anchorWindowId, DisplayAreaFallback.Nearest);
+        RectInt32? workArea = displayArea?.WorkArea;
+        if (workArea is RectInt32 sizeBounds)
+        {
+            width = Math.Min(width, sizeBounds.Width);
+            height = Math.Min(height, sizeBounds.Height);
+        }
+
+        AppWindow.Resize(new SizeInt32(width, height));
+
         if (ownerAppWindow is null)
         {
             return;
@@ -537,6 +584,15 @@ public sealed class ModalDialogWindow : Window
               + Math.Max(0, (ownerAppWindow.Size.Width - AppWindow.Size.Width) / 2);
         int y = ownerAppWindow.Position.Y
               + Math.Max(0, (ownerAppWindow.Size.Height - AppWindow.Size.Height) / 2);
+
+        // Keep the dialog fully inside the work area when the owner sits near a screen edge.
+        if (workArea is RectInt32 positionBounds)
+        {
+            x = Math.Clamp(x, positionBounds.X,
+                positionBounds.X + Math.Max(0, positionBounds.Width - AppWindow.Size.Width));
+            y = Math.Clamp(y, positionBounds.Y,
+                positionBounds.Y + Math.Max(0, positionBounds.Height - AppWindow.Size.Height));
+        }
 
         AppWindow.Move(new PointInt32(x, y));
     }

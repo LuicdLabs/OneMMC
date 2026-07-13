@@ -9,7 +9,6 @@
     mc:Ignorable="d">
 
     <UserControl.Resources>
-        <local:LocalizedStrings x:Key="LocalizedStrings" />
     </UserControl.Resources>
 
     <ScrollViewer
@@ -18,7 +17,7 @@
         VerticalScrollMode="Enabled">
         <StackPanel MinWidth="440" Spacing="8">
 
-            <TextBlock Text="{Binding WF_AddSecondAuthMethod_SelectTheCredentialToUseForTheSecondAuthentication, Source={StaticResource LocalizedStrings}}" TextWrapping="Wrap" />
+            <TextBlock Text="{x:Bind local:LocalizedStrings.Instance.WF_AddSecondAuthMethod_SelectTheCredentialToUseForTheSecondAuthentication}" TextWrapping="Wrap" />
             <TextBlock
                 x:Name="ValidationMessageTextBlock"
                 Foreground="{ThemeResource SystemFillColorCriticalBrush}"
@@ -28,20 +27,20 @@
             <!-- User (Kerberos V5) -->
             <RadioButton
                 x:Name="UserKerberosRadio"
-                Content="{Binding WF_Common_UserKerberosV5, Source={StaticResource LocalizedStrings}}"
+                Content="{x:Bind local:LocalizedStrings.Instance.WF_Common_UserKerberosV5}"
                 GroupName="SecondAuthGroup"
                 IsChecked="True" />
 
             <!-- User (NTLMv2) -->
             <RadioButton
                 x:Name="UserNtlmRadio"
-                Content="{Binding WF_AuthMethod_UserNtlm, Source={StaticResource LocalizedStrings}}"
+                Content="{x:Bind local:LocalizedStrings.Instance.WF_AuthMethod_UserNtlm}"
                 GroupName="SecondAuthGroup" />
 
             <!-- User certificate from CA -->
             <RadioButton
                 x:Name="UserCertRadio"
-                Content="{Binding WF_AddSecondAuthMethod_UserCertificateFromThisCertificationAuthorityCA, Source={StaticResource LocalizedStrings}}"
+                Content="{x:Bind local:LocalizedStrings.Instance.WF_AddSecondAuthMethod_UserCertificateFromThisCertificationAuthorityCA}"
                 GroupName="SecondAuthGroup"
                 Checked="UserCertRadio_Checked"
                 Unchecked="UserCertRadio_Unchecked" />
@@ -59,16 +58,16 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
-                    <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" Text="{Binding WF_Common_SigningAlgorithm, Source={StaticResource LocalizedStrings}}" />
+                    <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" Text="{x:Bind local:LocalizedStrings.Instance.WF_Common_SigningAlgorithm}" />
                     <ComboBox x:Name="UserSigningAlgoCombo" Grid.Row="0" Grid.Column="1" SelectedIndex="0">
-                        <ComboBoxItem Content="{Binding WF_SigningAlgorithm_RsaDefault, Source={StaticResource LocalizedStrings}}" Tag="RSA" />
-                        <ComboBoxItem Content="{Binding WF_SigningAlgorithm_EcdsaP256, Source={StaticResource LocalizedStrings}}" Tag="ECDSA-P256" />
-                        <ComboBoxItem Content="{Binding WF_SigningAlgorithm_EcdsaP384, Source={StaticResource LocalizedStrings}}" Tag="ECDSA-P384" />
+                        <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_SigningAlgorithm_RsaDefault}" Tag="RSA" />
+                        <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_SigningAlgorithm_EcdsaP256}" Tag="ECDSA-P256" />
+                        <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_SigningAlgorithm_EcdsaP384}" Tag="ECDSA-P384" />
                     </ComboBox>
-                    <TextBlock Grid.Row="1" Grid.Column="0" Margin="0,8,0,0" VerticalAlignment="Center" Text="{Binding WF_Common_CertificateStoreType, Source={StaticResource LocalizedStrings}}" />
+                    <TextBlock Grid.Row="1" Grid.Column="0" Margin="0,8,0,0" VerticalAlignment="Center" Text="{x:Bind local:LocalizedStrings.Instance.WF_Common_CertificateStoreType}" />
                     <ComboBox x:Name="UserCertStoreCombo" Grid.Row="1" Grid.Column="1" Margin="0,8,0,0" SelectedIndex="0">
-                        <ComboBoxItem Content="{Binding WF_CertificateStore_RootCADefault, Source={StaticResource LocalizedStrings}}" Tag="RootCA" />
-                        <ComboBoxItem Content="{Binding WF_CertificateStore_IntermediateCA, Source={StaticResource LocalizedStrings}}" Tag="IntermediateCA" />
+                        <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_CertificateStore_RootCADefault}" Tag="RootCA" />
+                        <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_CertificateStore_IntermediateCA}" Tag="IntermediateCA" />
                     </ComboBox>
                 </Grid>
                 <Grid ColumnSpacing="8">
@@ -80,17 +79,17 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
-                    <TextBox x:Name="UserCertCATextBox" Grid.Row="0" Grid.Column="0" PlaceholderText="{Binding WF_Common_CADistinguishedName, Source={StaticResource LocalizedStrings}}" />
-                    <Button x:Name="UserBrowseButton" Grid.Row="0" Grid.Column="1" Content="{Binding WF_Common_Browse, Source={StaticResource LocalizedStrings}}" Click="UserBrowseButton_Click" />
-                    <CheckBox x:Name="UserCertMappingCheckBox" Grid.Row="1" Grid.Column="0" Content="{Binding WF_Common_EnableCertificateToAccountMapping, Source={StaticResource LocalizedStrings}}" />
-                    <Button x:Name="UserAdvancedButton" Grid.Row="1" Grid.Column="1" Content="{Binding WF_Common_AdvancedEllipsis, Source={StaticResource LocalizedStrings}}" Click="UserAdvancedButton_Click" />
+                    <TextBox x:Name="UserCertCATextBox" Grid.Row="0" Grid.Column="0" PlaceholderText="{x:Bind local:LocalizedStrings.Instance.WF_Common_CADistinguishedName}" />
+                    <Button x:Name="UserBrowseButton" Grid.Row="0" Grid.Column="1" Content="{x:Bind local:LocalizedStrings.Instance.WF_Common_Browse}" Click="UserBrowseButton_Click" />
+                    <CheckBox x:Name="UserCertMappingCheckBox" Grid.Row="1" Grid.Column="0" Content="{x:Bind local:LocalizedStrings.Instance.WF_Common_EnableCertificateToAccountMapping}" />
+                    <Button x:Name="UserAdvancedButton" Grid.Row="1" Grid.Column="1" Content="{x:Bind local:LocalizedStrings.Instance.WF_Common_AdvancedEllipsis}" Click="UserAdvancedButton_Click" />
                 </Grid>
             </StackPanel>
 
             <!-- Computer health certificate from CA -->
             <RadioButton
                 x:Name="ComputerHealthCertRadio"
-                Content="{Binding WF_AddSecondAuthMethod_ComputerHealthCertificateFromThisCertificationAuthorityCA, Source={StaticResource LocalizedStrings}}"
+                Content="{x:Bind local:LocalizedStrings.Instance.WF_AddSecondAuthMethod_ComputerHealthCertificateFromThisCertificationAuthorityCA}"
                 GroupName="SecondAuthGroup"
                 Checked="ComputerHealthCertRadio_Checked"
                 Unchecked="ComputerHealthCertRadio_Unchecked" />
@@ -108,16 +107,16 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
-                    <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" Text="{Binding WF_Common_SigningAlgorithm, Source={StaticResource LocalizedStrings}}" />
+                    <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" Text="{x:Bind local:LocalizedStrings.Instance.WF_Common_SigningAlgorithm}" />
                     <ComboBox x:Name="CompSigningAlgoCombo" Grid.Row="0" Grid.Column="1" SelectedIndex="0">
-                        <ComboBoxItem Content="{Binding WF_SigningAlgorithm_RsaDefault, Source={StaticResource LocalizedStrings}}" Tag="RSA" />
-                        <ComboBoxItem Content="{Binding WF_SigningAlgorithm_EcdsaP256, Source={StaticResource LocalizedStrings}}" Tag="ECDSA-P256" />
-                        <ComboBoxItem Content="{Binding WF_SigningAlgorithm_EcdsaP384, Source={StaticResource LocalizedStrings}}" Tag="ECDSA-P384" />
+                        <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_SigningAlgorithm_RsaDefault}" Tag="RSA" />
+                        <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_SigningAlgorithm_EcdsaP256}" Tag="ECDSA-P256" />
+                        <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_SigningAlgorithm_EcdsaP384}" Tag="ECDSA-P384" />
                     </ComboBox>
-                    <TextBlock Grid.Row="1" Grid.Column="0" Margin="0,8,0,0" VerticalAlignment="Center" Text="{Binding WF_Common_CertificateStoreType, Source={StaticResource LocalizedStrings}}" />
+                    <TextBlock Grid.Row="1" Grid.Column="0" Margin="0,8,0,0" VerticalAlignment="Center" Text="{x:Bind local:LocalizedStrings.Instance.WF_Common_CertificateStoreType}" />
                     <ComboBox x:Name="CompCertStoreCombo" Grid.Row="1" Grid.Column="1" Margin="0,8,0,0" SelectedIndex="0">
-                        <ComboBoxItem Content="{Binding WF_CertificateStore_RootCADefault, Source={StaticResource LocalizedStrings}}" Tag="RootCA" />
-                        <ComboBoxItem Content="{Binding WF_CertificateStore_IntermediateCA, Source={StaticResource LocalizedStrings}}" Tag="IntermediateCA" />
+                        <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_CertificateStore_RootCADefault}" Tag="RootCA" />
+                        <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_CertificateStore_IntermediateCA}" Tag="IntermediateCA" />
                     </ComboBox>
                 </Grid>
                 <Grid ColumnSpacing="8">
@@ -129,16 +128,16 @@
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
-                    <TextBox x:Name="CompCertCATextBox" Grid.Row="0" Grid.Column="0" PlaceholderText="{Binding WF_Common_CADistinguishedName, Source={StaticResource LocalizedStrings}}" />
-                    <Button x:Name="CompBrowseButton" Grid.Row="0" Grid.Column="1" Content="{Binding WF_Common_Browse, Source={StaticResource LocalizedStrings}}" Click="CompBrowseButton_Click" />
-                    <CheckBox x:Name="CompCertMappingCheckBox" Grid.Row="1" Grid.Column="0" Content="{Binding WF_Common_EnableCertificateToAccountMapping, Source={StaticResource LocalizedStrings}}" />
-                    <Button x:Name="CompAdvancedButton" Grid.Row="1" Grid.Column="1" Content="{Binding WF_Common_AdvancedEllipsis, Source={StaticResource LocalizedStrings}}" Click="CompAdvancedButton_Click" />
+                    <TextBox x:Name="CompCertCATextBox" Grid.Row="0" Grid.Column="0" PlaceholderText="{x:Bind local:LocalizedStrings.Instance.WF_Common_CADistinguishedName}" />
+                    <Button x:Name="CompBrowseButton" Grid.Row="0" Grid.Column="1" Content="{x:Bind local:LocalizedStrings.Instance.WF_Common_Browse}" Click="CompBrowseButton_Click" />
+                    <CheckBox x:Name="CompCertMappingCheckBox" Grid.Row="1" Grid.Column="0" Content="{x:Bind local:LocalizedStrings.Instance.WF_Common_EnableCertificateToAccountMapping}" />
+                    <Button x:Name="CompAdvancedButton" Grid.Row="1" Grid.Column="1" Content="{x:Bind local:LocalizedStrings.Instance.WF_Common_AdvancedEllipsis}" Click="CompAdvancedButton_Click" />
                 </Grid>
             </StackPanel>
 
             <TextBlock
                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                Text="{Binding WF_AddSecondAuthMethod_NoteYouCannotUseBothUserCredentialsAndComputerCredentialsInThe, Source={StaticResource LocalizedStrings}}"
+                Text="{x:Bind local:LocalizedStrings.Instance.WF_AddSecondAuthMethod_NoteYouCannotUseBothUserCredentialsAndComputerCredentialsInThe}"
                 TextWrapping="Wrap" />
 
         </StackPanel>

@@ -9,36 +9,35 @@
     mc:Ignorable="d">
 
     <UserControl.Resources>
-        <local:LocalizedStrings x:Key="LocalizedStrings" />
     </UserControl.Resources>
 
     <StackPanel x:Name="RootPanel" MinWidth="460" Spacing="12" Loaded="RootPanel_Loaded">
-        <TextBlock Text="{Binding WF_IPAddressEntry_SpecifyTheIPAddressesToMatch, Source={StaticResource LocalizedStrings}}" />
+        <TextBlock Text="{x:Bind local:LocalizedStrings.Instance.WF_IPAddressEntry_SpecifyTheIPAddressesToMatch}" />
 
         <!-- Option 1: This IP address or subnet -->
         <RadioButton
             x:Name="SubnetRadio"
-            Content="{Binding WF_IPAddressEntry_ThisIPAddressOrSubnet, Source={StaticResource LocalizedStrings}}"
+            Content="{x:Bind local:LocalizedStrings.Instance.WF_IPAddressEntry_ThisIPAddressOrSubnet}"
             GroupName="IPGroup"
             Checked="SubnetRadio_Checked" />
         <TextBox
             x:Name="SubnetTextBox"
-            PlaceholderText="{Binding WF_IPAddressEntry_EG1921681024, Source={StaticResource LocalizedStrings}}"
+            PlaceholderText="{x:Bind local:LocalizedStrings.Instance.WF_IPAddressEntry_EG1921681024}"
             Margin="20,0,0,0" />
         <TextBlock
             Margin="20,0,0,0"
             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
             TextWrapping="Wrap">
-            <Run Text="{Binding WF_IPAddressEntry_Examples192168012, Source={StaticResource LocalizedStrings}}" /><LineBreak />
-            <Run Text="{Binding WF_IPAddressEntry_Value1921681024, Source={StaticResource LocalizedStrings}}" /><LineBreak />
-            <Run Text="{Binding WF_IPAddressEntry_Value20029d3b1a31420874ffFe396c43, Source={StaticResource LocalizedStrings}}" /><LineBreak />
-            <Run Text="{Binding WF_IPAddressEntry_Value20029d3b1a31420874ffFe390112, Source={StaticResource LocalizedStrings}}" />
+            <Run Text="{x:Bind local:LocalizedStrings.Instance.WF_IPAddressEntry_Examples192168012}" /><LineBreak />
+            <Run Text="{x:Bind local:LocalizedStrings.Instance.WF_IPAddressEntry_Value1921681024}" /><LineBreak />
+            <Run Text="{x:Bind local:LocalizedStrings.Instance.WF_IPAddressEntry_Value20029d3b1a31420874ffFe396c43}" /><LineBreak />
+            <Run Text="{x:Bind local:LocalizedStrings.Instance.WF_IPAddressEntry_Value20029d3b1a31420874ffFe390112}" />
         </TextBlock>
 
         <!-- Option 2: This IP address range -->
         <RadioButton
             x:Name="RangeRadio"
-            Content="{Binding WF_IPAddressEntry_ThisIPAddressRange, Source={StaticResource LocalizedStrings}}"
+            Content="{x:Bind local:LocalizedStrings.Instance.WF_IPAddressEntry_ThisIPAddressRange}"
             GroupName="IPGroup"
             Checked="RangeRadio_Checked" />
         <Grid Margin="20,0,0,0" ColumnSpacing="8">
@@ -51,16 +50,16 @@
                 <RowDefinition Height="8" />
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
-            <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" Text="{Binding WF_IPAddressEntry_From, Source={StaticResource LocalizedStrings}}" />
+            <TextBlock Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" Text="{x:Bind local:LocalizedStrings.Instance.WF_IPAddressEntry_From}" />
             <TextBox x:Name="RangeFromTextBox" Grid.Row="0" Grid.Column="1" IsEnabled="False" />
-            <TextBlock Grid.Row="2" Grid.Column="0" VerticalAlignment="Center" Text="{Binding WF_IPAddressEntry_To, Source={StaticResource LocalizedStrings}}" />
+            <TextBlock Grid.Row="2" Grid.Column="0" VerticalAlignment="Center" Text="{x:Bind local:LocalizedStrings.Instance.WF_IPAddressEntry_To}" />
             <TextBox x:Name="RangeToTextBox" Grid.Row="2" Grid.Column="1" IsEnabled="False" />
         </Grid>
 
         <!-- Option 3: Predefined set of computers (only shown for Remote/Endpoint) -->
         <RadioButton
             x:Name="PredefinedRadio"
-            Content="{Binding WF_IPAddressEntry_PredefinedSetOfComputers, Source={StaticResource LocalizedStrings}}"
+            Content="{x:Bind local:LocalizedStrings.Instance.WF_IPAddressEntry_PredefinedSetOfComputers}"
             GroupName="IPGroup"
             Visibility="Collapsed"
             Checked="PredefinedRadio_Checked" />
@@ -70,16 +69,16 @@
             HorizontalAlignment="Stretch"
             IsEnabled="False"
             Visibility="Collapsed">
-            <ComboBoxItem Content="{Binding WF_IPAddressEntry_DefaultGateway, Source={StaticResource LocalizedStrings}}" Tag="Default gateway" />
-            <ComboBoxItem Content="{Binding WF_IPAddressEntry_WINSServers, Source={StaticResource LocalizedStrings}}" Tag="WINS servers" />
-            <ComboBoxItem Content="{Binding WF_IPAddressEntry_DHCPServers, Source={StaticResource LocalizedStrings}}" Tag="DHCP servers" />
-            <ComboBoxItem Content="{Binding WF_IPAddressEntry_DNSServers, Source={StaticResource LocalizedStrings}}" Tag="DNS servers" />
-            <ComboBoxItem Content="{Binding WF_IPAddressEntry_LocalSubnet, Source={StaticResource LocalizedStrings}}" Tag="Local subnet" />
-            <ComboBoxItem Content="{Binding WF_IPAddressEntry_Intranet, Source={StaticResource LocalizedStrings}}" Tag="Intranet" />
-            <ComboBoxItem Content="{Binding WF_IPAddressEntry_RemoteCorpNetwork, Source={StaticResource LocalizedStrings}}" Tag="Remote Corp Network" />
-            <ComboBoxItem Content="{Binding WF_IPAddressEntry_Internet, Source={StaticResource LocalizedStrings}}" Tag="Internet" />
-            <ComboBoxItem Content="{Binding WF_IPAddressEntry_PlayToRenderers, Source={StaticResource LocalizedStrings}}" Tag="PlayTo Renderers" />
-            <ComboBoxItem Content="{Binding WF_IPAddressEntry_CaptivePortalAddresses, Source={StaticResource LocalizedStrings}}" Tag="Captive Portal Addresses" />
+            <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_IPAddressEntry_DefaultGateway}" Tag="Default gateway" />
+            <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_IPAddressEntry_WINSServers}" Tag="WINS servers" />
+            <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_IPAddressEntry_DHCPServers}" Tag="DHCP servers" />
+            <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_IPAddressEntry_DNSServers}" Tag="DNS servers" />
+            <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_IPAddressEntry_LocalSubnet}" Tag="Local subnet" />
+            <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_IPAddressEntry_Intranet}" Tag="Intranet" />
+            <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_IPAddressEntry_RemoteCorpNetwork}" Tag="Remote Corp Network" />
+            <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_IPAddressEntry_Internet}" Tag="Internet" />
+            <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_IPAddressEntry_PlayToRenderers}" Tag="PlayTo Renderers" />
+            <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_IPAddressEntry_CaptivePortalAddresses}" Tag="Captive Portal Addresses" />
         </ComboBox>
 
     </StackPanel>

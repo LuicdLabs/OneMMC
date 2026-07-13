@@ -9,13 +9,12 @@
     mc:Ignorable="d">
 
     <UserControl.Resources>
-        <local:LocalizedStrings x:Key="LocalizedStrings" />
         <!--  Specific Address Flyout  -->
         <Flyout x:Key="SpecificAddressFlyout" Placement="Bottom">
             <StackPanel MinWidth="400" Spacing="12">
                 <TextBlock
                     FontWeight="SemiBold"
-                    Text="{Binding WF_ConfigureIPsec_SpecificAddress, Source={StaticResource LocalizedStrings}}"
+                    Text="{x:Bind local:LocalizedStrings.Instance.WF_ConfigureIPsec_SpecificAddress}"
                     TextWrapping="Wrap" />
 
                 <Grid ColumnSpacing="8" RowSpacing="8">
@@ -32,23 +31,23 @@
                         Grid.Row="0"
                         Grid.Column="0"
                         VerticalAlignment="Center"
-                        Text="{Binding WF_ConfigureIPsec_IPv4, Source={StaticResource LocalizedStrings}}" />
+                        Text="{x:Bind local:LocalizedStrings.Instance.WF_ConfigureIPsec_IPv4}" />
                     <TextBox
                         x:Name="FlyoutIPv4Box"
                         Grid.Row="0"
                         Grid.Column="1"
-                        PlaceholderText="{Binding WF_ConfigureIPsec_EG19216811, Source={StaticResource LocalizedStrings}}" />
+                        PlaceholderText="{x:Bind local:LocalizedStrings.Instance.WF_ConfigureIPsec_EG19216811}" />
 
                     <TextBlock
                         Grid.Row="1"
                         Grid.Column="0"
                         VerticalAlignment="Center"
-                        Text="{Binding WF_ConfigureIPsec_IPv6, Source={StaticResource LocalizedStrings}}" />
+                        Text="{x:Bind local:LocalizedStrings.Instance.WF_ConfigureIPsec_IPv6}" />
                     <TextBox
                         x:Name="FlyoutIPv6Box"
                         Grid.Row="1"
                         Grid.Column="1"
-                        PlaceholderText="{Binding WF_ConfigureIPsec_EG2001Db81, Source={StaticResource LocalizedStrings}}" />
+                        PlaceholderText="{x:Bind local:LocalizedStrings.Instance.WF_ConfigureIPsec_EG2001Db81}" />
                 </Grid>
 
                 <StackPanel
@@ -59,13 +58,13 @@
                         x:Name="FlyoutOkButton"
                         MinWidth="80"
                         Click="FlyoutOk_Click"
-                        Content="{Binding Common_OKButton, Source={StaticResource LocalizedStrings}}"
+                        Content="{x:Bind local:LocalizedStrings.Instance.Common_OKButton}"
                         Style="{StaticResource AccentButtonStyle}" />
                     <Button
                         x:Name="FlyoutCancelButton"
                         MinWidth="80"
                         Click="FlyoutCancel_Click"
-                        Content="{Binding Common_CancelButton, Source={StaticResource LocalizedStrings}}" />
+                        Content="{x:Bind local:LocalizedStrings.Instance.Common_CancelButton}" />
                 </StackPanel>
             </StackPanel>
         </Flyout>
@@ -74,11 +73,11 @@
     <StackPanel MinWidth="480" Spacing="12">
 
         <!--  Description  -->
-        <TextBlock Text="{Binding WF_ConfigureIPsec_ConnectionsFromEndpoint1ToEndpoint2WillPassThroughTheSpecified, Source={StaticResource LocalizedStrings}}" TextWrapping="Wrap" />
+        <TextBlock Text="{x:Bind local:LocalizedStrings.Instance.WF_ConfigureIPsec_ConnectionsFromEndpoint1ToEndpoint2WillPassThroughTheSpecified}" TextWrapping="Wrap" />
 
         <TextBlock
             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-            Text="{Binding WF_ConfigureIPsec_NoteWhenUsingIPsecTunnelsTheAuthenticationModeMustBeSetTo, Source={StaticResource LocalizedStrings}}"
+            Text="{x:Bind local:LocalizedStrings.Instance.WF_ConfigureIPsec_NoteWhenUsingIPsecTunnelsTheAuthenticationModeMustBeSetTo}"
             TextWrapping="Wrap" />
 
         <!--  Use IPsec tunnel  -->
@@ -86,17 +85,17 @@
             x:Name="UseTunnelCheckBox"
             Margin="0,4,0,0"
             Checked="UseTunnelCheckBox_Checked"
-            Content="{Binding WF_ConfigureIPsec_UseIPsecTunnelU, Source={StaticResource LocalizedStrings}}"
+            Content="{x:Bind local:LocalizedStrings.Instance.WF_ConfigureIPsec_UseIPsecTunnelU}"
             Unchecked="UseTunnelCheckBox_Unchecked" />
 
         <StackPanel Margin="28,0,0,0" Spacing="4">
             <CheckBox
                 x:Name="ApplyAuthorizationCheckBox"
-                Content="{Binding WF_ConfigureIPsec_ApplyAuthorizationA, Source={StaticResource LocalizedStrings}}"
+                Content="{x:Bind local:LocalizedStrings.Instance.WF_ConfigureIPsec_ApplyAuthorizationA}"
                 IsEnabled="False" />
             <CheckBox
                 x:Name="ExemptIpsecCheckBox"
-                Content="{Binding WF_ConfigureIPsec_ExemptIPsecProtectedConnectionsX, Source={StaticResource LocalizedStrings}}"
+                Content="{x:Bind local:LocalizedStrings.Instance.WF_ConfigureIPsec_ExemptIPsecProtectedConnectionsX}"
                 IsEnabled="False" />
         </StackPanel>
 
@@ -104,7 +103,7 @@
         <TextBlock
             Margin="0,4,0,0"
             FontWeight="SemiBold"
-            Text="{Binding WF_ConfigureIPsec_LocalTunnelEndpointClosestToEndpoint1, Source={StaticResource LocalizedStrings}}" />
+            Text="{x:Bind local:LocalizedStrings.Instance.WF_ConfigureIPsec_LocalTunnelEndpointClosestToEndpoint1}" />
 
         <Grid ColumnSpacing="8" RowSpacing="8">
             <Grid.ColumnDefinitions>
@@ -121,24 +120,24 @@
                 Grid.Row="0"
                 Grid.Column="0"
                 VerticalAlignment="Center"
-                Text="{Binding WF_ConfigureIPsec_IPv4I, Source={StaticResource LocalizedStrings}}" />
+                Text="{x:Bind local:LocalizedStrings.Instance.WF_ConfigureIPsec_IPv4I}" />
             <TextBox
                 x:Name="LocalIPv4Box"
                 Grid.Row="0"
                 Grid.Column="1"
                 IsEnabled="False"
-                PlaceholderText="{Binding WF_Common_Any, Source={StaticResource LocalizedStrings}}" />
+                PlaceholderText="{x:Bind local:LocalizedStrings.Instance.WF_Common_Any}" />
             <DropDownButton
                 x:Name="LocalEditButton"
                 Grid.Row="0"
                 Grid.Column="2"
                 MinWidth="90"
-                Content="{Binding WF_ConfigureIPsec_EditE, Source={StaticResource LocalizedStrings}}"
+                Content="{x:Bind local:LocalizedStrings.Instance.WF_ConfigureIPsec_EditE}"
                 IsEnabled="False">
                 <DropDownButton.Flyout>
                     <MenuFlyout Placement="Bottom">
-                        <MenuFlyoutItem Click="LocalAnyAddress_Click" Text="{Binding WF_Common_AnyAddressForDynamicTunnelConfiguration, Source={StaticResource LocalizedStrings}}" />
-                        <MenuFlyoutItem Click="LocalSpecificAddress_Click" Text="{Binding WF_Common_SpecificAddress, Source={StaticResource LocalizedStrings}}" />
+                        <MenuFlyoutItem Click="LocalAnyAddress_Click" Text="{x:Bind local:LocalizedStrings.Instance.WF_Common_AnyAddressForDynamicTunnelConfiguration}" />
+                        <MenuFlyoutItem Click="LocalSpecificAddress_Click" Text="{x:Bind local:LocalizedStrings.Instance.WF_Common_SpecificAddress}" />
                     </MenuFlyout>
                 </DropDownButton.Flyout>
             </DropDownButton>
@@ -147,20 +146,20 @@
                 Grid.Row="1"
                 Grid.Column="0"
                 VerticalAlignment="Center"
-                Text="{Binding WF_ConfigureIPsec_IPv6P, Source={StaticResource LocalizedStrings}}" />
+                Text="{x:Bind local:LocalizedStrings.Instance.WF_ConfigureIPsec_IPv6P}" />
             <TextBox
                 x:Name="LocalIPv6Box"
                 Grid.Row="1"
                 Grid.Column="1"
                 IsEnabled="False"
-                PlaceholderText="{Binding WF_Common_Any, Source={StaticResource LocalizedStrings}}" />
+                PlaceholderText="{x:Bind local:LocalizedStrings.Instance.WF_Common_Any}" />
         </Grid>
 
         <!--  Remote tunnel endpoint  -->
         <TextBlock
             Margin="0,4,0,0"
             FontWeight="SemiBold"
-            Text="{Binding WF_ConfigureIPsec_RemoteTunnelEndpointClosestToEndpoint2, Source={StaticResource LocalizedStrings}}" />
+            Text="{x:Bind local:LocalizedStrings.Instance.WF_ConfigureIPsec_RemoteTunnelEndpointClosestToEndpoint2}" />
 
         <Grid ColumnSpacing="8" RowSpacing="8">
             <Grid.ColumnDefinitions>
@@ -177,24 +176,24 @@
                 Grid.Row="0"
                 Grid.Column="0"
                 VerticalAlignment="Center"
-                Text="{Binding WF_ConfigureIPsec_IPv4V, Source={StaticResource LocalizedStrings}}" />
+                Text="{x:Bind local:LocalizedStrings.Instance.WF_ConfigureIPsec_IPv4V}" />
             <TextBox
                 x:Name="RemoteIPv4Box"
                 Grid.Row="0"
                 Grid.Column="1"
                 IsEnabled="False"
-                PlaceholderText="{Binding WF_Common_Any, Source={StaticResource LocalizedStrings}}" />
+                PlaceholderText="{x:Bind local:LocalizedStrings.Instance.WF_Common_Any}" />
             <DropDownButton
                 x:Name="RemoteEditButton"
                 Grid.Row="0"
                 Grid.Column="2"
                 MinWidth="90"
-                Content="{Binding WF_ConfigureIPsec_EditD, Source={StaticResource LocalizedStrings}}"
+                Content="{x:Bind local:LocalizedStrings.Instance.WF_ConfigureIPsec_EditD}"
                 IsEnabled="False">
                 <DropDownButton.Flyout>
                     <MenuFlyout Placement="Bottom">
-                        <MenuFlyoutItem Click="RemoteAnyAddress_Click" Text="{Binding WF_Common_AnyAddressForDynamicTunnelConfiguration, Source={StaticResource LocalizedStrings}}" />
-                        <MenuFlyoutItem Click="RemoteSpecificAddress_Click" Text="{Binding WF_Common_SpecificAddress, Source={StaticResource LocalizedStrings}}" />
+                        <MenuFlyoutItem Click="RemoteAnyAddress_Click" Text="{x:Bind local:LocalizedStrings.Instance.WF_Common_AnyAddressForDynamicTunnelConfiguration}" />
+                        <MenuFlyoutItem Click="RemoteSpecificAddress_Click" Text="{x:Bind local:LocalizedStrings.Instance.WF_Common_SpecificAddress}" />
                     </MenuFlyout>
                 </DropDownButton.Flyout>
             </DropDownButton>
@@ -203,13 +202,13 @@
                 Grid.Row="1"
                 Grid.Column="0"
                 VerticalAlignment="Center"
-                Text="{Binding WF_ConfigureIPsec_IPv66, Source={StaticResource LocalizedStrings}}" />
+                Text="{x:Bind local:LocalizedStrings.Instance.WF_ConfigureIPsec_IPv66}" />
             <TextBox
                 x:Name="RemoteIPv6Box"
                 Grid.Row="1"
                 Grid.Column="1"
                 IsEnabled="False"
-                PlaceholderText="{Binding WF_Common_Any, Source={StaticResource LocalizedStrings}}" />
+                PlaceholderText="{x:Bind local:LocalizedStrings.Instance.WF_Common_Any}" />
         </Grid>
 
     </StackPanel>

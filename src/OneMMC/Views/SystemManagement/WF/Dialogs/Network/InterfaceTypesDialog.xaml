@@ -9,25 +9,24 @@
     mc:Ignorable="d">
 
     <UserControl.Resources>
-        <local:LocalizedStrings x:Key="LocalizedStrings" />
     </UserControl.Resources>
 
     <StackPanel MinWidth="400" Spacing="12">
 
         <TextBlock
             Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-            Text="{Binding WF_InterfaceTypes_SpecifyTheInterfaceTypesThisRuleAppliesTo, Source={StaticResource LocalizedStrings}}"
+            Text="{x:Bind local:LocalizedStrings.Instance.WF_InterfaceTypes_SpecifyTheInterfaceTypesThisRuleAppliesTo}"
             TextWrapping="Wrap" />
 
         <RadioButton
             x:Name="AllInterfacesRadio"
-            Content="{Binding WF_Common_AllInterfaceTypes, Source={StaticResource LocalizedStrings}}"
+            Content="{x:Bind local:LocalizedStrings.Instance.WF_Common_AllInterfaceTypes}"
             GroupName="InterfaceGroup"
             IsChecked="True" />
 
         <RadioButton
             x:Name="SpecificInterfacesRadio"
-            Content="{Binding WF_InterfaceTypes_TheseInterfaceTypes, Source={StaticResource LocalizedStrings}}"
+            Content="{x:Bind local:LocalizedStrings.Instance.WF_InterfaceTypes_TheseInterfaceTypes}"
             GroupName="InterfaceGroup" />
 
         <StackPanel
@@ -36,10 +35,10 @@
             Spacing="8">
             <CheckBox
                 x:Name="LanCheckBox"
-                Content="{Binding WF_Common_LocalAreaNetworkLAN, Source={StaticResource LocalizedStrings}}"
+                Content="{x:Bind local:LocalizedStrings.Instance.WF_Common_LocalAreaNetworkLAN}"
                 IsChecked="True" />
-            <CheckBox x:Name="WirelessCheckBox" Content="{Binding WF_Common_Wireless, Source={StaticResource LocalizedStrings}}" />
-            <CheckBox x:Name="RemoteAccessCheckBox" Content="{Binding WF_Common_RemoteAccess, Source={StaticResource LocalizedStrings}}" />
+            <CheckBox x:Name="WirelessCheckBox" Content="{x:Bind local:LocalizedStrings.Instance.WF_Common_Wireless}" />
+            <CheckBox x:Name="RemoteAccessCheckBox" Content="{x:Bind local:LocalizedStrings.Instance.WF_Common_RemoteAccess}" />
         </StackPanel>
 
     </StackPanel>

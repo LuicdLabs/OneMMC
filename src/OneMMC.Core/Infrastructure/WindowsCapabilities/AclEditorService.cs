@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.Marshalling;
 using System.Security.AccessControl;
 using System.Security.Principal;
 using Microsoft.Extensions.Logging;
@@ -147,6 +148,22 @@ public sealed class AclEditorAccessEntry
     /// Gets or sets whether this is a general access entry.
     /// </summary>
     public bool IsGeneral { get; set; } = true;
+
+    /// <summary>
+    /// Gets or sets the ACE inheritance flags (<see cref="AclEditorAceFlags.ContainerInherit"/> /
+    /// <see cref="AclEditorAceFlags.ObjectInherit"/> / <see cref="AclEditorAceFlags.InheritOnly"/>)
+    /// that this access right implies. The native editor uses them to decide whether an existing
+    /// ACE lights up this basic-page row and to choose the inheritance applied when the right is
+    /// granted, so they must match the object's default propagation (for a folder, container and
+    /// object inherit) to mirror Windows Explorer.
+    /// </summary>
+    public uint InheritFlags { get; set; }
+
+    /// <summary>
+    /// Gets or sets whether the access right applies only to containers (maps to
+    /// <c>SI_ACCESS_CONTAINER</c>); such rights are shown on the basic page only for containers.
+    /// </summary>
+    public bool AppliesToContainersOnly { get; set; }
 }
 
 /// <summary>
@@ -376,12 +393,13 @@ public struct AclEditorSiObjectInfo
 }
 
 /// <summary>
-/// COM-visible callback interface consumed by the native Windows ACL editor.
+/// Callback interface consumed by the native Windows ACL editor (aclui
+/// <c>ISecurityInformation</c>). Source-generated so the managed implementation gets an
+/// AOT-compatible COM-callable wrapper (built-in COM interop is unavailable under Native AOT).
 /// </summary>
-[ComVisible(true)]
+[GeneratedComInterface]
 [Guid("965FC360-16FF-11d0-91CB-00AA00BBB723")]
-[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-public interface IAclEditorSecurityInformation
+public partial interface IAclEditorSecurityInformation
 {
     /// <summary>Gets display metadata for the edited object.</summary>
     [PreserveSig]
@@ -413,12 +431,11 @@ public interface IAclEditorSecurityInformation
 }
 
 /// <summary>
-/// COM-visible extension callback for secondary security descriptors.
+/// Extension callback for secondary security descriptors (aclui <c>ISecurityInformation4</c>).
 /// </summary>
-[ComVisible(true)]
+[GeneratedComInterface]
 [Guid("EA961070-CD14-4621-ACE4-F63C03E583E4")]
-[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-public interface IAclEditorSecurityInformation4
+public partial interface IAclEditorSecurityInformation4
 {
     /// <summary>Gets secondary security objects shown by the editor.</summary>
     [PreserveSig]
@@ -426,12 +443,11 @@ public interface IAclEditorSecurityInformation4
 }
 
 /// <summary>
-/// COM-visible callback used by the editor to calculate effective permissions.
+/// Callback used by the editor to calculate effective permissions (aclui <c>IEffectivePermission</c>).
 /// </summary>
-[ComVisible(true)]
+[GeneratedComInterface]
 [Guid("3853DC76-9F35-407c-88A1-D19344365FBC")]
-[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-public interface IAclEditorEffectivePermission
+public partial interface IAclEditorEffectivePermission
 {
     /// <summary>Calculates granted access for the selected security principal.</summary>
     [PreserveSig]
@@ -447,12 +463,12 @@ public interface IAclEditorEffectivePermission
 }
 
 /// <summary>
-/// COM-visible callback used by the native editor to retrieve the canonical resource path.
+/// Callback used by the native editor to retrieve the canonical resource path
+/// (aclui <c>ISecurityInformation3</c>).
 /// </summary>
-[ComVisible(true)]
+[GeneratedComInterface]
 [Guid("E2CDC9CC-31BD-4F8F-8C8B-B641AF516A1A")]
-[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-public interface IAclEditorSecurityInformation3
+public partial interface IAclEditorSecurityInformation3
 {
     /// <summary>Gets the full resource path represented by the edited object.</summary>
     [PreserveSig]
@@ -464,12 +480,12 @@ public interface IAclEditorSecurityInformation3
 }
 
 /// <summary>
-/// COM-visible callback used by the native editor to resolve inherited ACE sources.
+/// Callback used by the native editor to resolve inherited ACE sources
+/// (aclui <c>ISecurityObjectTypeInfo</c>).
 /// </summary>
-[ComVisible(true)]
+[GeneratedComInterface]
 [Guid("FC3066EB-79EF-444B-9111-D18A75EBF2FA")]
-[InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
-public interface IAclEditorSecurityObjectTypeInfo
+public partial interface IAclEditorSecurityObjectTypeInfo
 {
     /// <summary>Returns the ancestor source for each ACE in the supplied ACL.</summary>
     [PreserveSig]
@@ -479,10 +495,11 @@ public interface IAclEditorSecurityObjectTypeInfo
 /// <summary>
 /// Opens the native Windows ACL editor for callers that provide security descriptor state.
 /// </summary>
-public sealed class AclEditorService
+public sealed partial class AclEditorService
 {
     private const int S_OK = 0;
     private const uint SiAccessGeneral = 0x00020000;
+    private const uint SiAccessContainer = 0x00040000;
     private const uint LmemFixed = 0x0000;
 
     private readonly ILogger<AclEditorService> _logger;
@@ -507,14 +524,30 @@ public sealed class AclEditorService
         ArgumentNullException.ThrowIfNull(request);
 
         using var securityInformation = new EditableSecurityInformation(request, _logger);
-        int hr = AclEditorNativeMethods.EditSecurityAdvanced(
-            ownerWindowHandle,
-            securityInformation,
-            GetNativePageType(request.PageType));
 
-        if (hr < 0)
+        if (request.PageType == AclEditorPageType.Permissions)
         {
-            Marshal.ThrowExceptionForHR(hr);
+            // The basic "Permissions for <object>" dialog is produced only by aclui's EditSecurity
+            // entry point. EditSecurityAdvanced targets the advanced property sheet and rejects the
+            // basic SI_PAGE_PERM page with E_INVALIDARG ("Value does not fall within the expected
+            // range"), so the basic page must be shown through EditSecurity instead.
+            if (!AclEditorNativeMethods.EditSecurity(ownerWindowHandle, securityInformation, out int errorHResult)
+                && errorHResult < 0)
+            {
+                Marshal.ThrowExceptionForHR(errorHResult);
+            }
+        }
+        else
+        {
+            int hr = AclEditorNativeMethods.EditSecurityAdvanced(
+                ownerWindowHandle,
+                securityInformation,
+                GetNativePageType(request.PageType));
+
+            if (hr < 0)
+            {
+                Marshal.ThrowExceptionForHR(hr);
+            }
         }
 
         return new AclEditorResult
@@ -527,6 +560,18 @@ public sealed class AclEditorService
         };
     }
 
+    /// <summary>
+    /// Maps an <see cref="AclEditorPageType"/> to the <c>uSIPage</c> (SI_PAGE_TYPE) argument passed
+    /// to the native <c>EditSecurityAdvanced</c> function.
+    /// </summary>
+    /// <remarks>
+    /// The advanced editor's TAB SET is fixed by the object-information flags (and always contains a
+    /// Permissions/DACL page); <c>uSIPage</c> only selects which of those tabs opens activated. Each
+    /// advanced case therefore keeps <c>SI_PAGE_PERM</c> as the base page and carries the tab to
+    /// activate in the high word via <see cref="CombinePageActivation"/>. The basic
+    /// <see cref="AclEditorPageType.Permissions"/> page is shown through <c>EditSecurity</c> by the
+    /// caller and never reaches this method, so it falls through to the raw enum value.
+    /// </remarks>
     private static uint GetNativePageType(AclEditorPageType pageType)
     {
         return pageType switch
@@ -540,17 +585,23 @@ public sealed class AclEditorService
         };
     }
 
+    /// <summary>
+    /// Packs a base page and the page to activate into the single <c>uSIPage</c> value understood by
+    /// <c>EditSecurityAdvanced</c>, mirroring the aclui.h <c>COMBINE_PAGE_ACTIVATION</c> macro: the
+    /// base <c>SI_PAGE_TYPE</c> occupies the low word and the <c>SI_PAGE_ACTIVATED</c> value the high
+    /// word.
+    /// </summary>
     private static uint CombinePageActivation(AclEditorPageType pageType, AclEditorActivatedPageType activationType)
     {
         return ((uint)activationType << 16) | (uint)pageType;
     }
 
     /// <summary>
-    /// COM callback object consumed by the native ACL editor.
+    /// COM callback object consumed by the native ACL editor. Its COM-callable wrapper is
+    /// produced by the source-generated ComWrappers (<see cref="Interop.ComActivator.ComWrappers"/>).
     /// </summary>
-    [ComVisible(true)]
-    [ClassInterface(ClassInterfaceType.None)]
-    public sealed class EditableSecurityInformation :
+    [GeneratedComClass]
+    public sealed partial class EditableSecurityInformation :
         IAclEditorSecurityInformation,
         IAclEditorSecurityInformation4,
         IAclEditorEffectivePermission,
@@ -572,6 +623,29 @@ public sealed class AclEditorService
         private readonly IntPtr _secondarySecurityInformationPointer;
         private readonly IntPtr _guidNullPointer;
         private readonly IntPtr _defaultObjectTypeListPointer;
+
+        private const uint OwnerSecurityInformation = 0x00000001;
+        private const uint GroupSecurityInformation = 0x00000002;
+        private const uint DaclSecurityInformation = 0x00000004;
+        private const uint SaclSecurityInformation = 0x00000008;
+
+        private const ControlFlags OwnerControlFlags = ControlFlags.OwnerDefaulted;
+        private const ControlFlags GroupControlFlags = ControlFlags.GroupDefaulted;
+
+        private const ControlFlags DaclControlFlags =
+            ControlFlags.DiscretionaryAclPresent
+            | ControlFlags.DiscretionaryAclDefaulted
+            | ControlFlags.DiscretionaryAclUntrusted
+            | ControlFlags.DiscretionaryAclAutoInheritRequired
+            | ControlFlags.DiscretionaryAclAutoInherited
+            | ControlFlags.DiscretionaryAclProtected;
+
+        private const ControlFlags SaclControlFlags =
+            ControlFlags.SystemAclPresent
+            | ControlFlags.SystemAclDefaulted
+            | ControlFlags.SystemAclAutoInheritRequired
+            | ControlFlags.SystemAclAutoInherited
+            | ControlFlags.SystemAclProtected;
 
         internal EditableSecurityInformation(AclEditorRequest request, ILogger logger)
         {
@@ -609,9 +683,24 @@ public sealed class AclEditorService
                 _secondarySecurityInformation = new EditableSecurityInformation(
                     CreateSecondaryRequest(request.SecondarySecurity),
                     logger);
-                _secondarySecurityInformationPointer = Marshal.GetComInterfaceForObject(
-                    _secondarySecurityInformation,
-                    typeof(IAclEditorSecurityInformation));
+
+                // The native editor expects an ISecurityInformation* in SI_SECURITY_OBJECT, so QI
+                // the source-generated CCW to that exact interface (replaces the built-in-interop
+                // Marshal.GetComInterfaceForObject, which Native AOT does not support).
+                nint unknown = Interop.ComActivator.ComWrappers.GetOrCreateComInterfaceForObject(
+                    _secondarySecurityInformation, CreateComInterfaceFlags.None);
+                try
+                {
+                    int hr = Marshal.QueryInterface(unknown, in AclEditorNativeMethods.ISecurityInformationIid, out _secondarySecurityInformationPointer);
+                    if (hr < 0)
+                    {
+                        Marshal.ThrowExceptionForHR(hr);
+                    }
+                }
+                finally
+                {
+                    Marshal.Release(unknown);
+                }
             }
         }
 
@@ -714,7 +803,13 @@ public sealed class AclEditorService
                     return Marshal.GetHRForLastWin32Error();
                 }
 
-                SecurityDescriptor = new RawSecurityDescriptor(descriptorBytes, 0);
+                // Per the ISecurityInformation::SetSecurity contract, only the parts named by
+                // securityInformation are authoritative; every other component must be preserved
+                // from the object's existing descriptor. The editor issues owner-only (or
+                // DACL-only) updates, so replacing the whole descriptor dropped the DACL when only
+                // the owner changed (and vice versa) - that is why owner changes never took effect.
+                var incoming = new RawSecurityDescriptor(descriptorBytes, 0);
+                SecurityDescriptor = MergeSecurityDescriptor(SecurityDescriptor, incoming, securityInformation);
                 WasModified = true;
                 SecurityInformation |= securityInformation;
             }
@@ -1017,6 +1112,58 @@ public sealed class AclEditorService
         }
 
         /// <summary>
+        /// Merges the components named by <paramref name="securityInformation"/> from
+        /// <paramref name="incoming"/> into <paramref name="current"/>, preserving every other
+        /// component (owner, group, DACL, SACL, and their control bits). This satisfies the merge
+        /// requirement of <see cref="IAclEditorSecurityInformation.SetSecurity"/>.
+        /// </summary>
+        private static RawSecurityDescriptor MergeSecurityDescriptor(
+            RawSecurityDescriptor current,
+            RawSecurityDescriptor incoming,
+            uint securityInformation)
+        {
+            bool setOwner = (securityInformation & OwnerSecurityInformation) != 0;
+            bool setGroup = (securityInformation & GroupSecurityInformation) != 0;
+            bool setDacl = (securityInformation & DaclSecurityInformation) != 0;
+            bool setSacl = (securityInformation & SaclSecurityInformation) != 0;
+
+            SecurityIdentifier? owner = setOwner ? incoming.Owner : current.Owner;
+            SecurityIdentifier? group = setGroup ? incoming.Group : current.Group;
+            RawAcl? systemAcl = setSacl ? incoming.SystemAcl : current.SystemAcl;
+            RawAcl? discretionaryAcl = setDacl ? incoming.DiscretionaryAcl : current.DiscretionaryAcl;
+
+            ControlFlags controlFlags = current.ControlFlags;
+            if (setOwner)
+            {
+                controlFlags = MergeControlBits(controlFlags, incoming.ControlFlags, OwnerControlFlags);
+            }
+
+            if (setGroup)
+            {
+                controlFlags = MergeControlBits(controlFlags, incoming.ControlFlags, GroupControlFlags);
+            }
+
+            if (setDacl)
+            {
+                controlFlags = MergeControlBits(controlFlags, incoming.ControlFlags, DaclControlFlags);
+            }
+
+            if (setSacl)
+            {
+                controlFlags = MergeControlBits(controlFlags, incoming.ControlFlags, SaclControlFlags);
+            }
+
+            // RawSecurityDescriptor is always stored self-relative.
+            controlFlags |= ControlFlags.SelfRelative;
+            return new RawSecurityDescriptor(controlFlags, owner, group, systemAcl, discretionaryAcl);
+        }
+
+        private static ControlFlags MergeControlBits(ControlFlags baseFlags, ControlFlags sourceFlags, ControlFlags mask)
+        {
+            return (baseFlags & ~mask) | (sourceFlags & mask);
+        }
+
+        /// <summary>
         /// Converts a security descriptor pointer (which may be in absolute form) to
         /// a self-relative byte array that <see cref="RawSecurityDescriptor"/> can parse.
         /// </summary>
@@ -1102,6 +1249,20 @@ public sealed class AclEditorService
             return allowed;
         }
 
+        private static uint BuildAccessFlags(AclEditorAccessEntry entry)
+        {
+            uint flags = entry.IsGeneral ? SiAccessGeneral : 0u;
+            if (entry.AppliesToContainersOnly)
+            {
+                flags |= SiAccessContainer;
+            }
+
+            // The low word carries the ACE inheritance flags (CONTAINER_INHERIT_ACE etc.) that the
+            // native editor matches against existing ACEs and applies to newly granted rights.
+            flags |= entry.InheritFlags;
+            return flags;
+        }
+
         private AclEditorNativeMethods.SiAccess[] CreateAccessEntries(IEnumerable<AclEditorAccessEntry> entries)
         {
             return entries
@@ -1110,7 +1271,7 @@ public sealed class AclEditorService
                     Guid = IntPtr.Zero,
                     Mask = entry.Mask,
                     Name = AllocateString(entry.Name),
-                    Flags = entry.IsGeneral ? SiAccessGeneral : 0
+                    Flags = BuildAccessFlags(entry)
                 })
                 .ToArray();
         }
@@ -1133,41 +1294,143 @@ public sealed class AclEditorService
 /// Native interop for the Windows ACL editor.
 /// </summary>
 /// <remarks>
-/// This remains hand-authored because the workflow relies on a managed
-/// <c>ISecurityInformation</c> callback object whose COM marshalling is more
-/// predictable when kept in one dedicated wrapper.
+/// This remains hand-authored because the workflow passes a MANAGED
+/// <c>ISecurityInformation</c> callback object into aclui: the interface types are this
+/// project's <c>[GeneratedComInterface]</c> definitions (source-generated COM-callable
+/// wrapper, AOT-compatible), which CsWin32's marshal-free projection of
+/// <c>EditSecurityAdvanced</c> could not accept. It is a single cohesive native workflow
+/// (managed COM callback, hand-laid <c>SI_*</c> structs, manual <c>LocalAlloc</c> memory), so the
+/// remaining imports stay here rather than fragmenting into a second CsWin32 marshalling model;
+/// they use source-generated <c>[LibraryImport]</c> for Native AOT instead of runtime-marshalled
+/// <c>[DllImport]</c>.
 /// </remarks>
-internal static class AclEditorNativeMethods
+internal static partial class AclEditorNativeMethods
 {
     internal const int EInvalidArg = unchecked((int)0x80070057);
     internal const int ENotImpl = unchecked((int)0x80004001);
     internal const int EOutOfMemory = unchecked((int)0x8007000E);
     internal const uint SecurityObjectIdShare = 2;
 
-    [DllImport("aclui.dll", ExactSpelling = true)]
-    internal static extern int EditSecurityAdvanced(
+    /// <summary>
+    /// The ISecurityInformation interface identifier (aclui). aclui types the callback parameter
+    /// as <c>ISecurityInformation*</c> and calls its methods without a QueryInterface, so the
+    /// source-generated wrapper's IUnknown must be queried to this exact interface first.
+    /// </summary>
+    internal static readonly Guid ISecurityInformationIid = new("965FC360-16FF-11d0-91CB-00AA00BBB723");
+
+    [LibraryImport("aclui.dll")]
+    internal static partial int EditSecurityAdvanced(
         IntPtr hwndOwner,
-        [MarshalAs(UnmanagedType.Interface)] IAclEditorSecurityInformation securityInformation,
+        IntPtr securityInformation,
         uint pageType);
 
-    [DllImport("advapi32.dll", SetLastError = true)]
-    internal static extern uint GetSecurityDescriptorLength(IntPtr securityDescriptor);
-
-    [DllImport("advapi32.dll", SetLastError = true)]
+    [LibraryImport("aclui.dll", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
-    internal static extern bool MakeSelfRelativeSD(
+    internal static partial bool EditSecurity(IntPtr hwndOwner, IntPtr securityInformation);
+
+    /// <summary>
+    /// Opens the BASIC access control editor (the "Permissions for &lt;object&gt;" dialog) with a
+    /// source-generated COM-callable wrapper for <paramref name="securityInformation"/>. Unlike
+    /// <see cref="EditSecurityAdvanced(IntPtr, AclEditorService.EditableSecurityInformation, uint)"/>,
+    /// aclui's EditSecurity presents the basic SI_PAGE_PERM page; the advanced entry point rejects
+    /// that page with E_INVALIDARG. On failure the resulting HRESULT is returned through
+    /// <paramref name="errorHResult"/> (0 when the call succeeds).
+    /// </summary>
+    internal static bool EditSecurity(
+        IntPtr hwndOwner,
+        AclEditorService.EditableSecurityInformation securityInformation,
+        out int errorHResult)
+    {
+        errorHResult = 0;
+        nint unknown = OneMMC.Core.Infrastructure.Interop.ComActivator.ComWrappers
+            .GetOrCreateComInterfaceForObject(securityInformation, CreateComInterfaceFlags.None);
+        try
+        {
+            int hr = Marshal.QueryInterface(unknown, in ISecurityInformationIid, out nint callback);
+            if (hr < 0)
+            {
+                errorHResult = hr;
+                return false;
+            }
+
+            try
+            {
+                if (EditSecurity(hwndOwner, callback))
+                {
+                    return true;
+                }
+
+                // EditSecurity returns nonzero even when the user cancels; a zero return is a real
+                // failure, so surface the Win32 error as an HRESULT (S_OK when none was recorded).
+                errorHResult = Marshal.GetHRForLastWin32Error();
+                return false;
+            }
+            finally
+            {
+                Marshal.Release(callback);
+            }
+        }
+        finally
+        {
+            Marshal.Release(unknown);
+        }
+    }
+
+    /// <summary>
+    /// Invokes the ACL editor with a source-generated COM-callable wrapper for
+    /// <paramref name="securityInformation"/> - the Native-AOT-compatible replacement for the
+    /// built-in interface marshalling the old P/Invoke signature relied on (IL2050).
+    /// aclui types the parameter as <c>ISecurityInformation*</c> and calls its methods without
+    /// a QI, so the wrapper's IUnknown must be queried to that exact interface first.
+    /// </summary>
+    internal static int EditSecurityAdvanced(
+        IntPtr hwndOwner,
+        AclEditorService.EditableSecurityInformation securityInformation,
+        uint pageType)
+    {
+        nint unknown = OneMMC.Core.Infrastructure.Interop.ComActivator.ComWrappers
+            .GetOrCreateComInterfaceForObject(securityInformation, CreateComInterfaceFlags.None);
+        try
+        {
+            int hr = Marshal.QueryInterface(unknown, in ISecurityInformationIid, out nint callback);
+            if (hr < 0)
+            {
+                return hr;
+            }
+
+            try
+            {
+                return EditSecurityAdvanced(hwndOwner, callback, pageType);
+            }
+            finally
+            {
+                Marshal.Release(callback);
+            }
+        }
+        finally
+        {
+            Marshal.Release(unknown);
+        }
+    }
+
+    [LibraryImport("advapi32.dll", SetLastError = true)]
+    internal static partial uint GetSecurityDescriptorLength(IntPtr securityDescriptor);
+
+    [LibraryImport("advapi32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    internal static partial bool MakeSelfRelativeSD(
         IntPtr absoluteSecurityDescriptor,
         IntPtr selfRelativeSecurityDescriptor,
         ref uint bufferLength);
 
-    [DllImport("kernel32.dll", SetLastError = true)]
-    internal static extern IntPtr LocalAlloc(uint flags, UIntPtr bytes);
+    [LibraryImport("kernel32.dll", SetLastError = true)]
+    internal static partial IntPtr LocalAlloc(uint flags, UIntPtr bytes);
 
-    [DllImport("kernel32.dll", SetLastError = true)]
-    internal static extern IntPtr LocalFree(IntPtr memory);
+    [LibraryImport("kernel32.dll", SetLastError = true)]
+    internal static partial IntPtr LocalFree(IntPtr memory);
 
-    [DllImport("advapi32.dll", CharSet = CharSet.Unicode, ExactSpelling = true)]
-    internal static extern uint GetInheritanceSourceW(
+    [LibraryImport("advapi32.dll", StringMarshalling = StringMarshalling.Utf16)]
+    internal static partial uint GetInheritanceSourceW(
         string objectName,
         uint objectType,
         uint securityInformation,
@@ -1178,12 +1441,6 @@ internal static class AclEditorNativeMethods
         IntPtr objectManagerFunctions,
         ref GenericMapping genericMapping,
         IntPtr inheritArray);
-
-    [DllImport("advapi32.dll", ExactSpelling = true)]
-    internal static extern uint FreeInheritedFromArray(
-        IntPtr inheritArray,
-        ushort aceCount,
-        IntPtr objectManagerFunctions);
 
     [StructLayout(LayoutKind.Sequential)]
     internal struct SiAccess
