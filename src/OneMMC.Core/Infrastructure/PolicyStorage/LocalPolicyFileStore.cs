@@ -129,8 +129,15 @@ public sealed class LocalPolicyFileStore
         }
 
         EnsurePolicyDirectoryExists(policyFilePath);
+
+        // Key deletions are applied synchronously and never persisted: a standing **DeleteKeys instruction
+        // in Registry.pol would be re-executed by the Registry CSE on every refresh, silently destroying
+        // keys recreated later by other tools (e.g. secpol.msc).
+        List<string> deletedKeyPaths = snapshot.TakeDeleteKeyInstructions();
+
         snapshot.Save(policyFilePath);
         UpdateGptIni(isUser, gptIniPath);
+        ApplyKeyDeletionsToRegistry(isUser, deletedKeyPaths);
 
         if (hasGroupPolicyInfrastructure)
         {
@@ -175,6 +182,21 @@ public sealed class LocalPolicyFileStore
         using RegistryKey key = RegistryKey.OpenBaseKey(targetHive, RegistryView.Default);
         _ = Win32PInvoke.RegFlushKey((HKEY)key.Handle.DangerousGetHandle());
         _ = Win32PInvoke.SendNotifyMessage(new HWND(new IntPtr(HwndBroadcast)), WmSettingChange, default, default);
+    }
+
+    private static void ApplyKeyDeletionsToRegistry(bool isUser, List<string> keyPaths)
+    {
+        if (keyPaths.Count == 0)
+        {
+            return;
+        }
+
+        RegistryHive targetHive = isUser ? RegistryHive.CurrentUser : RegistryHive.LocalMachine;
+        RegistryPolicyProxy targetProxy = RegistryPolicyProxy.EncapsulateKey(targetHive);
+        foreach (string keyPath in keyPaths)
+        {
+            targetProxy.DeleteKeyTree(keyPath);
+        }
     }
 
     private static void UpdateGptIni(bool isUser, string gptIniPath)

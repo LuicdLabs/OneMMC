@@ -2,6 +2,7 @@
 using System.IO;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
+using System.Text;
 using OneMMC.Core.Features.UserSecurity.Models.SecPol.SoftwareRestriction;
 using OneMMC.Core.Infrastructure.PolicyStorage;
 using OneMMC.Core.Localization;
@@ -25,18 +26,19 @@ public sealed class SoftwareRestrictionPolicyService
     private const string DisallowedHashesRoot = DisallowedLevelRoot + @"\Hashes";
     private const string BasicUserHashesRoot = BasicUserLevelRoot + @"\Hashes";
     private const string UnrestrictedHashesRoot = UnrestrictedLevelRoot + @"\Hashes";
-    private const string DisallowedCertificatesRoot = DisallowedLevelRoot + @"\Certificates";
-    private const string BasicUserCertificatesRoot = BasicUserLevelRoot + @"\Certificates";
-    private const string UnrestrictedCertificatesRoot = UnrestrictedLevelRoot + @"\Certificates";
     private const string DisallowedUrlZonesRoot = DisallowedLevelRoot + @"\UrlZones";
     private const string BasicUserUrlZonesRoot = BasicUserLevelRoot + @"\UrlZones";
     private const string UnrestrictedUrlZonesRoot = UnrestrictedLevelRoot + @"\UrlZones";
-    private const string TrustedPublisherRoot = @"Software\Policies\Microsoft\SystemCertificates\TrustedPublisher\Safer";
+    private const string SystemCertificatesRoot = @"Software\Policies\Microsoft\SystemCertificates";
+    private const string TrustedPublisherRoot = SystemCertificatesRoot + @"\TrustedPublisher\Safer";
+    private const string TrustedPublisherCertificatesRoot = SystemCertificatesRoot + @"\TrustedPublisher\Certificates";
+    private const string DisallowedCertificatesStoreRoot = SystemCertificatesRoot + @"\Disallowed\Certificates";
     private const string DefaultLevelValueName = "DefaultLevel";
     private const string TransparentEnabledValueName = "TransparentEnabled";
     private const string PolicyScopeValueName = "PolicyScope";
     private const string AuthenticodeEnabledValueName = "AuthenticodeEnabled";
     private const string ExecutableTypesValueName = "ExecutableTypes";
+    private const string LevelsValueName = "Levels";
     private const string AuthenticodeFlagsValueName = "AuthenticodeFlags";
     private const string ItemDataValueName = "ItemData";
     private const string BlobValueName = "Blob";
@@ -51,7 +53,29 @@ public sealed class SoftwareRestrictionPolicyService
     private const uint CertificatePublisherRevocationFlag = 0x100;
     private const uint CertificateTimestampRevocationFlag = 0x200;
     private const uint CertificatePublisherScopeMask = 0x3;
-    private const uint CalgSha1 = 0x8004;
+
+    // Hash-rule algorithm identifiers (Wincrypt ALG_ID). secpol.msc writes an MD5 primary rule plus a SHA-256
+    // child key; SAFER matches on these, so OneMMC must write the same. See doc research in the plan file.
+    private const uint CalgMd5 = 0x8003;
+    private const uint CalgSha256 = 0x800C;
+
+    // Enables every SAFER security level in the editor UI, matching what secpol.msc writes.
+    private const uint AllSecurityLevelsMask = 0x00071000;
+
+    // Serialized cert-store element property ids: CERT_CERT_PROP_ID wraps the encoded certificate itself,
+    // CERT_DESCRIPTION_PROP_ID carries the rule description text stored alongside it.
+    private const uint CertCertPropId = 0x20;
+    private const uint CertDescriptionPropId = 13;
+
+    // Default Unrestricted registry-path safeguards that secpol.msc auto-creates when the default level is set
+    // to Disallowed, so the operating system can still start. Fixed GUIDs keep this idempotent.
+    private static readonly (string RuleId, string Path)[] DisallowedSafeguardPathRules =
+    [
+        ("{6f2d1a10-3c4b-4e51-9a01-000000000001}", @"%HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SystemRoot%"),
+        ("{6f2d1a10-3c4b-4e51-9a01-000000000002}", @"%HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SystemRoot%\*.exe"),
+        ("{6f2d1a10-3c4b-4e51-9a01-000000000003}", @"%HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SystemRoot%\System32\*.exe"),
+        ("{6f2d1a10-3c4b-4e51-9a01-000000000004}", @"%HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\ProgramFilesDir%"),
+    ];
 
     private static readonly string[] DefaultDesignatedFileTypes =
     [
@@ -136,13 +160,8 @@ public sealed class SoftwareRestrictionPolicyService
             snapshot.SetValue(CodeIdentifiersRoot, TransparentEnabledValueName, TransparentEnabledSkipDlls, RegistryValueKind.DWord);
             snapshot.SetValue(CodeIdentifiersRoot, PolicyScopeValueName, (uint)SoftwareRestrictionUserScope.AllUsers, RegistryValueKind.DWord);
             snapshot.SetValue(CodeIdentifiersRoot, AuthenticodeEnabledValueName, 0U, RegistryValueKind.DWord);
+            snapshot.SetValue(CodeIdentifiersRoot, LevelsValueName, AllSecurityLevelsMask, RegistryValueKind.DWord);
             snapshot.SetValue(CodeIdentifiersRoot, ExecutableTypesValueName, DefaultDesignatedFileTypes, RegistryValueKind.MultiString);
-            snapshot.SetValue(TrustedPublisherRoot, AuthenticodeFlagsValueName, 0U, RegistryValueKind.DWord);
-            snapshot.ForgetKeyClearance(CodeIdentifiersRoot);
-            snapshot.ForgetKeyClearance(DisallowedLevelRoot);
-            snapshot.ForgetKeyClearance(BasicUserLevelRoot);
-            snapshot.ForgetKeyClearance(UnrestrictedLevelRoot);
-            snapshot.ForgetKeyClearance(TrustedPublisherRoot);
         });
     }
 
@@ -153,8 +172,10 @@ public sealed class SoftwareRestrictionPolicyService
     {
         SavePolicy(snapshot =>
         {
-            ClearTree(snapshot, CodeIdentifiersRoot);
-            ClearTree(snapshot, TrustedPublisherRoot);
+            snapshot.DeleteKeyTree(CodeIdentifiersRoot);
+            snapshot.DeleteKeyTree(TrustedPublisherRoot);
+            snapshot.DeleteKeyTree(TrustedPublisherCertificatesRoot);
+            snapshot.DeleteKeyTree(DisallowedCertificatesStoreRoot);
         });
     }
 
@@ -179,7 +200,34 @@ public sealed class SoftwareRestrictionPolicyService
                     : TransparentEnabledSkipDlls,
                 RegistryValueKind.DWord);
             snapshot.SetValue(CodeIdentifiersRoot, AuthenticodeEnabledValueName, settings.CertificateRulesEnabled ? 1U : 0U, RegistryValueKind.DWord);
+
+            if (settings.DefaultSecurityLevel == SoftwareRestrictionSecurityLevel.Disallowed)
+            {
+                EnsureDisallowedSafeguardRules(snapshot);
+            }
         });
+    }
+
+    /// <summary>
+    /// Creates the four Unrestricted registry-path safeguard rules that secpol.msc auto-creates when the
+    /// default level is switched to Disallowed, so Windows and Program Files binaries can still run.
+    /// </summary>
+    /// <param name="snapshot">The policy snapshot to mutate.</param>
+    private static void EnsureDisallowedSafeguardRules(PolFile snapshot)
+    {
+        foreach ((string ruleId, string path) in DisallowedSafeguardPathRules)
+        {
+            string ruleKey = $@"{UnrestrictedPathsRoot}\{ruleId}";
+            if (snapshot.ContainsValue(ruleKey, ItemDataValueName))
+            {
+                continue;
+            }
+
+            snapshot.SetValue(ruleKey, ItemDataValueName, path, RegistryValueKind.ExpandString);
+            snapshot.SetValue(ruleKey, SaferFlagsValueName, 0U, RegistryValueKind.DWord);
+            snapshot.SetValue(ruleKey, DescriptionValueName, string.Empty, RegistryValueKind.String);
+            snapshot.SetValue(ruleKey, LastModifiedValueName, (ulong)DateTimeOffset.UtcNow.ToFileTime(), RegistryValueKind.QWord);
+        }
     }
 
     /// <summary>
@@ -249,12 +297,18 @@ public sealed class SoftwareRestrictionPolicyService
             throw new InvalidOperationException(GetString(SoftwareRestrictionKeys.RuleUnsupportedForEdit));
         }
 
+        if (rule.Kind == SoftwareRestrictionRuleKind.Certificate)
+        {
+            UpsertCertificateRule(rule);
+            return;
+        }
+
         SavePolicy(snapshot =>
         {
             EnsurePolicyRoot(snapshot);
             string originalRuleKey = rule.StoragePath;
             string ruleKey = GetRuleKeyPath(rule);
-            bool preservesExistingRulePayload = rule.Kind is SoftwareRestrictionRuleKind.Hash or SoftwareRestrictionRuleKind.Certificate
+            bool preservesExistingRulePayload = rule.Kind is SoftwareRestrictionRuleKind.Hash
                 && !string.IsNullOrWhiteSpace(originalRuleKey)
                 && !File.Exists(ExpandRuleFilePath(rule.Value));
             bool movesExistingRule = !string.IsNullOrWhiteSpace(originalRuleKey)
@@ -272,7 +326,7 @@ public sealed class SoftwareRestrictionPolicyService
 
             if (movesExistingRule)
             {
-                ClearTree(snapshot, originalRuleKey);
+                snapshot.DeleteKeyTree(originalRuleKey);
             }
 
             if (!preservesExistingRulePayload)
@@ -299,17 +353,6 @@ public sealed class SoftwareRestrictionPolicyService
                     }
 
                     break;
-                case SoftwareRestrictionRuleKind.Certificate:
-                    if (preservesExistingRulePayload)
-                    {
-                        SaveCommonRuleValues(snapshot, ruleKey, rule);
-                    }
-                    else
-                    {
-                        SaveCertificateRule(snapshot, ruleKey, rule);
-                    }
-
-                    break;
                 default:
                     throw new InvalidOperationException(GetString(SoftwareRestrictionKeys.RuleUnsupportedForEdit));
             }
@@ -329,7 +372,7 @@ public sealed class SoftwareRestrictionPolicyService
             return;
         }
 
-        SavePolicy(snapshot => ClearTree(snapshot, rule.StoragePath));
+        SavePolicy(snapshot => snapshot.DeleteKeyTree(rule.StoragePath));
     }
 
     private SoftwareRestrictionEnforcementSettings LoadEnforcement(PolFile snapshot)
@@ -387,9 +430,8 @@ public sealed class SoftwareRestrictionPolicyService
         LoadRulesFromRoot(snapshot, DisallowedHashesRoot, SoftwareRestrictionRuleKind.Hash, SoftwareRestrictionSecurityLevel.Disallowed, rules);
         LoadRulesFromRoot(snapshot, BasicUserHashesRoot, SoftwareRestrictionRuleKind.Hash, SoftwareRestrictionSecurityLevel.BasicUser, rules);
         LoadRulesFromRoot(snapshot, UnrestrictedHashesRoot, SoftwareRestrictionRuleKind.Hash, SoftwareRestrictionSecurityLevel.Unrestricted, rules);
-        LoadRulesFromRoot(snapshot, DisallowedCertificatesRoot, SoftwareRestrictionRuleKind.Certificate, SoftwareRestrictionSecurityLevel.Disallowed, rules);
-        LoadRulesFromRoot(snapshot, BasicUserCertificatesRoot, SoftwareRestrictionRuleKind.Certificate, SoftwareRestrictionSecurityLevel.BasicUser, rules);
-        LoadRulesFromRoot(snapshot, UnrestrictedCertificatesRoot, SoftwareRestrictionRuleKind.Certificate, SoftwareRestrictionSecurityLevel.Unrestricted, rules);
+        LoadCertificateRulesFromStore(snapshot, TrustedPublisherCertificatesRoot, SoftwareRestrictionSecurityLevel.Unrestricted, rules);
+        LoadCertificateRulesFromStore(snapshot, DisallowedCertificatesStoreRoot, SoftwareRestrictionSecurityLevel.Disallowed, rules);
 
         return rules
             .OrderBy(static rule => rule.Kind)
@@ -451,37 +493,234 @@ public sealed class SoftwareRestrictionPolicyService
             throw new FileNotFoundException(rule.Value);
         }
 
-        byte[] hash;
+        byte[] md5Hash;
+        byte[] sha256Hash;
         ulong fileSize;
         using (FileStream stream = File.OpenRead(filePath))
         {
             fileSize = (ulong)stream.Length;
-            hash = SHA1.HashData(stream);
+            md5Hash = MD5.HashData(stream);
+            stream.Position = 0;
+            sha256Hash = SHA256.HashData(stream);
         }
 
-        snapshot.SetValue(ruleKey, ItemDataValueName, hash, RegistryValueKind.Binary);
-        snapshot.SetValue(ruleKey, HashAlgValueName, CalgSha1, RegistryValueKind.DWord);
+        // Primary rule: MD5 (CALG_MD5), 16 bytes — the value SAFER computes and matches at enforcement time.
+        snapshot.SetValue(ruleKey, ItemDataValueName, md5Hash, RegistryValueKind.Binary);
+        snapshot.SetValue(ruleKey, HashAlgValueName, CalgMd5, RegistryValueKind.DWord);
         snapshot.SetValue(ruleKey, ItemSizeValueName, fileSize, RegistryValueKind.QWord);
         snapshot.SetValue(ruleKey, FriendlyNameValueName, Path.GetFileName(filePath), RegistryValueKind.String);
+
+        // SHA-256 companion in a child key, exactly as modern secpol.msc writes it, so newer Windows builds can
+        // match on the stronger hash. The child key holds only ItemData + HashAlg.
+        string sha256RuleKey = GetHashSha256KeyPath(ruleKey);
+        snapshot.SetValue(sha256RuleKey, ItemDataValueName, sha256Hash, RegistryValueKind.Binary);
+        snapshot.SetValue(sha256RuleKey, HashAlgValueName, CalgSha256, RegistryValueKind.DWord);
+
         SaveCommonRuleValues(snapshot, ruleKey, rule);
     }
 
-    private static void SaveCertificateRule(PolFile snapshot, string ruleKey, SoftwareRestrictionRule rule)
+    /// <summary>
+    /// Creates or updates a certificate rule. Windows does not keep certificate rules under CodeIdentifiers;
+    /// they live as certificates in the group-policy TrustedPublisher (Unrestricted) or Disallowed store, so
+    /// the rule is persisted as a serialized cert-store <c>Blob</c> keyed by the certificate thumbprint.
+    /// </summary>
+    /// <param name="rule">The certificate rule to persist.</param>
+    private void UpsertCertificateRule(SoftwareRestrictionRule rule)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(rule.Value);
-
-        string filePath = ExpandRuleFilePath(rule.Value);
-        if (!File.Exists(filePath))
+        if (rule.SecurityLevel == SoftwareRestrictionSecurityLevel.BasicUser)
         {
-            throw new FileNotFoundException(rule.Value);
+            throw new InvalidOperationException(GetString(SoftwareRestrictionKeys.CertificateRuleLevelUnsupported));
         }
 
-        byte[] certificateBytes = LoadCertificatePayloadFromFile(filePath);
-        using X509Certificate2 certificate = X509CertificateLoader.LoadCertificate(certificateBytes);
+        SavePolicy(snapshot =>
+        {
+            EnsurePolicyRoot(snapshot);
 
-        snapshot.SetValue(ruleKey, ItemDataValueName, certificateBytes, RegistryValueKind.Binary);
-        snapshot.SetValue(ruleKey, FriendlyNameValueName, GetPreferredName(certificate, forIssuer: false), RegistryValueKind.String);
-        SaveCommonRuleValues(snapshot, ruleKey, rule);
+            string originalRuleKey = rule.StoragePath;
+            string storeRoot = rule.SecurityLevel == SoftwareRestrictionSecurityLevel.Disallowed
+                ? DisallowedCertificatesStoreRoot
+                : TrustedPublisherCertificatesRoot;
+
+            byte[] certificateBytes = ResolveCertificateRulePayload(snapshot, rule, originalRuleKey);
+            using X509Certificate2 certificate = X509CertificateLoader.LoadCertificate(certificateBytes);
+            string ruleKey = $@"{storeRoot}\{certificate.Thumbprint}";
+
+            if (!string.IsNullOrWhiteSpace(originalRuleKey)
+                && !originalRuleKey.Equals(ruleKey, StringComparison.OrdinalIgnoreCase))
+            {
+                snapshot.DeleteKeyTree(originalRuleKey);
+            }
+
+            snapshot.SetValue(ruleKey, BlobValueName, BuildSerializedCertificateBlob(certificate, rule.Description), RegistryValueKind.Binary);
+
+            // Certificate rules are only evaluated while AuthenticodeEnabled=1; secpol.msc likewise prompts
+            // to turn certificate rules on when the first one is created.
+            snapshot.SetValue(CodeIdentifiersRoot, AuthenticodeEnabledValueName, 1U, RegistryValueKind.DWord);
+        });
+    }
+
+    private static byte[] ResolveCertificateRulePayload(PolFile snapshot, SoftwareRestrictionRule rule, string originalRuleKey)
+    {
+        if (!string.IsNullOrWhiteSpace(rule.Value))
+        {
+            string filePath = ExpandRuleFilePath(rule.Value);
+            if (File.Exists(filePath))
+            {
+                return LoadCertificatePayloadFromFile(filePath);
+            }
+        }
+
+        if (!string.IsNullOrWhiteSpace(originalRuleKey))
+        {
+            if (snapshot.GetValue(originalRuleKey, BlobValueName) is byte[] blob
+                && TryParseSerializedCertificateBlob(blob, out byte[]? fromBlob, out _)
+                && fromBlob is not null)
+            {
+                return fromBlob;
+            }
+
+            // Rules written by earlier releases stored the bare DER under ItemData in the Safer tree.
+            if (snapshot.GetValue(originalRuleKey, ItemDataValueName) is byte[] derBytes && derBytes.Length > 0)
+            {
+                return derBytes;
+            }
+        }
+
+        throw new InvalidOperationException(GetString(SoftwareRestrictionKeys.CertificateRuleInvalid));
+    }
+
+    private void LoadCertificateRulesFromStore(
+        PolFile snapshot,
+        string storeRoot,
+        SoftwareRestrictionSecurityLevel level,
+        ICollection<SoftwareRestrictionRule> rules)
+    {
+        foreach (string entryKeyName in snapshot.GetKeyNames(storeRoot))
+        {
+            string ruleKeyPath = $@"{storeRoot}\{entryKeyName}";
+            if (snapshot.GetValue(ruleKeyPath, BlobValueName) is not byte[] blob || blob.Length == 0)
+            {
+                continue;
+            }
+
+            TryParseSerializedCertificateBlob(blob, out byte[]? certificateBytes, out string? description);
+
+            SoftwareRestrictionRule rule = new()
+            {
+                Id = CreateStableCertificateRuleId(entryKeyName),
+                Kind = SoftwareRestrictionRuleKind.Certificate,
+                SecurityLevel = level,
+                Description = description ?? string.Empty,
+                StoragePath = ruleKeyPath
+            };
+
+            ApplyRulePayload(snapshot, rule, certificateBytes ?? blob);
+            rules.Add(rule);
+        }
+    }
+
+    /// <summary>
+    /// Builds the registry cert-store <c>Blob</c> payload: the certificate serialized as a store element
+    /// (property records followed by a final CERT_CERT_PROP_ID record holding the DER bytes), with the rule
+    /// description inserted as a CERT_DESCRIPTION_PROP_ID record so it round-trips through the store.
+    /// </summary>
+    private static byte[] BuildSerializedCertificateBlob(X509Certificate2 certificate, string? description)
+    {
+        byte[] serialized = certificate.Export(X509ContentType.SerializedCert);
+        if (string.IsNullOrWhiteSpace(description))
+        {
+            return serialized;
+        }
+
+        int certRecordOffset = FindCertificateRecordOffset(serialized);
+        if (certRecordOffset < 0)
+        {
+            return serialized;
+        }
+
+        byte[] descriptionBytes = Encoding.Unicode.GetBytes(description + "\0");
+        byte[] blob = new byte[serialized.Length + 12 + descriptionBytes.Length];
+        serialized.AsSpan(0, certRecordOffset).CopyTo(blob);
+        BitConverter.TryWriteBytes(blob.AsSpan(certRecordOffset), CertDescriptionPropId);
+        BitConverter.TryWriteBytes(blob.AsSpan(certRecordOffset + 4), 1U);
+        BitConverter.TryWriteBytes(blob.AsSpan(certRecordOffset + 8), (uint)descriptionBytes.Length);
+        descriptionBytes.CopyTo(blob.AsSpan(certRecordOffset + 12));
+        serialized.AsSpan(certRecordOffset).CopyTo(blob.AsSpan(certRecordOffset + 12 + descriptionBytes.Length));
+        return blob;
+    }
+
+    /// <summary>
+    /// Walks a serialized cert-store element and extracts the encoded certificate (final CERT_CERT_PROP_ID
+    /// record) plus the stored description property, if any. Each record is
+    /// <c>[propId][encodingType][length][data]</c> with little-endian 32-bit fields.
+    /// </summary>
+    private static bool TryParseSerializedCertificateBlob(byte[] blob, out byte[]? certificateBytes, out string? description)
+    {
+        certificateBytes = null;
+        description = null;
+
+        int offset = 0;
+        while (offset + 12 <= blob.Length)
+        {
+            uint propId = BitConverter.ToUInt32(blob, offset);
+            uint length = BitConverter.ToUInt32(blob, offset + 8);
+            offset += 12;
+            if (length > (uint)(blob.Length - offset))
+            {
+                return false;
+            }
+
+            if (propId == CertCertPropId)
+            {
+                certificateBytes = blob[offset..(offset + (int)length)];
+                return true;
+            }
+
+            if (propId == CertDescriptionPropId && length >= 2)
+            {
+                description = Encoding.Unicode.GetString(blob, offset, (int)length).TrimEnd('\0');
+            }
+
+            offset += (int)length;
+        }
+
+        return false;
+    }
+
+    private static int FindCertificateRecordOffset(byte[] blob)
+    {
+        int offset = 0;
+        while (offset + 12 <= blob.Length)
+        {
+            uint propId = BitConverter.ToUInt32(blob, offset);
+            if (propId == CertCertPropId)
+            {
+                return offset;
+            }
+
+            uint length = BitConverter.ToUInt32(blob, offset + 8);
+            long next = (long)offset + 12 + length;
+            if (next > blob.Length)
+            {
+                return -1;
+            }
+
+            offset = (int)next;
+        }
+
+        return -1;
+    }
+
+    /// <summary>
+    /// Derives a stable rule id from a cert-store key name (the certificate thumbprint) so reloads keep the
+    /// same identity; store entries have no GUID of their own.
+    /// </summary>
+    private static Guid CreateStableCertificateRuleId(string storeKeyName)
+    {
+        string hex = string.Concat(storeKeyName.Where(Uri.IsHexDigit));
+        return hex.Length >= 32
+            ? new Guid(Convert.FromHexString(hex[..32]))
+            : ParseGuid(storeKeyName);
     }
 
     private static byte[] LoadCertificatePayloadFromFile(string filePath)
@@ -738,15 +977,14 @@ public sealed class SoftwareRestrictionPolicyService
             (SoftwareRestrictionSecurityLevel.Disallowed, SoftwareRestrictionRuleKind.Hash) => DisallowedHashesRoot,
             (SoftwareRestrictionSecurityLevel.BasicUser, SoftwareRestrictionRuleKind.Hash) => BasicUserHashesRoot,
             (SoftwareRestrictionSecurityLevel.Unrestricted, SoftwareRestrictionRuleKind.Hash) => UnrestrictedHashesRoot,
-            (SoftwareRestrictionSecurityLevel.Disallowed, SoftwareRestrictionRuleKind.Certificate) => DisallowedCertificatesRoot,
-            (SoftwareRestrictionSecurityLevel.BasicUser, SoftwareRestrictionRuleKind.Certificate) => BasicUserCertificatesRoot,
-            (SoftwareRestrictionSecurityLevel.Unrestricted, SoftwareRestrictionRuleKind.Certificate) => UnrestrictedCertificatesRoot,
             _ => DisallowedPathsRoot
         };
 
         Guid ruleId = rule.Id == Guid.Empty ? Guid.NewGuid() : rule.Id;
         return $@"{root}\{{{ruleId:D}}}";
     }
+
+    private static string GetHashSha256KeyPath(string hashRuleKey) => $@"{hashRuleKey}\SHA256";
 
     private static void ClearRuleValues(PolFile snapshot, string ruleKey)
     {
@@ -794,6 +1032,26 @@ public sealed class SoftwareRestrictionPolicyService
             copied = true;
         }
 
+        // Hash rules carry a SHA-256 companion child key; move it together with the primary payload.
+        string sourceSha256Key = GetHashSha256KeyPath(sourceRuleKey);
+        string destinationSha256Key = GetHashSha256KeyPath(destinationRuleKey);
+        foreach (string valueName in new[] { ItemDataValueName, HashAlgValueName })
+        {
+            object? value = snapshot.GetValue(sourceSha256Key, valueName);
+            if (value is null)
+            {
+                continue;
+            }
+
+            RegistryValueKind valueKind = snapshot.GetValueKind(sourceSha256Key, valueName);
+            if (valueKind == RegistryValueKind.Unknown)
+            {
+                continue;
+            }
+
+            snapshot.SetValue(destinationSha256Key, valueName, value, valueKind);
+        }
+
         return copied;
     }
 
@@ -811,8 +1069,20 @@ public sealed class SoftwareRestrictionPolicyService
     private PolFile LoadPolicySnapshot()
     {
         PolFile snapshot = LoadWritablePolicySnapshot();
+
+        // Self-heal: earlier releases persisted **delvals./**del. tombstones under the SRP trees, which the
+        // Registry CSE re-applies forever and which read back as phantom rules. Strip them before the
+        // snapshot is read or mutated; deletions are now expressed as key absence plus transient
+        // **DeleteKeys instructions consumed at save time.
+        snapshot.RemoveDeleteMarkers(CodeIdentifiersRoot);
+        snapshot.RemoveDeleteMarkers(TrustedPublisherRoot);
+        snapshot.RemoveDeleteMarkers(TrustedPublisherCertificatesRoot);
+        snapshot.RemoveDeleteMarkers(DisallowedCertificatesStoreRoot);
+
         CopyLiveRegistryTreeWhenMissing(snapshot, CodeIdentifiersRoot);
         CopyLiveRegistryTreeWhenMissing(snapshot, TrustedPublisherRoot);
+        CopyLiveRegistryTreeWhenMissing(snapshot, TrustedPublisherCertificatesRoot);
+        CopyLiveRegistryTreeWhenMissing(snapshot, DisallowedCertificatesStoreRoot);
         return snapshot;
     }
 
@@ -885,6 +1155,11 @@ public sealed class SoftwareRestrictionPolicyService
         {
             snapshot.SetValue(CodeIdentifiersRoot, ExecutableTypesValueName, DefaultDesignatedFileTypes, RegistryValueKind.MultiString);
         }
+
+        if (!snapshot.ContainsValue(CodeIdentifiersRoot, LevelsValueName))
+        {
+            snapshot.SetValue(CodeIdentifiersRoot, LevelsValueName, AllSecurityLevelsMask, RegistryValueKind.DWord);
+        }
     }
 
     private static bool IsSoftwareRestrictionPolicyConfigured(PolFile snapshot, IReadOnlyCollection<SoftwareRestrictionRule> rules)
@@ -894,16 +1169,6 @@ public sealed class SoftwareRestrictionPolicyService
             || snapshot.ContainsValue(CodeIdentifiersRoot, PolicyScopeValueName)
             || snapshot.ContainsValue(CodeIdentifiersRoot, ExecutableTypesValueName)
             || rules.Count > 0;
-    }
-
-    private static void ClearTree(PolFile snapshot, string keyPath)
-    {
-        foreach (string subKeyName in snapshot.GetKeyNames(keyPath).ToArray())
-        {
-            ClearTree(snapshot, $@"{keyPath}\{subKeyName}");
-        }
-
-        snapshot.ClearKey(keyPath);
     }
 
     private void EnsureMachinePolicyIsWritable()

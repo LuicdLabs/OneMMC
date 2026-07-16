@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.ObjectModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
+using System.Runtime.CompilerServices;
 using OneMMC.Core.Abstractions.Services;
 using OneMMC.Core.Features.UserSecurity.Models.SecPol.SoftwareRestriction;
 using OneMMC.Core.Features.UserSecurity.ViewModels.SecPol.SoftwareRestriction;
@@ -561,7 +563,7 @@ public sealed partial class SoftwareRestrictionPage : Page
                 StoragePath = existingRule.StoragePath
             };
 
-        ComboBox securityLevelBox = CreateComboBox(CreateSecurityLevelOptions(), rule.SecurityLevel);
+        ComboBox securityLevelBox = CreateComboBox(CreateSecurityLevelOptions(kind), rule.SecurityLevel);
         TextBox descriptionBox = new()
         {
             MinWidth = 420,
@@ -907,37 +909,71 @@ public sealed partial class SoftwareRestrictionPage : Page
         return SoftwareRestrictionPublisherScope.EndUsers;
     }
 
+    // Maps each dynamically created ComboBox to its strongly-typed option list. WinUI 3 / CsWinRT cannot
+    // marshal a collection of a custom generic type through ItemsSource (set_ItemsSource throws E_INVALIDARG),
+    // so the ComboBox itself only ever holds native string-content ComboBoxItem controls, and the option
+    // objects stay on the managed side keyed by the control.
+    private static readonly ConditionalWeakTable<ComboBox, object> ComboBoxOptions = new();
+
     private static ComboBox CreateComboBox<T>(IEnumerable<ComboOption<T>> options, T selectedValue)
         where T : notnull
     {
-        // Items render via ComboOption<T>.ToString() (no reflection-based DisplayMemberPath).
+        List<ComboOption<T>> optionList = options.ToList();
         ComboBox comboBox = new()
         {
-            MinWidth = 280,
-            ItemsSource = options.ToList()
+            MinWidth = 280
         };
 
-        foreach (ComboOption<T> option in comboBox.Items.Cast<ComboOption<T>>())
+        int selectedIndex = -1;
+        for (int index = 0; index < optionList.Count; index++)
         {
-            if (EqualityComparer<T>.Default.Equals(option.Value, selectedValue))
+            comboBox.Items.Add(new ComboBoxItem { Content = optionList[index].Name });
+            if (selectedIndex < 0 && EqualityComparer<T>.Default.Equals(optionList[index].Value, selectedValue))
             {
-                comboBox.SelectedItem = option;
-                break;
+                selectedIndex = index;
             }
         }
 
-        comboBox.SelectedIndex = comboBox.SelectedIndex < 0 ? 0 : comboBox.SelectedIndex;
+        ComboBoxOptions.AddOrUpdate(comboBox, optionList);
+        comboBox.SelectedIndex = optionList.Count == 0 ? -1 : Math.Max(selectedIndex, 0);
         return comboBox;
     }
 
     private static T GetSelectedValue<T>(ComboBox comboBox, T fallback)
         where T : notnull
     {
-        return comboBox.SelectedItem is ComboOption<T> option ? option.Value : fallback;
+        return TryGetSelectedOption(comboBox, out ComboOption<T>? option) ? option.Value : fallback;
     }
 
-    private IReadOnlyList<ComboOption<SoftwareRestrictionSecurityLevel>> CreateSecurityLevelOptions()
+    private static bool TryGetSelectedOption<T>(ComboBox comboBox, [NotNullWhen(true)] out ComboOption<T>? option)
+        where T : notnull
     {
+        if (comboBox.SelectedIndex >= 0
+            && ComboBoxOptions.TryGetValue(comboBox, out object? stored)
+            && stored is IReadOnlyList<ComboOption<T>> optionList
+            && comboBox.SelectedIndex < optionList.Count)
+        {
+            option = optionList[comboBox.SelectedIndex];
+            return true;
+        }
+
+        option = null;
+        return false;
+    }
+
+    private IReadOnlyList<ComboOption<SoftwareRestrictionSecurityLevel>> CreateSecurityLevelOptions(SoftwareRestrictionRuleKind? ruleKind = null)
+    {
+        // Certificate rules are stored in the TrustedPublisher/Disallowed certificate stores, so Basic User
+        // is not a valid level for them (matching secpol.msc).
+        if (ruleKind == SoftwareRestrictionRuleKind.Certificate)
+        {
+            return
+            [
+                new(LocalizedStrings.SRP_SecurityLevel_Disallowed, SoftwareRestrictionSecurityLevel.Disallowed),
+                new(LocalizedStrings.SRP_SecurityLevel_Unrestricted, SoftwareRestrictionSecurityLevel.Unrestricted)
+            ];
+        }
+
         return
         [
             new(LocalizedStrings.SRP_SecurityLevel_Disallowed, SoftwareRestrictionSecurityLevel.Disallowed),
@@ -1078,7 +1114,7 @@ public sealed partial class SoftwareRestrictionPage : Page
     private static string GetSelectedDescription<T>(ComboBox comboBox)
         where T : notnull
     {
-        return comboBox.SelectedItem is ComboOption<T> option ? option.Description : string.Empty;
+        return TryGetSelectedOption(comboBox, out ComboOption<T>? option) ? option.Description : string.Empty;
     }
 
     private static string GetString(string key)

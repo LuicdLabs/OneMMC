@@ -180,6 +180,24 @@ namespace OneMMC.Core.Infrastructure.PolicyStorage
             // No-op for direct Registry access
         }
 
+        public void DeleteKeyTree(string key)
+        {
+            EnsureNotDisposed();
+            if (string.IsNullOrEmpty(key)) return;
+
+            LogDebug($"DeleteKeyTree: key={key}");
+
+            try
+            {
+                _rootKey!.DeleteSubKeyTree(key, throwOnMissingSubKey: false);
+                Flush();
+            }
+            catch (Exception ex)
+            {
+                LogDebug($"[ERROR] DeleteKeyTree failed: {ex.Message}");
+            }
+        }
+
         #endregion
 
         #region Public Methods

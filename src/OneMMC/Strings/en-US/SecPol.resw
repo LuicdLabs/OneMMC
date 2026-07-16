@@ -738,8 +738,8 @@ Default on Server editions: Success.</value>
   <data name="SRP_Error_RuleUnsupportedForEdit" xml:space="preserve">
     <value>This rule type cannot be edited yet.</value>
   </data>
-  <data name="SRP_Error_CertificateRuleUnsupportedForCreate" xml:space="preserve">
-    <value>Creating certificate rules is not available until the certificate policy storage shape is verified.</value>
+  <data name="SRP_Error_CertificateRuleLevelUnsupported" xml:space="preserve">
+    <value>Certificate rules support only the Disallowed and Unrestricted security levels.</value>
   </data>
   <data name="SRP_Error_CertificateRuleInvalid" xml:space="preserve">
     <value>Select a certificate file or a file with an Authenticode signature.</value>

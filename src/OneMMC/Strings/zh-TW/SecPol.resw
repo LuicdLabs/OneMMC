@@ -712,8 +712,8 @@
   <data name="SRP_Error_RuleUnsupportedForEdit" xml:space="preserve">
     <value>這個規則類型目前無法編輯。</value>
   </data>
-  <data name="SRP_Error_CertificateRuleUnsupportedForCreate" xml:space="preserve">
-    <value>憑證規則的政策儲存格式確認前，暫不提供建立功能。</value>
+  <data name="SRP_Error_CertificateRuleLevelUnsupported" xml:space="preserve">
+    <value>憑證規則僅支援「不允許」與「不受限制」安全性層級。</value>
   </data>
   <data name="SRP_Error_CertificateRuleInvalid" xml:space="preserve">
     <value>請選取憑證檔或具有 Authenticode 簽章的檔案。</value>

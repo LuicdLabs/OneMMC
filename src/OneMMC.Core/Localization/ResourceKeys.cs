@@ -240,7 +240,7 @@ public static class SoftwareRestrictionKeys
     public const string RuleKindNetworkZone = "SRP_RuleKind_NetworkZone";
     public const string RuleKindUnknown = "SRP_RuleKind_Unknown";
     public const string RuleUnsupportedForEdit = "SRP_Error_RuleUnsupportedForEdit";
-    public const string CertificateRuleUnsupportedForCreate = "SRP_Error_CertificateRuleUnsupportedForCreate";
+    public const string CertificateRuleLevelUnsupported = "SRP_Error_CertificateRuleLevelUnsupported";
     public const string CertificateRuleInvalid = "SRP_Error_CertificateRuleInvalid";
     public const string NetworkZoneInvalid = "SRP_Error_NetworkZoneInvalid";
     public const string StatusPolicyCreated = "SRP_Status_PolicyCreated";
