@@ -156,14 +156,17 @@
   <data name="Service_Password_Placeholder" xml:space="preserve">
     <value>Enter password</value>
   </data>
-  <data name="Service_SaveStartupType" xml:space="preserve">
-    <value>Save Startup Type</value>
+  <data name="Service_SaveFailed_General" xml:space="preserve">
+    <value>Failed to save changes: {0}</value>
   </data>
-  <data name="Service_ApplyLogOn" xml:space="preserve">
-    <value>Apply Log On Settings</value>
+  <data name="Service_SaveFailed_StartupType" xml:space="preserve">
+    <value>Failed to save startup type: {0}</value>
   </data>
-  <data name="Service_ApplyRecovery" xml:space="preserve">
-    <value>Apply Recovery Options</value>
+  <data name="Service_SaveFailed_LogOn" xml:space="preserve">
+    <value>Failed to save log on account: {0}</value>
+  </data>
+  <data name="Service_SaveFailed_Recovery" xml:space="preserve">
+    <value>Failed to save recovery options: {0}</value>
   </data>
   <data name="Service_Startup_Auto" xml:space="preserve">
     <value>Auto</value>

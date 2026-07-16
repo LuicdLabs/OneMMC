@@ -18,6 +18,7 @@
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
         <!--  Header  -->
@@ -63,7 +64,6 @@
                         <ComboBoxItem Content="{x:Bind LocalizedStrings.Service_Startup_Manual}" Tag="Manual" />
                         <ComboBoxItem Content="{x:Bind LocalizedStrings.Common_Disabled}" Tag="Disabled" />
                     </ComboBox>
-                    <Button Click="SaveStartupType_Click" Content="{x:Bind LocalizedStrings.Service_SaveStartupType}" />
                 </StackPanel>
             </ScrollViewer>
 
@@ -112,10 +112,6 @@
                                 PlaceholderText="{x:Bind LocalizedStrings.Service_Password_Placeholder}" />
                         </StackPanel>
                     </Border>
-                    <Button
-                        Margin="0,12,0,0"
-                        Click="ApplyLogOn_Click"
-                        Content="{x:Bind LocalizedStrings.Service_ApplyLogOn}" />
                     <InfoBar
                         Margin="0,12,0,0"
                         IsClosable="False"
@@ -171,10 +167,6 @@
                         Maximum="999"
                         Minimum="0"
                         SpinButtonPlacementMode="Inline" />
-                    <Button
-                        Margin="0,12,0,0"
-                        Click="ApplyRecovery_Click"
-                        Content="{x:Bind LocalizedStrings.Service_ApplyRecovery}" />
                 </StackPanel>
             </ScrollViewer>
 
@@ -241,5 +233,19 @@
                 </StackPanel>
             </ScrollViewer>
         </Grid>
+
+        <!--  Save progress + error feedback  -->
+        <StackPanel Grid.Row="3" Margin="0,12,0,0" Spacing="8">
+            <ProgressBar
+                x:Name="SavingProgressBar"
+                IsIndeterminate="True"
+                Visibility="Collapsed" />
+            <InfoBar
+                x:Name="SavingErrorInfoBar"
+                IsClosable="True"
+                IsOpen="False"
+                Severity="Error"
+                Title="{x:Bind LocalizedStrings.Common_ErrorTitle}" />
+        </StackPanel>
     </Grid>
 </ContentDialog>

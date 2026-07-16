@@ -156,14 +156,17 @@
   <data name="Service_Password_Placeholder" xml:space="preserve">
     <value>輸入密碼</value>
   </data>
-  <data name="Service_SaveStartupType" xml:space="preserve">
-    <value>儲存啟動類型</value>
+  <data name="Service_SaveFailed_General" xml:space="preserve">
+    <value>儲存變更失敗：{0}</value>
   </data>
-  <data name="Service_ApplyLogOn" xml:space="preserve">
-    <value>套用登入設定</value>
+  <data name="Service_SaveFailed_StartupType" xml:space="preserve">
+    <value>儲存啟動類型失敗：{0}</value>
   </data>
-  <data name="Service_ApplyRecovery" xml:space="preserve">
-    <value>套用復原選項</value>
+  <data name="Service_SaveFailed_LogOn" xml:space="preserve">
+    <value>儲存登入帳戶失敗：{0}</value>
+  </data>
+  <data name="Service_SaveFailed_Recovery" xml:space="preserve">
+    <value>儲存復原選項失敗：{0}</value>
   </data>
   <data name="Service_Startup_Auto" xml:space="preserve">
     <value>自動</value>
