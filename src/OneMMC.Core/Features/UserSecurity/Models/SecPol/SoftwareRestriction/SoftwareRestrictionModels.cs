@@ -20,27 +20,6 @@ public enum SoftwareRestrictionSecurityLevel
 }
 
 /// <summary>
-/// Policy sections displayed in the Software Restriction Policies page.
-/// </summary>
-public enum SoftwareRestrictionSectionKind
-{
-    /// <summary>The security levels node.</summary>
-    SecurityLevels,
-
-    /// <summary>The additional rules node.</summary>
-    AdditionalRules,
-
-    /// <summary>The enforcement settings node.</summary>
-    Enforcement,
-
-    /// <summary>The designated file types node.</summary>
-    DesignatedFileTypes,
-
-    /// <summary>The trusted publishers node.</summary>
-    TrustedPublishers
-}
-
-/// <summary>
 /// Supported additional rule kinds for Software Restriction Policies.
 /// </summary>
 public enum SoftwareRestrictionRuleKind
@@ -101,54 +80,36 @@ public enum SoftwareRestrictionPublisherScope
 }
 
 /// <summary>
-/// A localized item shown in the Software Restriction Policies navigation tree.
+/// A security level row shown in the Security Levels section.
 /// </summary>
-public sealed class SoftwareRestrictionSectionItem
+public sealed class SoftwareRestrictionSecurityLevelItem
 {
-    /// <summary>
-    /// Initializes a new instance of the <see cref="SoftwareRestrictionSectionItem"/> class.
-    /// </summary>
-    public SoftwareRestrictionSectionItem(SoftwareRestrictionSectionKind kind, string displayName)
-    {
-        Kind = kind;
-        DisplayName = displayName;
-    }
+    /// <summary>The security level this row represents.</summary>
+    public SoftwareRestrictionSecurityLevel Level { get; init; }
 
-    /// <summary>The section kind.</summary>
-    public SoftwareRestrictionSectionKind Kind { get; }
+    /// <summary>The localized level name.</summary>
+    public string DisplayName { get; init; } = string.Empty;
 
-    /// <summary>The localized display name.</summary>
-    public string DisplayName { get; }
+    /// <summary>The localized level description.</summary>
+    public string Description { get; init; } = string.Empty;
 
-    /// <inheritdoc />
-    public override string ToString() => DisplayName;
+    /// <summary>Whether this level is the current default security level.</summary>
+    public bool IsDefault { get; init; }
+
+    /// <summary>Whether the "set as default" action should be offered for this row.</summary>
+    public bool CanSetAsDefault => !IsDefault;
 }
 
 /// <summary>
-/// A row shown in the Software Restriction Policies details pane.
+/// A designated file type row (extension plus the friendly type name resolved from file associations).
 /// </summary>
-public sealed class SoftwareRestrictionListItem
+public sealed class SoftwareRestrictionFileTypeItem
 {
-    /// <summary>The primary row name.</summary>
-    public string Name { get; init; } = string.Empty;
+    /// <summary>The upper-case file extension without a leading period.</summary>
+    public string Extension { get; init; } = string.Empty;
 
-    /// <summary>The secondary row value.</summary>
-    public string Setting { get; init; } = string.Empty;
-
-    /// <summary>The additional rule security level text.</summary>
-    public string RuleSecurityLevel { get; init; } = string.Empty;
-
-    /// <summary>The additional rule description text.</summary>
-    public string Description { get; init; } = string.Empty;
-
-    /// <summary>The additional rule last modified text.</summary>
-    public string LastModified { get; init; } = string.Empty;
-
-    /// <summary>The backing security level, when this row represents a security level.</summary>
-    public SoftwareRestrictionSecurityLevel? SecurityLevel { get; init; }
-
-    /// <summary>The backing rule, when this row represents an additional rule.</summary>
-    public SoftwareRestrictionRule? Rule { get; init; }
+    /// <summary>The friendly file type display name.</summary>
+    public string FileTypeDisplay { get; init; } = string.Empty;
 }
 
 /// <summary>
@@ -270,6 +231,9 @@ public sealed class SoftwareRestrictionRule
     /// <summary>Localized security level text.</summary>
     public string SecurityLevelDisplayName => FormatSecurityLevel(SecurityLevel);
 
+    /// <summary>Formatted last modified text for list display; empty when the rule stores no timestamp.</summary>
+    public string LastModifiedDisplay => LastModified?.ToLocalTime().ToString("G", System.Globalization.CultureInfo.CurrentCulture) ?? string.Empty;
+
     /// <summary>
     /// Formats a security level for display.
     /// </summary>
@@ -308,9 +272,12 @@ public sealed class SoftwareRestrictionRule
 /// </summary>
 public sealed class SoftwareRestrictionDetailItem
 {
+    // set (not init) accessors: the WinUI XamlTypeInfo generator emits plain property
+    // assignments for x:DataType types, which do not compile against init-only setters.
+
     /// <summary>The localized detail name.</summary>
-    public string Name { get; init; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
 
     /// <summary>The detail value.</summary>
-    public string Value { get; init; } = string.Empty;
+    public string Value { get; set; } = string.Empty;
 }

@@ -67,14 +67,14 @@ public sealed class SoftwareRestrictionPolicyService
     private const uint CertCertPropId = 0x20;
     private const uint CertDescriptionPropId = 13;
 
-    // Default Unrestricted registry-path safeguards that secpol.msc auto-creates when the default level is set
-    // to Disallowed, so the operating system can still start. Fixed GUIDs keep this idempotent.
-    private static readonly (string RuleId, string Path)[] DisallowedSafeguardPathRules =
+    // Default Unrestricted registry-path safeguard rules that secpol.msc creates automatically together with
+    // a new policy, so Windows and Program Files binaries keep running even when the default level is later
+    // switched to Disallowed. The GUIDs are the fixed identifiers Windows itself writes (observed identically
+    // across independent machines), so rules merge cleanly with policies created or edited by secpol.msc.
+    private static readonly (string RuleId, string Path)[] DefaultSafeguardPathRules =
     [
-        ("{6f2d1a10-3c4b-4e51-9a01-000000000001}", @"%HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SystemRoot%"),
-        ("{6f2d1a10-3c4b-4e51-9a01-000000000002}", @"%HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SystemRoot%\*.exe"),
-        ("{6f2d1a10-3c4b-4e51-9a01-000000000003}", @"%HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SystemRoot%\System32\*.exe"),
-        ("{6f2d1a10-3c4b-4e51-9a01-000000000004}", @"%HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\ProgramFilesDir%"),
+        ("{191cd7fa-f240-4a17-8986-94d480a6c8ca}", @"%HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SystemRoot%"),
+        ("{d2c34ab2-529a-46b2-b293-fc853fce72ea}", @"%HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\ProgramFilesDir%"),
     ];
 
     private static readonly string[] DefaultDesignatedFileTypes =
@@ -109,9 +109,7 @@ public sealed class SoftwareRestrictionPolicyService
         "SHS",
         "URL",
         "VB",
-        "WSC",
-        "WSF",
-        "WSH"
+        "WSC"
     ];
 
     private readonly ILogger<SoftwareRestrictionPolicyService> _logger;
@@ -128,6 +126,37 @@ public sealed class SoftwareRestrictionPolicyService
     {
         _logger = logger;
         _localPolicyFileStore = localPolicyFileStore;
+    }
+
+    /// <summary>
+    /// Gets a value indicating whether SAFER run-time enforcement is unavailable on this system.
+    /// SRP has been deprecated since Windows 10 1803, and Windows 11 22H2+ client editions no longer
+    /// enforce it at process creation (server editions still do). Rules remain editable and
+    /// <c>SaferIdentifyLevel</c> still evaluates them, but blocked programs are not prevented from starting.
+    /// </summary>
+    public static bool IsEnforcementUnavailableOnThisSystem { get; } = DetectEnforcementUnavailable();
+
+    private static bool DetectEnforcementUnavailable()
+    {
+        // Windows 11 22H2 is build 22621. Server SKUs (InstallationType != "Client") keep enforcing SRP.
+        const int FirstUnenforcedClientBuild = 22621;
+        if (Environment.OSVersion.Version.Build < FirstUnenforcedClientBuild)
+        {
+            return false;
+        }
+
+        try
+        {
+            using RegistryKey? currentVersionKey = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows NT\CurrentVersion");
+            return string.Equals(
+                currentVersionKey?.GetValue("InstallationType") as string,
+                "Client",
+                StringComparison.OrdinalIgnoreCase);
+        }
+        catch (Exception)
+        {
+            return false;
+        }
     }
 
     /// <summary>
@@ -162,6 +191,10 @@ public sealed class SoftwareRestrictionPolicyService
             snapshot.SetValue(CodeIdentifiersRoot, AuthenticodeEnabledValueName, 0U, RegistryValueKind.DWord);
             snapshot.SetValue(CodeIdentifiersRoot, LevelsValueName, AllSecurityLevelsMask, RegistryValueKind.DWord);
             snapshot.SetValue(CodeIdentifiersRoot, ExecutableTypesValueName, DefaultDesignatedFileTypes, RegistryValueKind.MultiString);
+
+            // secpol.msc creates the two default Unrestricted registry-path rules together with the policy,
+            // not only when the default level is switched to Disallowed.
+            EnsureDefaultSafeguardRules(snapshot);
         });
     }
 
@@ -203,19 +236,20 @@ public sealed class SoftwareRestrictionPolicyService
 
             if (settings.DefaultSecurityLevel == SoftwareRestrictionSecurityLevel.Disallowed)
             {
-                EnsureDisallowedSafeguardRules(snapshot);
+                EnsureDefaultSafeguardRules(snapshot);
             }
         });
     }
 
     /// <summary>
-    /// Creates the four Unrestricted registry-path safeguard rules that secpol.msc auto-creates when the
-    /// default level is switched to Disallowed, so Windows and Program Files binaries can still run.
+    /// Creates the two default Unrestricted registry-path safeguard rules (SystemRoot and ProgramFilesDir)
+    /// that secpol.msc writes with fixed GUIDs when a new policy is created, so Windows and Program Files
+    /// binaries can still run under a Disallowed default level. Idempotent; existing rules are kept as-is.
     /// </summary>
     /// <param name="snapshot">The policy snapshot to mutate.</param>
-    private static void EnsureDisallowedSafeguardRules(PolFile snapshot)
+    private static void EnsureDefaultSafeguardRules(PolFile snapshot)
     {
-        foreach ((string ruleId, string path) in DisallowedSafeguardPathRules)
+        foreach ((string ruleId, string path) in DefaultSafeguardPathRules)
         {
             string ruleKey = $@"{UnrestrictedPathsRoot}\{ruleId}";
             if (snapshot.ContainsValue(ruleKey, ItemDataValueName))
@@ -472,7 +506,14 @@ public sealed class SoftwareRestrictionPolicyService
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(rule.Value);
 
-        snapshot.SetValue(ruleKey, ItemDataValueName, rule.Value.Trim(), RegistryValueKind.ExpandString);
+        // secpol.msc stores plain paths as REG_SZ and only uses REG_EXPAND_SZ when the value contains
+        // %...% environment-variable or registry-path segments that must be expanded at evaluation time.
+        string path = rule.Value.Trim();
+        snapshot.SetValue(
+            ruleKey,
+            ItemDataValueName,
+            path,
+            path.Contains('%') ? RegistryValueKind.ExpandString : RegistryValueKind.String);
         SaveCommonRuleValues(snapshot, ruleKey, rule);
     }
 
@@ -809,6 +850,10 @@ public sealed class SoftwareRestrictionPolicyService
             null => string.Empty,
             string text => text,
             uint number when kind == SoftwareRestrictionRuleKind.NetworkZone => number.ToString(CultureInfo.InvariantCulture),
+            // Some Windows releases persist the UrlZones zone id as a 4-byte REG_BINARY value instead of a
+            // REG_DWORD; both encode the same little-endian zone number.
+            byte[] bytes when kind == SoftwareRestrictionRuleKind.NetworkZone && bytes.Length == sizeof(uint)
+                => BitConverter.ToUInt32(bytes).ToString(CultureInfo.InvariantCulture),
             byte[] bytes => Convert.ToHexString(bytes),
             _ => itemData.ToString() ?? string.Empty
         };

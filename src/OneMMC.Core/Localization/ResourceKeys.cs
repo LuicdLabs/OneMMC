@@ -352,6 +352,18 @@ public static class SoftwareRestrictionKeys
     public const string DetailLastModified = "SRP_Detail_LastModified";
     public const string DetailDescription = "SRP_Detail_Description";
     public const string DetailRawData = "SRP_Detail_RawData";
+    public const string DeprecationWarningTitle = "SRP_Deprecation_Title";
+    public const string DeprecationWarningMessage = "SRP_Deprecation_Message";
+    public const string StatusSignInHint = "SRP_Status_SignInHint";
+    public const string HelpSecurityLevels = "SRP_Help_SecurityLevels";
+    public const string EnforcementDefaultSecurityLevelDescription = "SRP_Enforcement_DefaultSecurityLevel_Description";
+    public const string EnforcementUserScopeDescription = "SRP_Enforcement_UserScope_Description";
+    public const string EnforcementFileScopeDescription = "SRP_Enforcement_FileScope_Description";
+    public const string EnforcementCertificateRulesDescription = "SRP_Enforcement_CertificateRules_Description";
+    public const string RulesPrecedenceHint = "SRP_Rules_PrecedenceHint";
+    public const string RulesSearchPlaceholder = "SRP_Rules_SearchPlaceholder";
+    public const string CommandNewRule = "SRP_Command_NewRule";
+    public const string DialogDisallowedDefaultWarning = "SRP_Dialog_DisallowedDefault_Warning";
 }
 
 /// <summary>

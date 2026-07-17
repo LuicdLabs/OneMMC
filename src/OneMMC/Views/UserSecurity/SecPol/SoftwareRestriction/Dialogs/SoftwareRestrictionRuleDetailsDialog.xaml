@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentDialog
+    x:Class="OneMMC.Views.SoftwareRestrictionRuleDetailsDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:srp="using:OneMMC.Core.Features.UserSecurity.Models.SecPol.SoftwareRestriction"
+    CloseButtonText="{x:Bind LocalizedStrings.Common_CloseButton}"
+    DefaultButton="Close">
+
+    <ScrollViewer
+        MaxHeight="480"
+        HorizontalScrollBarVisibility="Disabled"
+        HorizontalScrollMode="Disabled"
+        VerticalScrollBarVisibility="Auto">
+        <StackPanel MinWidth="460" Spacing="12">
+            <TextBlock
+                x:Name="RuleValueText"
+                Style="{StaticResource SubtitleTextBlockStyle}"
+                TextWrapping="Wrap" />
+            <ItemsControl ItemsSource="{x:Bind Details}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="srp:SoftwareRestrictionDetailItem">
+                        <StackPanel Margin="0,0,0,12" Spacing="4">
+                            <TextBlock
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{StaticResource CaptionTextBlockStyle}"
+                                Text="{x:Bind Name}" />
+                            <TextBox
+                                AcceptsReturn="True"
+                                IsReadOnly="True"
+                                Text="{x:Bind Value}"
+                                TextWrapping="Wrap" />
+                        </StackPanel>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </StackPanel>
+    </ScrollViewer>
+</ContentDialog>

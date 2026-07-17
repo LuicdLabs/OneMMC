@@ -133,6 +133,29 @@ namespace OneMMC.Localization
         public string SRP_NetworkZone_Internet_Description => GetResource(ResourceFileNames.SecPol, SoftwareRestrictionKeys.NetworkZoneInternetDescription);
         public string SRP_NetworkZone_RestrictedSites => GetResource(ResourceFileNames.SecPol, SoftwareRestrictionKeys.NetworkZoneRestrictedSites);
         public string SRP_NetworkZone_RestrictedSites_Description => GetResource(ResourceFileNames.SecPol, SoftwareRestrictionKeys.NetworkZoneRestrictedSitesDescription);
+        public string SRP_Deprecation_Title => GetResource(ResourceFileNames.SecPol, SoftwareRestrictionKeys.DeprecationWarningTitle);
+        public string SRP_Deprecation_Message => GetResource(ResourceFileNames.SecPol, SoftwareRestrictionKeys.DeprecationWarningMessage);
+        public string SRP_NoPolicyDefined => GetResource(ResourceFileNames.SecPol, SoftwareRestrictionKeys.NoPolicyDefined);
+        public string SRP_NoPolicyDefined_Description => GetResource(ResourceFileNames.SecPol, SoftwareRestrictionKeys.NoPolicyDefinedDescription);
+        public string SRP_DefaultMarker => GetResource(ResourceFileNames.SecPol, SoftwareRestrictionKeys.DefaultMarker);
+        public string SRP_NoAdditionalRules => GetResource(ResourceFileNames.SecPol, SoftwareRestrictionKeys.NoAdditionalRules);
+        public string SRP_Help_SecurityLevels => GetResource(ResourceFileNames.SecPol, SoftwareRestrictionKeys.HelpSecurityLevels);
+        public string SRP_Command_NewRule => GetResource(ResourceFileNames.SecPol, SoftwareRestrictionKeys.CommandNewRule);
+        public string SRP_Rules_PrecedenceHint => GetResource(ResourceFileNames.SecPol, SoftwareRestrictionKeys.RulesPrecedenceHint);
+        public string SRP_Rules_SearchPlaceholder => GetResource(ResourceFileNames.SecPol, SoftwareRestrictionKeys.RulesSearchPlaceholder);
+        public string SRP_ListHeader_Type => GetResource(ResourceFileNames.SecPol, SoftwareRestrictionKeys.ListHeaderType);
+        public string SRP_ListHeader_SecurityLevel => GetResource(ResourceFileNames.SecPol, SoftwareRestrictionKeys.ListHeaderSecurityLevel);
+        public string SRP_ListHeader_Description => GetResource(ResourceFileNames.SecPol, SoftwareRestrictionKeys.ListHeaderDescription);
+        public string SRP_ListHeader_LastModified => GetResource(ResourceFileNames.SecPol, SoftwareRestrictionKeys.ListHeaderLastModified);
+        public string SRP_Enforcement_DefaultSecurityLevel => GetResource(ResourceFileNames.SecPol, SoftwareRestrictionKeys.EnforcementDefaultSecurityLevel);
+        public string SRP_Enforcement_DefaultSecurityLevel_Description => GetResource(ResourceFileNames.SecPol, SoftwareRestrictionKeys.EnforcementDefaultSecurityLevelDescription);
+        public string SRP_Enforcement_FileScope => GetResource(ResourceFileNames.SecPol, SoftwareRestrictionKeys.EnforcementFileScope);
+        public string SRP_Enforcement_FileScope_Description => GetResource(ResourceFileNames.SecPol, SoftwareRestrictionKeys.EnforcementFileScopeDescription);
+        public string SRP_Enforcement_UserScope => GetResource(ResourceFileNames.SecPol, SoftwareRestrictionKeys.EnforcementUserScope);
+        public string SRP_Enforcement_UserScope_Description => GetResource(ResourceFileNames.SecPol, SoftwareRestrictionKeys.EnforcementUserScopeDescription);
+        public string SRP_Enforcement_CertificateRules => GetResource(ResourceFileNames.SecPol, SoftwareRestrictionKeys.EnforcementCertificateRules);
+        public string SRP_Enforcement_CertificateRules_Description => GetResource(ResourceFileNames.SecPol, SoftwareRestrictionKeys.EnforcementCertificateRulesDescription);
+        public string SRP_Dialog_DisallowedDefault_Warning => GetResource(ResourceFileNames.SecPol, SoftwareRestrictionKeys.DialogDisallowedDefaultWarning);
 
         // Public Key Policies
         public string PKP_Node_EncryptingFileSystem => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.NodeEncryptingFileSystem);

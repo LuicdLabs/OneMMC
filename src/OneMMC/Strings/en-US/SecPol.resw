@@ -1074,6 +1074,42 @@ Default on Server editions: Success.</value>
   <data name="SRP_Detail_RawData" xml:space="preserve">
     <value>Raw certificate data</value>
   </data>
+  <data name="SRP_Deprecation_Title" xml:space="preserve">
+    <value>Software Restriction Policies are deprecated</value>
+  </data>
+  <data name="SRP_Deprecation_Message" xml:space="preserve">
+    <value>Starting with Windows 11 22H2, client editions of Windows no longer enforce Software Restriction Policies. Rules saved here take effect only on Windows Server or older Windows versions. Consider AppLocker or App Control for Business instead.</value>
+  </data>
+  <data name="SRP_Status_SignInHint" xml:space="preserve">
+    <value>Changes apply at the next sign-in. For sessions that are already running, run "gpupdate /force" or sign out and back in.</value>
+  </data>
+  <data name="SRP_Help_SecurityLevels" xml:space="preserve">
+    <value>The default security level determines how programs are treated when no rule applies to them. Additional rules override the default level for the programs they match.</value>
+  </data>
+  <data name="SRP_Enforcement_DefaultSecurityLevel_Description" xml:space="preserve">
+    <value>How programs are treated when no rule matches them</value>
+  </data>
+  <data name="SRP_Enforcement_FileScope_Description" xml:space="preserve">
+    <value>Choose whether software restriction policies also apply to libraries such as DLLs</value>
+  </data>
+  <data name="SRP_Enforcement_UserScope_Description" xml:space="preserve">
+    <value>Apply software restriction policies to all users, or exempt local administrators</value>
+  </data>
+  <data name="SRP_Enforcement_CertificateRules_Description" xml:space="preserve">
+    <value>Certificate rules identify software by its signing certificate; enabling them can reduce performance</value>
+  </data>
+  <data name="SRP_Rules_PrecedenceHint" xml:space="preserve">
+    <value>When several rules match the same program, the more specific rule wins: hash rules override certificate rules, then path rules, then network zone rules; the default security level applies last.</value>
+  </data>
+  <data name="SRP_Rules_SearchPlaceholder" xml:space="preserve">
+    <value>Search rules</value>
+  </data>
+  <data name="SRP_Command_NewRule" xml:space="preserve">
+    <value>New rule</value>
+  </data>
+  <data name="SRP_Dialog_DisallowedDefault_Warning" xml:space="preserve">
+    <value>The Disallowed default level blocks every program that no allow rule covers, which can prevent Windows and installed apps from running correctly. Make sure the required allow rules are in place before you continue.</value>
+  </data>
   <data name="PKP_Node_EncryptingFileSystem" xml:space="preserve">
     <value>Encrypting File System</value>
   </data>

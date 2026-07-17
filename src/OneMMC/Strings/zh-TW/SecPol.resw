@@ -1048,6 +1048,42 @@
   <data name="SRP_Detail_RawData" xml:space="preserve">
     <value>原始憑證資料</value>
   </data>
+  <data name="SRP_Deprecation_Title" xml:space="preserve">
+    <value>軟體限制原則已淘汰</value>
+  </data>
+  <data name="SRP_Deprecation_Message" xml:space="preserve">
+    <value>自 Windows 11 22H2 起，Windows 用戶端版本已不再強制執行軟體限制原則。此處儲存的規則僅會在 Windows Server 或較舊的 Windows 版本上生效。建議改用 AppLocker 或商務用應用程式控制。</value>
+  </data>
+  <data name="SRP_Status_SignInHint" xml:space="preserve">
+    <value>變更會在下次登入時生效。若要套用至目前執行中的工作階段，請執行 "gpupdate /force" 或登出後重新登入。</value>
+  </data>
+  <data name="SRP_Help_SecurityLevels" xml:space="preserve">
+    <value>預設安全性層級決定沒有任何規則符合時程式的處理方式。其他規則會為其符合的程式覆寫預設層級。</value>
+  </data>
+  <data name="SRP_Enforcement_DefaultSecurityLevel_Description" xml:space="preserve">
+    <value>沒有任何規則符合時程式的處理方式</value>
+  </data>
+  <data name="SRP_Enforcement_FileScope_Description" xml:space="preserve">
+    <value>選擇軟體限制原則是否同時套用至 DLL 等程式庫檔案</value>
+  </data>
+  <data name="SRP_Enforcement_UserScope_Description" xml:space="preserve">
+    <value>將軟體限制原則套用至所有使用者，或排除本機系統管理員</value>
+  </data>
+  <data name="SRP_Enforcement_CertificateRules_Description" xml:space="preserve">
+    <value>憑證規則依簽署憑證識別軟體；啟用後可能會降低效能</value>
+  </data>
+  <data name="SRP_Rules_PrecedenceHint" xml:space="preserve">
+    <value>當多個規則符合同一個程式時，較特定的規則優先：雜湊規則優先於憑證規則，其次為路徑規則、網路區域規則；最後才套用預設安全性層級。</value>
+  </data>
+  <data name="SRP_Rules_SearchPlaceholder" xml:space="preserve">
+    <value>搜尋規則</value>
+  </data>
+  <data name="SRP_Command_NewRule" xml:space="preserve">
+    <value>新增規則</value>
+  </data>
+  <data name="SRP_Dialog_DisallowedDefault_Warning" xml:space="preserve">
+    <value>「不允許」預設層級會封鎖所有未被允許規則涵蓋的程式，可能導致 Windows 與已安裝的應用程式無法正常執行。請先確認必要的允許規則已建立，再繼續操作。</value>
+  </data>
   <data name="PKP_Node_EncryptingFileSystem" xml:space="preserve">
     <value>加密檔案系統</value>
   </data>

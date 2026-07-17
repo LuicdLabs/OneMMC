@@ -1,42 +1,45 @@
-﻿using System;
-using System.Collections.ObjectModel;
-using System.Diagnostics.CodeAnalysis;
+using System;
+using System.ComponentModel;
 using System.Globalization;
-using System.IO;
-using System.Runtime.CompilerServices;
 using OneMMC.Core.Abstractions.Services;
 using OneMMC.Core.Features.UserSecurity.Models.SecPol.SoftwareRestriction;
 using OneMMC.Core.Features.UserSecurity.ViewModels.SecPol.SoftwareRestriction;
 using OneMMC.Core.Localization;
 using OneMMC.Helpers;
 using OneMMC.Localization;
-using Microsoft.Extensions.Logging;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
-using Microsoft.Win32;
 
 namespace OneMMC.Views;
 
+/// <summary>
+/// Software Restriction Policies page. Thin code-behind: switches the section panels driven by
+/// the <see cref="SelectorBar"/>, opens the rule editor/details dialogs, and forwards the
+/// immediate-apply enforcement controls to the view model with revert-on-failure.
+/// </summary>
 public sealed partial class SoftwareRestrictionPage : Page
 {
-    private const string AllFilesFilterPattern = "*.*";
-    private const string PathRuleFilePickerSettingsIdentifier = "SoftwareRestrictionPathRuleFilePicker";
-    private const string PathRuleFolderPickerSettingsIdentifier = "SoftwareRestrictionPathRuleFolderPicker";
-    private const string HashFilePickerSettingsIdentifier = "SoftwareRestrictionHashRuleFilePicker";
-    private const string CertificateRuleFilePickerSettingsIdentifier = "SoftwareRestrictionCertificateRuleFilePicker";
+    private const string SecurityLevelsSectionTag = "SecurityLevels";
+    private const string AdditionalRulesSectionTag = "AdditionalRules";
+    private const string EnforcementSectionTag = "Enforcement";
+    private const string DesignatedFileTypesSectionTag = "DesignatedFileTypes";
+    private const string TrustedPublishersSectionTag = "TrustedPublishers";
 
     private readonly IFileDialogService _fileDialogService;
-    private readonly ILogger<SoftwareRestrictionPage> _logger;
     private bool _hasLoaded;
 
-    internal readonly LocalizedStrings LocalizedStrings = LocalizedStrings.Instance;
+    /// <summary>Gets the localized strings accessor used by compiled bindings.</summary>
+    public LocalizedStrings LocalizedStrings { get; } = LocalizedStrings.Instance;
 
+    /// <summary>Gets the page view model.</summary>
     public SoftwareRestrictionViewModel ViewModel { get; }
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="SoftwareRestrictionPage"/> class.
+    /// </summary>
     public SoftwareRestrictionPage()
     {
-        _logger = App.GetRequiredService<ILogger<SoftwareRestrictionPage>>();
         _fileDialogService = App.GetRequiredService<IFileDialogService>();
         ViewModel = App.GetRequiredService<SoftwareRestrictionViewModel>();
 
@@ -45,6 +48,7 @@ public sealed partial class SoftwareRestrictionPage : Page
         Loaded += OnPageLoaded;
         Unloaded += OnPageUnloaded;
         ViewModel.AdminPermissionRequired += OnAdminPermissionRequired;
+        ViewModel.PropertyChanged += OnViewModelPropertyChanged;
     }
 
     private async void OnPageLoaded(object sender, RoutedEventArgs e)
@@ -55,12 +59,14 @@ public sealed partial class SoftwareRestrictionPage : Page
         }
 
         _hasLoaded = true;
+        SectionSelectorBar.SelectedItem = SecurityLevelsSelectorItem;
         await ViewModel.LoadPolicyAsync();
     }
 
     private void OnPageUnloaded(object sender, RoutedEventArgs e)
     {
         ViewModel.AdminPermissionRequired -= OnAdminPermissionRequired;
+        ViewModel.PropertyChanged -= OnViewModelPropertyChanged;
         DataContext = null;
         Loaded -= OnPageLoaded;
         Unloaded -= OnPageUnloaded;
@@ -70,6 +76,42 @@ public sealed partial class SoftwareRestrictionPage : Page
     {
         await AdminDialogHelper.ShowAdminRequiredDialogAsync(XamlRoot);
     }
+
+    private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is nameof(SoftwareRestrictionViewModel.IsConfigured))
+        {
+            UpdateSectionVisibility();
+        }
+    }
+
+    // ====================  Section switching  ====================
+
+    private void SectionSelectorBar_SelectionChanged(SelectorBar sender, SelectorBarSelectionChangedEventArgs args)
+    {
+        UpdateSectionVisibility();
+    }
+
+    /// <summary>
+    /// Shows the panel matching the selected section; all panels stay hidden until a policy exists
+    /// so the not-configured empty state (bound in XAML) is the only visible content.
+    /// </summary>
+    private void UpdateSectionVisibility()
+    {
+        string sectionTag = SectionSelectorBar.SelectedItem?.Tag as string ?? SecurityLevelsSectionTag;
+        bool isConfigured = ViewModel.IsConfigured;
+
+        SecurityLevelsPanel.Visibility = ToVisibility(isConfigured && sectionTag == SecurityLevelsSectionTag);
+        AdditionalRulesPanel.Visibility = ToVisibility(isConfigured && sectionTag == AdditionalRulesSectionTag);
+        EnforcementPanel.Visibility = ToVisibility(isConfigured && sectionTag == EnforcementSectionTag);
+        DesignatedFileTypesPanel.Visibility = ToVisibility(isConfigured && sectionTag == DesignatedFileTypesSectionTag);
+        TrustedPublishersPanel.Visibility = ToVisibility(isConfigured && sectionTag == TrustedPublishersSectionTag);
+    }
+
+    private static Visibility ToVisibility(bool isVisible)
+        => isVisible ? Visibility.Visible : Visibility.Collapsed;
+
+    // ====================  Commands  ====================
 
     private async void RefreshButton_Click(object sender, RoutedEventArgs e)
     {
@@ -83,84 +125,54 @@ public sealed partial class SoftwareRestrictionPage : Page
 
     private async void DeletePolicyButton_Click(object sender, RoutedEventArgs e)
     {
-        if (await ShowPrimaryModalAsync(
+        if (await ShowConfirmDialogAsync(
             LocalizedStrings.SRP_Dialog_DeletePolicy_Title,
-            CreateMessageContent(LocalizedStrings.SRP_Dialog_DeletePolicy_Message),
-            LocalizedStrings.Common_DeleteButton,
-            height: 240) == WindowDialogResult.Primary)
+            LocalizedStrings.SRP_Dialog_DeletePolicy_Message,
+            LocalizedStrings.Common_DeleteButton))
         {
             await ViewModel.DeletePolicyAsync();
         }
     }
 
-    private async void DeleteRuleButton_Click(object sender, RoutedEventArgs e)
-    {
-        if (ViewModel.SelectedItem?.Rule is not SoftwareRestrictionRule rule)
-        {
-            return;
-        }
-
-        if (await ShowPrimaryModalAsync(
-            LocalizedStrings.SRP_Dialog_DeleteRule_Title,
-            CreateMessageContent(LocalizedStrings.SRP_Dialog_DeleteRule_Message),
-            LocalizedStrings.Common_DeleteButton,
-            height: 240) == WindowDialogResult.Primary)
-        {
-            await ViewModel.DeleteRuleAsync(rule);
-        }
-    }
+    // ====================  Security levels  ====================
 
     private async void SetDefaultSecurityLevelButton_Click(object sender, RoutedEventArgs e)
     {
-        if (ViewModel.SelectedItem?.SecurityLevel is SoftwareRestrictionSecurityLevel securityLevel)
-        {
-            await ShowSetDefaultSecurityLevelDialogAsync(securityLevel);
-        }
-    }
-
-    private async void EditButton_Click(object sender, RoutedEventArgs e)
-    {
-        await EditCurrentSelectionAsync();
-    }
-
-    private async void PolicyListView_DoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
-    {
-        await EditCurrentSelectionAsync();
-    }
-
-    private void PolicyTree_ItemInvoked(TreeView sender, TreeViewItemInvokedEventArgs args)
-    {
-        if (args.InvokedItem is SoftwareRestrictionSectionItem section)
-        {
-            SelectSection(section);
-        }
-    }
-
-    private void PolicyTree_SelectionChanged(TreeView sender, TreeViewSelectionChangedEventArgs args)
-    {
-        if (args.AddedItems.Count > 0 && args.AddedItems[0] is SoftwareRestrictionSectionItem section)
-        {
-            SelectSection(section);
-        }
-    }
-
-    private void SelectSection(SoftwareRestrictionSectionItem section)
-    {
-        if (ReferenceEquals(ViewModel.SelectedSection, section))
+        if (sender is not FrameworkElement { DataContext: SoftwareRestrictionSecurityLevelItem item }
+            || item.Level == ViewModel.PolicyState.Enforcement.DefaultSecurityLevel)
         {
             return;
         }
 
-        ViewModel.SelectedSection = section;
-    }
-
-    private void SearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
-    {
-        if (args.Reason == AutoSuggestionBoxTextChangeReason.UserInput)
+        if (await ConfirmDefaultSecurityLevelAsync(item.Level))
         {
-            ViewModel.FilterText = sender.Text;
+            await ViewModel.SaveDefaultSecurityLevelAsync(item.Level);
         }
     }
+
+    /// <summary>
+    /// Asks the user to confirm changing the default security level; the Disallowed level appends
+    /// an extra warning because it blocks everything no allow rule covers.
+    /// </summary>
+    private async Task<bool> ConfirmDefaultSecurityLevelAsync(SoftwareRestrictionSecurityLevel securityLevel)
+    {
+        string message = string.Format(
+            CultureInfo.CurrentCulture,
+            GetString(SoftwareRestrictionKeys.DialogSetDefaultSecurityLevelMessageFormat),
+            SoftwareRestrictionRule.FormatSecurityLevel(securityLevel));
+
+        if (securityLevel == SoftwareRestrictionSecurityLevel.Disallowed)
+        {
+            message = $"{message}{Environment.NewLine}{Environment.NewLine}{LocalizedStrings.SRP_Dialog_DisallowedDefault_Warning}";
+        }
+
+        return await ShowConfirmDialogAsync(
+            GetString(SoftwareRestrictionKeys.DialogSetDefaultSecurityLevelTitle),
+            message,
+            LocalizedStrings.SRP_Command_SetAsDefault);
+    }
+
+    // ====================  Additional rules  ====================
 
     private async void NewPathRule_Click(object sender, RoutedEventArgs e)
     {
@@ -182,939 +194,250 @@ public sealed partial class SoftwareRestrictionPage : Page
         await ShowRuleDialogAsync(SoftwareRestrictionRuleKind.NetworkZone, null);
     }
 
-    private async Task EditCurrentSelectionAsync()
+    private async void EditRuleButton_Click(object sender, RoutedEventArgs e)
     {
-        if (ViewModel.SelectedSection is null || !ViewModel.IsConfigured)
+        await EditSelectedRuleAsync();
+    }
+
+    private async void RulesListView_DoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
+    {
+        await EditSelectedRuleAsync();
+    }
+
+    private async void DeleteRuleButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (ViewModel.SelectedRule is not { } rule)
         {
             return;
         }
 
-        if (ViewModel.SelectedSection.Kind == SoftwareRestrictionSectionKind.AdditionalRules)
+        if (await ShowConfirmDialogAsync(
+            LocalizedStrings.SRP_Dialog_DeleteRule_Title,
+            LocalizedStrings.SRP_Dialog_DeleteRule_Message,
+            LocalizedStrings.Common_DeleteButton))
         {
-            if (ViewModel.SelectedItem?.Rule is not SoftwareRestrictionRule rule)
-            {
-                return;
-            }
-
-            if (rule.Kind is SoftwareRestrictionRuleKind.Path or SoftwareRestrictionRuleKind.Hash or SoftwareRestrictionRuleKind.NetworkZone)
-            {
-                await ShowRuleDialogAsync(rule.Kind, rule);
-                return;
-            }
-
-            if (rule.CanViewDetails)
-            {
-                await ShowRuleDetailsAsync(rule);
-                return;
-            }
-
-            await ShowMessageAsync(SoftwareRestrictionKeys.RuleUnsupportedForEdit);
-            return;
-        }
-
-        switch (ViewModel.SelectedSection.Kind)
-        {
-            case SoftwareRestrictionSectionKind.SecurityLevels:
-                if (ViewModel.SelectedItem?.SecurityLevel is SoftwareRestrictionSecurityLevel securityLevel)
-                {
-                    await ShowSetDefaultSecurityLevelDialogAsync(securityLevel);
-                }
-
-                break;
-            case SoftwareRestrictionSectionKind.Enforcement:
-                await ShowEnforcementDialogAsync();
-                break;
-            case SoftwareRestrictionSectionKind.DesignatedFileTypes:
-                await ShowDesignatedFileTypesDialogAsync();
-                break;
-            case SoftwareRestrictionSectionKind.TrustedPublishers:
-                await ShowTrustedPublishersDialogAsync();
-                break;
+            await ViewModel.DeleteRuleAsync(rule);
         }
     }
 
-    private async Task ShowSetDefaultSecurityLevelDialogAsync(SoftwareRestrictionSecurityLevel securityLevel)
+    private void RuleSearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
     {
-        if (securityLevel == ViewModel.PolicyState.Enforcement.DefaultSecurityLevel)
+        if (args.Reason == AutoSuggestionBoxTextChangeReason.UserInput)
+        {
+            ViewModel.FilterText = sender.Text;
+        }
+    }
+
+    private async Task EditSelectedRuleAsync()
+    {
+        if (ViewModel.SelectedRule is not { } rule)
         {
             return;
         }
 
-        string securityLevelName = SoftwareRestrictionRule.FormatSecurityLevel(securityLevel);
-        if (await ShowPrimaryModalAsync(
-            GetString(SoftwareRestrictionKeys.DialogSetDefaultSecurityLevelTitle),
-            CreateMessageContent(string.Format(
-                CultureInfo.CurrentCulture,
-                GetString(SoftwareRestrictionKeys.DialogSetDefaultSecurityLevelMessageFormat),
-                securityLevelName)),
-            LocalizedStrings.SRP_Command_SetAsDefault,
-            height: 260) == WindowDialogResult.Primary)
+        if (rule.Kind is SoftwareRestrictionRuleKind.Path
+            or SoftwareRestrictionRuleKind.Hash
+            or SoftwareRestrictionRuleKind.NetworkZone)
         {
-            await ViewModel.SaveDefaultSecurityLevelAsync(securityLevel);
-        }
-    }
-
-    private async Task ShowEnforcementDialogAsync()
-    {
-        SoftwareRestrictionEnforcementSettings settings = ViewModel.PolicyState.Enforcement;
-        ComboBox defaultLevelBox = CreateComboBox(
-            CreateSecurityLevelOptions(),
-            settings.DefaultSecurityLevel);
-        ComboBox userScopeBox = CreateComboBox(
-            CreateUserScopeOptions(),
-            settings.UserScope);
-        ComboBox fileScopeBox = CreateComboBox(
-            CreateFileScopeOptions(),
-            settings.FileScope);
-        CheckBox certificateRulesBox = new()
-        {
-            Content = GetString(SoftwareRestrictionKeys.EnforcementCertificateRules),
-            IsChecked = settings.CertificateRulesEnabled
-        };
-
-        StackPanel panel = CreateDialogPanel();
-        AddLabeledControl(panel, LocalizedStrings.SRP_Field_SecurityLevel, defaultLevelBox);
-        AddLabeledControl(panel, GetString(SoftwareRestrictionKeys.EnforcementUserScope), userScopeBox);
-        AddLabeledControl(panel, GetString(SoftwareRestrictionKeys.EnforcementFileScope), fileScopeBox);
-        panel.Children.Add(certificateRulesBox);
-
-        if (await ShowPrimaryModalAsync(
-            LocalizedStrings.SRP_Dialog_EditEnforcement_Title,
-            panel,
-            LocalizedStrings.Common_SaveButton,
-            height: 440) == WindowDialogResult.Primary)
-        {
-            await ViewModel.SaveEnforcementAsync(new SoftwareRestrictionEnforcementSettings
-            {
-                DefaultSecurityLevel = GetSelectedValue(defaultLevelBox, settings.DefaultSecurityLevel),
-                UserScope = GetSelectedValue(userScopeBox, settings.UserScope),
-                FileScope = GetSelectedValue(fileScopeBox, settings.FileScope),
-                CertificateRulesEnabled = certificateRulesBox.IsChecked == true
-            });
-        }
-    }
-
-    private async Task ShowDesignatedFileTypesDialogAsync()
-    {
-        ObservableCollection<DesignatedFileTypeItem> fileTypes = new(
-            ViewModel.PolicyState.DesignatedFileTypes.Select(CreateDesignatedFileTypeItem));
-        ListView fileTypesList = new()
-        {
-            Height = 240,
-            ItemTemplate = (DataTemplate)Resources["DesignatedFileTypeItemTemplate"],
-            ItemsSource = fileTypes,
-            SelectionMode = ListViewSelectionMode.Single
-        };
-        TextBox extensionBox = new()
-        {
-            MinWidth = 120,
-            MaxLength = 32,
-            TextWrapping = TextWrapping.NoWrap
-        };
-        Button addButton = new()
-        {
-            Content = LocalizedStrings.Common_AddButton,
-            IsEnabled = false
-        };
-        Button removeButton = new()
-        {
-            Content = LocalizedStrings.Common_RemoveButton,
-            IsEnabled = false
-        };
-
-        extensionBox.TextChanged += (_, _) =>
-        {
-            string extension = NormalizeFileExtension(extensionBox.Text);
-            addButton.IsEnabled = !string.IsNullOrWhiteSpace(extension)
-                && !ContainsFileExtension(fileTypes, extension);
-        };
-        fileTypesList.SelectionChanged += (_, _) =>
-        {
-            removeButton.IsEnabled = fileTypesList.SelectedItem is DesignatedFileTypeItem;
-        };
-        addButton.Click += (_, _) =>
-        {
-            string extension = NormalizeFileExtension(extensionBox.Text);
-            if (string.IsNullOrWhiteSpace(extension) || ContainsFileExtension(fileTypes, extension))
-            {
-                return;
-            }
-
-            AddFileType(fileTypes, CreateDesignatedFileTypeItem(extension));
-            extensionBox.Text = string.Empty;
-            extensionBox.Focus(FocusState.Programmatic);
-        };
-        removeButton.Click += (_, _) =>
-        {
-            if (fileTypesList.SelectedItem is DesignatedFileTypeItem selected)
-            {
-                fileTypes.Remove(selected);
-                string extension = NormalizeFileExtension(extensionBox.Text);
-                addButton.IsEnabled = !string.IsNullOrWhiteSpace(extension)
-                    && !ContainsFileExtension(fileTypes, extension);
-            }
-        };
-
-        Grid headers = new()
-        {
-            ColumnSpacing = 16
-        };
-        headers.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(120) });
-        headers.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        headers.Children.Add(new TextBlock
-        {
-            FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
-            Text = LocalizedStrings.SRP_ListHeader_Extension
-        });
-        TextBlock fileTypeHeader = new()
-        {
-            FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
-            Text = LocalizedStrings.SRP_ListHeader_FileType
-        };
-        Grid.SetColumn(fileTypeHeader, 1);
-        headers.Children.Add(fileTypeHeader);
-
-        Grid fileTypesArea = new()
-        {
-            ColumnSpacing = 12,
-            MinWidth = 520
-        };
-        fileTypesArea.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        fileTypesArea.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-
-        StackPanel listPanel = new()
-        {
-            Spacing = 4
-        };
-        listPanel.Children.Add(headers);
-        listPanel.Children.Add(fileTypesList);
-        fileTypesArea.Children.Add(listPanel);
-
-        removeButton.VerticalAlignment = VerticalAlignment.Top;
-        Grid.SetColumn(removeButton, 1);
-        fileTypesArea.Children.Add(removeButton);
-
-        StackPanel inputPanel = new()
-        {
-            Orientation = Orientation.Horizontal,
-            Spacing = 8
-        };
-        inputPanel.Children.Add(extensionBox);
-        inputPanel.Children.Add(addButton);
-
-        StackPanel panel = CreateDialogPanel();
-        panel.Children.Add(new TextBlock
-        {
-            Text = LocalizedStrings.SRP_Help_DesignatedFileTypes_AddRemove,
-            TextWrapping = TextWrapping.Wrap
-        });
-        AddLabeledControl(panel, LocalizedStrings.SRP_Field_DesignatedFileTypes, fileTypesArea);
-        AddLabeledControl(panel, LocalizedStrings.SRP_Field_FileExtension, inputPanel);
-
-        if (await ShowPrimaryModalAsync(
-            LocalizedStrings.SRP_Dialog_EditFileTypes_Title,
-            panel,
-            LocalizedStrings.Common_SaveButton,
-            width: 720,
-            height: 620) == WindowDialogResult.Primary)
-        {
-            await ViewModel.SaveDesignatedFileTypesAsync(fileTypes.Select(static item => item.Extension));
-        }
-    }
-
-    private async Task ShowTrustedPublishersDialogAsync()
-    {
-        SoftwareRestrictionTrustedPublisherSettings settings = ViewModel.PolicyState.TrustedPublishers;
-        CheckBox definePolicySettingsBox = new()
-        {
-            Content = LocalizedStrings.SRP_TrustedPublishers_DefineSettings,
-            IsChecked = settings.IsDefined
-        };
-        RadioButton endUsersRadio = CreatePublisherScopeRadioButton(
-            LocalizedStrings.SRP_PublisherScope_EndUsers_Option,
-            settings.PublisherScope == SoftwareRestrictionPublisherScope.EndUsers);
-        RadioButton localAdministratorsRadio = CreatePublisherScopeRadioButton(
-            LocalizedStrings.SRP_PublisherScope_LocalAdministrators_Option,
-            settings.PublisherScope == SoftwareRestrictionPublisherScope.LocalAdministrators);
-        RadioButton enterpriseAdministratorsRadio = CreatePublisherScopeRadioButton(
-            LocalizedStrings.SRP_PublisherScope_EnterpriseAdministrators_Option,
-            settings.PublisherScope == SoftwareRestrictionPublisherScope.EnterpriseAdministrators);
-        enterpriseAdministratorsRadio.IsEnabled = false;
-        CheckBox publisherRevocationBox = new()
-        {
-            Content = LocalizedStrings.SRP_TrustedPublishers_PublisherRevocation_Option,
-            IsChecked = settings.CheckPublisherRevocation
-        };
-        CheckBox timestampRevocationBox = new()
-        {
-            Content = LocalizedStrings.SRP_TrustedPublishers_TimestampRevocation_Option,
-            IsChecked = settings.CheckTimestampRevocation
-        };
-
-        void SetPolicyControlsEnabled()
-        {
-            bool isDefined = definePolicySettingsBox.IsChecked == true;
-            endUsersRadio.IsEnabled = isDefined;
-            localAdministratorsRadio.IsEnabled = isDefined;
-            enterpriseAdministratorsRadio.IsEnabled = false;
-            publisherRevocationBox.IsEnabled = isDefined;
-            timestampRevocationBox.IsEnabled = isDefined;
+            await ShowRuleDialogAsync(rule.Kind, rule);
+            return;
         }
 
-        definePolicySettingsBox.Checked += (_, _) => SetPolicyControlsEnabled();
-        definePolicySettingsBox.Unchecked += (_, _) => SetPolicyControlsEnabled();
-        SetPolicyControlsEnabled();
-
-        StackPanel panel = CreateDialogPanel();
-        panel.Children.Add(new TextBlock
+        if (rule.CanViewDetails)
         {
-            Text = LocalizedStrings.SRP_Help_TrustedPublishers,
-            TextWrapping = TextWrapping.Wrap
-        });
-        panel.Children.Add(definePolicySettingsBox);
-        panel.Children.Add(CreateDialogGroup(
-            LocalizedStrings.SRP_TrustedPublishers_Management,
-            endUsersRadio,
-            localAdministratorsRadio,
-            enterpriseAdministratorsRadio));
-        panel.Children.Add(CreateDialogGroup(
-            LocalizedStrings.SRP_TrustedPublishers_AdditionalChecks,
-            publisherRevocationBox,
-            timestampRevocationBox));
-
-        if (await ShowPrimaryModalAsync(
-            LocalizedStrings.SRP_Dialog_EditTrustedPublishers_Title,
-            panel,
-            LocalizedStrings.Common_SaveButton,
-            height: 560) == WindowDialogResult.Primary)
-        {
-            await ViewModel.SaveTrustedPublishersAsync(new SoftwareRestrictionTrustedPublisherSettings
-            {
-                IsDefined = definePolicySettingsBox.IsChecked == true,
-                PublisherScope = GetSelectedPublisherScope(
-                    endUsersRadio,
-                    localAdministratorsRadio,
-                    enterpriseAdministratorsRadio),
-                CheckPublisherRevocation = publisherRevocationBox.IsChecked == true,
-                CheckTimestampRevocation = timestampRevocationBox.IsChecked == true
-            });
-        }
-    }
-
-    private async Task ShowRuleDetailsAsync(SoftwareRestrictionRule rule)
-    {
-        string title = string.Format(
-            CultureInfo.CurrentCulture,
-            GetString(SoftwareRestrictionKeys.DialogRuleDetailsTitleFormat),
-            rule.DisplayValue);
-
-        _ = await ShowCloseModalAsync(
-            title,
-            CreateRuleDetailsContent(rule),
-            width: 720,
-            height: 560);
-    }
-
-    private static StackPanel CreateRuleDetailsContent(SoftwareRestrictionRule rule)
-    {
-        StackPanel panel = CreateDialogPanel();
-
-        panel.Children.Add(new TextBlock
-        {
-            Text = rule.DisplayValue,
-            FontSize = 20,
-            FontWeight = Microsoft.UI.Text.FontWeights.SemiBold,
-            TextWrapping = TextWrapping.Wrap
-        });
-
-        foreach (SoftwareRestrictionDetailItem detail in rule.Details)
-        {
-            AddReadOnlyDetail(panel, detail);
+            SoftwareRestrictionRuleDetailsDialog detailsDialog = new(rule);
+            PrepareDialog(detailsDialog);
+            _ = await detailsDialog.ShowAsync();
+            return;
         }
 
-        return panel;
-    }
-
-    private static void AddReadOnlyDetail(Panel panel, SoftwareRestrictionDetailItem detail)
-    {
-        TextBox valueBox = new()
-        {
-            AcceptsReturn = true,
-            IsReadOnly = true,
-            MinWidth = 420,
-            Text = detail.Value,
-            TextWrapping = TextWrapping.Wrap
-        };
-
-        AddLabeledControl(panel, detail.Name, valueBox);
+        await ShowMessageDialogAsync(GetString(SoftwareRestrictionKeys.RuleUnsupportedForEdit));
     }
 
     private async Task ShowRuleDialogAsync(SoftwareRestrictionRuleKind kind, SoftwareRestrictionRule? existingRule)
     {
-        SoftwareRestrictionRule rule = existingRule is null
-            ? new SoftwareRestrictionRule { Kind = kind }
-            : new SoftwareRestrictionRule
-            {
-                Id = existingRule.Id,
-                Kind = existingRule.Kind,
-                SecurityLevel = existingRule.SecurityLevel,
-                Value = existingRule.Value,
-                Description = existingRule.Description,
-                StoragePath = existingRule.StoragePath
-            };
+        SoftwareRestrictionRuleDialog dialog = new(kind, existingRule, _fileDialogService);
+        PrepareDialog(dialog);
 
-        ComboBox securityLevelBox = CreateComboBox(CreateSecurityLevelOptions(kind), rule.SecurityLevel);
-        TextBox descriptionBox = new()
+        if (await dialog.ShowAsync() == ContentDialogResult.Primary)
         {
-            MinWidth = 420,
-            Text = rule.Description,
-            TextWrapping = TextWrapping.Wrap
-        };
-
-        FrameworkElement ruleValueControl;
-        TextBox? ruleValueTextBox = null;
-        ComboBox? zoneBox = null;
-        if (kind == SoftwareRestrictionRuleKind.NetworkZone)
-        {
-            zoneBox = CreateComboBox(
-                CreateNetworkZoneOptions(),
-                string.IsNullOrWhiteSpace(rule.Value) ? "3" : rule.Value);
-            TextBlock zoneDescriptionText = new()
-            {
-                Text = GetSelectedDescription<string>(zoneBox),
-                TextWrapping = TextWrapping.Wrap
-            };
-            zoneBox.SelectionChanged += (_, _) => zoneDescriptionText.Text = GetSelectedDescription<string>(zoneBox);
-
-            StackPanel zonePanel = new()
-            {
-                Spacing = 8
-            };
-            zonePanel.Children.Add(zoneBox);
-            zonePanel.Children.Add(zoneDescriptionText);
-            ruleValueControl = zonePanel;
-        }
-        else
-        {
-            ruleValueTextBox = new TextBox
-            {
-                MinWidth = 420,
-                Text = existingRule is null ? string.Empty : rule.Value,
-                TextWrapping = TextWrapping.NoWrap,
-                IsReadOnly = existingRule is not null && kind == SoftwareRestrictionRuleKind.Hash
-            };
-
-            ruleValueControl = kind switch
-            {
-                SoftwareRestrictionRuleKind.Hash => CreateHashRuleFilePicker(ruleValueTextBox),
-                SoftwareRestrictionRuleKind.Certificate => CreateCertificateRuleFilePicker(ruleValueTextBox),
-                SoftwareRestrictionRuleKind.Path => CreatePathRulePicker(ruleValueTextBox),
-                _ => ruleValueTextBox
-            };
-        }
-
-        StackPanel panel = CreateDialogPanel();
-        string valueLabel = kind switch
-        {
-            SoftwareRestrictionRuleKind.Hash => LocalizedStrings.SRP_Field_HashFile,
-            SoftwareRestrictionRuleKind.Certificate => LocalizedStrings.SRP_Field_CertificateFile,
-            SoftwareRestrictionRuleKind.NetworkZone => LocalizedStrings.SRP_Field_NetworkZone,
-            _ => LocalizedStrings.SRP_Field_Path
-        };
-        AddLabeledControl(panel, valueLabel, ruleValueControl);
-        AddLabeledControl(panel, LocalizedStrings.SRP_Field_SecurityLevel, securityLevelBox);
-        AddLabeledControl(panel, LocalizedStrings.SRP_Field_Description, descriptionBox);
-
-        if (await ShowPrimaryModalAsync(
-            LocalizedStrings.SRP_Dialog_EditRule_Title,
-            panel,
-            LocalizedStrings.Common_SaveButton,
-            width: 680,
-            height: 520) == WindowDialogResult.Primary)
-        {
-            rule.SecurityLevel = GetSelectedValue(securityLevelBox, rule.SecurityLevel);
-            rule.Description = descriptionBox.Text;
-            rule.Value = zoneBox is not null
-                ? GetSelectedValue(zoneBox, "3")
-                : ruleValueTextBox?.Text ?? string.Empty;
-
-            await ViewModel.SaveRuleAsync(rule);
+            await ViewModel.SaveRuleAsync(dialog.BuildRule());
         }
     }
 
-    private StackPanel CreateHashRuleFilePicker(TextBox filePathBox)
+    // ====================  Enforcement (immediate apply with revert-on-failure)  ====================
+
+    private async void DefaultLevelComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        Button browseButton = new()
+        int selectedIndex = DefaultLevelComboBox.SelectedIndex;
+        if (selectedIndex < 0 || selectedIndex == ViewModel.DefaultSecurityLevelIndex)
         {
-            Content = LocalizedStrings.Common_BrowseButton
-        };
-        browseButton.Click += async (_, _) => await BrowseForHashFileAsync(filePathBox);
+            return;
+        }
 
-        StackPanel panel = new()
+        SoftwareRestrictionSecurityLevel securityLevel = SoftwareRestrictionViewModel.SecurityLevelFromIndex(selectedIndex);
+        bool confirmed = securityLevel != SoftwareRestrictionSecurityLevel.Disallowed
+            || await ConfirmDefaultSecurityLevelAsync(securityLevel);
+
+        if (!confirmed || !await ViewModel.SaveDefaultSecurityLevelAsync(securityLevel))
         {
-            Spacing = 8
-        };
-        panel.Children.Add(filePathBox);
-        panel.Children.Add(browseButton);
-        return panel;
-    }
-
-    private StackPanel CreateCertificateRuleFilePicker(TextBox certificatePathBox)
-    {
-        Button browseButton = new()
-        {
-            Content = LocalizedStrings.Common_BrowseButton
-        };
-        browseButton.Click += async (_, _) => await BrowseForCertificateRuleFileAsync(certificatePathBox);
-
-        StackPanel panel = new()
-        {
-            Spacing = 8
-        };
-        panel.Children.Add(certificatePathBox);
-        panel.Children.Add(browseButton);
-        return panel;
-    }
-
-    private StackPanel CreatePathRulePicker(TextBox pathBox)
-    {
-        Button browseFileButton = new()
-        {
-            Content = LocalizedStrings.SRP_Browse_File
-        };
-        browseFileButton.Click += async (_, _) => await BrowseForPathRuleFileAsync(pathBox);
-
-        Button browseFolderButton = new()
-        {
-            Content = LocalizedStrings.SRP_Browse_Folder
-        };
-        browseFolderButton.Click += async (_, _) => await BrowseForPathRuleFolderAsync(pathBox);
-
-        StackPanel buttons = new()
-        {
-            Orientation = Orientation.Horizontal,
-            Spacing = 8
-        };
-        buttons.Children.Add(browseFileButton);
-        buttons.Children.Add(browseFolderButton);
-
-        StackPanel panel = new()
-        {
-            Spacing = 8
-        };
-        panel.Children.Add(pathBox);
-        panel.Children.Add(buttons);
-        return panel;
-    }
-
-    private async Task BrowseForPathRuleFileAsync(TextBox pathBox)
-    {
-        nint ownerWindowHandle = WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindowInstance);
-        string? selectedPath = await _fileDialogService.OpenFileAsync(
-            ownerWindowHandle,
-            CreateAllFilesFilter(),
-            LocalizedStrings.SRP_Dialog_SelectPathFile_Title,
-            TryGetExistingDirectory(pathBox.Text),
-            LocalizedStrings.Common_OpenButton,
-            PathRuleFilePickerSettingsIdentifier);
-
-        if (!string.IsNullOrWhiteSpace(selectedPath))
-        {
-            pathBox.Text = selectedPath;
+            DefaultLevelComboBox.SelectedIndex = ViewModel.DefaultSecurityLevelIndex;
         }
     }
 
-    private async Task BrowseForPathRuleFolderAsync(TextBox pathBox)
+    private async void FileScopeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        nint ownerWindowHandle = WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindowInstance);
-        string? selectedPath = await _fileDialogService.PickFolderAsync(
-            ownerWindowHandle,
-            LocalizedStrings.SRP_Dialog_SelectPathFolder_Title,
-            TryGetExistingDirectory(pathBox.Text),
-            LocalizedStrings.Common_OpenButton,
-            PathRuleFolderPickerSettingsIdentifier);
-
-        if (!string.IsNullOrWhiteSpace(selectedPath))
+        int selectedIndex = FileScopeComboBox.SelectedIndex;
+        if (selectedIndex < 0 || selectedIndex == ViewModel.FileScopeIndex)
         {
-            pathBox.Text = selectedPath;
+            return;
+        }
+
+        SoftwareRestrictionFileScope fileScope = selectedIndex == 1
+            ? SoftwareRestrictionFileScope.AllSoftwareFiles
+            : SoftwareRestrictionFileScope.ExecutableFilesOnly;
+        if (!await ViewModel.SaveFileScopeAsync(fileScope))
+        {
+            FileScopeComboBox.SelectedIndex = ViewModel.FileScopeIndex;
         }
     }
 
-    private async Task BrowseForHashFileAsync(TextBox filePathBox)
+    private async void UserScopeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        nint ownerWindowHandle = WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindowInstance);
-        string? initialDirectory = TryGetExistingDirectory(filePathBox.Text);
-        string? selectedPath = await _fileDialogService.OpenFileAsync(
-            ownerWindowHandle,
-            CreateAllFilesFilter(),
-            LocalizedStrings.SRP_Dialog_SelectHashFile_Title,
-            initialDirectory,
-            LocalizedStrings.Common_OpenButton,
-            HashFilePickerSettingsIdentifier);
-
-        if (!string.IsNullOrWhiteSpace(selectedPath))
+        int selectedIndex = UserScopeComboBox.SelectedIndex;
+        if (selectedIndex < 0 || selectedIndex == ViewModel.UserScopeIndex)
         {
-            filePathBox.Text = selectedPath;
+            return;
+        }
+
+        SoftwareRestrictionUserScope userScope = selectedIndex == 1
+            ? SoftwareRestrictionUserScope.AllUsersExceptLocalAdministrators
+            : SoftwareRestrictionUserScope.AllUsers;
+        if (!await ViewModel.SaveUserScopeAsync(userScope))
+        {
+            UserScopeComboBox.SelectedIndex = ViewModel.UserScopeIndex;
         }
     }
 
-    private async Task BrowseForCertificateRuleFileAsync(TextBox filePathBox)
+    private async void CertificateRulesToggle_Toggled(object sender, RoutedEventArgs e)
     {
-        nint ownerWindowHandle = WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindowInstance);
-        string? selectedPath = await _fileDialogService.OpenFileAsync(
-            ownerWindowHandle,
-            CreateCertificateFilesFilter(),
-            LocalizedStrings.SRP_Dialog_SelectCertificateFile_Title,
-            TryGetExistingDirectory(filePathBox.Text),
-            LocalizedStrings.Common_OpenButton,
-            CertificateRuleFilePickerSettingsIdentifier);
-
-        if (!string.IsNullOrWhiteSpace(selectedPath))
+        if (CertificateRulesToggle.IsOn == ViewModel.CertificateRulesEnabled)
         {
-            filePathBox.Text = selectedPath;
+            return;
+        }
+
+        if (!await ViewModel.SaveCertificateRulesEnabledAsync(CertificateRulesToggle.IsOn))
+        {
+            CertificateRulesToggle.IsOn = ViewModel.CertificateRulesEnabled;
         }
     }
 
-    private async Task ShowMessageAsync(string messageResourceKey)
+    // ====================  Designated file types  ====================
+
+    private async void AddFileTypeButton_Click(object sender, RoutedEventArgs e)
     {
-        _ = await ShowCloseModalAsync(
-            LocalizedStrings.Common_ErrorTitle,
-            CreateMessageContent(GetString(messageResourceKey)),
-            height: 240);
+        await ViewModel.AddFileTypeAsync();
     }
 
-    private Task<WindowDialogResult> ShowPrimaryModalAsync(
-        string title,
-        object content,
-        string primaryButtonText,
-        int width = 620,
-        int height = 520)
+    private async void RemoveFileTypeButton_Click(object sender, RoutedEventArgs e)
     {
-        var modalWindow = new ModalDialogWindow(new ModalDialogOptions
+        if (sender is FrameworkElement { DataContext: SoftwareRestrictionFileTypeItem item })
+        {
+            await ViewModel.RemoveFileTypeAsync(item);
+        }
+    }
+
+    // ====================  Trusted publishers (immediate apply with revert-on-failure)  ====================
+
+    private async void TrustedPublishersDefinedToggle_Toggled(object sender, RoutedEventArgs e)
+    {
+        if (TrustedPublishersDefinedToggle.IsOn == ViewModel.TrustedPublishersDefined)
+        {
+            return;
+        }
+
+        if (!await ViewModel.SaveTrustedPublishersDefinedAsync(TrustedPublishersDefinedToggle.IsOn))
+        {
+            TrustedPublishersDefinedToggle.IsOn = ViewModel.TrustedPublishersDefined;
+        }
+    }
+
+    private async void PublisherScopeComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        int selectedIndex = PublisherScopeComboBox.SelectedIndex;
+        if (selectedIndex < 0 || selectedIndex == ViewModel.PublisherScopeIndex)
+        {
+            return;
+        }
+
+        if (!await ViewModel.SavePublisherScopeAsync((SoftwareRestrictionPublisherScope)selectedIndex))
+        {
+            PublisherScopeComboBox.SelectedIndex = ViewModel.PublisherScopeIndex;
+        }
+    }
+
+    private async void PublisherRevocationToggle_Toggled(object sender, RoutedEventArgs e)
+    {
+        if (PublisherRevocationToggle.IsOn == ViewModel.CheckPublisherRevocation)
+        {
+            return;
+        }
+
+        if (!await ViewModel.SavePublisherRevocationAsync(PublisherRevocationToggle.IsOn))
+        {
+            PublisherRevocationToggle.IsOn = ViewModel.CheckPublisherRevocation;
+        }
+    }
+
+    private async void TimestampRevocationToggle_Toggled(object sender, RoutedEventArgs e)
+    {
+        if (TimestampRevocationToggle.IsOn == ViewModel.CheckTimestampRevocation)
+        {
+            return;
+        }
+
+        if (!await ViewModel.SaveTimestampRevocationAsync(TimestampRevocationToggle.IsOn))
+        {
+            TimestampRevocationToggle.IsOn = ViewModel.CheckTimestampRevocation;
+        }
+    }
+
+    // ====================  Dialog helpers  ====================
+
+    private void PrepareDialog(ContentDialog dialog)
+    {
+        dialog.XamlRoot = XamlRoot;
+        dialog.Style = Application.Current.Resources["DefaultContentDialogStyle"] as Style;
+        dialog.RequestedTheme = App.CurrentTheme;
+    }
+
+    private async Task<bool> ShowConfirmDialogAsync(string title, string message, string primaryButtonText)
+    {
+        ContentDialog dialog = new()
         {
             Title = title,
-            Content = content,
-            OwnerXamlRoot = XamlRoot,
-            RequestedTheme = App.CurrentTheme,
+            Content = new TextBlock { Text = message, TextWrapping = TextWrapping.Wrap },
             PrimaryButtonText = primaryButtonText,
             CloseButtonText = LocalizedStrings.Common_CancelButton,
-            DefaultButton = WindowDialogResult.Primary,
-            IsPrimaryButtonLeading = true,
-            Width = width,
-            Height = height
-        });
+            DefaultButton = ContentDialogButton.Close
+        };
+        PrepareDialog(dialog);
 
-        return modalWindow.ShowDialogAsync();
+        return await dialog.ShowAsync() == ContentDialogResult.Primary;
     }
 
-    private Task<WindowDialogResult> ShowCloseModalAsync(
-        string title,
-        object content,
-        int width = 620,
-        int height = 520)
+    private async Task ShowMessageDialogAsync(string message)
     {
-        var modalWindow = new ModalDialogWindow(new ModalDialogOptions
+        ContentDialog dialog = new()
         {
-            Title = title,
-            Content = content,
-            OwnerXamlRoot = XamlRoot,
-            RequestedTheme = App.CurrentTheme,
+            Title = LocalizedStrings.Common_ErrorTitle,
+            Content = new TextBlock { Text = message, TextWrapping = TextWrapping.Wrap },
             CloseButtonText = LocalizedStrings.Common_CloseButton,
-            DefaultButton = WindowDialogResult.None,
-            Width = width,
-            Height = height
-        });
-
-        return modalWindow.ShowDialogAsync();
-    }
-
-    private static TextBlock CreateMessageContent(string message)
-    {
-        return new TextBlock
-        {
-            Text = message,
-            TextWrapping = TextWrapping.Wrap
+            DefaultButton = ContentDialogButton.Close
         };
-    }
+        PrepareDialog(dialog);
 
-    private static StackPanel CreateDialogPanel()
-    {
-        return new StackPanel
-        {
-            MinWidth = 420,
-            Spacing = 12
-        };
-    }
-
-    private static void AddLabeledControl(Panel panel, string label, FrameworkElement control)
-    {
-        StackPanel group = new()
-        {
-            Spacing = 6
-        };
-        group.Children.Add(new TextBlock
-        {
-            Text = label,
-            TextWrapping = TextWrapping.Wrap
-        });
-        group.Children.Add(control);
-        panel.Children.Add(group);
-    }
-
-    private static StackPanel CreateDialogGroup(string label, params UIElement[] children)
-    {
-        StackPanel group = new()
-        {
-            Spacing = 8
-        };
-        group.Children.Add(new TextBlock
-        {
-            Text = label,
-            TextWrapping = TextWrapping.Wrap
-        });
-
-        foreach (UIElement child in children)
-        {
-            group.Children.Add(child);
-        }
-
-        return group;
-    }
-
-    private static RadioButton CreatePublisherScopeRadioButton(string text, bool isChecked)
-    {
-        return new RadioButton
-        {
-            Content = text,
-            GroupName = "TrustedPublisherScope",
-            IsChecked = isChecked
-        };
-    }
-
-    private static SoftwareRestrictionPublisherScope GetSelectedPublisherScope(
-        RadioButton endUsersRadio,
-        RadioButton localAdministratorsRadio,
-        RadioButton enterpriseAdministratorsRadio)
-    {
-        if (localAdministratorsRadio.IsChecked == true)
-        {
-            return SoftwareRestrictionPublisherScope.LocalAdministrators;
-        }
-
-        if (enterpriseAdministratorsRadio.IsChecked == true)
-        {
-            return SoftwareRestrictionPublisherScope.EnterpriseAdministrators;
-        }
-
-        return SoftwareRestrictionPublisherScope.EndUsers;
-    }
-
-    // Maps each dynamically created ComboBox to its strongly-typed option list. WinUI 3 / CsWinRT cannot
-    // marshal a collection of a custom generic type through ItemsSource (set_ItemsSource throws E_INVALIDARG),
-    // so the ComboBox itself only ever holds native string-content ComboBoxItem controls, and the option
-    // objects stay on the managed side keyed by the control.
-    private static readonly ConditionalWeakTable<ComboBox, object> ComboBoxOptions = new();
-
-    private static ComboBox CreateComboBox<T>(IEnumerable<ComboOption<T>> options, T selectedValue)
-        where T : notnull
-    {
-        List<ComboOption<T>> optionList = options.ToList();
-        ComboBox comboBox = new()
-        {
-            MinWidth = 280
-        };
-
-        int selectedIndex = -1;
-        for (int index = 0; index < optionList.Count; index++)
-        {
-            comboBox.Items.Add(new ComboBoxItem { Content = optionList[index].Name });
-            if (selectedIndex < 0 && EqualityComparer<T>.Default.Equals(optionList[index].Value, selectedValue))
-            {
-                selectedIndex = index;
-            }
-        }
-
-        ComboBoxOptions.AddOrUpdate(comboBox, optionList);
-        comboBox.SelectedIndex = optionList.Count == 0 ? -1 : Math.Max(selectedIndex, 0);
-        return comboBox;
-    }
-
-    private static T GetSelectedValue<T>(ComboBox comboBox, T fallback)
-        where T : notnull
-    {
-        return TryGetSelectedOption(comboBox, out ComboOption<T>? option) ? option.Value : fallback;
-    }
-
-    private static bool TryGetSelectedOption<T>(ComboBox comboBox, [NotNullWhen(true)] out ComboOption<T>? option)
-        where T : notnull
-    {
-        if (comboBox.SelectedIndex >= 0
-            && ComboBoxOptions.TryGetValue(comboBox, out object? stored)
-            && stored is IReadOnlyList<ComboOption<T>> optionList
-            && comboBox.SelectedIndex < optionList.Count)
-        {
-            option = optionList[comboBox.SelectedIndex];
-            return true;
-        }
-
-        option = null;
-        return false;
-    }
-
-    private IReadOnlyList<ComboOption<SoftwareRestrictionSecurityLevel>> CreateSecurityLevelOptions(SoftwareRestrictionRuleKind? ruleKind = null)
-    {
-        // Certificate rules are stored in the TrustedPublisher/Disallowed certificate stores, so Basic User
-        // is not a valid level for them (matching secpol.msc).
-        if (ruleKind == SoftwareRestrictionRuleKind.Certificate)
-        {
-            return
-            [
-                new(LocalizedStrings.SRP_SecurityLevel_Disallowed, SoftwareRestrictionSecurityLevel.Disallowed),
-                new(LocalizedStrings.SRP_SecurityLevel_Unrestricted, SoftwareRestrictionSecurityLevel.Unrestricted)
-            ];
-        }
-
-        return
-        [
-            new(LocalizedStrings.SRP_SecurityLevel_Disallowed, SoftwareRestrictionSecurityLevel.Disallowed),
-            new(LocalizedStrings.SRP_SecurityLevel_BasicUser, SoftwareRestrictionSecurityLevel.BasicUser),
-            new(LocalizedStrings.SRP_SecurityLevel_Unrestricted, SoftwareRestrictionSecurityLevel.Unrestricted)
-        ];
-    }
-
-    private IReadOnlyList<ComboOption<SoftwareRestrictionUserScope>> CreateUserScopeOptions()
-    {
-        return
-        [
-            new(LocalizedStrings.SRP_UserScope_AllUsers, SoftwareRestrictionUserScope.AllUsers),
-            new(LocalizedStrings.SRP_UserScope_AllExceptAdministrators, SoftwareRestrictionUserScope.AllUsersExceptLocalAdministrators)
-        ];
-    }
-
-    private IReadOnlyList<ComboOption<SoftwareRestrictionFileScope>> CreateFileScopeOptions()
-    {
-        return
-        [
-            new(LocalizedStrings.SRP_FileScope_ExecutableFilesOnly, SoftwareRestrictionFileScope.ExecutableFilesOnly),
-            new(LocalizedStrings.SRP_FileScope_AllSoftwareFiles, SoftwareRestrictionFileScope.AllSoftwareFiles)
-        ];
-    }
-
-    private IReadOnlyList<ComboOption<string>> CreateNetworkZoneOptions()
-    {
-        return
-        [
-            new(LocalizedStrings.SRP_NetworkZone_Internet, "3", LocalizedStrings.SRP_NetworkZone_Internet_Description),
-            new(LocalizedStrings.SRP_NetworkZone_LocalComputer, "0", LocalizedStrings.SRP_NetworkZone_LocalComputer_Description),
-            new(LocalizedStrings.SRP_NetworkZone_LocalIntranet, "1", LocalizedStrings.SRP_NetworkZone_LocalIntranet_Description),
-            new(LocalizedStrings.SRP_NetworkZone_RestrictedSites, "4", LocalizedStrings.SRP_NetworkZone_RestrictedSites_Description),
-            new(LocalizedStrings.SRP_NetworkZone_TrustedSites, "2", LocalizedStrings.SRP_NetworkZone_TrustedSites_Description)
-        ];
-    }
-
-    private string CreateAllFilesFilter()
-    {
-        return $"{LocalizedStrings.SRP_FileDialog_AllFiles}\0{AllFilesFilterPattern}\0";
-    }
-
-    private string CreateCertificateFilesFilter()
-    {
-        return $"{LocalizedStrings.SRP_FileDialog_CertificateFiles}\0*.cer;*.crt;*.der;*.pem\0"
-            + $"{LocalizedStrings.SRP_FileDialog_SignedFiles}\0*.exe;*.dll;*.msi;*.msp;*.cab;*.cat;*.ocx;*.sys\0"
-            + $"{LocalizedStrings.SRP_FileDialog_AllFiles}\0{AllFilesFilterPattern}\0";
-    }
-
-    private static string? TryGetExistingDirectory(string path)
-    {
-        if (string.IsNullOrWhiteSpace(path))
-        {
-            return null;
-        }
-
-        try
-        {
-            string expandedPath = Environment.ExpandEnvironmentVariables(path.Trim().Trim('"'));
-            if (Directory.Exists(expandedPath))
-            {
-                return expandedPath;
-            }
-
-            string? directory = Path.GetDirectoryName(expandedPath);
-            return !string.IsNullOrWhiteSpace(directory) && Directory.Exists(directory)
-                ? directory
-                : null;
-        }
-        catch (Exception)
-        {
-            return null;
-        }
-    }
-
-    private static DesignatedFileTypeItem CreateDesignatedFileTypeItem(string extension)
-    {
-        string normalizedExtension = NormalizeFileExtension(extension);
-        return new DesignatedFileTypeItem(normalizedExtension, ResolveFileTypeName(normalizedExtension));
-    }
-
-    private static string NormalizeFileExtension(string extension)
-    {
-        return extension.Trim().TrimStart('.').ToUpperInvariant();
-    }
-
-    private static bool ContainsFileExtension(
-        IEnumerable<DesignatedFileTypeItem> fileTypes,
-        string extension)
-    {
-        return fileTypes.Any(item => string.Equals(item.Extension, extension, StringComparison.OrdinalIgnoreCase));
-    }
-
-    private static void AddFileType(
-        ObservableCollection<DesignatedFileTypeItem> fileTypes,
-        DesignatedFileTypeItem item)
-    {
-        List<DesignatedFileTypeItem> ordered = fileTypes
-            .Append(item)
-            .OrderBy(static fileType => fileType.Extension, StringComparer.OrdinalIgnoreCase)
-            .ToList();
-
-        fileTypes.Clear();
-        foreach (DesignatedFileTypeItem fileType in ordered)
-        {
-            fileTypes.Add(fileType);
-        }
-    }
-
-    private static string ResolveFileTypeName(string extension)
-    {
-        try
-        {
-            using RegistryKey? extensionKey = Registry.ClassesRoot.OpenSubKey($".{extension}");
-            string? progId = extensionKey?.GetValue(null)?.ToString();
-            if (!string.IsNullOrWhiteSpace(progId))
-            {
-                using RegistryKey? progIdKey = Registry.ClassesRoot.OpenSubKey(progId);
-                string? fileType = progIdKey?.GetValue(null)?.ToString();
-                if (!string.IsNullOrWhiteSpace(fileType))
-                {
-                    return fileType;
-                }
-            }
-        }
-        catch (Exception)
-        {
-            // Best effort only; fall back to the MMC-style generic file type name.
-        }
-
-        return string.Format(
-            CultureInfo.CurrentCulture,
-            GetString(SoftwareRestrictionKeys.FileTypeFallbackFormat),
-            extension);
-    }
-
-    private static string GetSelectedDescription<T>(ComboBox comboBox)
-        where T : notnull
-    {
-        return TryGetSelectedOption(comboBox, out ComboOption<T>? option) ? option.Description : string.Empty;
+        _ = await dialog.ShowAsync();
     }
 
     private static string GetString(string key)
@@ -1122,20 +445,4 @@ public sealed partial class SoftwareRestrictionPage : Page
         string value = LocalizationProvider.Current.GetString(ResourceFileNames.SecPol, key);
         return string.IsNullOrWhiteSpace(value) ? key : value;
     }
-
-    private sealed record ComboOption<T>(string Name, T Value, string Description = "")
-        where T : notnull
-    {
-        /// <summary>
-        /// Returns <see cref="Name"/> so list controls can display the option without a
-        /// reflection-based DisplayMemberPath (AOT/trimming compatibility).
-        /// </summary>
-        public override string ToString() => Name;
-    }
 }
-
-/// <summary>
-/// A designated file type row (extension + friendly type name).
-/// Declared at namespace level so XAML compiled bindings (x:DataType/x:Bind) can reference it.
-/// </summary>
-internal sealed record DesignatedFileTypeItem(string Extension, string FileType);
