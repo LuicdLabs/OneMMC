@@ -123,6 +123,12 @@
   <data name="Common_CancelButton" xml:space="preserve">
     <value>Cancel</value>
   </data>
+  <data name="Common_YesButton" xml:space="preserve">
+    <value>Yes</value>
+  </data>
+  <data name="Common_NoButton" xml:space="preserve">
+    <value>No</value>
+  </data>
   <data name="Common_OpenButton" xml:space="preserve">
     <value>Open</value>
   </data>

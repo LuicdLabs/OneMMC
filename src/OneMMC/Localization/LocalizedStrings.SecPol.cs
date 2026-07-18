@@ -187,6 +187,8 @@ namespace OneMMC.Localization
         public string PKP_Dialog_PolicyProperties_TitleFormat => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.DialogPolicyPropertiesTitleFormat);
         public string PKP_Dialog_CertificateDetails_TitleFormat => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.DialogCertificateDetailsTitleFormat);
         public string PKP_CertificateBlobUnavailable => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.CertificateBlobUnavailable);
+        public string PKP_RecoveryAgent_RevocationUnknown_Message => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.RecoveryAgentRevocationUnknownMessage);
+        public string PKP_RecoveryAgent_UntrustedCertificate_Message => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.RecoveryAgentUntrustedCertificateMessage);
         public string PKP_NotConfigured => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.NotConfigured);
         public string PKP_EnrollmentPolicy_ConfigurationModel => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.EnrollmentPolicyConfigurationModel);
         public string PKP_EnrollmentPolicy_TabTitle => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.EnrollmentPolicyTabTitle);

@@ -10,6 +10,26 @@ using Microsoft.Extensions.Logging;
 namespace OneMMC.Core.Features.UserSecurity.ViewModels.SecPol.PublicKeyPolicies;
 
 /// <summary>
+/// Describes the result of adding a recovery agent certificate.
+/// </summary>
+public enum AddRecoveryAgentOutcome
+{
+    /// <summary>The certificate was added to the policy store.</summary>
+    Success,
+
+    /// <summary>The operation failed; see <see cref="PublicKeyPoliciesViewModel.ErrorMessage"/>.</summary>
+    Failed,
+
+    /// <summary>
+    /// The certificate can be installed but requires confirmation first (it does not chain to a trusted
+    /// root, or its revocation status could not be verified). The view should show
+    /// <see cref="PublicKeyPoliciesViewModel.InstallConfirmationMessage"/> as a Yes/No prompt — the Windows
+    /// "Add Recovery Agent" behavior — and, on approval, retry the add with <c>ignoreInstallWarnings</c> set.
+    /// </summary>
+    InstallConfirmationRequired
+}
+
+/// <summary>
 /// View model for the Public Key Policies page.
 /// </summary>
 public sealed partial class PublicKeyPoliciesViewModel : ObservableObject
@@ -76,6 +96,13 @@ public sealed partial class PublicKeyPoliciesViewModel : ObservableObject
     /// </summary>
     [ObservableProperty]
     public partial string ErrorMessage { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Gets the localized confirmation prompt to show when adding a recovery agent certificate returns
+    /// <see cref="AddRecoveryAgentOutcome.InstallConfirmationRequired"/>. Read by the view to populate the
+    /// Yes/No dialog; <see langword="null"/> when no confirmation is pending.
+    /// </summary>
+    public string? InstallConfirmationMessage { get; private set; }
 
     /// <summary>
     /// Determines whether the given recovery-agent row can be deleted.
@@ -295,21 +322,37 @@ public sealed partial class PublicKeyPoliciesViewModel : ObservableObject
     /// </summary>
     /// <param name="nodeKind">The selected recovery-agent node kind.</param>
     /// <param name="certificatePath">The certificate file path.</param>
-    /// <returns><see langword="true"/> when the operation succeeded.</returns>
-    public async Task<bool> AddRecoveryAgentCertificateAsync(
+    /// <param name="ignoreInstallWarnings">
+    /// Pass <see langword="true"/> to skip the trust / revocation confirmation gates after the user has
+    /// approved the install in response to <see cref="AddRecoveryAgentOutcome.InstallConfirmationRequired"/>.
+    /// </param>
+    /// <returns>The outcome of the add operation.</returns>
+    public async Task<AddRecoveryAgentOutcome> AddRecoveryAgentCertificateAsync(
         PublicKeyPolicyNodeKind nodeKind,
-        string certificatePath)
+        string certificatePath,
+        bool ignoreInstallWarnings = false)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(certificatePath);
 
         HasError = false;
         ErrorMessage = string.Empty;
+        InstallConfirmationMessage = null;
 
         try
         {
-            await Task.Run(() => _policyService.AddRecoveryAgentCertificate(nodeKind, certificatePath));
+            string? confirmationMessage = await Task.Run(
+                () => _policyService.AddRecoveryAgentCertificate(nodeKind, certificatePath, ignoreInstallWarnings));
+            if (confirmationMessage is not null)
+            {
+                // Not an error: the certificate could not be fully validated (untrusted root, or revocation
+                // status unknown). The view shows the confirmation and, on approval, retries with
+                // ignoreInstallWarnings set.
+                InstallConfirmationMessage = confirmationMessage;
+                return AddRecoveryAgentOutcome.InstallConfirmationRequired;
+            }
+
             await LoadAsync();
-            return true;
+            return AddRecoveryAgentOutcome.Success;
         }
         catch (Exception ex)
         {
@@ -325,7 +368,7 @@ public sealed partial class PublicKeyPoliciesViewModel : ObservableObject
                 AdminPermissionRequired?.Invoke(this, EventArgs.Empty);
             }
 
-            return false;
+            return AddRecoveryAgentOutcome.Failed;
         }
     }
 

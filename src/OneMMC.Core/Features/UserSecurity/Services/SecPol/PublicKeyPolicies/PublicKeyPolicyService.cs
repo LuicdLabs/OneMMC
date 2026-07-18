@@ -398,7 +398,20 @@ public sealed class PublicKeyPolicyService
     /// </summary>
     /// <param name="nodeKind">The selected recovery-agent node kind.</param>
     /// <param name="certificatePath">The certificate file path.</param>
-    public void AddRecoveryAgentCertificate(PublicKeyPolicyNodeKind nodeKind, string certificatePath)
+    /// <param name="ignoreInstallWarnings">
+    /// When <see langword="false"/> (the default) the certificate's trust chain and revocation status are
+    /// evaluated; if either cannot be validated the certificate is not written and the localized Windows
+    /// "Add Recovery Agent" confirmation prompt is returned instead. Pass <see langword="true"/> after the
+    /// user has approved the install to skip those gates and write the certificate.
+    /// </param>
+    /// <returns>
+    /// <see langword="null"/> when the certificate was added; otherwise the localized confirmation prompt to
+    /// show the user before retrying with <paramref name="ignoreInstallWarnings"/> set.
+    /// </returns>
+    public string? AddRecoveryAgentCertificate(
+        PublicKeyPolicyNodeKind nodeKind,
+        string certificatePath,
+        bool ignoreInstallWarnings = false)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(certificatePath);
 
@@ -414,6 +427,18 @@ public sealed class PublicKeyPolicyService
         string storeName = GetRecoveryAgentStoreName(nodeKind);
         PolFile snapshot = _localPolicyFileStore.LoadSnapshot(isUser: false);
         ValidateRecoveryAgentCertificate(nodeKind, storeName, certificate, thumbprint, snapshot);
+
+        // Mirror the Windows wizard: when the certificate cannot be fully validated (does not chain to a
+        // trusted root, or its revocation status cannot be determined), return the confirmation prompt
+        // instead of writing. The retry after the user approves passes ignoreInstallWarnings.
+        if (!ignoreInstallWarnings)
+        {
+            string? confirmationMessage = GetInstallConfirmationMessage(certificate);
+            if (confirmationMessage is not null)
+            {
+                return confirmationMessage;
+            }
+        }
 
         EnsureCertificateStoreScaffolding(snapshot, storeName);
         string certificateKey = GetRecoveryAgentCertificateKey(storeName, thumbprint);
@@ -435,6 +460,7 @@ public sealed class PublicKeyPolicyService
             storeName,
             thumbprint,
             result);
+        return null;
     }
 
     /// <summary>
@@ -2130,13 +2156,14 @@ public sealed class PublicKeyPolicyService
         string thumbprint,
         PolFile snapshot)
     {
-        if (nodeKind is PublicKeyPolicyNodeKind.EncryptingFileSystem or PublicKeyPolicyNodeKind.DataProtection
+        // Encrypting File System recovery agents must be usable for File Recovery. Windows rejects a
+        // certificate without the File Recovery EKU outright ("The certificate is not suitable for
+        // Encrypting File System recovery.") — it cannot be force-installed. Data Protection (DPAPI NG) does
+        // not carry this constraint, and BitLocker instead requires a key usage that can wrap the volume key.
+        if (nodeKind == PublicKeyPolicyNodeKind.EncryptingFileSystem
             && !HasEnhancedKeyUsage(certificate, EfsRecoveryOid))
         {
-            string key = nodeKind == PublicKeyPolicyNodeKind.EncryptingFileSystem
-                ? PublicKeyPolicyKeys.RecoveryAgentCertificateNotSuitableEfs
-                : PublicKeyPolicyKeys.RecoveryAgentCertificateNotSuitableDataRecovery;
-            throw new InvalidOperationException(GetString(key));
+            throw new InvalidOperationException(GetString(PublicKeyPolicyKeys.RecoveryAgentCertificateNotSuitableEfs));
         }
 
         if (nodeKind == PublicKeyPolicyNodeKind.BitLockerDriveEncryption
@@ -2167,6 +2194,67 @@ public sealed class PublicKeyPolicyService
             && eku.EnhancedKeyUsages
                 .Cast<Oid>()
                 .Any(oid => string.Equals(oid.Value, oidValue, StringComparison.Ordinal));
+    }
+
+    /// <summary>
+    /// Builds the certificate chain and returns the localized confirmation prompt that the Windows
+    /// "Add Recovery Agent" wizard would show before installing a certificate it cannot fully validate,
+    /// or <see langword="null"/> when the certificate validates cleanly and can be added without a prompt.
+    ///
+    /// <para>Trust is evaluated first: a certificate that does not chain to a trusted root (self-signed or
+    /// privately issued recovery certificates report <see cref="X509ChainStatusFlags.UntrustedRoot"/> or
+    /// <see cref="X509ChainStatusFlags.PartialChain"/>) yields the "certificate is not trusted" prompt.
+    /// Otherwise, a certificate that chains to a trusted root but whose revocation status cannot be
+    /// determined (<see cref="X509ChainStatusFlags.RevocationStatusUnknown"/> /
+    /// <see cref="X509ChainStatusFlags.OfflineRevocation"/>) yields the "cannot determine if revoked"
+    /// prompt. The root is excluded from the revocation check (roots are trusted by presence and carry no
+    /// CRL), matching CryptoAPI's default policy, and a hard failure while building the chain is treated as
+    /// "no prompt" so it never blocks an otherwise-valid add.</para>
+    /// </summary>
+    /// <param name="certificate">The recovery-agent certificate to evaluate.</param>
+    /// <returns>The localized confirmation prompt, or <see langword="null"/> when no confirmation is needed.</returns>
+    private static string? GetInstallConfirmationMessage(X509Certificate2 certificate)
+    {
+        using var chain = new X509Chain();
+        chain.ChainPolicy.RevocationMode = X509RevocationMode.Online;
+        chain.ChainPolicy.RevocationFlag = X509RevocationFlag.ExcludeRoot;
+        chain.ChainPolicy.UrlRetrievalTimeout = TimeSpan.FromSeconds(15);
+
+        try
+        {
+            chain.Build(certificate);
+        }
+        catch (CryptographicException)
+        {
+            // An unexpected failure while building the chain must not block a legitimate add.
+            return null;
+        }
+
+        X509ChainStatusFlags aggregated = X509ChainStatusFlags.NoError;
+        foreach (X509ChainStatus status in chain.ChainStatus)
+        {
+            aggregated |= status.Status;
+        }
+
+        // Trust problems take precedence: this is the "certificate is not trusted" warning the wizard shows
+        // for self-signed / privately issued recovery certificates.
+        const X509ChainStatusFlags untrustedFlags =
+            X509ChainStatusFlags.UntrustedRoot | X509ChainStatusFlags.PartialChain;
+        if ((aggregated & untrustedFlags) != 0)
+        {
+            return GetString(PublicKeyPolicyKeys.RecoveryAgentUntrustedCertificateMessage);
+        }
+
+        // Otherwise, a certificate that chains to a trusted root but whose revocation cannot be checked
+        // reproduces the "cannot determine if this certificate has been revoked" prompt.
+        const X509ChainStatusFlags revocationUnknownFlags =
+            X509ChainStatusFlags.RevocationStatusUnknown | X509ChainStatusFlags.OfflineRevocation;
+        if ((aggregated & revocationUnknownFlags) != 0)
+        {
+            return GetString(PublicKeyPolicyKeys.RecoveryAgentRevocationUnknownMessage);
+        }
+
+        return null;
     }
 
     private static bool HasAllowedBitLockerKeyUsage(X509Certificate2 certificate)

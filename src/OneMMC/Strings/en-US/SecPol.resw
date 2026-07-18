@@ -1230,6 +1230,16 @@ Default on Server editions: Success.</value>
   <data name="PKP_RecoveryAgent_SingleCertificateLimit" xml:space="preserve">
     <value>Cannot add more than one Data Recovery Agent certificate.</value>
   </data>
+  <data name="PKP_RecoveryAgent_RevocationUnknown_Message" xml:space="preserve">
+    <value>Windows cannot determine if this certificate has been revoked. The revocation function was unable to check revocation for the certificate.
+
+Do you want to install this certificate?</value>
+  </data>
+  <data name="PKP_RecoveryAgent_UntrustedCertificate_Message" xml:space="preserve">
+    <value>Windows cannot verify that this certificate is trusted. The certificate could not be validated up to a trusted root certification authority.
+
+Do you want to install this certificate?</value>
+  </data>
   <data name="PKP_CertificateValid" xml:space="preserve">
     <value>Valid</value>
   </data>

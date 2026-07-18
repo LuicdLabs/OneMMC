@@ -1204,6 +1204,16 @@
   <data name="PKP_RecoveryAgent_SingleCertificateLimit" xml:space="preserve">
     <value>無法新增超過一張資料復原代理人憑證。</value>
   </data>
+  <data name="PKP_RecoveryAgent_RevocationUnknown_Message" xml:space="preserve">
+    <value>Windows 無法判斷此憑證是否已被撤銷。撤銷功能無法檢查此憑證的撤銷狀態。
+
+您要安裝此憑證嗎？</value>
+  </data>
+  <data name="PKP_RecoveryAgent_UntrustedCertificate_Message" xml:space="preserve">
+    <value>Windows 無法確認此憑證是否受信任。此憑證無法驗證到受信任的根憑證授權單位。
+
+您要安裝此憑證嗎？</value>
+  </data>
   <data name="PKP_CertificateValid" xml:space="preserve">
     <value>有效</value>
   </data>

@@ -16,8 +16,7 @@ namespace OneMMC.Views;
 
 public sealed partial class PublicKeyPoliciesPage : Page
 {
-    private const string CertificateFilesFilterPattern = "*.cer;*.crt;*.der;*.pem";
-    private const string AllFilesFilterPattern = "*.*";
+    private const string CertificateFilesFilterPattern = "*.cer";
     private const string RecoveryAgentCertificatePickerSettingsIdentifier = "PublicKeyPoliciesRecoveryAgentCertificatePicker";
 
     private readonly IFileDialogService _fileDialogService;
@@ -177,11 +176,52 @@ public sealed partial class PublicKeyPoliciesPage : Page
             return;
         }
 
-        bool added = await ViewModel.AddRecoveryAgentCertificateAsync(node.Kind, certificatePath);
-        if (!added && ViewModel.HasError && !string.IsNullOrWhiteSpace(ViewModel.ErrorMessage))
+        AddRecoveryAgentOutcome outcome = await ViewModel.AddRecoveryAgentCertificateAsync(node.Kind, certificatePath);
+        if (outcome == AddRecoveryAgentOutcome.InstallConfirmationRequired)
+        {
+            // Reproduce the Windows "Add Recovery Agent" prompt: the certificate could not be fully
+            // validated (untrusted root, or revocation status unknown), so ask whether to install anyway
+            // before committing the policy write, using the condition-specific message from the view model.
+            if (!await ConfirmInstallAsync(ViewModel.InstallConfirmationMessage))
+            {
+                return;
+            }
+
+            outcome = await ViewModel.AddRecoveryAgentCertificateAsync(
+                node.Kind,
+                certificatePath,
+                ignoreInstallWarnings: true);
+        }
+
+        if (outcome == AddRecoveryAgentOutcome.Failed
+            && ViewModel.HasError
+            && !string.IsNullOrWhiteSpace(ViewModel.ErrorMessage))
         {
             await ShowAddRecoveryAgentErrorAsync(ViewModel.ErrorMessage);
         }
+    }
+
+    private async Task<bool> ConfirmInstallAsync(string? message)
+    {
+        var modalWindow = new ModalDialogWindow(new ModalDialogOptions
+        {
+            Title = LocalizedStrings.PKP_Command_AddRecoveryAgent,
+            Content = new TextBlock
+            {
+                Text = message ?? string.Empty,
+                TextWrapping = TextWrapping.Wrap
+            },
+            OwnerXamlRoot = XamlRoot,
+            RequestedTheme = App.CurrentTheme,
+            PrimaryButtonText = LocalizedStrings.Common_YesButton,
+            CloseButtonText = LocalizedStrings.Common_NoButton,
+            DefaultButton = WindowDialogResult.Primary,
+            IsPrimaryButtonLeading = true,
+            Width = 460,
+            Height = 240
+        });
+
+        return await modalWindow.ShowDialogAsync() == WindowDialogResult.Primary;
     }
 
     private async Task ShowAddRecoveryAgentErrorAsync(string message)
@@ -486,7 +526,8 @@ public sealed partial class PublicKeyPoliciesPage : Page
 
     private string CreateCertificateFilesFilter()
     {
-        return $"{LocalizedStrings.PKP_FileDialog_CertificateFiles}\0{CertificateFilesFilterPattern}\0"
-            + $"{LocalizedStrings.PKP_FileDialog_AllFiles}\0{AllFilesFilterPattern}\0";
+        // Recovery agents accept only X.509 .cer files, matching the Windows "Add Recovery Agent" wizard;
+        // no "All files" escape hatch is offered.
+        return $"{LocalizedStrings.PKP_FileDialog_CertificateFiles} (*.cer)\0{CertificateFilesFilterPattern}\0";
     }
 }

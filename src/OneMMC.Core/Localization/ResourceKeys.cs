@@ -411,6 +411,8 @@ public static class PublicKeyPolicyKeys
     public const string RecoveryAgentCertificateNotSuitableEfs = "PKP_RecoveryAgent_CertificateNotSuitable_Efs";
     public const string RecoveryAgentCertificateNotSuitableDataRecovery = "PKP_RecoveryAgent_CertificateNotSuitable_DataRecovery";
     public const string RecoveryAgentSingleCertificateLimit = "PKP_RecoveryAgent_SingleCertificateLimit";
+    public const string RecoveryAgentRevocationUnknownMessage = "PKP_RecoveryAgent_RevocationUnknown_Message";
+    public const string RecoveryAgentUntrustedCertificateMessage = "PKP_RecoveryAgent_UntrustedCertificate_Message";
     public const string CertificateValid = "PKP_CertificateValid";
     public const string CertificateExpiredOrNotYetValid = "PKP_CertificateExpiredOrNotYetValid";
     public const string IntendedPurposesAll = "PKP_IntendedPurposes_All";
