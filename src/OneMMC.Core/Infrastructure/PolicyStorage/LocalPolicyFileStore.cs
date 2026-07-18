@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Text;
 using Microsoft.Extensions.Logging;
 using Microsoft.Win32;
 using Windows.Win32.Foundation;
@@ -12,9 +13,17 @@ namespace OneMMC.Core.Infrastructure.PolicyStorage;
 /// </summary>
 public sealed class LocalPolicyFileStore
 {
+    /// <summary>
+    /// gpt.ini extension group registering the EFS recovery client-side extension together with the
+    /// Public Key Policies snap-in extension. Required whenever EFS recovery agent policy is written.
+    /// </summary>
+    public const string EfsRecoveryExtensionGroup = "[{B1BE8D72-6EAC-11D2-A4EA-00C04F79F83A}{53D6AB1D-2488-11D1-A28C-00C04FB94F17}]";
+
     private const int WmSettingChange = 0x001A;
     private const int HwndBroadcast = 0xFFFF;
     private const uint RefreshPolicyForce = 1;
+    private const string MachineRegistryExtensionGroup = "[{35378EAC-683F-11D2-A89A-00C04FBBCFA2}{D02B1F72-3407-48AE-BA88-E8213C6761F1}]";
+    private const string UserRegistryExtensionGroup = "[{35378EAC-683F-11D2-A89A-00C04FBBCFA2}{D02B1F73-3407-48AE-BA88-E8213C6761F1}]";
     private static readonly HashSet<int> HomeEditions =
     [
         2, 3, 5, 11, 26, 42, 64, 98, 99, 100, 101
@@ -107,8 +116,12 @@ public sealed class LocalPolicyFileStore
     /// </summary>
     /// <param name="isUser">True for user policy; false for machine policy.</param>
     /// <param name="snapshot">The snapshot to persist.</param>
+    /// <param name="additionalExtensionGroups">
+    /// Extra gpt.ini extension groups (formatted as <c>[{CSE-GUID}{TOOL-GUID}]</c>) merged into the
+    /// scope's extension-names line in addition to the always-registered Registry extension pair.
+    /// </param>
     /// <returns>A short save result description.</returns>
-    public string SaveSnapshot(bool isUser, PolFile snapshot)
+    public string SaveSnapshot(bool isUser, PolFile snapshot, params string[] additionalExtensionGroups)
     {
         ArgumentNullException.ThrowIfNull(snapshot);
 
@@ -136,7 +149,7 @@ public sealed class LocalPolicyFileStore
         List<string> deletedKeyPaths = snapshot.TakeDeleteKeyInstructions();
 
         snapshot.Save(policyFilePath);
-        UpdateGptIni(isUser, gptIniPath);
+        UpdateGptIni(isUser, gptIniPath, additionalExtensionGroups);
         ApplyKeyDeletionsToRegistry(isUser, deletedKeyPaths);
 
         if (hasGroupPolicyInfrastructure)
@@ -199,10 +212,12 @@ public sealed class LocalPolicyFileStore
         }
     }
 
-    private static void UpdateGptIni(bool isUser, string gptIniPath)
+    private static void UpdateGptIni(bool isUser, string gptIniPath, string[] additionalExtensionGroups)
     {
-        const string machineExtensionsLine = "gPCMachineExtensionNames=[{35378EAC-683F-11D2-A89A-00C04FBBCFA2}{D02B1F72-3407-48AE-BA88-E8213C6761F1}]";
-        const string userExtensionsLine = "gPCUserExtensionNames=[{35378EAC-683F-11D2-A89A-00C04FBBCFA2}{D02B1F73-3407-48AE-BA88-E8213C6761F1}]";
+        string[] machineGroups = isUser ? [] : additionalExtensionGroups;
+        string[] userGroups = isUser ? additionalExtensionGroups : [];
+        string machineExtensionsValue = MergeExtensionGroups(null, MachineRegistryExtensionGroup, machineGroups);
+        string userExtensionsValue = MergeExtensionGroups(null, UserRegistryExtensionGroup, userGroups);
 
         string? gptDirectory = Path.GetDirectoryName(gptIniPath);
         if (!string.IsNullOrEmpty(gptDirectory))
@@ -212,19 +227,21 @@ public sealed class LocalPolicyFileStore
 
         if (File.Exists(gptIniPath))
         {
-            UpdateExistingGptIni(isUser, gptIniPath, machineExtensionsLine, userExtensionsLine);
+            UpdateExistingGptIni(isUser, gptIniPath, additionalExtensionGroups);
             return;
         }
 
         using StreamWriter writer = new(gptIniPath);
         writer.WriteLine("[General]");
-        writer.WriteLine(machineExtensionsLine);
-        writer.WriteLine(userExtensionsLine);
+        writer.WriteLine($"gPCMachineExtensionNames={machineExtensionsValue}");
+        writer.WriteLine($"gPCUserExtensionNames={userExtensionsValue}");
         writer.WriteLine("Version=" + 0x10001);
     }
 
-    private static void UpdateExistingGptIni(bool isUser, string gptIniPath, string machineExtensionsLine, string userExtensionsLine)
+    private static void UpdateExistingGptIni(bool isUser, string gptIniPath, string[] additionalExtensionGroups)
     {
+        string[] machineGroups = isUser ? [] : additionalExtensionGroups;
+        string[] userGroups = isUser ? additionalExtensionGroups : [];
         string[] lines = File.ReadAllLines(gptIniPath);
         using StreamWriter writer = new(gptIniPath, false);
 
@@ -251,16 +268,27 @@ public sealed class LocalPolicyFileStore
                 continue;
             }
 
-            writer.WriteLine(line);
             if (line.StartsWith("gPCMachineExtensionNames=", StringComparison.OrdinalIgnoreCase))
             {
                 seenMachineExtensions = true;
+                writer.WriteLine("gPCMachineExtensionNames=" + MergeExtensionGroups(
+                    line["gPCMachineExtensionNames=".Length..],
+                    MachineRegistryExtensionGroup,
+                    machineGroups));
+                continue;
             }
 
             if (line.StartsWith("gPCUserExtensionNames=", StringComparison.OrdinalIgnoreCase))
             {
                 seenUserExtensions = true;
+                writer.WriteLine("gPCUserExtensionNames=" + MergeExtensionGroups(
+                    line["gPCUserExtensionNames=".Length..],
+                    UserRegistryExtensionGroup,
+                    userGroups));
+                continue;
             }
+
+            writer.WriteLine(line);
         }
 
         if (!seenVersion)
@@ -270,12 +298,105 @@ public sealed class LocalPolicyFileStore
 
         if (!seenMachineExtensions)
         {
-            writer.WriteLine(machineExtensionsLine);
+            writer.WriteLine("gPCMachineExtensionNames=" + MergeExtensionGroups(null, MachineRegistryExtensionGroup, machineGroups));
         }
 
         if (!seenUserExtensions)
         {
-            writer.WriteLine(userExtensionsLine);
+            writer.WriteLine("gPCUserExtensionNames=" + MergeExtensionGroups(null, UserRegistryExtensionGroup, userGroups));
         }
+    }
+
+    /// <summary>
+    /// Merges required extension groups into an existing gPC*ExtensionNames value. Each group is a
+    /// client-side extension GUID followed by its administrative tool GUIDs; groups are keyed by the CSE
+    /// GUID and the result is emitted in the ascending GUID order the Group Policy service expects.
+    /// </summary>
+    /// <param name="existingValue">The current attribute value, or null when the line does not exist yet.</param>
+    /// <param name="registryExtensionGroup">The always-required Registry extension group.</param>
+    /// <param name="additionalGroups">Extra groups to register, formatted as <c>[{CSE}{TOOL}...]</c>.</param>
+    /// <returns>The merged attribute value.</returns>
+    private static string MergeExtensionGroups(string? existingValue, string registryExtensionGroup, string[] additionalGroups)
+    {
+        SortedDictionary<string, SortedSet<string>> groups = new(StringComparer.OrdinalIgnoreCase);
+
+        void AddGroup(string groupText)
+        {
+            List<string> guids = ParseGuidList(groupText);
+            if (guids.Count == 0)
+            {
+                return;
+            }
+
+            string cseGuid = guids[0];
+            if (!groups.TryGetValue(cseGuid, out SortedSet<string>? toolGuids))
+            {
+                toolGuids = new SortedSet<string>(StringComparer.OrdinalIgnoreCase);
+                groups[cseGuid] = toolGuids;
+            }
+
+            foreach (string toolGuid in guids.Skip(1))
+            {
+                _ = toolGuids.Add(toolGuid);
+            }
+        }
+
+        if (!string.IsNullOrWhiteSpace(existingValue))
+        {
+            foreach (string groupText in existingValue.Split(']', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            {
+                AddGroup(groupText);
+            }
+        }
+
+        AddGroup(registryExtensionGroup);
+        foreach (string additionalGroup in additionalGroups)
+        {
+            AddGroup(additionalGroup);
+        }
+
+        StringBuilder result = new();
+        foreach ((string cseGuid, SortedSet<string> toolGuids) in groups)
+        {
+            _ = result.Append('[').Append(cseGuid);
+            foreach (string toolGuid in toolGuids)
+            {
+                _ = result.Append(toolGuid);
+            }
+
+            _ = result.Append(']');
+        }
+
+        return result.ToString();
+    }
+
+    private static List<string> ParseGuidList(string groupText)
+    {
+        List<string> guids = [];
+        int position = 0;
+        while (true)
+        {
+            int start = groupText.IndexOf('{', position);
+            if (start < 0)
+            {
+                break;
+            }
+
+            int end = groupText.IndexOf('}', start);
+            if (end < 0)
+            {
+                break;
+            }
+
+            string candidate = groupText[start..(end + 1)];
+            if (Guid.TryParse(candidate, out Guid parsed))
+            {
+                guids.Add($"{{{parsed.ToString("D").ToUpperInvariant()}}}");
+            }
+
+            position = end + 1;
+        }
+
+        return guids;
     }
 }

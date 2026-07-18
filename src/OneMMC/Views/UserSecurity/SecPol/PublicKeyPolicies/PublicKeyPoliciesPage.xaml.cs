@@ -398,8 +398,8 @@ public sealed partial class PublicKeyPoliciesPage : Page
             CloseButtonText = LocalizedStrings.Common_CancelButton,
             DefaultButton = WindowDialogResult.Primary,
             IsPrimaryButtonLeading = true,
-            Width = 620,
-            Height = 430
+            Width = 680,
+            Height = 560
         });
 
         if (await modalWindow.ShowDialogAsync() == WindowDialogResult.Primary

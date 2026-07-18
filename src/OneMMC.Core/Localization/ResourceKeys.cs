@@ -437,6 +437,8 @@ public static class PublicKeyPolicyKeys
     public const string EnrollmentPolicyServerEditorEditTitle = "PKP_EnrollmentPolicy_ServerEditor_EditTitle";
     public const string EnrollmentPolicyServerValidationUrlRequired = "PKP_EnrollmentPolicy_ServerValidation_UrlRequired";
     public const string EnrollmentPolicyServerValidationDuplicateUrl = "PKP_EnrollmentPolicy_ServerValidation_DuplicateUrl";
+    public const string EnrollmentPolicyAdditionalConfiguration = "PKP_EnrollmentPolicy_AdditionalConfiguration";
+    public const string EnrollmentPolicyDisableUserServers = "PKP_EnrollmentPolicy_DisableUserServers";
     public const string EnrollmentPolicyAuthAnonymous = "PKP_EnrollmentPolicy_Auth_Anonymous";
     public const string EnrollmentPolicyAuthKerberos = "PKP_EnrollmentPolicy_Auth_Kerberos";
     public const string EnrollmentPolicyAuthUserName = "PKP_EnrollmentPolicy_Auth_UserName";
@@ -474,6 +476,7 @@ public static class PublicKeyPolicyKeys
     public const string PathValidationPublisherScopeEndUsers = "PKP_PathValidation_PublisherScope_EndUsers";
     public const string PathValidationPublisherScopeLocalAdministrators = "PKP_PathValidation_PublisherScope_LocalAdministrators";
     public const string PathValidationPublisherScopeEnterpriseAdministrators = "PKP_PathValidation_PublisherScope_EnterpriseAdministrators";
+    public const string PathValidationSignatureChecks = "PKP_PathValidation_SignatureChecks";
     public const string PathValidationTrustedPublisherRevocation = "PKP_PathValidation_TrustedPublisherRevocation";
     public const string PathValidationTrustedTimestampRevocation = "PKP_PathValidation_TrustedTimestampRevocation";
     public const string PathValidationUrlRetrievalTimeout = "PKP_PathValidation_UrlRetrievalTimeout";
@@ -495,7 +498,9 @@ public static class PublicKeyPolicyKeys
     public const string AutoEnrollmentRenewExpired = "PKP_AutoEnrollment_RenewExpired";
     public const string AutoEnrollmentUpdateTemplates = "PKP_AutoEnrollment_UpdateTemplates";
     public const string AutoEnrollmentExpirationNotifications = "PKP_AutoEnrollment_ExpirationNotifications";
-    public const string AutoEnrollmentBalloonNotifications = "PKP_AutoEnrollment_BalloonNotifications";
+    public const string AutoEnrollmentLogExpiryEvents = "PKP_AutoEnrollment_LogExpiryEvents";
+    public const string AutoEnrollmentPercentSuffix = "PKP_AutoEnrollment_PercentSuffix";
+    public const string AutoEnrollmentAdditionalStores = "PKP_AutoEnrollment_AdditionalStores";
     public const string AutoEnrollmentStoreNames = "PKP_AutoEnrollment_StoreNames";
     public const string AutoEnrollmentPolicySource = "PKP_AutoEnrollment_PolicySource";
     public const string AutoEnrollmentRawValueFormat = "PKP_AutoEnrollment_RawValue_Format";

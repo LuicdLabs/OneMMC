@@ -107,7 +107,7 @@
                 <TextBlock
                     Grid.Row="1"
                     Margin="24,4,24,8"
-                    Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                     Style="{StaticResource CaptionTextBlockStyle}"
                     Text="{x:Bind ViewModel.SelectedNode.Description, Mode=OneWay}"
                     TextWrapping="Wrap" />
@@ -190,7 +190,7 @@
                                 <TextBlock
                                     Grid.Column="1"
                                     VerticalAlignment="Center"
-                                    Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}"
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                     Text="{x:Bind SecondaryDisplay}"
                                     TextTrimming="CharacterEllipsis"
                                     TextWrapping="NoWrap"
@@ -205,7 +205,7 @@
                                 <TextBlock
                                     Grid.Column="3"
                                     VerticalAlignment="Center"
-                                    Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}"
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                     Text="{x:Bind IntendedPurposesDisplay}"
                                     TextTrimming="CharacterEllipsis"
                                     TextWrapping="NoWrap"
@@ -227,7 +227,7 @@
                                 <TextBlock
                                     Grid.Column="6"
                                     VerticalAlignment="Center"
-                                    Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}"
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                                     Text="{x:Bind CertificateTemplateDisplay}"
                                     TextTrimming="CharacterEllipsis"
                                     TextWrapping="NoWrap"

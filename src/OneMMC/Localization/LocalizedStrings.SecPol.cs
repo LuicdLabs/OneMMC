@@ -202,6 +202,8 @@ namespace OneMMC.Localization
         public string PKP_EnrollmentPolicy_ServerEditor_EditTitle => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.EnrollmentPolicyServerEditorEditTitle);
         public string PKP_EnrollmentPolicy_ServerValidation_UrlRequired => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.EnrollmentPolicyServerValidationUrlRequired);
         public string PKP_EnrollmentPolicy_ServerValidation_DuplicateUrl => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.EnrollmentPolicyServerValidationDuplicateUrl);
+        public string PKP_EnrollmentPolicy_AdditionalConfiguration => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.EnrollmentPolicyAdditionalConfiguration);
+        public string PKP_EnrollmentPolicy_DisableUserServers => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.EnrollmentPolicyDisableUserServers);
         public string PKP_EnrollmentPolicy_Auth_Anonymous => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.EnrollmentPolicyAuthAnonymous);
         public string PKP_EnrollmentPolicy_Auth_Kerberos => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.EnrollmentPolicyAuthKerberos);
         public string PKP_EnrollmentPolicy_Auth_UserName => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.EnrollmentPolicyAuthUserName);
@@ -211,6 +213,10 @@ namespace OneMMC.Localization
         public string PKP_AutoEnrollment_ConfigurationModel => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.AutoEnrollmentConfigurationModel);
         public string PKP_AutoEnrollment_RenewExpired => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.AutoEnrollmentRenewExpired);
         public string PKP_AutoEnrollment_UpdateTemplates => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.AutoEnrollmentUpdateTemplates);
+        public string PKP_AutoEnrollment_LogExpiryEvents => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.AutoEnrollmentLogExpiryEvents);
+        public string PKP_AutoEnrollment_ExpirationNotifications => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.AutoEnrollmentExpirationNotifications);
+        public string PKP_AutoEnrollment_PercentSuffix => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.AutoEnrollmentPercentSuffix);
+        public string PKP_AutoEnrollment_AdditionalStores => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.AutoEnrollmentAdditionalStores);
         public string PKP_Efs_Tab_General => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.EfsTabGeneral);
         public string PKP_Efs_Tab_Certificates => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.EfsTabCertificates);
         public string PKP_Efs_Tab_Cache => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.EfsTabCache);
@@ -257,6 +263,7 @@ namespace OneMMC.Localization
         public string PKP_PathValidation_PublisherScope_EndUsers => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.PathValidationPublisherScopeEndUsers);
         public string PKP_PathValidation_PublisherScope_LocalAdministrators => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.PathValidationPublisherScopeLocalAdministrators);
         public string PKP_PathValidation_PublisherScope_EnterpriseAdministrators => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.PathValidationPublisherScopeEnterpriseAdministrators);
+        public string PKP_PathValidation_SignatureChecks => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.PathValidationSignatureChecks);
         public string PKP_PathValidation_TrustedPublisherRevocation => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.PathValidationTrustedPublisherRevocation);
         public string PKP_PathValidation_TrustedTimestampRevocation => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.PathValidationTrustedTimestampRevocation);
         public string PKP_PathValidation_RootAutoUpdate => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.PathValidationRootAutoUpdate);

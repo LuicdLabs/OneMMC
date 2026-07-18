@@ -1315,6 +1315,9 @@
   <data name="PKP_PathValidation_PublisherScope_EnterpriseAdministrators" xml:space="preserve">
     <value>只允許企業系統管理員管理信任的發行者</value>
   </data>
+  <data name="PKP_PathValidation_SignatureChecks" xml:space="preserve">
+    <value>簽章驗證期間的其他檢查</value>
+  </data>
   <data name="PKP_PathValidation_TrustedPublisherRevocation" xml:space="preserve">
     <value>確認發行者憑證尚未被撤銷</value>
   </data>
@@ -1417,6 +1420,12 @@
   <data name="PKP_EnrollmentPolicy_ServerValidation_DuplicateUrl" xml:space="preserve">
     <value>已存在使用此 URI 的原則伺服器。</value>
   </data>
+  <data name="PKP_EnrollmentPolicy_AdditionalConfiguration" xml:space="preserve">
+    <value>其他憑證註冊原則設定</value>
+  </data>
+  <data name="PKP_EnrollmentPolicy_DisableUserServers" xml:space="preserve">
+    <value>停用使用者設定的註冊原則伺服器</value>
+  </data>
   <data name="PKP_EnrollmentPolicy_Auth_Anonymous" xml:space="preserve">
     <value>匿名</value>
   </data>
@@ -1456,8 +1465,14 @@
   <data name="PKP_AutoEnrollment_ExpirationNotifications" xml:space="preserve">
     <value>到期通知百分比</value>
   </data>
-  <data name="PKP_AutoEnrollment_BalloonNotifications" xml:space="preserve">
-    <value>通知訊息</value>
+  <data name="PKP_AutoEnrollment_LogExpiryEvents" xml:space="preserve">
+    <value>當憑證剩餘有效期限的百分比為以下值時，記錄到期事件並顯示到期通知</value>
+  </data>
+  <data name="PKP_AutoEnrollment_PercentSuffix" xml:space="preserve">
+    <value>%</value>
+  </data>
+  <data name="PKP_AutoEnrollment_AdditionalStores" xml:space="preserve">
+    <value>其他存放區。請使用 "," 分隔多個存放區。例如: "Store1, Store2, Store3"</value>
   </data>
   <data name="PKP_AutoEnrollment_StoreNames" xml:space="preserve">
     <value>憑證存放區</value>

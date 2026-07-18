@@ -1,247 +1,277 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="utf-8" ?>
 <UserControl
     x:Class="OneMMC.Views.CertificateEnrollmentPolicyPropertiesControl"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:CommunityToolkit.WinUI.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:pkp="using:OneMMC.Core.Features.UserSecurity.Models.SecPol.PublicKeyPolicies"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:pkp="using:OneMMC.Core.Features.UserSecurity.Models.SecPol.PublicKeyPolicies"
+    xmlns:ui="using:CommunityToolkit.WinUI"
     mc:Ignorable="d">
 
-    <StackPanel MinWidth="560" Spacing="16">
-        <TextBlock
-            FontSize="20"
-            FontWeight="SemiBold"
-            Text="{x:Bind LocalizedStrings.PKP_EnrollmentPolicy_TabTitle}"
-            TextWrapping="Wrap" />
-
-        <Grid ColumnSpacing="16" RowSpacing="8">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="240" />
-            </Grid.ColumnDefinitions>
-            <TextBlock
-                Text="{x:Bind LocalizedStrings.PKP_EnrollmentPolicy_ConfigurationModel}"
-                TextWrapping="Wrap"
-                VerticalAlignment="Center" />
-            <ComboBox
-                x:Name="ConfigurationModelComboBox"
-                Grid.Column="1"
-                SelectionChanged="ConfigurationModelComboBox_SelectionChanged">
-                <ComboBoxItem Content="{x:Bind LocalizedStrings.PKP_NotConfigured}" />
-                <ComboBoxItem Content="{x:Bind LocalizedStrings.SecPol_Value_Enabled}" />
-            </ComboBox>
-        </Grid>
-
-        <TextBlock
-            Text="{x:Bind LocalizedStrings.PKP_EnrollmentPolicy_Help}"
-            TextWrapping="WrapWholeWords" />
-
-        <Grid ColumnSpacing="12">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
+    <ScrollViewer HorizontalScrollMode="Disabled" VerticalScrollBarVisibility="Auto">
+        <StackPanel
+            MinWidth="600"
+            Padding="0,0,4,4"
+            Spacing="12">
+            <controls:SettingsCard
+                Header="{x:Bind LocalizedStrings.PKP_EnrollmentPolicy_ConfigurationModel}"
+                HeaderIcon="{ui:FontIcon Glyph=&#xE9F5;}">
+                <ComboBox
+                    x:Name="ConfigurationModelComboBox"
+                    MinWidth="200"
+                    SelectionChanged="ConfigurationModelComboBox_SelectionChanged">
+                    <ComboBoxItem Content="{x:Bind LocalizedStrings.PKP_NotConfigured}" />
+                    <ComboBoxItem Content="{x:Bind LocalizedStrings.SecPol_Value_Enabled}" />
+                    <ComboBoxItem Content="{x:Bind LocalizedStrings.SecPol_Value_Disabled}" />
+                </ComboBox>
+            </controls:SettingsCard>
 
             <TextBlock
-                VerticalAlignment="Center"
-                FontWeight="SemiBold"
-                Text="{x:Bind LocalizedStrings.PKP_EnrollmentPolicy_Servers}" />
-            <Button
-                x:Name="AddServerButton"
-                Grid.Column="1"
-                Click="AddServerButton_Click"
-                Content="{x:Bind LocalizedStrings.Common_AddButton}" />
-            <Button
-                x:Name="EditServerButton"
-                Grid.Column="2"
-                Click="EditServerButton_Click"
-                Content="{x:Bind LocalizedStrings.Common_EditButton}" />
-            <Button
-                x:Name="RemoveServerButton"
-                Grid.Column="3"
-                Click="RemoveServerButton_Click"
-                Content="{x:Bind LocalizedStrings.Common_RemoveButton}" />
-        </Grid>
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                Style="{StaticResource BodyTextBlockStyle}"
+                Text="{x:Bind LocalizedStrings.PKP_EnrollmentPolicy_Help}"
+                TextWrapping="Wrap" />
 
-        <Grid ColumnSpacing="12">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="1.2*" />
-                <ColumnDefinition Width="2*" />
-                <ColumnDefinition Width="1.2*" />
-                <ColumnDefinition Width="72" />
-            </Grid.ColumnDefinitions>
-            <TextBlock FontWeight="SemiBold" Text="{x:Bind LocalizedStrings.PKP_EnrollmentPolicy_ServerName}" />
-            <TextBlock
-                Grid.Column="1"
-                FontWeight="SemiBold"
-                Text="{x:Bind LocalizedStrings.PKP_EnrollmentPolicy_ServerUrl}" />
-            <TextBlock
-                Grid.Column="2"
-                FontWeight="SemiBold"
-                Text="{x:Bind LocalizedStrings.PKP_EnrollmentPolicy_ServerAuthentication}" />
-            <TextBlock
-                Grid.Column="3"
-                FontWeight="SemiBold"
-                Text="{x:Bind LocalizedStrings.PKP_EnrollmentPolicy_ServerCost}" />
-        </Grid>
+            <Grid ColumnSpacing="12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBlock
+                    VerticalAlignment="Center"
+                    Style="{StaticResource BodyStrongTextBlockStyle}"
+                    Text="{x:Bind LocalizedStrings.PKP_EnrollmentPolicy_Servers}" />
+                <StackPanel
+                    Grid.Column="1"
+                    Orientation="Horizontal"
+                    Spacing="8">
+                    <Button
+                        x:Name="AddServerButton"
+                        Click="AddServerButton_Click"
+                        Style="{StaticResource AccentButtonStyle}">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <FontIcon FontSize="14" Glyph="&#xE710;" />
+                            <TextBlock Text="{x:Bind LocalizedStrings.Common_AddButton}" />
+                        </StackPanel>
+                    </Button>
+                    <Button
+                        x:Name="EditServerButton"
+                        Click="EditServerButton_Click"
+                        Content="{x:Bind LocalizedStrings.Common_EditButton}" />
+                    <Button
+                        x:Name="RemoveServerButton"
+                        Click="RemoveServerButton_Click"
+                        Content="{x:Bind LocalizedStrings.Common_RemoveButton}" />
+                </StackPanel>
+            </Grid>
 
-        <ListView
-            x:Name="ServersListView"
-            MaxHeight="150"
-            ItemsSource="{x:Bind Servers}"
-            SelectionChanged="ServersListView_SelectionChanged"
-            SelectionMode="Single">
-            <ListView.ItemTemplate>
-                <DataTemplate x:DataType="pkp:CertificateEnrollmentPolicyServer">
-                    <Grid MinHeight="36" ColumnSpacing="12">
+            <Border
+                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="{StaticResource ControlCornerRadius}">
+                <StackPanel>
+                    <Grid
+                        Padding="16,10,16,10"
+                        Background="{ThemeResource LayerFillColorDefaultBrush}"
+                        ColumnSpacing="12">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="1.2*" />
                             <ColumnDefinition Width="2*" />
                             <ColumnDefinition Width="1.2*" />
                             <ColumnDefinition Width="72" />
                         </Grid.ColumnDefinitions>
-                        <TextBlock
-                            VerticalAlignment="Center"
-                            Text="{x:Bind DisplayName}"
-                            TextTrimming="CharacterEllipsis"
-                            TextWrapping="NoWrap"
-                            ToolTipService.ToolTip="{x:Bind DisplayName}" />
+                        <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Text="{x:Bind LocalizedStrings.PKP_EnrollmentPolicy_ServerName}" />
                         <TextBlock
                             Grid.Column="1"
-                            VerticalAlignment="Center"
-                            Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}"
-                            Text="{x:Bind Url}"
-                            TextTrimming="CharacterEllipsis"
-                            TextWrapping="NoWrap"
-                            ToolTipService.ToolTip="{x:Bind Url}" />
+                            Style="{StaticResource CaptionTextBlockStyle}"
+                            Text="{x:Bind LocalizedStrings.PKP_EnrollmentPolicy_ServerUrl}" />
                         <TextBlock
                             Grid.Column="2"
-                            VerticalAlignment="Center"
-                            Text="{x:Bind AuthenticationText}"
-                            TextTrimming="CharacterEllipsis"
-                            TextWrapping="NoWrap" />
+                            Style="{StaticResource CaptionTextBlockStyle}"
+                            Text="{x:Bind LocalizedStrings.PKP_EnrollmentPolicy_ServerAuthentication}" />
                         <TextBlock
                             Grid.Column="3"
-                            VerticalAlignment="Center"
-                            Text="{x:Bind CostDisplay}"
-                            TextTrimming="CharacterEllipsis"
-                            TextWrapping="NoWrap" />
+                            Style="{StaticResource CaptionTextBlockStyle}"
+                            Text="{x:Bind LocalizedStrings.PKP_EnrollmentPolicy_ServerCost}" />
                     </Grid>
-                </DataTemplate>
-            </ListView.ItemTemplate>
-        </ListView>
 
-        <StackPanel
-            x:Name="ServerEditorPanel"
-            Spacing="12"
-            Visibility="Collapsed">
+                    <ListView
+                        x:Name="ServersListView"
+                        MaxHeight="176"
+                        ItemsSource="{x:Bind Servers}"
+                        SelectionChanged="ServersListView_SelectionChanged"
+                        SelectionMode="Single">
+                        <ListView.ItemTemplate>
+                            <DataTemplate x:DataType="pkp:CertificateEnrollmentPolicyServer">
+                                <Grid MinHeight="40" ColumnSpacing="12">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="1.2*" />
+                                        <ColumnDefinition Width="2*" />
+                                        <ColumnDefinition Width="1.2*" />
+                                        <ColumnDefinition Width="72" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock
+                                        VerticalAlignment="Center"
+                                        Text="{x:Bind DisplayName}"
+                                        TextTrimming="CharacterEllipsis"
+                                        TextWrapping="NoWrap"
+                                        ToolTipService.ToolTip="{x:Bind DisplayName}" />
+                                    <TextBlock
+                                        Grid.Column="1"
+                                        VerticalAlignment="Center"
+                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                        Text="{x:Bind Url}"
+                                        TextTrimming="CharacterEllipsis"
+                                        TextWrapping="NoWrap"
+                                        ToolTipService.ToolTip="{x:Bind Url}" />
+                                    <TextBlock
+                                        Grid.Column="2"
+                                        VerticalAlignment="Center"
+                                        Text="{x:Bind AuthenticationText}"
+                                        TextTrimming="CharacterEllipsis"
+                                        TextWrapping="NoWrap" />
+                                    <TextBlock
+                                        Grid.Column="3"
+                                        VerticalAlignment="Center"
+                                        Text="{x:Bind CostDisplay}"
+                                        TextTrimming="CharacterEllipsis"
+                                        TextWrapping="NoWrap" />
+                                </Grid>
+                            </DataTemplate>
+                        </ListView.ItemTemplate>
+                    </ListView>
+                </StackPanel>
+            </Border>
+
+            <Border
+                x:Name="ServerEditorPanel"
+                Padding="16"
+                Background="{ThemeResource CardBackgroundFillColorSecondaryBrush}"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="{StaticResource ControlCornerRadius}"
+                Visibility="Collapsed">
+                <StackPanel Spacing="12">
+                    <TextBlock
+                        x:Name="ServerEditorTitle"
+                        Style="{StaticResource BodyStrongTextBlockStyle}"
+                        TextWrapping="Wrap" />
+
+                    <InfoBar
+                        x:Name="ValidationInfoBar"
+                        IsClosable="False"
+                        IsOpen="False"
+                        Severity="Error" />
+
+                    <Grid ColumnSpacing="16" RowSpacing="8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="150" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            Text="{x:Bind LocalizedStrings.PKP_EnrollmentPolicy_ServerName}"
+                            TextWrapping="Wrap" />
+                        <TextBox x:Name="ServerNameTextBox" Grid.Column="1" />
+
+                        <TextBlock
+                            Grid.Row="1"
+                            VerticalAlignment="Center"
+                            Text="{x:Bind LocalizedStrings.PKP_EnrollmentPolicy_ServerUrl}"
+                            TextWrapping="Wrap" />
+                        <TextBox
+                            x:Name="ServerUrlTextBox"
+                            Grid.Row="1"
+                            Grid.Column="1" />
+
+                        <TextBlock
+                            Grid.Row="2"
+                            VerticalAlignment="Center"
+                            Text="{x:Bind LocalizedStrings.PKP_EnrollmentPolicy_ServerPolicyId}"
+                            TextWrapping="Wrap" />
+                        <TextBox
+                            x:Name="ServerPolicyIdTextBox"
+                            Grid.Row="2"
+                            Grid.Column="1" />
+
+                        <TextBlock
+                            Grid.Row="3"
+                            VerticalAlignment="Center"
+                            Text="{x:Bind LocalizedStrings.PKP_EnrollmentPolicy_ServerAuthentication}"
+                            TextWrapping="Wrap" />
+                        <ComboBox
+                            x:Name="ServerAuthenticationComboBox"
+                            Grid.Row="3"
+                            Grid.Column="1"
+                            HorizontalAlignment="Stretch">
+                            <ComboBoxItem Content="{x:Bind LocalizedStrings.PKP_EnrollmentPolicy_Auth_Anonymous}" />
+                            <ComboBoxItem Content="{x:Bind LocalizedStrings.PKP_EnrollmentPolicy_Auth_Kerberos}" />
+                            <ComboBoxItem Content="{x:Bind LocalizedStrings.PKP_EnrollmentPolicy_Auth_UserName}" />
+                            <ComboBoxItem Content="{x:Bind LocalizedStrings.PKP_EnrollmentPolicy_Auth_ClientCertificate}" />
+                        </ComboBox>
+
+                        <TextBlock
+                            Grid.Row="4"
+                            VerticalAlignment="Center"
+                            Text="{x:Bind LocalizedStrings.PKP_EnrollmentPolicy_ServerCost}"
+                            TextWrapping="Wrap" />
+                        <NumberBox
+                            x:Name="ServerCostNumberBox"
+                            Grid.Row="4"
+                            Grid.Column="1"
+                            HorizontalAlignment="Stretch"
+                            Maximum="2147483647"
+                            Minimum="0"
+                            SpinButtonPlacementMode="Inline" />
+                    </Grid>
+
+                    <TextBlock
+                        Style="{StaticResource BodyStrongTextBlockStyle}"
+                        Text="{x:Bind LocalizedStrings.PKP_EnrollmentPolicy_ServerOptions}"
+                        TextWrapping="Wrap" />
+                    <CheckBox
+                        x:Name="ServerAutoEnrollmentCheckBox"
+                        Content="{x:Bind LocalizedStrings.PKP_EnrollmentPolicy_ServerAutoEnrollment}" />
+                    <CheckBox
+                        x:Name="ServerUseClientIdCheckBox"
+                        Content="{x:Bind LocalizedStrings.PKP_EnrollmentPolicy_ServerUseClientId}" />
+                    <CheckBox
+                        x:Name="ServerAllowUntrustedCaCheckBox"
+                        Content="{x:Bind LocalizedStrings.PKP_EnrollmentPolicy_ServerAllowUntrustedCa}" />
+
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <Button
+                            x:Name="SaveServerButton"
+                            Click="SaveServerButton_Click"
+                            Content="{x:Bind LocalizedStrings.Common_SaveButton}"
+                            Style="{StaticResource AccentButtonStyle}" />
+                        <Button
+                            Click="CancelServerEditButton_Click"
+                            Content="{x:Bind LocalizedStrings.Common_CancelButton}" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
             <TextBlock
-                x:Name="ServerEditorTitle"
-                FontWeight="SemiBold"
+                Style="{StaticResource BodyStrongTextBlockStyle}"
+                Text="{x:Bind LocalizedStrings.PKP_EnrollmentPolicy_AdditionalConfiguration}"
                 TextWrapping="Wrap" />
-
-            <InfoBar
-                x:Name="ValidationInfoBar"
-                IsClosable="False"
-                IsOpen="False"
-                Severity="Error" />
-
-            <Grid ColumnSpacing="16" RowSpacing="8">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="150" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-
-                <TextBlock
-                    Text="{x:Bind LocalizedStrings.PKP_EnrollmentPolicy_ServerName}"
-                    TextWrapping="Wrap"
-                    VerticalAlignment="Center" />
-                <TextBox
-                    x:Name="ServerNameTextBox"
-                    Grid.Column="1" />
-
-                <TextBlock
-                    Grid.Row="1"
-                    Text="{x:Bind LocalizedStrings.PKP_EnrollmentPolicy_ServerUrl}"
-                    TextWrapping="Wrap"
-                    VerticalAlignment="Center" />
-                <TextBox
-                    x:Name="ServerUrlTextBox"
-                    Grid.Row="1"
-                    Grid.Column="1" />
-
-                <TextBlock
-                    Grid.Row="2"
-                    Text="{x:Bind LocalizedStrings.PKP_EnrollmentPolicy_ServerPolicyId}"
-                    TextWrapping="Wrap"
-                    VerticalAlignment="Center" />
-                <TextBox
-                    x:Name="ServerPolicyIdTextBox"
-                    Grid.Row="2"
-                    Grid.Column="1" />
-
-                <TextBlock
-                    Grid.Row="3"
-                    Text="{x:Bind LocalizedStrings.PKP_EnrollmentPolicy_ServerAuthentication}"
-                    TextWrapping="Wrap"
-                    VerticalAlignment="Center" />
-                <ComboBox
-                    x:Name="ServerAuthenticationComboBox"
-                    Grid.Row="3"
-                    Grid.Column="1">
-                    <ComboBoxItem Content="{x:Bind LocalizedStrings.PKP_EnrollmentPolicy_Auth_Anonymous}" />
-                    <ComboBoxItem Content="{x:Bind LocalizedStrings.PKP_EnrollmentPolicy_Auth_Kerberos}" />
-                    <ComboBoxItem Content="{x:Bind LocalizedStrings.PKP_EnrollmentPolicy_Auth_UserName}" />
-                    <ComboBoxItem Content="{x:Bind LocalizedStrings.PKP_EnrollmentPolicy_Auth_ClientCertificate}" />
-                </ComboBox>
-
-                <TextBlock
-                    Grid.Row="4"
-                    Text="{x:Bind LocalizedStrings.PKP_EnrollmentPolicy_ServerCost}"
-                    TextWrapping="Wrap"
-                    VerticalAlignment="Center" />
-                <NumberBox
-                    x:Name="ServerCostNumberBox"
-                    Grid.Row="4"
-                    Grid.Column="1"
-                    Minimum="0"
-                    Maximum="2147483647"
-                    SpinButtonPlacementMode="Inline" />
-            </Grid>
-
-            <TextBlock
-                FontWeight="SemiBold"
-                Text="{x:Bind LocalizedStrings.PKP_EnrollmentPolicy_ServerOptions}"
-                TextWrapping="Wrap" />
-            <CheckBox
-                x:Name="ServerAutoEnrollmentCheckBox"
-                Content="{x:Bind LocalizedStrings.PKP_EnrollmentPolicy_ServerAutoEnrollment}" />
-            <CheckBox
-                x:Name="ServerUseClientIdCheckBox"
-                Content="{x:Bind LocalizedStrings.PKP_EnrollmentPolicy_ServerUseClientId}" />
-            <CheckBox
-                x:Name="ServerAllowUntrustedCaCheckBox"
-                Content="{x:Bind LocalizedStrings.PKP_EnrollmentPolicy_ServerAllowUntrustedCa}" />
-
-            <StackPanel Orientation="Horizontal" Spacing="8">
-                <Button
-                    x:Name="SaveServerButton"
-                    Click="SaveServerButton_Click"
-                    Content="{x:Bind LocalizedStrings.Common_SaveButton}" />
-                <Button
-                    Click="CancelServerEditButton_Click"
-                    Content="{x:Bind LocalizedStrings.Common_CancelButton}" />
-            </StackPanel>
+            <controls:SettingsCard
+                Header="{x:Bind LocalizedStrings.PKP_EnrollmentPolicy_DisableUserServers}"
+                HeaderIcon="{ui:FontIcon Glyph=&#xE72E;}">
+                <ToggleSwitch x:Name="DisableUserServersToggle" />
+            </controls:SettingsCard>
         </StackPanel>
-    </StackPanel>
+    </ScrollViewer>
 </UserControl>

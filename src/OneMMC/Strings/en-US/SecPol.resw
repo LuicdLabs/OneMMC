@@ -1341,6 +1341,9 @@ Default on Server editions: Success.</value>
   <data name="PKP_PathValidation_PublisherScope_EnterpriseAdministrators" xml:space="preserve">
     <value>Allow only enterprise administrators to manage Trusted Publishers</value>
   </data>
+  <data name="PKP_PathValidation_SignatureChecks" xml:space="preserve">
+    <value>Additional checks during signature verification</value>
+  </data>
   <data name="PKP_PathValidation_TrustedPublisherRevocation" xml:space="preserve">
     <value>Verify that the publisher certificate is not revoked</value>
   </data>
@@ -1443,6 +1446,12 @@ Default on Server editions: Success.</value>
   <data name="PKP_EnrollmentPolicy_ServerValidation_DuplicateUrl" xml:space="preserve">
     <value>A policy server with this URI already exists.</value>
   </data>
+  <data name="PKP_EnrollmentPolicy_AdditionalConfiguration" xml:space="preserve">
+    <value>Additional certificate enrollment policy configuration</value>
+  </data>
+  <data name="PKP_EnrollmentPolicy_DisableUserServers" xml:space="preserve">
+    <value>Disable user configured enrollment policy servers</value>
+  </data>
   <data name="PKP_EnrollmentPolicy_Auth_Anonymous" xml:space="preserve">
     <value>Anonymous</value>
   </data>
@@ -1482,8 +1491,14 @@ Default on Server editions: Success.</value>
   <data name="PKP_AutoEnrollment_ExpirationNotifications" xml:space="preserve">
     <value>Expiration notification percentage</value>
   </data>
-  <data name="PKP_AutoEnrollment_BalloonNotifications" xml:space="preserve">
-    <value>Balloon notifications</value>
+  <data name="PKP_AutoEnrollment_LogExpiryEvents" xml:space="preserve">
+    <value>Log expiry events and show expiry notifications when the percentage of remaining certificate lifetime is</value>
+  </data>
+  <data name="PKP_AutoEnrollment_PercentSuffix" xml:space="preserve">
+    <value>%</value>
+  </data>
+  <data name="PKP_AutoEnrollment_AdditionalStores" xml:space="preserve">
+    <value>Additional stores. Use "," to separate multiple stores. For example: "Store1, Store2, Store3"</value>
   </data>
   <data name="PKP_AutoEnrollment_StoreNames" xml:space="preserve">
     <value>Certificate stores</value>

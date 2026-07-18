@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using OneMMC.Core.Features.UserSecurity.Models.SecPol.PublicKeyPolicies;
 using OneMMC.Localization;
 using Microsoft.UI.Xaml;
@@ -21,6 +21,15 @@ public sealed partial class CertificatePathValidationPropertiesControl : UserCon
     /// </summary>
     public ObservableCollection<string> PeerTrustPurposeOids { get; } = [];
 
+    // The peer-trust purpose editor is created in code-behind rather than XAML. Authoring this small
+    // TextBox/Button/ListView cluster in XAML alongside the rest of the compiled bindings on this page
+    // triggers an internal crash in the Windows App SDK 2.2.1 XAML markup compiler; building it here
+    // keeps the markup compiler stable while preserving identical behavior.
+    private readonly TextBox _customPurposeTextBox = new();
+    private readonly Button _addPurposeButton = new();
+    private readonly Button _deletePurposeButton = new();
+    private readonly ListView _purposeListView = new();
+
     /// <summary>
     /// Initializes the certificate path validation properties editor.
     /// </summary>
@@ -35,10 +44,33 @@ public sealed partial class CertificatePathValidationPropertiesControl : UserCon
         }
 
         InitializeComponent();
+        BuildPurposesEditor();
         ApplySettings(settings);
         PathValidationSelectorBar.SelectedItem = StoresTabItem;
         UpdateSelectedPanel();
         UpdateEnabledStates();
+    }
+
+    private void BuildPurposesEditor()
+    {
+        _customPurposeTextBox.PlaceholderText = LocalizedStrings.PKP_PathValidation_CustomOidPlaceholder;
+
+        _addPurposeButton.Content = LocalizedStrings.PKP_PathValidation_AddPurpose;
+        _addPurposeButton.Click += AddPurposeButton_Click;
+        _deletePurposeButton.Content = LocalizedStrings.PKP_PathValidation_DeletePurpose;
+        _deletePurposeButton.Click += DeletePurposeButton_Click;
+
+        var buttonRow = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
+        buttonRow.Children.Add(_addPurposeButton);
+        buttonRow.Children.Add(_deletePurposeButton);
+
+        _purposeListView.MaxHeight = 150;
+        _purposeListView.SelectionMode = ListViewSelectionMode.Single;
+        _purposeListView.ItemsSource = PeerTrustPurposeOids;
+
+        PurposesEditorPanel.Children.Add(_customPurposeTextBox);
+        PurposesEditorPanel.Children.Add(buttonRow);
+        PurposesEditorPanel.Children.Add(_purposeListView);
     }
 
     /// <summary>
@@ -49,25 +81,25 @@ public sealed partial class CertificatePathValidationPropertiesControl : UserCon
     {
         var settings = new CertificatePathValidationSettings
         {
-            StoresDefined = StoresDefinedCheckBox.IsChecked == true,
-            AllowUserTrustedRoots = AllowUserTrustedRootsCheckBox.IsChecked == true,
-            AllowPeerTrustCertificates = AllowPeerTrustCheckBox.IsChecked == true,
+            StoresDefined = StoresDefinedToggle.IsOn,
+            AllowUserTrustedRoots = AllowUserTrustedRootsToggle.IsOn,
+            AllowPeerTrustCertificates = AllowPeerTrustToggle.IsOn,
             OnlyTrustEnterpriseRoots = EnterpriseRootRadioButton.IsChecked == true,
-            RequireUpnNameConstraints = UpnConstraintsCheckBox.IsChecked == true,
-            TrustedPublishersDefined = TrustedPublishersDefinedCheckBox.IsChecked == true,
+            RequireUpnNameConstraints = UpnConstraintsToggle.IsOn,
+            TrustedPublishersDefined = TrustedPublishersDefinedToggle.IsOn,
             TrustedPublisherScope = GetTrustedPublisherScope(),
-            CheckPublisherRevocation = CheckPublisherRevocationCheckBox.IsChecked == true,
-            CheckTimestampRevocation = CheckTimestampRevocationCheckBox.IsChecked == true,
-            NetworkRetrievalDefined = NetworkRetrievalDefinedCheckBox.IsChecked == true,
-            AutomaticallyUpdateRootCertificates = RootAutoUpdateCheckBox.IsChecked == true,
+            CheckPublisherRevocation = CheckPublisherRevocationToggle.IsOn,
+            CheckTimestampRevocation = CheckTimestampRevocationToggle.IsOn,
+            NetworkRetrievalDefined = NetworkRetrievalDefinedToggle.IsOn,
+            AutomaticallyUpdateRootCertificates = RootAutoUpdateToggle.IsOn,
             UrlRetrievalTimeoutSeconds = ReadNumber(UrlRetrievalTimeoutNumberBox, 15),
             PathValidationRetrievalTimeoutSeconds = ReadNumber(PathRetrievalTimeoutNumberBox, 20),
-            AllowAiaRetrieval = AllowAiaRetrievalCheckBox.IsChecked == true,
+            AllowAiaRetrieval = AllowAiaRetrievalToggle.IsOn,
             CrossCertificateDownloadIntervalHours = ReadNumber(CrossCertIntervalNumberBox, 168),
-            RevocationDefined = RevocationDefinedCheckBox.IsChecked == true,
-            PreferCrlBeforeOcsp = PreferCrlBeforeOcspCheckBox.IsChecked == true,
+            RevocationDefined = RevocationDefinedToggle.IsOn,
+            PreferCrlBeforeOcsp = PreferCrlBeforeOcspToggle.IsOn,
             CachedOcspResponseThreshold = ReadNumber(CachedOcspThresholdNumberBox, 50),
-            ExtendRevocationFreshnessLifetime = ExtendRevocationFreshnessCheckBox.IsChecked == true,
+            ExtendRevocationFreshnessLifetime = ExtendRevocationFreshnessToggle.IsOn,
             RevocationFreshnessExtensionHours = ReadNumber(RevocationExtensionHoursNumberBox, 12)
         };
 
@@ -81,31 +113,31 @@ public sealed partial class CertificatePathValidationPropertiesControl : UserCon
 
     private void ApplySettings(CertificatePathValidationSettings settings)
     {
-        StoresDefinedCheckBox.IsChecked = settings.StoresDefined;
-        AllowUserTrustedRootsCheckBox.IsChecked = settings.AllowUserTrustedRoots;
-        AllowPeerTrustCheckBox.IsChecked = settings.AllowPeerTrustCertificates;
+        StoresDefinedToggle.IsOn = settings.StoresDefined;
+        AllowUserTrustedRootsToggle.IsOn = settings.AllowUserTrustedRoots;
+        AllowPeerTrustToggle.IsOn = settings.AllowPeerTrustCertificates;
         ThirdPartyAndEnterpriseRootRadioButton.IsChecked = !settings.OnlyTrustEnterpriseRoots;
         EnterpriseRootRadioButton.IsChecked = settings.OnlyTrustEnterpriseRoots;
-        UpnConstraintsCheckBox.IsChecked = settings.RequireUpnNameConstraints;
+        UpnConstraintsToggle.IsOn = settings.RequireUpnNameConstraints;
 
-        TrustedPublishersDefinedCheckBox.IsChecked = settings.TrustedPublishersDefined;
+        TrustedPublishersDefinedToggle.IsOn = settings.TrustedPublishersDefined;
         PublisherScopeEndUsersRadioButton.IsChecked = settings.TrustedPublisherScope == PublicKeyTrustedPublisherScope.EndUsers;
         PublisherScopeLocalAdministratorsRadioButton.IsChecked = settings.TrustedPublisherScope == PublicKeyTrustedPublisherScope.LocalAdministrators;
         PublisherScopeEnterpriseAdministratorsRadioButton.IsChecked = settings.TrustedPublisherScope == PublicKeyTrustedPublisherScope.EnterpriseAdministrators;
-        CheckPublisherRevocationCheckBox.IsChecked = settings.CheckPublisherRevocation;
-        CheckTimestampRevocationCheckBox.IsChecked = settings.CheckTimestampRevocation;
+        CheckPublisherRevocationToggle.IsOn = settings.CheckPublisherRevocation;
+        CheckTimestampRevocationToggle.IsOn = settings.CheckTimestampRevocation;
 
-        NetworkRetrievalDefinedCheckBox.IsChecked = settings.NetworkRetrievalDefined;
-        RootAutoUpdateCheckBox.IsChecked = settings.AutomaticallyUpdateRootCertificates;
+        NetworkRetrievalDefinedToggle.IsOn = settings.NetworkRetrievalDefined;
+        RootAutoUpdateToggle.IsOn = settings.AutomaticallyUpdateRootCertificates;
         UrlRetrievalTimeoutNumberBox.Value = settings.UrlRetrievalTimeoutSeconds;
         PathRetrievalTimeoutNumberBox.Value = settings.PathValidationRetrievalTimeoutSeconds;
-        AllowAiaRetrievalCheckBox.IsChecked = settings.AllowAiaRetrieval;
+        AllowAiaRetrievalToggle.IsOn = settings.AllowAiaRetrieval;
         CrossCertIntervalNumberBox.Value = settings.CrossCertificateDownloadIntervalHours;
 
-        RevocationDefinedCheckBox.IsChecked = settings.RevocationDefined;
-        PreferCrlBeforeOcspCheckBox.IsChecked = settings.PreferCrlBeforeOcsp;
+        RevocationDefinedToggle.IsOn = settings.RevocationDefined;
+        PreferCrlBeforeOcspToggle.IsOn = settings.PreferCrlBeforeOcsp;
         CachedOcspThresholdNumberBox.Value = settings.CachedOcspResponseThreshold;
-        ExtendRevocationFreshnessCheckBox.IsChecked = settings.ExtendRevocationFreshnessLifetime;
+        ExtendRevocationFreshnessToggle.IsOn = settings.ExtendRevocationFreshnessLifetime;
         RevocationExtensionHoursNumberBox.Value = settings.RevocationFreshnessExtensionHours;
     }
 
@@ -129,51 +161,44 @@ public sealed partial class CertificatePathValidationPropertiesControl : UserCon
         UpdateSelectedPanel();
     }
 
-    private void StoresDefinedCheckBox_Changed(object sender, RoutedEventArgs e)
+    private void StoresDefinedToggle_Toggled(object sender, RoutedEventArgs e)
     {
         UpdateEnabledStates();
     }
 
-    private void TrustedPublishersDefinedCheckBox_Changed(object sender, RoutedEventArgs e)
+    private void TrustedPublishersDefinedToggle_Toggled(object sender, RoutedEventArgs e)
     {
         UpdateEnabledStates();
     }
 
-    private void NetworkRetrievalDefinedCheckBox_Changed(object sender, RoutedEventArgs e)
+    private void NetworkRetrievalDefinedToggle_Toggled(object sender, RoutedEventArgs e)
     {
         UpdateEnabledStates();
     }
 
-    private void RevocationDefinedCheckBox_Changed(object sender, RoutedEventArgs e)
+    private void RevocationDefinedToggle_Toggled(object sender, RoutedEventArgs e)
     {
         UpdateEnabledStates();
     }
 
-    private void AllowPeerTrustCheckBox_Changed(object sender, RoutedEventArgs e)
+    private void AllowPeerTrustToggle_Toggled(object sender, RoutedEventArgs e)
     {
         UpdateEnabledStates();
     }
 
-    private void PreferCrlBeforeOcspCheckBox_Changed(object sender, RoutedEventArgs e)
+    private void PreferCrlBeforeOcspToggle_Toggled(object sender, RoutedEventArgs e)
     {
         UpdateEnabledStates();
     }
 
-    private void ExtendRevocationFreshnessCheckBox_Changed(object sender, RoutedEventArgs e)
+    private void ExtendRevocationFreshnessToggle_Toggled(object sender, RoutedEventArgs e)
     {
         UpdateEnabledStates();
-    }
-
-    private void SelectPurposesButton_Click(object sender, RoutedEventArgs e)
-    {
-        PurposesEditorPanel.Visibility = PurposesEditorPanel.Visibility == Visibility.Visible
-            ? Visibility.Collapsed
-            : Visibility.Visible;
     }
 
     private void AddPurposeButton_Click(object sender, RoutedEventArgs e)
     {
-        string value = CustomPurposeTextBox.Text.Trim();
+        string value = _customPurposeTextBox.Text.Trim();
         if (string.IsNullOrWhiteSpace(value)
             || PeerTrustPurposeOids.Contains(value, StringComparer.OrdinalIgnoreCase))
         {
@@ -181,12 +206,12 @@ public sealed partial class CertificatePathValidationPropertiesControl : UserCon
         }
 
         PeerTrustPurposeOids.Add(value);
-        CustomPurposeTextBox.Text = string.Empty;
+        _customPurposeTextBox.Text = string.Empty;
     }
 
     private void DeletePurposeButton_Click(object sender, RoutedEventArgs e)
     {
-        if (PurposeListView.SelectedItem is string selected)
+        if (_purposeListView.SelectedItem is string selected)
         {
             PeerTrustPurposeOids.Remove(selected);
         }
@@ -203,43 +228,36 @@ public sealed partial class CertificatePathValidationPropertiesControl : UserCon
 
     private void UpdateEnabledStates()
     {
-        bool storesDefined = StoresDefinedCheckBox.IsChecked == true;
-        bool peerTrustEnabled = storesDefined && AllowPeerTrustCheckBox.IsChecked == true;
+        bool storesDefined = StoresDefinedToggle.IsOn;
+        bool peerTrustEnabled = storesDefined && AllowPeerTrustToggle.IsOn;
         SetEnabled(
             storesDefined,
-            AllowUserTrustedRootsCheckBox,
-            AllowPeerTrustCheckBox,
-            ThirdPartyAndEnterpriseRootRadioButton,
-            EnterpriseRootRadioButton,
-            UpnConstraintsCheckBox);
-        SetEnabled(peerTrustEnabled, SelectPurposesButton, CustomPurposeTextBox, AddPurposeButton, DeletePurposeButton, PurposeListView);
-        if (!peerTrustEnabled)
-        {
-            PurposesEditorPanel.Visibility = Visibility.Collapsed;
-        }
+            AllowUserTrustedRootsToggle,
+            AllowPeerTrustToggle,
+            RootStoresModeRadioButtons,
+            UpnConstraintsToggle);
+        SetEnabled(peerTrustEnabled, _customPurposeTextBox, _addPurposeButton, _deletePurposeButton, _purposeListView);
 
-        bool trustedPublishersDefined = TrustedPublishersDefinedCheckBox.IsChecked == true;
+        bool trustedPublishersDefined = TrustedPublishersDefinedToggle.IsOn;
         SetEnabled(
             trustedPublishersDefined,
-            PublisherScopeEndUsersRadioButton,
-            PublisherScopeLocalAdministratorsRadioButton,
-            PublisherScopeEnterpriseAdministratorsRadioButton,
-            CheckPublisherRevocationCheckBox,
-            CheckTimestampRevocationCheckBox);
+            PublisherScopeRadioButtons,
+            CheckPublisherRevocationToggle,
+            CheckTimestampRevocationToggle);
 
-        bool networkDefined = NetworkRetrievalDefinedCheckBox.IsChecked == true;
+        bool networkDefined = NetworkRetrievalDefinedToggle.IsOn;
         SetEnabled(
             networkDefined,
-            RootAutoUpdateCheckBox,
+            RootAutoUpdateToggle,
             UrlRetrievalTimeoutNumberBox,
             PathRetrievalTimeoutNumberBox,
-            AllowAiaRetrievalCheckBox,
+            AllowAiaRetrievalToggle,
             CrossCertIntervalNumberBox);
 
-        bool revocationDefined = RevocationDefinedCheckBox.IsChecked == true;
-        bool preferCrl = revocationDefined && PreferCrlBeforeOcspCheckBox.IsChecked == true;
-        bool extendLifetime = revocationDefined && ExtendRevocationFreshnessCheckBox.IsChecked == true;
-        SetEnabled(revocationDefined, PreferCrlBeforeOcspCheckBox, ExtendRevocationFreshnessCheckBox);
+        bool revocationDefined = RevocationDefinedToggle.IsOn;
+        bool preferCrl = revocationDefined && PreferCrlBeforeOcspToggle.IsOn;
+        bool extendLifetime = revocationDefined && ExtendRevocationFreshnessToggle.IsOn;
+        SetEnabled(revocationDefined, PreferCrlBeforeOcspToggle, ExtendRevocationFreshnessToggle);
         SetEnabled(preferCrl, CachedOcspThresholdNumberBox);
         SetEnabled(extendLifetime, RevocationExtensionHoursNumberBox);
     }

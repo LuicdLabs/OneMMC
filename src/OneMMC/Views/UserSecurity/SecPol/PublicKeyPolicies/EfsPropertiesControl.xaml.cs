@@ -45,17 +45,17 @@ public sealed partial class EfsPropertiesControl : UserControl
         {
             FileEncryptionState = GetFileEncryptionState(),
             EllipticCurveMode = GetEllipticCurveMode(),
-            EncryptDocumentsFolder = EncryptDocumentsFolderCheckBox.IsChecked == true,
-            RequireSmartCard = RequireSmartCardCheckBox.IsChecked == true,
-            CreateCachingCapableUserKey = CreateSmartCardUserKeyCheckBox.IsChecked == true,
-            DisplayKeyBackupNotifications = KeyBackupNotificationsCheckBox.IsChecked == true,
+            EncryptDocumentsFolder = EncryptDocumentsFolderToggle.IsOn,
+            RequireSmartCard = RequireSmartCardToggle.IsOn,
+            CreateCachingCapableUserKey = CreateSmartCardUserKeyToggle.IsOn,
+            DisplayKeyBackupNotifications = KeyBackupNotificationsToggle.IsOn,
             TemplateName = TemplateNameTextBox.Text.Trim(),
-            AllowSelfSignedCertificates = AllowSelfSignedCheckBox.IsChecked == true,
+            AllowSelfSignedCertificates = AllowSelfSignedToggle.IsOn,
             RsaKeyLength = ReadComboBoxValue(RsaKeySizeComboBox, DefaultRsaKeyLength),
             EccKeyLength = ReadComboBoxValue(EccKeySizeComboBox, DefaultEccKeyLength),
-            ClearCacheOnTimeout = ClearCacheOnTimeoutCheckBox.IsChecked == true,
+            ClearCacheOnTimeout = ClearCacheOnTimeoutToggle.IsOn,
             CacheTimeoutMinutes = ReadNumber(CacheTimeoutNumberBox, DefaultCacheTimeoutMinutes),
-            ClearCacheOnLock = ClearCacheOnLockCheckBox.IsChecked == true
+            ClearCacheOnLock = ClearCacheOnLockToggle.IsOn
         };
     }
 
@@ -69,17 +69,17 @@ public sealed partial class EfsPropertiesControl : UserControl
         EccRequireRadioButton.IsChecked = settings.EllipticCurveMode == EfsEllipticCurveMode.Require;
         EccDontAllowRadioButton.IsChecked = settings.EllipticCurveMode == EfsEllipticCurveMode.DontAllow;
 
-        EncryptDocumentsFolderCheckBox.IsChecked = settings.EncryptDocumentsFolder;
-        RequireSmartCardCheckBox.IsChecked = settings.RequireSmartCard;
-        CreateSmartCardUserKeyCheckBox.IsChecked = settings.CreateCachingCapableUserKey;
-        KeyBackupNotificationsCheckBox.IsChecked = settings.DisplayKeyBackupNotifications;
+        EncryptDocumentsFolderToggle.IsOn = settings.EncryptDocumentsFolder;
+        RequireSmartCardToggle.IsOn = settings.RequireSmartCard;
+        CreateSmartCardUserKeyToggle.IsOn = settings.CreateCachingCapableUserKey;
+        KeyBackupNotificationsToggle.IsOn = settings.DisplayKeyBackupNotifications;
         TemplateNameTextBox.Text = settings.TemplateName;
-        AllowSelfSignedCheckBox.IsChecked = settings.AllowSelfSignedCertificates;
+        AllowSelfSignedToggle.IsOn = settings.AllowSelfSignedCertificates;
         SelectComboBoxValue(RsaKeySizeComboBox, settings.RsaKeyLength);
         SelectComboBoxValue(EccKeySizeComboBox, settings.EccKeyLength);
-        ClearCacheOnTimeoutCheckBox.IsChecked = settings.ClearCacheOnTimeout;
+        ClearCacheOnTimeoutToggle.IsOn = settings.ClearCacheOnTimeout;
         CacheTimeoutNumberBox.Value = settings.CacheTimeoutMinutes;
-        ClearCacheOnLockCheckBox.IsChecked = settings.ClearCacheOnLock;
+        ClearCacheOnLockToggle.IsOn = settings.ClearCacheOnLock;
     }
 
     private void InitializeKeySizeComboBoxes()
@@ -114,7 +114,7 @@ public sealed partial class EfsPropertiesControl : UserControl
         UpdateEnabledStates();
     }
 
-    private void ClearCacheOnTimeoutCheckBox_Changed(object sender, RoutedEventArgs e)
+    private void ClearCacheOnTimeoutToggle_Toggled(object sender, RoutedEventArgs e)
     {
         UpdateEnabledStates();
     }
@@ -135,17 +135,17 @@ public sealed partial class EfsPropertiesControl : UserControl
             EccAllowRadioButton,
             EccRequireRadioButton,
             EccDontAllowRadioButton,
-            EncryptDocumentsFolderCheckBox,
-            RequireSmartCardCheckBox,
-            CreateSmartCardUserKeyCheckBox,
-            KeyBackupNotificationsCheckBox,
+            EncryptDocumentsFolderToggle,
+            RequireSmartCardToggle,
+            CreateSmartCardUserKeyToggle,
+            KeyBackupNotificationsToggle,
             TemplateNameTextBox,
             RsaKeySizeComboBox,
             EccKeySizeComboBox,
-            AllowSelfSignedCheckBox,
-            ClearCacheOnTimeoutCheckBox,
-            ClearCacheOnLockCheckBox);
-        SetEnabled(fileEncryptionAllowed && ClearCacheOnTimeoutCheckBox.IsChecked == true, CacheTimeoutNumberBox);
+            AllowSelfSignedToggle,
+            ClearCacheOnTimeoutToggle,
+            ClearCacheOnLockToggle);
+        SetEnabled(fileEncryptionAllowed && ClearCacheOnTimeoutToggle.IsOn, CacheTimeoutNumberBox);
     }
 
     private EfsFileEncryptionState GetFileEncryptionState()

@@ -40,9 +40,13 @@ public sealed partial class CertificateEnrollmentPolicyPropertiesControl : UserC
         ArgumentNullException.ThrowIfNull(settings);
 
         InitializeComponent();
-        ConfigurationModelComboBox.SelectedIndex = settings.State == CertificateEnrollmentPolicyState.Enabled
-            ? 1
-            : 0;
+        ConfigurationModelComboBox.SelectedIndex = settings.State switch
+        {
+            CertificateEnrollmentPolicyState.Enabled => 1,
+            CertificateEnrollmentPolicyState.Disabled => 2,
+            _ => 0
+        };
+        DisableUserServersToggle.IsOn = settings.DisableUserConfiguredServers;
 
         foreach (CertificateEnrollmentPolicyServer server in settings.Servers)
         {
@@ -60,9 +64,13 @@ public sealed partial class CertificateEnrollmentPolicyPropertiesControl : UserC
     {
         CertificateEnrollmentPolicySettings settings = new()
         {
-            State = ConfigurationModelComboBox.SelectedIndex == 1
-                ? CertificateEnrollmentPolicyState.Enabled
-                : CertificateEnrollmentPolicyState.NotConfigured
+            State = ConfigurationModelComboBox.SelectedIndex switch
+            {
+                1 => CertificateEnrollmentPolicyState.Enabled,
+                2 => CertificateEnrollmentPolicyState.Disabled,
+                _ => CertificateEnrollmentPolicyState.NotConfigured
+            },
+            DisableUserConfiguredServers = DisableUserServersToggle.IsOn
         };
 
         foreach (CertificateEnrollmentPolicyServer server in Servers)
@@ -254,6 +262,7 @@ public sealed partial class CertificateEnrollmentPolicyPropertiesControl : UserC
         }
 
         bool isPolicyEnabled = ConfigurationModelComboBox.SelectedIndex == 1;
+        bool isPolicyConfigured = ConfigurationModelComboBox.SelectedIndex is 1 or 2;
         bool hasSelection = ServersListView.SelectedItem is CertificateEnrollmentPolicyServer;
         bool isEditing = ServerEditorPanel.Visibility == Visibility.Visible;
         AddServerButton.IsEnabled = isPolicyEnabled && !isEditing;
@@ -261,6 +270,7 @@ public sealed partial class CertificateEnrollmentPolicyPropertiesControl : UserC
         RemoveServerButton.IsEnabled = isPolicyEnabled && hasSelection && !isEditing;
         ServersListView.IsEnabled = isPolicyEnabled && !isEditing;
         SaveServerButton.IsEnabled = isPolicyEnabled;
+        DisableUserServersToggle.IsEnabled = isPolicyConfigured && !isEditing;
     }
 
     private CertificateEnrollmentPolicyAuthType GetSelectedAuthType()

@@ -1,13 +1,18 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="utf-8" ?>
 <UserControl
     x:Class="OneMMC.Views.EfsPropertiesControl"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:CommunityToolkit.WinUI.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:ui="using:CommunityToolkit.WinUI"
     mc:Ignorable="d">
 
-    <Grid MinWidth="640" MinHeight="480" RowSpacing="16">
+    <Grid
+        MinWidth="640"
+        MinHeight="480"
+        RowSpacing="16">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
@@ -29,163 +34,113 @@
                 Text="{x:Bind LocalizedStrings.PKP_Efs_Tab_Cache}" />
         </SelectorBar>
 
-        <ScrollViewer Grid.Row="1" HorizontalScrollMode="Disabled" VerticalScrollBarVisibility="Auto">
+        <ScrollViewer
+            Grid.Row="1"
+            HorizontalScrollMode="Disabled"
+            VerticalScrollBarVisibility="Auto">
             <Grid>
-                <StackPanel
-                    x:Name="GeneralPanel"
-                    Spacing="16">
-                    <StackPanel Spacing="8">
-                        <TextBlock
-                            FontWeight="SemiBold"
-                            Text="{x:Bind LocalizedStrings.PKP_Efs_FileEncryption}"
-                            TextWrapping="Wrap" />
+                <!--  General  -->
+                <StackPanel x:Name="GeneralPanel" Spacing="16">
+                    <RadioButtons Header="{x:Bind LocalizedStrings.PKP_Efs_FileEncryption}">
                         <RadioButton
                             x:Name="FileEncryptionNotDefinedRadioButton"
                             Checked="FileEncryptionRadioButton_Checked"
-                            Content="{x:Bind LocalizedStrings.PKP_Efs_FileEncryption_NotDefined}"
-                            GroupName="EfsFileEncryption" />
+                            Content="{x:Bind LocalizedStrings.PKP_Efs_FileEncryption_NotDefined}" />
                         <RadioButton
                             x:Name="FileEncryptionAllowRadioButton"
                             Checked="FileEncryptionRadioButton_Checked"
-                            Content="{x:Bind LocalizedStrings.PKP_Efs_FileEncryption_Allow}"
-                            GroupName="EfsFileEncryption" />
+                            Content="{x:Bind LocalizedStrings.PKP_Efs_FileEncryption_Allow}" />
                         <RadioButton
                             x:Name="FileEncryptionDontAllowRadioButton"
                             Checked="FileEncryptionRadioButton_Checked"
-                            Content="{x:Bind LocalizedStrings.PKP_Efs_FileEncryption_DontAllow}"
-                            GroupName="EfsFileEncryption" />
-                    </StackPanel>
+                            Content="{x:Bind LocalizedStrings.PKP_Efs_FileEncryption_DontAllow}" />
+                    </RadioButtons>
 
-                    <StackPanel Spacing="8">
-                        <TextBlock
-                            FontWeight="SemiBold"
-                            Text="{x:Bind LocalizedStrings.PKP_Efs_EllipticCurveCryptography}"
-                            TextWrapping="Wrap" />
+                    <RadioButtons Header="{x:Bind LocalizedStrings.PKP_Efs_EllipticCurveCryptography}">
                         <RadioButton
                             x:Name="EccAllowRadioButton"
-                            Content="{x:Bind LocalizedStrings.PKP_Efs_Ecc_Allow}"
-                            GroupName="EfsEccMode" />
+                            Content="{x:Bind LocalizedStrings.PKP_Efs_Ecc_Allow}" />
                         <RadioButton
                             x:Name="EccRequireRadioButton"
-                            Content="{x:Bind LocalizedStrings.PKP_Efs_Ecc_Require}"
-                            GroupName="EfsEccMode" />
+                            Content="{x:Bind LocalizedStrings.PKP_Efs_Ecc_Require}" />
                         <RadioButton
                             x:Name="EccDontAllowRadioButton"
-                            Content="{x:Bind LocalizedStrings.PKP_Efs_Ecc_DontAllow}"
-                            GroupName="EfsEccMode" />
-                    </StackPanel>
+                            Content="{x:Bind LocalizedStrings.PKP_Efs_Ecc_DontAllow}" />
+                    </RadioButtons>
 
-                    <StackPanel Spacing="8">
+                    <StackPanel Spacing="4">
                         <TextBlock
-                            FontWeight="SemiBold"
+                            Margin="0,0,0,4"
+                            Style="{StaticResource BodyStrongTextBlockStyle}"
                             Text="{x:Bind LocalizedStrings.PKP_Efs_Options}"
                             TextWrapping="Wrap" />
-                        <CheckBox
-                            x:Name="EncryptDocumentsFolderCheckBox"
-                            Content="{x:Bind LocalizedStrings.PKP_Efs_EncryptDocumentsFolder}" />
-                        <CheckBox
-                            x:Name="RequireSmartCardCheckBox"
-                            Content="{x:Bind LocalizedStrings.PKP_Efs_RequireSmartCard}" />
-                        <CheckBox
-                            x:Name="CreateSmartCardUserKeyCheckBox"
-                            Content="{x:Bind LocalizedStrings.PKP_Efs_CreateSmartCardUserKey}" />
-                        <CheckBox
-                            x:Name="KeyBackupNotificationsCheckBox"
-                            Content="{x:Bind LocalizedStrings.PKP_Efs_KeyBackupNotifications}" />
+                        <controls:SettingsCard Header="{x:Bind LocalizedStrings.PKP_Efs_EncryptDocumentsFolder}">
+                            <ToggleSwitch x:Name="EncryptDocumentsFolderToggle" />
+                        </controls:SettingsCard>
+                        <controls:SettingsCard Header="{x:Bind LocalizedStrings.PKP_Efs_RequireSmartCard}">
+                            <ToggleSwitch x:Name="RequireSmartCardToggle" />
+                        </controls:SettingsCard>
+                        <controls:SettingsCard Header="{x:Bind LocalizedStrings.PKP_Efs_CreateSmartCardUserKey}">
+                            <ToggleSwitch x:Name="CreateSmartCardUserKeyToggle" />
+                        </controls:SettingsCard>
+                        <controls:SettingsCard Header="{x:Bind LocalizedStrings.PKP_Efs_KeyBackupNotifications}">
+                            <ToggleSwitch x:Name="KeyBackupNotificationsToggle" />
+                        </controls:SettingsCard>
                     </StackPanel>
                 </StackPanel>
 
+                <!--  Certificates  -->
                 <StackPanel
                     x:Name="CertificatesPanel"
-                    Spacing="16"
+                    Spacing="4"
                     Visibility="Collapsed">
-                    <Grid ColumnSpacing="16" RowSpacing="12">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="240" />
-                        </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                        </Grid.RowDefinitions>
-
-                        <TextBlock
-                            Text="{x:Bind LocalizedStrings.PKP_Efs_TemplateName}"
-                            TextWrapping="Wrap" />
-                        <TextBox
-                            x:Name="TemplateNameTextBox"
-                            Grid.Column="1" />
-
-                        <TextBlock
-                            Grid.Row="1"
-                            Text="{x:Bind LocalizedStrings.PKP_Efs_RsaKeySize}"
-                            TextWrapping="Wrap" />
-                        <ComboBox
-                            x:Name="RsaKeySizeComboBox"
-                            Grid.Row="1"
-                            Grid.Column="1" />
-
-                        <TextBlock
-                            Grid.Row="2"
-                            Text="{x:Bind LocalizedStrings.PKP_Efs_EccKeySize}"
-                            TextWrapping="Wrap" />
-                        <ComboBox
-                            x:Name="EccKeySizeComboBox"
-                            Grid.Row="2"
-                            Grid.Column="1" />
-                    </Grid>
-
-                    <StackPanel Spacing="8">
-                        <TextBlock
-                            FontWeight="SemiBold"
-                            Text="{x:Bind LocalizedStrings.PKP_Efs_SelfSignedCertificates}"
-                            TextWrapping="Wrap" />
-                        <CheckBox
-                            x:Name="AllowSelfSignedCheckBox"
-                            Content="{x:Bind LocalizedStrings.PKP_Efs_AllowSelfSigned}" />
-                    </StackPanel>
+                    <controls:SettingsCard
+                        Header="{x:Bind LocalizedStrings.PKP_Efs_TemplateName}"
+                        HeaderIcon="{ui:FontIcon Glyph=&#xE8A5;}">
+                        <TextBox x:Name="TemplateNameTextBox" MinWidth="220" />
+                    </controls:SettingsCard>
+                    <controls:SettingsCard Header="{x:Bind LocalizedStrings.PKP_Efs_RsaKeySize}">
+                        <ComboBox x:Name="RsaKeySizeComboBox" MinWidth="160" />
+                    </controls:SettingsCard>
+                    <controls:SettingsCard Header="{x:Bind LocalizedStrings.PKP_Efs_EccKeySize}">
+                        <ComboBox x:Name="EccKeySizeComboBox" MinWidth="160" />
+                    </controls:SettingsCard>
+                    <TextBlock
+                        Margin="0,12,0,4"
+                        Style="{StaticResource BodyStrongTextBlockStyle}"
+                        Text="{x:Bind LocalizedStrings.PKP_Efs_SelfSignedCertificates}"
+                        TextWrapping="Wrap" />
+                    <controls:SettingsCard Header="{x:Bind LocalizedStrings.PKP_Efs_AllowSelfSigned}">
+                        <ToggleSwitch x:Name="AllowSelfSignedToggle" />
+                    </controls:SettingsCard>
                 </StackPanel>
 
+                <!--  Cache  -->
                 <StackPanel
                     x:Name="CachePanel"
-                    Spacing="16"
+                    Spacing="4"
                     Visibility="Collapsed">
-                    <StackPanel Spacing="8">
-                        <TextBlock
-                            FontWeight="SemiBold"
-                            Text="{x:Bind LocalizedStrings.PKP_Efs_ClearCacheWhen}"
-                            TextWrapping="Wrap" />
-                        <CheckBox
-                            x:Name="ClearCacheOnTimeoutCheckBox"
-                            Checked="ClearCacheOnTimeoutCheckBox_Changed"
-                            Content="{x:Bind LocalizedStrings.PKP_Efs_ClearCacheOnTimeout}"
-                            Unchecked="ClearCacheOnTimeoutCheckBox_Changed" />
-                        <Grid ColumnSpacing="12">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="180" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-                            <TextBlock
-                                Text="{x:Bind LocalizedStrings.PKP_Efs_CacheTimeout}"
-                                TextWrapping="Wrap"
-                                VerticalAlignment="Center" />
+                    <controls:SettingsCard
+                        Header="{x:Bind LocalizedStrings.PKP_Efs_ClearCacheOnTimeout}"
+                        HeaderIcon="{ui:FontIcon Glyph=&#xE823;}">
+                        <ToggleSwitch x:Name="ClearCacheOnTimeoutToggle" Toggled="ClearCacheOnTimeoutToggle_Toggled" />
+                    </controls:SettingsCard>
+                    <controls:SettingsCard Header="{x:Bind LocalizedStrings.PKP_Efs_CacheTimeout}">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
                             <NumberBox
                                 x:Name="CacheTimeoutNumberBox"
-                                Grid.Column="1"
+                                MinWidth="160"
                                 Maximum="10080"
                                 Minimum="5"
                                 SpinButtonPlacementMode="Inline" />
                             <TextBlock
-                                Grid.Column="2"
-                                Text="{x:Bind LocalizedStrings.PKP_Efs_Minutes}"
-                                VerticalAlignment="Center" />
-                        </Grid>
-                        <CheckBox
-                            x:Name="ClearCacheOnLockCheckBox"
-                            Content="{x:Bind LocalizedStrings.PKP_Efs_ClearCacheOnLock}" />
-                    </StackPanel>
+                                VerticalAlignment="Center"
+                                Text="{x:Bind LocalizedStrings.PKP_Efs_Minutes}" />
+                        </StackPanel>
+                    </controls:SettingsCard>
+                    <controls:SettingsCard Header="{x:Bind LocalizedStrings.PKP_Efs_ClearCacheOnLock}">
+                        <ToggleSwitch x:Name="ClearCacheOnLockToggle" />
+                    </controls:SettingsCard>
                 </StackPanel>
             </Grid>
         </ScrollViewer>
