@@ -1,4 +1,11 @@
-# OneMMC.Core
+<div style="display: flex; align-items: center; justify-content: left;">
+  <picture>
+    <img height="120" src="../../doc/images/AppLogo_WASDK.png" />
+  </picture>
+  <h1 style="margin-left: 16px;">
+    <span>OneMMC.Core</span>
+  </h1>
+</div>
 
 `OneMMC.Core` is the **Windows-native application layer** for OneMMC — the headless "engine" that
 sits beneath the WinUI 3 shell. It owns every piece of logic that does *not* draw pixels: the

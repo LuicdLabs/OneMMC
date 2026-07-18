@@ -1,4 +1,11 @@
-# OneMMC (UI)
+<div style="display: flex; align-items: center; justify-content: left;">
+  <picture>
+    <img height="120" src="../../doc/images/AppLogo_WinUI.png" />
+  </picture>
+  <h1 style="margin-left: 16px;">
+    <span>OneMMC (UI)</span>
+  </h1>
+</div>
 
 `OneMMC` is the **WinUI 3 presentation layer** and application shell — the executable that ships.
 It owns everything visual: XAML views and dialogs, value converters, custom controls, navigation,
