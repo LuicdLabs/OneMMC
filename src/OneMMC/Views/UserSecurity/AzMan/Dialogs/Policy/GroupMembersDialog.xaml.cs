@@ -352,7 +352,7 @@ public sealed partial class GroupMembersDialog : ContentDialog
         var languageComboBox = new ComboBox
         {
             Header = _localizedStrings.GroupMembersDialog_Language_Header,
-            ItemsSource = new[] { "VBScript", "JScript" },
+            ItemsSource = new List<string> { "VBScript", "JScript" },
             SelectedItem = string.IsNullOrWhiteSpace(_currentBizRuleLanguage) ? "VBScript" : _currentBizRuleLanguage,
             Margin = new Thickness(0, 0, 0, 12)
         };

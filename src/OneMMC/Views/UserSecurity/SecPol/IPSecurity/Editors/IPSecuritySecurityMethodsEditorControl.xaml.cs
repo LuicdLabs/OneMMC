@@ -85,35 +85,35 @@ public sealed partial class IPSecuritySecurityMethodsEditorControl : UserControl
 
     private void InitializeOptions()
     {
-        MainEncryptionComboBox.ItemsSource = new[]
+        MainEncryptionComboBox.ItemsSource = new List<MethodOption>
         {
-            new MethodOption(LocalizedStrings.IPSec_Editor_Algorithm3Des, "3DES"),
-            new MethodOption(LocalizedStrings.IPSec_Editor_AlgorithmDes, "DES")
+            new(LocalizedStrings.IPSec_Editor_Algorithm3Des, "3DES"),
+            new(LocalizedStrings.IPSec_Editor_AlgorithmDes, "DES")
         };
         MainHashComboBox.ItemsSource = CreateHashOptions();
-        DiffieHellmanGroupComboBox.ItemsSource = new[]
+        DiffieHellmanGroupComboBox.ItemsSource = new List<MethodOption>
         {
-            new MethodOption(LocalizedStrings.IPSec_Editor_DhGroupDh2048, "3"),
-            new MethodOption(LocalizedStrings.IPSec_Editor_DhGroupMedium, "2"),
-            new MethodOption(LocalizedStrings.IPSec_Editor_DhGroupLow, "1")
+            new(LocalizedStrings.IPSec_Editor_DhGroupDh2048, "3"),
+            new(LocalizedStrings.IPSec_Editor_DhGroupMedium, "2"),
+            new(LocalizedStrings.IPSec_Editor_DhGroupLow, "1")
         };
-        QuickMethodTypeComboBox.ItemsSource = new[]
+        QuickMethodTypeComboBox.ItemsSource = new List<MethodOption>
         {
-            new MethodOption(LocalizedStrings.IPSec_Editor_MethodTypeEsp, "ESP"),
-            new MethodOption(LocalizedStrings.IPSec_Editor_MethodTypeAh, "AH"),
-            new MethodOption(LocalizedStrings.IPSec_Editor_MethodTypeAhEsp, "AHESP")
+            new(LocalizedStrings.IPSec_Editor_MethodTypeEsp, "ESP"),
+            new(LocalizedStrings.IPSec_Editor_MethodTypeAh, "AH"),
+            new(LocalizedStrings.IPSec_Editor_MethodTypeAhEsp, "AHESP")
         };
-        EspEncryptionComboBox.ItemsSource = new[]
+        EspEncryptionComboBox.ItemsSource = new List<MethodOption>
         {
-            new MethodOption(LocalizedStrings.IPSec_Editor_Algorithm3Des, "3DES"),
-            new MethodOption(LocalizedStrings.IPSec_Editor_AlgorithmDes, "DES"),
-            new MethodOption(LocalizedStrings.IPSec_Editor_AlgorithmNone, "None")
+            new(LocalizedStrings.IPSec_Editor_Algorithm3Des, "3DES"),
+            new(LocalizedStrings.IPSec_Editor_AlgorithmDes, "DES"),
+            new(LocalizedStrings.IPSec_Editor_AlgorithmNone, "None")
         };
-        EspAuthenticationComboBox.ItemsSource = new[]
+        EspAuthenticationComboBox.ItemsSource = new List<MethodOption>
         {
-            new MethodOption(LocalizedStrings.IPSec_Editor_AlgorithmSha1, "SHA1"),
-            new MethodOption(LocalizedStrings.IPSec_Editor_AlgorithmMd5, "MD5"),
-            new MethodOption(LocalizedStrings.IPSec_Editor_AlgorithmNone, "None")
+            new(LocalizedStrings.IPSec_Editor_AlgorithmSha1, "SHA1"),
+            new(LocalizedStrings.IPSec_Editor_AlgorithmMd5, "MD5"),
+            new(LocalizedStrings.IPSec_Editor_AlgorithmNone, "None")
         };
         AhHashComboBox.ItemsSource = CreateHashOptions();
 
@@ -126,12 +126,12 @@ public sealed partial class IPSecuritySecurityMethodsEditorControl : UserControl
         AhHashComboBox.SelectedIndex = 0;
     }
 
-    private MethodOption[] CreateHashOptions()
+    private List<MethodOption> CreateHashOptions()
     {
         return
         [
-            new MethodOption(LocalizedStrings.IPSec_Editor_AlgorithmSha1, "SHA1"),
-            new MethodOption(LocalizedStrings.IPSec_Editor_AlgorithmMd5, "MD5")
+            new(LocalizedStrings.IPSec_Editor_AlgorithmSha1, "SHA1"),
+            new(LocalizedStrings.IPSec_Editor_AlgorithmMd5, "MD5")
         ];
     }
 
