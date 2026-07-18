@@ -17,9 +17,11 @@ public sealed partial class CertificatePathValidationPropertiesControl : UserCon
     public LocalizedStrings LocalizedStrings { get; } = LocalizedStrings.Instance;
 
     /// <summary>
-    /// Gets peer trust purpose OIDs shown in the Stores tab.
+    /// Gets peer trust purposes shown in the Stores tab. Each item keeps the raw EKU OID as the source
+    /// of truth for the policy while presenting the CryptoAPI friendly name (for example
+    /// "Client Authentication") in the list.
     /// </summary>
-    public ObservableCollection<string> PeerTrustPurposeOids { get; } = [];
+    public ObservableCollection<PeerTrustPurposeItem> PeerTrustPurposeOids { get; } = [];
 
     // The peer-trust purpose editor is created in code-behind rather than XAML. Authoring this small
     // TextBox/Button/ListView cluster in XAML alongside the rest of the compiled bindings on this page
@@ -40,7 +42,7 @@ public sealed partial class CertificatePathValidationPropertiesControl : UserCon
 
         foreach (string oid in settings.PeerTrustPurposeOids)
         {
-            PeerTrustPurposeOids.Add(oid);
+            PeerTrustPurposeOids.Add(new PeerTrustPurposeItem(oid));
         }
 
         InitializeComponent();
@@ -103,9 +105,9 @@ public sealed partial class CertificatePathValidationPropertiesControl : UserCon
             RevocationFreshnessExtensionHours = ReadNumber(RevocationExtensionHoursNumberBox, 12)
         };
 
-        foreach (string oid in PeerTrustPurposeOids.Where(static oid => !string.IsNullOrWhiteSpace(oid)))
+        foreach (PeerTrustPurposeItem item in PeerTrustPurposeOids.Where(static item => !string.IsNullOrWhiteSpace(item.Oid)))
         {
-            settings.PeerTrustPurposeOids.Add(oid.Trim());
+            settings.PeerTrustPurposeOids.Add(item.Oid);
         }
 
         return settings;
@@ -200,18 +202,18 @@ public sealed partial class CertificatePathValidationPropertiesControl : UserCon
     {
         string value = _customPurposeTextBox.Text.Trim();
         if (string.IsNullOrWhiteSpace(value)
-            || PeerTrustPurposeOids.Contains(value, StringComparer.OrdinalIgnoreCase))
+            || PeerTrustPurposeOids.Any(item => string.Equals(item.Oid, value, StringComparison.OrdinalIgnoreCase)))
         {
             return;
         }
 
-        PeerTrustPurposeOids.Add(value);
+        PeerTrustPurposeOids.Add(new PeerTrustPurposeItem(value));
         _customPurposeTextBox.Text = string.Empty;
     }
 
     private void DeletePurposeButton_Click(object sender, RoutedEventArgs e)
     {
-        if (_purposeListView.SelectedItem is string selected)
+        if (_purposeListView.SelectedItem is PeerTrustPurposeItem selected)
         {
             PeerTrustPurposeOids.Remove(selected);
         }
@@ -255,10 +257,13 @@ public sealed partial class CertificatePathValidationPropertiesControl : UserCon
             CrossCertIntervalNumberBox);
 
         bool revocationDefined = RevocationDefinedToggle.IsOn;
-        bool preferCrl = revocationDefined && PreferCrlBeforeOcspToggle.IsOn;
+        // The cached OCSP response threshold only applies when OCSP is actually consulted.
+        // When "prefer CRL over OCSP" is on, OCSP responses aren't the primary path, so the
+        // threshold is disabled — matching Windows' native Certificate Path Validation UI.
+        bool cachedOcspApplicable = revocationDefined && !PreferCrlBeforeOcspToggle.IsOn;
         bool extendLifetime = revocationDefined && ExtendRevocationFreshnessToggle.IsOn;
         SetEnabled(revocationDefined, PreferCrlBeforeOcspToggle, ExtendRevocationFreshnessToggle);
-        SetEnabled(preferCrl, CachedOcspThresholdNumberBox);
+        SetEnabled(cachedOcspApplicable, CachedOcspThresholdNumberBox);
         SetEnabled(extendLifetime, RevocationExtensionHoursNumberBox);
     }
 
@@ -276,4 +281,30 @@ public sealed partial class CertificatePathValidationPropertiesControl : UserCon
             ? fallback
             : Math.Clamp((int)numberBox.Value, 0, 9999);
     }
+}
+
+/// <summary>
+/// A peer-trust purpose shown in the editor list. Wraps the raw EKU OID (the value persisted to policy)
+/// and exposes the CryptoAPI friendly name for display.
+/// </summary>
+public sealed class PeerTrustPurposeItem
+{
+    /// <summary>
+    /// Initializes a new peer-trust purpose from an enhanced key usage OID.
+    /// </summary>
+    /// <param name="oid">The enhanced key usage OID (for example "1.3.6.1.5.5.7.3.2").</param>
+    public PeerTrustPurposeItem(string oid)
+    {
+        Oid = oid?.Trim() ?? string.Empty;
+        DisplayName = PublicKeyPolicyPurposeDisplay.GetDisplayName(Oid);
+    }
+
+    /// <summary>Gets the raw enhanced key usage OID persisted to policy.</summary>
+    public string Oid { get; }
+
+    /// <summary>Gets the friendly display name (falls back to the OID when unknown).</summary>
+    public string DisplayName { get; }
+
+    /// <summary>Returns the friendly display name so the list renders it directly.</summary>
+    public override string ToString() => DisplayName;
 }

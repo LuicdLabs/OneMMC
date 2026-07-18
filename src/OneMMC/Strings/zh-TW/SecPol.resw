@@ -1147,6 +1147,12 @@
   <data name="PKP_Column_Setting" xml:space="preserve">
     <value>設定</value>
   </data>
+  <data name="PKP_Group_RecoveryAgents" xml:space="preserve">
+    <value>復原代理程式</value>
+  </data>
+  <data name="PKP_Group_CertificateServices" xml:space="preserve">
+    <value>憑證服務</value>
+  </data>
   <data name="PKP_Command_Properties" xml:space="preserve">
     <value>內容</value>
   </data>

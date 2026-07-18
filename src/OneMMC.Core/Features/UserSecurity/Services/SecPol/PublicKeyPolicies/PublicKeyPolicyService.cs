@@ -812,7 +812,7 @@ public sealed class PublicKeyPolicyService
             CreateDetail(PublicKeyPolicyKeys.PathValidationCrossCertInterval, FormatHours(settings.NetworkRetrievalDefined, settings.CrossCertificateDownloadIntervalHours)),
             CreateDetail(PublicKeyPolicyKeys.PathValidationRevocationDefined, FormatDefined(settings.RevocationDefined)),
             CreateDetail(PublicKeyPolicyKeys.PathValidationPreferCrlBeforeOcsp, FormatOption(settings.RevocationDefined, settings.PreferCrlBeforeOcsp)),
-            CreateDetail(PublicKeyPolicyKeys.PathValidationCachedOcspThreshold, FormatNullableNumber(settings.RevocationDefined && settings.PreferCrlBeforeOcsp, settings.CachedOcspResponseThreshold)),
+            CreateDetail(PublicKeyPolicyKeys.PathValidationCachedOcspThreshold, FormatNullableNumber(settings.RevocationDefined && !settings.PreferCrlBeforeOcsp, settings.CachedOcspResponseThreshold)),
             CreateDetail(PublicKeyPolicyKeys.PathValidationExtendRevocationLifetime, FormatOption(settings.RevocationDefined, settings.ExtendRevocationFreshnessLifetime)),
             CreateDetail(PublicKeyPolicyKeys.PathValidationRevocationExtensionHours, FormatHours(settings.RevocationDefined && settings.ExtendRevocationFreshnessLifetime, settings.RevocationFreshnessExtensionHours)),
             CreateDetail(PublicKeyPolicyKeys.PathValidationTrustedRoots, FormatCertificateCount("Root")),
@@ -1274,8 +1274,14 @@ public sealed class PublicKeyPolicyService
                 ChainEngineConfigPath,
                 CryptnetCachedOcspSwitchToCrlCountValueName,
                 CrlValidityExtensionPeriodValueName),
-            PreferCrlBeforeOcsp = cachedOcspThreshold is not null && cachedOcspThreshold.Value > 0U,
-            CachedOcspResponseThreshold = ToBoundedInt(cachedOcspThreshold, defaultValue: 50, minimum: 0, maximum: 9999),
+            // CryptnetCachedOcspSwitchToCrlCount is the "OCSP magic number": the number of cached OCSP
+            // responses (per CA) at which CryptoAPI stops preferring OCSP and switches to CRLs. A value of
+            // 0 forces an immediate switch, i.e. "always prefer CRL over OCSP"; a positive value is the
+            // count-based threshold. The two states are mutually exclusive, matching Windows' native UI.
+            PreferCrlBeforeOcsp = cachedOcspThreshold is 0U,
+            CachedOcspResponseThreshold = cachedOcspThreshold is null or 0U
+                ? 50
+                : ToBoundedInt(cachedOcspThreshold, defaultValue: 50, minimum: 1, maximum: 9999),
             ExtendRevocationFreshnessLifetime = crlValidityExtensionHours is not null && crlValidityExtensionHours.Value > 0U,
             RevocationFreshnessExtensionHours = ToBoundedInt(crlValidityExtensionHours, defaultValue: 12, minimum: 0, maximum: 9999)
         };
@@ -1419,17 +1425,24 @@ public sealed class PublicKeyPolicyService
             return;
         }
 
+        // "Prefer CRL over OCSP" writes CryptnetCachedOcspSwitchToCrlCount = 0 (switch immediately);
+        // otherwise the value is the cached-OCSP-response threshold before switching to CRLs. These are
+        // mutually exclusive in the UI, so only one of the two states is ever persisted.
         if (settings.PreferCrlBeforeOcsp)
         {
             snapshot.SetValue(
                 ChainEngineConfigPath,
                 CryptnetCachedOcspSwitchToCrlCountValueName,
-                (uint)Clamp(settings.CachedOcspResponseThreshold),
+                0U,
                 RegistryValueKind.DWord);
         }
         else
         {
-            snapshot.DeleteValue(ChainEngineConfigPath, CryptnetCachedOcspSwitchToCrlCountValueName);
+            snapshot.SetValue(
+                ChainEngineConfigPath,
+                CryptnetCachedOcspSwitchToCrlCountValueName,
+                (uint)Math.Clamp(settings.CachedOcspResponseThreshold, 1, 9999),
+                RegistryValueKind.DWord);
         }
 
         if (settings.ExtendRevocationFreshnessLifetime)
@@ -1766,7 +1779,7 @@ public sealed class PublicKeyPolicyService
     {
         string[] values = oids
             .Where(static oid => !string.IsNullOrWhiteSpace(oid))
-            .Select(static oid => oid.Trim())
+            .Select(static oid => PublicKeyPolicyPurposeDisplay.GetDisplayName(oid))
             .ToArray();
         return values.Length == 0
             ? GetString(PublicKeyPolicyKeys.NotConfigured)

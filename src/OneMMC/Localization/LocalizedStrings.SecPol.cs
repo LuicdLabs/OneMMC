@@ -173,6 +173,9 @@ namespace OneMMC.Localization
         public string PKP_Column_Status => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.ColumnStatus);
         public string PKP_Column_CertificateTemplate => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.ColumnCertificateTemplate);
         public string PKP_Column_Setting => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.ColumnSetting);
+        public string PKP_Group_RecoveryAgents => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.GroupRecoveryAgents);
+        public string PKP_Group_CertificateServices => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.GroupCertificateServices);
+        public string PKP_NoRecoveryAgents => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.NoRecoveryAgents);
         public string PKP_Command_Properties => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.CommandProperties);
         public string PKP_Command_ViewCertificate => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.CommandViewCertificate);
         public string PKP_Command_AddRecoveryAgent => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.CommandAddRecoveryAgent);

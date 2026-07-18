@@ -17,7 +17,6 @@ public sealed partial class PublicKeyPoliciesViewModel : ObservableObject
     private readonly PublicKeyPolicyService _policyService;
     private readonly ILogger<PublicKeyPoliciesViewModel> _logger;
     private readonly IAdminService _adminService;
-    private List<PublicKeyPolicyRow> _allRows = [];
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PublicKeyPoliciesViewModel"/> class.
@@ -46,56 +45,19 @@ public sealed partial class PublicKeyPoliciesViewModel : ObservableObject
     public ObservableCollection<PublicKeyPolicyNode> Nodes { get; } = [];
 
     /// <summary>
-    /// Gets rows shown for the selected node.
+    /// Gets the recovery-agent nodes (EFS, Data Protection, BitLocker), in display order.
     /// </summary>
-    public ObservableCollection<PublicKeyPolicyRow> CurrentRows { get; } = [];
+    public ObservableCollection<PublicKeyPolicyNode> RecoveryAgentNodes { get; } = [];
 
     /// <summary>
-    /// Gets or sets the selected node.
+    /// Gets the editable certificate-services nodes (enrollment policy, path validation, auto-enrollment).
     /// </summary>
-    [ObservableProperty]
-    public partial PublicKeyPolicyNode? SelectedNode { get; set; }
+    public ObservableCollection<PublicKeyPolicyNode> CertificateServiceNodes { get; } = [];
 
     /// <summary>
-    /// Gets a value indicating whether the selected node shows recovery-agent certificates.
+    /// Gets a value indicating whether any policy nodes have loaded.
     /// </summary>
-    public bool IsRecoveryAgentNodeSelected => SelectedNode?.Kind is PublicKeyPolicyNodeKind.EncryptingFileSystem
-        or PublicKeyPolicyNodeKind.DataProtection
-        or PublicKeyPolicyNodeKind.BitLockerDriveEncryption;
-
-    /// <summary>
-    /// Gets a value indicating whether the selected node shows name/value policy settings.
-    /// </summary>
-    public bool IsSettingNodeSelected => !IsRecoveryAgentNodeSelected;
-
-    /// <summary>
-    /// Gets or sets the selected row.
-    /// </summary>
-    [ObservableProperty]
-    public partial PublicKeyPolicyRow? SelectedRow { get; set; }
-
-    /// <summary>
-    /// Gets a value indicating whether the selected row has certificate details.
-    /// </summary>
-    public bool CanViewSelectedCertificate => SelectedRow?.CanViewDetails == true;
-
-    /// <summary>
-    /// Gets a value indicating whether a recovery agent certificate can be added to the selected node.
-    /// </summary>
-    public bool CanAddRecoveryAgent => IsRecoveryAgentNodeSelected;
-
-    /// <summary>
-    /// Gets a value indicating whether the selected recovery agent certificate can be deleted.
-    /// </summary>
-    public bool CanDeleteSelectedRecoveryAgent => IsRecoveryAgentNodeSelected
-        && SelectedRow?.Kind == PublicKeyPolicyRowKind.Certificate
-        && !string.IsNullOrWhiteSpace(SelectedRow.Source)
-        && !string.IsNullOrWhiteSpace(SelectedRow.Thumbprint);
-
-    /// <summary>
-    /// Gets a value indicating whether the selected node has read-only properties.
-    /// </summary>
-    public bool CanViewSelectedNodeProperties => SelectedNode?.CanViewProperties == true;
+    public bool HasNodes => Nodes.Count > 0;
 
     /// <summary>
     /// Gets or sets a value indicating whether policies are loading.
@@ -116,10 +78,14 @@ public sealed partial class PublicKeyPoliciesViewModel : ObservableObject
     public partial string ErrorMessage { get; set; } = string.Empty;
 
     /// <summary>
-    /// Gets or sets the current filter text.
+    /// Determines whether the given recovery-agent row can be deleted.
     /// </summary>
-    [ObservableProperty]
-    public partial string FilterText { get; set; } = string.Empty;
+    /// <param name="row">The recovery-agent certificate row.</param>
+    /// <returns><see langword="true"/> when the row represents a deletable certificate.</returns>
+    public static bool CanDeleteRecoveryAgent(PublicKeyPolicyRow? row) =>
+        row?.Kind == PublicKeyPolicyRowKind.Certificate
+        && !string.IsNullOrWhiteSpace(row.Source)
+        && !string.IsNullOrWhiteSpace(row.Thumbprint);
 
     /// <summary>
     /// Loads Public Key Policies.
@@ -133,18 +99,24 @@ public sealed partial class PublicKeyPoliciesViewModel : ObservableObject
 
         try
         {
-            PublicKeyPolicyNodeKind? selectedKind = SelectedNode?.Kind;
             IReadOnlyList<PublicKeyPolicyNode> nodes = await Task.Run(() => _policyService.LoadNodes());
             Nodes.Clear();
+            RecoveryAgentNodes.Clear();
+            CertificateServiceNodes.Clear();
             foreach (PublicKeyPolicyNode node in nodes)
             {
                 Nodes.Add(node);
+                if (node.IsRecoveryAgentNode)
+                {
+                    RecoveryAgentNodes.Add(node);
+                }
+                else if (node.HasEditableSettings)
+                {
+                    CertificateServiceNodes.Add(node);
+                }
             }
 
-            SelectedNode = selectedKind is PublicKeyPolicyNodeKind kind
-                ? Nodes.FirstOrDefault(node => node.Kind == kind) ?? Nodes.FirstOrDefault()
-                : Nodes.FirstOrDefault();
-            RefreshCurrentRows();
+            OnPropertyChanged(nameof(HasNodes));
         }
         catch (Exception ex)
         {
@@ -391,56 +363,6 @@ public sealed partial class PublicKeyPoliciesViewModel : ObservableObject
 
             return false;
         }
-    }
-
-    private void RefreshCurrentRows()
-    {
-        SelectedRow = null;
-        _allRows = SelectedNode?.Rows.ToList() ?? [];
-        ApplyFilter();
-    }
-
-    private void ApplyFilter()
-    {
-        CurrentRows.Clear();
-
-        IEnumerable<PublicKeyPolicyRow> rows = string.IsNullOrWhiteSpace(FilterText)
-            ? _allRows
-            : _allRows.Where(row =>
-                row.Name.Contains(FilterText, StringComparison.CurrentCultureIgnoreCase)
-                || row.Setting.Contains(FilterText, StringComparison.CurrentCultureIgnoreCase)
-                || row.IssuedTo.Contains(FilterText, StringComparison.CurrentCultureIgnoreCase)
-                || row.IssuedBy.Contains(FilterText, StringComparison.CurrentCultureIgnoreCase)
-                || row.FriendlyName.Contains(FilterText, StringComparison.CurrentCultureIgnoreCase)
-                || row.Status.Contains(FilterText, StringComparison.CurrentCultureIgnoreCase)
-                || row.CertificateTemplate.Contains(FilterText, StringComparison.CurrentCultureIgnoreCase)
-                || row.Thumbprint.Contains(FilterText, StringComparison.CurrentCultureIgnoreCase));
-
-        foreach (PublicKeyPolicyRow row in rows)
-        {
-            CurrentRows.Add(row);
-        }
-    }
-
-    partial void OnSelectedNodeChanged(PublicKeyPolicyNode? value)
-    {
-        OnPropertyChanged(nameof(IsRecoveryAgentNodeSelected));
-        OnPropertyChanged(nameof(IsSettingNodeSelected));
-        OnPropertyChanged(nameof(CanViewSelectedNodeProperties));
-        OnPropertyChanged(nameof(CanAddRecoveryAgent));
-        OnPropertyChanged(nameof(CanDeleteSelectedRecoveryAgent));
-        RefreshCurrentRows();
-    }
-
-    partial void OnFilterTextChanged(string value)
-    {
-        ApplyFilter();
-    }
-
-    partial void OnSelectedRowChanged(PublicKeyPolicyRow? value)
-    {
-        OnPropertyChanged(nameof(CanViewSelectedCertificate));
-        OnPropertyChanged(nameof(CanDeleteSelectedRecoveryAgent));
     }
 
     private static string GetString(string key, string resourceFileName)

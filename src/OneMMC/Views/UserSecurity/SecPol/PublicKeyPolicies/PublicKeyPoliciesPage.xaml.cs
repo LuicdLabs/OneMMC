@@ -1,5 +1,4 @@
 ﻿using System;
-using System.ComponentModel;
 using System.Globalization;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
@@ -12,7 +11,6 @@ using OneMMC.Localization;
 using Microsoft.Extensions.Logging;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Input;
 
 namespace OneMMC.Views;
 
@@ -43,8 +41,6 @@ public sealed partial class PublicKeyPoliciesPage : Page
         Loaded += OnPageLoaded;
         Unloaded += OnPageUnloaded;
         ViewModel.AdminPermissionRequired += OnAdminPermissionRequired;
-        ViewModel.PropertyChanged += OnViewModelPropertyChanged;
-        UpdateListLayout();
     }
 
     private async void OnPageLoaded(object sender, RoutedEventArgs e)
@@ -57,7 +53,6 @@ public sealed partial class PublicKeyPoliciesPage : Page
         _logger.LogDebug("[PublicKeyPoliciesPage] Page loaded.");
         _hasLoaded = true;
         await ViewModel.LoadAsync();
-        UpdateListLayout();
     }
 
     private void OnPageUnloaded(object sender, RoutedEventArgs e)
@@ -66,7 +61,6 @@ public sealed partial class PublicKeyPoliciesPage : Page
         DataContext = null;
         Loaded -= OnPageLoaded;
         Unloaded -= OnPageUnloaded;
-        ViewModel.PropertyChanged -= OnViewModelPropertyChanged;
     }
 
     private async void OnAdminPermissionRequired(object? sender, EventArgs e)
@@ -79,100 +73,36 @@ public sealed partial class PublicKeyPoliciesPage : Page
         await ViewModel.RefreshAsync();
     }
 
-    private async void PropertiesButton_Click(object sender, RoutedEventArgs e)
+    private async void PolicySettingsCard_Click(object sender, RoutedEventArgs e)
     {
-        await ShowNodePropertiesAsync(ViewModel.SelectedNode);
+        if (sender is FrameworkElement { Tag: PublicKeyPolicyNode node })
+        {
+            await ShowNodePropertiesAsync(node);
+        }
     }
 
     private async void ViewCertificateButton_Click(object sender, RoutedEventArgs e)
     {
-        await ShowCertificateDetailsAsync(ViewModel.SelectedRow);
+        if (sender is FrameworkElement { Tag: PublicKeyPolicyRow row })
+        {
+            await ShowCertificateDetailsAsync(row);
+        }
     }
 
     private async void AddRecoveryAgentButton_Click(object sender, RoutedEventArgs e)
     {
-        await AddRecoveryAgentCertificateAsync();
+        if (sender is FrameworkElement { Tag: PublicKeyPolicyNode node })
+        {
+            await AddRecoveryAgentCertificateAsync(node);
+        }
     }
 
     private async void DeleteRecoveryAgentButton_Click(object sender, RoutedEventArgs e)
     {
-        await DeleteSelectedRecoveryAgentCertificateAsync();
-    }
-
-    private async void PolicyListView_DoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
-    {
-        await ShowCertificateDetailsAsync(ViewModel.SelectedRow);
-    }
-
-    private void SearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
-    {
-        if (args.Reason == AutoSuggestionBoxTextChangeReason.UserInput)
+        if (sender is FrameworkElement { Tag: PublicKeyPolicyRow row })
         {
-            ViewModel.FilterText = sender.Text;
+            await DeleteRecoveryAgentCertificateAsync(row);
         }
-    }
-
-    private void PolicyTree_ItemInvoked(TreeView sender, TreeViewItemInvokedEventArgs args)
-    {
-        if (args.InvokedItem is PublicKeyPolicyNode node)
-        {
-            SelectPolicyNode(node);
-        }
-    }
-
-    private void PolicyTree_SelectionChanged(TreeView sender, TreeViewSelectionChangedEventArgs args)
-    {
-        if (args.AddedItems.Count > 0 && args.AddedItems[0] is PublicKeyPolicyNode node)
-        {
-            SelectPolicyNode(node);
-        }
-    }
-
-    private void SelectPolicyNode(PublicKeyPolicyNode node)
-    {
-        if (ReferenceEquals(ViewModel.SelectedNode, node))
-        {
-            return;
-        }
-
-        ViewModel.SelectedNode = node;
-        UpdateListLayout();
-    }
-
-    private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
-    {
-        if (e.PropertyName is nameof(ViewModel.SelectedNode)
-            or nameof(ViewModel.IsRecoveryAgentNodeSelected)
-            or nameof(ViewModel.IsSettingNodeSelected))
-        {
-            UpdateListLayout();
-        }
-    }
-
-    private void UpdateListLayout()
-    {
-        bool showRecoveryAgentColumns = ViewModel.IsRecoveryAgentNodeSelected;
-        PrimaryColumnHeader.Text = showRecoveryAgentColumns
-            ? LocalizedStrings.PKP_Column_IssuedTo
-            : LocalizedStrings.PKP_Column_Name;
-        SecondaryColumnHeader.Text = showRecoveryAgentColumns
-            ? LocalizedStrings.PKP_Column_IssuedBy
-            : LocalizedStrings.PKP_Column_Setting;
-        ExpirationColumnHeader.Text = showRecoveryAgentColumns
-            ? LocalizedStrings.PKP_Column_ExpirationDate
-            : string.Empty;
-        IntendedPurposesColumnHeader.Text = showRecoveryAgentColumns
-            ? LocalizedStrings.PKP_Column_IntendedPurposes
-            : string.Empty;
-        FriendlyNameColumnHeader.Text = showRecoveryAgentColumns
-            ? LocalizedStrings.PKP_Column_FriendlyName
-            : string.Empty;
-        StatusColumnHeader.Text = showRecoveryAgentColumns
-            ? LocalizedStrings.PKP_Column_Status
-            : string.Empty;
-        CertificateTemplateColumnHeader.Text = showRecoveryAgentColumns
-            ? LocalizedStrings.PKP_Column_CertificateTemplate
-            : string.Empty;
     }
 
     private async Task ShowCertificateDetailsAsync(PublicKeyPolicyRow? row)
@@ -222,9 +152,9 @@ public sealed partial class PublicKeyPoliciesPage : Page
         _ = await modalWindow.ShowDialogAsync();
     }
 
-    private async Task AddRecoveryAgentCertificateAsync()
+    private async Task AddRecoveryAgentCertificateAsync(PublicKeyPolicyNode node)
     {
-        if (ViewModel.SelectedNode is not PublicKeyPolicyNode node || !ViewModel.CanAddRecoveryAgent)
+        if (!node.IsRecoveryAgentNode)
         {
             return;
         }
@@ -275,9 +205,9 @@ public sealed partial class PublicKeyPoliciesPage : Page
         _ = await modalWindow.ShowDialogAsync();
     }
 
-    private async Task DeleteSelectedRecoveryAgentCertificateAsync()
+    private async Task DeleteRecoveryAgentCertificateAsync(PublicKeyPolicyRow row)
     {
-        if (ViewModel.SelectedRow is not PublicKeyPolicyRow row || !ViewModel.CanDeleteSelectedRecoveryAgent)
+        if (!PublicKeyPoliciesViewModel.CanDeleteRecoveryAgent(row))
         {
             return;
         }

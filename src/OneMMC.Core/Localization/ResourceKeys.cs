@@ -392,6 +392,8 @@ public static class PublicKeyPolicyKeys
     public const string ColumnStatus = "PKP_Column_Status";
     public const string ColumnCertificateTemplate = "PKP_Column_CertificateTemplate";
     public const string ColumnSetting = "PKP_Column_Setting";
+    public const string GroupRecoveryAgents = "PKP_Group_RecoveryAgents";
+    public const string GroupCertificateServices = "PKP_Group_CertificateServices";
     public const string CommandProperties = "PKP_Command_Properties";
     public const string CommandViewCertificate = "PKP_Command_ViewCertificate";
     public const string CommandAddRecoveryAgent = "PKP_Command_AddRecoveryAgent";

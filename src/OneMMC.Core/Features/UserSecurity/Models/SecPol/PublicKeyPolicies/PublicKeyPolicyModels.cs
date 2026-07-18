@@ -360,6 +360,30 @@ public sealed class PublicKeyPolicyNode
         || EnrollmentPolicySettings is not null
         || EfsSettings is not null;
 
+    /// <summary>Gets a value indicating whether this node holds an editable policy settings object.</summary>
+    public bool HasEditableSettings => AutoEnrollmentSettings is not null
+        || PathValidationSettings is not null
+        || EnrollmentPolicySettings is not null
+        || EfsSettings is not null;
+
+    /// <summary>Gets a value indicating whether this node manages recovery-agent certificates.</summary>
+    public bool IsRecoveryAgentNode => Kind is PublicKeyPolicyNodeKind.EncryptingFileSystem
+        or PublicKeyPolicyNodeKind.DataProtection
+        or PublicKeyPolicyNodeKind.BitLockerDriveEncryption;
+
+    /// <summary>Gets the certificate rows for this node, excluding informational rows.</summary>
+    public List<PublicKeyPolicyRow> CertificateRows =>
+        [.. Rows.Where(static row => row.Kind == PublicKeyPolicyRowKind.Certificate)];
+
+    /// <summary>Gets the number of recovery-agent certificates configured for this node.</summary>
+    public int CertificateCount => CertificateRows.Count;
+
+    /// <summary>Gets a value indicating whether this node has any recovery-agent certificates.</summary>
+    public bool HasCertificates => CertificateRows.Count > 0;
+
+    /// <summary>Gets a value indicating whether this node has no recovery-agent certificates.</summary>
+    public bool HasNoCertificates => CertificateRows.Count == 0;
+
     /// <inheritdoc />
     public override string ToString() => DisplayName;
 }

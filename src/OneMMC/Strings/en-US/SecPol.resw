@@ -1173,6 +1173,12 @@ Default on Server editions: Success.</value>
   <data name="PKP_Column_Setting" xml:space="preserve">
     <value>Setting</value>
   </data>
+  <data name="PKP_Group_RecoveryAgents" xml:space="preserve">
+    <value>Recovery agents</value>
+  </data>
+  <data name="PKP_Group_CertificateServices" xml:space="preserve">
+    <value>Certificate services</value>
+  </data>
   <data name="PKP_Command_Properties" xml:space="preserve">
     <value>Properties</value>
   </data>
