@@ -493,25 +493,30 @@
                     </controls:SettingsExpander.HeaderIcon>
                     <controls:SettingsExpander.Items>
                         <controls:SettingsCard Header="{x:Bind LocalizedStrings.WF_CSR_AuthenticationMethod}">
-                            <ComboBox
-                                x:Name="VerificationMethodsBox"
-                                MinWidth="260"
-                                SelectionChanged="VerificationMethodsBox_SelectionChanged">
-                                <ComboBoxItem Content="{x:Bind LocalizedStrings.WF_CSR_AuthMethod_Default}" Tag="Default" />
-                                <ComboBoxItem Content="{x:Bind LocalizedStrings.WF_CSR_AuthMethod_ComputerAndUser}" Tag="ComputerAndUser" />
-                                <ComboBoxItem Content="{x:Bind LocalizedStrings.WF_CSR_AuthMethod_Computer}" Tag="Computer" />
-                                <ComboBoxItem Content="{x:Bind LocalizedStrings.WF_CSR_AuthMethod_User}" Tag="User" />
-                                <ComboBoxItem Content="{x:Bind LocalizedStrings.WF_CSR_AuthMethod_Advanced}" Tag="Advanced" />
-                            </ComboBox>
-                        </controls:SettingsCard>
-                        <controls:SettingsCard
-                            x:Name="CustomizeMethodsCard"
-                            Header="{x:Bind LocalizedStrings.WF_CSR_CustomizeMethods}"
-                            Visibility="Collapsed">
-                            <Button
-                                MinWidth="120"
-                                Click="CustomizeAuthMethodsButton_Click"
-                                Content="{x:Bind LocalizedStrings.WF_Button_Customize}" />
+                            <Grid MinWidth="420" ColumnSpacing="12">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <RadioButtons
+                                    x:Name="VerificationMethodsRadioButtons"
+                                    MaxColumns="1"
+                                    SelectionChanged="VerificationMethodsRadioButtons_SelectionChanged">
+                                    <RadioButton Content="{x:Bind LocalizedStrings.WF_CSR_AuthMethod_Default}" />
+                                    <RadioButton Content="{x:Bind LocalizedStrings.WF_CSR_AuthMethod_ComputerAndUser}" />
+                                    <RadioButton Content="{x:Bind LocalizedStrings.WF_CSR_AuthMethod_Computer}" />
+                                    <RadioButton Content="{x:Bind LocalizedStrings.WF_CSR_AuthMethod_User}" />
+                                    <RadioButton Content="{x:Bind LocalizedStrings.WF_CSR_AuthMethod_Advanced}" />
+                                </RadioButtons>
+                                <Button
+                                    x:Name="CustomizeMethodsButton"
+                                    Grid.Column="1"
+                                    MinWidth="120"
+                                    VerticalAlignment="Bottom"
+                                    Click="CustomizeAuthMethodsButton_Click"
+                                    Content="{x:Bind LocalizedStrings.WF_Button_Customize}"
+                                    IsEnabled="False" />
+                            </Grid>
                         </controls:SettingsCard>
                     </controls:SettingsExpander.Items>
                 </controls:SettingsExpander>

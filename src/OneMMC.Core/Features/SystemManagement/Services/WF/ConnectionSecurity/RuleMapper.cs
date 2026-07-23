@@ -263,8 +263,11 @@ internal static class RuleMapper
 
     private static string ExtractAuthSetId(string creationClassName)
     {
-        int braceIndex = creationClassName.IndexOf('{', StringComparison.Ordinal);
-        return braceIndex >= 0 ? creationClassName[braceIndex..] : creationClassName;
+        string normalizedClassName = creationClassName.Trim();
+        int separatorIndex = normalizedClassName.LastIndexOf('|');
+        return separatorIndex >= 0
+            ? normalizedClassName[(separatorIndex + 1)..]
+            : normalizedClassName;
     }
 
     private static bool TryReadAuthMethodFromProposal(WbemObject proposal, out AuthMethodDialogResult? result)

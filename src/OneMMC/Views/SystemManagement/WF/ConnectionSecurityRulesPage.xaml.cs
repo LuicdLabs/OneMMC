@@ -404,17 +404,11 @@ public sealed partial class ConnectionSecurityRulesPage : Page
                 model.IsSecondAuthOptional = result.IsSecondAuthOptional;
                 return;
 
-            case "ComputerAndUser":
-                AddAuthMethod(model.FirstAuthMethods, CreateComputerKerberosAuthMethod());
-                AddAuthMethod(model.SecondAuthMethods, CreateUserKerberosAuthMethod());
-                return;
-
-            case "Computer":
-                AddAuthMethod(model.FirstAuthMethods, CreateComputerKerberosAuthMethod());
-                return;
-
-            case "User":
-                AddAuthMethod(model.SecondAuthMethods, CreateUserKerberosAuthMethod());
+            case ConnectionSecurityAuthMethodResolver.PresetDefault:
+            case ConnectionSecurityAuthMethodResolver.PresetComputerAndUser:
+            case ConnectionSecurityAuthMethodResolver.PresetComputer:
+            case ConnectionSecurityAuthMethodResolver.PresetUser:
+                ConnectionSecurityAuthMethodResolver.ApplyPreset(model, result.AuthenticationMethodTag);
                 return;
 
             case "ComputerCertificate":
@@ -447,22 +441,6 @@ public sealed partial class ConnectionSecurityRulesPage : Page
             Result = method
         });
     }
-
-    private static AuthMethodDialogResult CreateComputerKerberosAuthMethod() =>
-        new()
-        {
-            Kind = "ComputerKerberos",
-            Method = LocalizedStrings.Instance.WF_AuthMethod_ComputerKerberos,
-            Details = LocalizedStrings.Instance.WF_AuthDetails_KerberosAuthentication
-        };
-
-    private static AuthMethodDialogResult CreateUserKerberosAuthMethod() =>
-        new()
-        {
-            Kind = "UserKerberos",
-            Method = LocalizedStrings.Instance.WF_AuthMethod_UserKerberos,
-            Details = LocalizedStrings.Instance.WF_AuthDetails_KerberosAuthentication
-        };
 
     private static AuthMethodDialogResult CreateComputerCertificateAuthMethod(NewConnectionSecurityRuleDialogResult result)
     {

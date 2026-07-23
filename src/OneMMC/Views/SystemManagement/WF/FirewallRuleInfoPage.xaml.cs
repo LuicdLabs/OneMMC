@@ -35,6 +35,11 @@ public sealed partial class FirewallRuleInfoPage : Page, IUnsavedChangesGuard
     private const int NetFwAuthenticateWithIntegrity = 2;
     private const int NetFwAuthenticateAndNegotiateEncryption = 3;
     private const int NetFwAuthenticateAndEncrypt = 4;
+    private const int AuthMethodDefaultIndex = 0;
+    private const int AuthMethodComputerAndUserIndex = 1;
+    private const int AuthMethodComputerIndex = 2;
+    private const int AuthMethodUserIndex = 3;
+    private const int AuthMethodAdvancedIndex = 4;
 
     public LocalizedStrings LocalizedStrings { get; } = LocalizedStrings.Instance;
     public FirewallRuleModel Rule { get; private set; } = new();
@@ -350,7 +355,7 @@ public sealed partial class FirewallRuleInfoPage : Page, IUnsavedChangesGuard
 
             // Verification defaults
             VerificationModeBox.SelectedIndex = 0;
-            VerificationMethodsBox.SelectedIndex = 0;
+            VerificationMethodsRadioButtons.SelectedIndex = AuthMethodDefaultIndex;
             return;
         }
 
@@ -895,11 +900,10 @@ public sealed partial class FirewallRuleInfoPage : Page, IUnsavedChangesGuard
         UpdateConnectionSecurityPortInputVisibility();
     }
 
-    private void VerificationMethodsBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    private void VerificationMethodsRadioButtons_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        var tag = (VerificationMethodsBox.SelectedItem as ComboBoxItem)?.Tag as string;
-        CustomizeMethodsCard.Visibility = tag == "Advanced"
-            ? Visibility.Visible : Visibility.Collapsed;
+        CustomizeMethodsButton.IsEnabled =
+            VerificationMethodsRadioButtons.SelectedIndex == AuthMethodAdvancedIndex;
     }
 
     private void VerificationModeBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -1131,10 +1135,10 @@ public sealed partial class FirewallRuleInfoPage : Page, IUnsavedChangesGuard
             CopyAuthMethodResults(_connectionSecurityRule.SecondAuthMethods, dialog.SecondMethods);
             _connectionSecurityRule.IsFirstAuthOptional = dialog.IsFirstAuthOptional;
             _connectionSecurityRule.IsSecondAuthOptional = dialog.IsSecondAuthOptional;
-            VerificationMethodsBox.SelectedIndex =
+            VerificationMethodsRadioButtons.SelectedIndex =
                 _connectionSecurityRule.FirstAuthMethods.Count > 0 || _connectionSecurityRule.SecondAuthMethods.Count > 0
-                    ? 4
-                    : 0;
+                    ? AuthMethodAdvancedIndex
+                    : AuthMethodDefaultIndex;
         }
     }
 
@@ -1487,13 +1491,13 @@ public sealed partial class FirewallRuleInfoPage : Page, IUnsavedChangesGuard
             _ => 0
         };
 
-        VerificationMethodsBox.SelectedIndex = ConnectionSecurityAuthMethodResolver.ResolvePreset(rule) switch
+        VerificationMethodsRadioButtons.SelectedIndex = ConnectionSecurityAuthMethodResolver.ResolvePreset(rule) switch
         {
-            ConnectionSecurityAuthMethodResolver.PresetComputerAndUser => 1,
-            ConnectionSecurityAuthMethodResolver.PresetComputer => 2,
-            ConnectionSecurityAuthMethodResolver.PresetUser => 3,
-            ConnectionSecurityAuthMethodResolver.PresetAdvanced => 4,
-            _ => 0
+            ConnectionSecurityAuthMethodResolver.PresetComputerAndUser => AuthMethodComputerAndUserIndex,
+            ConnectionSecurityAuthMethodResolver.PresetComputer => AuthMethodComputerIndex,
+            ConnectionSecurityAuthMethodResolver.PresetUser => AuthMethodUserIndex,
+            ConnectionSecurityAuthMethodResolver.PresetAdvanced => AuthMethodAdvancedIndex,
+            _ => AuthMethodDefaultIndex
         };
     }
 
@@ -1570,7 +1574,7 @@ public sealed partial class FirewallRuleInfoPage : Page, IUnsavedChangesGuard
             _connectionSecurityRule.FirstAuthMethods.Clear();
             _connectionSecurityRule.SecondAuthMethods.Clear();
         }
-        else if ((VerificationMethodsBox.SelectedItem as ComboBoxItem)?.Tag?.ToString() is { } authPreset)
+        else if (GetSelectedAuthenticationPreset() is { } authPreset)
         {
             ConnectionSecurityAuthMethodResolver.ApplyPreset(_connectionSecurityRule, authPreset);
         }
@@ -1590,6 +1594,17 @@ public sealed partial class FirewallRuleInfoPage : Page, IUnsavedChangesGuard
             ConnectionSecurityRequirement.Request => LocalizedStrings.WF_SecurityRequirement_Request,
             ConnectionSecurityRequirement.Require => LocalizedStrings.WF_SecurityRequirement_Require,
             _ => LocalizedStrings.WF_SecurityRequirement_None
+        };
+
+    private string? GetSelectedAuthenticationPreset()
+        => VerificationMethodsRadioButtons.SelectedIndex switch
+        {
+            AuthMethodDefaultIndex => ConnectionSecurityAuthMethodResolver.PresetDefault,
+            AuthMethodComputerAndUserIndex => ConnectionSecurityAuthMethodResolver.PresetComputerAndUser,
+            AuthMethodComputerIndex => ConnectionSecurityAuthMethodResolver.PresetComputer,
+            AuthMethodUserIndex => ConnectionSecurityAuthMethodResolver.PresetUser,
+            AuthMethodAdvancedIndex => ConnectionSecurityAuthMethodResolver.PresetAdvanced,
+            _ => null
         };
 
     private string GetExecutableFilesFilter()
