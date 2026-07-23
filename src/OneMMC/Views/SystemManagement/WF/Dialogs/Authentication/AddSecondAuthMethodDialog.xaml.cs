@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography.X509Certificates;
+using OneMMC.Core.Features.SystemManagement.Infrastructure.WF;
 using OneMMC.Core.Features.SystemManagement.Models.WF.Authentication;
 using OneMMC.Core.Features.SystemManagement.Models.WF.ConnectionSecurity;
 using OneMMC.Core.Features.SystemManagement.Models.WF.Monitoring;
@@ -133,13 +133,15 @@ public sealed partial class AddSecondAuthMethodDialog : UserControl
     {
         var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindowInstance);
         var pickerService = App.GetRequiredService<CertificateAuthorityPickerService>();
-        string? distinguishedName = pickerService.PickCaDistinguishedName(
+        CertificateAuthorityPickResult? result = pickerService.PickCertificateAuthority(
             hwnd,
-            StoreLocation.CurrentUser,
-            GetSelectedCertificateAuthorityStoreName(UserCertStoreCombo));
-        if (!string.IsNullOrWhiteSpace(distinguishedName))
+            GetSelectedCertificateAuthorityStoreKind(UserCertStoreCombo),
+            new CertificateAuthorityPickerStrings(
+                LocalizedStrings.WF_CertificatePicker_Title,
+                LocalizedStrings.WF_CertificatePicker_Prompt));
+        if (result is not null)
         {
-            UserCertCATextBox.Text = distinguishedName;
+            UserCertCATextBox.Text = result.DistinguishedName;
             ResetValidationMessage();
         }
     }
@@ -148,13 +150,15 @@ public sealed partial class AddSecondAuthMethodDialog : UserControl
     {
         var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindowInstance);
         var pickerService = App.GetRequiredService<CertificateAuthorityPickerService>();
-        string? distinguishedName = pickerService.PickCaDistinguishedName(
+        CertificateAuthorityPickResult? result = pickerService.PickCertificateAuthority(
             hwnd,
-            StoreLocation.LocalMachine,
-            GetSelectedCertificateAuthorityStoreName(CompCertStoreCombo));
-        if (!string.IsNullOrWhiteSpace(distinguishedName))
+            GetSelectedCertificateAuthorityStoreKind(CompCertStoreCombo),
+            new CertificateAuthorityPickerStrings(
+                LocalizedStrings.WF_CertificatePicker_Title,
+                LocalizedStrings.WF_CertificatePicker_Prompt));
+        if (result is not null)
         {
-            CompCertCATextBox.Text = distinguishedName;
+            CompCertCATextBox.Text = result.DistinguishedName;
             ResetValidationMessage();
         }
     }
@@ -294,14 +298,30 @@ public sealed partial class AddSecondAuthMethodDialog : UserControl
 
     private string? GetValidationErrorMessage()
     {
-        if (UserCertRadio.IsChecked == true && string.IsNullOrWhiteSpace(UserCertCATextBox.Text))
+        if (UserCertRadio.IsChecked == true)
         {
-            return LocalizedStrings.WF_Validation_CertificateAuthorityPathRequired;
+            if (string.IsNullOrWhiteSpace(UserCertCATextBox.Text))
+            {
+                return LocalizedStrings.WF_Validation_CertificateAuthorityPathRequired;
+            }
+
+            if (!CertificateAuthorityNameSupport.IsValidTrustedCaName(UserCertCATextBox.Text))
+            {
+                return LocalizedStrings.WF_Validation_CertificateAuthorityNameInvalid;
+            }
         }
 
-        if (ComputerHealthCertRadio.IsChecked == true && string.IsNullOrWhiteSpace(CompCertCATextBox.Text))
+        if (ComputerHealthCertRadio.IsChecked == true)
         {
-            return LocalizedStrings.WF_Validation_CertificateAuthorityPathRequired;
+            if (string.IsNullOrWhiteSpace(CompCertCATextBox.Text))
+            {
+                return LocalizedStrings.WF_Validation_CertificateAuthorityPathRequired;
+            }
+
+            if (!CertificateAuthorityNameSupport.IsValidTrustedCaName(CompCertCATextBox.Text))
+            {
+                return LocalizedStrings.WF_Validation_CertificateAuthorityNameInvalid;
+            }
         }
 
         SecondAuthCategory selectedCategory = GetSelectedCategory();
@@ -385,12 +405,12 @@ public sealed partial class AddSecondAuthMethodDialog : UserControl
             ?? (comboBox.SelectedItem as ComboBoxItem)?.Content?.ToString()
             ?? string.Empty;
 
-    private static StoreName GetSelectedCertificateAuthorityStoreName(ComboBox comboBox)
+    private static CertificateAuthorityStoreKind GetSelectedCertificateAuthorityStoreKind(ComboBox comboBox)
     {
         return AuthMethodValueMapper.NormalizeCertificateStoreTypeTag(GetComboTag(comboBox)) switch
         {
-            "IntermediateCA" => StoreName.CertificateAuthority,
-            _ => StoreName.Root
+            "IntermediateCA" => CertificateAuthorityStoreKind.IntermediateCA,
+            _ => CertificateAuthorityStoreKind.RootCA
         };
     }
 

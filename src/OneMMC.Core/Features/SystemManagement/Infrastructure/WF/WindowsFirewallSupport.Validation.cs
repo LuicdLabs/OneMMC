@@ -110,12 +110,31 @@ public static partial class WindowsFirewallSupport
                 nameof(rule));
         }
 
+        ValidateCertificateAuthMethods(rule);
+
         if (rule.Mode == ConnectionSecurityMode.Tunnel)
         {
             ValidateTunnelEndpointFamilies(rule);
             ValidateTunnelKeyModule(rule);
         }
     }
+
+    private static void ValidateCertificateAuthMethods(ConnectionSecurityRuleModel rule)
+    {
+        foreach (var method in rule.FirstAuthMethods.Concat(rule.SecondAuthMethods))
+        {
+            if (IsCertificateAuthKind(method.Result.Kind ?? string.Empty) &&
+                !CertificateAuthorityNameSupport.IsValidTrustedCaName(method.Result.CaDistinguishedName))
+            {
+                throw new ArgumentException(
+                    "Certificate authentication methods require a valid X.500 certification authority name without the '|' character.",
+                    nameof(rule));
+            }
+        }
+    }
+
+    private static bool IsCertificateAuthKind(string kind)
+        => kind is "ComputerCertificate" or "UserCertificate" or "ComputerHealthCertificate";
 
     private static void ValidateTunnelEndpointFamilies(ConnectionSecurityRuleModel rule)
     {

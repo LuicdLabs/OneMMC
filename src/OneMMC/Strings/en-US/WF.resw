@@ -1992,6 +1992,15 @@
   <data name="WF_Validation_CertificateAuthorityPathRequired" xml:space="preserve">
     <value>You must specify the certification authority path.</value>
   </data>
+  <data name="WF_Validation_CertificateAuthorityNameInvalid" xml:space="preserve">
+    <value>The certification authority name is not a valid X.500 distinguished name.</value>
+  </data>
+  <data name="WF_CertificatePicker_Title" xml:space="preserve">
+    <value>Select Certification Authority</value>
+  </data>
+  <data name="WF_CertificatePicker_Prompt" xml:space="preserve">
+    <value>Select the certification authority (CA) you want to use for this authentication method.</value>
+  </data>
   <data name="WF_Validation_CustomAuthenticationRequired" xml:space="preserve">
     <value>You must specify at least one custom authentication method.</value>
   </data>
@@ -2084,6 +2093,9 @@
   </data>
   <data name="WF_AuthDetails_KerberosAuthentication" xml:space="preserve">
     <value>Kerberos authentication</value>
+  </data>
+  <data name="WF_AuthDetails_DefaultAuthentication" xml:space="preserve">
+    <value>Default authentication (IPsec settings)</value>
   </data>
   <data name="WF_AuthDetails_NtlmAuthentication" xml:space="preserve">
     <value>NTLMv2 authentication</value>

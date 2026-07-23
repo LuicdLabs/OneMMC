@@ -1028,6 +1028,9 @@ public static class WFKeys
     public const string ValidationCompartmentInvalid = "WF_Validation_CompartmentInvalid";
     public const string ValidationProtocolNumberInvalid = "WF_Validation_ProtocolNumberInvalid";
     public const string ValidationCertificateAuthorityPathRequired = "WF_Validation_CertificateAuthorityPathRequired";
+    public const string ValidationCertificateAuthorityNameInvalid = "WF_Validation_CertificateAuthorityNameInvalid";
+    public const string CertificatePickerTitle = "WF_CertificatePicker_Title";
+    public const string CertificatePickerPrompt = "WF_CertificatePicker_Prompt";
     public const string ValidationCustomAuthenticationRequired = "WF_Validation_CustomAuthenticationRequired";
     public const string ValidationPresharedKeyRequired = "WF_Validation_PresharedKeyRequired";
     public const string ValidationPresharedKeyCannotUseSecondAuthentication = "WF_Validation_PresharedKeyCannotUseSecondAuthentication";

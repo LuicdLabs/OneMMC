@@ -118,6 +118,9 @@ public partial class LocalizedStrings
     public string WF_Validation_Endpoint1PortsRequired => GetResource(ResourceFileNames.WF, nameof(WF_Validation_Endpoint1PortsRequired));
     public string WF_Validation_Endpoint2PortsRequired => GetResource(ResourceFileNames.WF, nameof(WF_Validation_Endpoint2PortsRequired));
     public string WF_Validation_CertificateAuthorityPathRequired => GetResource(ResourceFileNames.WF, nameof(WF_Validation_CertificateAuthorityPathRequired));
+    public string WF_Validation_CertificateAuthorityNameInvalid => GetResource(ResourceFileNames.WF, nameof(WF_Validation_CertificateAuthorityNameInvalid));
+    public string WF_CertificatePicker_Title => GetResource(ResourceFileNames.WF, nameof(WF_CertificatePicker_Title));
+    public string WF_CertificatePicker_Prompt => GetResource(ResourceFileNames.WF, nameof(WF_CertificatePicker_Prompt));
     public string WF_Validation_CustomAuthenticationRequired => GetResource(ResourceFileNames.WF, nameof(WF_Validation_CustomAuthenticationRequired));
     public string WF_Validation_PresharedKeyRequired => GetResource(ResourceFileNames.WF, nameof(WF_Validation_PresharedKeyRequired));
     public string WF_Validation_PresharedKeyCannotUseSecondAuthentication => GetResource(ResourceFileNames.WF, nameof(WF_Validation_PresharedKeyCannotUseSecondAuthentication));

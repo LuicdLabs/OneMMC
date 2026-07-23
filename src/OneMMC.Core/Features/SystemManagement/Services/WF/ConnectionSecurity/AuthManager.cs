@@ -251,6 +251,13 @@ internal static class AuthManager
 
     private static WbemObject CreateCertificateAuthProposal(WbemServices session, AuthMethodDialogResult method, ushort authenticationMethod)
     {
+        if (!CertificateAuthorityNameSupport.IsValidTrustedCaName(method.CaDistinguishedName))
+        {
+            throw new ArgumentException(
+                "Certificate authentication proposals require a valid X.500 certification authority name without the '|' character.",
+                nameof(method));
+        }
+
         WbemObject instance = session.SpawnInstance("MSFT_NetIKECertAuthProposal");
         instance.SetProperty("AuthenticationMethod", authenticationMethod, WbemType.UInt16);
         instance.SetProperty("TrustedCA", method.CaDistinguishedName ?? string.Empty, WbemType.String);

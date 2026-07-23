@@ -141,7 +141,17 @@ internal static class RuleMapper
         }
 
         using WbemObject? authSet = FindAuthSetById(session, phase1, setId);
-        if (authSet?.GetValue("Proposals") is not WbemObject[] proposals || proposals.Length == 0)
+        if (authSet is null)
+        {
+            // The rule references the default authentication set, but that set has no enumerable
+            // instance because the IPsec defaults were never customized — Windows applies its
+            // service hardcoded default instead. Resolve it to the effective default methods so
+            // the rule shows the authentication Windows actually uses rather than appearing empty.
+            AddServiceDefaultAuthMethods(model, phase1, setId);
+            return;
+        }
+
+        if (authSet.GetValue("Proposals") is not WbemObject[] proposals || proposals.Length == 0)
         {
             return;
         }
@@ -165,6 +175,40 @@ internal static class RuleMapper
                 proposal.Dispose();
             }
         }
+    }
+
+    private static void AddServiceDefaultAuthMethods(ConnectionSecurityRuleModel model, bool phase1, string setId)
+    {
+        if (!IsDefaultAuthSetReference(setId, phase1))
+        {
+            return;
+        }
+
+        // Service hardcoded defaults (verified against the ActiveStore): the Phase 1 default is
+        // Computer (Kerberos V5); the Phase 2 default has no proposals, so no second-auth method
+        // is added. When the IPsec defaults are customized the set becomes an enumerable instance
+        // and is read directly above, so this fallback only covers the uncustomized default.
+        if (phase1)
+        {
+            AddAuthMethod(model, phase1, new AuthMethodDialogResult
+            {
+                Kind = "ComputerKerberos",
+                Method = GetString("WF_AuthMethod_ComputerKerberos"),
+                Details = GetString("WF_AuthDetails_DefaultAuthentication")
+            });
+        }
+    }
+
+    private static bool IsDefaultAuthSetReference(string setId, bool phase1)
+    {
+        string id = setId.Trim();
+        if (string.Equals(id, "Default", StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        string defaultId = phase1 ? DefaultPhase1AuthSetId : DefaultPhase2AuthSetId;
+        return id.Contains(defaultId, StringComparison.OrdinalIgnoreCase);
     }
 
     private static void AddAuthMethod(ConnectionSecurityRuleModel model, bool phase1, AuthMethodDialogResult result)
