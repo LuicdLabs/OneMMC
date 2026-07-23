@@ -1487,7 +1487,14 @@ public sealed partial class FirewallRuleInfoPage : Page, IUnsavedChangesGuard
             _ => 0
         };
 
-        VerificationMethodsBox.SelectedIndex = rule.FirstAuthMethods.Count > 0 || rule.SecondAuthMethods.Count > 0 ? 4 : 0;
+        VerificationMethodsBox.SelectedIndex = ConnectionSecurityAuthMethodResolver.ResolvePreset(rule) switch
+        {
+            ConnectionSecurityAuthMethodResolver.PresetComputerAndUser => 1,
+            ConnectionSecurityAuthMethodResolver.PresetComputer => 2,
+            ConnectionSecurityAuthMethodResolver.PresetUser => 3,
+            ConnectionSecurityAuthMethodResolver.PresetAdvanced => 4,
+            _ => 0
+        };
     }
 
     private void UpdateConnectionSecurityRuleFromUi()
@@ -1554,6 +1561,18 @@ public sealed partial class FirewallRuleInfoPage : Page, IUnsavedChangesGuard
                 _connectionSecurityRule.InboundSecurity = ConnectionSecurityRequirement.None;
                 _connectionSecurityRule.OutboundSecurity = ConnectionSecurityRequirement.None;
                 break;
+        }
+
+        // Apply the selected authentication-method preset so a Default/Computer/User/Computer-and-user
+        // selection configures the rule to match WF.msc. Advanced keeps the customize-dialog methods.
+        if (_connectionSecurityRule is { InboundSecurity: ConnectionSecurityRequirement.None, OutboundSecurity: ConnectionSecurityRequirement.None })
+        {
+            _connectionSecurityRule.FirstAuthMethods.Clear();
+            _connectionSecurityRule.SecondAuthMethods.Clear();
+        }
+        else if ((VerificationMethodsBox.SelectedItem as ComboBoxItem)?.Tag?.ToString() is { } authPreset)
+        {
+            ConnectionSecurityAuthMethodResolver.ApplyPreset(_connectionSecurityRule, authPreset);
         }
 
         _connectionSecurityRule.Summary = string.Format(
