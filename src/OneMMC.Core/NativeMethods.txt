@@ -158,6 +158,7 @@ RegCreateKeyEx
 RegDeleteValue
 RegFlushKey
 RegLoadKey
+RegNotifyChangeKeyValue
 RegOpenKeyEx
 RegQueryValueEx
 RegSetValueEx

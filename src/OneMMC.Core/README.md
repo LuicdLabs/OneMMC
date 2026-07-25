@@ -245,6 +245,15 @@ Two sanctioned paths, chosen by capability:
 
 Dispose behavior is part of correctness here — the underlying handles are native.
 
+**Do not use polled intrinsic events (`__InstanceOperationEvent … WITHIN n`) over large classes.**
+To diff such a query WMI caches a full instance snapshot of the watched class, charged against the
+per-user `__ArbitratorConfiguration.PollingMemoryPerUser` quota (5 MB by default). A single
+`MSFT_NetFirewallRule` subscription already approaches that quota on a machine with ~500 rules, so
+registration fails nondeterministically with `WBEM_E_QUOTA_VIOLATION` (0x8004106C); neither a longer
+`WITHIN` interval nor merging the classes into one `OR`'d query reduces the cost, because it tracks
+snapshot size rather than frequency. Prefer a cheaper change signal — `WindowsFirewallRuleChangeService`
+watches the firewall policy registry subtree with `RegNotifyChangeKeyValue` instead.
+
 ### Directory / accounts & performance counters
 
 - Local users/groups → **NetAPI32**; LDAP/ADSI object access → the in-house ADSI layer at
