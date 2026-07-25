@@ -21,7 +21,13 @@ namespace OneMMC.Core.Features.PolicyManagement.ViewModels.GpEdit
     {
         private readonly ILogger<GroupPolicyEditorViewModel> _logger;
         private readonly IAdminService _adminService;
-        private AdmxBundle _admxBundle;
+        private readonly AdmxBundleProvider _admxBundleProvider;
+
+        /// <summary>
+        /// Borrowed reference to the process-wide shared bundle. Never disposed or cleared here — see
+        /// <see cref="AdmxBundleProvider"/>.
+        /// </summary>
+        private AdmxBundle? _admxBundle;
         private IPolicyService? _computerPolicyService;
         private IPolicyService? _userPolicyService;
         private SynchronizationContext? _syncContext;
@@ -66,17 +72,33 @@ namespace OneMMC.Core.Features.PolicyManagement.ViewModels.GpEdit
         /// </summary>
         public event EventHandler? AdminPermissionRequired;
 
-        public GroupPolicyEditorViewModel(ILogger<GroupPolicyEditorViewModel> logger, IAdminService adminService)
+        public GroupPolicyEditorViewModel(
+            ILogger<GroupPolicyEditorViewModel> logger,
+            IAdminService adminService,
+            AdmxBundleProvider admxBundleProvider)
         {
             _logger = logger;
             _adminService = adminService;
-            _admxBundle = new AdmxBundle();
+            _admxBundleProvider = admxBundleProvider;
             _syncContext = SynchronizationContext.Current;
-            
+
             // Check Windows edition and warn if necessary
             CheckWindowsEditionSupport();
-            
-            _ = LoadPoliciesAsync();
+        }
+
+        /// <summary>
+        /// Starts loading the policy definitions and building the tree.
+        /// </summary>
+        /// <remarks>
+        /// Deliberately not called from the constructor: the load is expensive, and starting it there meant
+        /// a user who opened and immediately left the page still paid for the whole parse with no way to
+        /// cancel. The view calls this once it is actually shown.
+        /// </remarks>
+        /// <param name="cancellationToken">Cancels the load when the page goes away.</param>
+        /// <returns>A task that completes when the tree has been built or the load was cancelled.</returns>
+        public Task InitializeAsync(CancellationToken cancellationToken = default)
+        {
+            return LoadPoliciesAsync(cancellationToken);
         }
 
         private void CheckWindowsEditionSupport()
@@ -95,7 +117,7 @@ namespace OneMMC.Core.Features.PolicyManagement.ViewModels.GpEdit
             }
         }
 
-        private async Task LoadPoliciesAsync()
+        private async Task LoadPoliciesAsync(CancellationToken cancellationToken = default)
         {
             IsLoading = true;
             StatusMessage = "Loading ADMX files...";
@@ -104,9 +126,10 @@ namespace OneMMC.Core.Features.PolicyManagement.ViewModels.GpEdit
             {
                 try
                 {
-                    // Load ADMX files
-                    string policyDefinitionsPath = Environment.ExpandEnvironmentVariables(@"%SYSTEMROOT%\PolicyDefinitions");
-                    _admxBundle.LoadFolder(policyDefinitionsPath, System.Globalization.CultureInfo.CurrentCulture.Name);
+                    // Borrow the process-wide bundle; the first caller pays for the parse, the rest reuse it.
+                    _admxBundle = _admxBundleProvider.GetOrLoad();
+
+                    cancellationToken.ThrowIfCancellationRequested();
 
                     // Initialize policy services using the factory
                     _computerPolicyService = PolicyServiceFactory.CreateMachinePolicyService();
@@ -128,10 +151,20 @@ namespace OneMMC.Core.Features.PolicyManagement.ViewModels.GpEdit
 
                     _syncContext?.Post(_ =>
                     {
+                        if (cancellationToken.IsCancellationRequested)
+                        {
+                            return;
+                        }
+
                         BuildPolicyTree();
                         IsLoading = false;
                         StatusMessage = "Ready";
                     }, null);
+                }
+                catch (OperationCanceledException)
+                {
+                    // The page went away while loading; leaving quietly is the expected outcome.
+                    LogDebug("[GPO] LoadPoliciesAsync cancelled");
                 }
                 catch (Exception ex)
                 {
@@ -143,39 +176,40 @@ namespace OneMMC.Core.Features.PolicyManagement.ViewModels.GpEdit
                         StatusMessage = "Error";
                     }, null);
                 }
-            });
+            }, cancellationToken);
         }
 
         private void BuildPolicyTree()
         {
             RootNodes.Clear();
 
+            if (_admxBundle is null)
+            {
+                return;
+            }
+
             var computerRoot = new GroupPolicyTreeItem(
                 LocalizationProvider.Current.GetString(ResourceFileNames.Policy, PolicyKeys.TreeComputerConfiguration),
                 null,
                 true,
-                null,
-                this);
+                null);
             var compAdmin = new GroupPolicyTreeItem(
                 LocalizationProvider.Current.GetString(ResourceFileNames.Policy, PolicyKeys.TreeAdministrativeTemplates),
                 null,
                 true,
-                _admxBundle.Categories.Values,
-                this);
+                _admxBundle.Categories.Values);
             computerRoot.Children.Add(compAdmin);
 
             var userRoot = new GroupPolicyTreeItem(
                 LocalizationProvider.Current.GetString(ResourceFileNames.Policy, PolicyKeys.TreeUserConfiguration),
                 null,
                 false,
-                null,
-                this);
+                null);
             var userAdmin = new GroupPolicyTreeItem(
                 LocalizationProvider.Current.GetString(ResourceFileNames.Policy, PolicyKeys.TreeAdministrativeTemplates),
                 null,
                 false,
-                _admxBundle.Categories.Values,
-                this);
+                _admxBundle.Categories.Values);
             userRoot.Children.Add(userAdmin);
 
             RootNodes.Add(computerRoot);
@@ -426,6 +460,17 @@ namespace OneMMC.Core.Features.PolicyManagement.ViewModels.GpEdit
             _computerPolicyService = null;
             _userPolicyService = null;
 
+            // Release the policy tree explicitly rather than waiting for the whole view model to become
+            // unreachable: these collections hold the full category graph.
+            RootNodes.Clear();
+            CurrentPolicies.Clear();
+            SelectedNode = null;
+            SelectedPolicy = null;
+            _lastCategory = null;
+
+            // Borrowed from AdmxBundleProvider — drop the reference only, never dispose the shared bundle.
+            _admxBundle = null;
+
             _disposed = true;
         }
 
@@ -440,31 +485,92 @@ namespace OneMMC.Core.Features.PolicyManagement.ViewModels.GpEdit
         public string Name { get; set; }
         public PolicyManagerCategory? Category { get; set; }
         public bool IsComputerConfiguration { get; set; }
-        public ObservableCollection<GroupPolicyTreeItem> Children { get; set; } = new();
-        private readonly GroupPolicyEditorViewModel _viewModel;
+        public ObservableCollection<GroupPolicyTreeItem> Children { get; } = new();
 
-        public GroupPolicyTreeItem(string name, PolicyManagerCategory? category, bool isComputer, IEnumerable<PolicyManagerCategory>? childrenToPopulate, GroupPolicyEditorViewModel vm)
+        /// <summary>
+        /// Categories that would become this node's children, kept unexpanded until the node is opened.
+        /// </summary>
+        private readonly IEnumerable<PolicyManagerCategory>? _pendingChildren;
+
+        private bool _childrenPopulated;
+        private bool? _hasChildren;
+
+        public GroupPolicyTreeItem(string name, PolicyManagerCategory? category, bool isComputer, IEnumerable<PolicyManagerCategory>? childrenToPopulate)
         {
             Name = name;
             Category = category;
             IsComputerConfiguration = isComputer;
-            _viewModel = vm;
+            _pendingChildren = childrenToPopulate;
+            _childrenPopulated = childrenToPopulate is null;
+        }
 
-            if (childrenToPopulate is not null)
+        private AdmxPolicySection Section =>
+            IsComputerConfiguration ? AdmxPolicySection.Machine : AdmxPolicySection.User;
+
+        /// <summary>
+        /// Gets whether this node has at least one child, without building the child items.
+        /// </summary>
+        /// <remarks>
+        /// The whole ADMX category graph used to be turned into tree items up front — twice, once for the
+        /// Machine section and once for User — and the eligibility probe below recursed the full subtree
+        /// for every node. Deferring means only the levels the user actually opens are ever built.
+        /// </remarks>
+        public bool HasChildren
+        {
+            get
             {
-                PopulateChildren(childrenToPopulate, isComputer ? AdmxPolicySection.Machine : AdmxPolicySection.User);
+                if (_childrenPopulated)
+                {
+                    return Children.Count > 0;
+                }
+
+                return _hasChildren ??= _pendingChildren is not null
+                    && _pendingChildren.Any(cat => HasPoliciesInSection(cat, Section));
             }
         }
 
-        private void PopulateChildren(IEnumerable<PolicyManagerCategory> categories, AdmxPolicySection section)
+        /// <summary>
+        /// Builds this node's immediate children if they have not been built yet. Grandchildren stay
+        /// unexpanded until they are opened in turn.
+        /// </summary>
+        public void EnsureChildrenPopulated()
         {
-            foreach (var cat in categories.OrderBy(c => c.DisplayName))
+            if (_childrenPopulated)
+            {
+                return;
+            }
+
+            _childrenPopulated = true;
+
+            if (_pendingChildren is null)
+            {
+                return;
+            }
+
+            AdmxPolicySection section = Section;
+
+            foreach (var cat in _pendingChildren.OrderBy(c => c.DisplayName))
             {
                 if (HasPoliciesInSection(cat, section))
                 {
-                    Children.Add(new GroupPolicyTreeItem(cat.DisplayName, cat, IsComputerConfiguration, cat.Children, _viewModel));
+                    Children.Add(new GroupPolicyTreeItem(cat.DisplayName, cat, IsComputerConfiguration, cat.Children));
                 }
             }
+        }
+
+        /// <summary>
+        /// Drops the built children so a collapsed branch stops costing memory. The node can be rebuilt by
+        /// calling <see cref="EnsureChildrenPopulated"/> again.
+        /// </summary>
+        public void ReleaseChildren()
+        {
+            if (_pendingChildren is null)
+            {
+                return;
+            }
+
+            Children.Clear();
+            _childrenPopulated = false;
         }
 
         private static bool HasPoliciesInSection(PolicyManagerCategory category, AdmxPolicySection section)

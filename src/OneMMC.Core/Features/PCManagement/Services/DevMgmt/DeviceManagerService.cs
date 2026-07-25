@@ -56,7 +56,14 @@ namespace OneMMC.Core.Features.PCManagement.Services.DevMgmt
             {
                 using (var connection = new WmiConnection())
                 {
-                    foreach (WmiObject device in connection.CreateQuery("SELECT * FROM Win32_PnPEntity").DisposeItems())
+                    // Project only the properties read below. Win32_PnPEntity exposes roughly thirty, and a
+                    // typical machine has 1500-3000 instances, so SELECT * materialized tens of thousands
+                    // of property values that were immediately discarded.
+                    const string DeviceQuery =
+                        "SELECT PNPClass, ClassGuid, Caption, DeviceID, Description, Manufacturer, " +
+                        "Status, PNPDeviceID, ConfigManagerErrorCode FROM Win32_PnPEntity";
+
+                    foreach (WmiObject device in connection.CreateQuery(DeviceQuery).DisposeItems())
                     {
                         var className = device["PNPClass"]?.ToString() ?? "Unknown";
                         var classGuid = device["ClassGuid"]?.ToString() ?? "";

@@ -105,9 +105,11 @@ namespace OneMMC.Services
         // False = normal forward navigation (just remove last breadcrumb)
         private static Stack<bool> _backStackSourceType = new Stack<bool>();
         
-        // Page metadata cache to avoid creating instances repeatedly
-        private static readonly Dictionary<Type, (bool IsHeaderVisible, string PageTitle, bool ClearNavigation)> _pageMetadataCache = new();
-        
+        // Upper bound for the two history stacks below. They are pushed on every navigation but only
+        // popped when the user walks all the way back, so forward-only browsing grew them for the whole
+        // session. Ten is deeper than any realistic run of back-navigations.
+        private const int MaximumHistoryDepth = 10;
+
         // State machine for navigation control
         public static NavigationState CurrentState { get; private set; } = NavigationState.Idle;
         
@@ -204,6 +206,24 @@ namespace OneMMC.Services
         private static Stack<bool> CloneBoolStack(Stack<bool> source) =>
             new(source.Reverse());
 
+        /// <summary>
+        /// Discards the oldest entries once a history stack exceeds <see cref="MaximumHistoryDepth"/>.
+        /// </summary>
+        /// <remarks>
+        /// <see cref="Stack{T}"/> cannot drop from the bottom, so the stack is rebuilt from the newest
+        /// entries. Enumeration is newest-first, so the kept entries are reversed to oldest-first before
+        /// being pushed back, which restores the original ordering.
+        /// </remarks>
+        private static void TrimHistory<T>(ref Stack<T> stack)
+        {
+            if (stack.Count <= MaximumHistoryDepth)
+            {
+                return;
+            }
+
+            stack = new Stack<T>(stack.Take(MaximumHistoryDepth).Reverse());
+        }
+
         #endregion
 
         #region Public Functions
@@ -278,7 +298,8 @@ namespace OneMMC.Services
                 
                 // Mark this BackStack entry as created from breadcrumb click navigation
                 _backStackSourceType.Push(true);
-                
+                TrimHistory(ref _backStackSourceType);
+
                 int itemsToRemove = BreadCrumbs.Count - breadcrumbIndex - 1;
                 for (int i = 0; i < itemsToRemove; i++)
                 {
@@ -354,7 +375,8 @@ namespace OneMMC.Services
             // Mark this upcoming BackStack entry as normal forward navigation (not breadcrumb click)
             // This is called before contentFrame.Navigate() which adds to BackStack
             _backStackSourceType.Push(false);
-            
+            TrimHistory(ref _backStackSourceType);
+
             BreadCrumbs.Add(new Breadcrumb(label, pageType, parameter));
             UpdateBreadcrumb();
             LogDebug("AddBreadcrumb", $"Added '{label}'");
@@ -373,6 +395,7 @@ namespace OneMMC.Services
             var backStackSourceTypeCopy = CloneBoolStack(_backStackSourceType);
 
             _mainNavHistory.Push((currentState, clickHistoryCopy, backStackSourceTypeCopy));
+            TrimHistory(ref _mainNavHistory);
             LogDebug("SaveToMainNavHistory", $"Saved [{string.Join(" > ", currentState.Select(b => b.Label))}] with {clickHistoryCopy.Count} click history entries");
 
             _breadcrumbClickHistory.Clear();
@@ -388,6 +411,7 @@ namespace OneMMC.Services
             
             var currentState = ToLightweightBreadcrumbs(BreadCrumbs);
             _breadcrumbClickHistory.Push(currentState);
+            TrimHistory(ref _breadcrumbClickHistory);
             LogDebug("SaveToBreadcrumbClickHistory", $"Saved [{string.Join(" > ", currentState.Select(b => b.Label))}]");
         }
 

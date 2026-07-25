@@ -31,7 +31,6 @@ public sealed partial class AuthorizationStorePage : Page
     private AzManService? _service;
     private AuthorizationStoreViewModel? _viewModel;
     private AzAuthorizationStoreInfo? _store;
-    private AuthorizationManagerViewModel? _managerViewModel;
 
     public AuthorizationStorePage()
     {
@@ -48,7 +47,6 @@ public sealed partial class AuthorizationStorePage : Page
             }
             _service = null;
             _store = null;
-            _managerViewModel = null;
         };
     }
 
@@ -60,9 +58,9 @@ public sealed partial class AuthorizationStorePage : Page
 
         if (e.Parameter is StoreNavigationParameter param)
         {
-            _service = param.Service;
+            // AzManService is a DI singleton; the navigation parameter deliberately no longer carries it.
+            _service = App.GetRequiredService<AzManService>();
             _store = param.Store;
-            _managerViewModel = param.ManagerViewModel;
             _viewModel = new AuthorizationStoreViewModel(_service);
             _viewModel.PropertyChanged += OnViewModelPropertyChanged;
 
@@ -306,31 +304,17 @@ public sealed partial class AuthorizationStorePage : Page
         {
             try
             {
-                bool success;
-
-                if (_managerViewModel != null)
+                if (_service == null)
                 {
-                    success = await _managerViewModel.DeleteStoreAsync(_store);
-                }
-                else
-                {
-                    if (_service == null)
-                    {
-                        ShowStatus(LocalizedStrings.Common_ErrorTitle, true);
-                        return;
-                    }
-
-                    await _service.DeleteStoreAsync(_store.StorePath);
-                    success = true;
+                    ShowStatus(LocalizedStrings.Common_ErrorTitle, true);
+                    return;
                 }
 
-                if (success && this.Frame.CanGoBack)
+                await _service.DeleteStoreAsync(_store.StorePath);
+
+                if (this.Frame.CanGoBack)
                 {
                     this.Frame.GoBack();
-                }
-                else if (!success)
-                {
-                    ShowStatus(_managerViewModel?.StatusMessage ?? LocalizedStrings.Common_ErrorTitle, true);
                 }
             }
             catch (Exception ex)
@@ -370,7 +354,7 @@ public sealed partial class AuthorizationStorePage : Page
     {
         if (sender is SettingsCard card && card.Tag is AzApplicationInfo app && _service != null && _store != null)
         {
-            var navigationParameter = new ApplicationNavigationParameter(_service, _store.StorePath, app.Name);
+            var navigationParameter = new ApplicationNavigationParameter(_store.StorePath, app.Name);
 
             if (this.Frame == null)
             {
@@ -584,17 +568,16 @@ public sealed partial class AuthorizationStorePage : Page
     }
 
 /// <summary>
-/// Application navigation parameter
+/// Application navigation parameter. Identifiers only — see <see cref="StoreNavigationParameter"/> for
+/// why navigation parameters must not carry live services or view models.
 /// </summary>
 public class ApplicationNavigationParameter
 {
-    public AzManService Service { get; }
     public string StorePath { get; }
     public string ApplicationName { get; }
 
-    public ApplicationNavigationParameter(AzManService service, string storePath, string appName)
+    public ApplicationNavigationParameter(string storePath, string appName)
     {
-        Service = service;
         StorePath = storePath;
         ApplicationName = appName;
     }

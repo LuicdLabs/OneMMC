@@ -215,7 +215,7 @@
             <!--  Printers Section  -->
             <cwuc:SettingsExpander
                 x:Name="PrintersExpander"
-                IsExpanded="True"
+                IsExpanded="False"
                 ItemTemplate="{StaticResource PrinterItemTemplate}"
                 ItemsSource="{x:Bind ViewModel.Printers, Mode=OneWay}">
                 <cwuc:SettingsExpander.HeaderIcon>
@@ -232,7 +232,7 @@
             <!--  Drivers Section  -->
             <cwuc:SettingsExpander
                 x:Name="DriversExpander"
-                IsExpanded="True"
+                IsExpanded="False"
                 ItemTemplate="{StaticResource DriverItemTemplate}"
                 ItemsSource="{x:Bind ViewModel.Drivers, Mode=OneWay}">
                 <cwuc:SettingsExpander.HeaderIcon>
@@ -249,7 +249,7 @@
             <!--  Deployed Printers Section  -->
             <cwuc:SettingsExpander
                 x:Name="DeployedPrintersExpander"
-                IsExpanded="True"
+                IsExpanded="False"
                 ItemTemplate="{StaticResource DeployedPrinterItemTemplate}"
                 ItemsSource="{x:Bind ViewModel.DeployedPrinters, Mode=OneWay}">
                 <cwuc:SettingsExpander.HeaderIcon>

@@ -124,10 +124,17 @@ public sealed partial class SharedFoldersPage : Page
         _autoRefreshTimer?.Stop();
     }
 
+    /// <summary>
+    /// Interval for live monitoring. Every tick re-enumerates shares, sessions, and open files over WMI
+    /// and resolves client names, so a one-second cadence produced continuous allocation churn for a view
+    /// that changes far more slowly than that. Five seconds still reads as "live" to the user.
+    /// </summary>
+    private static readonly TimeSpan AutoRefreshInterval = TimeSpan.FromSeconds(5);
+
     private DispatcherQueueTimer CreateAutoRefreshTimer()
     {
         DispatcherQueueTimer timer = DispatcherQueue.CreateTimer();
-        timer.Interval = TimeSpan.FromSeconds(1);
+        timer.Interval = AutoRefreshInterval;
         timer.IsRepeating = true;
         timer.Tick += AutoRefreshTimer_Tick;
         return timer;

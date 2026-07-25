@@ -123,7 +123,7 @@
                     Visibility="Visible">
 
                     <!--  Groups  -->
-                    <cwuc:SettingsExpander IsExpanded="True" ItemsSource="{x:Bind _viewModel.FilteredGroups, Mode=OneWay}">
+                    <cwuc:SettingsExpander IsExpanded="False" ItemsSource="{x:Bind _viewModel.FilteredGroups, Mode=OneWay}">
                         <cwuc:SettingsExpander.Header>
                             <StackPanel Orientation="Horizontal" Spacing="12">
                                 <FontIcon FontSize="20" Glyph="&#xE902;" />
@@ -202,7 +202,7 @@
                     </cwuc:SettingsExpander>
 
                     <!--  Role Assignments  -->
-                    <cwuc:SettingsExpander IsExpanded="True" ItemsSource="{x:Bind _viewModel.FilteredRoleAssignments, Mode=OneWay}">
+                    <cwuc:SettingsExpander IsExpanded="False" ItemsSource="{x:Bind _viewModel.FilteredRoleAssignments, Mode=OneWay}">
                         <cwuc:SettingsExpander.Header>
                             <StackPanel Orientation="Horizontal" Spacing="12">
                                 <FontIcon FontSize="20" Glyph="&#xE77B;" />
@@ -266,7 +266,7 @@
                     </cwuc:SettingsExpander>
 
                     <!--  Scopes  -->
-                    <cwuc:SettingsExpander IsExpanded="True" ItemsSource="{x:Bind _viewModel.FilteredScopes, Mode=OneWay}">
+                    <cwuc:SettingsExpander IsExpanded="False" ItemsSource="{x:Bind _viewModel.FilteredScopes, Mode=OneWay}">
                         <cwuc:SettingsExpander.Header>
                             <StackPanel Orientation="Horizontal" Spacing="12">
                                 <FontIcon FontSize="20" Glyph="&#xE8B7;" />
@@ -352,7 +352,7 @@
                     Visibility="Collapsed">
 
                     <!--  Role Definitions  -->
-                    <cwuc:SettingsExpander IsExpanded="True" ItemsSource="{x:Bind _viewModel.FilteredRoleDefinitions, Mode=OneWay}">
+                    <cwuc:SettingsExpander IsExpanded="False" ItemsSource="{x:Bind _viewModel.FilteredRoleDefinitions, Mode=OneWay}">
                         <cwuc:SettingsExpander.Header>
                             <StackPanel Orientation="Horizontal" Spacing="12">
                                 <FontIcon FontSize="20" Glyph="&#xE716;" />
@@ -416,7 +416,7 @@
                     </cwuc:SettingsExpander>
 
                     <!--  Tasks  -->
-                    <cwuc:SettingsExpander IsExpanded="True" ItemsSource="{x:Bind _viewModel.FilteredTasks, Mode=OneWay}">
+                    <cwuc:SettingsExpander IsExpanded="False" ItemsSource="{x:Bind _viewModel.FilteredTasks, Mode=OneWay}">
                         <cwuc:SettingsExpander.Header>
                             <StackPanel Orientation="Horizontal" Spacing="12">
                                 <FontIcon FontSize="20" Glyph="&#xE9D5;" />
@@ -480,7 +480,7 @@
                     </cwuc:SettingsExpander>
 
                     <!--  Operations  -->
-                    <cwuc:SettingsExpander IsExpanded="True" ItemsSource="{x:Bind _viewModel.FilteredOperations, Mode=OneWay}">
+                    <cwuc:SettingsExpander IsExpanded="False" ItemsSource="{x:Bind _viewModel.FilteredOperations, Mode=OneWay}">
                         <cwuc:SettingsExpander.Header>
                             <StackPanel Orientation="Horizontal" Spacing="12">
                                 <FontIcon FontSize="20" Glyph="&#xE713;" />

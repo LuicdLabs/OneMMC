@@ -55,11 +55,10 @@
                 Background="Transparent"
                 SelectionMode="None"
                 Padding="0">
-                <ListView.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <StackPanel />
-                    </ItemsPanelTemplate>
-                </ListView.ItemsPanel>
+                <!--
+                    No ItemsPanel override: replacing the default ItemsStackPanel with a plain StackPanel
+                    turns off UI virtualization, so every row's ~150-line template was realized at once.
+                -->
                 <ListView.ItemContainerStyle>
                     <Style TargetType="ListViewItem">
                         <Setter Property="HorizontalContentAlignment" Value="Stretch" />

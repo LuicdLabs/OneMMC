@@ -29,8 +29,13 @@ public static class LoggingBootstrapper
         string outputTemplate = "[{Timestamp:HH:mm:ss} {Level:u3}] {SourceContext}: {Message:lj}{NewLine}{Exception}";
         var textFormatter = new MessageTemplateTextFormatter(outputTemplate);
 
+        // Debug level is a local diagnostic mode, not the normal operating level: every LogDebug call
+        // formats a template and allocates property values, which is sustained gen0 pressure for output
+        // nobody reads in production. Opt in per machine via AppSettings.VerboseLogging.
+        bool verbose = IsVerboseLoggingEnabled();
+
         Log.Logger = new LoggerConfiguration()
-            .MinimumLevel.Debug()
+            .MinimumLevel.Is(verbose ? LogEventLevel.Debug : LogEventLevel.Information)
             // Setting filters as requested: Microsoft/System to Warning
             .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
             .MinimumLevel.Override("System", LogEventLevel.Warning)
@@ -41,6 +46,10 @@ public static class LoggingBootstrapper
                 rollingInterval: RollingInterval.Day,
                 retainedFileCountLimit: 14,
                 encoding: Encoding.UTF8,
+                // Kept shared rather than switching to buffered (Serilog.Sinks.File allows only one of
+                // the two): the "Run as administrator" flow starts an elevated second process that
+                // overlaps with this one, and both write this file. Dropping the level to Information
+                // already removes the bulk of the write volume.
                 shared: true)
             // Add custom Debug Sink that uses OutputDebugString to avoid Trace loop
             .WriteTo.Sink(new DebugOutputSink(textFormatter))
@@ -50,16 +59,57 @@ public static class LoggingBootstrapper
         services.AddLogging(builder =>
         {
             builder.ClearProviders();
-            builder.SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Debug);
+            builder.SetMinimumLevel(verbose
+                ? Microsoft.Extensions.Logging.LogLevel.Debug
+                : Microsoft.Extensions.Logging.LogLevel.Information);
             builder.AddSerilog(Log.Logger, dispose: true);
         });
 
         services.AddOneMMCApplicationServices();
 
-        IServiceProvider serviceProvider = services.BuildServiceProvider();
+        // Validation walks the registration table only (no reflection, so it stays AOT-safe) but costs
+        // startup time, so it guards development builds and is left off in Release.
+        var providerOptions = new ServiceProviderOptions
+        {
+#if DEBUG
+            ValidateScopes = true,
+            ValidateOnBuild = true,
+#endif
+        };
+
+        IServiceProvider serviceProvider = BuildValidatedProvider(services, providerOptions);
         EnableDebugBridge(serviceProvider);
 
         return serviceProvider;
+    }
+
+    /// <summary>
+    /// Builds the provider, replacing the framework's unhelpful "Some services are not able to be
+    /// constructed" aggregate with a message naming each offending registration.
+    /// </summary>
+    /// <remarks>
+    /// The usual cause is a registration nothing ever resolves, whose type cannot actually be built —
+    /// a constructor that needs a non-service argument, or a private constructor because the type is
+    /// really a static singleton. Delete the registration rather than working around the validation.
+    /// </remarks>
+    private static ServiceProvider BuildValidatedProvider(
+        IServiceCollection services,
+        ServiceProviderOptions options)
+    {
+        try
+        {
+            return services.BuildServiceProvider(options);
+        }
+        catch (AggregateException ex)
+        {
+            var detail = new StringBuilder("Dependency injection validation failed:");
+            foreach (Exception inner in ex.InnerExceptions)
+            {
+                detail.Append("\n  - ").Append(inner.Message);
+            }
+
+            throw new InvalidOperationException(detail.ToString(), ex);
+        }
     }
 
     public static void Shutdown()
@@ -67,8 +117,38 @@ public static class LoggingBootstrapper
         Log.CloseAndFlush();
     }
 
+    /// <summary>
+    /// Reads the verbose-logging opt-in. Runs before the logger exists, so failures fall back to the
+    /// quieter default rather than surfacing an error.
+    /// </summary>
+    private static bool IsVerboseLoggingEnabled()
+    {
+        try
+        {
+            return Models.AppSettings.Load().VerboseLogging;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Forwards <see cref="Trace"/> output into Serilog, but only while a debugger is attached.
+    /// </summary>
+    /// <remarks>
+    /// The listener turns every Trace/Debug write anywhere in the process — including framework and
+    /// XAML/CsWinRT chatter — into a formatted Serilog event on the writing thread, and
+    /// <see cref="Trace.AutoFlush"/> forces a flush for each one. That is worth paying while debugging and
+    /// pure overhead otherwise; it mirrors the check <c>DebugOutputSink.Emit</c> already makes.
+    /// </remarks>
     private static void EnableDebugBridge(IServiceProvider serviceProvider)
     {
+        if (!Debugger.IsAttached)
+        {
+            return;
+        }
+
         var loggerFactory = serviceProvider.GetRequiredService<ILoggerFactory>();
 
         Trace.AutoFlush = true;

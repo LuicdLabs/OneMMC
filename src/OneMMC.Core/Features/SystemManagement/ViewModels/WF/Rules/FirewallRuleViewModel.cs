@@ -54,6 +54,24 @@ namespace OneMMC.Core.Features.SystemManagement.ViewModels.WF.Rules
         [ObservableProperty]
         public partial ObservableCollection<FirewallRuleModel> FilteredRules { get; set; } = [];
 
+        /// <summary>
+        /// Clears the loaded firewall rules when the owning page leaves the visual tree.
+        /// </summary>
+        /// <remarks>
+        /// A stock Windows install has hundreds to thousands of rules, and every
+        /// <see cref="FirewallRuleModel"/> is an observable object with a wide property surface. Releasing
+        /// them on unload keeps the cost of visiting a rules page from lingering until the next GC.
+        /// Mirrors <c>CertificateStoresViewModelBase.ClearCachedData()</c>.
+        /// </remarks>
+        public void ClearCachedData()
+        {
+            Rules.Clear();
+            FilteredRules.Clear();
+            SelectedRule = null;
+            FilterText = string.Empty;
+            IsLoading = false;
+        }
+
         partial void OnDirectionChanged(FirewallRuleDirection value)
         {
             OnPropertyChanged(nameof(IsInbound));

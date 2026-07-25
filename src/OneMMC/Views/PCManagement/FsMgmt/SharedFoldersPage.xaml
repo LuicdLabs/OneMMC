@@ -80,7 +80,7 @@
                 <controls:SettingsExpander
                     HorizontalAlignment="Stretch"
                     Header="{x:Bind LocalizedStrings.FsMgmt_Shares_Header}"
-                    IsExpanded="True"
+                    IsExpanded="False"
                     ItemsSource="{x:Bind ViewModel.Shares, Mode=OneWay}">
                     <controls:SettingsExpander.HeaderIcon>
                         <FontIcon FontSize="16" Glyph="&#xEC25;" />
@@ -148,7 +148,7 @@
                 <controls:SettingsExpander
                     HorizontalAlignment="Stretch"
                     Header="{x:Bind LocalizedStrings.FsMgmt_Sessions_Header}"
-                    IsExpanded="True"
+                    IsExpanded="False"
                     ItemsSource="{x:Bind ViewModel.Sessions, Mode=OneWay}">
                     <controls:SettingsExpander.HeaderIcon>
                         <FontIcon FontSize="16" Glyph="&#xE7EE;" />
@@ -215,7 +215,7 @@
                 <controls:SettingsExpander
                     HorizontalAlignment="Stretch"
                     Header="{x:Bind LocalizedStrings.FsMgmt_OpenFiles_Header}"
-                    IsExpanded="True"
+                    IsExpanded="False"
                     ItemsSource="{x:Bind ViewModel.OpenFiles, Mode=OneWay}">
                     <controls:SettingsExpander.HeaderIcon>
                         <FontIcon FontSize="16" Glyph="&#xE838;" />

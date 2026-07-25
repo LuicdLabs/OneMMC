@@ -49,14 +49,31 @@ internal sealed partial class StaTaskScheduler : TaskScheduler, IDisposable
         }
     }
 
+    /// <summary>
+    /// Gets a value indicating whether the scheduler has been shut down and no longer accepts work.
+    /// </summary>
+    public bool IsShutdown => _tasks.IsAddingCompleted;
+
     protected override void QueueTask(Task task)
     {
-        if (_tasks.IsAddingCompleted)
+        // Never accept a task we cannot run: the scheduler contract gives us no way to complete a
+        // Task we decline, so silently dropping it leaves the caller's await pending forever. Throwing
+        // instead surfaces the shutdown as a faulted task, which callers can observe and handle.
+        bool queued;
+        try
         {
-            return;
+            queued = !_tasks.IsAddingCompleted && _tasks.TryAdd(task);
+        }
+        catch (InvalidOperationException)
+        {
+            // CompleteAdding() raced with this add.
+            queued = false;
         }
 
-        _tasks.TryAdd(task);
+        if (!queued)
+        {
+            throw new ObjectDisposedException(nameof(StaTaskScheduler));
+        }
     }
 
     protected override bool TryExecuteTaskInline(Task task, bool taskWasPreviouslyQueued)

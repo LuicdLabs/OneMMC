@@ -91,6 +91,8 @@
                     AllowDrop="False"
                     CanDrag="False"
                     CanReorderItems="False"
+                    Collapsed="EventLogTreeView_Collapsed"
+                    Expanding="EventLogTreeView_Expanding"
                     ItemInvoked="EventLogTreeView_ItemInvoked"
                     SelectionMode="Single">
                     <TreeView.ItemContainerStyle>

@@ -37,7 +37,7 @@
                 <muxc:SettingsExpander
                     HorizontalAlignment="Stretch"
                     Header="{x:Bind LocalizedStrings.LusrMgr_Users}"
-                    IsExpanded="True"
+                    IsExpanded="False"
                     ItemsSource="{x:Bind ViewModel.Users, Mode=OneWay}">
                     <muxc:SettingsExpander.HeaderIcon>
                         <FontIcon FontSize="16" Glyph="&#xE77B;" />
@@ -120,7 +120,7 @@
                 <muxc:SettingsExpander
                     HorizontalAlignment="Stretch"
                     Header="{x:Bind LocalizedStrings.Common_Groups}"
-                    IsExpanded="True"
+                    IsExpanded="False"
                     ItemsSource="{x:Bind ViewModel.Groups, Mode=OneWay}">
                     <muxc:SettingsExpander.HeaderIcon>
                         <FontIcon FontSize="16" Glyph="&#xE716;" />

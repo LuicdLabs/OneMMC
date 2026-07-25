@@ -165,6 +165,8 @@
 					AllowDrop="False"
 					CanDragItems="False"
 					CanReorderItems="False"
+					Collapsed="LibraryTreeView_Collapsed"
+					Expanding="LibraryTreeView_Expanding"
 					ItemInvoked="LibraryTreeView_ItemInvoked"
 					SelectionChanged="LibraryTreeView_SelectionChanged"
 					SelectionMode="Single">

@@ -65,7 +65,8 @@ public sealed partial class AuthApplicationsPage : Page
 
         if (e.Parameter is ApplicationNavigationParameter param)
         {
-            _service = param.Service;
+            // AzManService is a DI singleton; the navigation parameter deliberately no longer carries it.
+            _service = App.GetRequiredService<AzManService>();
             _storePath = param.StorePath;
             _applicationName = param.ApplicationName;
 
@@ -915,7 +916,7 @@ public sealed partial class AuthApplicationsPage : Page
     {
         if (sender is CommunityToolkit.WinUI.Controls.SettingsCard card && card.Tag is AzScopeInfo scope && _service != null && this.Frame != null)
         {
-            var param = new ScopeNavigationParameter(_service, _storePath, _applicationName, scope.Name);
+            var param = new ScopeNavigationParameter(_storePath, _applicationName, scope.Name);
             BreadcrumbNavigationService.AddBreadcrumb(scope.Name, typeof(Scopes.ScopesPage), param);
             this.Frame.Navigate(typeof(Scopes.ScopesPage), param, new SlideNavigationTransitionInfo() { Effect = SlideNavigationTransitionEffect.FromRight });
         }

@@ -17,26 +17,33 @@
 		<converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
 		<converters:NullableBoolToBoolConverter x:Key="NullableBoolToBoolConverter" />
         <SolidColorBrush x:Key="NavigationViewContentBackground" Color="Transparent"/>
-		<!--  Other app resources here  -->
-		<Style TargetType="StackPanel">
-				<Setter Property="ChildrenTransitions">
-					<Setter.Value>
-						<TransitionCollection>
-							<EntranceThemeTransition FromVerticalOffset="50" />
-							<RepositionThemeTransition IsStaggeringEnabled="False" />
-						</TransitionCollection>
-					</Setter.Value>
-				</Setter>
-			</Style>
-		<Style TargetType="ListView">
-				<Setter Property="ItemContainerTransitions">
-					<Setter.Value>
-						<TransitionCollection>
-							<EntranceThemeTransition FromVerticalOffset="50" />
-							<RepositionThemeTransition IsStaggeringEnabled="False" />
-						</TransitionCollection>
-					</Setter.Value>
-				</Setter>
+		<!--
+			Entrance/reposition transitions are opt-in via these keyed styles rather than implicit
+			(TargetType-only) styles. As implicit styles they applied to *every* StackPanel and *every*
+			ListView in the app - including the panels inside every DataTemplate - so each realized list
+			row carried transition state, and virtualizing lists re-ran the entrance animation on every
+			recycled container. Apply Style="{StaticResource AnimatedStackPanelStyle}" (or
+			AnimatedListViewStyle) only where the animation is actually wanted.
+		-->
+		<Style x:Key="AnimatedStackPanelStyle" TargetType="StackPanel">
+			<Setter Property="ChildrenTransitions">
+				<Setter.Value>
+					<TransitionCollection>
+						<EntranceThemeTransition FromVerticalOffset="50" />
+						<RepositionThemeTransition IsStaggeringEnabled="False" />
+					</TransitionCollection>
+				</Setter.Value>
+			</Setter>
+		</Style>
+		<Style x:Key="AnimatedListViewStyle" TargetType="ListView">
+			<Setter Property="ItemContainerTransitions">
+				<Setter.Value>
+					<TransitionCollection>
+						<EntranceThemeTransition FromVerticalOffset="50" />
+						<RepositionThemeTransition IsStaggeringEnabled="False" />
+					</TransitionCollection>
+				</Setter.Value>
+			</Setter>
 		</Style>
 		</ResourceDictionary>
 	</Application.Resources>

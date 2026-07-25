@@ -17,6 +17,13 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.DevMgmt
         private readonly ILogger<DeviceManagerViewModel> _logger;
         private static ILocalizationProvider L => LocalizationProvider.Current;
         private ObservableCollection<DeviceCategory> _deviceCategories;
+
+        /// <summary>
+        /// The unfiltered device categories from the last load. Filtering reads from here so it never
+        /// narrows a previously filtered result and never has to re-run the WMI enumeration.
+        /// </summary>
+        private List<DeviceCategory> _allCategories = [];
+
         private DeviceCategory? _selectedCategory;
         private DeviceInfo? _selectedDevice;
         private DeviceProperties? _selectedDeviceProperties;
@@ -135,6 +142,10 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.DevMgmt
 
                     return cats;
                 });
+
+                // Keep the unfiltered result so filtering never has to re-query, and so it always filters
+                // the full set rather than the previous filter's output.
+                _allCategories = categories;
 
                 // Update on UI thread
                 DeviceCategories = new ObservableCollection<DeviceCategory>(categories);
@@ -315,19 +326,31 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.DevMgmt
             _searchText = string.Empty;
             OnPropertyChanged(nameof(SearchText));
             DeviceCategories.Clear();
+            _allCategories = [];
             IsLoading = false;
         }
 
         private void FilterDevices()
         {
+            // Always filter the unfiltered master list. Filtering DeviceCategories (the previous result)
+            // narrowed monotonically, so deleting characters from the search box could not bring
+            // previously excluded devices back.
             if (string.IsNullOrWhiteSpace(SearchText))
             {
-                _ = LoadDevicesAsync();
+                if (_allCategories.Count > 0)
+                {
+                    DeviceCategories = new ObservableCollection<DeviceCategory>(_allCategories);
+                }
+                else
+                {
+                    _ = LoadDevicesAsync();
+                }
+
                 return;
             }
 
             var filteredCategories = new List<DeviceCategory>();
-            foreach (var category in DeviceCategories)
+            foreach (var category in _allCategories)
             {
                 var filteredDevices = category.Devices
                     .Where(d => 

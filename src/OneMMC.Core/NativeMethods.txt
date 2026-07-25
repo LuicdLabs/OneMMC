@@ -65,6 +65,8 @@ EnumPrinters
 FreeLibrary
 GetCurrentProcess
 GetLengthSid
+K32GetProcessMemoryInfo
+PROCESS_MEMORY_COUNTERS_EX
 GetPrinter
 GetPrinterDriver
 GetProductInfo

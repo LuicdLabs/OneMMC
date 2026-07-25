@@ -55,6 +55,8 @@
                 AllowDrop="False"
                 CanDragItems="False"
                 CanReorderItems="False"
+                Collapsed="PolicyTree_Collapsed"
+                Expanding="PolicyTree_Expanding"
                 ItemInvoked="PolicyTree_ItemInvoked"
                 SelectionMode="Single">
                 <TreeView.ItemTemplate>

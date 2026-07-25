@@ -585,11 +585,17 @@ public partial class AuthorizationManagerViewModel : LoadingViewModelBase, IDisp
 
     public void Dispose()
     {
-        if (!_disposed)
+        if (_disposed)
         {
-            _azManService.Dispose();
-            _disposed = true;
+            return;
         }
+
+        // AzManService is a singleton owned by the container — this view model must not dispose it.
+        // Release only what this view model owns so the store graph becomes collectable.
+        Stores.Clear();
+        FilteredStores.Clear();
+
+        _disposed = true;
         GC.SuppressFinalize(this);
     }
 

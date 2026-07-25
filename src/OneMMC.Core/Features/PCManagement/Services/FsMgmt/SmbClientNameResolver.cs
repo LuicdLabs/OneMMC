@@ -27,6 +27,12 @@ internal static class SmbClientNameResolver
     private static readonly TimeSpan LookupTimeout = TimeSpan.FromMilliseconds(1200);
 
     /// <summary>
+    /// Upper bound on cached entries. Far above the number of clients any single view shows, but low
+    /// enough that a long-running session on a busy file server cannot grow the cache without limit.
+    /// </summary>
+    private const int MaximumCacheEntries = 512;
+
+    /// <summary>
     /// Resolves the supplied client identifiers to friendly computer names.
     /// </summary>
     /// <param name="clientNames">The raw client identifiers from the enumerated sessions.</param>
@@ -263,10 +269,18 @@ internal static class SmbClientNameResolver
 
     private static bool TryGetCached(string clientName, out string resolvedName)
     {
-        if (Cache.TryGetValue(clientName, out CacheEntry entry) && entry.ExpiresAtUtc > DateTime.UtcNow)
+        if (Cache.TryGetValue(clientName, out CacheEntry entry))
         {
-            resolvedName = entry.ResolvedName;
-            return true;
+            if (entry.ExpiresAtUtc > DateTime.UtcNow)
+            {
+                resolvedName = entry.ResolvedName;
+                return true;
+            }
+
+            // Expired: drop it now instead of leaving it to be overwritten only if the same client
+            // reappears. On a busy server the client key space keeps changing, so stale entries used to
+            // accumulate for the lifetime of the process.
+            Cache.TryRemove(clientName, out _);
         }
 
         resolvedName = string.Empty;
@@ -277,6 +291,34 @@ internal static class SmbClientNameResolver
     {
         TimeSpan ttl = string.IsNullOrEmpty(resolvedName) ? NegativeTtl : PositiveTtl;
         Cache[clientName] = new CacheEntry(resolvedName, DateTime.UtcNow + ttl);
+
+        if (Cache.Count > MaximumCacheEntries)
+        {
+            EvictStaleEntries();
+        }
+    }
+
+    /// <summary>
+    /// Backstop for the cache size: removes every expired entry, and if that is not enough (all entries
+    /// are still live) clears the cache outright. Entries are cheap to recompute, so a rare full reset is
+    /// preferable to unbounded growth.
+    /// </summary>
+    private static void EvictStaleEntries()
+    {
+        DateTime nowUtc = DateTime.UtcNow;
+
+        foreach (KeyValuePair<string, CacheEntry> pair in Cache)
+        {
+            if (pair.Value.ExpiresAtUtc <= nowUtc)
+            {
+                Cache.TryRemove(pair.Key, out _);
+            }
+        }
+
+        if (Cache.Count > MaximumCacheEntries)
+        {
+            Cache.Clear();
+        }
     }
 
     private readonly record struct CacheEntry(string ResolvedName, DateTime ExpiresAtUtc);

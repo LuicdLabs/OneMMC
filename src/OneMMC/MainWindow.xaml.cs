@@ -43,12 +43,22 @@ namespace OneMMC
     {
         private readonly ILogger<MainWindow> _logger;
         private readonly IAdminService _adminService;
+        private readonly IMemoryDiagnostics _memoryDiagnostics;
+
+        // Read once at startup: forcing a collection per navigation is a measurement mode, not a setting
+        // users toggle mid-session. See AppSettings.MemoryProbeMode.
+        private readonly bool _memoryProbeMode;
 
         private const double MinimumWidthForTitleBarAppTitle = 900;
 
         // Minimum window size in DIPs at 100% scale; converted to physical pixels at startup.
         private const int MinimumWindowWidthDips = 700;
         private const int MinimumWindowHeightDips = 325;
+
+        // Frame.BackStack has no built-in bound, and every PageStackEntry holds the parameter it was
+        // navigated with, so an unbounded journal grows for the whole session. Ten entries is well past
+        // any realistic run of back-navigations while keeping the journal's cost constant.
+        private const int MaximumBackStackDepth = 10;
         private bool _welcomeDialogRequested;
         private OverlappedPresenterState _windowState = OverlappedPresenterState.Restored;
         private int? _windowX;
@@ -119,6 +129,8 @@ namespace OneMMC
         {
             _logger = App.GetRequiredService<ILogger<MainWindow>>();
             _adminService = App.GetRequiredService<IAdminService>();
+            _memoryDiagnostics = App.GetRequiredService<IMemoryDiagnostics>();
+            _memoryProbeMode = AppSettings.Load().MemoryProbeMode;
             _logger.LogInformation("MainWindow initializing.");
 
             InitializeComponent();
@@ -514,6 +526,9 @@ namespace OneMMC
 
         private void ContentFrame_Navigated(object sender, NavigationEventArgs e)
         {
+            TrimBackStack();
+            LogNavigationMemory(e);
+
             if (NavigationViewControl != null && contentFrame != null)
             {
                 NavigationViewControl.IsBackEnabled = contentFrame.CanGoBack;
@@ -552,6 +567,57 @@ namespace OneMMC
                 {
                     _isProgrammaticSelectionChange = false;
                 }
+            }
+        }
+
+        /// <summary>
+        /// Drops the oldest journal entries once the back stack exceeds
+        /// <see cref="MaximumBackStackDepth"/>. <c>BackStack</c> is a plain collection, so trimming it is
+        /// just a removal; without this it grows for the whole session and keeps every navigation
+        /// parameter alive with it.
+        /// </summary>
+        private void TrimBackStack()
+        {
+            if (contentFrame is null)
+            {
+                return;
+            }
+
+            try
+            {
+                while (contentFrame.BackStack.Count > MaximumBackStackDepth)
+                {
+                    contentFrame.BackStack.RemoveAt(0);
+                }
+            }
+            catch (System.Runtime.InteropServices.COMException)
+            {
+                // WinUI rejects journal edits while a navigation is still settling (0x800710DD); the same
+                // guard exists on the Event Viewer detail frame. Trimming is opportunistic — skipping one
+                // pass only means the cap is applied on the next navigation.
+            }
+        }
+
+        /// <summary>
+        /// Records a memory reading plus the two journal depths on every navigation. Together these
+        /// form the session growth curve used to verify that memory no longer scales with the number
+        /// of pages visited; see <c>doc/MemoryManagement.md</c>.
+        /// </summary>
+        private void LogNavigationMemory(NavigationEventArgs e)
+        {
+            int backStackDepth = contentFrame?.BackStack.Count ?? 0;
+            int breadcrumbDepth = BreadcrumbNavigationService.BreadCrumbs.Count;
+
+            string context = $"nav:{e.SourcePageType.Name}";
+            string detail = $"backStack={backStackDepth} breadcrumbs={breadcrumbDepth} mode={e.NavigationMode}";
+
+            if (_memoryProbeMode)
+            {
+                _memoryDiagnostics.LogSettledSnapshot(context, detail);
+            }
+            else
+            {
+                _memoryDiagnostics.LogSnapshot(context, detail);
             }
         }
 

@@ -14,13 +14,20 @@ namespace OneMMC.Views;
 
 public sealed partial class EventViewerPage : Page
 {
-    public EventViewerViewModel ViewModel { get; } = App.GetRequiredService<EventViewerViewModel>();
+    // Owns the view model's lifetime: EventViewerViewModel is a transient IDisposable, so resolving it
+    // from the root provider would leave the container holding it (and its loaded events) until the
+    // process exits. See doc/MemoryManagement.md.
+    private readonly PageServiceScope _serviceScope = new();
+
+    public EventViewerViewModel ViewModel { get; }
     public LocalizedStrings LocalizedStrings { get; } = LocalizedStrings.Instance;
 
     private int _previousDetailTabIndex = 0;
 
     public EventViewerPage()
     {
+        ViewModel = _serviceScope.GetRequiredService<EventViewerViewModel>();
+
         InitializeComponent();
 
         PopulateLevelFilterCombo();
@@ -68,9 +75,11 @@ public sealed partial class EventViewerPage : Page
         DataContext = null;
         ViewModel.AdminPermissionRequired -= OnAdminPermissionRequired;
         ViewModel.PropertyChanged -= ViewModel_PropertyChanged;
-        ViewModel.Dispose();
         Loaded -= EventViewerPage_Loaded;
         Unloaded -= EventViewerPage_Unloaded;
+
+        // Disposes the view model and releases the container's reference to it.
+        _serviceScope.Dispose();
     }
 
     // ========================================================================
@@ -99,18 +108,57 @@ public sealed partial class EventViewerPage : Page
         // Auto-expand Windows Logs
         if (EventLogTreeView.RootNodes.Count > 0)
         {
-            EventLogTreeView.RootNodes[0].IsExpanded = true;
+            TreeViewNode windowsLogs = EventLogTreeView.RootNodes[0];
+            RealizeChildren(windowsLogs);
+            windowsLogs.IsExpanded = true;
         }
     }
 
+    /// <summary>
+    /// Creates a single tree node without realizing its subtree. A machine can expose several hundred
+    /// event channels, so mirroring the whole hierarchy up front built a node per channel before the user
+    /// had opened anything. <c>HasUnrealizedChildren</c> keeps the expand chevron visible.
+    /// </summary>
     private static TreeViewNode CreateTreeNode(EventLogTreeNode node)
     {
-        var tvn = new TreeViewNode { Content = node, IsExpanded = false };
-        foreach (var child in node.Children)
+        return new TreeViewNode
         {
-            tvn.Children.Add(CreateTreeNode(child));
+            Content = node,
+            IsExpanded = false,
+            HasUnrealizedChildren = node.Children.Count > 0,
+        };
+    }
+
+    private static void RealizeChildren(TreeViewNode treeNode)
+    {
+        if (!treeNode.HasUnrealizedChildren || treeNode.Content is not EventLogTreeNode node)
+        {
+            return;
         }
-        return tvn;
+
+        foreach (EventLogTreeNode child in node.Children)
+        {
+            treeNode.Children.Add(CreateTreeNode(child));
+        }
+
+        treeNode.HasUnrealizedChildren = false;
+    }
+
+    private void EventLogTreeView_Expanding(TreeView sender, TreeViewExpandingEventArgs args)
+    {
+        RealizeChildren(args.Node);
+    }
+
+    private void EventLogTreeView_Collapsed(TreeView sender, TreeViewCollapsedEventArgs args)
+    {
+        if (args.Node.Content is not EventLogTreeNode node || node.Children.Count == 0)
+        {
+            return;
+        }
+
+        // Release the closed branch; it is rebuilt from the data tree if reopened.
+        args.Node.Children.Clear();
+        args.Node.HasUnrealizedChildren = true;
     }
 
     private async void EventLogTreeView_ItemInvoked(TreeView sender, TreeViewItemInvokedEventArgs args)
