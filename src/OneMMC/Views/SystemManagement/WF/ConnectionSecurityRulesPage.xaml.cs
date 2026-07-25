@@ -258,7 +258,10 @@ public sealed partial class ConnectionSecurityRulesPage : Page
             return;
         }
 
-        if (item.IsEnabled == toggleSwitch.IsOn)
+        // Read the switch state once here: ToggleSwitch is thread-affine, so evaluating
+        // IsOn inside the background Task.Run below throws RPC_E_WRONG_THREAD.
+        bool requestedEnabled = toggleSwitch.IsOn;
+        if (item.IsEnabled == requestedEnabled)
         {
             return;
         }
@@ -271,14 +274,16 @@ public sealed partial class ConnectionSecurityRulesPage : Page
         }
 
         bool previousEnabled = item.Model.Enabled;
+        string lookupName = GetRuleLookupName(item.Model);
         try
         {
-            await Task.Run(() => _connectionSecurityService.SetRuleEnabled(GetRuleLookupName(item.Model), toggleSwitch.IsOn));
-            item.IsEnabled = toggleSwitch.IsOn;
-            item.Model.Enabled = toggleSwitch.IsOn;
+            await Task.Run(() => _connectionSecurityService.SetRuleEnabled(lookupName, requestedEnabled));
+            item.IsEnabled = requestedEnabled;
+            item.Model.Enabled = requestedEnabled;
         }
         catch (Exception ex)
         {
+            _logger.LogWarning(ex, "Failed to set connection security rule {RuleName} enabled={Enabled}.", lookupName, requestedEnabled);
             item.IsEnabled = previousEnabled;
             item.Model.Enabled = previousEnabled;
             ResetToggleSwitch(toggleSwitch, previousEnabled);
