@@ -24,6 +24,7 @@ namespace OneMMC.Core.Features.SystemManagement.ViewModels.WF.Rules
         private readonly WindowsFirewallService _firewallService;
         private readonly OneMMC.Core.Abstractions.Services.IAdminService _adminService;
         private CancellationTokenSource? _loadRulesCancellationTokenSource;
+        private int _visibleLoadCount;
 
         public FirewallRuleViewModel(WindowsFirewallService firewallService, OneMMC.Core.Abstractions.Services.IAdminService adminService)
         {
@@ -175,6 +176,7 @@ namespace OneMMC.Core.Features.SystemManagement.ViewModels.WF.Rules
 
             if (showLoading)
             {
+                _visibleLoadCount++;
                 IsLoading = true;
             }
 
@@ -183,25 +185,33 @@ namespace OneMMC.Core.Features.SystemManagement.ViewModels.WF.Rules
                 FirewallRuleDirection direction = Direction;
                 await Task.Yield();
 
-                IReadOnlyList<FirewallRuleModel> systemRules = await Task.Run(
-                    () => _firewallService.GetRules(direction),
-                    cancellationTokenSource.Token);
+                // The token is deliberately not passed to Task.Run: the rule enumeration is a synchronous
+                // WMI walk that cannot be interrupted once started, so the token would only fault the task
+                // when a newer load supersedes this one. Being superseded is the expected outcome of every
+                // external-change refresh, so the stale result is discarded with a plain check instead of
+                // through an OperationCanceledException.
+                IReadOnlyList<FirewallRuleModel> systemRules = await Task.Run(() => _firewallService.GetRules(direction));
 
-                cancellationTokenSource.Token.ThrowIfCancellationRequested();
+                if (cancellationTokenSource.IsCancellationRequested)
+                {
+                    return;
+                }
+
                 Rules = new ObservableCollection<FirewallRuleModel>(systemRules);
-            }
-            catch (OperationCanceledException) when (cancellationTokenSource.IsCancellationRequested)
-            {
             }
             finally
             {
                 if (ReferenceEquals(_loadRulesCancellationTokenSource, cancellationTokenSource))
                 {
                     _loadRulesCancellationTokenSource = null;
-                    if (showLoading)
-                    {
-                        IsLoading = false;
-                    }
+                }
+
+                // Clearing the busy state is counted rather than tied to "am I still the current load":
+                // a visible load that gets superseded by a silent one would otherwise strand IsLoading at
+                // true, permanently disabling Refresh and every external-change refresh.
+                if (showLoading && --_visibleLoadCount == 0)
+                {
+                    IsLoading = false;
                 }
 
                 cancellationTokenSource.Dispose();
