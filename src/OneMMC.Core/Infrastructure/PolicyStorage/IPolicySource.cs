@@ -14,6 +14,7 @@ namespace OneMMC.Core.Infrastructure.PolicyStorage
         void DeleteValue(string key, string value); // Mark a value as queued for deletion
         void ClearKey(string key); // Destroy all values in a key
         void ForgetKeyClearance(string key); // Unmark a key as cleared
+        void DeleteKeyTree(string key); // Delete a key together with all of its values and subkeys
     }
 }
 

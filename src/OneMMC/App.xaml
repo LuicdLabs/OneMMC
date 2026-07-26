@@ -17,26 +17,42 @@
 		<converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
 		<converters:NullableBoolToBoolConverter x:Key="NullableBoolToBoolConverter" />
         <SolidColorBrush x:Key="NavigationViewContentBackground" Color="Transparent"/>
-		<!--  Other app resources here  -->
+		<!--
+			Implicit (TargetType-only) styles so every StackPanel and ListView in the app animates without
+			each one opting in. Neither element in this app carries an explicit Style, so these reach all
+			of them. Panels inside a DataTemplate are included by design; if a particular template's rows
+			animate distractingly on scroll, set ChildrenTransitions="{x:Null}" on that template's root.
+		-->
 		<Style TargetType="StackPanel">
-				<Setter Property="ChildrenTransitions">
-					<Setter.Value>
-						<TransitionCollection>
-							<EntranceThemeTransition FromVerticalOffset="50" />
-							<RepositionThemeTransition IsStaggeringEnabled="False" />
-						</TransitionCollection>
-					</Setter.Value>
-				</Setter>
-			</Style>
+			<Setter Property="ChildrenTransitions">
+				<Setter.Value>
+					<TransitionCollection>
+						<EntranceThemeTransition FromVerticalOffset="50" />
+						<RepositionThemeTransition IsStaggeringEnabled="False" />
+					</TransitionCollection>
+				</Setter.Value>
+			</Setter>
+		</Style>
 		<Style TargetType="ListView">
-				<Setter Property="ItemContainerTransitions">
-					<Setter.Value>
-						<TransitionCollection>
-							<EntranceThemeTransition FromVerticalOffset="50" />
-							<RepositionThemeTransition IsStaggeringEnabled="False" />
-						</TransitionCollection>
-					</Setter.Value>
-				</Setter>
+			<Setter Property="ItemContainerTransitions">
+				<Setter.Value>
+					<TransitionCollection>
+						<!--
+							An implicit style outranks the built-in one (BaseValueSourceStyle beats
+							BaseValueSourceBuiltInStyle), so this setter replaces generic.xaml's
+							ItemContainerTransitions outright rather than adding to it. The first four are
+							therefore repeated verbatim from the framework default - dropping them would
+							lose add/delete, content and reorder animation. The vertical offset and the
+							reposition transition are what this app adds on top.
+						-->
+						<AddDeleteThemeTransition />
+						<ContentThemeTransition />
+						<ReorderThemeTransition />
+						<EntranceThemeTransition FromVerticalOffset="50" IsStaggeringEnabled="False" />
+						<RepositionThemeTransition IsStaggeringEnabled="False" />
+					</TransitionCollection>
+				</Setter.Value>
+			</Setter>
 		</Style>
 		</ResourceDictionary>
 	</Application.Resources>

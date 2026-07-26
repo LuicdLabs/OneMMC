@@ -258,7 +258,10 @@ public sealed partial class ConnectionSecurityRulesPage : Page
             return;
         }
 
-        if (item.IsEnabled == toggleSwitch.IsOn)
+        // Read the switch state once here: ToggleSwitch is thread-affine, so evaluating
+        // IsOn inside the background Task.Run below throws RPC_E_WRONG_THREAD.
+        bool requestedEnabled = toggleSwitch.IsOn;
+        if (item.IsEnabled == requestedEnabled)
         {
             return;
         }
@@ -271,14 +274,16 @@ public sealed partial class ConnectionSecurityRulesPage : Page
         }
 
         bool previousEnabled = item.Model.Enabled;
+        string lookupName = GetRuleLookupName(item.Model);
         try
         {
-            await Task.Run(() => _connectionSecurityService.SetRuleEnabled(GetRuleLookupName(item.Model), toggleSwitch.IsOn));
-            item.IsEnabled = toggleSwitch.IsOn;
-            item.Model.Enabled = toggleSwitch.IsOn;
+            await Task.Run(() => _connectionSecurityService.SetRuleEnabled(lookupName, requestedEnabled));
+            item.IsEnabled = requestedEnabled;
+            item.Model.Enabled = requestedEnabled;
         }
         catch (Exception ex)
         {
+            _logger.LogWarning(ex, "Failed to set connection security rule {RuleName} enabled={Enabled}.", lookupName, requestedEnabled);
             item.IsEnabled = previousEnabled;
             item.Model.Enabled = previousEnabled;
             ResetToggleSwitch(toggleSwitch, previousEnabled);
@@ -404,17 +409,11 @@ public sealed partial class ConnectionSecurityRulesPage : Page
                 model.IsSecondAuthOptional = result.IsSecondAuthOptional;
                 return;
 
-            case "ComputerAndUser":
-                AddAuthMethod(model.FirstAuthMethods, CreateComputerKerberosAuthMethod());
-                AddAuthMethod(model.SecondAuthMethods, CreateUserKerberosAuthMethod());
-                return;
-
-            case "Computer":
-                AddAuthMethod(model.FirstAuthMethods, CreateComputerKerberosAuthMethod());
-                return;
-
-            case "User":
-                AddAuthMethod(model.SecondAuthMethods, CreateUserKerberosAuthMethod());
+            case ConnectionSecurityAuthMethodResolver.PresetDefault:
+            case ConnectionSecurityAuthMethodResolver.PresetComputerAndUser:
+            case ConnectionSecurityAuthMethodResolver.PresetComputer:
+            case ConnectionSecurityAuthMethodResolver.PresetUser:
+                ConnectionSecurityAuthMethodResolver.ApplyPreset(model, result.AuthenticationMethodTag);
                 return;
 
             case "ComputerCertificate":
@@ -447,22 +446,6 @@ public sealed partial class ConnectionSecurityRulesPage : Page
             Result = method
         });
     }
-
-    private static AuthMethodDialogResult CreateComputerKerberosAuthMethod() =>
-        new()
-        {
-            Kind = "ComputerKerberos",
-            Method = LocalizedStrings.Instance.WF_AuthMethod_ComputerKerberos,
-            Details = LocalizedStrings.Instance.WF_AuthDetails_KerberosAuthentication
-        };
-
-    private static AuthMethodDialogResult CreateUserKerberosAuthMethod() =>
-        new()
-        {
-            Kind = "UserKerberos",
-            Method = LocalizedStrings.Instance.WF_AuthMethod_UserKerberos,
-            Details = LocalizedStrings.Instance.WF_AuthDetails_KerberosAuthentication
-        };
 
     private static AuthMethodDialogResult CreateComputerCertificateAuthMethod(NewConnectionSecurityRuleDialogResult result)
     {

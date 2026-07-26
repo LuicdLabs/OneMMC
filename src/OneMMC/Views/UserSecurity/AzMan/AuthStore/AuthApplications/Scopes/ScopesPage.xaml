@@ -104,7 +104,7 @@
                     Severity="Informational" />
 
                 <!--  Groups within scope  -->
-                <cwuc:SettingsExpander IsExpanded="True" ItemsSource="{x:Bind _viewModel.FilteredGroups, Mode=OneWay}">
+                <cwuc:SettingsExpander IsExpanded="False" ItemsSource="{x:Bind _viewModel.FilteredGroups, Mode=OneWay}">
                     <cwuc:SettingsExpander.Header>
                         <StackPanel Orientation="Horizontal" Spacing="12">
                             <FontIcon FontSize="20" Glyph="&#xE902;" />
@@ -177,7 +177,7 @@
                 </cwuc:SettingsExpander>
 
                 <!--  Role assignments within scope  -->
-                <cwuc:SettingsExpander IsExpanded="True" ItemsSource="{x:Bind _viewModel.FilteredRoleAssignments, Mode=OneWay}">
+                <cwuc:SettingsExpander IsExpanded="False" ItemsSource="{x:Bind _viewModel.FilteredRoleAssignments, Mode=OneWay}">
                     <cwuc:SettingsExpander.Header>
                         <StackPanel Orientation="Horizontal" Spacing="12">
                             <FontIcon FontSize="20" Glyph="&#xE77B;" />
@@ -241,7 +241,7 @@
                 </cwuc:SettingsExpander>
 
                 <!--  Role definitions within scope  -->
-                <cwuc:SettingsExpander IsExpanded="True" ItemsSource="{x:Bind _viewModel.FilteredRoleDefinitions, Mode=OneWay}">
+                <cwuc:SettingsExpander IsExpanded="False" ItemsSource="{x:Bind _viewModel.FilteredRoleDefinitions, Mode=OneWay}">
                     <cwuc:SettingsExpander.Header>
                         <StackPanel Orientation="Horizontal" Spacing="12">
                             <FontIcon FontSize="20" Glyph="&#xE716;" />
@@ -305,7 +305,7 @@
                 </cwuc:SettingsExpander>
 
                 <!--  Tasks within scope  -->
-                <cwuc:SettingsExpander IsExpanded="True" ItemsSource="{x:Bind _viewModel.FilteredTasks, Mode=OneWay}">
+                <cwuc:SettingsExpander IsExpanded="False" ItemsSource="{x:Bind _viewModel.FilteredTasks, Mode=OneWay}">
                     <cwuc:SettingsExpander.Header>
                         <StackPanel Orientation="Horizontal" Spacing="12">
                             <FontIcon FontSize="20" Glyph="&#xE9D5;" />

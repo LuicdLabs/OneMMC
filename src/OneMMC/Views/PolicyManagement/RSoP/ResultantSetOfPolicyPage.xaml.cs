@@ -15,6 +15,14 @@ public sealed partial class ResultantSetOfPolicyPage : Page
 {
     public LocalizedStrings LocalizedStrings { get; } = LocalizedStrings.Instance;
     private readonly ILogger<ResultantSetOfPolicyPage> _logger;
+
+    /// <summary>
+    /// Owns the view model's lifetime. ResultantSetOfPolicyViewModel is a transient IDisposable whose
+    /// RSoP service parses its own ADMX bundle, so resolving it from the root provider would leave the
+    /// container pinning one per visit to this page. See doc/MemoryManagement.md.
+    /// </summary>
+    private readonly PageServiceScope _serviceScope = new();
+
     public ResultantSetOfPolicyViewModel ViewModel { get; }
 
     private string _lastSearchText = string.Empty;
@@ -22,7 +30,7 @@ public sealed partial class ResultantSetOfPolicyPage : Page
     public ResultantSetOfPolicyPage()
     {
         _logger = App.GetRequiredService<ILogger<ResultantSetOfPolicyPage>>();
-        ViewModel = App.GetRequiredService<ResultantSetOfPolicyViewModel>();
+        ViewModel = _serviceScope.GetRequiredService<ResultantSetOfPolicyViewModel>();
         this.InitializeComponent();
         DataContext = ViewModel;
         ViewModel.RootNodes.CollectionChanged += RootNodes_CollectionChanged;
@@ -66,11 +74,14 @@ public sealed partial class ResultantSetOfPolicyPage : Page
     {
         App.ThemeChanged -= OnThemeChanged;
         ViewModel.RootNodes.CollectionChanged -= RootNodes_CollectionChanged;
-        ViewModel.Dispose();
         PolicyTree.RootNodes.Clear();
         DataContext = null;
         Loaded -= OnLoaded;
         Unloaded -= OnUnloaded;
+
+        // Disposes the view model (releasing the RSoP service and its ADMX bundle) and drops the
+        // container's reference.
+        _serviceScope.Dispose();
     }
 
     private void OnThemeChanged(ElementTheme theme)
@@ -105,14 +116,43 @@ public sealed partial class ResultantSetOfPolicyPage : Page
         }
     }
 
-    private TreeViewNode CreateTreeNode(RSoPTreeItem item)
+    /// <summary>
+    /// Creates a single tree node without realizing its subtree; <see cref="PolicyTree_Expanding"/> fills
+    /// the children on demand. See doc/MemoryManagement.md.
+    /// </summary>
+    private static TreeViewNode CreateTreeNode(RSoPTreeItem item)
     {
-        var node = new TreeViewNode() { Content = item };
-        foreach (var child in item.Children)
+        return new TreeViewNode
         {
-            node.Children.Add(CreateTreeNode(child));
+            Content = item,
+            HasUnrealizedChildren = item.Children.Count > 0,
+        };
+    }
+
+    private void PolicyTree_Expanding(TreeView sender, TreeViewExpandingEventArgs args)
+    {
+        if (!args.Node.HasUnrealizedChildren || args.Node.Content is not RSoPTreeItem item)
+        {
+            return;
         }
-        return node;
+
+        foreach (RSoPTreeItem child in item.Children)
+        {
+            args.Node.Children.Add(CreateTreeNode(child));
+        }
+
+        args.Node.HasUnrealizedChildren = false;
+    }
+
+    private void PolicyTree_Collapsed(TreeView sender, TreeViewCollapsedEventArgs args)
+    {
+        if (args.Node.Content is not RSoPTreeItem item || item.Children.Count == 0)
+        {
+            return;
+        }
+
+        args.Node.Children.Clear();
+        args.Node.HasUnrealizedChildren = true;
     }
 
     private void PolicyTree_ItemInvoked(TreeView sender, TreeViewItemInvokedEventArgs args)

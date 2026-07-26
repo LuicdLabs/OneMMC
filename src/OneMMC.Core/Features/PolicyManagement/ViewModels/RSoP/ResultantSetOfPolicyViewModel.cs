@@ -302,6 +302,15 @@ namespace OneMMC.Core.Features.PolicyManagement.ViewModels.RSoP
             if (_disposed) return;
 
             _rsopService.Dispose();
+
+            // Release the policy graph explicitly so it goes away with the page rather than waiting for
+            // the whole view model to become unreachable.
+            RootNodes.Clear();
+            CurrentPolicies.Clear();
+            _allPoliciesForCurrentNode.Clear();
+            SelectedNode = null;
+            SelectedPolicy = null;
+
             _disposed = true;
         }
 

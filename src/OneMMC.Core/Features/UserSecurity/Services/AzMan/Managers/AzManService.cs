@@ -352,46 +352,56 @@ public partial class AzManService : IDisposable
     /// </summary>
     protected virtual void Dispose(bool disposing)
     {
-        if (!_disposed)
+        if (_disposed)
         {
-            if (disposing)
-            {
-                _openedStores.Clear();
-            }
-
-            // Release COM wrappers on their owning STA thread.
-            foreach (var store in _authStores.Values)
-            {
-                try
-                {
-                    RunComAsync(() =>
-                    {
-                        try
-                        {
-                            AzRolesCom.Release(store);
-                        }
-                        catch
-                        {
-                        }
-                    }).GetAwaiter().GetResult();
-                }
-                catch
-                {
-                }
-            }
-            _authStores.Clear();
-
-            if (disposing)
-            {
-                _comScheduler.Dispose();
-            }
-
-            _disposed = true;
+            return;
         }
+
+        if (!disposing)
+        {
+            // Finalizer path. Releasing the COM wrappers requires marshalling onto the STA thread that
+            // created them, and blocking the finalizer thread on another thread is never safe: if that
+            // thread has already exited, the wait never returns and *all* finalization in the process
+            // stops, so every native/COM resource that relies on a finalizer leaks permanently.
+            // Skipping the release costs one store's worth of COM references at shutdown, which the OS
+            // reclaims with the process; stalling finalization would cost the whole process.
+            _authStores.Clear();
+            _disposed = true;
+            return;
+        }
+
+        _openedStores.Clear();
+
+        // Release COM wrappers on their owning STA thread.
+        foreach (var store in _authStores.Values)
+        {
+            try
+            {
+                RunComAsync(() =>
+                {
+                    try
+                    {
+                        AzRolesCom.Release(store);
+                    }
+                    catch
+                    {
+                    }
+                }).GetAwaiter().GetResult();
+            }
+            catch
+            {
+            }
+        }
+        _authStores.Clear();
+
+        _comScheduler.Dispose();
+
+        _disposed = true;
     }
 
     /// <summary>
-    /// Destructor
+    /// Safety net for instances that were never disposed. It deliberately does not release the COM
+    /// wrappers — see <see cref="Dispose(bool)"/> for why the finalizer must not block.
     /// </summary>
     ~AzManService()
     {

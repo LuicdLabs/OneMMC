@@ -80,12 +80,12 @@ When in doubt, consult [WinUI 3 documentation](https://learn.microsoft.com/en-us
 Uses `CommunityToolkit.Mvvm` (8.4.2). ViewModels use `ObservableObject` base, `[ObservableProperty]` for bindable properties, `[RelayCommand]` for commands. Keep code-behind minimal — prefer data binding and `DataTemplate`.
 
 ### Dependency Injection
-DI is bootstrapped in `LoggingBootstrapper.BuildServiceProvider()` (UI project). Classes are **auto-registered** by convention in `ServiceCollectionExtensions.AddOneMMCModules()`:
-- Any concrete class whose name ends in `Service`, `Manager`, or `ViewModel` is registered automatically
-- Default lifetime is `Transient`; override with `[ServiceRegistration(ServiceLifetime)]` attribute
-- `IAdminService` is explicitly mapped as a singleton
+DI is bootstrapped in `LoggingBootstrapper.BuildServiceProvider()` (UI project). **All registrations are explicit** — there is no convention-based auto-registration:
+- `LoggingBootstrapper.BuildServiceProvider()` → `AddOneMMCApplicationServices()` (UI) → `AddOneMMCCore()` (Core) → each `Core/Features/<Feature>/<Feature>Module.cs`
+- Most services and every ViewModel are `Transient`. Singletons are the exception and are registered explicitly (`AdminService`, `ITaskSchedulerService`, `AzManService`, `AdmxBundleProvider`, the WF services, `SecurityPolicyService`, …)
+- `ValidateScopes`/`ValidateOnBuild` are enabled in Debug builds only
 
-Resolve services in page code-behind via `App.GetRequiredService<T>()`.
+Resolve services in page code-behind via `App.GetRequiredService<T>()` — **except** transient `IDisposable` view models, which must be resolved from a `PageServiceScope` and released in `Unloaded`. Resolving those from the root provider leaks one instance per navigation; see `doc/MemoryManagement.md`.
 
 ### Navigation
 Top-level navigation uses `NavigationView` in `MainWindow.xaml`. Sub-page tab navigation uses **`SelectorBar`** (not `Pivot`). Page routing is index-based through `NavigationService`. Breadcrumb tracking via `BreadcrumbNavigationService`.
@@ -141,6 +141,20 @@ Always use `AdminDialogHelper` for admin-related dialogs and InfoBars. Never cre
 ## API Usage
 
 - **Do Not Use Non-Existent APIs**: Never suggest or use APIs that do not exist in the target framework or SDK. If you are unsure whether an API exists, say so explicitly rather than guessing or fabricating method/property names.
+
+## Memory Management
+
+Memory used to grow with the number of pages visited rather than with the data on screen. Full diagnosis,
+rules, and measurement probes: `doc/MemoryManagement.md`. Key rules:
+
+- Transient `IDisposable` view models must be resolved from a `PageServiceScope` (disposed in `Unloaded`), never from the root provider — the container holds root-resolved disposables until process exit. Never dispose an injected singleton.
+- Navigation parameters carry identifiers, not live services or view models — `Frame.BackStack` and the breadcrumb trail retain them for the session.
+- `Dispose()` must release owned services (native/COM handles). The collection clearing alongside it — and every `ClearCachedData()` call — frees nothing the next GC would not free anyway once the page is unreachable; it is kept only as insurance against upstream page retention. Don't add new ones expecting a saving.
+- Lists need a height-constrained parent. A `ScrollViewer`/`StackPanel` parent silently disables virtualization. No `ItemsControl` for growing collections; no `StackPanel` as `ItemsPanel`.
+- `SettingsExpander` bound to a collection defaults to `IsExpanded="False"`.
+- `TreeView` fills on `Expanding`, clears on `Collapsed`, via `HasUnrealizedChildren`. XAML-wired handlers must be instance methods (`static` → CS0176).
+- Finalizers must never wait on another thread — a blocked finalizer thread stops all finalization process-wide.
+- Cap process-wide caches (`SmbClientNameResolver`). Do **not** cap `Frame.BackStack` or the breadcrumb history stacks — once navigation parameters are identifiers those journals cost KB, and capping them removes back-navigation and (for the breadcrumb stacks) allocated more per navigation than it saved.
 
 ## Known WinUI 3 Pitfalls
 

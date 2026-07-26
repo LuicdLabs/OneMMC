@@ -89,6 +89,9 @@ public sealed partial class FirewallRuleEditorPage : Page
         _trackedRuleToggles.Clear();
         _userInitiatedRuleToggles.Clear();
         Unloaded -= OnUnloaded;
+
+        // Release the loaded rule set rather than holding it until the page is collected.
+        ViewModel.ClearCachedData();
     }
 
     private void OnFirewallRulesChanged(object? sender, EventArgs e)

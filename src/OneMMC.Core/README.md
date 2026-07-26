@@ -1,4 +1,11 @@
-# OneMMC.Core
+<div style="display: flex; align-items: center; justify-content: left;">
+  <picture>
+    <img height="120" src="../../doc/images/AppLogo_WASDK.png" />
+  </picture>
+  <h1 style="margin-left: 16px;">
+    <span>OneMMC.Core</span>
+  </h1>
+</div>
 
 `OneMMC.Core` is the **Windows-native application layer** for OneMMC — the headless "engine" that
 sits beneath the WinUI 3 shell. It owns every piece of logic that does *not* draw pixels: the
@@ -237,6 +244,15 @@ Two sanctioned paths, chosen by capability:
   `Features/SystemManagement/Infrastructure/WF/Wbem/`.
 
 Dispose behavior is part of correctness here — the underlying handles are native.
+
+**Do not use polled intrinsic events (`__InstanceOperationEvent … WITHIN n`) over large classes.**
+To diff such a query WMI caches a full instance snapshot of the watched class, charged against the
+per-user `__ArbitratorConfiguration.PollingMemoryPerUser` quota (5 MB by default). A single
+`MSFT_NetFirewallRule` subscription already approaches that quota on a machine with ~500 rules, so
+registration fails nondeterministically with `WBEM_E_QUOTA_VIOLATION` (0x8004106C); neither a longer
+`WITHIN` interval nor merging the classes into one `OR`'d query reduces the cost, because it tracks
+snapshot size rather than frequency. Prefer a cheaper change signal — `WindowsFirewallRuleChangeService`
+watches the firewall policy registry subtree with `RegNotifyChangeKeyValue` instead.
 
 ### Directory / accounts & performance counters
 

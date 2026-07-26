@@ -196,6 +196,114 @@ namespace OneMMC.Core.Infrastructure.PolicyStorage
             }
         }
 
+        /// <summary>
+        /// Deletes a key together with all of its values and subkeys. Unlike <see cref="ClearKey"/>, this both
+        /// drops every in-snapshot entry under the subtree (including any stale deletion markers) and records a
+        /// <c>**DeleteKeys</c> instruction so the Registry client-side extension removes the already-applied key
+        /// and its subkeys on the next refresh. This is the correct "remove this rule" primitive; writing a
+        /// <c>**delvals.</c> tombstone only clears values and leaves the key behind as a phantom.
+        /// </summary>
+        /// <param name="key">The full policy key path to delete.</param>
+        public void DeleteKeyTree(string key)
+        {
+            if (string.IsNullOrEmpty(key))
+                return;
+
+            RemoveSubtreeEntries(key);
+
+            // Record the deletion so both apply paths remove the live key: the Registry CSE (RefreshPolicyEx
+            // path) and our own ApplyDifference (direct-registry path) both honour **DeleteKeys with a
+            // semicolon-delimited list of full key paths in the data field.
+            var parentKey = GetParentKey(key);
+            var markerDictKey = GetDictKey(parentKey, "**DeleteKeys");
+
+            var paths = new List<string>();
+            if (_entries.TryGetValue(markerDictKey, out var existing) && existing.Kind is RegistryValueKind.String or RegistryValueKind.ExpandString)
+            {
+                paths.AddRange(existing.AsString().Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries));
+            }
+
+            if (!paths.Contains(key, StringComparer.OrdinalIgnoreCase))
+            {
+                paths.Add(key);
+            }
+
+            _entries[markerDictKey] = PolEntryData.FromString(string.Join(";", paths));
+        }
+
+        /// <summary>
+        /// Removes stale deletion markers (<c>**del.</c>, <c>**delvals.</c>, <c>**deletevalues</c>,
+        /// <c>**deletekeys</c>) anywhere within the given subtree. Used to self-heal policy files written by
+        /// earlier versions that persisted tombstones which would otherwise be reapplied on every refresh.
+        /// </summary>
+        /// <param name="rootKey">The subtree root to sweep.</param>
+        public void RemoveDeleteMarkers(string rootKey)
+        {
+            if (string.IsNullOrEmpty(rootKey))
+                return;
+
+            var self = rootKey.ToLowerInvariant();
+            var subtreePrefix = self + "\\";
+
+            var toRemove = _entries.Keys
+                .Where(k =>
+                {
+                    var lastBackslash = k.LastIndexOf('\\');
+                    if (lastBackslash < 0)
+                        return false;
+
+                    var ownerKey = k[..lastBackslash];
+                    var valueName = k[(lastBackslash + 1)..];
+                    bool inScope = ownerKey.Equals(self, StringComparison.OrdinalIgnoreCase)
+                        || ownerKey.StartsWith(subtreePrefix, StringComparison.OrdinalIgnoreCase);
+                    return inScope && valueName.StartsWith("**del", StringComparison.OrdinalIgnoreCase);
+                })
+                .ToList();
+
+            foreach (var k in toRemove)
+            {
+                _entries.Remove(k);
+            }
+        }
+
+        /// <summary>
+        /// Removes every <c>**DeleteKeys</c> instruction from the snapshot and returns the full key paths
+        /// they designate. Callers apply the deletions directly at save time, keeping the on-disk file free
+        /// of standing delete instructions that the Registry CSE would otherwise re-execute on every refresh
+        /// (destroying keys recreated later by other tools such as secpol.msc).
+        /// </summary>
+        /// <returns>The distinct full key paths scheduled for deletion.</returns>
+        public List<string> TakeDeleteKeyInstructions()
+        {
+            var paths = new List<string>();
+            var toRemove = new List<string>();
+
+            foreach (var kvp in _entries)
+            {
+                var lastBackslash = kvp.Key.LastIndexOf('\\');
+                if (lastBackslash < 0)
+                    continue;
+
+                var valueName = kvp.Key[(lastBackslash + 1)..];
+                if (!valueName.StartsWith("**deletekeys", StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                toRemove.Add(kvp.Key);
+                foreach (var path in kvp.Value.AsString().Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                {
+                    if (!paths.Contains(path, StringComparer.OrdinalIgnoreCase))
+                        paths.Add(path);
+                }
+            }
+
+            foreach (var k in toRemove)
+            {
+                _entries.Remove(k);
+            }
+
+            return paths;
+        }
+
         #endregion
 
         #region Additional Public Methods
@@ -208,17 +316,18 @@ namespace OneMMC.Core.Infrastructure.PolicyStorage
         /// <returns>List of value names.</returns>
         public List<string> GetValueNames(string key, bool onlyValues)
         {
-            var prefix = GetDictKey(key, "");
             var valueNames = new List<string>();
 
             foreach (var k in _entries.Keys)
             {
-                if (!k.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
-                    continue;
-
                 var fullPath = _casePreservation.TryGetValue(k, out var preserved) ? preserved : k;
                 var lastBackslash = fullPath.LastIndexOf('\\');
+                var ownerKey = lastBackslash >= 0 ? fullPath[..lastBackslash] : string.Empty;
                 var valueName = lastBackslash >= 0 ? fullPath[(lastBackslash + 1)..] : fullPath;
+
+                // Only values that belong directly to this key count; descendant keys' values must not leak in.
+                if (!ownerKey.Equals(key, StringComparison.OrdinalIgnoreCase))
+                    continue;
 
                 if (!onlyValues || !valueName.StartsWith("**"))
                 {
@@ -238,25 +347,35 @@ namespace OneMMC.Core.Infrastructure.PolicyStorage
         {
             var subkeyNames = new List<string>();
             var prefix = string.IsNullOrEmpty(key) ? "" : key + "\\";
-            var prefixLower = prefix.ToLowerInvariant();
 
             foreach (var entry in _entries.Keys)
             {
-                if (!entry.StartsWith(prefixLower, StringComparison.InvariantCultureIgnoreCase))
-                    continue;
-
                 var fullPath = _casePreservation.TryGetValue(entry, out var preserved) ? preserved : entry;
-                var keyPart = fullPath.Contains('\\') ? fullPath[..fullPath.LastIndexOf('\\')] : fullPath;
-
-                if (prefix.Length >= keyPart.Length)
+                var lastBackslash = fullPath.LastIndexOf('\\');
+                if (lastBackslash < 0)
                     continue;
 
-                var localKeyName = keyPart[prefix.Length..];
+                var ownerKey = fullPath[..lastBackslash];
+                var valueName = fullPath[(lastBackslash + 1)..];
+
+                // Command pseudo-values (**delvals., **del., **deletekeys, ...) are instructions, not real
+                // values, so a key that contains only such markers must not surface as a live subkey. This is
+                // what stops deleted-rule tombstones from re-materializing as phantom rules on reload.
+                if (valueName.StartsWith("**"))
+                    continue;
+
+                if (!ownerKey.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                var localKeyName = ownerKey[prefix.Length..];
+                if (localKeyName.Length == 0)
+                    continue; // value belongs directly to `key`, not to a subkey
+
                 var firstBackslash = localKeyName.IndexOf('\\');
                 if (firstBackslash >= 0)
                     localKeyName = localKeyName[..firstBackslash];
 
-                if (!subkeyNames.Contains(localKeyName, StringComparer.InvariantCultureIgnoreCase))
+                if (!subkeyNames.Contains(localKeyName, StringComparer.OrdinalIgnoreCase))
                     subkeyNames.Add(localKeyName);
             }
 
@@ -335,6 +454,36 @@ namespace OneMMC.Core.Infrastructure.PolicyStorage
         #endregion
 
         #region Private Methods
+
+        private void RemoveSubtreeEntries(string key)
+        {
+            var self = key.ToLowerInvariant();
+            var subtreePrefix = self + "\\";
+
+            var toRemove = _entries.Keys
+                .Where(k =>
+                {
+                    var lastBackslash = k.LastIndexOf('\\');
+                    if (lastBackslash < 0)
+                        return false;
+
+                    var ownerKey = k[..lastBackslash];
+                    return ownerKey.Equals(self, StringComparison.OrdinalIgnoreCase)
+                        || ownerKey.StartsWith(subtreePrefix, StringComparison.OrdinalIgnoreCase);
+                })
+                .ToList();
+
+            foreach (var k in toRemove)
+            {
+                _entries.Remove(k);
+            }
+        }
+
+        private static string GetParentKey(string key)
+        {
+            var lastBackslash = key.LastIndexOf('\\');
+            return lastBackslash > 0 ? key[..lastBackslash] : key;
+        }
 
         private string GetDictKey(string key, string value)
         {
@@ -462,9 +611,11 @@ namespace OneMMC.Core.Infrastructure.PolicyStorage
             }
             else if (valuePartLower.StartsWith("**deletekeys"))
             {
-                foreach (var subkey in entry.AsString().Split(';'))
+                // Per MS-GPREG the data field carries a semicolon-delimited list of full key paths to delete
+                // (the key field is ignored); each named key is removed together with all of its subkeys.
+                foreach (var fullKeyPath in entry.AsString().Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
                 {
-                    target.ClearKey(keyPart + "\\" + subkey);
+                    target.DeleteKeyTree(fullKeyPath);
                 }
             }
             else if (!string.IsNullOrEmpty(valuePart) && !valuePart.StartsWith("**"))

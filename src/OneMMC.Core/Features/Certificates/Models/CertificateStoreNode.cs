@@ -25,7 +25,6 @@ public sealed partial class CertificateStoreNode : ObservableObject
         StoreName = storeName;
         DisplayName = displayName;
         Sections = sections;
-        Rows = CreateRows(sections);
     }
 
     /// <summary>
@@ -51,13 +50,24 @@ public sealed partial class CertificateStoreNode : ObservableObject
     /// <summary>
     /// Gets the visible section headings and entries rendered within the expander.
     /// </summary>
-    public IReadOnlyList<CertificateDisplayRow> Rows { get; }
+    /// <remarks>
+    /// Built on first access rather than in the constructor. Flattening every section and entry up front
+    /// meant loading the page paid for every row in every store even though most stores stay collapsed;
+    /// a machine store like "Trusted Root Certification Authorities" alone contributes hundreds of rows.
+    /// </remarks>
+    public IReadOnlyList<CertificateDisplayRow> Rows => _rows ??= CreateRows(Sections);
+
+    private IReadOnlyList<CertificateDisplayRow>? _rows;
 
     /// <summary>
     /// Gets or sets a value indicating whether the card is expanded.
     /// </summary>
+    /// <remarks>
+    /// Collapsed by default, matching certlm.msc / certmgr.msc. Expanding a store is what materializes
+    /// its rows, so defaulting to expanded realized the whole certificate list on every visit.
+    /// </remarks>
     [ObservableProperty]
-    public partial bool IsExpanded { get; set; } = true;
+    public partial bool IsExpanded { get; set; }
 
     /// <summary>
     /// Creates a new store node with the same metadata and different sections.

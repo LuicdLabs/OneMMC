@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Security.Cryptography.X509Certificates;
+using OneMMC.Core.Features.SystemManagement.Infrastructure.WF;
 using OneMMC.Core.Features.SystemManagement.Models.WF.Authentication;
 using OneMMC.Core.Features.SystemManagement.Models.WF.ConnectionSecurity;
 using OneMMC.Core.Features.SystemManagement.Models.WF.Monitoring;
@@ -119,13 +119,15 @@ public sealed partial class AddFirstAuthMethodDialog : UserControl
     {
         var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindowInstance);
         var pickerService = App.GetRequiredService<CertificateAuthorityPickerService>();
-        string? distinguishedName = pickerService.PickCaDistinguishedName(
+        CertificateAuthorityPickResult? result = pickerService.PickCertificateAuthority(
             hwnd,
-            StoreLocation.LocalMachine,
-            GetSelectedCertificateAuthorityStoreName(CertStoreTypeCombo));
-        if (!string.IsNullOrWhiteSpace(distinguishedName))
+            GetSelectedCertificateAuthorityStoreKind(CertStoreTypeCombo),
+            new CertificateAuthorityPickerStrings(
+                LocalizedStrings.WF_CertificatePicker_Title,
+                LocalizedStrings.WF_CertificatePicker_Prompt));
+        if (result is not null)
         {
-            CertCATextBox.Text = distinguishedName;
+            CertCATextBox.Text = result.DistinguishedName;
             ResetValidationMessage();
         }
     }
@@ -240,9 +242,17 @@ public sealed partial class AddFirstAuthMethodDialog : UserControl
 
     private string? GetValidationErrorMessage()
     {
-        if (CertRadio.IsChecked == true && string.IsNullOrWhiteSpace(CertCATextBox.Text))
+        if (CertRadio.IsChecked == true)
         {
-            return LocalizedStrings.WF_Validation_CertificateAuthorityPathRequired;
+            if (string.IsNullOrWhiteSpace(CertCATextBox.Text))
+            {
+                return LocalizedStrings.WF_Validation_CertificateAuthorityPathRequired;
+            }
+
+            if (!CertificateAuthorityNameSupport.IsValidTrustedCaName(CertCATextBox.Text))
+            {
+                return LocalizedStrings.WF_Validation_CertificateAuthorityNameInvalid;
+            }
         }
 
         if (PresharedRadio.IsChecked == true && string.IsNullOrWhiteSpace(PresharedKeyTextBox.Text))
@@ -270,12 +280,12 @@ public sealed partial class AddFirstAuthMethodDialog : UserControl
             ?? (comboBox.SelectedItem as ComboBoxItem)?.Content?.ToString()
             ?? string.Empty;
 
-    private static StoreName GetSelectedCertificateAuthorityStoreName(ComboBox comboBox)
+    private static CertificateAuthorityStoreKind GetSelectedCertificateAuthorityStoreKind(ComboBox comboBox)
     {
         return AuthMethodValueMapper.NormalizeCertificateStoreTypeTag(GetComboTag(comboBox)) switch
         {
-            "IntermediateCA" => StoreName.CertificateAuthority,
-            _ => StoreName.Root
+            "IntermediateCA" => CertificateAuthorityStoreKind.IntermediateCA,
+            _ => CertificateAuthorityStoreKind.RootCA
         };
     }
 

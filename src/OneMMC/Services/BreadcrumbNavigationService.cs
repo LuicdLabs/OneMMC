@@ -104,10 +104,7 @@ namespace OneMMC.Services
         // True = breadcrumb click navigation (restore from _breadcrumbClickHistory)
         // False = normal forward navigation (just remove last breadcrumb)
         private static Stack<bool> _backStackSourceType = new Stack<bool>();
-        
-        // Page metadata cache to avoid creating instances repeatedly
-        private static readonly Dictionary<Type, (bool IsHeaderVisible, string PageTitle, bool ClearNavigation)> _pageMetadataCache = new();
-        
+
         // State machine for navigation control
         public static NavigationState CurrentState { get; private set; } = NavigationState.Idle;
         
@@ -278,7 +275,7 @@ namespace OneMMC.Services
                 
                 // Mark this BackStack entry as created from breadcrumb click navigation
                 _backStackSourceType.Push(true);
-                
+
                 int itemsToRemove = BreadCrumbs.Count - breadcrumbIndex - 1;
                 for (int i = 0; i < itemsToRemove; i++)
                 {
@@ -354,7 +351,7 @@ namespace OneMMC.Services
             // Mark this upcoming BackStack entry as normal forward navigation (not breadcrumb click)
             // This is called before contentFrame.Navigate() which adds to BackStack
             _backStackSourceType.Push(false);
-            
+
             BreadCrumbs.Add(new Breadcrumb(label, pageType, parameter));
             UpdateBreadcrumb();
             LogDebug("AddBreadcrumb", $"Added '{label}'");

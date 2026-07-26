@@ -67,6 +67,21 @@ internal static class AuthManager
         DeleteManagedAuthSetIfExists(session, phase1: false, ruleIdentity);
     }
 
+    /// <summary>
+    /// Deletes OneMMC-owned authentication sets that the persisted rule no longer references.
+    /// The caller must update the rule before invoking this method because the firewall provider
+    /// rejects deletion of an authentication set while a rule still references it.
+    /// </summary>
+    internal static void DeleteReplacedManagedAuthSets(
+        WbemServices session,
+        string ruleIdentity,
+        string activePhase1SetId,
+        string activePhase2SetId)
+    {
+        DeleteManagedAuthSetIfReplaced(session, phase1: true, ruleIdentity, activePhase1SetId);
+        DeleteManagedAuthSetIfReplaced(session, phase1: false, ruleIdentity, activePhase2SetId);
+    }
+
     internal static WbemObject? FindSetByCreationClass(WbemServices session, string className, string creationClassName)
     {
         foreach (WbemObject instance in session.EnumerateInstances(className))
@@ -105,8 +120,9 @@ internal static class AuthManager
 
         if (authMethods.Count == 0)
         {
-            DeleteManagedAuthSetIfExists(session, phase1, ruleIdentity);
-            return normalizedConfiguredSetId;
+            return IsManagedAuthSetReference(normalizedConfiguredSetId, phase1, ruleIdentity)
+                ? defaultSetId
+                : normalizedConfiguredSetId;
         }
 
         string? referencedSetId = authMethods
@@ -116,10 +132,12 @@ internal static class AuthManager
         WbemObject[] proposals = BuildAuthProposals(session, authMethods).ToArray();
         if (proposals.Length == 0)
         {
-            DeleteManagedAuthSetIfExists(session, phase1, ruleIdentity);
-            return !string.IsNullOrWhiteSpace(referencedSetId)
+            string selectedSetId = !string.IsNullOrWhiteSpace(referencedSetId)
                 ? referencedSetId
                 : normalizedConfiguredSetId;
+            return IsManagedAuthSetReference(selectedSetId, phase1, ruleIdentity)
+                ? defaultSetId
+                : selectedSetId;
         }
 
         string setId = BuildManagedAuthSetId(ruleIdentity, phase1);
@@ -251,6 +269,13 @@ internal static class AuthManager
 
     private static WbemObject CreateCertificateAuthProposal(WbemServices session, AuthMethodDialogResult method, ushort authenticationMethod)
     {
+        if (!CertificateAuthorityNameSupport.IsValidTrustedCaName(method.CaDistinguishedName))
+        {
+            throw new ArgumentException(
+                "Certificate authentication proposals require a valid X.500 certification authority name without the '|' character.",
+                nameof(method));
+        }
+
         WbemObject instance = session.SpawnInstance("MSFT_NetIKECertAuthProposal");
         instance.SetProperty("AuthenticationMethod", authenticationMethod, WbemType.UInt16);
         instance.SetProperty("TrustedCA", method.CaDistinguishedName ?? string.Empty, WbemType.String);
@@ -380,5 +405,47 @@ internal static class AuthManager
         }
 
         session.DeleteInstance(existing);
+    }
+
+    private static void DeleteManagedAuthSetIfReplaced(
+        WbemServices session,
+        bool phase1,
+        string ruleIdentity,
+        string activeSetId)
+    {
+        string managedSetId = BuildManagedAuthSetId(ruleIdentity, phase1);
+        if (ReferencesAuthSet(activeSetId, managedSetId))
+        {
+            return;
+        }
+
+        DeleteManagedAuthSetIfExists(session, phase1, ruleIdentity);
+    }
+
+    private static bool IsManagedAuthSetReference(
+        string setReference,
+        bool phase1,
+        string ruleIdentity)
+        => ReferencesAuthSet(setReference, BuildManagedAuthSetId(ruleIdentity, phase1));
+
+    private static bool ReferencesAuthSet(string setReference, string setId)
+    {
+        if (string.IsNullOrWhiteSpace(setReference))
+        {
+            return false;
+        }
+
+        string normalizedReference = setReference.Trim();
+        int openBraceIndex = normalizedReference.IndexOf('{', StringComparison.Ordinal);
+        if (openBraceIndex >= 0)
+        {
+            int closeBraceIndex = normalizedReference.IndexOf('}', openBraceIndex + 1);
+            if (closeBraceIndex >= 0)
+            {
+                normalizedReference = normalizedReference[openBraceIndex..(closeBraceIndex + 1)];
+            }
+        }
+
+        return string.Equals(normalizedReference, setId, StringComparison.OrdinalIgnoreCase);
     }
 }

@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using System.Buffers.Binary;
+using System.Globalization;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
@@ -43,8 +44,7 @@ public sealed class PublicKeyPolicyService
     private const string AuthenticodeFlagsValueName = "AuthenticodeFlags";
     private const string AutoEnrollmentPolicyValueName = "AEPolicy";
     private const string OfflineExpirationPercentValueName = "OfflineExpirationPercent";
-    private const string StoreNameValueName = "StoreName";
-    private const string EnableBalloonNotificationsValueName = "EnableBalloonNotifications";
+    private const string OfflineExpirationStoreNamesValueName = "OfflineExpirationStoreNames";
     private const string EfsConfigurationValueName = "EfsConfiguration";
     private const string EfsOptionsValueName = "EfsOptions";
     private const string EfsCacheTimeoutValueName = "CacheTimeout";
@@ -63,6 +63,10 @@ public sealed class PublicKeyPolicyService
     private const int DisableAiaRetrievalOptionsValue = 2;
     private const uint EnrollmentPolicyServerAutoEnrollmentFlag = 0x00000010;
     private const uint EnrollmentPolicyServerDefaultCost = 0x7FFFFFFD;
+
+    // certenroll.h EnrollmentPolicyFlags values stored in the PolicyServers root "Flags" value.
+    private const uint EnrollmentPolicyDisableGroupPolicyListFlag = 0x00000002;
+    private const uint EnrollmentPolicyDisableUserServerListFlag = 0x00000004;
     private const uint ProtectedRootsDisableCurrentUserFlag = 0x00000001;
     private const uint ProtectedRootsOnlyEnterpriseRootsFlag = 0x00000008;
     private const uint ProtectedRootsRequireUpnNameConstraintsFlag = 0x00000010;
@@ -105,6 +109,24 @@ public sealed class PublicKeyPolicyService
     private const string SecureEmailOid = "1.3.6.1.5.5.7.3.4";
     private const string EncryptingFileSystemOid = "1.3.6.1.4.1.311.10.3.4";
     private const string EfsRecoveryOid = "1.3.6.1.4.1.311.10.3.4.1";
+
+    // Serialized certificate store element records (wincrypt.h property identifiers). Windows writes the
+    // registry "Blob" value as a sequence of {PropertyId, Reserved=1, Length, Value} records where the
+    // CERT_CERT_PROP_ID record carries the DER encoded certificate (MS-GPEF 2.2.1.1.1).
+    private const uint CertSha1HashPropertyId = 3;
+    private const uint CertContentPropertyId = 32;
+    private const uint CertBlobRecordReserved = 1;
+
+    // MS-GPEF 2.2.1.2 EfsBlob written to the EFS policy store alongside the recovery agent certificates.
+    private const string EfsBlobValueName = "EfsBlob";
+    private const uint EfsBlobReservedHeader = 0x00010001;
+    private const uint EfsKeyReserved1 = 0x00000002;
+
+    // MS-CAESO offline expiration monitoring always covers the MY store; extra stores are comma separated.
+    private const string OfflineExpirationBaseStoreName = "MY";
+    private const int OfflineExpirationDefaultPercent = 10;
+    private const int OfflineExpirationMinimumPercent = 1;
+    private const int OfflineExpirationMaximumPercent = 99;
 
     private readonly ILogger<PublicKeyPolicyService> _logger;
     private readonly LocalPolicyFileStore _localPolicyFileStore;
@@ -220,6 +242,28 @@ public sealed class PublicKeyPolicyService
             snapshot.SetValue(AutoEnrollmentPolicyPath, AutoEnrollmentPolicyValueName, policy, RegistryValueKind.DWord);
         }
 
+        if (settings.State == CertificateAutoEnrollmentPolicyState.Enabled && settings.EnableExpirationNotifications)
+        {
+            snapshot.SetValue(
+                AutoEnrollmentPolicyPath,
+                OfflineExpirationPercentValueName,
+                (uint)Math.Clamp(
+                    settings.ExpirationNotificationPercent,
+                    OfflineExpirationMinimumPercent,
+                    OfflineExpirationMaximumPercent),
+                RegistryValueKind.DWord);
+            snapshot.SetValue(
+                AutoEnrollmentPolicyPath,
+                OfflineExpirationStoreNamesValueName,
+                BuildOfflineExpirationStoreNames(settings.AdditionalExpirationStores),
+                RegistryValueKind.String);
+        }
+        else
+        {
+            snapshot.DeleteValue(AutoEnrollmentPolicyPath, OfflineExpirationPercentValueName);
+            snapshot.DeleteValue(AutoEnrollmentPolicyPath, OfflineExpirationStoreNamesValueName);
+        }
+
         string result = _localPolicyFileStore.SaveSnapshot(isUser: false, snapshot);
         _logger.LogInformation("Certificate auto-enrollment policy saved: {SaveResult}", result);
     }
@@ -234,22 +278,32 @@ public sealed class PublicKeyPolicyService
 
         EnsureMachinePolicyIsWritable();
         PolFile snapshot = _localPolicyFileStore.LoadSnapshot(isUser: false);
-        if (settings.State == CertificateEnrollmentPolicyState.NotConfigured)
+        ClearEnrollmentPolicyServerTree(snapshot);
+        if (settings.State != CertificateEnrollmentPolicyState.NotConfigured)
         {
-            ClearEnrollmentPolicyServerTree(snapshot);
-        }
-        else
-        {
-            ClearEnrollmentPolicyServerTree(snapshot);
+            uint rootFlags = 0U;
+            if (settings.State == CertificateEnrollmentPolicyState.Disabled)
+            {
+                rootFlags |= EnrollmentPolicyDisableGroupPolicyListFlag;
+            }
+
+            if (settings.DisableUserConfiguredServers)
+            {
+                rootFlags |= EnrollmentPolicyDisableUserServerListFlag;
+            }
+
             snapshot.SetValue(
                 EnrollmentPolicyServersPath,
                 EnrollmentPolicyServersFlagsValueName,
-                0U,
+                rootFlags,
                 RegistryValueKind.DWord);
 
-            foreach (CertificateEnrollmentPolicyServer server in settings.Servers)
+            if (settings.State == CertificateEnrollmentPolicyState.Enabled)
             {
-                SaveEnrollmentPolicyServer(snapshot, server);
+                foreach (CertificateEnrollmentPolicyServer server in settings.Servers)
+                {
+                    SaveEnrollmentPolicyServer(snapshot, server);
+                }
             }
         }
 
@@ -344,7 +398,20 @@ public sealed class PublicKeyPolicyService
     /// </summary>
     /// <param name="nodeKind">The selected recovery-agent node kind.</param>
     /// <param name="certificatePath">The certificate file path.</param>
-    public void AddRecoveryAgentCertificate(PublicKeyPolicyNodeKind nodeKind, string certificatePath)
+    /// <param name="ignoreInstallWarnings">
+    /// When <see langword="false"/> (the default) the certificate's trust chain and revocation status are
+    /// evaluated; if either cannot be validated the certificate is not written and the localized Windows
+    /// "Add Recovery Agent" confirmation prompt is returned instead. Pass <see langword="true"/> after the
+    /// user has approved the install to skip those gates and write the certificate.
+    /// </param>
+    /// <returns>
+    /// <see langword="null"/> when the certificate was added; otherwise the localized confirmation prompt to
+    /// show the user before retrying with <paramref name="ignoreInstallWarnings"/> set.
+    /// </returns>
+    public string? AddRecoveryAgentCertificate(
+        PublicKeyPolicyNodeKind nodeKind,
+        string certificatePath,
+        bool ignoreInstallWarnings = false)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(certificatePath);
 
@@ -361,15 +428,39 @@ public sealed class PublicKeyPolicyService
         PolFile snapshot = _localPolicyFileStore.LoadSnapshot(isUser: false);
         ValidateRecoveryAgentCertificate(nodeKind, storeName, certificate, thumbprint, snapshot);
 
-        string certificateKey = GetRecoveryAgentCertificateKey(storeName, thumbprint);
-        snapshot.SetValue(certificateKey, BlobValueName, certificate.RawData.ToArray(), RegistryValueKind.Binary);
+        // Mirror the Windows wizard: when the certificate cannot be fully validated (does not chain to a
+        // trusted root, or its revocation status cannot be determined), return the confirmation prompt
+        // instead of writing. The retry after the user approves passes ignoreInstallWarnings.
+        if (!ignoreInstallWarnings)
+        {
+            string? confirmationMessage = GetInstallConfirmationMessage(certificate);
+            if (confirmationMessage is not null)
+            {
+                return confirmationMessage;
+            }
+        }
 
-        string result = _localPolicyFileStore.SaveSnapshot(isUser: false, snapshot);
+        EnsureCertificateStoreScaffolding(snapshot, storeName);
+        string certificateKey = GetRecoveryAgentCertificateKey(storeName, thumbprint);
+        snapshot.SetValue(
+            certificateKey,
+            BlobValueName,
+            SerializeCertificateBlob(certificate),
+            RegistryValueKind.Binary);
+
+        bool isEfsStore = nodeKind == PublicKeyPolicyNodeKind.EncryptingFileSystem;
+        if (isEfsStore)
+        {
+            UpdateEfsRecoveryBlob(snapshot);
+        }
+
+        string result = SaveRecoveryAgentSnapshot(snapshot, isEfsStore);
         _logger.LogInformation(
             "Recovery agent certificate saved to {StoreName}: {Thumbprint}. {SaveResult}",
             storeName,
             thumbprint,
             result);
+        return null;
     }
 
     /// <summary>
@@ -389,9 +480,15 @@ public sealed class PublicKeyPolicyService
         }
 
         PolFile snapshot = _localPolicyFileStore.LoadSnapshot(isUser: false);
-        ClearTree(snapshot, GetRecoveryAgentCertificateKey(storeName, thumbprint));
+        snapshot.DeleteKeyTree(GetRecoveryAgentCertificateKey(storeName, thumbprint));
 
-        string result = _localPolicyFileStore.SaveSnapshot(isUser: false, snapshot);
+        bool isEfsStore = string.Equals(storeName, "EFS", StringComparison.OrdinalIgnoreCase);
+        if (isEfsStore)
+        {
+            UpdateEfsRecoveryBlob(snapshot, deletedThumbprint: thumbprint);
+        }
+
+        string result = SaveRecoveryAgentSnapshot(snapshot, isEfsStore);
         _logger.LogInformation(
             "Recovery agent certificate deleted from {StoreName}: {Thumbprint}. {SaveResult}",
             storeName,
@@ -406,7 +503,7 @@ public sealed class PublicKeyPolicyService
         string storeName,
         EfsPolicySettings? efsSettings = null)
     {
-        List<PublicKeyPolicyRow> rows = LoadGroupPolicyCertificates(storeName);
+        List<PublicKeyPolicyRow> rows = LoadGroupPolicyCertificates(storeName, LoadLocalPolicySnapshotForRead());
         if (rows.Count == 0)
         {
             rows.Add(new PublicKeyPolicyRow
@@ -431,24 +528,49 @@ public sealed class PublicKeyPolicyService
         };
     }
 
-    private List<PublicKeyPolicyRow> LoadGroupPolicyCertificates(string storeName)
+    private List<PublicKeyPolicyRow> LoadGroupPolicyCertificates(string storeName, PolFile snapshot)
     {
         List<PublicKeyPolicyRow> rows = [];
         string certificatesPath = $@"{SystemCertificatesPolicyRoot}\{storeName}\Certificates";
 
         try
         {
-            using RegistryKey? certificatesKey = Registry.LocalMachine.OpenSubKey(certificatesPath);
-            if (certificatesKey is null)
+            // Merge the applied registry state with pending Registry.pol entries so certificates saved a
+            // moment ago show immediately even before the Group Policy refresh has re-applied the file.
+            Dictionary<string, byte[]?> blobs = new(StringComparer.OrdinalIgnoreCase);
+            using (RegistryKey? certificatesKey = Registry.LocalMachine.OpenSubKey(certificatesPath))
             {
-                return rows;
+                if (certificatesKey is not null)
+                {
+                    foreach (string thumbprint in certificatesKey.GetSubKeyNames())
+                    {
+                        using RegistryKey? certificateKey = certificatesKey.OpenSubKey(thumbprint);
+                        blobs[thumbprint] = certificateKey?.GetValue(BlobValueName) as byte[];
+                    }
+                }
             }
 
-            foreach (string thumbprint in certificatesKey.GetSubKeyNames().Order(StringComparer.OrdinalIgnoreCase))
+            foreach (string thumbprint in snapshot.GetKeyNames(certificatesPath))
             {
-                using RegistryKey? certificateKey = certificatesKey.OpenSubKey(thumbprint);
-                byte[]? blob = certificateKey?.GetValue(BlobValueName) as byte[];
-                rows.Add(CreateCertificateRow(storeName, thumbprint, blob));
+                if (string.IsNullOrWhiteSpace(NormalizeThumbprint(thumbprint)))
+                {
+                    continue;
+                }
+
+                string certificateKeyPath = $@"{certificatesPath}\{thumbprint}";
+                if (snapshot.WillDeleteValue(certificateKeyPath, BlobValueName))
+                {
+                    blobs.Remove(thumbprint);
+                }
+                else if (snapshot.GetValue(certificateKeyPath, BlobValueName) is byte[] pendingBlob)
+                {
+                    blobs[thumbprint] = pendingBlob;
+                }
+            }
+
+            foreach (string thumbprint in blobs.Keys.Order(StringComparer.OrdinalIgnoreCase))
+            {
+                rows.Add(CreateCertificateRow(storeName, thumbprint, blobs[thumbprint]));
             }
         }
         catch (Exception ex)
@@ -471,7 +593,10 @@ public sealed class PublicKeyPolicyService
         {
             try
             {
-                using X509Certificate2 certificate = X509CertificateLoader.LoadCertificate(blob);
+                // Windows writes the Blob value as a serialized certificate store element; fall back to
+                // treating the data as bare DER for values written by other tools.
+                using X509Certificate2 certificate = X509CertificateLoader.LoadCertificate(
+                    TryExtractCertificateFromBlob(blob) ?? blob);
                 string issuedTo = GetPreferredName(certificate, forIssuer: false);
                 string issuedBy = GetPreferredName(certificate, forIssuer: true);
                 string friendlyName = string.IsNullOrWhiteSpace(certificate.FriendlyName)
@@ -713,7 +838,7 @@ public sealed class PublicKeyPolicyService
             CreateDetail(PublicKeyPolicyKeys.PathValidationCrossCertInterval, FormatHours(settings.NetworkRetrievalDefined, settings.CrossCertificateDownloadIntervalHours)),
             CreateDetail(PublicKeyPolicyKeys.PathValidationRevocationDefined, FormatDefined(settings.RevocationDefined)),
             CreateDetail(PublicKeyPolicyKeys.PathValidationPreferCrlBeforeOcsp, FormatOption(settings.RevocationDefined, settings.PreferCrlBeforeOcsp)),
-            CreateDetail(PublicKeyPolicyKeys.PathValidationCachedOcspThreshold, FormatNullableNumber(settings.RevocationDefined && settings.PreferCrlBeforeOcsp, settings.CachedOcspResponseThreshold)),
+            CreateDetail(PublicKeyPolicyKeys.PathValidationCachedOcspThreshold, FormatNullableNumber(settings.RevocationDefined && !settings.PreferCrlBeforeOcsp, settings.CachedOcspResponseThreshold)),
             CreateDetail(PublicKeyPolicyKeys.PathValidationExtendRevocationLifetime, FormatOption(settings.RevocationDefined, settings.ExtendRevocationFreshnessLifetime)),
             CreateDetail(PublicKeyPolicyKeys.PathValidationRevocationExtensionHours, FormatHours(settings.RevocationDefined && settings.ExtendRevocationFreshnessLifetime, settings.RevocationFreshnessExtensionHours)),
             CreateDetail(PublicKeyPolicyKeys.PathValidationTrustedRoots, FormatCertificateCount("Root")),
@@ -738,9 +863,8 @@ public sealed class PublicKeyPolicyService
 
     private IReadOnlyList<PublicKeyPolicyDetailItem> LoadAutoEnrollmentDetails(CertificateAutoEnrollmentSettings settings)
     {
-        object? storeName = ReadRegistryValue(AutoEnrollmentPolicyPath, StoreNameValueName);
+        object? storeNames = ReadRegistryValue(AutoEnrollmentPolicyPath, OfflineExpirationStoreNamesValueName);
         uint? expirationPercentage = ReadDword(AutoEnrollmentPolicyPath, OfflineExpirationPercentValueName);
-        uint? balloonNotifications = ReadDword(AutoEnrollmentPolicyPath, EnableBalloonNotificationsValueName);
 
         List<PublicKeyPolicyDetailItem> details =
         [
@@ -748,8 +872,7 @@ public sealed class PublicKeyPolicyService
             CreateDetail(PublicKeyPolicyKeys.AutoEnrollmentRenewExpired, FormatAutoEnrollmentOption(settings.State, settings.EnableMyStoreManagement)),
             CreateDetail(PublicKeyPolicyKeys.AutoEnrollmentUpdateTemplates, FormatAutoEnrollmentOption(settings.State, settings.EnableTemplateCheck)),
             CreateDetail(PublicKeyPolicyKeys.AutoEnrollmentExpirationNotifications, FormatNullableDword(expirationPercentage)),
-            CreateDetail(PublicKeyPolicyKeys.AutoEnrollmentBalloonNotifications, FormatNullableBoolean(balloonNotifications)),
-            CreateDetail(PublicKeyPolicyKeys.AutoEnrollmentStoreNames, FormatRegistryValue(storeName)),
+            CreateDetail(PublicKeyPolicyKeys.AutoEnrollmentStoreNames, FormatRegistryValue(storeNames)),
             CreateDetail(PublicKeyPolicyKeys.AutoEnrollmentPolicySource, $@"HKLM\{AutoEnrollmentPolicyPath}")
         ];
 
@@ -765,18 +888,50 @@ public sealed class PublicKeyPolicyService
     {
         PolFile snapshot = LoadLocalPolicySnapshotForRead();
         List<CertificateEnrollmentPolicyServer> servers = LoadEnrollmentPolicyServers(snapshot);
-        bool hasPolicyServersRoot = snapshot.ContainsValue(EnrollmentPolicyServersPath, EnrollmentPolicyServersFlagsValueName)
-            || servers.Count > 0;
+        uint? rootFlags = ReadEffectiveDword(snapshot, EnrollmentPolicyServersPath, EnrollmentPolicyServersFlagsValueName);
+
+        CertificateEnrollmentPolicyState state;
+        if (rootFlags is uint flags)
+        {
+            state = (flags & EnrollmentPolicyDisableGroupPolicyListFlag) == EnrollmentPolicyDisableGroupPolicyListFlag
+                ? CertificateEnrollmentPolicyState.Disabled
+                : CertificateEnrollmentPolicyState.Enabled;
+        }
+        else
+        {
+            state = servers.Count > 0
+                ? CertificateEnrollmentPolicyState.Enabled
+                : CertificateEnrollmentPolicyState.NotConfigured;
+        }
 
         CertificateEnrollmentPolicySettings settings = new()
         {
-            State = hasPolicyServersRoot
-                ? CertificateEnrollmentPolicyState.Enabled
-                : CertificateEnrollmentPolicyState.NotConfigured
+            State = state,
+            DisableUserConfiguredServers = rootFlags is uint value
+                && (value & EnrollmentPolicyDisableUserServerListFlag) == EnrollmentPolicyDisableUserServerListFlag
         };
 
         settings.Servers.AddRange(servers);
         return settings;
+    }
+
+    /// <summary>
+    /// Reads a DWORD from the Registry.pol snapshot, falling back to the applied registry state when the
+    /// snapshot neither sets nor deletes the value.
+    /// </summary>
+    private static uint? ReadEffectiveDword(PolFile snapshot, string keyPath, string valueName)
+    {
+        if (snapshot.ContainsValue(keyPath, valueName))
+        {
+            return ReadDword(snapshot, keyPath, valueName);
+        }
+
+        if (snapshot.WillDeleteValue(keyPath, valueName))
+        {
+            return null;
+        }
+
+        return ReadDword(keyPath, valueName);
     }
 
     private static List<CertificateEnrollmentPolicyServer> LoadEnrollmentPolicyServers(PolFile snapshot)
@@ -944,32 +1099,10 @@ public sealed class PublicKeyPolicyService
 
     private static void ClearEnrollmentPolicyServerTree(PolFile snapshot)
     {
-        ClearTree(snapshot, EnrollmentPolicyServersPath);
-
-        using RegistryKey? policyServersKey = Registry.LocalMachine.OpenSubKey(EnrollmentPolicyServersPath);
-        if (policyServersKey is null)
-        {
-            return;
-        }
-
-        ClearRegistryKeyValuesInSnapshot(snapshot, EnrollmentPolicyServersPath, policyServersKey);
-    }
-
-    private static void ClearRegistryKeyValuesInSnapshot(PolFile snapshot, string keyPath, RegistryKey key)
-    {
-        foreach (string valueName in key.GetValueNames())
-        {
-            snapshot.DeleteValue(keyPath, valueName);
-        }
-
-        foreach (string subKeyName in key.GetSubKeyNames())
-        {
-            using RegistryKey? subKey = key.OpenSubKey(subKeyName);
-            if (subKey is not null)
-            {
-                ClearRegistryKeyValuesInSnapshot(snapshot, $@"{keyPath}\{subKeyName}", subKey);
-            }
-        }
+        // DeleteKeyTree drops every in-snapshot entry under the tree and records a transient **DeleteKeys
+        // instruction, so both the already-applied registry tree and stale snapshot entries are removed
+        // without leaving standing tombstones in Registry.pol.
+        snapshot.DeleteKeyTree(EnrollmentPolicyServersPath);
     }
 
     private static string GetEnrollmentPolicyServerKey(string serverId)
@@ -1034,6 +1167,8 @@ public sealed class PublicKeyPolicyService
     {
         PolFile snapshot = LoadLocalPolicySnapshotForRead();
         uint? policy = ReadDword(snapshot, AutoEnrollmentPolicyPath, AutoEnrollmentPolicyValueName);
+        uint? expirationPercent = ReadDword(snapshot, AutoEnrollmentPolicyPath, OfflineExpirationPercentValueName);
+        string? expirationStores = ReadString(snapshot, AutoEnrollmentPolicyPath, OfflineExpirationStoreNamesValueName);
 
         return new CertificateAutoEnrollmentSettings
         {
@@ -1047,8 +1182,38 @@ public sealed class PublicKeyPolicyService
             EnableMyStoreManagement = policy is not null
                 && (policy.Value & AutoEnrollmentStoreManagementFlags) == AutoEnrollmentStoreManagementFlags,
             EnableTemplateCheck = policy is not null
-                && (policy.Value & AutoEnrollmentTemplateCheckFlag) == AutoEnrollmentTemplateCheckFlag
+                && (policy.Value & AutoEnrollmentTemplateCheckFlag) == AutoEnrollmentTemplateCheckFlag,
+            EnableExpirationNotifications = expirationPercent is not null,
+            ExpirationNotificationPercent = ToBoundedInt(
+                expirationPercent,
+                OfflineExpirationDefaultPercent,
+                OfflineExpirationMinimumPercent,
+                OfflineExpirationMaximumPercent),
+            AdditionalExpirationStores = ParseAdditionalExpirationStores(expirationStores)
         };
+    }
+
+    private static string ParseAdditionalExpirationStores(string? storeNames)
+    {
+        if (string.IsNullOrWhiteSpace(storeNames))
+        {
+            return string.Empty;
+        }
+
+        string[] additionalStores = storeNames
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Where(static store => !string.Equals(store, OfflineExpirationBaseStoreName, StringComparison.OrdinalIgnoreCase))
+            .ToArray();
+        return string.Join(", ", additionalStores);
+    }
+
+    private static string BuildOfflineExpirationStoreNames(string additionalStores)
+    {
+        IEnumerable<string> stores = (additionalStores ?? string.Empty)
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Where(static store => !string.Equals(store, OfflineExpirationBaseStoreName, StringComparison.OrdinalIgnoreCase))
+            .Distinct(StringComparer.OrdinalIgnoreCase);
+        return string.Join(",", stores.Prepend(OfflineExpirationBaseStoreName));
     }
 
     private EfsPolicySettings LoadEfsPolicySettings()
@@ -1135,8 +1300,14 @@ public sealed class PublicKeyPolicyService
                 ChainEngineConfigPath,
                 CryptnetCachedOcspSwitchToCrlCountValueName,
                 CrlValidityExtensionPeriodValueName),
-            PreferCrlBeforeOcsp = cachedOcspThreshold is not null && cachedOcspThreshold.Value > 0U,
-            CachedOcspResponseThreshold = ToBoundedInt(cachedOcspThreshold, defaultValue: 50, minimum: 0, maximum: 9999),
+            // CryptnetCachedOcspSwitchToCrlCount is the "OCSP magic number": the number of cached OCSP
+            // responses (per CA) at which CryptoAPI stops preferring OCSP and switches to CRLs. A value of
+            // 0 forces an immediate switch, i.e. "always prefer CRL over OCSP"; a positive value is the
+            // count-based threshold. The two states are mutually exclusive, matching Windows' native UI.
+            PreferCrlBeforeOcsp = cachedOcspThreshold is 0U,
+            CachedOcspResponseThreshold = cachedOcspThreshold is null or 0U
+                ? 50
+                : ToBoundedInt(cachedOcspThreshold, defaultValue: 50, minimum: 1, maximum: 9999),
             ExtendRevocationFreshnessLifetime = crlValidityExtensionHours is not null && crlValidityExtensionHours.Value > 0U,
             RevocationFreshnessExtensionHours = ToBoundedInt(crlValidityExtensionHours, defaultValue: 12, minimum: 0, maximum: 9999)
         };
@@ -1280,17 +1451,24 @@ public sealed class PublicKeyPolicyService
             return;
         }
 
+        // "Prefer CRL over OCSP" writes CryptnetCachedOcspSwitchToCrlCount = 0 (switch immediately);
+        // otherwise the value is the cached-OCSP-response threshold before switching to CRLs. These are
+        // mutually exclusive in the UI, so only one of the two states is ever persisted.
         if (settings.PreferCrlBeforeOcsp)
         {
             snapshot.SetValue(
                 ChainEngineConfigPath,
                 CryptnetCachedOcspSwitchToCrlCountValueName,
-                (uint)Clamp(settings.CachedOcspResponseThreshold),
+                0U,
                 RegistryValueKind.DWord);
         }
         else
         {
-            snapshot.DeleteValue(ChainEngineConfigPath, CryptnetCachedOcspSwitchToCrlCountValueName);
+            snapshot.SetValue(
+                ChainEngineConfigPath,
+                CryptnetCachedOcspSwitchToCrlCountValueName,
+                (uint)Math.Clamp(settings.CachedOcspResponseThreshold, 1, 9999),
+                RegistryValueKind.DWord);
         }
 
         if (settings.ExtendRevocationFreshnessLifetime)
@@ -1416,12 +1594,6 @@ public sealed class PublicKeyPolicyService
     {
         using RegistryKey? certificatesKey = Registry.LocalMachine.OpenSubKey($@"{SystemCertificatesPolicyRoot}\{storeName}\Certificates");
         return certificatesKey?.GetSubKeyNames().Length ?? 0;
-    }
-
-    private static int CountEnrollmentPolicyServers()
-    {
-        using RegistryKey? policyServersKey = Registry.LocalMachine.OpenSubKey(EnrollmentPolicyServersPath);
-        return policyServersKey?.GetSubKeyNames().Length ?? 0;
     }
 
     private static uint? ReadDword(string keyPath, string valueName)
@@ -1633,7 +1805,7 @@ public sealed class PublicKeyPolicyService
     {
         string[] values = oids
             .Where(static oid => !string.IsNullOrWhiteSpace(oid))
-            .Select(static oid => oid.Trim())
+            .Select(static oid => PublicKeyPolicyPurposeDisplay.GetDisplayName(oid))
             .ToArray();
         return values.Length == 0
             ? GetString(PublicKeyPolicyKeys.NotConfigured)
@@ -1699,9 +1871,12 @@ public sealed class PublicKeyPolicyService
 
     private static string FormatEnrollmentPolicyState(CertificateEnrollmentPolicyState state)
     {
-        return state == CertificateEnrollmentPolicyState.Enabled
-            ? GetString(SecPolKeys.ValueEnabled)
-            : GetString(PublicKeyPolicyKeys.NotConfigured);
+        return state switch
+        {
+            CertificateEnrollmentPolicyState.Enabled => GetString(SecPolKeys.ValueEnabled),
+            CertificateEnrollmentPolicyState.Disabled => GetString(SecPolKeys.ValueDisabled),
+            _ => GetString(PublicKeyPolicyKeys.NotConfigured)
+        };
     }
 
     private static string FormatEnrollmentPolicyAuthType(CertificateEnrollmentPolicyAuthType authType)
@@ -1773,18 +1948,6 @@ public sealed class PublicKeyPolicyService
         return state == EfsFileEncryptionState.NotDefined
             ? GetString(SecPolKeys.ValueNotDefined)
             : value.ToString(CultureInfo.CurrentCulture);
-    }
-
-    private static string FormatNullableBoolean(uint? value)
-    {
-        if (value is null)
-        {
-            return GetString(PublicKeyPolicyKeys.NotConfigured);
-        }
-
-        return value.Value == 0U
-            ? GetString(SecPolKeys.ValueDisabled)
-            : GetString(SecPolKeys.ValueEnabled);
     }
 
     private static string FormatNullableDword(uint? value)
@@ -1993,13 +2156,14 @@ public sealed class PublicKeyPolicyService
         string thumbprint,
         PolFile snapshot)
     {
-        if (nodeKind is PublicKeyPolicyNodeKind.EncryptingFileSystem or PublicKeyPolicyNodeKind.DataProtection
+        // Encrypting File System recovery agents must be usable for File Recovery. Windows rejects a
+        // certificate without the File Recovery EKU outright ("The certificate is not suitable for
+        // Encrypting File System recovery.") — it cannot be force-installed. Data Protection (DPAPI NG) does
+        // not carry this constraint, and BitLocker instead requires a key usage that can wrap the volume key.
+        if (nodeKind == PublicKeyPolicyNodeKind.EncryptingFileSystem
             && !HasEnhancedKeyUsage(certificate, EfsRecoveryOid))
         {
-            string key = nodeKind == PublicKeyPolicyNodeKind.EncryptingFileSystem
-                ? PublicKeyPolicyKeys.RecoveryAgentCertificateNotSuitableEfs
-                : PublicKeyPolicyKeys.RecoveryAgentCertificateNotSuitableDataRecovery;
-            throw new InvalidOperationException(GetString(key));
+            throw new InvalidOperationException(GetString(PublicKeyPolicyKeys.RecoveryAgentCertificateNotSuitableEfs));
         }
 
         if (nodeKind == PublicKeyPolicyNodeKind.BitLockerDriveEncryption
@@ -2030,6 +2194,67 @@ public sealed class PublicKeyPolicyService
             && eku.EnhancedKeyUsages
                 .Cast<Oid>()
                 .Any(oid => string.Equals(oid.Value, oidValue, StringComparison.Ordinal));
+    }
+
+    /// <summary>
+    /// Builds the certificate chain and returns the localized confirmation prompt that the Windows
+    /// "Add Recovery Agent" wizard would show before installing a certificate it cannot fully validate,
+    /// or <see langword="null"/> when the certificate validates cleanly and can be added without a prompt.
+    ///
+    /// <para>Trust is evaluated first: a certificate that does not chain to a trusted root (self-signed or
+    /// privately issued recovery certificates report <see cref="X509ChainStatusFlags.UntrustedRoot"/> or
+    /// <see cref="X509ChainStatusFlags.PartialChain"/>) yields the "certificate is not trusted" prompt.
+    /// Otherwise, a certificate that chains to a trusted root but whose revocation status cannot be
+    /// determined (<see cref="X509ChainStatusFlags.RevocationStatusUnknown"/> /
+    /// <see cref="X509ChainStatusFlags.OfflineRevocation"/>) yields the "cannot determine if revoked"
+    /// prompt. The root is excluded from the revocation check (roots are trusted by presence and carry no
+    /// CRL), matching CryptoAPI's default policy, and a hard failure while building the chain is treated as
+    /// "no prompt" so it never blocks an otherwise-valid add.</para>
+    /// </summary>
+    /// <param name="certificate">The recovery-agent certificate to evaluate.</param>
+    /// <returns>The localized confirmation prompt, or <see langword="null"/> when no confirmation is needed.</returns>
+    private static string? GetInstallConfirmationMessage(X509Certificate2 certificate)
+    {
+        using var chain = new X509Chain();
+        chain.ChainPolicy.RevocationMode = X509RevocationMode.Online;
+        chain.ChainPolicy.RevocationFlag = X509RevocationFlag.ExcludeRoot;
+        chain.ChainPolicy.UrlRetrievalTimeout = TimeSpan.FromSeconds(15);
+
+        try
+        {
+            chain.Build(certificate);
+        }
+        catch (CryptographicException)
+        {
+            // An unexpected failure while building the chain must not block a legitimate add.
+            return null;
+        }
+
+        X509ChainStatusFlags aggregated = X509ChainStatusFlags.NoError;
+        foreach (X509ChainStatus status in chain.ChainStatus)
+        {
+            aggregated |= status.Status;
+        }
+
+        // Trust problems take precedence: this is the "certificate is not trusted" warning the wizard shows
+        // for self-signed / privately issued recovery certificates.
+        const X509ChainStatusFlags untrustedFlags =
+            X509ChainStatusFlags.UntrustedRoot | X509ChainStatusFlags.PartialChain;
+        if ((aggregated & untrustedFlags) != 0)
+        {
+            return GetString(PublicKeyPolicyKeys.RecoveryAgentUntrustedCertificateMessage);
+        }
+
+        // Otherwise, a certificate that chains to a trusted root but whose revocation cannot be checked
+        // reproduces the "cannot determine if this certificate has been revoked" prompt.
+        const X509ChainStatusFlags revocationUnknownFlags =
+            X509ChainStatusFlags.RevocationStatusUnknown | X509ChainStatusFlags.OfflineRevocation;
+        if ((aggregated & revocationUnknownFlags) != 0)
+        {
+            return GetString(PublicKeyPolicyKeys.RecoveryAgentRevocationUnknownMessage);
+        }
+
+        return null;
     }
 
     private static bool HasAllowedBitLockerKeyUsage(X509Certificate2 certificate)
@@ -2090,6 +2315,204 @@ public sealed class PublicKeyPolicyService
         return thumbprints;
     }
 
+    private string SaveRecoveryAgentSnapshot(PolFile snapshot, bool isEfsStore)
+    {
+        // EFS recovery policy is consumed by the EFS recovery client-side extension, which must be
+        // registered in gpt.ini in addition to the always-present Registry extension pair.
+        return isEfsStore
+            ? _localPolicyFileStore.SaveSnapshot(isUser: false, snapshot, LocalPolicyFileStore.EfsRecoveryExtensionGroup)
+            : _localPolicyFileStore.SaveSnapshot(isUser: false, snapshot);
+    }
+
+    private static void EnsureCertificateStoreScaffolding(PolFile snapshot, string storeName)
+    {
+        // secpol.msc pre-creates the policy certificate store keys with empty REG_NONE entries so the
+        // Registry extension materializes the full store layout even before any certificate is written.
+        string storeRoot = $@"{SystemCertificatesPolicyRoot}\{storeName}";
+        string[] scaffoldKeys =
+        [
+            storeRoot,
+            $@"{storeRoot}\Certificates",
+            $@"{storeRoot}\CRLs",
+            $@"{storeRoot}\CTLs"
+        ];
+
+        foreach (string keyPath in scaffoldKeys)
+        {
+            if (!snapshot.ContainsValue(keyPath, string.Empty))
+            {
+                snapshot.SetValue(keyPath, string.Empty, Array.Empty<byte>(), RegistryValueKind.None);
+            }
+        }
+    }
+
+    private static byte[] SerializeCertificateBlob(X509Certificate2 certificate)
+    {
+        byte[] certificateBytes = certificate.RawData;
+        byte[] sha1Hash = SHA1.HashData(certificateBytes);
+
+        using MemoryStream stream = new();
+        using BinaryWriter writer = new(stream);
+        WriteCertificateBlobRecord(writer, CertSha1HashPropertyId, sha1Hash);
+        WriteCertificateBlobRecord(writer, CertContentPropertyId, certificateBytes);
+        writer.Flush();
+        return stream.ToArray();
+    }
+
+    private static void WriteCertificateBlobRecord(BinaryWriter writer, uint propertyId, byte[] payload)
+    {
+        writer.Write(propertyId);
+        writer.Write(CertBlobRecordReserved);
+        writer.Write((uint)payload.Length);
+        writer.Write(payload);
+    }
+
+    /// <summary>
+    /// Extracts the DER encoded certificate from a serialized certificate store element as written by
+    /// Windows ({PropertyId, Reserved=1, Length, Value} records ending in CERT_CERT_PROP_ID), or returns
+    /// <see langword="null"/> when the data does not parse as that record sequence.
+    /// </summary>
+    private static byte[]? TryExtractCertificateFromBlob(byte[] blob)
+    {
+        int position = 0;
+        byte[]? certificateBytes = null;
+        while (position + 12 <= blob.Length)
+        {
+            uint propertyId = BinaryPrimitives.ReadUInt32LittleEndian(blob.AsSpan(position, 4));
+            uint reserved = BinaryPrimitives.ReadUInt32LittleEndian(blob.AsSpan(position + 4, 4));
+            long length = BinaryPrimitives.ReadUInt32LittleEndian(blob.AsSpan(position + 8, 4));
+            if (reserved != CertBlobRecordReserved || position + 12 + length > blob.Length)
+            {
+                return null;
+            }
+
+            if (propertyId == CertContentPropertyId)
+            {
+                certificateBytes = blob.AsSpan(position + 12, (int)length).ToArray();
+            }
+
+            position += 12 + (int)length;
+        }
+
+        return position == blob.Length ? certificateBytes : null;
+    }
+
+    private static byte[]? TryLoadCertificateBytes(byte[] blob)
+    {
+        byte[] candidate = TryExtractCertificateFromBlob(blob) ?? blob;
+        try
+        {
+            using X509Certificate2 certificate = X509CertificateLoader.LoadCertificate(candidate);
+            return certificate.RawData;
+        }
+        catch (CryptographicException)
+        {
+            return null;
+        }
+    }
+
+    private static void UpdateEfsRecoveryBlob(PolFile snapshot, string? deletedThumbprint = null)
+    {
+        List<byte[]> certificates = CollectEfsRecoveryCertificates(snapshot, deletedThumbprint);
+        string efsStorePath = $@"{SystemCertificatesPolicyRoot}\EFS";
+        snapshot.ForgetValue(efsStorePath, EfsBlobValueName);
+        if (certificates.Count == 0)
+        {
+            snapshot.DeleteValue(efsStorePath, EfsBlobValueName);
+            return;
+        }
+
+        snapshot.SetValue(efsStorePath, EfsBlobValueName, BuildEfsBlob(certificates), RegistryValueKind.Binary);
+    }
+
+    private static List<byte[]> CollectEfsRecoveryCertificates(PolFile snapshot, string? deletedThumbprint)
+    {
+        Dictionary<string, byte[]> certificates = new(StringComparer.OrdinalIgnoreCase);
+        string certificatesPath = $@"{SystemCertificatesPolicyRoot}\EFS\Certificates";
+
+        using (RegistryKey? certificatesKey = Registry.LocalMachine.OpenSubKey(certificatesPath))
+        {
+            if (certificatesKey is not null)
+            {
+                foreach (string subKeyName in certificatesKey.GetSubKeyNames())
+                {
+                    string thumbprint = NormalizeThumbprint(subKeyName);
+                    if (string.IsNullOrWhiteSpace(thumbprint))
+                    {
+                        continue;
+                    }
+
+                    using RegistryKey? certificateKey = certificatesKey.OpenSubKey(subKeyName);
+                    if (certificateKey?.GetValue(BlobValueName) is byte[] blob
+                        && TryLoadCertificateBytes(blob) is byte[] certificateBytes)
+                    {
+                        certificates[thumbprint] = certificateBytes;
+                    }
+                }
+            }
+        }
+
+        foreach (string subKeyName in snapshot.GetKeyNames(certificatesPath))
+        {
+            string thumbprint = NormalizeThumbprint(subKeyName);
+            if (string.IsNullOrWhiteSpace(thumbprint))
+            {
+                continue;
+            }
+
+            string certificateKeyPath = $@"{certificatesPath}\{subKeyName}";
+            if (snapshot.WillDeleteValue(certificateKeyPath, BlobValueName))
+            {
+                certificates.Remove(thumbprint);
+                continue;
+            }
+
+            if (snapshot.GetValue(certificateKeyPath, BlobValueName) is byte[] blob
+                && TryLoadCertificateBytes(blob) is byte[] certificateBytes)
+            {
+                certificates[thumbprint] = certificateBytes;
+            }
+        }
+
+        if (deletedThumbprint is not null)
+        {
+            certificates.Remove(NormalizeThumbprint(deletedThumbprint));
+        }
+
+        return certificates.Values.ToList();
+    }
+
+    /// <summary>
+    /// Builds the MS-GPEF EfsBlob recovery policy: a {Reserved, KeyCount} header followed by one EfsKey
+    /// record per recovery agent certificate. No recovery agent SID is stored, so each certificate starts
+    /// directly after the 32 byte EfsKey header.
+    /// </summary>
+    private static byte[] BuildEfsBlob(IReadOnlyCollection<byte[]> certificates)
+    {
+        using MemoryStream stream = new();
+        using BinaryWriter writer = new(stream);
+        writer.Write(EfsBlobReservedHeader);
+        writer.Write((uint)certificates.Count);
+
+        foreach (byte[] certificateBytes in certificates)
+        {
+            // Offsets are measured from the Length2 field; the certificate follows the fixed 32 byte header.
+            const uint certificateOffset = 28;
+            uint length2 = certificateOffset + (uint)certificateBytes.Length;
+            writer.Write(length2 + 4U);
+            writer.Write(length2);
+            writer.Write(0U);
+            writer.Write(EfsKeyReserved1);
+            writer.Write((uint)certificateBytes.Length);
+            writer.Write(certificateOffset);
+            writer.Write(0UL);
+            writer.Write(certificateBytes);
+        }
+
+        writer.Flush();
+        return stream.ToArray();
+    }
+
     private static string GetRecoveryAgentStoreName(PublicKeyPolicyNodeKind nodeKind)
     {
         return nodeKind switch
@@ -2118,16 +2541,6 @@ public sealed class PublicKeyPolicyService
         return string.IsNullOrWhiteSpace(thumbprint)
             ? string.Empty
             : thumbprint.Replace(" ", string.Empty, StringComparison.Ordinal).ToUpperInvariant();
-    }
-
-    private static void ClearTree(PolFile snapshot, string keyPath)
-    {
-        foreach (string subKeyName in snapshot.GetKeyNames(keyPath).ToArray())
-        {
-            ClearTree(snapshot, $@"{keyPath}\{subKeyName}");
-        }
-
-        snapshot.ClearKey(keyPath);
     }
 
     private void EnsureMachinePolicyIsWritable()

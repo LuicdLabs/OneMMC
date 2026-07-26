@@ -738,8 +738,8 @@ Default on Server editions: Success.</value>
   <data name="SRP_Error_RuleUnsupportedForEdit" xml:space="preserve">
     <value>This rule type cannot be edited yet.</value>
   </data>
-  <data name="SRP_Error_CertificateRuleUnsupportedForCreate" xml:space="preserve">
-    <value>Creating certificate rules is not available until the certificate policy storage shape is verified.</value>
+  <data name="SRP_Error_CertificateRuleLevelUnsupported" xml:space="preserve">
+    <value>Certificate rules support only the Disallowed and Unrestricted security levels.</value>
   </data>
   <data name="SRP_Error_CertificateRuleInvalid" xml:space="preserve">
     <value>Select a certificate file or a file with an Authenticode signature.</value>
@@ -1074,6 +1074,42 @@ Default on Server editions: Success.</value>
   <data name="SRP_Detail_RawData" xml:space="preserve">
     <value>Raw certificate data</value>
   </data>
+  <data name="SRP_Deprecation_Title" xml:space="preserve">
+    <value>Software Restriction Policies are deprecated</value>
+  </data>
+  <data name="SRP_Deprecation_Message" xml:space="preserve">
+    <value>Starting with Windows 11 22H2, client editions of Windows no longer enforce Software Restriction Policies. Rules saved here take effect only on Windows Server or older Windows versions. Consider AppLocker or App Control for Business instead.</value>
+  </data>
+  <data name="SRP_Status_SignInHint" xml:space="preserve">
+    <value>Changes apply at the next sign-in. For sessions that are already running, run "gpupdate /force" or sign out and back in.</value>
+  </data>
+  <data name="SRP_Help_SecurityLevels" xml:space="preserve">
+    <value>The default security level determines how programs are treated when no rule applies to them. Additional rules override the default level for the programs they match.</value>
+  </data>
+  <data name="SRP_Enforcement_DefaultSecurityLevel_Description" xml:space="preserve">
+    <value>How programs are treated when no rule matches them</value>
+  </data>
+  <data name="SRP_Enforcement_FileScope_Description" xml:space="preserve">
+    <value>Choose whether software restriction policies also apply to libraries such as DLLs</value>
+  </data>
+  <data name="SRP_Enforcement_UserScope_Description" xml:space="preserve">
+    <value>Apply software restriction policies to all users, or exempt local administrators</value>
+  </data>
+  <data name="SRP_Enforcement_CertificateRules_Description" xml:space="preserve">
+    <value>Certificate rules identify software by its signing certificate; enabling them can reduce performance</value>
+  </data>
+  <data name="SRP_Rules_PrecedenceHint" xml:space="preserve">
+    <value>When several rules match the same program, the more specific rule wins: hash rules override certificate rules, then path rules, then network zone rules; the default security level applies last.</value>
+  </data>
+  <data name="SRP_Rules_SearchPlaceholder" xml:space="preserve">
+    <value>Search rules</value>
+  </data>
+  <data name="SRP_Command_NewRule" xml:space="preserve">
+    <value>New rule</value>
+  </data>
+  <data name="SRP_Dialog_DisallowedDefault_Warning" xml:space="preserve">
+    <value>The Disallowed default level blocks every program that no allow rule covers, which can prevent Windows and installed apps from running correctly. Make sure the required allow rules are in place before you continue.</value>
+  </data>
   <data name="PKP_Node_EncryptingFileSystem" xml:space="preserve">
     <value>Encrypting File System</value>
   </data>
@@ -1137,6 +1173,12 @@ Default on Server editions: Success.</value>
   <data name="PKP_Column_Setting" xml:space="preserve">
     <value>Setting</value>
   </data>
+  <data name="PKP_Group_RecoveryAgents" xml:space="preserve">
+    <value>Recovery agents</value>
+  </data>
+  <data name="PKP_Group_CertificateServices" xml:space="preserve">
+    <value>Certificate services</value>
+  </data>
   <data name="PKP_Command_Properties" xml:space="preserve">
     <value>Properties</value>
   </data>
@@ -1187,6 +1229,16 @@ Default on Server editions: Success.</value>
   </data>
   <data name="PKP_RecoveryAgent_SingleCertificateLimit" xml:space="preserve">
     <value>Cannot add more than one Data Recovery Agent certificate.</value>
+  </data>
+  <data name="PKP_RecoveryAgent_RevocationUnknown_Message" xml:space="preserve">
+    <value>Windows cannot determine if this certificate has been revoked. The revocation function was unable to check revocation for the certificate.
+
+Do you want to install this certificate?</value>
+  </data>
+  <data name="PKP_RecoveryAgent_UntrustedCertificate_Message" xml:space="preserve">
+    <value>Windows cannot verify that this certificate is trusted. The certificate could not be validated up to a trusted root certification authority.
+
+Do you want to install this certificate?</value>
   </data>
   <data name="PKP_CertificateValid" xml:space="preserve">
     <value>Valid</value>
@@ -1305,6 +1357,9 @@ Default on Server editions: Success.</value>
   <data name="PKP_PathValidation_PublisherScope_EnterpriseAdministrators" xml:space="preserve">
     <value>Allow only enterprise administrators to manage Trusted Publishers</value>
   </data>
+  <data name="PKP_PathValidation_SignatureChecks" xml:space="preserve">
+    <value>Additional checks during signature verification</value>
+  </data>
   <data name="PKP_PathValidation_TrustedPublisherRevocation" xml:space="preserve">
     <value>Verify that the publisher certificate is not revoked</value>
   </data>
@@ -1407,6 +1462,12 @@ Default on Server editions: Success.</value>
   <data name="PKP_EnrollmentPolicy_ServerValidation_DuplicateUrl" xml:space="preserve">
     <value>A policy server with this URI already exists.</value>
   </data>
+  <data name="PKP_EnrollmentPolicy_AdditionalConfiguration" xml:space="preserve">
+    <value>Additional certificate enrollment policy configuration</value>
+  </data>
+  <data name="PKP_EnrollmentPolicy_DisableUserServers" xml:space="preserve">
+    <value>Disable user configured enrollment policy servers</value>
+  </data>
   <data name="PKP_EnrollmentPolicy_Auth_Anonymous" xml:space="preserve">
     <value>Anonymous</value>
   </data>
@@ -1446,8 +1507,14 @@ Default on Server editions: Success.</value>
   <data name="PKP_AutoEnrollment_ExpirationNotifications" xml:space="preserve">
     <value>Expiration notification percentage</value>
   </data>
-  <data name="PKP_AutoEnrollment_BalloonNotifications" xml:space="preserve">
-    <value>Balloon notifications</value>
+  <data name="PKP_AutoEnrollment_LogExpiryEvents" xml:space="preserve">
+    <value>Log expiry events and show expiry notifications when the percentage of remaining certificate lifetime is</value>
+  </data>
+  <data name="PKP_AutoEnrollment_PercentSuffix" xml:space="preserve">
+    <value>%</value>
+  </data>
+  <data name="PKP_AutoEnrollment_AdditionalStores" xml:space="preserve">
+    <value>Additional stores. Use "," to separate multiple stores. For example: "Store1, Store2, Store3"</value>
   </data>
   <data name="PKP_AutoEnrollment_StoreNames" xml:space="preserve">
     <value>Certificate stores</value>

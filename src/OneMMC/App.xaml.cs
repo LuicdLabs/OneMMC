@@ -62,6 +62,21 @@ namespace OneMMC
             return Services.GetRequiredService<T>();
         }
 
+        /// <summary>
+        /// Creates a new dependency-injection scope.
+        /// </summary>
+        /// <remarks>
+        /// Prefer <see cref="PageServiceScope"/> over calling this directly. Transient
+        /// <see cref="IDisposable"/> services resolved from the root provider via
+        /// <see cref="GetRequiredService{T}"/> are held by the container until the process exits, so
+        /// anything disposable that a page owns must be resolved from a scope the page disposes.
+        /// </remarks>
+        /// <returns>A new scope that the caller owns and must dispose.</returns>
+        public static IServiceScope CreateScope()
+        {
+            return Services.CreateScope();
+        }
+
         private void App_UnhandledException(object sender, Microsoft.UI.Xaml.UnhandledExceptionEventArgs e)
         {
             _logger.LogError(e.Exception, "Unhandled UI exception captured.");

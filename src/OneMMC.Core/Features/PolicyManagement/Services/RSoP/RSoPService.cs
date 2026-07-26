@@ -23,6 +23,12 @@ namespace OneMMC.Core.Features.PolicyManagement.Services.RSoP
         public sealed partial class RSoPService : IDisposable
     {
         private readonly ILogger<RSoPService> _logger;
+        private readonly AdmxBundleProvider _admxBundleProvider;
+
+        /// <summary>
+        /// Borrowed reference to the process-wide shared bundle. Never disposed or cleared here — see
+        /// <see cref="AdmxBundleProvider"/>.
+        /// </summary>
         private AdmxBundle? _admxBundle;
         private IPolicyService? _computerPolicyService;
         private IPolicyService? _userPolicyService;
@@ -34,9 +40,10 @@ namespace OneMMC.Core.Features.PolicyManagement.Services.RSoP
         /// </summary>
         public bool IsInitialized => _isInitialized;
 
-        public RSoPService(ILogger<RSoPService> logger)
+        public RSoPService(ILogger<RSoPService> logger, AdmxBundleProvider admxBundleProvider)
         {
             _logger = logger;
+            _admxBundleProvider = admxBundleProvider;
         }
 
         /// <summary>
@@ -50,9 +57,8 @@ namespace OneMMC.Core.Features.PolicyManagement.Services.RSoP
 
             try
             {
-                _admxBundle = new AdmxBundle();
-                var policyDefinitionsPath = Environment.ExpandEnvironmentVariables(@"%SYSTEMROOT%\PolicyDefinitions");
-                _admxBundle.LoadFolder(policyDefinitionsPath, CultureInfo.CurrentCulture.Name);
+                // Shared with the Group Policy editor: one parse of PolicyDefinitions per process.
+                _admxBundle = _admxBundleProvider.GetOrLoad(CultureInfo.CurrentCulture.Name);
 
                 _computerPolicyService = PolicyServiceFactory.CreateMachinePolicyService(PolicyServiceFactory.PolicyMode.PolFile);
                 _userPolicyService = PolicyServiceFactory.CreateUserPolicyService(PolicyServiceFactory.PolicyMode.PolFile);

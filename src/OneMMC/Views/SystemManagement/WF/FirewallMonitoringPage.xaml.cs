@@ -120,11 +120,19 @@ public sealed partial class FirewallMonitoringPage : Page
         try
         {
             await Task.Yield();
-            List<MonitoringItem> items = await Task.Run(
-                () => LoadMonitoringItems(type).ToList(),
-                cancellationTokenSource.Token);
 
-            cancellationTokenSource.Token.ThrowIfCancellationRequested();
+            // The token is deliberately not passed to Task.Run, and the superseded result is discarded with
+            // a plain check rather than ThrowIfCancellationRequested. The load is a synchronous WMI walk
+            // that cannot be interrupted, and the previous source is disposed above the moment a newer
+            // selection arrives — reading its Token afterwards would raise ObjectDisposedException and land
+            // in the generic catch below, blanking the list. IsCancellationRequested stays safe once
+            // disposed.
+            List<MonitoringItem> items = await Task.Run(() => LoadMonitoringItems(type).ToList());
+
+            if (cancellationTokenSource.IsCancellationRequested)
+            {
+                return;
+            }
 
             _currentItems.Clear();
             foreach (MonitoringItem item in items)
@@ -134,9 +142,6 @@ public sealed partial class FirewallMonitoringPage : Page
 
             DetailsListView.ItemsSource = _currentItems;
             FilterItems(_lastSearchText);
-        }
-        catch (OperationCanceledException) when (cancellationTokenSource.IsCancellationRequested)
-        {
         }
         catch
         {

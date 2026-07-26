@@ -20,7 +20,11 @@ internal static class UserSecurityModule
 {
     internal static IServiceCollection AddUserSecurity(this IServiceCollection services)
     {
-        services.AddTransient<AzManService>();
+        // AzMan service owns a dedicated STA COM thread plus a cache of opened authorization stores, so
+        // it is a singleton — same rationale as ITaskSchedulerService in PCManagementModule. As a
+        // transient it was recreated (and leaked, along with its STA thread) on every drill-down and
+        // back-navigation through the AzMan pages.
+        services.AddSingleton<AzManService>();
         services.AddTransient<AuthorizationManagerViewModel>();
         services.AddTransient<AccountPoliciesViewModel>();
         services.AddTransient<LocalPoliciesViewModel>();

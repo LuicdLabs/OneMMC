@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentDialog
+    x:Class="OneMMC.Views.SoftwareRestrictionRuleDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    CloseButtonText="{x:Bind LocalizedStrings.Common_CancelButton}"
+    DefaultButton="Primary"
+    PrimaryButtonText="{x:Bind LocalizedStrings.Common_SaveButton}">
+
+    <StackPanel MinWidth="440" Spacing="16">
+
+        <!--  Value editor for path rules: free text plus file/folder browsing.  -->
+        <StackPanel
+            x:Name="PathValuePanel"
+            Spacing="8"
+            Visibility="Collapsed">
+            <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Text="{x:Bind LocalizedStrings.SRP_Field_Path}" />
+            <TextBox x:Name="PathTextBox" TextChanged="ValueTextBox_TextChanged" />
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <Button Click="BrowsePathFileButton_Click" Content="{x:Bind LocalizedStrings.SRP_Browse_File}" />
+                <Button Click="BrowsePathFolderButton_Click" Content="{x:Bind LocalizedStrings.SRP_Browse_Folder}" />
+            </StackPanel>
+        </StackPanel>
+
+        <!--  Value editor for hash and certificate rules: a file whose hash/signature seeds the rule.  -->
+        <StackPanel
+            x:Name="FileValuePanel"
+            Spacing="8"
+            Visibility="Collapsed">
+            <TextBlock x:Name="FileValueLabel" Style="{StaticResource CaptionTextBlockStyle}" />
+            <TextBox x:Name="FileTextBox" TextChanged="ValueTextBox_TextChanged" />
+            <Button
+                HorizontalAlignment="Left"
+                Click="BrowseFileButton_Click"
+                Content="{x:Bind LocalizedStrings.Common_BrowseButton}" />
+        </StackPanel>
+
+        <!--  Value editor for network zone rules.  -->
+        <StackPanel
+            x:Name="ZoneValuePanel"
+            Spacing="8"
+            Visibility="Collapsed">
+            <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Text="{x:Bind LocalizedStrings.SRP_Field_NetworkZone}" />
+            <ComboBox
+                x:Name="ZoneComboBox"
+                MinWidth="260"
+                SelectionChanged="ZoneComboBox_SelectionChanged">
+                <ComboBoxItem Content="{x:Bind LocalizedStrings.SRP_NetworkZone_Internet}" />
+                <ComboBoxItem Content="{x:Bind LocalizedStrings.SRP_NetworkZone_LocalComputer}" />
+                <ComboBoxItem Content="{x:Bind LocalizedStrings.SRP_NetworkZone_LocalIntranet}" />
+                <ComboBoxItem Content="{x:Bind LocalizedStrings.SRP_NetworkZone_RestrictedSites}" />
+                <ComboBoxItem Content="{x:Bind LocalizedStrings.SRP_NetworkZone_TrustedSites}" />
+            </ComboBox>
+            <TextBlock
+                x:Name="ZoneDescriptionText"
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                TextWrapping="Wrap" />
+        </StackPanel>
+
+        <StackPanel Spacing="8">
+            <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Text="{x:Bind LocalizedStrings.SRP_Field_SecurityLevel}" />
+            <ComboBox x:Name="SecurityLevelComboBox" MinWidth="260" />
+        </StackPanel>
+
+        <StackPanel Spacing="8">
+            <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Text="{x:Bind LocalizedStrings.SRP_Field_Description}" />
+            <TextBox x:Name="DescriptionTextBox" />
+        </StackPanel>
+    </StackPanel>
+</ContentDialog>

@@ -1,14 +1,19 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="utf-8" ?>
 <Page
     x:Class="OneMMC.Views.PublicKeyPoliciesPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="using:CommunityToolkit.WinUI.Controls"
-    xmlns:ctl="using:OneMMC.Controls"
+    xmlns:converters="using:OneMMC.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:localization="using:OneMMC.Localization"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:pkp="using:OneMMC.Core.Features.UserSecurity.Models.SecPol.PublicKeyPolicies"
     mc:Ignorable="d">
+
+    <Page.Resources>
+        <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+    </Page.Resources>
 
     <Grid>
         <Grid.RowDefinitions>
@@ -18,29 +23,6 @@
         </Grid.RowDefinitions>
 
         <CommandBar Grid.Row="0" DefaultLabelPosition="Right">
-            <AppBarButton
-                Click="PropertiesButton_Click"
-                Icon="Setting"
-                IsEnabled="{x:Bind ViewModel.CanViewSelectedNodeProperties, Mode=OneWay}"
-                Label="{x:Bind LocalizedStrings.PKP_Command_Properties}" />
-            <AppBarButton
-                Click="ViewCertificateButton_Click"
-                IsEnabled="{x:Bind ViewModel.CanViewSelectedCertificate, Mode=OneWay}"
-                Label="{x:Bind LocalizedStrings.PKP_Command_ViewCertificate}">
-                <AppBarButton.Icon>
-                    <FontIcon Glyph="&#xE946;" />
-                </AppBarButton.Icon>
-            </AppBarButton>
-            <AppBarButton
-                Click="AddRecoveryAgentButton_Click"
-                Icon="Add"
-                IsEnabled="{x:Bind ViewModel.CanAddRecoveryAgent, Mode=OneWay}"
-                Label="{x:Bind LocalizedStrings.PKP_Command_AddRecoveryAgent}" />
-            <AppBarButton
-                Click="DeleteRecoveryAgentButton_Click"
-                Icon="Delete"
-                IsEnabled="{x:Bind ViewModel.CanDeleteSelectedRecoveryAgent, Mode=OneWay}"
-                Label="{x:Bind LocalizedStrings.Common_DeleteButton}" />
             <AppBarButton
                 Click="RefreshButton_Click"
                 Icon="Refresh"
@@ -57,194 +39,124 @@
             Message="{x:Bind ViewModel.ErrorMessage, Mode=OneWay}"
             Severity="Error" />
 
-        <Grid Grid.Row="2">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="330" MinWidth="240" />
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="*" MinWidth="420" />
-            </Grid.ColumnDefinitions>
+        <ScrollViewer
+            Grid.Row="2"
+            Padding="24,0,24,24"
+            VerticalScrollBarVisibility="Auto">
+            <StackPanel
+                MaxWidth="1000"
+                HorizontalAlignment="Stretch"
+                Spacing="4">
 
-            <TreeView
-                x:Name="PolicyTree"
-                ItemsSource="{x:Bind ViewModel.Nodes, Mode=OneWay}"
-                ItemInvoked="PolicyTree_ItemInvoked"
-                SelectionChanged="PolicyTree_SelectionChanged"
-                SelectionMode="Single">
-                <TreeView.ItemTemplate>
-                    <DataTemplate x:DataType="pkp:PublicKeyPolicyNode">
-                        <Grid MinHeight="32">
-                            <TextBlock
-                                VerticalAlignment="Center"
-                                Text="{x:Bind DisplayName}"
-                                TextWrapping="Wrap" />
-                        </Grid>
-                    </DataTemplate>
-                </TreeView.ItemTemplate>
-            </TreeView>
-
-            <ctl:AotGridSplitter
-                Grid.Column="1"
-                Width="12"
-                ResizeBehavior="BasedOnAlignment"
-                ResizeDirection="Columns" />
-
-            <Grid Grid.Column="2">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" />
-                </Grid.RowDefinitions>
-
-                <AutoSuggestBox
-                    x:Name="SearchBox"
-                    Grid.Row="0"
-                    Margin="12,8,12,4"
-                    PlaceholderText="{x:Bind LocalizedStrings.Common_SearchPlaceholder}"
-                    QueryIcon="Find"
-                    TextChanged="SearchBox_TextChanged" />
-
+                <!--  Recovery Agents  -->
                 <TextBlock
-                    Grid.Row="1"
-                    Margin="24,4,24,8"
-                    Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}"
-                    Style="{StaticResource CaptionTextBlockStyle}"
-                    Text="{x:Bind ViewModel.SelectedNode.Description, Mode=OneWay}"
-                    TextWrapping="Wrap" />
+                    Margin="0,8,0,4"
+                    Style="{StaticResource BodyStrongTextBlockStyle}"
+                    Text="{x:Bind LocalizedStrings.PKP_Group_RecoveryAgents}" />
 
-                <Grid
-                    Grid.Row="2"
-                    Margin="24,8,24,0"
-                    ColumnSpacing="12">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="1.4*" />
-                        <ColumnDefinition Width="1.4*" />
-                        <ColumnDefinition Width="Auto" MinWidth="96" />
-                        <ColumnDefinition Width="1.6*" />
-                        <ColumnDefinition Width="1.2*" />
-                        <ColumnDefinition Width="Auto" MinWidth="92" />
-                        <ColumnDefinition Width="1.3*" />
-                    </Grid.ColumnDefinitions>
-                    <TextBlock
-                        x:Name="PrimaryColumnHeader"
-                        FontWeight="SemiBold"
-                        TextWrapping="WrapWholeWords" />
-                    <TextBlock
-                        x:Name="SecondaryColumnHeader"
-                        Grid.Column="1"
-                        FontWeight="SemiBold"
-                        TextWrapping="WrapWholeWords" />
-                    <TextBlock
-                        x:Name="ExpirationColumnHeader"
-                        Grid.Column="2"
-                        FontWeight="SemiBold"
-                        TextWrapping="WrapWholeWords" />
-                    <TextBlock
-                        x:Name="IntendedPurposesColumnHeader"
-                        Grid.Column="3"
-                        FontWeight="SemiBold"
-                        TextWrapping="WrapWholeWords" />
-                    <TextBlock
-                        x:Name="FriendlyNameColumnHeader"
-                        Grid.Column="4"
-                        FontWeight="SemiBold"
-                        TextWrapping="WrapWholeWords" />
-                    <TextBlock
-                        x:Name="StatusColumnHeader"
-                        Grid.Column="5"
-                        FontWeight="SemiBold"
-                        TextWrapping="WrapWholeWords" />
-                    <TextBlock
-                        x:Name="CertificateTemplateColumnHeader"
-                        Grid.Column="6"
-                        FontWeight="SemiBold"
-                        TextWrapping="WrapWholeWords" />
-                </Grid>
-
-                <ListView
-                    x:Name="PolicyListView"
-                    Grid.Row="3"
-                    Padding="12"
-                    ItemsSource="{x:Bind ViewModel.CurrentRows, Mode=OneWay}"
-                    DoubleTapped="PolicyListView_DoubleTapped"
-                    SelectedItem="{x:Bind ViewModel.SelectedRow, Mode=TwoWay}"
-                    SelectionMode="Single">
-                    <ListView.ItemTemplate>
-                        <DataTemplate x:DataType="pkp:PublicKeyPolicyRow">
-                            <Grid MinHeight="48" ColumnSpacing="12">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="1.4*" />
-                                    <ColumnDefinition Width="1.4*" />
-                                    <ColumnDefinition Width="Auto" MinWidth="96" />
-                                    <ColumnDefinition Width="1.6*" />
-                                    <ColumnDefinition Width="1.2*" />
-                                    <ColumnDefinition Width="Auto" MinWidth="92" />
-                                    <ColumnDefinition Width="1.3*" />
-                                </Grid.ColumnDefinitions>
-                                <TextBlock
-                                    VerticalAlignment="Center"
-                                    Text="{x:Bind PrimaryDisplay}"
-                                    TextTrimming="CharacterEllipsis"
-                                    TextWrapping="NoWrap"
-                                    ToolTipService.ToolTip="{x:Bind PrimaryDisplay}" />
-                                <TextBlock
-                                    Grid.Column="1"
-                                    VerticalAlignment="Center"
-                                    Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}"
-                                    Text="{x:Bind SecondaryDisplay}"
-                                    TextTrimming="CharacterEllipsis"
-                                    TextWrapping="NoWrap"
-                                    ToolTipService.ToolTip="{x:Bind SecondaryDisplay}" />
-                                <TextBlock
-                                    Grid.Column="2"
-                                    VerticalAlignment="Center"
-                                    Text="{x:Bind ExpirationDateDisplay}"
-                                    TextTrimming="CharacterEllipsis"
-                                    TextWrapping="NoWrap"
-                                    ToolTipService.ToolTip="{x:Bind ExpirationDateDisplay}" />
-                                <TextBlock
-                                    Grid.Column="3"
-                                    VerticalAlignment="Center"
-                                    Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}"
-                                    Text="{x:Bind IntendedPurposesDisplay}"
-                                    TextTrimming="CharacterEllipsis"
-                                    TextWrapping="NoWrap"
-                                    ToolTipService.ToolTip="{x:Bind IntendedPurposesDisplay}" />
-                                <TextBlock
-                                    Grid.Column="4"
-                                    VerticalAlignment="Center"
-                                    Text="{x:Bind FriendlyNameDisplay}"
-                                    TextTrimming="CharacterEllipsis"
-                                    TextWrapping="NoWrap"
-                                    ToolTipService.ToolTip="{x:Bind FriendlyNameDisplay}" />
-                                <TextBlock
-                                    Grid.Column="5"
-                                    VerticalAlignment="Center"
-                                    Text="{x:Bind StatusDisplay}"
-                                    TextTrimming="CharacterEllipsis"
-                                    TextWrapping="NoWrap"
-                                    ToolTipService.ToolTip="{x:Bind StatusDisplay}" />
-                                <TextBlock
-                                    Grid.Column="6"
-                                    VerticalAlignment="Center"
-                                    Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}"
-                                    Text="{x:Bind CertificateTemplateDisplay}"
-                                    TextTrimming="CharacterEllipsis"
-                                    TextWrapping="NoWrap"
-                                    ToolTipService.ToolTip="{x:Bind CertificateTemplateDisplay}" />
-                            </Grid>
+                <ItemsControl ItemsSource="{x:Bind ViewModel.RecoveryAgentNodes, Mode=OneWay}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Spacing="4" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="pkp:PublicKeyPolicyNode">
+                            <controls:SettingsExpander
+                                Description="{x:Bind Description}"
+                                Header="{x:Bind DisplayName}"
+                                IsExpanded="False"
+                                ItemsSource="{x:Bind CertificateRows}">
+                                <controls:SettingsExpander.HeaderIcon>
+                                    <FontIcon Glyph="&#xEB95;" />
+                                </controls:SettingsExpander.HeaderIcon>
+                                <StackPanel
+                                    HorizontalAlignment="Right"
+                                    Orientation="Horizontal"
+                                    Spacing="12">
+                                    <TextBlock
+                                        VerticalAlignment="Center"
+                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                        Style="{StaticResource CaptionTextBlockStyle}"
+                                        Text="{x:Bind localization:LocalizedStrings.Instance.PKP_NoRecoveryAgents}"
+                                        Visibility="{x:Bind HasNoCertificates, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                    <Button
+                                        Click="AddRecoveryAgentButton_Click"
+                                        Content="{x:Bind localization:LocalizedStrings.Instance.PKP_Command_AddRecoveryAgent}"
+                                        Style="{StaticResource AccentButtonStyle}"
+                                        Tag="{x:Bind}" />
+                                </StackPanel>
+                                <controls:SettingsExpander.ItemTemplate>
+                                    <DataTemplate x:DataType="pkp:PublicKeyPolicyRow">
+                                        <controls:SettingsCard Description="{x:Bind CertificateIssuedByDisplay}" Header="{x:Bind CertificateIssuedToDisplay}">
+                                            <controls:SettingsCard.HeaderIcon>
+                                                <FontIcon Glyph="&#xEB95;" />
+                                            </controls:SettingsCard.HeaderIcon>
+                                            <StackPanel
+                                                VerticalAlignment="Center"
+                                                Orientation="Horizontal"
+                                                Spacing="8">
+                                                <TextBlock
+                                                    VerticalAlignment="Center"
+                                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                                    Style="{StaticResource CaptionTextBlockStyle}"
+                                                    Text="{x:Bind ExpirationDateDisplay}" />
+                                                <Button
+                                                    Click="ViewCertificateButton_Click"
+                                                    Content="{x:Bind localization:LocalizedStrings.Instance.PKP_Command_ViewCertificate}"
+                                                    IsEnabled="{x:Bind CanViewDetails}"
+                                                    Tag="{x:Bind}" />
+                                                <Button
+                                                    Click="DeleteRecoveryAgentButton_Click"
+                                                    Tag="{x:Bind}"
+                                                    ToolTipService.ToolTip="{x:Bind localization:LocalizedStrings.Instance.Common_DeleteButton}">
+                                                    <FontIcon FontSize="16" Glyph="&#xE74D;" />
+                                                </Button>
+                                            </StackPanel>
+                                        </controls:SettingsCard>
+                                    </DataTemplate>
+                                </controls:SettingsExpander.ItemTemplate>
+                            </controls:SettingsExpander>
                         </DataTemplate>
-                    </ListView.ItemTemplate>
-                </ListView>
-            </Grid>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
 
-            <ProgressRing
-                Grid.Column="2"
-                Width="50"
-                Height="50"
-                HorizontalAlignment="Center"
-                VerticalAlignment="Center"
-                IsActive="{x:Bind ViewModel.IsLoading, Mode=OneWay}" />
-        </Grid>
+                <!--  Certificate Services  -->
+                <TextBlock
+                    Margin="0,20,0,4"
+                    Style="{StaticResource BodyStrongTextBlockStyle}"
+                    Text="{x:Bind LocalizedStrings.PKP_Group_CertificateServices}" />
+
+                <ItemsControl ItemsSource="{x:Bind ViewModel.CertificateServiceNodes, Mode=OneWay}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Spacing="4" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="pkp:PublicKeyPolicyNode">
+                            <controls:SettingsCard
+                                Click="PolicySettingsCard_Click"
+                                Description="{x:Bind Description}"
+                                Header="{x:Bind DisplayName}"
+                                IsClickEnabled="True"
+                                Tag="{x:Bind}">
+                                <controls:SettingsCard.HeaderIcon>
+                                    <FontIcon Glyph="&#xE72E;" />
+                                </controls:SettingsCard.HeaderIcon>
+                            </controls:SettingsCard>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+        </ScrollViewer>
+
+        <ProgressRing
+            Grid.Row="2"
+            Width="48"
+            Height="48"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            IsActive="{x:Bind ViewModel.IsLoading, Mode=OneWay}" />
     </Grid>
 </Page>

@@ -69,9 +69,10 @@ public class ConnectionSecurityService
 
         if (!string.Equals(lookupName, rule.Name, StringComparison.OrdinalIgnoreCase))
         {
+            string previousRuleIdentity = AuthManager.ResolveRuleIdentity(existing, rule);
             AddRuleInternal(session, rule);
-            AuthManager.DeleteManagedAuthSets(session, lookupName);
             DeleteRuleInternal(session, existing);
+            AuthManager.DeleteManagedAuthSets(session, previousRuleIdentity);
         }
         else
         {
@@ -92,14 +93,13 @@ public class ConnectionSecurityService
         using WbemObject existing = GetRuleInstance(session, name)
             ?? throw new InvalidOperationException($"Connection security rule '{name}' was not found.");
 
-        AuthManager.DeleteManagedAuthSets(session, name);
         string policyRuleName = existing.GetValue("PolicyRuleName")?.ToString() ?? string.Empty;
+        DeleteRuleInternal(session, existing);
+        AuthManager.DeleteManagedAuthSets(session, name);
         if (!string.IsNullOrWhiteSpace(policyRuleName))
         {
             AuthManager.DeleteManagedAuthSets(session, policyRuleName);
         }
-
-        DeleteRuleInternal(session, existing);
         _logger.LogInformation("Deleted connection security rule {RuleName}.", name);
     }
 
@@ -120,6 +120,7 @@ public class ConnectionSecurityService
 
         using WbemObject created = GetRuleInstance(session, rule.Name)
             ?? throw new InvalidOperationException($"Connection security rule '{rule.Name}' was created but could not be queried.");
+        string ruleIdentity = AuthManager.ResolveRuleIdentity(created, rule);
 
         try
         {
@@ -132,6 +133,7 @@ public class ConnectionSecurityService
         catch
         {
             DeleteRuleInternal(session, created);
+            AuthManager.DeleteManagedAuthSets(session, ruleIdentity);
             throw;
         }
     }

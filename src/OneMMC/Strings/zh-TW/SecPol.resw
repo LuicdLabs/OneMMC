@@ -712,8 +712,8 @@
   <data name="SRP_Error_RuleUnsupportedForEdit" xml:space="preserve">
     <value>這個規則類型目前無法編輯。</value>
   </data>
-  <data name="SRP_Error_CertificateRuleUnsupportedForCreate" xml:space="preserve">
-    <value>憑證規則的政策儲存格式確認前，暫不提供建立功能。</value>
+  <data name="SRP_Error_CertificateRuleLevelUnsupported" xml:space="preserve">
+    <value>憑證規則僅支援「不允許」與「不受限制」安全性層級。</value>
   </data>
   <data name="SRP_Error_CertificateRuleInvalid" xml:space="preserve">
     <value>請選取憑證檔或具有 Authenticode 簽章的檔案。</value>
@@ -1048,6 +1048,42 @@
   <data name="SRP_Detail_RawData" xml:space="preserve">
     <value>原始憑證資料</value>
   </data>
+  <data name="SRP_Deprecation_Title" xml:space="preserve">
+    <value>軟體限制原則已淘汰</value>
+  </data>
+  <data name="SRP_Deprecation_Message" xml:space="preserve">
+    <value>自 Windows 11 22H2 起，Windows 用戶端版本已不再強制執行軟體限制原則。此處儲存的規則僅會在 Windows Server 或較舊的 Windows 版本上生效。建議改用 AppLocker 或商務用應用程式控制。</value>
+  </data>
+  <data name="SRP_Status_SignInHint" xml:space="preserve">
+    <value>變更會在下次登入時生效。若要套用至目前執行中的工作階段，請執行 "gpupdate /force" 或登出後重新登入。</value>
+  </data>
+  <data name="SRP_Help_SecurityLevels" xml:space="preserve">
+    <value>預設安全性層級決定沒有任何規則符合時程式的處理方式。其他規則會為其符合的程式覆寫預設層級。</value>
+  </data>
+  <data name="SRP_Enforcement_DefaultSecurityLevel_Description" xml:space="preserve">
+    <value>沒有任何規則符合時程式的處理方式</value>
+  </data>
+  <data name="SRP_Enforcement_FileScope_Description" xml:space="preserve">
+    <value>選擇軟體限制原則是否同時套用至 DLL 等程式庫檔案</value>
+  </data>
+  <data name="SRP_Enforcement_UserScope_Description" xml:space="preserve">
+    <value>將軟體限制原則套用至所有使用者，或排除本機系統管理員</value>
+  </data>
+  <data name="SRP_Enforcement_CertificateRules_Description" xml:space="preserve">
+    <value>憑證規則依簽署憑證識別軟體；啟用後可能會降低效能</value>
+  </data>
+  <data name="SRP_Rules_PrecedenceHint" xml:space="preserve">
+    <value>當多個規則符合同一個程式時，較特定的規則優先：雜湊規則優先於憑證規則，其次為路徑規則、網路區域規則；最後才套用預設安全性層級。</value>
+  </data>
+  <data name="SRP_Rules_SearchPlaceholder" xml:space="preserve">
+    <value>搜尋規則</value>
+  </data>
+  <data name="SRP_Command_NewRule" xml:space="preserve">
+    <value>新增規則</value>
+  </data>
+  <data name="SRP_Dialog_DisallowedDefault_Warning" xml:space="preserve">
+    <value>「不允許」預設層級會封鎖所有未被允許規則涵蓋的程式，可能導致 Windows 與已安裝的應用程式無法正常執行。請先確認必要的允許規則已建立，再繼續操作。</value>
+  </data>
   <data name="PKP_Node_EncryptingFileSystem" xml:space="preserve">
     <value>加密檔案系統</value>
   </data>
@@ -1111,6 +1147,12 @@
   <data name="PKP_Column_Setting" xml:space="preserve">
     <value>設定</value>
   </data>
+  <data name="PKP_Group_RecoveryAgents" xml:space="preserve">
+    <value>復原代理程式</value>
+  </data>
+  <data name="PKP_Group_CertificateServices" xml:space="preserve">
+    <value>憑證服務</value>
+  </data>
   <data name="PKP_Command_Properties" xml:space="preserve">
     <value>內容</value>
   </data>
@@ -1161,6 +1203,16 @@
   </data>
   <data name="PKP_RecoveryAgent_SingleCertificateLimit" xml:space="preserve">
     <value>無法新增超過一張資料復原代理人憑證。</value>
+  </data>
+  <data name="PKP_RecoveryAgent_RevocationUnknown_Message" xml:space="preserve">
+    <value>Windows 無法判斷此憑證是否已被撤銷。撤銷功能無法檢查此憑證的撤銷狀態。
+
+您要安裝此憑證嗎？</value>
+  </data>
+  <data name="PKP_RecoveryAgent_UntrustedCertificate_Message" xml:space="preserve">
+    <value>Windows 無法確認此憑證是否受信任。此憑證無法驗證到受信任的根憑證授權單位。
+
+您要安裝此憑證嗎？</value>
   </data>
   <data name="PKP_CertificateValid" xml:space="preserve">
     <value>有效</value>
@@ -1279,6 +1331,9 @@
   <data name="PKP_PathValidation_PublisherScope_EnterpriseAdministrators" xml:space="preserve">
     <value>只允許企業系統管理員管理信任的發行者</value>
   </data>
+  <data name="PKP_PathValidation_SignatureChecks" xml:space="preserve">
+    <value>簽章驗證期間的其他檢查</value>
+  </data>
   <data name="PKP_PathValidation_TrustedPublisherRevocation" xml:space="preserve">
     <value>確認發行者憑證尚未被撤銷</value>
   </data>
@@ -1381,6 +1436,12 @@
   <data name="PKP_EnrollmentPolicy_ServerValidation_DuplicateUrl" xml:space="preserve">
     <value>已存在使用此 URI 的原則伺服器。</value>
   </data>
+  <data name="PKP_EnrollmentPolicy_AdditionalConfiguration" xml:space="preserve">
+    <value>其他憑證註冊原則設定</value>
+  </data>
+  <data name="PKP_EnrollmentPolicy_DisableUserServers" xml:space="preserve">
+    <value>停用使用者設定的註冊原則伺服器</value>
+  </data>
   <data name="PKP_EnrollmentPolicy_Auth_Anonymous" xml:space="preserve">
     <value>匿名</value>
   </data>
@@ -1420,8 +1481,14 @@
   <data name="PKP_AutoEnrollment_ExpirationNotifications" xml:space="preserve">
     <value>到期通知百分比</value>
   </data>
-  <data name="PKP_AutoEnrollment_BalloonNotifications" xml:space="preserve">
-    <value>通知訊息</value>
+  <data name="PKP_AutoEnrollment_LogExpiryEvents" xml:space="preserve">
+    <value>當憑證剩餘有效期限的百分比為以下值時，記錄到期事件並顯示到期通知</value>
+  </data>
+  <data name="PKP_AutoEnrollment_PercentSuffix" xml:space="preserve">
+    <value>%</value>
+  </data>
+  <data name="PKP_AutoEnrollment_AdditionalStores" xml:space="preserve">
+    <value>其他存放區。請使用 "," 分隔多個存放區。例如: "Store1, Store2, Store3"</value>
   </data>
   <data name="PKP_AutoEnrollment_StoreNames" xml:space="preserve">
     <value>憑證存放區</value>

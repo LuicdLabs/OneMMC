@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -7,18 +7,21 @@ using OneMMC.Core.Features.UserSecurity.Services.SecPol.SoftwareRestriction;
 using OneMMC.Core.Infrastructure.Admin;
 using OneMMC.Core.Localization;
 using Microsoft.Extensions.Logging;
+using Microsoft.Win32;
 
 namespace OneMMC.Core.Features.UserSecurity.ViewModels.SecPol.SoftwareRestriction;
 
 /// <summary>
-/// View model for the Software Restriction Policies page.
+/// View model for the Software Restriction Policies page. Exposes per-section observable state
+/// (security levels, additional rules, enforcement, designated file types, trusted publishers)
+/// with immediate-apply save operations.
 /// </summary>
 public sealed partial class SoftwareRestrictionViewModel : ObservableObject
 {
     private readonly SoftwareRestrictionPolicyService _policyService;
     private readonly ILogger<SoftwareRestrictionViewModel> _logger;
     private readonly IAdminService _adminService;
-    private List<SoftwareRestrictionListItem> _allItems = [];
+    private bool _hasLoaded;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SoftwareRestrictionViewModel"/> class.
@@ -34,14 +37,6 @@ public sealed partial class SoftwareRestrictionViewModel : ObservableObject
         _policyService = policyService;
         _logger = logger;
         _adminService = adminService;
-
-        Sections.Add(new SoftwareRestrictionSectionItem(SoftwareRestrictionSectionKind.SecurityLevels, GetString(SoftwareRestrictionKeys.SectionSecurityLevels)));
-        Sections.Add(new SoftwareRestrictionSectionItem(SoftwareRestrictionSectionKind.AdditionalRules, GetString(SoftwareRestrictionKeys.SectionAdditionalRules)));
-        Sections.Add(new SoftwareRestrictionSectionItem(SoftwareRestrictionSectionKind.Enforcement, GetString(SoftwareRestrictionKeys.SectionEnforcement)));
-        Sections.Add(new SoftwareRestrictionSectionItem(SoftwareRestrictionSectionKind.DesignatedFileTypes, GetString(SoftwareRestrictionKeys.SectionDesignatedFileTypes)));
-        Sections.Add(new SoftwareRestrictionSectionItem(SoftwareRestrictionSectionKind.TrustedPublishers, GetString(SoftwareRestrictionKeys.SectionTrustedPublishers)));
-
-        SelectedSection = Sections.FirstOrDefault();
     }
 
     /// <summary>
@@ -50,14 +45,19 @@ public sealed partial class SoftwareRestrictionViewModel : ObservableObject
     public event EventHandler? AdminPermissionRequired;
 
     /// <summary>
-    /// Gets the left navigation sections.
+    /// Gets the security level rows for the Security Levels section.
     /// </summary>
-    public ObservableCollection<SoftwareRestrictionSectionItem> Sections { get; } = [];
+    public ObservableCollection<SoftwareRestrictionSecurityLevelItem> SecurityLevelItems { get; } = [];
 
     /// <summary>
-    /// Gets rows for the currently selected section.
+    /// Gets the additional rules matching the current filter.
     /// </summary>
-    public ObservableCollection<SoftwareRestrictionListItem> CurrentItems { get; } = [];
+    public ObservableCollection<SoftwareRestrictionRule> FilteredRules { get; } = [];
+
+    /// <summary>
+    /// Gets the designated file type rows.
+    /// </summary>
+    public ObservableCollection<SoftwareRestrictionFileTypeItem> FileTypeItems { get; } = [];
 
     /// <summary>
     /// Gets or sets the currently loaded policy state.
@@ -66,16 +66,10 @@ public sealed partial class SoftwareRestrictionViewModel : ObservableObject
     public partial SoftwareRestrictionPolicyState PolicyState { get; set; } = new();
 
     /// <summary>
-    /// Gets or sets the selected navigation section.
+    /// Gets or sets the selected additional rule.
     /// </summary>
     [ObservableProperty]
-    public partial SoftwareRestrictionSectionItem? SelectedSection { get; set; }
-
-    /// <summary>
-    /// Gets or sets the selected details row.
-    /// </summary>
-    [ObservableProperty]
-    public partial SoftwareRestrictionListItem? SelectedItem { get; set; }
+    public partial SoftwareRestrictionRule? SelectedRule { get; set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether the view model is loading data.
@@ -96,16 +90,40 @@ public sealed partial class SoftwareRestrictionViewModel : ObservableObject
     public partial string ErrorMessage { get; set; } = string.Empty;
 
     /// <summary>
-    /// Gets or sets the current filter text.
+    /// Gets or sets a value indicating whether the last-operation status InfoBar is visible.
+    /// </summary>
+    [ObservableProperty]
+    public partial bool HasStatus { get; set; }
+
+    /// <summary>
+    /// Gets or sets the last-operation status title.
+    /// </summary>
+    [ObservableProperty]
+    public partial string StatusTitle { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Gets or sets the rule filter text.
     /// </summary>
     [ObservableProperty]
     public partial string FilterText { get; set; } = string.Empty;
 
     /// <summary>
-    /// Gets or sets the most recent status message.
+    /// Gets or sets the extension being typed into the designated file types add box.
     /// </summary>
     [ObservableProperty]
-    public partial string StatusMessage { get; set; } = string.Empty;
+    public partial string NewFileTypeExtension { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Gets the hint shown with every saved-status message: policy changes affect new sign-in
+    /// sessions; run gpupdate or sign out and back in for running sessions.
+    /// </summary>
+    public string StatusDetail => GetString(SoftwareRestrictionKeys.StatusSignInHint);
+
+    /// <summary>
+    /// Gets a value indicating whether this system no longer enforces SRP at run time
+    /// (deprecated feature; Windows 11 22H2+ client editions).
+    /// </summary>
+    public bool ShowsDeprecationWarning => SoftwareRestrictionPolicyService.IsEnforcementUnavailableOnThisSystem;
 
     /// <summary>
     /// Gets a value indicating whether SRP has been initialized.
@@ -113,58 +131,86 @@ public sealed partial class SoftwareRestrictionViewModel : ObservableObject
     public bool IsConfigured => PolicyState.IsConfigured;
 
     /// <summary>
-    /// Gets a value indicating whether default SRP values can be created.
+    /// Gets a value indicating whether the not-configured empty state should be shown.
     /// </summary>
-    public bool CanCreatePolicy => !IsConfigured;
+    public bool ShowsEmptyState => _hasLoaded && !IsLoading && !IsConfigured;
 
     /// <summary>
-    /// Gets a value indicating whether the selected row can be deleted as an additional rule.
+    /// Gets a value indicating whether the filtered rule list is empty while the policy is configured.
     /// </summary>
-    public bool CanDeleteSelectedRule => SelectedItem?.Rule is not null;
+    public bool HasNoRules => IsConfigured && FilteredRules.Count == 0;
 
     /// <summary>
-    /// Gets a value indicating whether the selected security level can become the default level.
+    /// Gets a value indicating whether the selected rule can be opened for editing or inspection.
     /// </summary>
-    public bool CanSetSelectedSecurityLevelDefault =>
-        SelectedSection?.Kind == SoftwareRestrictionSectionKind.SecurityLevels
-        && SelectedItem?.SecurityLevel is SoftwareRestrictionSecurityLevel securityLevel
-        && securityLevel != PolicyState.Enforcement.DefaultSecurityLevel;
+    public bool CanEditSelectedRule => SelectedRule is { } rule
+        && (IsRuleKindEditable(rule.Kind) || rule.CanViewDetails);
 
     /// <summary>
-    /// Gets the first list column header for the selected section.
+    /// Gets a value indicating whether the selected rule can be deleted.
     /// </summary>
-    public string CurrentListHeaderName => GetString(SoftwareRestrictionKeys.ListHeaderName);
+    public bool CanDeleteSelectedRule => SelectedRule is not null;
 
     /// <summary>
-    /// Gets the second list column header for the selected section.
+    /// Gets a value indicating whether the typed extension can be added as a designated file type.
     /// </summary>
-    public string CurrentListHeaderSetting => IsAdditionalRulesSectionSelected
-        ? GetString(SoftwareRestrictionKeys.ListHeaderType)
-        : GetString(SoftwareRestrictionKeys.ListHeaderSetting);
+    public bool CanAddFileType
+    {
+        get
+        {
+            string extension = NormalizeFileExtension(NewFileTypeExtension);
+            return !string.IsNullOrWhiteSpace(extension)
+                && !FileTypeItems.Any(item => string.Equals(item.Extension, extension, StringComparison.OrdinalIgnoreCase));
+        }
+    }
+
+    /// <summary>Gets the default security level combo index (0=Disallowed, 1=Basic User, 2=Unrestricted).</summary>
+    public int DefaultSecurityLevelIndex => SecurityLevelToIndex(PolicyState.Enforcement.DefaultSecurityLevel);
+
+    /// <summary>Gets the enforcement file scope combo index (0=except libraries, 1=all software files).</summary>
+    public int FileScopeIndex => PolicyState.Enforcement.FileScope == SoftwareRestrictionFileScope.AllSoftwareFiles ? 1 : 0;
+
+    /// <summary>Gets the enforcement user scope combo index (0=all users, 1=all except local administrators).</summary>
+    public int UserScopeIndex => PolicyState.Enforcement.UserScope == SoftwareRestrictionUserScope.AllUsersExceptLocalAdministrators ? 1 : 0;
+
+    /// <summary>Gets a value indicating whether certificate rules are enforced.</summary>
+    public bool CertificateRulesEnabled => PolicyState.Enforcement.CertificateRulesEnabled;
+
+    /// <summary>Gets a value indicating whether the trusted publisher policy settings are defined.</summary>
+    public bool TrustedPublishersDefined => PolicyState.TrustedPublishers.IsDefined;
+
+    /// <summary>Gets the trusted publisher management combo index (matches <see cref="SoftwareRestrictionPublisherScope"/>).</summary>
+    public int PublisherScopeIndex => (int)PolicyState.TrustedPublishers.PublisherScope;
+
+    /// <summary>Gets a value indicating whether publisher certificate revocation is checked.</summary>
+    public bool CheckPublisherRevocation => PolicyState.TrustedPublishers.CheckPublisherRevocation;
+
+    /// <summary>Gets a value indicating whether timestamp certificate revocation is checked.</summary>
+    public bool CheckTimestampRevocation => PolicyState.TrustedPublishers.CheckTimestampRevocation;
 
     /// <summary>
-    /// Gets the additional rules security level column header.
+    /// Converts a security level combo index back to the security level.
     /// </summary>
-    public string CurrentListHeaderSecurityLevel => IsAdditionalRulesSectionSelected
-        ? GetString(SoftwareRestrictionKeys.ListHeaderSecurityLevel)
-        : string.Empty;
+    /// <param name="index">The combo index (0=Disallowed, 1=Basic User, 2=Unrestricted).</param>
+    /// <returns>The security level.</returns>
+    public static SoftwareRestrictionSecurityLevel SecurityLevelFromIndex(int index) => index switch
+    {
+        0 => SoftwareRestrictionSecurityLevel.Disallowed,
+        1 => SoftwareRestrictionSecurityLevel.BasicUser,
+        _ => SoftwareRestrictionSecurityLevel.Unrestricted
+    };
 
     /// <summary>
-    /// Gets the additional rules description column header.
+    /// Converts a security level to its combo index (0=Disallowed, 1=Basic User, 2=Unrestricted).
     /// </summary>
-    public string CurrentListHeaderDescription => IsAdditionalRulesSectionSelected
-        ? GetString(SoftwareRestrictionKeys.ListHeaderDescription)
-        : string.Empty;
-
-    /// <summary>
-    /// Gets the additional rules last modified column header.
-    /// </summary>
-    public string CurrentListHeaderLastModified => IsAdditionalRulesSectionSelected
-        ? GetString(SoftwareRestrictionKeys.ListHeaderLastModified)
-        : string.Empty;
-
-    private bool IsAdditionalRulesSectionSelected =>
-        SelectedSection?.Kind == SoftwareRestrictionSectionKind.AdditionalRules;
+    /// <param name="level">The security level.</param>
+    /// <returns>The combo index.</returns>
+    public static int SecurityLevelToIndex(SoftwareRestrictionSecurityLevel level) => level switch
+    {
+        SoftwareRestrictionSecurityLevel.Disallowed => 0,
+        SoftwareRestrictionSecurityLevel.BasicUser => 1,
+        _ => 2
+    };
 
     /// <summary>
     /// Loads Software Restriction Policies.
@@ -207,55 +253,124 @@ public sealed partial class SoftwareRestrictionViewModel : ObservableObject
     }
 
     /// <summary>
-    /// Saves enforcement settings.
-    /// </summary>
-    /// <param name="settings">The settings to save.</param>
-    /// <returns><see langword="true"/> when the operation succeeded.</returns>
-    public async Task<bool> SaveEnforcementAsync(SoftwareRestrictionEnforcementSettings settings)
-    {
-        return await RunSaveAsync(
-            () => _policyService.SaveEnforcement(settings),
-            SoftwareRestrictionKeys.StatusPolicySaved);
-    }
-
-    /// <summary>
     /// Saves the default security level while preserving the rest of the enforcement settings.
     /// </summary>
     /// <param name="securityLevel">The selected default security level.</param>
     /// <returns><see langword="true"/> when the operation succeeded.</returns>
     public async Task<bool> SaveDefaultSecurityLevelAsync(SoftwareRestrictionSecurityLevel securityLevel)
     {
-        SoftwareRestrictionEnforcementSettings current = PolicyState.Enforcement;
-        return await SaveEnforcementAsync(new SoftwareRestrictionEnforcementSettings
+        return await SaveEnforcementAsync(enforcement => enforcement.DefaultSecurityLevel = securityLevel);
+    }
+
+    /// <summary>
+    /// Saves the enforcement file scope while preserving the rest of the enforcement settings.
+    /// </summary>
+    /// <param name="fileScope">The selected file scope.</param>
+    /// <returns><see langword="true"/> when the operation succeeded.</returns>
+    public async Task<bool> SaveFileScopeAsync(SoftwareRestrictionFileScope fileScope)
+    {
+        return await SaveEnforcementAsync(enforcement => enforcement.FileScope = fileScope);
+    }
+
+    /// <summary>
+    /// Saves the enforcement user scope while preserving the rest of the enforcement settings.
+    /// </summary>
+    /// <param name="userScope">The selected user scope.</param>
+    /// <returns><see langword="true"/> when the operation succeeded.</returns>
+    public async Task<bool> SaveUserScopeAsync(SoftwareRestrictionUserScope userScope)
+    {
+        return await SaveEnforcementAsync(enforcement => enforcement.UserScope = userScope);
+    }
+
+    /// <summary>
+    /// Saves the certificate rule enforcement flag while preserving the rest of the enforcement settings.
+    /// </summary>
+    /// <param name="enabled">Whether certificate rules are enforced.</param>
+    /// <returns><see langword="true"/> when the operation succeeded.</returns>
+    public async Task<bool> SaveCertificateRulesEnabledAsync(bool enabled)
+    {
+        return await SaveEnforcementAsync(enforcement => enforcement.CertificateRulesEnabled = enabled);
+    }
+
+    /// <summary>
+    /// Saves whether the trusted publisher policy settings are defined.
+    /// </summary>
+    /// <param name="isDefined">Whether the settings are defined.</param>
+    /// <returns><see langword="true"/> when the operation succeeded.</returns>
+    public async Task<bool> SaveTrustedPublishersDefinedAsync(bool isDefined)
+    {
+        return await SaveTrustedPublishersAsync(settings => settings.IsDefined = isDefined);
+    }
+
+    /// <summary>
+    /// Saves the trusted publisher management scope.
+    /// </summary>
+    /// <param name="scope">The selected publisher scope.</param>
+    /// <returns><see langword="true"/> when the operation succeeded.</returns>
+    public async Task<bool> SavePublisherScopeAsync(SoftwareRestrictionPublisherScope scope)
+    {
+        return await SaveTrustedPublishersAsync(settings => settings.PublisherScope = scope);
+    }
+
+    /// <summary>
+    /// Saves the publisher certificate revocation check flag.
+    /// </summary>
+    /// <param name="enabled">Whether the check is enabled.</param>
+    /// <returns><see langword="true"/> when the operation succeeded.</returns>
+    public async Task<bool> SavePublisherRevocationAsync(bool enabled)
+    {
+        return await SaveTrustedPublishersAsync(settings => settings.CheckPublisherRevocation = enabled);
+    }
+
+    /// <summary>
+    /// Saves the timestamp certificate revocation check flag.
+    /// </summary>
+    /// <param name="enabled">Whether the check is enabled.</param>
+    /// <returns><see langword="true"/> when the operation succeeded.</returns>
+    public async Task<bool> SaveTimestampRevocationAsync(bool enabled)
+    {
+        return await SaveTrustedPublishersAsync(settings => settings.CheckTimestampRevocation = enabled);
+    }
+
+    /// <summary>
+    /// Adds the typed extension to the designated file types and saves the list.
+    /// </summary>
+    /// <returns><see langword="true"/> when the operation succeeded.</returns>
+    public async Task<bool> AddFileTypeAsync()
+    {
+        string extension = NormalizeFileExtension(NewFileTypeExtension);
+        if (string.IsNullOrWhiteSpace(extension) || !CanAddFileType)
         {
-            DefaultSecurityLevel = securityLevel,
-            UserScope = current.UserScope,
-            FileScope = current.FileScope,
-            CertificateRulesEnabled = current.CertificateRulesEnabled
-        });
-    }
+            return false;
+        }
 
-    /// <summary>
-    /// Saves designated file types.
-    /// </summary>
-    /// <param name="fileTypes">The file type extensions.</param>
-    /// <returns><see langword="true"/> when the operation succeeded.</returns>
-    public async Task<bool> SaveDesignatedFileTypesAsync(IEnumerable<string> fileTypes)
-    {
-        return await RunSaveAsync(
-            () => _policyService.SaveDesignatedFileTypes(fileTypes),
+        bool saved = await RunSaveAsync(
+            () => _policyService.SaveDesignatedFileTypes(
+                FileTypeItems.Select(static item => item.Extension).Append(extension)),
             SoftwareRestrictionKeys.StatusPolicySaved);
+
+        if (saved)
+        {
+            NewFileTypeExtension = string.Empty;
+        }
+
+        return saved;
     }
 
     /// <summary>
-    /// Saves trusted publisher settings.
+    /// Removes a designated file type and saves the list.
     /// </summary>
-    /// <param name="settings">The settings to save.</param>
+    /// <param name="item">The file type row to remove.</param>
     /// <returns><see langword="true"/> when the operation succeeded.</returns>
-    public async Task<bool> SaveTrustedPublishersAsync(SoftwareRestrictionTrustedPublisherSettings settings)
+    public async Task<bool> RemoveFileTypeAsync(SoftwareRestrictionFileTypeItem item)
     {
+        ArgumentNullException.ThrowIfNull(item);
+
         return await RunSaveAsync(
-            () => _policyService.SaveTrustedPublishers(settings),
+            () => _policyService.SaveDesignatedFileTypes(
+                FileTypeItems
+                    .Where(existing => !string.Equals(existing.Extension, item.Extension, StringComparison.OrdinalIgnoreCase))
+                    .Select(static existing => existing.Extension)),
             SoftwareRestrictionKeys.StatusPolicySaved);
     }
 
@@ -283,18 +398,57 @@ public sealed partial class SoftwareRestrictionViewModel : ObservableObject
             SoftwareRestrictionKeys.StatusRuleDeleted);
     }
 
+    private static bool IsRuleKindEditable(SoftwareRestrictionRuleKind kind)
+        => kind is SoftwareRestrictionRuleKind.Path
+            or SoftwareRestrictionRuleKind.Hash
+            or SoftwareRestrictionRuleKind.NetworkZone;
+
+    private async Task<bool> SaveEnforcementAsync(Action<SoftwareRestrictionEnforcementSettings> mutate)
+    {
+        SoftwareRestrictionEnforcementSettings current = PolicyState.Enforcement;
+        SoftwareRestrictionEnforcementSettings updated = new()
+        {
+            DefaultSecurityLevel = current.DefaultSecurityLevel,
+            UserScope = current.UserScope,
+            FileScope = current.FileScope,
+            CertificateRulesEnabled = current.CertificateRulesEnabled
+        };
+        mutate(updated);
+
+        return await RunSaveAsync(
+            () => _policyService.SaveEnforcement(updated),
+            SoftwareRestrictionKeys.StatusPolicySaved);
+    }
+
+    private async Task<bool> SaveTrustedPublishersAsync(Action<SoftwareRestrictionTrustedPublisherSettings> mutate)
+    {
+        SoftwareRestrictionTrustedPublisherSettings current = PolicyState.TrustedPublishers;
+        SoftwareRestrictionTrustedPublisherSettings updated = new()
+        {
+            IsDefined = current.IsDefined,
+            PublisherScope = current.PublisherScope,
+            CheckPublisherRevocation = current.CheckPublisherRevocation,
+            CheckTimestampRevocation = current.CheckTimestampRevocation
+        };
+        mutate(updated);
+
+        return await RunSaveAsync(
+            () => _policyService.SaveTrustedPublishers(updated),
+            SoftwareRestrictionKeys.StatusPolicySaved);
+    }
+
     private async Task RunLoadAsync()
     {
         IsLoading = true;
         HasError = false;
         ErrorMessage = string.Empty;
+        OnPropertyChanged(nameof(ShowsEmptyState));
 
         try
         {
             PolicyState = await Task.Run(() => _policyService.LoadPolicy());
-            OnPropertyChanged(nameof(IsConfigured));
-            OnPropertyChanged(nameof(CanCreatePolicy));
-            RefreshCurrentItems();
+            _hasLoaded = true;
+            RefreshSections();
         }
         catch (Exception ex)
         {
@@ -304,6 +458,7 @@ public sealed partial class SoftwareRestrictionViewModel : ObservableObject
         finally
         {
             IsLoading = false;
+            OnPropertyChanged(nameof(ShowsEmptyState));
         }
     }
 
@@ -311,12 +466,14 @@ public sealed partial class SoftwareRestrictionViewModel : ObservableObject
     {
         HasError = false;
         ErrorMessage = string.Empty;
+        HasStatus = false;
 
         try
         {
             await Task.Run(operation);
-            StatusMessage = GetString(statusResourceKey);
+            StatusTitle = GetString(statusResourceKey);
             await RunLoadAsync();
+            HasStatus = true;
             return true;
         }
         catch (Exception ex)
@@ -342,291 +499,157 @@ public sealed partial class SoftwareRestrictionViewModel : ObservableObject
         HasError = !string.IsNullOrWhiteSpace(message);
     }
 
-    private void RefreshCurrentItems()
+    private void RefreshSections()
     {
-        SelectedItem = null;
-        _allItems = BuildItemsForCurrentSection();
-        ApplyFilter();
-        OnPropertyChanged(nameof(CanDeleteSelectedRule));
-        OnPropertyChanged(nameof(CanSetSelectedSecurityLevelDefault));
+        SelectedRule = null;
+        RebuildSecurityLevelItems();
+        ApplyRuleFilter();
+        RebuildFileTypeItems();
+
+        OnPropertyChanged(nameof(IsConfigured));
+        OnPropertyChanged(nameof(ShowsEmptyState));
+        OnPropertyChanged(nameof(DefaultSecurityLevelIndex));
+        OnPropertyChanged(nameof(FileScopeIndex));
+        OnPropertyChanged(nameof(UserScopeIndex));
+        OnPropertyChanged(nameof(CertificateRulesEnabled));
+        OnPropertyChanged(nameof(TrustedPublishersDefined));
+        OnPropertyChanged(nameof(PublisherScopeIndex));
+        OnPropertyChanged(nameof(CheckPublisherRevocation));
+        OnPropertyChanged(nameof(CheckTimestampRevocation));
+        OnPropertyChanged(nameof(CanAddFileType));
     }
 
-    private List<SoftwareRestrictionListItem> BuildItemsForCurrentSection()
-    {
-        if (SelectedSection is null)
-        {
-            return [];
-        }
-
-        if (!PolicyState.IsConfigured)
-        {
-            return
-            [
-                new SoftwareRestrictionListItem
-                {
-                    Name = GetString(SoftwareRestrictionKeys.NoPolicyDefined),
-                    Setting = GetString(SoftwareRestrictionKeys.NoPolicyDefinedDescription)
-                }
-            ];
-        }
-
-        return SelectedSection.Kind switch
-        {
-            SoftwareRestrictionSectionKind.SecurityLevels => BuildSecurityLevelItems(),
-            SoftwareRestrictionSectionKind.AdditionalRules => BuildRuleItems(),
-            SoftwareRestrictionSectionKind.Enforcement => BuildEnforcementItems(),
-            SoftwareRestrictionSectionKind.DesignatedFileTypes => BuildDesignatedFileTypeItems(),
-            SoftwareRestrictionSectionKind.TrustedPublishers => BuildTrustedPublisherItems(),
-            _ => []
-        };
-    }
-
-    private List<SoftwareRestrictionListItem> BuildSecurityLevelItems()
+    private void RebuildSecurityLevelItems()
     {
         SoftwareRestrictionSecurityLevel defaultLevel = PolicyState.Enforcement.DefaultSecurityLevel;
+        SecurityLevelItems.Clear();
 
-        return
+        foreach (SoftwareRestrictionSecurityLevel level in (ReadOnlySpan<SoftwareRestrictionSecurityLevel>)
         [
-            new SoftwareRestrictionListItem
-            {
-                Name = SoftwareRestrictionRule.FormatSecurityLevel(SoftwareRestrictionSecurityLevel.Disallowed),
-                Setting = FormatSecurityLevelDescription(SoftwareRestrictionSecurityLevel.Disallowed, defaultLevel),
-                SecurityLevel = SoftwareRestrictionSecurityLevel.Disallowed
-            },
-            new SoftwareRestrictionListItem
-            {
-                Name = SoftwareRestrictionRule.FormatSecurityLevel(SoftwareRestrictionSecurityLevel.BasicUser),
-                Setting = FormatSecurityLevelDescription(SoftwareRestrictionSecurityLevel.BasicUser, defaultLevel),
-                SecurityLevel = SoftwareRestrictionSecurityLevel.BasicUser
-            },
-            new SoftwareRestrictionListItem
-            {
-                Name = SoftwareRestrictionRule.FormatSecurityLevel(SoftwareRestrictionSecurityLevel.Unrestricted),
-                Setting = FormatSecurityLevelDescription(SoftwareRestrictionSecurityLevel.Unrestricted, defaultLevel),
-                SecurityLevel = SoftwareRestrictionSecurityLevel.Unrestricted
-            }
-        ];
-    }
-
-    private List<SoftwareRestrictionListItem> BuildRuleItems()
-    {
-        if (PolicyState.Rules.Count == 0)
+            SoftwareRestrictionSecurityLevel.Disallowed,
+            SoftwareRestrictionSecurityLevel.BasicUser,
+            SoftwareRestrictionSecurityLevel.Unrestricted
+        ])
         {
-            return
-            [
-                new SoftwareRestrictionListItem
-                {
-                    Name = GetString(SoftwareRestrictionKeys.NoAdditionalRules),
-                    Setting = string.Empty
-                }
-            ];
-        }
-
-        return PolicyState.Rules
-            .Select(rule => new SoftwareRestrictionListItem
+            SecurityLevelItems.Add(new SoftwareRestrictionSecurityLevelItem
             {
-                Name = rule.DisplayValue,
-                Setting = rule.KindDisplayName,
-                RuleSecurityLevel = rule.SecurityLevelDisplayName,
-                Description = rule.Description,
-                LastModified = FormatLastModified(rule.LastModified),
-                Rule = rule
-            })
-            .ToList();
-    }
-
-    private List<SoftwareRestrictionListItem> BuildEnforcementItems()
-    {
-        SoftwareRestrictionEnforcementSettings settings = PolicyState.Enforcement;
-
-        return
-        [
-            new SoftwareRestrictionListItem
-            {
-                Name = GetString(SoftwareRestrictionKeys.EnforcementDefaultSecurityLevel),
-                Setting = SoftwareRestrictionRule.FormatSecurityLevel(settings.DefaultSecurityLevel)
-            },
-            new SoftwareRestrictionListItem
-            {
-                Name = GetString(SoftwareRestrictionKeys.EnforcementUserScope),
-                Setting = FormatUserScope(settings.UserScope)
-            },
-            new SoftwareRestrictionListItem
-            {
-                Name = GetString(SoftwareRestrictionKeys.EnforcementFileScope),
-                Setting = FormatFileScope(settings.FileScope)
-            },
-            new SoftwareRestrictionListItem
-            {
-                Name = GetString(SoftwareRestrictionKeys.EnforcementCertificateRules),
-                Setting = FormatBoolean(settings.CertificateRulesEnabled)
-            }
-        ];
-    }
-
-    private List<SoftwareRestrictionListItem> BuildDesignatedFileTypeItems()
-    {
-        return PolicyState.DesignatedFileTypes.Count == 0
-            ?
-            [
-                new SoftwareRestrictionListItem
-                {
-                    Name = GetString(SoftwareRestrictionKeys.NoDesignatedFileTypes),
-                    Setting = string.Empty
-                }
-            ]
-            : PolicyState.DesignatedFileTypes
-                .Select(fileType => new SoftwareRestrictionListItem
-                {
-                    Name = fileType,
-                    Setting = GetString(SoftwareRestrictionKeys.DesignatedFileTypeSetting)
-                })
-                .ToList();
-    }
-
-    private List<SoftwareRestrictionListItem> BuildTrustedPublisherItems()
-    {
-        SoftwareRestrictionTrustedPublisherSettings settings = PolicyState.TrustedPublishers;
-
-        return
-        [
-            new SoftwareRestrictionListItem
-            {
-                Name = GetString(SoftwareRestrictionKeys.TrustedPublishersDefineSettings),
-                Setting = FormatBoolean(settings.IsDefined)
-            },
-            new SoftwareRestrictionListItem
-            {
-                Name = GetString(SoftwareRestrictionKeys.TrustedPublishersManagement),
-                Setting = settings.IsDefined
-                    ? FormatPublisherScope(settings.PublisherScope)
-                    : GetString(SecPolKeys.ValueNotDefined)
-            },
-            new SoftwareRestrictionListItem
-            {
-                Name = GetString(SoftwareRestrictionKeys.TrustedPublishersPublisherRevocation),
-                Setting = settings.IsDefined
-                    ? FormatBoolean(settings.CheckPublisherRevocation)
-                    : GetString(SecPolKeys.ValueNotDefined)
-            },
-            new SoftwareRestrictionListItem
-            {
-                Name = GetString(SoftwareRestrictionKeys.TrustedPublishersTimestampRevocation),
-                Setting = settings.IsDefined
-                    ? FormatBoolean(settings.CheckTimestampRevocation)
-                    : GetString(SecPolKeys.ValueNotDefined)
-            }
-        ];
-    }
-
-    private void ApplyFilter()
-    {
-        CurrentItems.Clear();
-
-        IEnumerable<SoftwareRestrictionListItem> items = string.IsNullOrWhiteSpace(FilterText)
-            ? _allItems
-            : _allItems.Where(item =>
-                item.Name.Contains(FilterText, StringComparison.CurrentCultureIgnoreCase)
-                || item.Setting.Contains(FilterText, StringComparison.CurrentCultureIgnoreCase)
-                || item.RuleSecurityLevel.Contains(FilterText, StringComparison.CurrentCultureIgnoreCase)
-                || item.Description.Contains(FilterText, StringComparison.CurrentCultureIgnoreCase)
-                || item.LastModified.Contains(FilterText, StringComparison.CurrentCultureIgnoreCase)
-                || (item.Rule?.CertificateSubject.Contains(FilterText, StringComparison.CurrentCultureIgnoreCase) == true)
-                || (item.Rule?.CertificateIssuer.Contains(FilterText, StringComparison.CurrentCultureIgnoreCase) == true)
-                || (item.Rule?.CertificateSerialNumber.Contains(FilterText, StringComparison.CurrentCultureIgnoreCase) == true)
-                || (item.Rule?.CertificateThumbprint.Contains(FilterText, StringComparison.CurrentCultureIgnoreCase) == true));
-
-        foreach (SoftwareRestrictionListItem item in items)
-        {
-            CurrentItems.Add(item);
+                Level = level,
+                DisplayName = SoftwareRestrictionRule.FormatSecurityLevel(level),
+                Description = FormatSecurityLevelDescription(level),
+                IsDefault = level == defaultLevel
+            });
         }
     }
 
-    partial void OnSelectedSectionChanged(SoftwareRestrictionSectionItem? value)
+    private void ApplyRuleFilter()
     {
-        OnPropertyChanged(nameof(CurrentListHeaderName));
-        OnPropertyChanged(nameof(CurrentListHeaderSetting));
-        OnPropertyChanged(nameof(CurrentListHeaderSecurityLevel));
-        OnPropertyChanged(nameof(CurrentListHeaderDescription));
-        OnPropertyChanged(nameof(CurrentListHeaderLastModified));
-        RefreshCurrentItems();
+        FilteredRules.Clear();
+
+        IEnumerable<SoftwareRestrictionRule> rules = PolicyState.Rules;
+        if (!string.IsNullOrWhiteSpace(FilterText))
+        {
+            rules = rules.Where(MatchesFilter);
+        }
+
+        foreach (SoftwareRestrictionRule rule in rules)
+        {
+            FilteredRules.Add(rule);
+        }
+
+        OnPropertyChanged(nameof(HasNoRules));
     }
 
-    partial void OnSelectedItemChanged(SoftwareRestrictionListItem? value)
+    private bool MatchesFilter(SoftwareRestrictionRule rule)
     {
+        return ContainsFilterText(rule.DisplayValue)
+            || ContainsFilterText(rule.KindDisplayName)
+            || ContainsFilterText(rule.SecurityLevelDisplayName)
+            || ContainsFilterText(rule.Description)
+            || ContainsFilterText(rule.LastModifiedDisplay)
+            || ContainsFilterText(rule.CertificateSubject)
+            || ContainsFilterText(rule.CertificateIssuer)
+            || ContainsFilterText(rule.CertificateSerialNumber)
+            || ContainsFilterText(rule.CertificateThumbprint);
+    }
+
+    private bool ContainsFilterText(string value)
+    {
+        return value.Contains(FilterText, StringComparison.CurrentCultureIgnoreCase);
+    }
+
+    private void RebuildFileTypeItems()
+    {
+        FileTypeItems.Clear();
+        foreach (string extension in PolicyState.DesignatedFileTypes)
+        {
+            FileTypeItems.Add(new SoftwareRestrictionFileTypeItem
+            {
+                Extension = extension,
+                FileTypeDisplay = ResolveFileTypeName(extension)
+            });
+        }
+    }
+
+    partial void OnSelectedRuleChanged(SoftwareRestrictionRule? value)
+    {
+        OnPropertyChanged(nameof(CanEditSelectedRule));
         OnPropertyChanged(nameof(CanDeleteSelectedRule));
-        OnPropertyChanged(nameof(CanSetSelectedSecurityLevelDefault));
-    }
-
-    partial void OnPolicyStateChanged(SoftwareRestrictionPolicyState value)
-    {
-        OnPropertyChanged(nameof(IsConfigured));
-        OnPropertyChanged(nameof(CanCreatePolicy));
-        OnPropertyChanged(nameof(CanSetSelectedSecurityLevelDefault));
     }
 
     partial void OnFilterTextChanged(string value)
     {
-        ApplyFilter();
+        ApplyRuleFilter();
     }
 
-    private static string FormatSecurityLevelDescription(
-        SoftwareRestrictionSecurityLevel level,
-        SoftwareRestrictionSecurityLevel defaultLevel)
+    partial void OnNewFileTypeExtensionChanged(string value)
     {
-        string description = level switch
+        OnPropertyChanged(nameof(CanAddFileType));
+    }
+
+    private static string FormatSecurityLevelDescription(SoftwareRestrictionSecurityLevel level)
+    {
+        return level switch
         {
             SoftwareRestrictionSecurityLevel.BasicUser => GetString(SoftwareRestrictionKeys.SecurityLevelBasicUserDescription),
             SoftwareRestrictionSecurityLevel.Unrestricted => GetString(SoftwareRestrictionKeys.SecurityLevelUnrestrictedDescription),
             _ => GetString(SoftwareRestrictionKeys.SecurityLevelDisallowedDescription)
         };
+    }
 
-        if (level != defaultLevel)
+    private static string NormalizeFileExtension(string extension)
+    {
+        return extension.Trim().TrimStart('.').ToUpperInvariant();
+    }
+
+    /// <summary>
+    /// Resolves the friendly file type name for an extension from the file association registry,
+    /// falling back to the MMC-style generic "{extension} File" name.
+    /// </summary>
+    private static string ResolveFileTypeName(string extension)
+    {
+        try
         {
-            return description;
+            using RegistryKey? extensionKey = Registry.ClassesRoot.OpenSubKey($".{extension}");
+            string? progId = extensionKey?.GetValue(null)?.ToString();
+            if (!string.IsNullOrWhiteSpace(progId))
+            {
+                using RegistryKey? progIdKey = Registry.ClassesRoot.OpenSubKey(progId);
+                string? fileType = progIdKey?.GetValue(null)?.ToString();
+                if (!string.IsNullOrWhiteSpace(fileType))
+                {
+                    return fileType;
+                }
+            }
+        }
+        catch (Exception)
+        {
+            // Best effort only; fall back to the MMC-style generic file type name.
         }
 
         return string.Format(
             CultureInfo.CurrentCulture,
-            GetString(SoftwareRestrictionKeys.DefaultMarkerFormat),
-            description,
-            GetString(SoftwareRestrictionKeys.DefaultMarker));
-    }
-
-    private static string FormatLastModified(DateTimeOffset? lastModified)
-    {
-        return lastModified?.ToString("G", CultureInfo.CurrentCulture) ?? string.Empty;
-    }
-
-    private static string FormatUserScope(SoftwareRestrictionUserScope scope)
-    {
-        return scope == SoftwareRestrictionUserScope.AllUsersExceptLocalAdministrators
-            ? GetString(SoftwareRestrictionKeys.UserScopeAllExceptAdministrators)
-            : GetString(SoftwareRestrictionKeys.UserScopeAllUsers);
-    }
-
-    private static string FormatFileScope(SoftwareRestrictionFileScope scope)
-    {
-        return scope == SoftwareRestrictionFileScope.AllSoftwareFiles
-            ? GetString(SoftwareRestrictionKeys.FileScopeAllSoftwareFiles)
-            : GetString(SoftwareRestrictionKeys.FileScopeExecutableFilesOnly);
-    }
-
-    private static string FormatPublisherScope(SoftwareRestrictionPublisherScope scope)
-    {
-        return scope switch
-        {
-            SoftwareRestrictionPublisherScope.LocalAdministrators => GetString(SoftwareRestrictionKeys.PublisherScopeLocalAdministrators),
-            SoftwareRestrictionPublisherScope.EnterpriseAdministrators => GetString(SoftwareRestrictionKeys.PublisherScopeEnterpriseAdministrators),
-            _ => GetString(SoftwareRestrictionKeys.PublisherScopeEndUsers)
-        };
-    }
-
-    private static string FormatBoolean(bool value)
-    {
-        return value
-            ? GetString(SecPolKeys.ValueEnabled)
-            : GetString(SecPolKeys.ValueDisabled);
+            GetString(SoftwareRestrictionKeys.FileTypeFallbackFormat),
+            extension);
     }
 
     private static string GetString(string key, string resourceFileName = ResourceFileNames.SecPol)

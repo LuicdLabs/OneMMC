@@ -6,6 +6,7 @@ using OneMMC.Core.Features.PrintManagement;
 using OneMMC.Core.Features.SystemManagement;
 using OneMMC.Core.Features.UserSecurity;
 using OneMMC.Core.Infrastructure.Admin;
+using OneMMC.Core.Infrastructure.Diagnostics;
 using OneMMC.Core.Infrastructure.PolicyStorage;
 using OneMMC.Core.Infrastructure.WindowsCapabilities;
 using Microsoft.Extensions.DependencyInjection;
@@ -26,6 +27,7 @@ public static class ServiceCollectionExtensions
     {
         services.AddSingleton<AdminService>();
         services.AddSingleton<IAdminService>(sp => sp.GetRequiredService<AdminService>());
+        services.AddSingleton<IMemoryDiagnostics, MemoryDiagnosticsService>();
         services.AddSingleton<IFileDialogService, AppSdkFileDialogService>();
         services.AddSingleton<AclEditorService>();
         services.AddSingleton<CertificateAuthorityPickerService>();

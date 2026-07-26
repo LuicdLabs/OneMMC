@@ -43,12 +43,25 @@ namespace OneMMC
     {
         private readonly ILogger<MainWindow> _logger;
         private readonly IAdminService _adminService;
+        private readonly IMemoryDiagnostics _memoryDiagnostics;
+
+        // Read once at startup: forcing a collection per navigation is a measurement mode, not a setting
+        // users toggle mid-session. See AppSettings.MemoryProbeMode.
+        private readonly bool _memoryProbeMode;
 
         private const double MinimumWidthForTitleBarAppTitle = 900;
 
         // Minimum window size in DIPs at 100% scale; converted to physical pixels at startup.
         private const int MinimumWindowWidthDips = 700;
         private const int MinimumWindowHeightDips = 325;
+
+        // Every PageStackEntry keeps a strong reference to the NavigationTransitionInfo it was navigated
+        // with (PageStackEntry.m_pParameter's sibling TrackerPtr), so a per-navigation instance would be
+        // retained for as long as the journal entry is. The type carries no per-navigation state, so one
+        // shared instance serves every navigation — this is also how it is declared when set in XAML.
+        private static readonly Microsoft.UI.Xaml.Media.Animation.SlideNavigationTransitionInfo SlideFromRight =
+            new() { Effect = Microsoft.UI.Xaml.Media.Animation.SlideNavigationTransitionEffect.FromRight };
+
         private bool _welcomeDialogRequested;
         private OverlappedPresenterState _windowState = OverlappedPresenterState.Restored;
         private int? _windowX;
@@ -65,10 +78,7 @@ namespace OneMMC
         {
             if (contentFrame == null) return;
             _logger.LogDebug("NavigateToPage invoked with index={Index}", index);
-            var transition = new Microsoft.UI.Xaml.Media.Animation.SlideNavigationTransitionInfo
-            {
-                Effect = Microsoft.UI.Xaml.Media.Animation.SlideNavigationTransitionEffect.FromRight
-            };
+            var transition = SlideFromRight;
 
             switch (index)
             {
@@ -119,6 +129,8 @@ namespace OneMMC
         {
             _logger = App.GetRequiredService<ILogger<MainWindow>>();
             _adminService = App.GetRequiredService<IAdminService>();
+            _memoryDiagnostics = App.GetRequiredService<IMemoryDiagnostics>();
+            _memoryProbeMode = AppSettings.Load().MemoryProbeMode;
             _logger.LogInformation("MainWindow initializing.");
 
             InitializeComponent();
@@ -514,6 +526,8 @@ namespace OneMMC
 
         private void ContentFrame_Navigated(object sender, NavigationEventArgs e)
         {
+            LogNavigationMemory(e);
+
             if (NavigationViewControl != null && contentFrame != null)
             {
                 NavigationViewControl.IsBackEnabled = contentFrame.CanGoBack;
@@ -552,6 +566,29 @@ namespace OneMMC
                 {
                     _isProgrammaticSelectionChange = false;
                 }
+            }
+        }
+
+        /// <summary>
+        /// Records a memory reading plus the two journal depths on every navigation. Together these
+        /// form the session growth curve used to verify that memory no longer scales with the number
+        /// of pages visited; see <c>doc/MemoryManagement.md</c>.
+        /// </summary>
+        private void LogNavigationMemory(NavigationEventArgs e)
+        {
+            int backStackDepth = contentFrame?.BackStack.Count ?? 0;
+            int breadcrumbDepth = BreadcrumbNavigationService.BreadCrumbs.Count;
+
+            string context = $"nav:{e.SourcePageType.Name}";
+            string detail = $"backStack={backStackDepth} breadcrumbs={breadcrumbDepth} mode={e.NavigationMode}";
+
+            if (_memoryProbeMode)
+            {
+                _memoryDiagnostics.LogSettledSnapshot(context, detail);
+            }
+            else
+            {
+                _memoryDiagnostics.LogSnapshot(context, detail);
             }
         }
 

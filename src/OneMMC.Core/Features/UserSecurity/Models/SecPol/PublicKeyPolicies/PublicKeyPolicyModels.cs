@@ -63,7 +63,10 @@ public enum CertificateEnrollmentPolicyState
     NotConfigured,
 
     /// <summary>The policy server list is enabled.</summary>
-    Enabled
+    Enabled,
+
+    /// <summary>Group Policy provided enrollment policy is disabled.</summary>
+    Disabled
 }
 
 /// <summary>
@@ -211,6 +214,15 @@ public sealed class CertificateAutoEnrollmentSettings
 
     /// <summary>Whether certificates that use certificate templates are updated automatically.</summary>
     public bool EnableTemplateCheck { get; set; }
+
+    /// <summary>Whether expiry events are logged and expiry notifications are shown.</summary>
+    public bool EnableExpirationNotifications { get; set; }
+
+    /// <summary>The remaining certificate lifetime percentage that triggers expiry notifications.</summary>
+    public int ExpirationNotificationPercent { get; set; } = 10;
+
+    /// <summary>Additional certificate stores monitored for expiry, comma separated. The MY store is always monitored.</summary>
+    public string AdditionalExpirationStores { get; set; } = string.Empty;
 }
 
 /// <summary>
@@ -220,6 +232,9 @@ public sealed class CertificateEnrollmentPolicySettings
 {
     /// <summary>Gets or sets the configured enrollment policy state.</summary>
     public CertificateEnrollmentPolicyState State { get; set; }
+
+    /// <summary>Gets or sets a value indicating whether user configured enrollment policy servers are ignored.</summary>
+    public bool DisableUserConfiguredServers { get; set; }
 
     /// <summary>Gets the locally configured policy servers.</summary>
     public List<CertificateEnrollmentPolicyServer> Servers { get; } = [];
@@ -344,6 +359,30 @@ public sealed class PublicKeyPolicyNode
         || PathValidationSettings is not null
         || EnrollmentPolicySettings is not null
         || EfsSettings is not null;
+
+    /// <summary>Gets a value indicating whether this node holds an editable policy settings object.</summary>
+    public bool HasEditableSettings => AutoEnrollmentSettings is not null
+        || PathValidationSettings is not null
+        || EnrollmentPolicySettings is not null
+        || EfsSettings is not null;
+
+    /// <summary>Gets a value indicating whether this node manages recovery-agent certificates.</summary>
+    public bool IsRecoveryAgentNode => Kind is PublicKeyPolicyNodeKind.EncryptingFileSystem
+        or PublicKeyPolicyNodeKind.DataProtection
+        or PublicKeyPolicyNodeKind.BitLockerDriveEncryption;
+
+    /// <summary>Gets the certificate rows for this node, excluding informational rows.</summary>
+    public List<PublicKeyPolicyRow> CertificateRows =>
+        [.. Rows.Where(static row => row.Kind == PublicKeyPolicyRowKind.Certificate)];
+
+    /// <summary>Gets the number of recovery-agent certificates configured for this node.</summary>
+    public int CertificateCount => CertificateRows.Count;
+
+    /// <summary>Gets a value indicating whether this node has any recovery-agent certificates.</summary>
+    public bool HasCertificates => CertificateRows.Count > 0;
+
+    /// <summary>Gets a value indicating whether this node has no recovery-agent certificates.</summary>
+    public bool HasNoCertificates => CertificateRows.Count == 0;
 
     /// <inheritdoc />
     public override string ToString() => DisplayName;

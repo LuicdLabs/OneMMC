@@ -57,7 +57,8 @@ public sealed partial class ScopesPage : Page
 
         if (e.Parameter is ScopeNavigationParameter param)
         {
-            _service = param.Service;
+            // AzManService is a DI singleton; the navigation parameter deliberately no longer carries it.
+            _service = App.GetRequiredService<AzManService>();
             _storePath = param.StorePath;
             _applicationName = param.ApplicationName;
             _scopeName = param.ScopeName;
@@ -771,18 +772,17 @@ public sealed partial class ScopesPage : Page
 
 
 /// <summary>
-/// Scope navigation parameter
+/// Scope navigation parameter. Identifiers only — see <c>StoreNavigationParameter</c> for why navigation
+/// parameters must not carry live services or view models.
 /// </summary>
 public class ScopeNavigationParameter
 {
-    public AzManService Service { get; }
     public string StorePath { get; }
     public string ApplicationName { get; }
     public string ScopeName { get; }
 
-    public ScopeNavigationParameter(AzManService service, string storePath, string appName, string scopeName = "")
+    public ScopeNavigationParameter(string storePath, string appName, string scopeName = "")
     {
-        Service = service;
         StorePath = storePath;
         ApplicationName = appName;
         ScopeName = scopeName;

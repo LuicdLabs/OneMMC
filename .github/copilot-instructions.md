@@ -74,6 +74,30 @@
 - **ThemeResource in Code-Behind**: When dynamically creating UI elements in code-behind that need theme-aware brushes, define a named `Style` with `{ThemeResource ...}` in the page's XAML `ResourceDictionary` and apply it via `Style = (Style)Resources["StyleKey"]` in code-behind. Never use `Application.Current.Resources["ResourceKey"]` directly — it is a one-time static fetch that will not update when the user switches between Light and Dark mode. Note: `SetResourceReference` is a WPF API and does **not** exist in WinUI 3.
 - **Navigation**: Use `SelectorBar` instead of `Pivot` in the UI wherever tab-like navigation is needed.
 
+## Memory Management
+
+Memory used to grow with the number of pages visited rather than with the data on screen. The full
+diagnosis, rules, and measurement probes are in `doc/MemoryManagement.md`; the binding rules are:
+
+- **Resolve disposable view models from a page scope**: a transient `IDisposable` resolved through
+  `App.GetRequiredService<T>()` is held by the root container until the process exits. Use
+  `PageServiceScope` and dispose it in `Unloaded`. Do not also call `ViewModel.Dispose()`. Never dispose a
+  singleton you were injected with (`AzManService`, `AdmxBundleProvider`).
+- **Navigation parameters carry identifiers, not objects**: `Frame.BackStack` and the breadcrumb trail
+  retain them for the session. Pass a path/name/id and resolve services from DI. Small self-contained DTOs
+  are fine; live services and view models are not.
+- **`Dispose()` clears collections**, not just handles, so memory returns at unload.
+- **Lists need a height-constrained container**: a `ScrollViewer`/`StackPanel` parent gives unbounded
+  height and silently disables virtualization. Never use `ItemsControl` for a growing collection; never
+  override `ItemsPanel` with a plain `StackPanel`. Use `ItemsRepeater` + `StackLayout` inside a
+  `ScrollViewer`, or a `ListView` in a `*`-sized `Grid` row.
+- **`SettingsExpander` bound to a collection defaults to `IsExpanded="False"`.**
+- **`TreeView` fills on `Expanding` and clears on `Collapsed`** using `HasUnrealizedChildren`. XAML-wired
+  handlers must be instance methods (`static` fails with CS0176).
+- **Finalizers must never wait on another thread** — a blocked finalizer thread stops all finalization
+  process-wide. Do STA/COM marshalling only on the `disposing` path.
+- **Cap anything that grows per navigation** (back stack, history stacks, process-wide caches).
+
 ## Administrator Permission Handling
 - **Unified System**: Always use the unified administrator detection system documented in `doc/AdminDetectionSystem.md`.
 - **Three Patterns**:

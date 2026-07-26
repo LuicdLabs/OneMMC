@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System;
 using Microsoft.Extensions.Logging;
 using OneMMC.Core.Features.PCManagement.Services.WindowsServices;
+using OneMMC.Core.Features.PCManagement.Services.DiskMgmt.Common;
 using OneMMC.Core.Infrastructure.Admin;
 
 namespace OneMMC.Core.Features.PCManagement.ViewModels.Services
@@ -217,7 +218,7 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.Services
             }
         }
 
-        public async Task UpdateServiceStartupTypeAsync(string serviceName, string startupType)
+        public async Task<OperationResult> UpdateServiceStartupTypeAsync(string serviceName, string startupType)
         {
             try
             {
@@ -236,15 +237,18 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.Services
                 {
                     await LoadServiceDetailsAsync();
                 }
+                return OperationResult.Ok($"Startup type for {serviceName} updated.");
             }
             catch (Exception ex)
             {
+                bool accessDenied = _adminService.IsPermissionError(ex);
                 StatusMessage = $"Error setting startup type: {ex.Message}";
                 _logger.LogError(ex, "Failed to update startup type for service {ServiceName} to {StartupType}.", serviceName, startupType);
+                return new OperationResult(false, ex.Message, isAccessDenied: accessDenied);
             }
         }
 
-        public async Task UpdateServiceLogOnAsync(string serviceName, string username, string? password)
+        public async Task<OperationResult> UpdateServiceLogOnAsync(string serviceName, string username, string? password)
         {
             try
             {
@@ -256,11 +260,14 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.Services
                 {
                     await LoadServiceDetailsAsync();
                 }
+                return OperationResult.Ok($"Log on account for {serviceName} updated.");
             }
             catch (Exception ex)
             {
+                bool accessDenied = _adminService.IsPermissionError(ex);
                 StatusMessage = $"Error setting log on account: {ex.Message}";
                 _logger.LogError(ex, "Failed to update logon account for service {ServiceName}.", serviceName);
+                return new OperationResult(false, ex.Message, isAccessDenied: accessDenied);
             }
         }
 
@@ -283,7 +290,7 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.Services
             }
         }
 
-        public async Task UpdateServiceRecoveryAsync(string serviceName, string firstAction, string secondAction, string subsequentAction, double resetDays)
+        public async Task<OperationResult> UpdateServiceRecoveryAsync(string serviceName, string firstAction, string secondAction, string subsequentAction, double resetDays)
         {
             try
             {
@@ -291,7 +298,7 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.Services
                 int resetSeconds = (int)(resetDays * 86400);
 
                 await _serviceManager.SetRecoveryOptionsAsync(serviceName, firstAction, secondAction, subsequentAction, resetSeconds);
-                
+
                 // Reload service details to reflect the changes
                 string? selectedName = SelectedService?.Name;
                 await LoadServicesAsync();
@@ -300,14 +307,17 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.Services
                 {
                     await LoadServiceDetailsAsync();
                 }
-                
+
                 StatusMessage = "Recovery options updated.";
                 _logger.LogInformation("Updated recovery options for service {ServiceName}.", serviceName);
+                return OperationResult.Ok($"Recovery options for {serviceName} updated.");
             }
             catch (Exception ex)
             {
+                bool accessDenied = _adminService.IsPermissionError(ex);
                 StatusMessage = $"Error setting recovery options: {ex.Message}";
                 _logger.LogError(ex, "Failed to update recovery options for service {ServiceName}.", serviceName);
+                return new OperationResult(false, ex.Message, isAccessDenied: accessDenied);
             }
         }
 

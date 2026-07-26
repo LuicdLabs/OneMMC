@@ -59,6 +59,13 @@ public sealed partial class PerformanceMonitorPage : Page
     // Private Fields
     // ========================================================================
     
+    /// <summary>
+    /// Owns the view model's lifetime. PerformanceMonitorViewModel is a transient IDisposable, so
+    /// resolving it from the root provider would leave the container holding it — along with its update
+    /// timer and open PDH queries — until the process exits. See doc/MemoryManagement.md.
+    /// </summary>
+    private readonly PageServiceScope _serviceScope = new();
+
     /// <summary>Chart update timer, updates chart once per second</summary>
     private readonly System.Timers.Timer _chartUpdateTimer;
     
@@ -97,8 +104,8 @@ public sealed partial class PerformanceMonitorPage : Page
     /// </remarks>
     public PerformanceMonitorPage()
     {
-        ViewModel = App.GetRequiredService<PerformanceMonitorViewModel>();
-        
+        ViewModel = _serviceScope.GetRequiredService<PerformanceMonitorViewModel>();
+
         // Initialize XAML components
         InitializeComponent();
         DataContext = ViewModel;
@@ -121,7 +128,10 @@ public sealed partial class PerformanceMonitorPage : Page
             _counterLines.Clear();
             _counterRetainedLines.Clear();
             DataContext = null;
-            ViewModel.Dispose();
+
+            // Disposes the view model (stopping its timer and closing its PDH queries) and releases the
+            // container's reference to it.
+            _serviceScope.Dispose();
         };
     }
 

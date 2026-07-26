@@ -44,6 +44,21 @@ interop helpers.
 - Prefer `LogDebug`, `LogInformation`, `LogWarning`, `LogError`, and `LogCritical`
   with contextual properties instead of concatenated strings.
 
+## Levels
+
+The default minimum level is **`Information`**. `Debug` is a local diagnostic mode, not a normal
+operating level: every `LogDebug` call formats a message template and allocates property values even
+when nobody reads the output, which shows up as sustained gen0 pressure (see `doc/MemoryManagement.md`).
+
+- `LogDebug` is still the right call for detailed tracing — just do not expect it in a default session.
+- To turn it on, set `"VerboseLogging": true` in `%LOCALAPPDATA%/OneMMC/Settings.json`.
+- Anything that must always be visible (lifecycle events, operation outcomes, the memory probe) logs at
+  `Information` or above.
+- The `Trace` → Serilog bridge (`EnableDebugBridge`) is installed only when a debugger is attached; it
+  forwards all framework `Trace`/`Debug` output and is pure overhead otherwise.
+- The file sink uses `shared: true` (not `buffered: true` — Serilog.Sinks.File allows only one of the
+  two) because the "Run as administrator" flow briefly runs a second process writing the same file.
+
 ## Current Architecture Notes
 
 - Core registration is explicit. Logging no longer relies on reflection-based

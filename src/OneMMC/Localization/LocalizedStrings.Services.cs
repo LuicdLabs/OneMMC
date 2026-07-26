@@ -32,9 +32,10 @@ namespace OneMMC.Localization
         public string Service_Password_Header => GetResource(ResourceFileNames.Services, "Service_Password_Header");
         public string Service_Account_Placeholder => GetResource(ResourceFileNames.Services, "Service_Account_Placeholder");
         public string Service_Password_Placeholder => GetResource(ResourceFileNames.Services, "Service_Password_Placeholder");
-        public string Service_SaveStartupType => GetResource(ResourceFileNames.Services, "Service_SaveStartupType");
-        public string Service_ApplyLogOn => GetResource(ResourceFileNames.Services, "Service_ApplyLogOn");
-        public string Service_ApplyRecovery => GetResource(ResourceFileNames.Services, "Service_ApplyRecovery");
+        public string Service_SaveFailed_General => GetResource(ResourceFileNames.Services, "Service_SaveFailed_General");
+        public string Service_SaveFailed_StartupType => GetResource(ResourceFileNames.Services, "Service_SaveFailed_StartupType");
+        public string Service_SaveFailed_LogOn => GetResource(ResourceFileNames.Services, "Service_SaveFailed_LogOn");
+        public string Service_SaveFailed_Recovery => GetResource(ResourceFileNames.Services, "Service_SaveFailed_Recovery");
         public string Service_Startup_Auto => GetResource(ResourceFileNames.Services, "Service_Startup_Auto");
         public string Service_Startup_AutoDelayed => GetResource(ResourceFileNames.Services, "Service_Startup_AutoDelayed");
         public string Service_Startup_Manual => GetResource(ResourceFileNames.Services, "Service_Startup_Manual");

@@ -10,6 +10,26 @@ using Microsoft.Extensions.Logging;
 namespace OneMMC.Core.Features.UserSecurity.ViewModels.SecPol.PublicKeyPolicies;
 
 /// <summary>
+/// Describes the result of adding a recovery agent certificate.
+/// </summary>
+public enum AddRecoveryAgentOutcome
+{
+    /// <summary>The certificate was added to the policy store.</summary>
+    Success,
+
+    /// <summary>The operation failed; see <see cref="PublicKeyPoliciesViewModel.ErrorMessage"/>.</summary>
+    Failed,
+
+    /// <summary>
+    /// The certificate can be installed but requires confirmation first (it does not chain to a trusted
+    /// root, or its revocation status could not be verified). The view should show
+    /// <see cref="PublicKeyPoliciesViewModel.InstallConfirmationMessage"/> as a Yes/No prompt — the Windows
+    /// "Add Recovery Agent" behavior — and, on approval, retry the add with <c>ignoreInstallWarnings</c> set.
+    /// </summary>
+    InstallConfirmationRequired
+}
+
+/// <summary>
 /// View model for the Public Key Policies page.
 /// </summary>
 public sealed partial class PublicKeyPoliciesViewModel : ObservableObject
@@ -17,7 +37,6 @@ public sealed partial class PublicKeyPoliciesViewModel : ObservableObject
     private readonly PublicKeyPolicyService _policyService;
     private readonly ILogger<PublicKeyPoliciesViewModel> _logger;
     private readonly IAdminService _adminService;
-    private List<PublicKeyPolicyRow> _allRows = [];
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PublicKeyPoliciesViewModel"/> class.
@@ -46,56 +65,19 @@ public sealed partial class PublicKeyPoliciesViewModel : ObservableObject
     public ObservableCollection<PublicKeyPolicyNode> Nodes { get; } = [];
 
     /// <summary>
-    /// Gets rows shown for the selected node.
+    /// Gets the recovery-agent nodes (EFS, Data Protection, BitLocker), in display order.
     /// </summary>
-    public ObservableCollection<PublicKeyPolicyRow> CurrentRows { get; } = [];
+    public ObservableCollection<PublicKeyPolicyNode> RecoveryAgentNodes { get; } = [];
 
     /// <summary>
-    /// Gets or sets the selected node.
+    /// Gets the editable certificate-services nodes (enrollment policy, path validation, auto-enrollment).
     /// </summary>
-    [ObservableProperty]
-    public partial PublicKeyPolicyNode? SelectedNode { get; set; }
+    public ObservableCollection<PublicKeyPolicyNode> CertificateServiceNodes { get; } = [];
 
     /// <summary>
-    /// Gets a value indicating whether the selected node shows recovery-agent certificates.
+    /// Gets a value indicating whether any policy nodes have loaded.
     /// </summary>
-    public bool IsRecoveryAgentNodeSelected => SelectedNode?.Kind is PublicKeyPolicyNodeKind.EncryptingFileSystem
-        or PublicKeyPolicyNodeKind.DataProtection
-        or PublicKeyPolicyNodeKind.BitLockerDriveEncryption;
-
-    /// <summary>
-    /// Gets a value indicating whether the selected node shows name/value policy settings.
-    /// </summary>
-    public bool IsSettingNodeSelected => !IsRecoveryAgentNodeSelected;
-
-    /// <summary>
-    /// Gets or sets the selected row.
-    /// </summary>
-    [ObservableProperty]
-    public partial PublicKeyPolicyRow? SelectedRow { get; set; }
-
-    /// <summary>
-    /// Gets a value indicating whether the selected row has certificate details.
-    /// </summary>
-    public bool CanViewSelectedCertificate => SelectedRow?.CanViewDetails == true;
-
-    /// <summary>
-    /// Gets a value indicating whether a recovery agent certificate can be added to the selected node.
-    /// </summary>
-    public bool CanAddRecoveryAgent => IsRecoveryAgentNodeSelected;
-
-    /// <summary>
-    /// Gets a value indicating whether the selected recovery agent certificate can be deleted.
-    /// </summary>
-    public bool CanDeleteSelectedRecoveryAgent => IsRecoveryAgentNodeSelected
-        && SelectedRow?.Kind == PublicKeyPolicyRowKind.Certificate
-        && !string.IsNullOrWhiteSpace(SelectedRow.Source)
-        && !string.IsNullOrWhiteSpace(SelectedRow.Thumbprint);
-
-    /// <summary>
-    /// Gets a value indicating whether the selected node has read-only properties.
-    /// </summary>
-    public bool CanViewSelectedNodeProperties => SelectedNode?.CanViewProperties == true;
+    public bool HasNodes => Nodes.Count > 0;
 
     /// <summary>
     /// Gets or sets a value indicating whether policies are loading.
@@ -116,10 +98,21 @@ public sealed partial class PublicKeyPoliciesViewModel : ObservableObject
     public partial string ErrorMessage { get; set; } = string.Empty;
 
     /// <summary>
-    /// Gets or sets the current filter text.
+    /// Gets the localized confirmation prompt to show when adding a recovery agent certificate returns
+    /// <see cref="AddRecoveryAgentOutcome.InstallConfirmationRequired"/>. Read by the view to populate the
+    /// Yes/No dialog; <see langword="null"/> when no confirmation is pending.
     /// </summary>
-    [ObservableProperty]
-    public partial string FilterText { get; set; } = string.Empty;
+    public string? InstallConfirmationMessage { get; private set; }
+
+    /// <summary>
+    /// Determines whether the given recovery-agent row can be deleted.
+    /// </summary>
+    /// <param name="row">The recovery-agent certificate row.</param>
+    /// <returns><see langword="true"/> when the row represents a deletable certificate.</returns>
+    public static bool CanDeleteRecoveryAgent(PublicKeyPolicyRow? row) =>
+        row?.Kind == PublicKeyPolicyRowKind.Certificate
+        && !string.IsNullOrWhiteSpace(row.Source)
+        && !string.IsNullOrWhiteSpace(row.Thumbprint);
 
     /// <summary>
     /// Loads Public Key Policies.
@@ -133,18 +126,24 @@ public sealed partial class PublicKeyPoliciesViewModel : ObservableObject
 
         try
         {
-            PublicKeyPolicyNodeKind? selectedKind = SelectedNode?.Kind;
             IReadOnlyList<PublicKeyPolicyNode> nodes = await Task.Run(() => _policyService.LoadNodes());
             Nodes.Clear();
+            RecoveryAgentNodes.Clear();
+            CertificateServiceNodes.Clear();
             foreach (PublicKeyPolicyNode node in nodes)
             {
                 Nodes.Add(node);
+                if (node.IsRecoveryAgentNode)
+                {
+                    RecoveryAgentNodes.Add(node);
+                }
+                else if (node.HasEditableSettings)
+                {
+                    CertificateServiceNodes.Add(node);
+                }
             }
 
-            SelectedNode = selectedKind is PublicKeyPolicyNodeKind kind
-                ? Nodes.FirstOrDefault(node => node.Kind == kind) ?? Nodes.FirstOrDefault()
-                : Nodes.FirstOrDefault();
-            RefreshCurrentRows();
+            OnPropertyChanged(nameof(HasNodes));
         }
         catch (Exception ex)
         {
@@ -323,21 +322,37 @@ public sealed partial class PublicKeyPoliciesViewModel : ObservableObject
     /// </summary>
     /// <param name="nodeKind">The selected recovery-agent node kind.</param>
     /// <param name="certificatePath">The certificate file path.</param>
-    /// <returns><see langword="true"/> when the operation succeeded.</returns>
-    public async Task<bool> AddRecoveryAgentCertificateAsync(
+    /// <param name="ignoreInstallWarnings">
+    /// Pass <see langword="true"/> to skip the trust / revocation confirmation gates after the user has
+    /// approved the install in response to <see cref="AddRecoveryAgentOutcome.InstallConfirmationRequired"/>.
+    /// </param>
+    /// <returns>The outcome of the add operation.</returns>
+    public async Task<AddRecoveryAgentOutcome> AddRecoveryAgentCertificateAsync(
         PublicKeyPolicyNodeKind nodeKind,
-        string certificatePath)
+        string certificatePath,
+        bool ignoreInstallWarnings = false)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(certificatePath);
 
         HasError = false;
         ErrorMessage = string.Empty;
+        InstallConfirmationMessage = null;
 
         try
         {
-            await Task.Run(() => _policyService.AddRecoveryAgentCertificate(nodeKind, certificatePath));
+            string? confirmationMessage = await Task.Run(
+                () => _policyService.AddRecoveryAgentCertificate(nodeKind, certificatePath, ignoreInstallWarnings));
+            if (confirmationMessage is not null)
+            {
+                // Not an error: the certificate could not be fully validated (untrusted root, or revocation
+                // status unknown). The view shows the confirmation and, on approval, retries with
+                // ignoreInstallWarnings set.
+                InstallConfirmationMessage = confirmationMessage;
+                return AddRecoveryAgentOutcome.InstallConfirmationRequired;
+            }
+
             await LoadAsync();
-            return true;
+            return AddRecoveryAgentOutcome.Success;
         }
         catch (Exception ex)
         {
@@ -353,7 +368,7 @@ public sealed partial class PublicKeyPoliciesViewModel : ObservableObject
                 AdminPermissionRequired?.Invoke(this, EventArgs.Empty);
             }
 
-            return false;
+            return AddRecoveryAgentOutcome.Failed;
         }
     }
 
@@ -391,56 +406,6 @@ public sealed partial class PublicKeyPoliciesViewModel : ObservableObject
 
             return false;
         }
-    }
-
-    private void RefreshCurrentRows()
-    {
-        SelectedRow = null;
-        _allRows = SelectedNode?.Rows.ToList() ?? [];
-        ApplyFilter();
-    }
-
-    private void ApplyFilter()
-    {
-        CurrentRows.Clear();
-
-        IEnumerable<PublicKeyPolicyRow> rows = string.IsNullOrWhiteSpace(FilterText)
-            ? _allRows
-            : _allRows.Where(row =>
-                row.Name.Contains(FilterText, StringComparison.CurrentCultureIgnoreCase)
-                || row.Setting.Contains(FilterText, StringComparison.CurrentCultureIgnoreCase)
-                || row.IssuedTo.Contains(FilterText, StringComparison.CurrentCultureIgnoreCase)
-                || row.IssuedBy.Contains(FilterText, StringComparison.CurrentCultureIgnoreCase)
-                || row.FriendlyName.Contains(FilterText, StringComparison.CurrentCultureIgnoreCase)
-                || row.Status.Contains(FilterText, StringComparison.CurrentCultureIgnoreCase)
-                || row.CertificateTemplate.Contains(FilterText, StringComparison.CurrentCultureIgnoreCase)
-                || row.Thumbprint.Contains(FilterText, StringComparison.CurrentCultureIgnoreCase));
-
-        foreach (PublicKeyPolicyRow row in rows)
-        {
-            CurrentRows.Add(row);
-        }
-    }
-
-    partial void OnSelectedNodeChanged(PublicKeyPolicyNode? value)
-    {
-        OnPropertyChanged(nameof(IsRecoveryAgentNodeSelected));
-        OnPropertyChanged(nameof(IsSettingNodeSelected));
-        OnPropertyChanged(nameof(CanViewSelectedNodeProperties));
-        OnPropertyChanged(nameof(CanAddRecoveryAgent));
-        OnPropertyChanged(nameof(CanDeleteSelectedRecoveryAgent));
-        RefreshCurrentRows();
-    }
-
-    partial void OnFilterTextChanged(string value)
-    {
-        ApplyFilter();
-    }
-
-    partial void OnSelectedRowChanged(PublicKeyPolicyRow? value)
-    {
-        OnPropertyChanged(nameof(CanViewSelectedCertificate));
-        OnPropertyChanged(nameof(CanDeleteSelectedRecoveryAgent));
     }
 
     private static string GetString(string key, string resourceFileName)

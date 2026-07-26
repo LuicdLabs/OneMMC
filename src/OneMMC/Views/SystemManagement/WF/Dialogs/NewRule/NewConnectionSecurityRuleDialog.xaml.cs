@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
+using OneMMC.Core.Features.SystemManagement.Infrastructure.WF;
 using OneMMC.Core.Features.SystemManagement.Models.WF.Authentication;
 using OneMMC.Core.Features.SystemManagement.Models.WF.ConnectionSecurity;
 using OneMMC.Core.Features.SystemManagement.Models.WF.Monitoring;
@@ -134,11 +135,19 @@ public sealed partial class NewConnectionSecurityRuleDialog : ContentDialog
             : string.Empty;
         bool useAdvancedAuthentication = string.Equals(authenticationMethodTag, "Advanced", StringComparison.Ordinal);
 
-        if (string.Equals(authenticationMethodTag, "ComputerCertificate", StringComparison.Ordinal) &&
-            string.IsNullOrWhiteSpace(CertificateAuthorityNameTextBox.Text))
+        if (string.Equals(authenticationMethodTag, "ComputerCertificate", StringComparison.Ordinal))
         {
-            ShowValidationError(LocalizedStrings.WF_Validation_CertificateAuthorityPathRequired);
-            return false;
+            if (string.IsNullOrWhiteSpace(CertificateAuthorityNameTextBox.Text))
+            {
+                ShowValidationError(LocalizedStrings.WF_Validation_CertificateAuthorityPathRequired);
+                return false;
+            }
+
+            if (!CertificateAuthorityNameSupport.IsValidTrustedCaName(CertificateAuthorityNameTextBox.Text))
+            {
+                ShowValidationError(LocalizedStrings.WF_Validation_CertificateAuthorityNameInvalid);
+                return false;
+            }
         }
 
         if (useAdvancedAuthentication && _firstAuthMethods.Count == 0 && _secondAuthMethods.Count == 0)
@@ -403,13 +412,15 @@ public sealed partial class NewConnectionSecurityRuleDialog : ContentDialog
     {
         var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindowInstance);
         var pickerService = App.GetRequiredService<CertificateAuthorityPickerService>();
-        string? distinguishedName = pickerService.PickCaDistinguishedName(
+        CertificateAuthorityPickResult? result = pickerService.PickCertificateAuthority(
             hwnd,
-            System.Security.Cryptography.X509Certificates.StoreLocation.LocalMachine,
-            GetSelectedCertificateAuthorityStoreName(CertificateStoreTypeBox));
-        if (!string.IsNullOrWhiteSpace(distinguishedName))
+            GetSelectedCertificateAuthorityStoreKind(CertificateStoreTypeBox),
+            new CertificateAuthorityPickerStrings(
+                LocalizedStrings.WF_CertificatePicker_Title,
+                LocalizedStrings.WF_CertificatePicker_Prompt));
+        if (result is not null)
         {
-            CertificateAuthorityNameTextBox.Text = distinguishedName;
+            CertificateAuthorityNameTextBox.Text = result.DistinguishedName;
         }
     }
 
@@ -856,12 +867,12 @@ public sealed partial class NewConnectionSecurityRuleDialog : ContentDialog
     private static string GetSelectedContent(ComboBox comboBox)
         => (comboBox.SelectedItem as ComboBoxItem)?.Content?.ToString() ?? string.Empty;
 
-    private static System.Security.Cryptography.X509Certificates.StoreName GetSelectedCertificateAuthorityStoreName(ComboBox comboBox)
+    private static CertificateAuthorityStoreKind GetSelectedCertificateAuthorityStoreKind(ComboBox comboBox)
     {
         return AuthMethodValueMapper.NormalizeCertificateStoreTypeTag(GetSelectedTag(comboBox)) switch
         {
-            "IntermediateCA" => System.Security.Cryptography.X509Certificates.StoreName.CertificateAuthority,
-            _ => System.Security.Cryptography.X509Certificates.StoreName.Root
+            "IntermediateCA" => CertificateAuthorityStoreKind.IntermediateCA,
+            _ => CertificateAuthorityStoreKind.RootCA
         };
     }
 

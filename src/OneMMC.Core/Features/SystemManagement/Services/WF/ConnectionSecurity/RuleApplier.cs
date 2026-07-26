@@ -11,6 +11,8 @@ internal static class RuleApplier
     internal static void ApplyRuleState(WbemServices session, WbemObject instance, ConnectionSecurityRuleModel rule)
     {
         string ruleIdentity = AuthManager.ResolveRuleIdentity(instance, rule);
+        string phase1AuthSetId = AuthManager.ResolvePhase1AuthSetId(session, rule, ruleIdentity);
+        string phase2AuthSetId = AuthManager.ResolvePhase2AuthSetId(session, rule, ruleIdentity);
 
         instance.SetProperty("Description", string.IsNullOrWhiteSpace(rule.Description)
             ? null
@@ -20,8 +22,8 @@ internal static class RuleApplier
         instance.SetProperty("OutboundSecurity", (ushort)rule.OutboundSecurity);
         instance.SetProperty("Mode", ValueHelper.ResolveModeValue(rule.Mode));
         instance.SetProperty("MainModeCryptoSet", ValueHelper.ResolveMainModeCryptoSetId(rule.MainModeCryptoSet));
-        instance.SetProperty("Phase1AuthSet", AuthManager.ResolvePhase1AuthSetId(session, rule, ruleIdentity));
-        instance.SetProperty("Phase2AuthSet", AuthManager.ResolvePhase2AuthSetId(session, rule, ruleIdentity));
+        instance.SetProperty("Phase1AuthSet", phase1AuthSetId);
+        instance.SetProperty("Phase2AuthSet", phase2AuthSetId);
         instance.SetProperty("QuickModeCryptoSet", ValueHelper.ResolveQuickModeCryptoSetId(rule.QuickModeCryptoSet));
         instance.SetProperty("KeyModule", ValueHelper.ResolveKeyModuleValue(rule.KeyModule));
         instance.SetProperty("AllowSetKey", rule.AllowSetKey);
@@ -47,6 +49,7 @@ internal static class RuleApplier
         }
 
         session.ModifyInstance(instance);
+        AuthManager.DeleteReplacedManagedAuthSets(session, ruleIdentity, phase1AuthSetId, phase2AuthSetId);
     }
 
     internal static void ApplyAddressFilter(WbemServices session, WbemObject ruleInstance, ConnectionSecurityRuleModel rule)

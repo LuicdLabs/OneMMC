@@ -133,6 +133,29 @@ namespace OneMMC.Localization
         public string SRP_NetworkZone_Internet_Description => GetResource(ResourceFileNames.SecPol, SoftwareRestrictionKeys.NetworkZoneInternetDescription);
         public string SRP_NetworkZone_RestrictedSites => GetResource(ResourceFileNames.SecPol, SoftwareRestrictionKeys.NetworkZoneRestrictedSites);
         public string SRP_NetworkZone_RestrictedSites_Description => GetResource(ResourceFileNames.SecPol, SoftwareRestrictionKeys.NetworkZoneRestrictedSitesDescription);
+        public string SRP_Deprecation_Title => GetResource(ResourceFileNames.SecPol, SoftwareRestrictionKeys.DeprecationWarningTitle);
+        public string SRP_Deprecation_Message => GetResource(ResourceFileNames.SecPol, SoftwareRestrictionKeys.DeprecationWarningMessage);
+        public string SRP_NoPolicyDefined => GetResource(ResourceFileNames.SecPol, SoftwareRestrictionKeys.NoPolicyDefined);
+        public string SRP_NoPolicyDefined_Description => GetResource(ResourceFileNames.SecPol, SoftwareRestrictionKeys.NoPolicyDefinedDescription);
+        public string SRP_DefaultMarker => GetResource(ResourceFileNames.SecPol, SoftwareRestrictionKeys.DefaultMarker);
+        public string SRP_NoAdditionalRules => GetResource(ResourceFileNames.SecPol, SoftwareRestrictionKeys.NoAdditionalRules);
+        public string SRP_Help_SecurityLevels => GetResource(ResourceFileNames.SecPol, SoftwareRestrictionKeys.HelpSecurityLevels);
+        public string SRP_Command_NewRule => GetResource(ResourceFileNames.SecPol, SoftwareRestrictionKeys.CommandNewRule);
+        public string SRP_Rules_PrecedenceHint => GetResource(ResourceFileNames.SecPol, SoftwareRestrictionKeys.RulesPrecedenceHint);
+        public string SRP_Rules_SearchPlaceholder => GetResource(ResourceFileNames.SecPol, SoftwareRestrictionKeys.RulesSearchPlaceholder);
+        public string SRP_ListHeader_Type => GetResource(ResourceFileNames.SecPol, SoftwareRestrictionKeys.ListHeaderType);
+        public string SRP_ListHeader_SecurityLevel => GetResource(ResourceFileNames.SecPol, SoftwareRestrictionKeys.ListHeaderSecurityLevel);
+        public string SRP_ListHeader_Description => GetResource(ResourceFileNames.SecPol, SoftwareRestrictionKeys.ListHeaderDescription);
+        public string SRP_ListHeader_LastModified => GetResource(ResourceFileNames.SecPol, SoftwareRestrictionKeys.ListHeaderLastModified);
+        public string SRP_Enforcement_DefaultSecurityLevel => GetResource(ResourceFileNames.SecPol, SoftwareRestrictionKeys.EnforcementDefaultSecurityLevel);
+        public string SRP_Enforcement_DefaultSecurityLevel_Description => GetResource(ResourceFileNames.SecPol, SoftwareRestrictionKeys.EnforcementDefaultSecurityLevelDescription);
+        public string SRP_Enforcement_FileScope => GetResource(ResourceFileNames.SecPol, SoftwareRestrictionKeys.EnforcementFileScope);
+        public string SRP_Enforcement_FileScope_Description => GetResource(ResourceFileNames.SecPol, SoftwareRestrictionKeys.EnforcementFileScopeDescription);
+        public string SRP_Enforcement_UserScope => GetResource(ResourceFileNames.SecPol, SoftwareRestrictionKeys.EnforcementUserScope);
+        public string SRP_Enforcement_UserScope_Description => GetResource(ResourceFileNames.SecPol, SoftwareRestrictionKeys.EnforcementUserScopeDescription);
+        public string SRP_Enforcement_CertificateRules => GetResource(ResourceFileNames.SecPol, SoftwareRestrictionKeys.EnforcementCertificateRules);
+        public string SRP_Enforcement_CertificateRules_Description => GetResource(ResourceFileNames.SecPol, SoftwareRestrictionKeys.EnforcementCertificateRulesDescription);
+        public string SRP_Dialog_DisallowedDefault_Warning => GetResource(ResourceFileNames.SecPol, SoftwareRestrictionKeys.DialogDisallowedDefaultWarning);
 
         // Public Key Policies
         public string PKP_Node_EncryptingFileSystem => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.NodeEncryptingFileSystem);
@@ -150,6 +173,9 @@ namespace OneMMC.Localization
         public string PKP_Column_Status => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.ColumnStatus);
         public string PKP_Column_CertificateTemplate => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.ColumnCertificateTemplate);
         public string PKP_Column_Setting => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.ColumnSetting);
+        public string PKP_Group_RecoveryAgents => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.GroupRecoveryAgents);
+        public string PKP_Group_CertificateServices => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.GroupCertificateServices);
+        public string PKP_NoRecoveryAgents => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.NoRecoveryAgents);
         public string PKP_Command_Properties => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.CommandProperties);
         public string PKP_Command_ViewCertificate => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.CommandViewCertificate);
         public string PKP_Command_AddRecoveryAgent => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.CommandAddRecoveryAgent);
@@ -161,6 +187,8 @@ namespace OneMMC.Localization
         public string PKP_Dialog_PolicyProperties_TitleFormat => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.DialogPolicyPropertiesTitleFormat);
         public string PKP_Dialog_CertificateDetails_TitleFormat => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.DialogCertificateDetailsTitleFormat);
         public string PKP_CertificateBlobUnavailable => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.CertificateBlobUnavailable);
+        public string PKP_RecoveryAgent_RevocationUnknown_Message => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.RecoveryAgentRevocationUnknownMessage);
+        public string PKP_RecoveryAgent_UntrustedCertificate_Message => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.RecoveryAgentUntrustedCertificateMessage);
         public string PKP_NotConfigured => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.NotConfigured);
         public string PKP_EnrollmentPolicy_ConfigurationModel => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.EnrollmentPolicyConfigurationModel);
         public string PKP_EnrollmentPolicy_TabTitle => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.EnrollmentPolicyTabTitle);
@@ -179,6 +207,8 @@ namespace OneMMC.Localization
         public string PKP_EnrollmentPolicy_ServerEditor_EditTitle => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.EnrollmentPolicyServerEditorEditTitle);
         public string PKP_EnrollmentPolicy_ServerValidation_UrlRequired => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.EnrollmentPolicyServerValidationUrlRequired);
         public string PKP_EnrollmentPolicy_ServerValidation_DuplicateUrl => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.EnrollmentPolicyServerValidationDuplicateUrl);
+        public string PKP_EnrollmentPolicy_AdditionalConfiguration => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.EnrollmentPolicyAdditionalConfiguration);
+        public string PKP_EnrollmentPolicy_DisableUserServers => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.EnrollmentPolicyDisableUserServers);
         public string PKP_EnrollmentPolicy_Auth_Anonymous => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.EnrollmentPolicyAuthAnonymous);
         public string PKP_EnrollmentPolicy_Auth_Kerberos => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.EnrollmentPolicyAuthKerberos);
         public string PKP_EnrollmentPolicy_Auth_UserName => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.EnrollmentPolicyAuthUserName);
@@ -188,6 +218,10 @@ namespace OneMMC.Localization
         public string PKP_AutoEnrollment_ConfigurationModel => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.AutoEnrollmentConfigurationModel);
         public string PKP_AutoEnrollment_RenewExpired => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.AutoEnrollmentRenewExpired);
         public string PKP_AutoEnrollment_UpdateTemplates => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.AutoEnrollmentUpdateTemplates);
+        public string PKP_AutoEnrollment_LogExpiryEvents => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.AutoEnrollmentLogExpiryEvents);
+        public string PKP_AutoEnrollment_ExpirationNotifications => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.AutoEnrollmentExpirationNotifications);
+        public string PKP_AutoEnrollment_PercentSuffix => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.AutoEnrollmentPercentSuffix);
+        public string PKP_AutoEnrollment_AdditionalStores => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.AutoEnrollmentAdditionalStores);
         public string PKP_Efs_Tab_General => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.EfsTabGeneral);
         public string PKP_Efs_Tab_Certificates => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.EfsTabCertificates);
         public string PKP_Efs_Tab_Cache => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.EfsTabCache);
@@ -234,6 +268,7 @@ namespace OneMMC.Localization
         public string PKP_PathValidation_PublisherScope_EndUsers => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.PathValidationPublisherScopeEndUsers);
         public string PKP_PathValidation_PublisherScope_LocalAdministrators => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.PathValidationPublisherScopeLocalAdministrators);
         public string PKP_PathValidation_PublisherScope_EnterpriseAdministrators => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.PathValidationPublisherScopeEnterpriseAdministrators);
+        public string PKP_PathValidation_SignatureChecks => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.PathValidationSignatureChecks);
         public string PKP_PathValidation_TrustedPublisherRevocation => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.PathValidationTrustedPublisherRevocation);
         public string PKP_PathValidation_TrustedTimestampRevocation => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.PathValidationTrustedTimestampRevocation);
         public string PKP_PathValidation_RootAutoUpdate => GetResource(ResourceFileNames.SecPol, PublicKeyPolicyKeys.PathValidationRootAutoUpdate);

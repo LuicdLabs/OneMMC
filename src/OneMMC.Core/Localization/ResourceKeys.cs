@@ -240,7 +240,7 @@ public static class SoftwareRestrictionKeys
     public const string RuleKindNetworkZone = "SRP_RuleKind_NetworkZone";
     public const string RuleKindUnknown = "SRP_RuleKind_Unknown";
     public const string RuleUnsupportedForEdit = "SRP_Error_RuleUnsupportedForEdit";
-    public const string CertificateRuleUnsupportedForCreate = "SRP_Error_CertificateRuleUnsupportedForCreate";
+    public const string CertificateRuleLevelUnsupported = "SRP_Error_CertificateRuleLevelUnsupported";
     public const string CertificateRuleInvalid = "SRP_Error_CertificateRuleInvalid";
     public const string NetworkZoneInvalid = "SRP_Error_NetworkZoneInvalid";
     public const string StatusPolicyCreated = "SRP_Status_PolicyCreated";
@@ -352,6 +352,18 @@ public static class SoftwareRestrictionKeys
     public const string DetailLastModified = "SRP_Detail_LastModified";
     public const string DetailDescription = "SRP_Detail_Description";
     public const string DetailRawData = "SRP_Detail_RawData";
+    public const string DeprecationWarningTitle = "SRP_Deprecation_Title";
+    public const string DeprecationWarningMessage = "SRP_Deprecation_Message";
+    public const string StatusSignInHint = "SRP_Status_SignInHint";
+    public const string HelpSecurityLevels = "SRP_Help_SecurityLevels";
+    public const string EnforcementDefaultSecurityLevelDescription = "SRP_Enforcement_DefaultSecurityLevel_Description";
+    public const string EnforcementUserScopeDescription = "SRP_Enforcement_UserScope_Description";
+    public const string EnforcementFileScopeDescription = "SRP_Enforcement_FileScope_Description";
+    public const string EnforcementCertificateRulesDescription = "SRP_Enforcement_CertificateRules_Description";
+    public const string RulesPrecedenceHint = "SRP_Rules_PrecedenceHint";
+    public const string RulesSearchPlaceholder = "SRP_Rules_SearchPlaceholder";
+    public const string CommandNewRule = "SRP_Command_NewRule";
+    public const string DialogDisallowedDefaultWarning = "SRP_Dialog_DisallowedDefault_Warning";
 }
 
 /// <summary>
@@ -380,6 +392,8 @@ public static class PublicKeyPolicyKeys
     public const string ColumnStatus = "PKP_Column_Status";
     public const string ColumnCertificateTemplate = "PKP_Column_CertificateTemplate";
     public const string ColumnSetting = "PKP_Column_Setting";
+    public const string GroupRecoveryAgents = "PKP_Group_RecoveryAgents";
+    public const string GroupCertificateServices = "PKP_Group_CertificateServices";
     public const string CommandProperties = "PKP_Command_Properties";
     public const string CommandViewCertificate = "PKP_Command_ViewCertificate";
     public const string CommandAddRecoveryAgent = "PKP_Command_AddRecoveryAgent";
@@ -397,6 +411,8 @@ public static class PublicKeyPolicyKeys
     public const string RecoveryAgentCertificateNotSuitableEfs = "PKP_RecoveryAgent_CertificateNotSuitable_Efs";
     public const string RecoveryAgentCertificateNotSuitableDataRecovery = "PKP_RecoveryAgent_CertificateNotSuitable_DataRecovery";
     public const string RecoveryAgentSingleCertificateLimit = "PKP_RecoveryAgent_SingleCertificateLimit";
+    public const string RecoveryAgentRevocationUnknownMessage = "PKP_RecoveryAgent_RevocationUnknown_Message";
+    public const string RecoveryAgentUntrustedCertificateMessage = "PKP_RecoveryAgent_UntrustedCertificate_Message";
     public const string CertificateValid = "PKP_CertificateValid";
     public const string CertificateExpiredOrNotYetValid = "PKP_CertificateExpiredOrNotYetValid";
     public const string IntendedPurposesAll = "PKP_IntendedPurposes_All";
@@ -425,6 +441,8 @@ public static class PublicKeyPolicyKeys
     public const string EnrollmentPolicyServerEditorEditTitle = "PKP_EnrollmentPolicy_ServerEditor_EditTitle";
     public const string EnrollmentPolicyServerValidationUrlRequired = "PKP_EnrollmentPolicy_ServerValidation_UrlRequired";
     public const string EnrollmentPolicyServerValidationDuplicateUrl = "PKP_EnrollmentPolicy_ServerValidation_DuplicateUrl";
+    public const string EnrollmentPolicyAdditionalConfiguration = "PKP_EnrollmentPolicy_AdditionalConfiguration";
+    public const string EnrollmentPolicyDisableUserServers = "PKP_EnrollmentPolicy_DisableUserServers";
     public const string EnrollmentPolicyAuthAnonymous = "PKP_EnrollmentPolicy_Auth_Anonymous";
     public const string EnrollmentPolicyAuthKerberos = "PKP_EnrollmentPolicy_Auth_Kerberos";
     public const string EnrollmentPolicyAuthUserName = "PKP_EnrollmentPolicy_Auth_UserName";
@@ -462,6 +480,7 @@ public static class PublicKeyPolicyKeys
     public const string PathValidationPublisherScopeEndUsers = "PKP_PathValidation_PublisherScope_EndUsers";
     public const string PathValidationPublisherScopeLocalAdministrators = "PKP_PathValidation_PublisherScope_LocalAdministrators";
     public const string PathValidationPublisherScopeEnterpriseAdministrators = "PKP_PathValidation_PublisherScope_EnterpriseAdministrators";
+    public const string PathValidationSignatureChecks = "PKP_PathValidation_SignatureChecks";
     public const string PathValidationTrustedPublisherRevocation = "PKP_PathValidation_TrustedPublisherRevocation";
     public const string PathValidationTrustedTimestampRevocation = "PKP_PathValidation_TrustedTimestampRevocation";
     public const string PathValidationUrlRetrievalTimeout = "PKP_PathValidation_UrlRetrievalTimeout";
@@ -483,7 +502,9 @@ public static class PublicKeyPolicyKeys
     public const string AutoEnrollmentRenewExpired = "PKP_AutoEnrollment_RenewExpired";
     public const string AutoEnrollmentUpdateTemplates = "PKP_AutoEnrollment_UpdateTemplates";
     public const string AutoEnrollmentExpirationNotifications = "PKP_AutoEnrollment_ExpirationNotifications";
-    public const string AutoEnrollmentBalloonNotifications = "PKP_AutoEnrollment_BalloonNotifications";
+    public const string AutoEnrollmentLogExpiryEvents = "PKP_AutoEnrollment_LogExpiryEvents";
+    public const string AutoEnrollmentPercentSuffix = "PKP_AutoEnrollment_PercentSuffix";
+    public const string AutoEnrollmentAdditionalStores = "PKP_AutoEnrollment_AdditionalStores";
     public const string AutoEnrollmentStoreNames = "PKP_AutoEnrollment_StoreNames";
     public const string AutoEnrollmentPolicySource = "PKP_AutoEnrollment_PolicySource";
     public const string AutoEnrollmentRawValueFormat = "PKP_AutoEnrollment_RawValue_Format";
@@ -1007,6 +1028,9 @@ public static class WFKeys
     public const string ValidationCompartmentInvalid = "WF_Validation_CompartmentInvalid";
     public const string ValidationProtocolNumberInvalid = "WF_Validation_ProtocolNumberInvalid";
     public const string ValidationCertificateAuthorityPathRequired = "WF_Validation_CertificateAuthorityPathRequired";
+    public const string ValidationCertificateAuthorityNameInvalid = "WF_Validation_CertificateAuthorityNameInvalid";
+    public const string CertificatePickerTitle = "WF_CertificatePicker_Title";
+    public const string CertificatePickerPrompt = "WF_CertificatePicker_Prompt";
     public const string ValidationCustomAuthenticationRequired = "WF_Validation_CustomAuthenticationRequired";
     public const string ValidationPresharedKeyRequired = "WF_Validation_PresharedKeyRequired";
     public const string ValidationPresharedKeyCannotUseSecondAuthentication = "WF_Validation_PresharedKeyCannotUseSecondAuthentication";

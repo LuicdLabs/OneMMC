@@ -30,9 +30,13 @@ public sealed partial class CertificateAutoEnrollmentPropertiesControl : UserCon
             CertificateAutoEnrollmentPolicyState.Disabled => 2,
             _ => 0
         };
-        StoreManagementCheckBox.IsChecked = settings.EnableMyStoreManagement;
-        TemplateCheckCheckBox.IsChecked = settings.EnableTemplateCheck;
+        StoreManagementToggle.IsOn = settings.EnableMyStoreManagement;
+        TemplateCheckToggle.IsOn = settings.EnableTemplateCheck;
+        ExpirationNotificationsToggle.IsOn = settings.EnableExpirationNotifications;
+        ExpirationPercentNumberBox.Value = settings.ExpirationNotificationPercent;
+        AdditionalStoresTextBox.Text = settings.AdditionalExpirationStores;
         UpdateEnabledOptionsVisibility();
+        UpdateExpirationControlsState();
     }
 
     /// <summary>
@@ -48,8 +52,13 @@ public sealed partial class CertificateAutoEnrollmentPropertiesControl : UserCon
                 2 => CertificateAutoEnrollmentPolicyState.Disabled,
                 _ => CertificateAutoEnrollmentPolicyState.NotConfigured
             },
-            EnableMyStoreManagement = StoreManagementCheckBox.IsChecked == true,
-            EnableTemplateCheck = TemplateCheckCheckBox.IsChecked == true
+            EnableMyStoreManagement = StoreManagementToggle.IsOn,
+            EnableTemplateCheck = TemplateCheckToggle.IsOn,
+            EnableExpirationNotifications = ExpirationNotificationsToggle.IsOn,
+            ExpirationNotificationPercent = double.IsNaN(ExpirationPercentNumberBox.Value)
+                ? 10
+                : (int)Math.Clamp(ExpirationPercentNumberBox.Value, 1, 99),
+            AdditionalExpirationStores = AdditionalStoresTextBox.Text.Trim()
         };
     }
 
@@ -58,10 +67,28 @@ public sealed partial class CertificateAutoEnrollmentPropertiesControl : UserCon
         UpdateEnabledOptionsVisibility();
     }
 
+    private void ExpirationNotificationsToggle_Toggled(object sender, RoutedEventArgs e)
+    {
+        UpdateExpirationControlsState();
+    }
+
     private void UpdateEnabledOptionsVisibility()
     {
         EnabledOptionsPanel.Visibility = ConfigurationModelComboBox.SelectedIndex == 1
             ? Visibility.Visible
             : Visibility.Collapsed;
+    }
+
+    private void UpdateExpirationControlsState()
+    {
+        if (ExpirationPercentNumberBox is null || AdditionalStoresTextBox is null)
+        {
+            return;
+        }
+
+        bool notificationsEnabled = ExpirationNotificationsToggle.IsOn;
+        ExpirationPercentNumberBox.IsEnabled = notificationsEnabled;
+        AdditionalStoresTextBox.IsEnabled = notificationsEnabled;
+        ExpirationExpander.IsExpanded = notificationsEnabled;
     }
 }

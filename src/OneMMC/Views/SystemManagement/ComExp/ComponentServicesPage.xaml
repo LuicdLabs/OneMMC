@@ -63,7 +63,7 @@
                 <controls:SettingsExpander
                     Description="{x:Bind LocalizedStrings.ComExp_ComPlusApplications_Description}"
                     Header="{x:Bind LocalizedStrings.ComExp_ComPlusApplications}"
-                    IsExpanded="True"
+                    IsExpanded="False"
                     ItemsSource="{x:Bind ComPlusApplications, Mode=OneWay}">
                     <controls:SettingsExpander.HeaderIcon>
                         <FontIcon Glyph="&#xE9F5;" />

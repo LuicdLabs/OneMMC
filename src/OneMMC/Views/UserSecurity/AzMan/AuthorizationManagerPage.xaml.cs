@@ -28,6 +28,13 @@ public sealed partial class AuthorizationManagerPage : Page
     public LocalizedStrings LocalizedStrings { get; } = LocalizedStrings.Instance;
 
     /// <summary>
+    /// Owns the view model's lifetime. AuthorizationManagerViewModel is a transient IDisposable, so
+    /// resolving it from the root provider would leave the container holding one instance (and its
+    /// store graph) per visit. See doc/MemoryManagement.md.
+    /// </summary>
+    private readonly PageServiceScope _serviceScope = new();
+
+    /// <summary>
     /// ViewModel instance
     /// </summary>
     private readonly AuthorizationManagerViewModel _viewModel;
@@ -49,7 +56,7 @@ public sealed partial class AuthorizationManagerPage : Page
         App.ThemeChanged += OnThemeChanged;
 
         // Initialize ViewModel
-        _viewModel = App.GetRequiredService<AuthorizationManagerViewModel>();
+        _viewModel = _serviceScope.GetRequiredService<AuthorizationManagerViewModel>();
         _viewModel.PropertyChanged += OnViewModelPropertyChanged;
 
         // Initialize UI state
@@ -62,10 +69,11 @@ public sealed partial class AuthorizationManagerPage : Page
     {
         App.ThemeChanged -= OnThemeChanged;
         _viewModel.PropertyChanged -= OnViewModelPropertyChanged;
-        if (Frame?.CurrentSourcePageType != typeof(AuthorizationStorePage))
-        {
-            _viewModel.Dispose();
-        }
+
+        // Always release: the drill-down page no longer borrows this view model or its service, and
+        // NavigationCacheMode is Disabled, so navigating back rebuilds this page from scratch anyway.
+        // Skipping disposal on drill-in used to leak one view model per Manager -> Store -> Back trip.
+        _serviceScope.Dispose();
     }
 
     #region Event Handlers
@@ -197,7 +205,7 @@ public sealed partial class AuthorizationManagerPage : Page
                 return;
             }
 
-            var navigationParameter = new StoreNavigationParameter(_viewModel.Service, store, _viewModel);
+            var navigationParameter = new StoreNavigationParameter(store);
 
             // Add breadcrumb and navigate
             BreadcrumbNavigationService.AddBreadcrumb(store.Name, typeof(AuthorizationStorePage), navigationParameter);
@@ -278,18 +286,21 @@ public sealed partial class AuthorizationManagerPage : Page
 }
 
 /// <summary>
-/// Store navigation parameter
+/// Store navigation parameter.
 /// </summary>
+/// <remarks>
+/// Deliberately carries only the store descriptor. Navigation parameters are retained by
+/// <see cref="Microsoft.UI.Xaml.Controls.Frame.BackStack"/> and by the breadcrumb trail, so putting a
+/// live service or view model here pinned an open COM store, its STA thread, and the whole manager
+/// object graph for the rest of the session. Pages resolve <c>AzManService</c> (a singleton) from DI
+/// instead. See doc/MemoryManagement.md.
+/// </remarks>
 public class StoreNavigationParameter
 {
-    public Core.Features.UserSecurity.Services.AzMan.AzManService Service { get; }
     public AzAuthorizationStoreInfo Store { get; }
-    public AuthorizationManagerViewModel? ManagerViewModel { get; }
 
-    public StoreNavigationParameter(Core.Features.UserSecurity.Services.AzMan.AzManService service, AzAuthorizationStoreInfo store, AuthorizationManagerViewModel? managerViewModel = null)
+    public StoreNavigationParameter(AzAuthorizationStoreInfo store)
     {
-        Service = service;
         Store = store;
-        ManagerViewModel = managerViewModel;
     }
 }

@@ -10,6 +10,8 @@ namespace OneMMC.Localization
         // Common Button Strings
         public string Common_OKButton => GetResource(ResourceFileNames.Common, "Common_OKButton");
         public string Common_CancelButton => GetResource(ResourceFileNames.Common, "Common_CancelButton");
+        public string Common_YesButton => GetResource(ResourceFileNames.Common, "Common_YesButton");
+        public string Common_NoButton => GetResource(ResourceFileNames.Common, "Common_NoButton");
         public string Common_OpenButton => GetResource(ResourceFileNames.Common, "Common_OpenButton");
         public string Common_CloseButton => GetResource(ResourceFileNames.Common, "Common_CloseButton");
         public string Common_SaveButton => GetResource(ResourceFileNames.Common, "Common_SaveButton");

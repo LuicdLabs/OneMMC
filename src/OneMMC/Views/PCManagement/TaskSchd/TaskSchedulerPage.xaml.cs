@@ -112,14 +112,57 @@ public sealed partial class TaskSchedulerPage : Page
         }
     }
 
+    /// <summary>
+    /// Creates a single folder node without realizing its subtree; <see cref="LibraryTreeView_Expanding"/>
+    /// fills the children on demand. See doc/MemoryManagement.md.
+    /// </summary>
     private static TreeViewNode BuildTreeNode(TaskFolderItem folder)
     {
-        var node = new TreeViewNode { Content = folder, IsExpanded = folder.IsRoot };
-        foreach (var child in folder.Children)
+        var node = new TreeViewNode
         {
-            node.Children.Add(BuildTreeNode(child));
+            Content = folder,
+            HasUnrealizedChildren = folder.Children.Count > 0,
+        };
+
+        if (folder.IsRoot)
+        {
+            // The root starts expanded, so its children have to exist before IsExpanded is set.
+            RealizeChildren(node);
+            node.IsExpanded = true;
         }
+
         return node;
+    }
+
+    private static void RealizeChildren(TreeViewNode treeNode)
+    {
+        if (!treeNode.HasUnrealizedChildren || treeNode.Content is not TaskFolderItem folder)
+        {
+            return;
+        }
+
+        foreach (TaskFolderItem child in folder.Children)
+        {
+            treeNode.Children.Add(BuildTreeNode(child));
+        }
+
+        treeNode.HasUnrealizedChildren = false;
+    }
+
+    private void LibraryTreeView_Expanding(TreeView sender, TreeViewExpandingEventArgs args)
+    {
+        RealizeChildren(args.Node);
+    }
+
+    private void LibraryTreeView_Collapsed(TreeView sender, TreeViewCollapsedEventArgs args)
+    {
+        if (args.Node.Content is not TaskFolderItem folder || folder.Children.Count == 0)
+        {
+            return;
+        }
+
+        args.Node.Children.Clear();
+        args.Node.HasUnrealizedChildren = true;
     }
 
     private async void LibraryTreeView_SelectionChanged(TreeView sender, TreeViewSelectionChangedEventArgs args)
