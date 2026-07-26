@@ -149,12 +149,12 @@ rules, and measurement probes: `doc/MemoryManagement.md`. Key rules:
 
 - Transient `IDisposable` view models must be resolved from a `PageServiceScope` (disposed in `Unloaded`), never from the root provider — the container holds root-resolved disposables until process exit. Never dispose an injected singleton.
 - Navigation parameters carry identifiers, not live services or view models — `Frame.BackStack` and the breadcrumb trail retain them for the session.
-- `Dispose()`/`ClearCachedData()` clear collections, not just handles.
+- `Dispose()` must release owned services (native/COM handles). The collection clearing alongside it — and every `ClearCachedData()` call — frees nothing the next GC would not free anyway once the page is unreachable; it is kept only as insurance against upstream page retention. Don't add new ones expecting a saving.
 - Lists need a height-constrained parent. A `ScrollViewer`/`StackPanel` parent silently disables virtualization. No `ItemsControl` for growing collections; no `StackPanel` as `ItemsPanel`.
 - `SettingsExpander` bound to a collection defaults to `IsExpanded="False"`.
 - `TreeView` fills on `Expanding`, clears on `Collapsed`, via `HasUnrealizedChildren`. XAML-wired handlers must be instance methods (`static` → CS0176).
 - Finalizers must never wait on another thread — a blocked finalizer thread stops all finalization process-wide.
-- Cap anything that grows per navigation (back stack, history stacks, process-wide caches).
+- Cap process-wide caches (`SmbClientNameResolver`). Do **not** cap `Frame.BackStack` or the breadcrumb history stacks — once navigation parameters are identifiers those journals cost KB, and capping them removes back-navigation and (for the breadcrumb stacks) allocated more per navigation than it saved.
 
 ## Known WinUI 3 Pitfalls
 

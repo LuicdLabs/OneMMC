@@ -18,14 +18,12 @@
 		<converters:NullableBoolToBoolConverter x:Key="NullableBoolToBoolConverter" />
         <SolidColorBrush x:Key="NavigationViewContentBackground" Color="Transparent"/>
 		<!--
-			Entrance/reposition transitions are opt-in via these keyed styles rather than implicit
-			(TargetType-only) styles. As implicit styles they applied to *every* StackPanel and *every*
-			ListView in the app - including the panels inside every DataTemplate - so each realized list
-			row carried transition state, and virtualizing lists re-ran the entrance animation on every
-			recycled container. Apply Style="{StaticResource AnimatedStackPanelStyle}" (or
-			AnimatedListViewStyle) only where the animation is actually wanted.
+			Implicit (TargetType-only) styles so every StackPanel and ListView in the app animates without
+			each one opting in. Neither element in this app carries an explicit Style, so these reach all
+			of them. Panels inside a DataTemplate are included by design; if a particular template's rows
+			animate distractingly on scroll, set ChildrenTransitions="{x:Null}" on that template's root.
 		-->
-		<Style x:Key="AnimatedStackPanelStyle" TargetType="StackPanel">
+		<Style TargetType="StackPanel">
 			<Setter Property="ChildrenTransitions">
 				<Setter.Value>
 					<TransitionCollection>
@@ -35,11 +33,22 @@
 				</Setter.Value>
 			</Setter>
 		</Style>
-		<Style x:Key="AnimatedListViewStyle" TargetType="ListView">
+		<Style TargetType="ListView">
 			<Setter Property="ItemContainerTransitions">
 				<Setter.Value>
 					<TransitionCollection>
-						<EntranceThemeTransition FromVerticalOffset="50" />
+						<!--
+							An implicit style outranks the built-in one (BaseValueSourceStyle beats
+							BaseValueSourceBuiltInStyle), so this setter replaces generic.xaml's
+							ItemContainerTransitions outright rather than adding to it. The first four are
+							therefore repeated verbatim from the framework default - dropping them would
+							lose add/delete, content and reorder animation. The vertical offset and the
+							reposition transition are what this app adds on top.
+						-->
+						<AddDeleteThemeTransition />
+						<ContentThemeTransition />
+						<ReorderThemeTransition />
+						<EntranceThemeTransition FromVerticalOffset="50" IsStaggeringEnabled="False" />
 						<RepositionThemeTransition IsStaggeringEnabled="False" />
 					</TransitionCollection>
 				</Setter.Value>

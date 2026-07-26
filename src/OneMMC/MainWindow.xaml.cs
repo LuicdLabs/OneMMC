@@ -55,10 +55,13 @@ namespace OneMMC
         private const int MinimumWindowWidthDips = 700;
         private const int MinimumWindowHeightDips = 325;
 
-        // Frame.BackStack has no built-in bound, and every PageStackEntry holds the parameter it was
-        // navigated with, so an unbounded journal grows for the whole session. Ten entries is well past
-        // any realistic run of back-navigations while keeping the journal's cost constant.
-        private const int MaximumBackStackDepth = 10;
+        // Every PageStackEntry keeps a strong reference to the NavigationTransitionInfo it was navigated
+        // with (PageStackEntry.m_pParameter's sibling TrackerPtr), so a per-navigation instance would be
+        // retained for as long as the journal entry is. The type carries no per-navigation state, so one
+        // shared instance serves every navigation — this is also how it is declared when set in XAML.
+        private static readonly Microsoft.UI.Xaml.Media.Animation.SlideNavigationTransitionInfo SlideFromRight =
+            new() { Effect = Microsoft.UI.Xaml.Media.Animation.SlideNavigationTransitionEffect.FromRight };
+
         private bool _welcomeDialogRequested;
         private OverlappedPresenterState _windowState = OverlappedPresenterState.Restored;
         private int? _windowX;
@@ -75,10 +78,7 @@ namespace OneMMC
         {
             if (contentFrame == null) return;
             _logger.LogDebug("NavigateToPage invoked with index={Index}", index);
-            var transition = new Microsoft.UI.Xaml.Media.Animation.SlideNavigationTransitionInfo
-            {
-                Effect = Microsoft.UI.Xaml.Media.Animation.SlideNavigationTransitionEffect.FromRight
-            };
+            var transition = SlideFromRight;
 
             switch (index)
             {
@@ -526,7 +526,6 @@ namespace OneMMC
 
         private void ContentFrame_Navigated(object sender, NavigationEventArgs e)
         {
-            TrimBackStack();
             LogNavigationMemory(e);
 
             if (NavigationViewControl != null && contentFrame != null)
@@ -567,34 +566,6 @@ namespace OneMMC
                 {
                     _isProgrammaticSelectionChange = false;
                 }
-            }
-        }
-
-        /// <summary>
-        /// Drops the oldest journal entries once the back stack exceeds
-        /// <see cref="MaximumBackStackDepth"/>. <c>BackStack</c> is a plain collection, so trimming it is
-        /// just a removal; without this it grows for the whole session and keeps every navigation
-        /// parameter alive with it.
-        /// </summary>
-        private void TrimBackStack()
-        {
-            if (contentFrame is null)
-            {
-                return;
-            }
-
-            try
-            {
-                while (contentFrame.BackStack.Count > MaximumBackStackDepth)
-                {
-                    contentFrame.BackStack.RemoveAt(0);
-                }
-            }
-            catch (System.Runtime.InteropServices.COMException)
-            {
-                // WinUI rejects journal edits while a navigation is still settling (0x800710DD); the same
-                // guard exists on the Event Viewer detail frame. Trimming is opportunistic — skipping one
-                // pass only means the cap is applied on the next navigation.
             }
         }
 

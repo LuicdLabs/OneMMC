@@ -55,10 +55,9 @@ See `StoreNavigationParameter` / `ApplicationNavigationParameter` / `ScopeNaviga
 A small, self-contained DTO with no service or view-model references (for example `DeviceInfo`) is
 acceptable.
 
-### 3. `Dispose()` must release the graph, not just the handles
+### 3. `Dispose()` releases owned services — clearing collections is insurance, not a GC win
 
-Disposing an owned service is not enough. Clear the collections too, so memory returns at unload instead
-of at some later GC:
+Disposing an owned service is required: it releases native and COM handles the GC does not manage.
 
 ```csharp
 public void Dispose()
@@ -75,7 +74,18 @@ public void Dispose()
 Never dispose a **singleton** you were injected with. `AzManService` and `AdmxBundleProvider` are shared;
 consumers drop their reference and nothing more.
 
-`CertificateStoresViewModelBase.ClearCachedData()` is the reference shape for non-disposable view models.
+**The collection clearing is not what frees the memory.** Once a page is unloaded it is unreachable, so its
+view model and every collection hanging off it are unreachable too, and the GC frees the whole graph in one
+pass whether or not the collections were emptied first. `Microsoft.Extensions.DependencyInjection` only
+tracks `IDisposable` services, so a non-disposable transient view model — which is what every
+`ClearCachedData()` caller has — is not retained by the container either. That is the same fact rule 1
+depends on.
+
+The eleven `ClearCachedData()` calls in `Unloaded` handlers are kept for a different, honest reason: they
+bound the damage if a page *is* retained, which the known upstream `ComWrappers` issue at the end of this
+document can cause. `CertificateStoresViewModelBase.ClearCachedData()` is the reference shape. Do not add
+new ones expecting a measurable saving, and do not repeat the old claim that they make "memory return at
+unload instead of at some later GC" — that was wrong.
 
 ### 4. Lists must live in a height-constrained container
 
@@ -129,11 +139,108 @@ relies on a finalizer leaks permanently. `AzManService.Dispose(bool)` therefore 
 release only on the `disposing` path. Related: a `TaskScheduler` must never silently drop a queued task —
 the caller's `await` would never complete (see `StaTaskScheduler.QueueTask`).
 
-### 8. Bound anything that grows per navigation
+### 8. Cap process-wide caches — but not the navigation journals
 
-`Frame.BackStack` (`MainWindow.MaximumBackStackDepth`), the breadcrumb history stacks
-(`BreadcrumbNavigationService.MaximumHistoryDepth`), and any process-wide cache
-(`SmbClientNameResolver.MaximumCacheEntries`) all need an explicit cap. None of them have one by default.
+A cache keyed by something the user can keep producing needs an explicit bound.
+`SmbClientNameResolver.MaximumCacheEntries` is the example: entries are cheap to recompute, and on a busy
+file server the key space keeps changing, so expired entries used to accumulate for the process lifetime.
+
+The navigation journals do **not** need one. `Frame.BackStack` and the breadcrumb history stacks were
+capped at ten entries in the original fix; both caps have since been removed:
+
+- Once rule 2 is followed, a `PageStackEntry` holds a type name, a small identifier and a shared
+  `NavigationTransitionInfo` — a few hundred bytes. A hundred navigations is tens of KB, and the cap paid
+  for that by losing every back-navigation past the tenth.
+- The breadcrumb caps were worse than pointless. `_backStackSourceType` is a `Stack<bool>`, one byte per
+  entry, and the trim rebuilt the whole stack (`new Stack<T>(stack.Take(10).Reverse())`) on *every*
+  navigation once over the cap — allocating an enumerator, a buffer and a new stack per navigation to save
+  a byte.
+- The two depth constants lived in different files and had to stay equal, or `_backStackSourceType` would
+  drift out of sync with `Frame.BackStack` and back-navigation would take the wrong restore branch.
+
+`MainWindow` now shares one `SlideNavigationTransitionInfo` across navigations. That removes the only
+per-entry allocation worth removing — `PageStackEntry` holds the transition info in a `TrackerPtr`, exactly
+as it holds the parameter — and costs nothing.
+
+### Note: not every change in the original fix reduced memory
+
+`DeviceManagerViewModel._allCategories` was added in the same commit and deliberately keeps a second, full
+copy of the device list. It is a correctness fix — filtering used to narrow `DeviceCategories` in place, so
+deleting characters from the search box could not bring previously excluded devices back — and the extra
+copy is the price. Do not "optimise" it away.
+
+## Why Task Manager still shows 100 MB+
+
+Task Manager's **Memory** column on the Processes tab is the process's *active private working set*. A UWP
+app such as Settings appears to shrink on its own for two reasons, neither of which is the app releasing
+memory:
+
+1. Process Lifetime Management **suspends** it a few seconds after it leaves the foreground, and the memory
+   manager trims a suspended process's working set — the pages move to the **standby list**, which counts
+   as available memory rather than in-use memory.
+2. Task Manager then *excludes* the suspended portion from the Memory column, so the number falls further
+   than the trim alone accounts for.
+
+A WinUI 3 app is an ordinary Win32 desktop process. **PLM does not apply to it**: minimizing does not
+suspend it, so nothing ever trims it, and its working set stays at the session high-water mark until the
+whole machine comes under memory pressure. That is a platform difference, not a leak — and it is why the
+navigation probe tells you to read `private` rather than `workingSet`.
+
+The other half of the answer is that most of the residual number is not the app's to give back. At the end
+of a 25-navigation session the settled managed heap is ~1.6 MB against ~114 MB private: the rest is native
+— the XAML framework, the composition/DirectX device, COM and WMI proxies, fonts, and the AOT image
+itself. An empty WinUI 3 window starts around 60–80 MB. Managed-side work cannot move that number much.
+
+### The app already does what the official guidance asks
+
+[Manage memory usage in Windows App SDK desktop apps](https://learn.microsoft.com/windows/apps/develop/launch/reduce-memory-usage)
+is the on-point guidance for this exact situation. It says to hook `Window.Activated` / `AppWindow.Changed`
+and, when the window is hidden, release **cached images and bitmaps, render-target resources, view-model
+data, and the navigation cache** — things you can reload. OneMMC already releases all of that, and does it
+*earlier*, on every navigation rather than on hide:
+
+- `contentFrame` is declared `CacheSize="0"` (`MainWindow.xaml`), and no page opts into `NavigationCacheMode`.
+- `PageServiceScope` disposes the page's view model and its graph in `Unloaded` (rule 1).
+- The journal, breadcrumb stacks and process-wide caches are all capped (rule 8).
+
+That is why the settled heap sits at ~1.5 MB. There is no meaningful app-level allocation left to release
+when the window is hidden, so the hide-time hook the guidance describes would have nothing to do.
+
+### Rejected: trimming the working set when idle (2026-07-26)
+
+Calling `EmptyWorkingSet` (or the equivalent `SetProcessWorkingSetSizeEx(h, -1, -1)`) on a delay after the
+window is minimized or deactivated **works**, and was measured working — but it was implemented, measured,
+and then reverted. Do not re-introduce it without new evidence.
+
+Measured, x64 Debug, launch → minimize → 5 s trim → restore:
+
+| | Running | Minimized + trimmed | Restored, 5 s later |
+|---|---|---|---|
+| Working set | 163.4 MB | **17.4 MB** | 43.5 MB |
+
+Responsive again 78 ms after the restore request. Private bytes barely moved (60.0 → 59.1 MB in one run;
+a second run saw 63.5 → 44.2 MB when the aggressive GC happened to return retained heap).
+
+Why it was reverted anyway:
+
+- **It shrinks the number, not the memory.** The pages move to the standby list; the RAM is still resident
+  and Windows would have reclaimed it on its own the moment anything actually needed it. The user gains no
+  available memory — only a smaller figure in Task Manager.
+- **`EmptyWorkingSet` is not a memory-management API.** MS Learn's
+  [Working Set Information](https://learn.microsoft.com/windows/win32/psapi/working-set-information) says
+  it "is useful primarily for testing and tuning", and the Windows App SDK memory guidance never mentions it.
+- **The forced GC contradicts the documented sample.** That sample uses
+  `GC.Collect(2, GCCollectionMode.Optimized, blocking: false)` and comments "Only call this in response to
+  system memory pressure, **not on every hide**". The reverted code used
+  `GCCollectionMode.Aggressive, blocking: true, compacting: true` on every hide.
+- **The delays were two orders of magnitude too short.**
+  [Improve app performance](https://learn.microsoft.com/windows/apps/develop/performance/disk-memory) puts
+  the inactivity threshold for releasing resources at "a handful of minutes to a ½ hour or more"; the
+  reverted code used 5 s and 30 s.
+
+The one candidate that *would* fit the guidance is the singleton ADMX bundle behind `AdmxBundleProvider`
+(GpEdit): it is reloadable, potentially tens of MB, and already has a clear path. Measure what it actually
+holds before deciding — and use a minute-scale delay, not a second-scale one.
 
 ## Measuring
 

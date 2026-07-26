@@ -53,22 +53,12 @@ public sealed partial class EventViewerPage : Page
 
     private void EventViewerPage_Unloaded(object sender, RoutedEventArgs e)
     {
-        // Defer BackStack/ForwardStack clearing — the Unloaded event may fire
-        // while a parent Frame navigation is still in progress, and WinUI 3
-        // throws COMException 0x800710DD if the stacks are modified at that point.
-        DispatcherQueue.TryEnqueue(() =>
-        {
-            try
-            {
-                DetailContentFrame.BackStack.Clear();
-                DetailContentFrame.ForwardStack.Clear();
-            }
-            catch (System.Runtime.InteropServices.COMException)
-            {
-                // Still navigating — safe to ignore; the frame is being discarded.
-            }
-        });
-
+        // The detail frame's journal is deliberately not cleared here. ShowDetail sets
+        // IsNavigationStackEnabled = false before its first Navigate, so the stacks never hold anything,
+        // and the frame is discarded with this page in any case. The clear that used to run here was
+        // therefore dead work that also threw: NavigationHistory::ValidateCanChangePageStack rejects any
+        // journal edit while that frame has a navigation pending (E_INVALID_OPERATION / 0x800710DD),
+        // which is exactly the state a detail navigation leaves behind when the user switches pages.
         DetailContentFrame.Content = null;
         EventLogTreeView.RootNodes.Clear();
         EventsListView.ItemsSource = null;
