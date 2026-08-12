@@ -89,6 +89,7 @@
                 AutomationProperties.Name="{x:Bind LocalizedStrings.IPSec_Editor_AuthenticationMethods}"
                 ItemsSource="{x:Bind AuthenticationItems}"
                 MinHeight="150"
+                MaxHeight="300"
                 SelectionChanged="AuthenticationListView_SelectionChanged"
                 SelectionMode="Single">
                 <ListView.ItemTemplate>

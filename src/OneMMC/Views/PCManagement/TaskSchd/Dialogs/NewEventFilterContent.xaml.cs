@@ -60,10 +60,13 @@ public sealed partial class NewEventFilterContent : UserControl
     ];
 
     private readonly Dictionary<TreeViewNode, string> _logChannelByNode = [];
+    private readonly Dictionary<TreeViewNode, DeferredLogGroup> _deferredLogGroupsByNode = [];
+    private readonly HashSet<string> _selectedLogChannels = new(StringComparer.OrdinalIgnoreCase);
     private readonly ObservableCollection<CheckableItem> _sources = [];
     private readonly ObservableCollection<CheckableItem> _keywords = [];
 
     private bool _initialized;
+    private bool _suppressLogTreeSelection;
 
     // Guards the "<All …>" sentinel coupling so the programmatic check/uncheck cascade does not re-enter
     // the per-item PropertyChanged handlers.
@@ -75,6 +78,15 @@ public sealed partial class NewEventFilterContent : UserControl
     private ComboBoxItem? _customResultItem;
     private object? _lastLoggedSelection;
     private bool _suppressLoggedChange;
+
+    private sealed class DeferredLogGroup(
+        IReadOnlyList<string> channels,
+        IReadOnlyList<string>? microsoftChannels = null)
+    {
+        public IReadOnlyList<string> Channels { get; } = channels;
+
+        public IReadOnlyList<string>? MicrosoftChannels { get; } = microsoftChannels;
+    }
 
     public NewEventFilterContent() : this(null)
     {
@@ -385,8 +397,8 @@ public sealed partial class NewEventFilterContent : UserControl
             }
         }
 
-        var appsNode = new TreeViewNode { Content = "Applications and Services Logs" };
-        var microsoftNode = new TreeViewNode { Content = "Microsoft" };
+        var appsChannels = new List<string>();
+        var microsoftChannels = new List<string>();
 
         foreach (var channel in names)
         {
@@ -401,16 +413,24 @@ public sealed partial class NewEventFilterContent : UserControl
                 continue;
             }
 
-            // Microsoft channels (the long Microsoft-Windows-* set) nest under a single "Microsoft" group
-            // so the top level stays readable; everything else sits directly under the group.
-            var parent = channel.StartsWith("Microsoft-", StringComparison.OrdinalIgnoreCase) ? microsoftNode : appsNode;
-            AddLogLeaf(parent, channel);
+            // Microsoft channels are by far the largest branch. Keep their identifiers only and create
+            // TreeViewNode objects when the user expands that branch.
+            if (channel.StartsWith("Microsoft-", StringComparison.OrdinalIgnoreCase))
+            {
+                microsoftChannels.Add(channel);
+            }
+            else
+            {
+                appsChannels.Add(channel);
+            }
         }
 
-        if (microsoftNode.Children.Count > 0)
+        var appsNode = new TreeViewNode
         {
-            appsNode.Children.Insert(0, microsoftNode);
-        }
+            Content = "Applications and Services Logs",
+            HasUnrealizedChildren = appsChannels.Count > 0 || microsoftChannels.Count > 0,
+        };
+        _deferredLogGroupsByNode[appsNode] = new DeferredLogGroup(appsChannels, microsoftChannels);
 
         EventLogsTree.RootNodes.Add(windowsNode);
         EventLogsTree.RootNodes.Add(appsNode);
@@ -423,17 +443,159 @@ public sealed partial class NewEventFilterContent : UserControl
         parent.Children.Add(leaf);
     }
 
+    private void EventLogsTree_Expanding(TreeView sender, TreeViewExpandingEventArgs args)
+    {
+        if (!args.Node.HasUnrealizedChildren ||
+            !_deferredLogGroupsByNode.TryGetValue(args.Node, out DeferredLogGroup? group))
+        {
+            return;
+        }
+
+        bool selectAll = sender.SelectedNodes.Contains(args.Node);
+        _suppressLogTreeSelection = true;
+        try
+        {
+            if (group.MicrosoftChannels is { Count: > 0 } microsoftChannels)
+            {
+                var microsoftNode = new TreeViewNode
+                {
+                    Content = "Microsoft",
+                    HasUnrealizedChildren = true,
+                };
+                _deferredLogGroupsByNode[microsoftNode] = new DeferredLogGroup(microsoftChannels);
+                args.Node.Children.Add(microsoftNode);
+
+                if (selectAll || _selectedLogChannels.IsSupersetOf(microsoftChannels))
+                {
+                    sender.SelectedNodes.Add(microsoftNode);
+                }
+            }
+
+            foreach (string channel in group.Channels)
+            {
+                AddLogLeaf(args.Node, channel);
+                TreeViewNode leaf = args.Node.Children[^1];
+                if (selectAll || _selectedLogChannels.Contains(channel))
+                {
+                    sender.SelectedNodes.Add(leaf);
+                }
+            }
+
+            args.Node.HasUnrealizedChildren = false;
+        }
+        finally
+        {
+            _suppressLogTreeSelection = false;
+        }
+    }
+
+    private void EventLogsTree_Collapsed(TreeView sender, TreeViewCollapsedEventArgs args)
+    {
+        if (!_deferredLogGroupsByNode.ContainsKey(args.Node))
+        {
+            return;
+        }
+
+        _suppressLogTreeSelection = true;
+        try
+        {
+            foreach (TreeViewNode child in args.Node.Children)
+            {
+                RemoveRealizedLogNode(child);
+            }
+
+            args.Node.Children.Clear();
+            args.Node.HasUnrealizedChildren = true;
+        }
+        finally
+        {
+            _suppressLogTreeSelection = false;
+        }
+    }
+
+    private void RemoveRealizedLogNode(TreeViewNode node)
+    {
+        foreach (TreeViewNode child in node.Children)
+        {
+            RemoveRealizedLogNode(child);
+        }
+
+        _logChannelByNode.Remove(node);
+        _deferredLogGroupsByNode.Remove(node);
+    }
+
+    private void EventLogsTree_SelectionChanged(TreeView sender, TreeViewSelectionChangedEventArgs args)
+    {
+        if (_suppressLogTreeSelection)
+        {
+            return;
+        }
+
+        foreach (object item in args.RemovedItems)
+        {
+            if (item is TreeViewNode node && _logChannelByNode.TryGetValue(node, out string? channel))
+            {
+                _selectedLogChannels.Remove(channel);
+            }
+            else if (item is TreeViewNode group &&
+                     group.HasUnrealizedChildren &&
+                     _deferredLogGroupsByNode.TryGetValue(group, out DeferredLogGroup? logGroup))
+            {
+                SetLogGroupSelection(logGroup, isSelected: false);
+            }
+        }
+
+        foreach (object item in args.AddedItems)
+        {
+            if (item is TreeViewNode node && _logChannelByNode.TryGetValue(node, out string? channel))
+            {
+                _selectedLogChannels.Add(channel);
+            }
+            else if (item is TreeViewNode group &&
+                     group.HasUnrealizedChildren &&
+                     _deferredLogGroupsByNode.TryGetValue(group, out DeferredLogGroup? logGroup))
+            {
+                SetLogGroupSelection(logGroup, isSelected: true);
+            }
+        }
+
+        if (_initialized)
+        {
+            OnLogsChanged();
+        }
+    }
+
+    private void SetLogGroupSelection(DeferredLogGroup group, bool isSelected)
+    {
+        if (isSelected)
+        {
+            _selectedLogChannels.UnionWith(group.Channels);
+            if (group.MicrosoftChannels is not null)
+            {
+                _selectedLogChannels.UnionWith(group.MicrosoftChannels);
+            }
+        }
+        else
+        {
+            _selectedLogChannels.ExceptWith(group.Channels);
+            if (group.MicrosoftChannels is not null)
+            {
+                _selectedLogChannels.ExceptWith(group.MicrosoftChannels);
+            }
+        }
+    }
+
     private List<string> SelectedLogChannels()
     {
-        var result = new List<string>();
-        foreach (var node in EventLogsTree.SelectedNodes)
+        foreach (TreeViewNode node in EventLogsTree.SelectedNodes)
         {
             if (_logChannelByNode.TryGetValue(node, out var channel))
             {
-                result.Add(channel);
+                _selectedLogChannels.Add(channel);
             }
         }
-        return result;
+
+        return _selectedLogChannels.OrderBy(channel => channel, StringComparer.OrdinalIgnoreCase).ToList();
     }
 
     private void UpdateEventLogsSummary()
@@ -734,6 +896,7 @@ public sealed partial class NewEventFilterContent : UserControl
         SelectLogged(0);
 
         ByLogRadio.IsChecked = true;
+        _selectedLogChannels.Clear();
         EventLogsTree.SelectedNodes.Clear();
 
         // Reset both pickers to the empty state (nothing checked, blank summary) without running the

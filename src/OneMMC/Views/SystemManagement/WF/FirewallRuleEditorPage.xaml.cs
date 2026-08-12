@@ -90,7 +90,7 @@ public sealed partial class FirewallRuleEditorPage : Page
         _userInitiatedRuleToggles.Clear();
         Unloaded -= OnUnloaded;
 
-        // Release the loaded rule set rather than holding it until the page is collected.
+        // Retention insurance in case the page is held by the known upstream WinUI binding issue.
         ViewModel.ClearCachedData();
     }
 

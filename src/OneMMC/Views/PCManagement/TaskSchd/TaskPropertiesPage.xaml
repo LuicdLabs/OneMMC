@@ -217,7 +217,7 @@
 
 				<cwuc:SettingsExpander
 					Header="{x:Bind LocalizedStrings.TaskSchd_Tab_Triggers}"
-					IsExpanded="True"
+					IsExpanded="False"
 					ItemsSource="{x:Bind TaskTriggers}">
 					<cwuc:SettingsExpander.HeaderIcon>
 						<FontIcon Glyph="&#xE823;" />
@@ -267,7 +267,7 @@
 
 				<cwuc:SettingsExpander
 					Header="{x:Bind LocalizedStrings.TaskSchd_Tab_Actions}"
-					IsExpanded="True"
+					IsExpanded="False"
 					ItemsSource="{x:Bind Actions}">
 					<cwuc:SettingsExpander.HeaderIcon>
 						<FontIcon Glyph="&#xE768;" />

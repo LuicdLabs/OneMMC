@@ -707,7 +707,7 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.PerfMon
             if (_disposed) return;
             _updateTimer.Stop();
             _updateTimer.Dispose();
-            _performanceService.DisposeAllCounters();
+            _performanceService.Dispose();
             Counters.CollectionChanged -= OnCountersCollectionChanged;
             Counters.Clear();
             Categories.Clear();

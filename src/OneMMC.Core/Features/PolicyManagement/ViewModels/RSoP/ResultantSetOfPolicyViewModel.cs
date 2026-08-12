@@ -303,8 +303,8 @@ namespace OneMMC.Core.Features.PolicyManagement.ViewModels.RSoP
 
             _rsopService.Dispose();
 
-            // Release the policy graph explicitly so it goes away with the page rather than waiting for
-            // the whole view model to become unreachable.
+            // Retention insurance for the known WinUI binding issue: if the page is retained upstream,
+            // do not let that retained page keep the full policy graph alive too.
             RootNodes.Clear();
             CurrentPolicies.Clear();
             _allPoliciesForCurrentNode.Clear();

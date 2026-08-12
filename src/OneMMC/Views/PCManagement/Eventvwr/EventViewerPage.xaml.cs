@@ -175,7 +175,11 @@ public sealed partial class EventViewerPage : Page
 
     private void NavigateDetailFrame(bool useSlide, SlideNavigationTransitionEffect slideEffect = SlideNavigationTransitionEffect.FromRight)
     {
-        if (ViewModel.SelectedEvent is null) return;
+        if (ViewModel.SelectedEvent is null)
+        {
+            DetailContentFrame.Content = null;
+            return;
+        }
 
         bool isXmlTab = DetailsSelectorBar.SelectedItem == DetailsSelectorBar.Items[1];
         NavigationTransitionInfo transition = useSlide

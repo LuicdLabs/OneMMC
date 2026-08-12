@@ -460,8 +460,8 @@ namespace OneMMC.Core.Features.PolicyManagement.ViewModels.GpEdit
             _computerPolicyService = null;
             _userPolicyService = null;
 
-            // Release the policy tree explicitly rather than waiting for the whole view model to become
-            // unreachable: these collections hold the full category graph.
+            // Retention insurance for the known WinUI binding issue: if the page is retained upstream,
+            // do not let that retained page keep the full category graph alive too.
             RootNodes.Clear();
             CurrentPolicies.Clear();
             SelectedNode = null;

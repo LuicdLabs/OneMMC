@@ -29,6 +29,7 @@
             MaxHeight="260">
             <ListView
                 x:Name="CapabilitiesListView"
+                MaxHeight="320"
                 ScrollViewer.VerticalScrollBarVisibility="Auto"
                 ScrollViewer.VerticalScrollMode="Enabled"
                 SelectionMode="Multiple" />

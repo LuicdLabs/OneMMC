@@ -78,6 +78,7 @@
                                 Visibility="{x:Bind _viewModel.IsGpoLoading, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}" />
                             <ListView
                                 x:Name="GpoListView"
+                                MaxHeight="320"
                                 IsItemClickEnabled="True"
                                 ItemClick="GpoListView_ItemClick"
                                 ItemsSource="{x:Bind _viewModel.AvailableGpos}">
