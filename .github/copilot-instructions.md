@@ -86,17 +86,20 @@ diagnosis, rules, and measurement probes are in `doc/MemoryManagement.md`; the b
 - **Navigation parameters carry identifiers, not objects**: `Frame.BackStack` and the breadcrumb trail
   retain them for the session. Pass a path/name/id and resolve services from DI. Small self-contained DTOs
   are fine; live services and view models are not.
-- **`Dispose()` clears collections**, not just handles, so memory returns at unload.
-- **Lists need a height-constrained container**: a `ScrollViewer`/`StackPanel` parent gives unbounded
-  height and silently disables virtualization. Never use `ItemsControl` for a growing collection; never
-  override `ItemsPanel` with a plain `StackPanel`. Use `ItemsRepeater` + `StackLayout` inside a
-  `ScrollViewer`, or a `ListView` in a `*`-sized `Grid` row.
-- **`SettingsExpander` bound to a collection defaults to `IsExpanded="False"`.**
+- **`Dispose()` releases owned services and native/COM handles.** Collection clearing is retention
+  insurance only; it does not make an otherwise unreachable graph collect sooner.
+- **Use the scrolling host expected by the control**: do not wrap `ListView`/`GridView` in an outer
+  `ScrollViewer`; put them in a height-constrained row. `ItemsRepeater` has no built-in scrolling, so an
+  `ItemsRepeater` with a virtualizing layout inside a `ScrollViewer` is the expected pattern. Never use
+  `ItemsControl` or a plain `StackPanel` for a growing collection.
+- **`SettingsExpander` bound to a collection defaults to `IsExpanded="False"` for initial layout and
+  responsiveness.** Do not assume collapse releases its template objects or backing data.
 - **`TreeView` fills on `Expanding` and clears on `Collapsed`** using `HasUnrealizedChildren`. XAML-wired
   handlers must be instance methods (`static` fails with CS0176).
 - **Finalizers must never wait on another thread** — a blocked finalizer thread stops all finalization
   process-wide. Do STA/COM marshalling only on the `disposing` path.
-- **Cap anything that grows per navigation** (back stack, history stacks, process-wide caches).
+- **Cap process-wide caches with an unbounded key space, not navigation journals.** Keep navigation
+  parameters lightweight; do not cap `Frame.BackStack` or breadcrumb history.
 
 ## Administrator Permission Handling
 - **Unified System**: Always use the unified administrator detection system documented in `doc/AdminDetectionSystem.md`.
