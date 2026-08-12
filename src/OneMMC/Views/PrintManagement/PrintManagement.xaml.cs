@@ -563,19 +563,23 @@ public sealed partial class PrintManagement : Page
 
     private string? BuildPrinterConnectionPath(PrinterInfo printer)
     {
+        // Network printer - use server name
         if (!string.IsNullOrWhiteSpace(printer.ServerName))
         {
             string serverName = printer.ServerName.TrimStart('\\');
-            string printerShare = string.IsNullOrWhiteSpace(printer.ShareName) ? printer.Name : printer.ShareName;
+            string printerShare = string.IsNullOrWhiteSpace(printer.ShareName)
+                ? printer.Name
+                : printer.ShareName;
             return $@"\\{serverName}\{printerShare}";
         }
 
-        if (printer.IsShared && !string.IsNullOrWhiteSpace(printer.ShareName))
-        {
-            return $@"\\{ViewModel.ComputerName}\{printer.ShareName}";
-        }
-
-        return null;
+        // Local printer (shared or not) - use local computer name
+        // Windows allows GPO deployment of local printers even if not explicitly shared
+        // For shared printers, prefer the share name; otherwise use printer name
+        string shareName = printer.IsShared && !string.IsNullOrWhiteSpace(printer.ShareName)
+            ? printer.ShareName
+            : printer.Name;
+        return $@"\\{ViewModel.ComputerName}\{shareName}";
     }
 
     private static T? GetContextFromFlyout<T>(MenuFlyout flyout) where T : class
