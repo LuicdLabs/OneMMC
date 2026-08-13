@@ -1,4 +1,6 @@
-# Resource Lifetime and Large Collections
+# Memory Management
+
+## Resource Lifetime and Large Collections
 
 This document contains only production rules backed by concrete ownership or scalability behavior. It does
 not prescribe forced garbage collection, working-set trimming, navigation-time memory logging, weak-reference

@@ -19,8 +19,7 @@ OneMMC uses a **Unified Administrator Detection System** to ensure that all feat
 │  │  │ ShowAdminRequired      │ │    │  Info-only dialog (OK only)
 │  │  │ DialogAsync()          │ │    │
 │  │  ├────────────────────────┤ │    │
-│  │  │ ShowAdminRequired      │ │    │  Dialog with "Restart as Admin"
-│  │  │ WithRestartDialogAsync │ │    │  button
+│  │  │ RunasAdmin()           │ │    │  Restarts elevated; returns bool
 │  │  ├────────────────────────┤ │    │
 │  │  │ ConfigureAdminInfoBar  │ │    │  Persistent InfoBar warning
 │  │  └────────────────────────┘ │    │
@@ -62,14 +61,14 @@ OneMMC uses a **Unified Administrator Detection System** to ensure that all feat
 
 ### `IAdminService` / `AdminService`
 
-**Location:** `OneMMC.Core/Services/IAdminService.cs`, `AdminService.cs`  
+**Location:** `OneMMC.Core/Abstractions/Services/IAdminService.cs`, `OneMMC.Core/Infrastructure/Admin/AdminService.cs`  
 **Lifecycle:** Singleton (because administrator status does not change within the same process)
 
 | Member | Description |
 |---|---|
-| `IsRunningAsAdmin` | `Lazy<bool>` — Checks `WindowsPrincipal.IsInRole(WindowsBuiltInRole.Administrator)` once and caches the result |
+| `IsRunningAsAdmin` | `bool` — Checks `WindowsPrincipal.IsInRole(WindowsBuiltInRole.Administrator)` once and caches the result |
 | `IsPermissionError(Exception ex)` | Checks exception types (`UnauthorizedAccessException`, `Win32Exception` error code 5) and error message patterns ("Access denied", "Insufficient priv", etc.), recursively analyzing InnerException |
-| `RestartAsAdmin()` | Starts a new process with `Verb = "runas"` and triggers `RestartRequested` event to close the current process |
+| `RestartAsAdmin()` | Starts a new process with `Verb = "runas"`, then raises the `RestartRequested` (`Action?`) event so the UI can exit the current process |
 
 ---
 
@@ -81,7 +80,7 @@ OneMMC uses a **Unified Administrator Detection System** to ensure that all feat
 | Method | Purpose |
 |---|---|
 | `ShowAdminRequiredDialogAsync(XamlRoot)` | **Info-only** dialog (OK only). Used when operation cannot continue |
-| `RunasAdminAsync()` | Called when user clicks **"Restart as Administrator"** primary button — calls `IAdminService.RestartAsAdmin()` |
+| `RunasAdmin()` | Restarts the application elevated by calling `IAdminService.RestartAsAdmin()`. Synchronous; returns `bool` (`true` if the restart was initiated) |
 | `ConfigureAdminInfoBar(InfoBar, string?)` | Configures `InfoBar` with standard "Administrator Required" warning style |
 
 All methods use `Common_AdminRequired_*` localization string keys.
@@ -90,7 +89,7 @@ All methods use `Common_AdminRequired_*` localization string keys.
 
 ### `OperationResult.IsAccessDenied`
 
-**Location:** `OneMMC.Core/Services/DiskMgmt/Common/OperationResult.cs`  
+**Location:** `OneMMC.Core/Features/PCManagement/Services/DiskMgmt/Common/OperationResult.cs`  
 **Purpose:** Disk management operations return `OperationResult`; when permissions are insufficient, `IsAccessDenied = true` is set. The UI layer checks this flag and displays `AdminDialogHelper`.
 
 | Factory | Description |
@@ -384,8 +383,8 @@ If needed, add feature-specific strings; otherwise, you can directly use `Common
 | File | Layer | Purpose |
 |------------------------------------------- | ---- | --------------------- |
 | `Helpers/AdminDialogHelper.cs` | UI | Unified dialog / InfoBar |
-| `Core/Services/IAdminService.cs` | Core | Admin privilege interface |
-| `Core/Services/AdminService.cs` | Core | Singleton implementation |
+| `Core/Abstractions/Services/IAdminService.cs` | Core | Admin privilege interface |
+| `Core/Infrastructure/Admin/AdminService.cs` | Core | Singleton implementation |
 | `Core/Localization/ResourceKeys.cs` | Core | All localization key constants |
 | `Core/Localization/LocalizationProvider.cs` | Core | `Current.GetString()` |
 | `Strings/en-US/Common.resw` | UI | English admin strings |

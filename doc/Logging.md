@@ -17,12 +17,13 @@ Logging is bootstrapped in `src/OneMMC/Services/Logging/LoggingBootstrapper.cs`.
 
 Startup flow:
 
-1. Create the Serilog pipeline.
-2. Add `Microsoft.Extensions.Logging` to the service collection.
-3. Register Core services through `AddOneMMCCore(...)`.
-4. Register UI services and view models.
-5. Build the service provider.
-6. Enable the Trace bridge for legacy trace listeners.
+1. Create the Serilog pipeline (file sink + `DebugOutputSink`).
+2. Add `Microsoft.Extensions.Logging` to the service collection via `AddSerilog(...)`, with the
+   minimum level chosen from `AppSettings.VerboseLogging`.
+3. Register application services through `AddOneMMCApplicationServices()` (UI), which chains to
+   `AddOneMMCCore()` (Core) and each feature module.
+4. Build the service provider (`ValidateScopes`/`ValidateOnBuild` in Debug only).
+5. Enable the Trace → Serilog bridge, but only when a debugger is attached.
 
 ## Dependency Injection
 
