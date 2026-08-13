@@ -76,8 +76,7 @@
 
 ## Memory Management
 
-Memory used to grow with the number of pages visited rather than with the data on screen. The full
-diagnosis, rules, and measurement probes are in `doc/MemoryManagement.md`; the binding rules are:
+Resource-lifetime and large-collection rules are documented in `doc/MemoryManagement.md`:
 
 - **Resolve transient graphs containing disposables from a page scope**: the DI container tracks every
   container-created disposable in the resolving scope even when the requested outer service is not
@@ -88,8 +87,8 @@ diagnosis, rules, and measurement probes are in `doc/MemoryManagement.md`; the b
 - **Navigation parameters carry identifiers, not objects**: `Frame.BackStack` and the breadcrumb trail
   retain them for the session. Pass a path/name/id and resolve services from DI. Small self-contained DTOs
   are fine; live services and view models are not.
-- **`Dispose()` releases owned services and native/COM handles.** Collection clearing is retention
-  insurance only; it does not make an otherwise unreachable graph collect sooner.
+- **`Dispose()` releases owned services and native/COM handles.** Do not clear ordinary managed
+  collections during page unload; an unreachable object graph is collected as a unit.
 - **Use the scrolling host expected by the control**: do not wrap `ListView`/`GridView` in an outer
   `ScrollViewer`; put them in a height-constrained row. `ItemsRepeater` has no built-in scrolling, so an
   `ItemsRepeater` with a virtualizing layout inside a `ScrollViewer` is the expected pattern. Never use
@@ -102,6 +101,8 @@ diagnosis, rules, and measurement probes are in `doc/MemoryManagement.md`; the b
   process-wide. Do STA/COM marshalling only on the `disposing` path.
 - **Cap process-wide caches with an unbounded key space, not navigation journals.** Keep navigation
   parameters lightweight; do not cap `Frame.BackStack` or breadcrumb history.
+- **Do not add speculative memory machinery.** Timers, forced GC, working-set manipulation, weak-cache
+  layers, and runtime probes require a measured production problem and a verified benefit.
 
 ## Administrator Permission Handling
 - **Unified System**: Always use the unified administrator detection system documented in `doc/AdminDetectionSystem.md`.

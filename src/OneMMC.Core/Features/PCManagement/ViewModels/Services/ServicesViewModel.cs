@@ -321,15 +321,6 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.Services
             }
         }
 
-        public void ClearCachedData()
-        {
-            SelectedService = null;
-            _allServices.Clear();
-            Services.Clear();
-            StatusMessage = string.Empty;
-        }
-
-        
     }
 }
 

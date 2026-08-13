@@ -54,7 +54,7 @@ public sealed partial class SharedFoldersPage : Page
 
     private void SharedFoldersPage_Unloaded(object sender, RoutedEventArgs e)
     {
-        StopAutoRefreshTimer();
+        ApplyLiveMonitoring(false);
         if (_autoRefreshTimer is not null)
         {
             _autoRefreshTimer.Tick -= AutoRefreshTimer_Tick;
@@ -62,7 +62,6 @@ public sealed partial class SharedFoldersPage : Page
         }
 
         ViewModel.AdminPermissionRequired -= ViewModel_AdminPermissionRequired;
-        ViewModel.ClearCachedData();
     }
 
     private async void ViewModel_AdminPermissionRequired(object? sender, EventArgs e)

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
@@ -31,9 +30,6 @@ using Microsoft.UI;
 using Windows.UI;
 using Microsoft.Extensions.Logging;
 
-// Debug
-using System.Diagnostics;
-
 namespace OneMMC
 {
     /// <summary>
@@ -43,11 +39,6 @@ namespace OneMMC
     {
         private readonly ILogger<MainWindow> _logger;
         private readonly IAdminService _adminService;
-        private readonly IMemoryDiagnostics _memoryDiagnostics;
-
-        // Read once at startup: forcing a collection per navigation is a measurement mode, not a setting
-        // users toggle mid-session. See AppSettings.MemoryProbeMode.
-        private readonly bool _memoryProbeMode;
 
         private const double MinimumWidthForTitleBarAppTitle = 900;
 
@@ -55,24 +46,7 @@ namespace OneMMC
         private const int MinimumWindowWidthDips = 700;
         private const int MinimumWindowHeightDips = 325;
 
-        // Probe metadata must stay bounded even when a regression keeps every departed page alive. The
-        // entries contain weak references only, so evicting one affects diagnostics, never page lifetime.
-        private const int MaximumDepartedPageProbes = 128;
-        private const int MaximumLoggedPageSurvivors = 8;
-
-        // Every PageStackEntry keeps a strong reference to the NavigationTransitionInfo it was navigated
-        // with (PageStackEntry.m_pParameter's sibling TrackerPtr), so a per-navigation instance would be
-        // retained for as long as the journal entry is. The type carries no per-navigation state, so one
-        // shared instance serves every navigation — this is also how it is declared when set in XAML.
-        private static readonly Microsoft.UI.Xaml.Media.Animation.SlideNavigationTransitionInfo SlideFromRight =
-            new() { Effect = Microsoft.UI.Xaml.Media.Animation.SlideNavigationTransitionEffect.FromRight };
-
         private bool _welcomeDialogRequested;
-        private readonly List<DepartedPageProbe> _departedPageProbes = [];
-        private PendingNavigationAttempt? _activeNavigationAttempt;
-        private NavigationInitiator _nextNavigationInitiator;
-        private long _navigationSequence;
-        private long _droppedDepartedPageProbes;
         private OverlappedPresenterState _windowState = OverlappedPresenterState.Restored;
         private int? _windowX;
         private int? _windowY;
@@ -88,7 +62,10 @@ namespace OneMMC
         {
             if (contentFrame == null) return;
             _logger.LogDebug("NavigateToPage invoked with index={Index}", index);
-            var transition = SlideFromRight;
+            var transition = new Microsoft.UI.Xaml.Media.Animation.SlideNavigationTransitionInfo
+            {
+                Effect = Microsoft.UI.Xaml.Media.Animation.SlideNavigationTransitionEffect.FromRight
+            };
 
             switch (index)
             {
@@ -139,8 +116,6 @@ namespace OneMMC
         {
             _logger = App.GetRequiredService<ILogger<MainWindow>>();
             _adminService = App.GetRequiredService<IAdminService>();
-            _memoryDiagnostics = App.GetRequiredService<IMemoryDiagnostics>();
-            _memoryProbeMode = AppSettings.Load().MemoryProbeMode;
             _logger.LogInformation("MainWindow initializing.");
 
             InitializeComponent();
@@ -197,21 +172,12 @@ namespace OneMMC
 
             if (contentFrame != null)
             {
-                if (_memoryProbeMode)
-                {
-                    contentFrame.Navigating += ContentFrame_Navigating;
-                    contentFrame.NavigationFailed += ContentFrame_NavigationFailed;
-                    contentFrame.NavigationStopped += ContentFrame_NavigationStopped;
-                }
-
                 contentFrame.Navigated += ContentFrame_Navigated;
             }
 
             DispatcherQueue.GetForCurrentThread().TryEnqueue(() =>
             {
-                RunNavigation(
-                    NavigationInitiator.Startup,
-                    () => NavigateToMainPage("PCManagement"));
+                NavigateToMainPage("PCManagement");
             });
 
             NavigationViewControl.Loaded += OnNavigationViewLoaded;
@@ -324,9 +290,7 @@ namespace OneMMC
 
         private void NavigationView_BackRequested(NavigationView sender, NavigationViewBackRequestedEventArgs args)
         {
-            RunNavigation(
-                NavigationInitiator.GoBack,
-                () => ViewModel.GoBackCommand.Execute(null));
+            ViewModel.GoBackCommand.Execute(null);
         }
 
         private void NavigationView_SelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
@@ -363,9 +327,7 @@ namespace OneMMC
 
                 BreadcrumbNavigationService.ClearBreadcrumbs();
                 BreadcrumbNavigationService.AddBreadcrumb(LocalizedStrings.Navigation_Settings ?? "Settings", typeof(SettingsPage));
-                RunNavigation(
-                    NavigationInitiator.NavigationView,
-                    () => ViewModel.NavigateToSettingsCommand.Execute(null));
+                ViewModel.NavigateToSettingsCommand.Execute(null);
                 UpdateBackButtonState();
                 return;
             }
@@ -393,9 +355,7 @@ namespace OneMMC
                 string pageTitle = GetPageTitleFromTag(tag);
                 BreadcrumbNavigationService.ClearBreadcrumbs();
                 BreadcrumbNavigationService.AddBreadcrumb(pageTitle, targetPageType);
-                RunNavigation(
-                    NavigationInitiator.NavigationView,
-                    () => ViewModel.NavigateToPageCommand.Execute(tag));
+                ViewModel.NavigateToPageCommand.Execute(tag);
                 UpdateBackButtonState();
             }
         }
@@ -546,51 +506,11 @@ namespace OneMMC
                 return;
             }
 
-            RunNavigation(
-                NavigationInitiator.Breadcrumb,
-                () => BreadcrumbNavigationService.NavigateFromBreadcrumb(crumb.Page, index, crumb.Parameter));
-        }
-
-        private void ContentFrame_Navigating(object sender, NavigatingCancelEventArgs e)
-        {
-            if (_activeNavigationAttempt is { HasNavigated: false } abandonedAttempt)
-            {
-                abandonedAttempt.IsInvalidated = true;
-            }
-
-            NavigationInitiator initiator = e.NavigationMode == NavigationMode.Back
-                ? NavigationInitiator.GoBack
-                : _nextNavigationInitiator;
-
-            _activeNavigationAttempt = new PendingNavigationAttempt(
-                contentFrame?.Content as Page,
-                e.SourcePageType,
-                initiator,
-                ++_navigationSequence);
-        }
-
-        private void ContentFrame_NavigationFailed(object sender, NavigationFailedEventArgs e)
-        {
-            InvalidateActiveNavigationAttempt();
-        }
-
-        private void ContentFrame_NavigationStopped(object sender, NavigationEventArgs e)
-        {
-            InvalidateActiveNavigationAttempt();
+            BreadcrumbNavigationService.NavigateFromBreadcrumb(crumb.Page, index, crumb.Parameter);
         }
 
         private void ContentFrame_Navigated(object sender, NavigationEventArgs e)
         {
-            PendingNavigationAttempt? completedAttempt = _activeNavigationAttempt;
-            if (completedAttempt is not null)
-            {
-                completedAttempt.HasNavigated = true;
-            }
-
-            long completedNavigationSequence = completedAttempt?.Sequence ?? 0;
-            NavigationInitiator completedNavigationInitiator =
-                completedAttempt?.Initiator ?? NavigationInitiator.Other;
-
             if (NavigationViewControl != null && contentFrame != null)
             {
                 NavigationViewControl.IsBackEnabled = contentFrame.CanGoBack;
@@ -630,296 +550,6 @@ namespace OneMMC
                     _isProgrammaticSelectionChange = false;
                 }
             }
-
-            // NavigationEventArgs.Content strongly references the destination Page. Do not carry the event
-            // args into the async settled-GC state machine: if another navigation starts while that sample
-            // is pending, the probe itself could keep the newly departed Page alive.
-            string sourcePageTypeName = e.SourcePageType.Name;
-            NavigationMode navigationMode = e.NavigationMode;
-            int backStackDepth = contentFrame?.BackStack.Count ?? 0;
-            int breadcrumbDepth = BreadcrumbNavigationService.BreadCrumbs.Count;
-
-            bool enqueued = DispatcherQueue.TryEnqueue(
-                () => _ = LogNavigationAfterEventAsync(
-                    completedAttempt,
-                    sourcePageTypeName,
-                    navigationMode,
-                    backStackDepth,
-                    breadcrumbDepth,
-                    completedNavigationSequence,
-                    completedNavigationInitiator));
-            if (!enqueued)
-            {
-                if (completedAttempt is not null)
-                {
-                    completedAttempt.IsInvalidated = true;
-                }
-
-                if (ReferenceEquals(_activeNavigationAttempt, completedAttempt))
-                {
-                    _activeNavigationAttempt = null;
-                }
-
-                _logger.LogWarning(
-                    "[Memory] Navigation diagnostics could not be queued for {PageType} sequence " +
-                    "{NavigationSequence}.",
-                    sourcePageTypeName,
-                    completedNavigationSequence);
-            }
-        }
-
-        private async Task LogNavigationAfterEventAsync(
-            PendingNavigationAttempt? navigationAttempt,
-            string sourcePageTypeName,
-            NavigationMode navigationMode,
-            int backStackDepth,
-            int breadcrumbDepth,
-            long navigationSequence,
-            NavigationInitiator initiator)
-        {
-            try
-            {
-                // This method starts from a DispatcherQueue callback after the complete Frame navigation
-                // stack has unwound. The attempt contains only scalar metadata and a weak Page reference.
-                if (navigationAttempt is { IsInvalidated: true })
-                {
-                    return;
-                }
-
-                CompleteDepartedPageProbe(navigationAttempt);
-
-                bool settled = await LogNavigationMemoryAsync(
-                    sourcePageTypeName,
-                    navigationMode,
-                    backStackDepth,
-                    breadcrumbDepth,
-                    navigationSequence,
-                    initiator);
-                if (_memoryProbeMode && settled)
-                {
-                    LogDepartedPageLifetimes(navigationSequence);
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(
-                    ex,
-                    "[Memory] Navigation diagnostics failed for {PageType} sequence {NavigationSequence}.",
-                    sourcePageTypeName,
-                    navigationSequence);
-            }
-        }
-
-        /// <summary>
-        /// Records a memory reading plus the two journal depths on every navigation. Together these
-        /// form the session growth curve used to verify that memory no longer scales with the number
-        /// of pages visited; see <c>doc/MemoryManagement.md</c>.
-        /// </summary>
-        private async Task<bool> LogNavigationMemoryAsync(
-            string sourcePageTypeName,
-            NavigationMode navigationMode,
-            int backStackDepth,
-            int breadcrumbDepth,
-            long navigationSequence,
-            NavigationInitiator initiator)
-        {
-            string context = $"post-nav:{sourcePageTypeName}";
-            string detail = _memoryProbeMode
-                ? $"backStack={backStackDepth} breadcrumbs={breadcrumbDepth} mode={navigationMode} " +
-                  $"sequence={navigationSequence} initiator={initiator}"
-                : $"backStack={backStackDepth} breadcrumbs={breadcrumbDepth} mode={navigationMode}";
-
-            if (_memoryProbeMode)
-            {
-                return await _memoryDiagnostics.LogSettledSnapshotAsync(context, detail) is not null;
-            }
-
-            _memoryDiagnostics.LogSnapshot(context, detail);
-            return false;
-        }
-
-        private void CompleteDepartedPageProbe(PendingNavigationAttempt? navigationAttempt)
-        {
-            if (ReferenceEquals(_activeNavigationAttempt, navigationAttempt))
-            {
-                _activeNavigationAttempt = null;
-            }
-
-            if (!_memoryProbeMode || navigationAttempt?.DepartedPageProbe is not { } probe)
-            {
-                return;
-            }
-
-            if (_departedPageProbes.Count >= MaximumDepartedPageProbes)
-            {
-                _departedPageProbes.RemoveAt(0);
-                _droppedDepartedPageProbes++;
-            }
-
-            _departedPageProbes.Add(probe);
-        }
-
-        private void InvalidateActiveNavigationAttempt()
-        {
-            if (_activeNavigationAttempt is not { } navigationAttempt)
-            {
-                return;
-            }
-
-            navigationAttempt.IsInvalidated = true;
-            _activeNavigationAttempt = null;
-        }
-
-        private void LogDepartedPageLifetimes(long settledThroughSequence)
-        {
-            int collectedCount = 0;
-            int survivorCount = 0;
-            var survivorDetails = new List<string>(MaximumLoggedPageSurvivors);
-            var newRepeatedSurvivors = new List<string>();
-
-            for (int index = _departedPageProbes.Count - 1; index >= 0; index--)
-            {
-                DepartedPageProbe probe = _departedPageProbes[index];
-                if (probe.DepartureSequence > settledThroughSequence)
-                {
-                    // A later navigation can finish while an earlier async settled sample is pending. That
-                    // sample's collection did not necessarily occur after this page departed.
-                    continue;
-                }
-
-                if (!probe.Page.TryGetTarget(out _))
-                {
-                    _departedPageProbes.RemoveAt(index);
-                    collectedCount++;
-                    continue;
-                }
-
-                probe.SettledGcSurvivals++;
-                survivorCount++;
-
-                string detail =
-                    $"{probe.PageType}#{probe.DepartureSequence}->{probe.DestinationPageType}" +
-                    $"({probe.Initiator},gc={probe.SettledGcSurvivals},navAge=" +
-                    $"{settledThroughSequence - probe.DepartureSequence})";
-
-                if (survivorDetails.Count < MaximumLoggedPageSurvivors)
-                {
-                    survivorDetails.Add(detail);
-                }
-
-                if (probe.SettledGcSurvivals >= 2 && !probe.RepeatedSurvivalReported)
-                {
-                    probe.RepeatedSurvivalReported = true;
-                    newRepeatedSurvivors.Add(detail);
-                }
-            }
-
-            string survivors = survivorDetails.Count == 0
-                ? "none"
-                : string.Join(", ", survivorDetails);
-
-            _logger.LogInformation(
-                "[Memory][PageLifetime] settledThrough={NavigationSequence} tracked={TrackedCount} " +
-                "collected={CollectedCount} alive={SurvivorCount} dropped={DroppedCount} survivors={Survivors}",
-                settledThroughSequence,
-                _departedPageProbes.Count,
-                collectedCount,
-                survivorCount,
-                _droppedDepartedPageProbes,
-                survivors);
-
-            if (newRepeatedSurvivors.Count > 0)
-            {
-                _logger.LogWarning(
-                    "[Memory][PageLifetime] Departed Page instances survived at least two settled GC passes: " +
-                    "{Survivors}. This is a retention lead, not proof of a leak; inspect event, async, " +
-                    "navigation-parameter, cache, and native references.",
-                    string.Join(", ", newRepeatedSurvivors));
-            }
-        }
-
-        private void RunNavigation(NavigationInitiator initiator, Action navigation)
-        {
-            NavigationInitiator previousInitiator = _nextNavigationInitiator;
-            _nextNavigationInitiator = initiator;
-
-            try
-            {
-                navigation();
-            }
-            finally
-            {
-                _nextNavigationInitiator = previousInitiator;
-            }
-        }
-
-        private enum NavigationInitiator
-        {
-            Other,
-            Startup,
-            GoBack,
-            Breadcrumb,
-            NavigationView
-        }
-
-        private sealed class PendingNavigationAttempt
-        {
-            public PendingNavigationAttempt(
-                Page? outgoingPage,
-                Type destinationPageType,
-                NavigationInitiator initiator,
-                long sequence)
-            {
-                DepartedPageProbe = outgoingPage is null
-                    ? null
-                    : new DepartedPageProbe(
-                        outgoingPage,
-                        destinationPageType.Name,
-                        initiator,
-                        sequence);
-                Initiator = initiator;
-                Sequence = sequence;
-            }
-
-            public DepartedPageProbe? DepartedPageProbe { get; }
-
-            public NavigationInitiator Initiator { get; }
-
-            public long Sequence { get; }
-
-            public bool HasNavigated { get; set; }
-
-            public bool IsInvalidated { get; set; }
-        }
-
-        private sealed class DepartedPageProbe
-        {
-            public DepartedPageProbe(
-                Page page,
-                string destinationPageType,
-                NavigationInitiator initiator,
-                long departureSequence)
-            {
-                Page = new WeakReference<Page>(page);
-                PageType = page.GetType().Name;
-                DestinationPageType = destinationPageType;
-                Initiator = initiator;
-                DepartureSequence = departureSequence;
-            }
-
-            public WeakReference<Page> Page { get; }
-
-            public string PageType { get; }
-
-            public string DestinationPageType { get; }
-
-            public NavigationInitiator Initiator { get; }
-
-            public long DepartureSequence { get; }
-
-            public int SettledGcSurvivals { get; set; }
-
-            public bool RepeatedSurvivalReported { get; set; }
         }
 
         private void OnThemeChanged(ElementTheme theme)

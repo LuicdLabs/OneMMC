@@ -31,7 +31,6 @@ namespace OneMMC.Views
             this.Unloaded += (_, _) =>
             {
                 ViewModel.PropertyChanged -= ViewModel_PropertyChanged;
-                ViewModel.ClearCachedData();
                 DataContext = null;
                 this.Loaded -= DeviceManagerPage_Loaded;
             };

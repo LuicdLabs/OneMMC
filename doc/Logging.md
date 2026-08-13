@@ -52,7 +52,7 @@ when nobody reads the output, which shows up as sustained gen0 pressure (see `do
 
 - `LogDebug` is still the right call for detailed tracing — just do not expect it in a default session.
 - To turn it on, set `"VerboseLogging": true` in `%LOCALAPPDATA%/OneMMC/Settings.json`.
-- Anything that must always be visible (lifecycle events, operation outcomes, the memory probe) logs at
+- Anything that must always be visible (lifecycle events and operation outcomes) logs at
   `Information` or above.
 - The `Trace` → Serilog bridge (`EnableDebugBridge`) is installed only when a debugger is attached; it
   forwards all framework `Trace`/`Debug` output and is pure overhead otherwise.

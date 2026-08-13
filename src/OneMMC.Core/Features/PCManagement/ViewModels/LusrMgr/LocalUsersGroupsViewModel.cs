@@ -65,18 +65,6 @@ public partial class LocalUsersGroupsViewModel : ObservableObject
         LoadData();
     }
 
-    public void ClearCachedData()
-    {
-        _allUsers.Clear();
-        _allGroups.Clear();
-        Users.Clear();
-        Groups.Clear();
-        UserSearchText = string.Empty;
-        GroupSearchText = string.Empty;
-        UserCount = 0;
-        GroupCount = 0;
-    }
-
     partial void OnUserSearchTextChanged(string value)
     {
         RefreshUserList();

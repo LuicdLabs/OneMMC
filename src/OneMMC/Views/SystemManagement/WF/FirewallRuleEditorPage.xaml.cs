@@ -111,9 +111,6 @@ public sealed partial class FirewallRuleEditorPage : Page
         _userInitiatedRuleToggles.Clear();
         Unloaded -= OnUnloaded;
         _pageLifetimeCancellation.Dispose();
-
-        // Retention insurance in case the page is held by the known upstream WinUI binding issue.
-        ViewModel.ClearCachedData();
     }
 
     private void OnFirewallRulesChanged(object? sender, EventArgs e)

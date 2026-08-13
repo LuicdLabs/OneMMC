@@ -184,19 +184,6 @@ public abstract partial class CertificateStoresViewModelBase : ObservableObject
         }
     }
 
-    /// <summary>
-    /// Clears loaded certificate store data when the owning page leaves the visual tree.
-    /// </summary>
-    public void ClearCachedData()
-    {
-        _allStores = [];
-        Stores.Clear();
-        FilterText = string.Empty;
-        ErrorMessage = string.Empty;
-        HasError = false;
-        IsLoading = false;
-    }
-
     private void ApplyFilter()
     {
         IReadOnlyDictionary<string, bool> expansionState = Stores.ToDictionary(

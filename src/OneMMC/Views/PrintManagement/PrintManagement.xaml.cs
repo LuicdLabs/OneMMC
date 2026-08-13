@@ -50,7 +50,6 @@ public sealed partial class PrintManagement : Page
         {
             App.ThemeChanged -= OnThemeChanged;
             ViewModel.AdminPermissionRequired -= OnAdminPermissionRequired;
-            ViewModel.ClearCachedData();
             DataContext = null;
         };
     }
