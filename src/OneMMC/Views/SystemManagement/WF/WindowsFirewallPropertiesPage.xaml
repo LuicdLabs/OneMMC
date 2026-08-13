@@ -5,6 +5,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:OneMMC.Localization"
     xmlns:controls="using:CommunityToolkit.WinUI.Controls"
+    xmlns:oneMmcControls="using:OneMMC.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ui="using:CommunityToolkit.WinUI"
@@ -20,7 +21,7 @@
                 FontWeight="SemiBold"
                 Text="{x:Bind local:LocalizedStrings.Instance.WF_WindowsFirewallProperties_Profiles}" />
 
-            <controls:SettingsExpander
+            <oneMmcControls:StableSettingsExpander
                 Header="{x:Bind local:LocalizedStrings.Instance.WF_Profile_Domain}"
                 HeaderIcon="{ui:FontIcon Glyph=&#xEDA3;}"
                 IsExpanded="True">
@@ -33,7 +34,7 @@
                     OnContent="{x:Bind local:LocalizedStrings.Instance.WF_State_On}"
                     Toggled="DomainProfileToggleSwitch_Toggled" />
 
-                <controls:SettingsExpander.Items>
+                <oneMmcControls:StableSettingsExpander.Items>
                     <controls:SettingsCard Header="{x:Bind local:LocalizedStrings.Instance.WF_WindowsFirewallProperties_InboundConnections}">
                         <ComboBox
                             x:Name="DomainInboundComboBox"
@@ -85,10 +86,10 @@
                             Content="{x:Bind local:LocalizedStrings.Instance.WF_Button_Specify}"
                             Tag="Domain" />
                     </controls:SettingsCard>
-                </controls:SettingsExpander.Items>
-            </controls:SettingsExpander>
+                </oneMmcControls:StableSettingsExpander.Items>
+            </oneMmcControls:StableSettingsExpander>
 
-            <controls:SettingsExpander
+            <oneMmcControls:StableSettingsExpander
                 Header="{x:Bind local:LocalizedStrings.Instance.WF_Profile_Private}"
                 HeaderIcon="{ui:FontIcon Glyph=&#xE72E;}"
                 IsExpanded="True">
@@ -101,7 +102,7 @@
                     OnContent="{x:Bind local:LocalizedStrings.Instance.WF_State_On}"
                     Toggled="PrivateProfileToggleSwitch_Toggled" />
 
-                <controls:SettingsExpander.Items>
+                <oneMmcControls:StableSettingsExpander.Items>
                     <controls:SettingsCard Header="{x:Bind local:LocalizedStrings.Instance.WF_WindowsFirewallProperties_InboundConnections}">
                         <ComboBox
                             x:Name="PrivateInboundComboBox"
@@ -153,10 +154,10 @@
                             Content="{x:Bind local:LocalizedStrings.Instance.WF_Button_Specify}"
                             Tag="Private" />
                     </controls:SettingsCard>
-                </controls:SettingsExpander.Items>
-            </controls:SettingsExpander>
+                </oneMmcControls:StableSettingsExpander.Items>
+            </oneMmcControls:StableSettingsExpander>
 
-            <controls:SettingsExpander
+            <oneMmcControls:StableSettingsExpander
                 Header="{x:Bind local:LocalizedStrings.Instance.WF_Profile_Public}"
                 HeaderIcon="{ui:FontIcon Glyph=&#xE909;}"
                 IsExpanded="True">
@@ -169,7 +170,7 @@
                     OnContent="{x:Bind local:LocalizedStrings.Instance.WF_State_On}"
                     Toggled="PublicProfileToggleSwitch_Toggled" />
 
-                <controls:SettingsExpander.Items>
+                <oneMmcControls:StableSettingsExpander.Items>
                     <controls:SettingsCard Header="{x:Bind local:LocalizedStrings.Instance.WF_WindowsFirewallProperties_InboundConnections}">
                         <ComboBox
                             x:Name="PublicInboundComboBox"
@@ -221,8 +222,8 @@
                             Content="{x:Bind local:LocalizedStrings.Instance.WF_Button_Specify}"
                             Tag="Public" />
                     </controls:SettingsCard>
-                </controls:SettingsExpander.Items>
-            </controls:SettingsExpander>
+                </oneMmcControls:StableSettingsExpander.Items>
+            </oneMmcControls:StableSettingsExpander>
 
             <TextBlock
                 Margin="0,8,0,0"
@@ -241,13 +242,13 @@
                     Content="{x:Bind local:LocalizedStrings.Instance.WF_Button_Customize}" />
             </controls:SettingsCard>
 
-            <controls:SettingsExpander
+            <oneMmcControls:StableSettingsExpander
                 Description="{x:Bind local:LocalizedStrings.Instance.WF_FirewallProperties_IcmpExemptionsDescription}"
                 Header="{x:Bind local:LocalizedStrings.Instance.WF_WindowsFirewallProperties_IPsecExemptions}"
                 HeaderIcon="{ui:FontIcon Glyph=&#xE9D5;}"
                 IsExpanded="True">
 
-                <controls:SettingsExpander.Items>
+                <oneMmcControls:StableSettingsExpander.Items>
                     <controls:SettingsCard Header="{x:Bind local:LocalizedStrings.Instance.WF_WindowsFirewallProperties_ExemptICMPFromIPsec}">
                         <ComboBox
                             x:Name="IcmpExemptionComboBox"
@@ -258,16 +259,16 @@
                             <ComboBoxItem Content="{x:Bind local:LocalizedStrings.Instance.WF_Common_NoDefault}" Tag="No (default)" />
                         </ComboBox>
                     </controls:SettingsCard>
-                </controls:SettingsExpander.Items>
-            </controls:SettingsExpander>
+                </oneMmcControls:StableSettingsExpander.Items>
+            </oneMmcControls:StableSettingsExpander>
 
-            <controls:SettingsExpander
+            <oneMmcControls:StableSettingsExpander
                 Description="{x:Bind local:LocalizedStrings.Instance.WF_FirewallProperties_TunnelAuthorizationDescription}"
                 Header="{x:Bind local:LocalizedStrings.Instance.WF_Common_IPsecTunnelAuthorization}"
                 HeaderIcon="{ui:FontIcon Glyph=&#xF32A;}"
                 IsExpanded="True">
 
-                <controls:SettingsExpander.Items>
+                <oneMmcControls:StableSettingsExpander.Items>
                     <controls:SettingsCard
                         x:Name="TunnelAuthorizationSettingsCard"
                         Header="{x:Bind local:LocalizedStrings.Instance.WF_Common_IPsecTunnelAuthorization}">
@@ -277,8 +278,8 @@
                             Click="TunnelAuthorizationCustomizeButton_Click"
                             Content="{x:Bind local:LocalizedStrings.Instance.WF_Button_Customize}" />
                     </controls:SettingsCard>
-                </controls:SettingsExpander.Items>
-            </controls:SettingsExpander>
+                </oneMmcControls:StableSettingsExpander.Items>
+            </oneMmcControls:StableSettingsExpander>
         </StackPanel>
     </ScrollViewer>
 </Page>

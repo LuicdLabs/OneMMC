@@ -12,6 +12,7 @@
 	xmlns:local="using:OneMMC.Views.PCManagement"
 	xmlns:localization="using:OneMMC.Localization"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:oneMmcControls="using:OneMMC.Controls"
 	mc:Ignorable="d">
 
 	<Page.Resources>
@@ -173,19 +174,19 @@
 				<!--  ====================  SECURITY OPTIONS  ====================  -->
 				<TextBlock Style="{StaticResource SectionHeaderStyle}" Text="{x:Bind LocalizedStrings.TaskSchd_General_SecurityOptions}" />
 
-				<cwuc:SettingsExpander
+				<oneMmcControls:StableSettingsExpander
 					Description="{x:Bind LocalizedStrings.TaskSchd_General_RunAsAccount}"
 					IsExpanded="True">
-					<cwuc:SettingsExpander.HeaderIcon>
+					<oneMmcControls:StableSettingsExpander.HeaderIcon>
 						<FontIcon Glyph="&#xE72E;" />
-					</cwuc:SettingsExpander.HeaderIcon>
-					<cwuc:SettingsExpander.Header>
+					</oneMmcControls:StableSettingsExpander.HeaderIcon>
+					<oneMmcControls:StableSettingsExpander.Header>
 						<TextBlock x:Name="AccountText" VerticalAlignment="Center" />
-					</cwuc:SettingsExpander.Header>
+					</oneMmcControls:StableSettingsExpander.Header>
 
 					<Button Click="ChangeUser_Click" Content="{x:Bind LocalizedStrings.TaskSchd_General_ChangeUser}" />
 
-					<cwuc:SettingsExpander.Items>
+					<oneMmcControls:StableSettingsExpander.Items>
 						<cwuc:SettingsCard ContentAlignment="Left">
 							<StackPanel Spacing="8">
 								<RadioButton
@@ -209,8 +210,8 @@
 						<cwuc:SettingsCard Header="{x:Bind LocalizedStrings.TaskSchd_General_RunHighestPrivileges}">
 							<ToggleSwitch x:Name="HighestPrivilegesToggle" OffContent="Off" OnContent="On" />
 						</cwuc:SettingsCard>
-					</cwuc:SettingsExpander.Items>
-				</cwuc:SettingsExpander>
+					</oneMmcControls:StableSettingsExpander.Items>
+				</oneMmcControls:StableSettingsExpander>
 
 				<!--  ====================  TRIGGERS  ====================  -->
 				<TextBlock Style="{StaticResource SectionHeaderStyle}" Text="{x:Bind LocalizedStrings.TaskSchd_Tab_Triggers}" />
@@ -320,16 +321,16 @@
 				<!--  ====================  CONDITIONS  ====================  -->
 				<TextBlock Style="{StaticResource SectionHeaderStyle}" Text="{x:Bind LocalizedStrings.TaskSchd_Tab_Conditions}" />
 
-				<cwuc:SettingsExpander Header="{x:Bind LocalizedStrings.TaskSchd_Conditions_Idle}" IsExpanded="True">
-					<cwuc:SettingsExpander.HeaderIcon>
+				<oneMmcControls:StableSettingsExpander Header="{x:Bind LocalizedStrings.TaskSchd_Conditions_Idle}" IsExpanded="True">
+					<oneMmcControls:StableSettingsExpander.HeaderIcon>
 						<FontIcon Glyph="&#xE769;" />
-					</cwuc:SettingsExpander.HeaderIcon>
+					</oneMmcControls:StableSettingsExpander.HeaderIcon>
 					<ToggleSwitch
 						x:Name="IdleToggle"
 						OffContent="Off"
 						OnContent="On"
 						Toggled="OnIdleToggled" />
-					<cwuc:SettingsExpander.Items>
+					<oneMmcControls:StableSettingsExpander.Items>
 						<cwuc:SettingsCard Header="{x:Bind LocalizedStrings.TaskSchd_Conditions_StartIfIdle}">
 							<ComboBox
 								x:Name="IdleStartComboBox"
@@ -374,22 +375,22 @@
 									Content="{x:Bind LocalizedStrings.TaskSchd_Conditions_RestartOnIdle}" />
 							</StackPanel>
 						</cwuc:SettingsCard>
-					</cwuc:SettingsExpander.Items>
-				</cwuc:SettingsExpander>
+					</oneMmcControls:StableSettingsExpander.Items>
+				</oneMmcControls:StableSettingsExpander>
 
-				<cwuc:SettingsExpander
+				<oneMmcControls:StableSettingsExpander
 					Description="{x:Bind LocalizedStrings.TaskSchd_Conditions_StartOnAcPower}"
 					Header="{x:Bind LocalizedStrings.TaskSchd_Conditions_Power}"
 					IsExpanded="True">
-					<cwuc:SettingsExpander.HeaderIcon>
+					<oneMmcControls:StableSettingsExpander.HeaderIcon>
 						<FontIcon Glyph="&#xE7E8;" />
-					</cwuc:SettingsExpander.HeaderIcon>
+					</oneMmcControls:StableSettingsExpander.HeaderIcon>
 					<ToggleSwitch
 						x:Name="PowerToggle"
 						OffContent="Off"
 						OnContent="On"
 						Toggled="OnPowerToggled" />
-					<cwuc:SettingsExpander.Items>
+					<oneMmcControls:StableSettingsExpander.Items>
 						<cwuc:SettingsCard ContentAlignment="Left">
 							<CheckBox
 								x:Name="StopOnBatteryCheckBox"
@@ -399,34 +400,34 @@
 						<cwuc:SettingsCard ContentAlignment="Left">
 							<CheckBox x:Name="WakeToRunCheckBox" Content="{x:Bind LocalizedStrings.TaskSchd_Conditions_WakeToRun}" />
 						</cwuc:SettingsCard>
-					</cwuc:SettingsExpander.Items>
-				</cwuc:SettingsExpander>
+					</oneMmcControls:StableSettingsExpander.Items>
+				</oneMmcControls:StableSettingsExpander>
 
-				<cwuc:SettingsExpander Header="{x:Bind LocalizedStrings.TaskSchd_Conditions_Network}" IsExpanded="True">
-					<cwuc:SettingsExpander.HeaderIcon>
+				<oneMmcControls:StableSettingsExpander Header="{x:Bind LocalizedStrings.TaskSchd_Conditions_Network}" IsExpanded="True">
+					<oneMmcControls:StableSettingsExpander.HeaderIcon>
 						<FontIcon Glyph="&#xE839;" />
-					</cwuc:SettingsExpander.HeaderIcon>
+					</oneMmcControls:StableSettingsExpander.HeaderIcon>
 					<ToggleSwitch
 						x:Name="NetworkToggle"
 						OffContent="Off"
 						OnContent="On"
 						Toggled="OnNetworkToggled" />
-					<cwuc:SettingsExpander.Items>
+					<oneMmcControls:StableSettingsExpander.Items>
 						<cwuc:SettingsCard Header="{x:Bind LocalizedStrings.TaskSchd_Conditions_StartIfNetwork}">
 							<!--  Items are populated in code-behind: "Any connection" plus the named network profiles.  -->
 							<ComboBox x:Name="NetworkComboBox" MinWidth="170" />
 						</cwuc:SettingsCard>
-					</cwuc:SettingsExpander.Items>
-				</cwuc:SettingsExpander>
+					</oneMmcControls:StableSettingsExpander.Items>
+				</oneMmcControls:StableSettingsExpander>
 
 				<!--  ====================  SETTINGS  ====================  -->
 				<TextBlock Style="{StaticResource SectionHeaderStyle}" Text="{x:Bind LocalizedStrings.TaskSchd_Tab_Settings}" />
 
-				<cwuc:SettingsExpander Header="{x:Bind LocalizedStrings.TaskSchd_Tab_Settings}" IsExpanded="True">
-					<cwuc:SettingsExpander.HeaderIcon>
+				<oneMmcControls:StableSettingsExpander Header="{x:Bind LocalizedStrings.TaskSchd_Tab_Settings}" IsExpanded="True">
+					<oneMmcControls:StableSettingsExpander.HeaderIcon>
 						<FontIcon Glyph="&#xE713;" />
-					</cwuc:SettingsExpander.HeaderIcon>
-					<cwuc:SettingsExpander.Items>
+					</oneMmcControls:StableSettingsExpander.HeaderIcon>
+					<oneMmcControls:StableSettingsExpander.Items>
 						<cwuc:SettingsCard ContentAlignment="Left">
 							<CheckBox x:Name="AllowDemandStartCheckBox" Content="{x:Bind LocalizedStrings.TaskSchd_Settings_AllowDemandStart}" IsChecked="True" />
 						</cwuc:SettingsCard>
@@ -523,8 +524,8 @@
 								<ComboBoxItem Content="{x:Bind LocalizedStrings.TaskSchd_Instance_StopExisting}" />
 							</ComboBox>
 						</cwuc:SettingsCard>
-					</cwuc:SettingsExpander.Items>
-				</cwuc:SettingsExpander>
+					</oneMmcControls:StableSettingsExpander.Items>
+				</oneMmcControls:StableSettingsExpander>
 
 				<!--  ====================  HISTORY  ====================  -->
 				<TextBlock Style="{StaticResource SectionHeaderStyle}" Text="{x:Bind LocalizedStrings.TaskSchd_Tab_History}" />

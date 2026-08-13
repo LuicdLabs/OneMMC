@@ -150,7 +150,13 @@ Resource-lifetime and large-collection rules are documented in `doc/MemoryManage
 - Navigation parameters carry identifiers, not live services or view models — `Frame.BackStack` and the breadcrumb trail retain them for the session.
 - `Dispose()` must release owned services and native/COM handles. Do not clear ordinary managed collections during page unload; an unreachable object graph is collected as a unit.
 - `ListView`/`GridView` need a height-constrained parent and must not be wrapped in another vertical `ScrollViewer`; `ItemsRepeater` has no built-in scroll host and is expected inside one. No `ItemsControl` for large or unbounded collections; no `StackPanel` as `ItemsPanel`.
-- `SettingsExpander` bound to a collection defaults to `IsExpanded="False"`.
+- `SettingsExpander.IsExpanded` is presentation state only. `False` may defer initial rendering, but it does not
+  clear items, release backing data/view models, reclaim process RAM, change scroll extent estimation, or fix a
+  `LayoutCycleException`; never use or describe it as a memory/layout-cycle fix.
+- CommunityToolkit `SettingsExpander` contains a nested virtualizing `ItemsRepeater`. For long pages with widely
+  varying group heights, use `StableSettingsExpander` only when its direct items are fixed or tightly bounded.
+  Never apply it to growing sources (certificates, devices, users, shares, AzMan objects, etc.) because it realizes
+  every direct item. See `doc/MemoryManagement.md` for the WinUI #9308/#1829 technical rationale.
 - `TreeView` fills on `Expanding`, clears on `Collapsed`, via `HasUnrealizedChildren`. XAML-wired handlers must be instance methods (`static` → CS0176).
 - Finalizers must never wait on another thread — a blocked finalizer thread stops all finalization process-wide.
 - Bound process-wide caches with an unbounded key space (`SmbClientNameResolver`). Do **not** add timers, forced GC, working-set manipulation, weak-cache layers, or navigation-history caps without a measured production problem and verified benefit.

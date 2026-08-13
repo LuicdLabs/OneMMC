@@ -5,6 +5,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:OneMMC.Localization"
     xmlns:controls="using:CommunityToolkit.WinUI.Controls"
+    xmlns:oneMmcControls="using:OneMMC.Controls"
     xmlns:converters="using:OneMMC.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -90,17 +91,17 @@
                 </controls:SettingsCard>
 
                 <!--  ── Action ──  -->
-                <controls:SettingsExpander
+                <oneMmcControls:StableSettingsExpander
                     x:Name="ActionExpander"
                     Margin="0,4,0,0"
                     IsExpanded="True">
-                    <controls:SettingsExpander.Header>
+                    <oneMmcControls:StableSettingsExpander.Header>
                         <TextBlock Text="{x:Bind LocalizedStrings.WF_Section_Action}" />
-                    </controls:SettingsExpander.Header>
-                    <controls:SettingsExpander.HeaderIcon>
+                    </oneMmcControls:StableSettingsExpander.Header>
+                    <oneMmcControls:StableSettingsExpander.HeaderIcon>
                         <FontIcon Glyph="&#xE9F5;" />
-                    </controls:SettingsExpander.HeaderIcon>
-                    <controls:SettingsExpander.Items>
+                    </oneMmcControls:StableSettingsExpander.HeaderIcon>
+                    <oneMmcControls:StableSettingsExpander.Items>
                         <controls:SettingsCard Header="{x:Bind LocalizedStrings.WF_Action_ConnectionAction}">
                             <ComboBox
                                 x:Name="ConnectionActionBox"
@@ -120,8 +121,8 @@
                                 Click="CustomizeAllowSecureButton_Click"
                                 Content="{x:Bind LocalizedStrings.WF_Button_Customize}" />
                         </controls:SettingsCard>
-                    </controls:SettingsExpander.Items>
-                </controls:SettingsExpander>
+                    </oneMmcControls:StableSettingsExpander.Items>
+                </oneMmcControls:StableSettingsExpander>
 
                 <!--  ── Programs & Services ──  -->
                 <TextBlock
@@ -130,14 +131,14 @@
                     Style="{StaticResource BodyStrongTextBlockStyle}"
                     Text="{x:Bind LocalizedStrings.WF_Section_ProgramsServices}" />
 
-                <controls:SettingsExpander x:Name="ProgramsServicesExpander1" IsExpanded="True">
-                    <controls:SettingsExpander.Header>
+                <oneMmcControls:StableSettingsExpander x:Name="ProgramsServicesExpander1" IsExpanded="True">
+                    <oneMmcControls:StableSettingsExpander.Header>
                         <TextBlock Text="{x:Bind LocalizedStrings.WF_ProgramsServices_SpecifiedConditions}" />
-                    </controls:SettingsExpander.Header>
-                    <controls:SettingsExpander.HeaderIcon>
+                    </oneMmcControls:StableSettingsExpander.Header>
+                    <oneMmcControls:StableSettingsExpander.HeaderIcon>
                         <FontIcon Glyph="&#xEB3B;" />
-                    </controls:SettingsExpander.HeaderIcon>
-                    <controls:SettingsExpander.Items>
+                    </oneMmcControls:StableSettingsExpander.HeaderIcon>
+                    <oneMmcControls:StableSettingsExpander.Items>
                         <controls:SettingsCard Header="{x:Bind LocalizedStrings.WF_Field_Program}">
                             <controls:SettingsCard.Description>
                                 <TextBlock
@@ -189,20 +190,20 @@
                                 MinWidth="400"
                                 Text="{x:Bind Rule.Compartments, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                         </controls:SettingsCard>
-                    </controls:SettingsExpander.Items>
-                </controls:SettingsExpander>
+                    </oneMmcControls:StableSettingsExpander.Items>
+                </oneMmcControls:StableSettingsExpander>
 
-                <controls:SettingsExpander
+                <oneMmcControls:StableSettingsExpander
                     x:Name="ProgramsServicesExpander2"
                     Margin="0,4,0,0"
                     IsExpanded="True">
-                    <controls:SettingsExpander.Header>
+                    <oneMmcControls:StableSettingsExpander.Header>
                         <TextBlock Text="{x:Bind LocalizedStrings.WF_ProgramsServices_RuleApplies}" />
-                    </controls:SettingsExpander.Header>
-                    <controls:SettingsExpander.HeaderIcon>
+                    </oneMmcControls:StableSettingsExpander.Header>
+                    <oneMmcControls:StableSettingsExpander.HeaderIcon>
                         <FontIcon Glyph="&#xEA86;" />
-                    </controls:SettingsExpander.HeaderIcon>
-                    <controls:SettingsExpander.Items>
+                    </oneMmcControls:StableSettingsExpander.HeaderIcon>
+                    <oneMmcControls:StableSettingsExpander.Items>
                         <controls:SettingsCard Header="{x:Bind LocalizedStrings.WF_Field_ApplicationPackages}">
                             <Button
                                 MinWidth="120"
@@ -215,8 +216,8 @@
                                 Click="ServicesButton_Click"
                                 Content="{x:Bind LocalizedStrings.WF_Button_Specify}" />
                         </controls:SettingsCard>
-                    </controls:SettingsExpander.Items>
-                </controls:SettingsExpander>
+                    </oneMmcControls:StableSettingsExpander.Items>
+                </oneMmcControls:StableSettingsExpander>
 
                 <!--  ── Remote Computers (Inbound + Outbound) / Remote Endpoints (Connection Security) ──  -->
                 <TextBlock
@@ -258,14 +259,14 @@
                     Text="{x:Bind LocalizedStrings.WF_Section_ProtocolsPorts}" />
 
                 <!--  Standard rules: Protocols and ports  -->
-                <controls:SettingsExpander x:Name="StandardProtocolsExpander" IsExpanded="True">
-                    <controls:SettingsExpander.Header>
+                <oneMmcControls:StableSettingsExpander x:Name="StandardProtocolsExpander" IsExpanded="True">
+                    <oneMmcControls:StableSettingsExpander.Header>
                         <TextBlock Text="{x:Bind LocalizedStrings.WF_Section_ProtocolsPorts}" />
-                    </controls:SettingsExpander.Header>
-                    <controls:SettingsExpander.HeaderIcon>
+                    </oneMmcControls:StableSettingsExpander.Header>
+                    <oneMmcControls:StableSettingsExpander.HeaderIcon>
                         <FontIcon Glyph="&#xE839;" />
-                    </controls:SettingsExpander.HeaderIcon>
-                    <controls:SettingsExpander.Items>
+                    </oneMmcControls:StableSettingsExpander.HeaderIcon>
+                    <oneMmcControls:StableSettingsExpander.Items>
                         <controls:SettingsCard Header="{x:Bind LocalizedStrings.WF_Protocol_Type}">
                             <ComboBox
                                 x:Name="ProtocolTypeBox"
@@ -346,21 +347,21 @@
                                 Content="{x:Bind LocalizedStrings.WF_Button_Customize}"
                                 IsEnabled="False" />
                         </controls:SettingsCard>
-                    </controls:SettingsExpander.Items>
-                </controls:SettingsExpander>
+                    </oneMmcControls:StableSettingsExpander.Items>
+                </oneMmcControls:StableSettingsExpander>
 
                 <!--  Connection Security Rules: Protocols and ports (Endpoint 1/2 ports, no ICMP)  -->
-                <controls:SettingsExpander
+                <oneMmcControls:StableSettingsExpander
                     x:Name="CsrProtocolsExpander"
                     IsExpanded="True"
                     Visibility="Collapsed">
-                    <controls:SettingsExpander.Header>
+                    <oneMmcControls:StableSettingsExpander.Header>
                         <TextBlock Text="{x:Bind LocalizedStrings.WF_Section_ProtocolsPorts}" />
-                    </controls:SettingsExpander.Header>
-                    <controls:SettingsExpander.HeaderIcon>
+                    </oneMmcControls:StableSettingsExpander.Header>
+                    <oneMmcControls:StableSettingsExpander.HeaderIcon>
                         <FontIcon Glyph="&#xE839;" />
-                    </controls:SettingsExpander.HeaderIcon>
-                    <controls:SettingsExpander.Items>
+                    </oneMmcControls:StableSettingsExpander.HeaderIcon>
+                    <oneMmcControls:StableSettingsExpander.Items>
                         <controls:SettingsCard Header="{x:Bind LocalizedStrings.WF_Protocol_Type}">
                             <ComboBox
                                 x:Name="CsrProtocolTypeBox"
@@ -433,8 +434,8 @@
                                 PlaceholderText="{x:Bind local:LocalizedStrings.Instance.WF_FirewallRuleInfo_EG80443}"
                                 Text="{x:Bind Rule.RemotePort, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                         </controls:SettingsCard>
-                    </controls:SettingsExpander.Items>
-                </controls:SettingsExpander>
+                    </oneMmcControls:StableSettingsExpander.Items>
+                </oneMmcControls:StableSettingsExpander>
 
                 <!--  ── Scope ──  -->
                 <TextBlock
@@ -480,18 +481,18 @@
                     </ComboBox>
                 </controls:SettingsCard>
 
-                <controls:SettingsExpander
+                <oneMmcControls:StableSettingsExpander
                     x:Name="VerificationMethodsExpander"
                     Margin="0,4,0,0"
                     IsExpanded="True"
                     Visibility="Collapsed">
-                    <controls:SettingsExpander.Header>
+                    <oneMmcControls:StableSettingsExpander.Header>
                         <TextBlock Text="{x:Bind LocalizedStrings.WF_CSR_Section_Methods}" />
-                    </controls:SettingsExpander.Header>
-                    <controls:SettingsExpander.HeaderIcon>
+                    </oneMmcControls:StableSettingsExpander.Header>
+                    <oneMmcControls:StableSettingsExpander.HeaderIcon>
                         <FontIcon Glyph="&#xE8D7;" />
-                    </controls:SettingsExpander.HeaderIcon>
-                    <controls:SettingsExpander.Items>
+                    </oneMmcControls:StableSettingsExpander.HeaderIcon>
+                    <oneMmcControls:StableSettingsExpander.Items>
                         <controls:SettingsCard Header="{x:Bind LocalizedStrings.WF_CSR_AuthenticationMethod}">
                             <Grid MinWidth="420" ColumnSpacing="12">
                                 <Grid.ColumnDefinitions>
@@ -518,8 +519,8 @@
                                     IsEnabled="False" />
                             </Grid>
                         </controls:SettingsCard>
-                    </controls:SettingsExpander.Items>
-                </controls:SettingsExpander>
+                    </oneMmcControls:StableSettingsExpander.Items>
+                </oneMmcControls:StableSettingsExpander>
 
                 <!--  ── Advanced ──  -->
                 <TextBlock
@@ -528,14 +529,14 @@
                     Text="{x:Bind LocalizedStrings.WF_Section_Advanced}" />
 
                 <!--  Profiles expander  -->
-                <controls:SettingsExpander IsExpanded="True">
-                    <controls:SettingsExpander.Header>
+                <oneMmcControls:StableSettingsExpander IsExpanded="True">
+                    <oneMmcControls:StableSettingsExpander.Header>
                         <TextBlock Text="{x:Bind LocalizedStrings.WF_Advanced_Profiles}" />
-                    </controls:SettingsExpander.Header>
-                    <controls:SettingsExpander.HeaderIcon>
+                    </oneMmcControls:StableSettingsExpander.Header>
+                    <oneMmcControls:StableSettingsExpander.HeaderIcon>
                         <FontIcon Glyph="&#xE7C3;" />
-                    </controls:SettingsExpander.HeaderIcon>
-                    <controls:SettingsExpander.Items>
+                    </oneMmcControls:StableSettingsExpander.HeaderIcon>
+                    <oneMmcControls:StableSettingsExpander.Items>
                         <controls:SettingsCard>
                             <controls:SettingsCard.Description>
                                 <StackPanel Spacing="12">
@@ -546,8 +547,8 @@
                                 </StackPanel>
                             </controls:SettingsCard.Description>
                         </controls:SettingsCard>
-                    </controls:SettingsExpander.Items>
-                </controls:SettingsExpander>
+                    </oneMmcControls:StableSettingsExpander.Items>
+                </oneMmcControls:StableSettingsExpander>
 
                 <!--  Interface types  -->
                 <controls:SettingsCard
@@ -580,21 +581,21 @@
                 </controls:SettingsCard>
 
                 <!--  Edge traversal (Inbound only)  -->
-                <controls:SettingsExpander
+                <oneMmcControls:StableSettingsExpander
                     x:Name="EdgeTraversalExpander"
                     Margin="0,4,0,0"
                     IsExpanded="True"
                     Visibility="Collapsed">
-                    <controls:SettingsExpander.Header>
+                    <oneMmcControls:StableSettingsExpander.Header>
                         <TextBlock Text="{x:Bind LocalizedStrings.WF_Advanced_EdgeTraversal}" />
-                    </controls:SettingsExpander.Header>
-                    <controls:SettingsExpander.Description>
+                    </oneMmcControls:StableSettingsExpander.Header>
+                    <oneMmcControls:StableSettingsExpander.Description>
                         <TextBlock Text="{x:Bind LocalizedStrings.WF_Advanced_EdgeTraversalDescription}" TextWrapping="Wrap" />
-                    </controls:SettingsExpander.Description>
-                    <controls:SettingsExpander.HeaderIcon>
+                    </oneMmcControls:StableSettingsExpander.Description>
+                    <oneMmcControls:StableSettingsExpander.HeaderIcon>
                         <FontIcon Glyph="&#xE839;" />
-                    </controls:SettingsExpander.HeaderIcon>
-                    <controls:SettingsExpander.Items>
+                    </oneMmcControls:StableSettingsExpander.HeaderIcon>
+                    <oneMmcControls:StableSettingsExpander.Items>
                         <controls:SettingsCard Header="{x:Bind LocalizedStrings.WF_Advanced_EdgeTraversalType}">
                             <ComboBox
                                 x:Name="EdgeTraversalBox"
@@ -611,8 +612,8 @@
                                 <TextBlock x:Name="EdgeTraversalDescText" TextWrapping="Wrap" />
                             </controls:SettingsCard.Description>
                         </controls:SettingsCard>
-                    </controls:SettingsExpander.Items>
-                </controls:SettingsExpander>
+                    </oneMmcControls:StableSettingsExpander.Items>
+                </oneMmcControls:StableSettingsExpander>
 
                 <!--  ── Local Principals (Inbound only) ──  -->
                 <TextBlock

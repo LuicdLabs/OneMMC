@@ -74,8 +74,21 @@ For large or unbounded collections:
   `StackPanel`.
 - `ItemsRepeater` has no built-in scroll host. Place it in a `ScrollViewer` and use a virtualizing layout.
 - Do not use `ItemsControl` for a growing collection. It is acceptable for a fixed handful of items.
-- Start data-bound `SettingsExpander` controls collapsed when expansion avoids significant initial realization.
-  This is a responsiveness choice, not proof of reduced process memory.
+- Treat `SettingsExpander.IsExpanded` strictly as presentation state. Starting collapsed may defer initial
+  rendering, but it does not clear `Items`/`ItemsSource`, release the backing view model, dispose resources,
+  guarantee that previously realized XAML elements are reclaimed, reduce process RAM, change the scroll extent
+  algorithm, or fix `LayoutCycleException`. Never present `IsExpanded="False"` as a memory or layout-cycle fix.
+- CommunityToolkit `SettingsExpander` contains an internal `ItemsRepeater` with virtualizing `StackLayout`.
+  On long pages with nested, widely varying expanded heights, unrealized heights make the scroll extent an
+  estimate. Near the estimated end, realization can revise the extent and make the thumb/offset jump; repeated
+  viewport correction can visibly move the content. This is the behavior described by microsoft-ui-xaml
+  issues 9308 and 1829.
+- Use `StableSettingsExpander` only for a fixed or tightly bounded, cheap direct item collection. It replaces the
+  inner layout with exact non-virtualizing measurement. Do not use it for growing sources such as certificate
+  entries, devices, users/groups, shares/sessions/files, AzMan objects, COM+ applications, or similar catalogs;
+  doing so realizes every item and can increase startup work and UI memory. Preserve virtualization for those
+  sources and solve any measured instability with paging, deterministic heights, flattening, or a custom stable
+  virtualizing layout.
 - Materialize expensive `TreeView` branches on `Expanding` with `HasUnrealizedChildren`, and remove realized
   child nodes on `Collapsed`. XAML-wired handlers must be instance methods.
 
@@ -133,4 +146,6 @@ Useful references:
 - [Visual Studio Memory Usage](https://learn.microsoft.com/visualstudio/profiling/memory-usage-without-debugging2)
 - [Windows Performance Toolkit memory tracing](https://learn.microsoft.com/windows/apps/develop/performance/disk-memory)
 - [ItemsRepeater guidance](https://learn.microsoft.com/windows/apps/develop/ui/controls/items-repeater)
+- [ItemsRepeater nested variable-height extent issue #9308](https://github.com/microsoft/microsoft-ui-xaml/issues/9308)
+- [ItemsRepeater variable-height layout issue #1829](https://github.com/microsoft/microsoft-ui-xaml/issues/1829)
 - [TreeView incremental population](https://learn.microsoft.com/windows/apps/develop/ui/controls/tree-view#interacting-with-a-tree-view)

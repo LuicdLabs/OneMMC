@@ -93,8 +93,13 @@ Resource-lifetime and large-collection rules are documented in `doc/MemoryManage
   `ScrollViewer`; put them in a height-constrained row. `ItemsRepeater` has no built-in scrolling, so an
   `ItemsRepeater` with a virtualizing layout inside a `ScrollViewer` is the expected pattern. Never use
   `ItemsControl` or a plain `StackPanel` for a growing collection.
-- **`SettingsExpander` bound to a collection defaults to `IsExpanded="False"` for initial layout and
-  responsiveness.** Do not assume collapse releases its template objects or backing data.
+- **`SettingsExpander.IsExpanded` is presentation state, not a memory or layout-cycle fix.** `False` may defer
+  initial rendering, but it does not clear items, release backing data/view models, reclaim process RAM, change
+  scroll extent estimation, or fix `LayoutCycleException`. Never propose it as the fix for those problems.
+- **Use `StableSettingsExpander` only for fixed/tightly bounded direct items.** CommunityToolkit
+  `SettingsExpander` contains a nested virtualizing `ItemsRepeater`; exact non-virtualizing measurement avoids
+  WinUI #9308/#1829 extent jumps for small fixed card sets. Never apply it to growing sources (certificates,
+  devices, users, shares, AzMan objects, etc.) because it realizes every item. See `doc/MemoryManagement.md`.
 - **`TreeView` fills on `Expanding` and clears on `Collapsed`** using `HasUnrealizedChildren`. XAML-wired
   handlers must be instance methods (`static` fails with CS0176).
 - **Finalizers must never wait on another thread** — a blocked finalizer thread stops all finalization

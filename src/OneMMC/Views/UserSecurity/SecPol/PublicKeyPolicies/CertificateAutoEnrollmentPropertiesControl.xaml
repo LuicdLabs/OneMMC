@@ -4,6 +4,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="using:CommunityToolkit.WinUI.Controls"
+    xmlns:oneMmcControls="using:OneMMC.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ui="using:CommunityToolkit.WinUI"
@@ -44,14 +45,14 @@
                     <ToggleSwitch x:Name="TemplateCheckToggle" />
                 </controls:SettingsCard>
 
-                <controls:SettingsExpander
+                <oneMmcControls:StableSettingsExpander
                     x:Name="ExpirationExpander"
                     Header="{x:Bind LocalizedStrings.PKP_AutoEnrollment_LogExpiryEvents}"
                     HeaderIcon="{ui:FontIcon Glyph=&#xE7BA;}">
                     <ToggleSwitch
                         x:Name="ExpirationNotificationsToggle"
                         Toggled="ExpirationNotificationsToggle_Toggled" />
-                    <controls:SettingsExpander.Items>
+                    <oneMmcControls:StableSettingsExpander.Items>
                         <controls:SettingsCard Header="{x:Bind LocalizedStrings.PKP_AutoEnrollment_ExpirationNotifications}">
                             <StackPanel Orientation="Horizontal" Spacing="8">
                                 <NumberBox
@@ -69,8 +70,8 @@
                         <controls:SettingsCard Header="{x:Bind LocalizedStrings.PKP_AutoEnrollment_AdditionalStores}">
                             <TextBox x:Name="AdditionalStoresTextBox" MinWidth="240" />
                         </controls:SettingsCard>
-                    </controls:SettingsExpander.Items>
-                </controls:SettingsExpander>
+                    </oneMmcControls:StableSettingsExpander.Items>
+                </oneMmcControls:StableSettingsExpander>
             </StackPanel>
         </StackPanel>
     </ScrollViewer>

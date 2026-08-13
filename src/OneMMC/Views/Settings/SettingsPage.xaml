@@ -7,6 +7,7 @@
     xmlns:controls="using:Microsoft.UI.Xaml.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:cwuc="using:CommunityToolkit.WinUI.Controls"
+    xmlns:oneMmcControls="using:OneMMC.Controls"
     xmlns:local="using:OneMMC.Models"
     xmlns:localization="using:OneMMC.Localization"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -41,8 +42,8 @@
 				</cwuc:SettingsCard>
 
 				<!-- CommunityToolkit Expander with LocalizedStrings binding -->
-				   <cwuc:SettingsExpander HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch">
-					   <cwuc:SettingsExpander.Header>
+				   <oneMmcControls:StableSettingsExpander HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch">
+					   <oneMmcControls:StableSettingsExpander.Header>
 						   <Grid>
 							   <Grid.ColumnDefinitions>
 								   <ColumnDefinition Width="Auto" />
@@ -55,9 +56,9 @@
 								   <TextBlock Text="{x:Bind LocalizedStrings.Settings_About_AppDescription}" Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
 							   </StackPanel>
 						   </Grid>
-					   </cwuc:SettingsExpander.Header>
+					   </oneMmcControls:StableSettingsExpander.Header>
 							   <TextBlock Grid.Column="2" Text="0.0.1" VerticalAlignment="Center" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
-					   <cwuc:SettingsExpander.Items>
+					   <oneMmcControls:StableSettingsExpander.Items>
 						   <cwuc:SettingsCard HorizontalContentAlignment="Left" ContentAlignment="Left">
 							   <StackPanel Margin="-12,0,0,0" Orientation="Vertical">
 								   <HyperlinkButton Content="{x:Bind LocalizedStrings.Settings_About_LicenseTerms}" Click="LicenseTerms_Click" />
@@ -65,8 +66,8 @@
 								   <HyperlinkButton Content="{x:Bind LocalizedStrings.Settings_About_PrivacyStatement}" Click="PrivacyStatement_Click" />
 							   </StackPanel>
 						   </cwuc:SettingsCard>
-					   </cwuc:SettingsExpander.Items>
-				   </cwuc:SettingsExpander>
+					   </oneMmcControls:StableSettingsExpander.Items>
+				   </oneMmcControls:StableSettingsExpander>
 
 				<HyperlinkButton
 					Content="{x:Bind LocalizedStrings.Settings_About_SendFeedback}"

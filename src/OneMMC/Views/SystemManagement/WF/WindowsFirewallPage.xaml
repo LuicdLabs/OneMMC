@@ -4,6 +4,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="using:CommunityToolkit.WinUI.Controls"
+    xmlns:oneMmcControls="using:OneMMC.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="using:OneMMC.Localization"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -49,12 +50,12 @@
             <StackPanel Padding="24,8,24,24" Spacing="4">
 
                 <!--  Overview SettingsExpander  -->
-                <controls:SettingsExpander Header="{x:Bind local:LocalizedStrings.Instance.WF_WindowsFirewall_Overview}" IsExpanded="True">
-                    <controls:SettingsExpander.HeaderIcon>
+                <oneMmcControls:StableSettingsExpander Header="{x:Bind local:LocalizedStrings.Instance.WF_WindowsFirewall_Overview}" IsExpanded="True">
+                    <oneMmcControls:StableSettingsExpander.HeaderIcon>
                         <FontIcon Glyph="&#xEB05;" />
-                    </controls:SettingsExpander.HeaderIcon>
+                    </oneMmcControls:StableSettingsExpander.HeaderIcon>
 
-                    <controls:SettingsExpander.Items>
+                    <oneMmcControls:StableSettingsExpander.Items>
                         <controls:SettingsCard x:Name="DomainProfileCard" Padding="16,12" Header="{x:Bind local:LocalizedStrings.Instance.WF_WindowsFirewall_DomainProfile}">
                             <controls:SettingsCard.Description>
                                 <StackPanel Spacing="4">
@@ -120,8 +121,8 @@
                                 </StackPanel>
                             </controls:SettingsCard.Description>
                         </controls:SettingsCard>
-                    </controls:SettingsExpander.Items>
-                </controls:SettingsExpander>
+                    </oneMmcControls:StableSettingsExpander.Items>
+                </oneMmcControls:StableSettingsExpander>
 
                 <!--  Inbound rules SettingsCard  -->
                 <controls:SettingsCard
