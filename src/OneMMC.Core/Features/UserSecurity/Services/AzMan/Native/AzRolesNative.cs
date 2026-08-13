@@ -67,13 +67,13 @@ internal partial interface IAzAuthorizationStore3 : IDispatch
     void Initialize(int lFlags, [MarshalAs(UnmanagedType.BStr)] string bstrPolicyUrl, Variant varReserved);
     void UpdateCache(Variant varReserved);
     void Delete(Variant varReserved);
-    void get_Applications(out IAzApplications ppApplications);
-    void OpenApplication([MarshalAs(UnmanagedType.BStr)] string bstrApplicationName, Variant varReserved, out IAzApplication ppApplication);
-    void CreateApplication([MarshalAs(UnmanagedType.BStr)] string bstrApplicationName, Variant varReserved, out IAzApplication ppApplication);
+    void get_Applications([MarshalUsing(typeof(UniqueComInterfaceMarshaller<IAzApplications>))] out IAzApplications ppApplications);
+    void OpenApplication([MarshalAs(UnmanagedType.BStr)] string bstrApplicationName, Variant varReserved, [MarshalUsing(typeof(UniqueComInterfaceMarshaller<IAzApplication>))] out IAzApplication ppApplication);
+    void CreateApplication([MarshalAs(UnmanagedType.BStr)] string bstrApplicationName, Variant varReserved, [MarshalUsing(typeof(UniqueComInterfaceMarshaller<IAzApplication>))] out IAzApplication ppApplication);
     void DeleteApplication([MarshalAs(UnmanagedType.BStr)] string bstrApplicationName, Variant varReserved);
-    void get_ApplicationGroups(out IAzApplicationGroups ppGroups);
-    void CreateApplicationGroup([MarshalAs(UnmanagedType.BStr)] string bstrGroupName, Variant varReserved, out IAzApplicationGroup2 ppGroup);
-    void OpenApplicationGroup([MarshalAs(UnmanagedType.BStr)] string bstrGroupName, Variant varReserved, out IAzApplicationGroup2 ppGroup);
+    void get_ApplicationGroups([MarshalUsing(typeof(UniqueComInterfaceMarshaller<IAzApplicationGroups>))] out IAzApplicationGroups ppGroups);
+    void CreateApplicationGroup([MarshalAs(UnmanagedType.BStr)] string bstrGroupName, Variant varReserved, [MarshalUsing(typeof(UniqueComInterfaceMarshaller<IAzApplicationGroup2>))] out IAzApplicationGroup2 ppGroup);
+    void OpenApplicationGroup([MarshalAs(UnmanagedType.BStr)] string bstrGroupName, Variant varReserved, [MarshalUsing(typeof(UniqueComInterfaceMarshaller<IAzApplicationGroup2>))] out IAzApplicationGroup2 ppGroup);
     void DeleteApplicationGroup([MarshalAs(UnmanagedType.BStr)] string bstrGroupName, Variant varReserved);
     void Submit(int lFlags, Variant varReserved);
     void get_DelegatedPolicyUsers(out Variant pvarUsers); // unused (placeholder; SID form)
@@ -128,25 +128,25 @@ internal partial interface IAzApplication : IDispatch
     void DeletePolicyAdministrator([MarshalAs(UnmanagedType.BStr)] string bstrAdmin, Variant varReserved); // unused (placeholder)
     void AddPolicyReader([MarshalAs(UnmanagedType.BStr)] string bstrReader, Variant varReserved); // unused (placeholder)
     void DeletePolicyReader([MarshalAs(UnmanagedType.BStr)] string bstrReader, Variant varReserved); // unused (placeholder)
-    void get_Scopes(out IAzScopes ppScopes);
-    void OpenScope([MarshalAs(UnmanagedType.BStr)] string bstrScopeName, Variant varReserved, out IAzScope ppScope);
-    void CreateScope([MarshalAs(UnmanagedType.BStr)] string bstrScopeName, Variant varReserved, out IAzScope ppScope);
+    void get_Scopes([MarshalUsing(typeof(UniqueComInterfaceMarshaller<IAzScopes>))] out IAzScopes ppScopes);
+    void OpenScope([MarshalAs(UnmanagedType.BStr)] string bstrScopeName, Variant varReserved, [MarshalUsing(typeof(UniqueComInterfaceMarshaller<IAzScope>))] out IAzScope ppScope);
+    void CreateScope([MarshalAs(UnmanagedType.BStr)] string bstrScopeName, Variant varReserved, [MarshalUsing(typeof(UniqueComInterfaceMarshaller<IAzScope>))] out IAzScope ppScope);
     void DeleteScope([MarshalAs(UnmanagedType.BStr)] string bstrScopeName, Variant varReserved);
-    void get_Operations(out IAzOperations ppOperations);
-    void OpenOperation([MarshalAs(UnmanagedType.BStr)] string bstrOperationName, Variant varReserved, out IAzOperation ppOperation);
-    void CreateOperation([MarshalAs(UnmanagedType.BStr)] string bstrOperationName, Variant varReserved, out IAzOperation ppOperation);
+    void get_Operations([MarshalUsing(typeof(UniqueComInterfaceMarshaller<IAzOperations>))] out IAzOperations ppOperations);
+    void OpenOperation([MarshalAs(UnmanagedType.BStr)] string bstrOperationName, Variant varReserved, [MarshalUsing(typeof(UniqueComInterfaceMarshaller<IAzOperation>))] out IAzOperation ppOperation);
+    void CreateOperation([MarshalAs(UnmanagedType.BStr)] string bstrOperationName, Variant varReserved, [MarshalUsing(typeof(UniqueComInterfaceMarshaller<IAzOperation>))] out IAzOperation ppOperation);
     void DeleteOperation([MarshalAs(UnmanagedType.BStr)] string bstrOperationName, Variant varReserved);
-    void get_Tasks(out IAzTasks ppTasks);
-    void OpenTask([MarshalAs(UnmanagedType.BStr)] string bstrTaskName, Variant varReserved, out IAzTask ppTask);
-    void CreateTask([MarshalAs(UnmanagedType.BStr)] string bstrTaskName, Variant varReserved, out IAzTask ppTask);
+    void get_Tasks([MarshalUsing(typeof(UniqueComInterfaceMarshaller<IAzTasks>))] out IAzTasks ppTasks);
+    void OpenTask([MarshalAs(UnmanagedType.BStr)] string bstrTaskName, Variant varReserved, [MarshalUsing(typeof(UniqueComInterfaceMarshaller<IAzTask>))] out IAzTask ppTask);
+    void CreateTask([MarshalAs(UnmanagedType.BStr)] string bstrTaskName, Variant varReserved, [MarshalUsing(typeof(UniqueComInterfaceMarshaller<IAzTask>))] out IAzTask ppTask);
     void DeleteTask([MarshalAs(UnmanagedType.BStr)] string bstrTaskName, Variant varReserved);
-    void get_ApplicationGroups(out IAzApplicationGroups ppGroups);
-    void OpenApplicationGroup([MarshalAs(UnmanagedType.BStr)] string bstrGroupName, Variant varReserved, out IAzApplicationGroup2 ppGroup);
-    void CreateApplicationGroup([MarshalAs(UnmanagedType.BStr)] string bstrGroupName, Variant varReserved, out IAzApplicationGroup2 ppGroup);
+    void get_ApplicationGroups([MarshalUsing(typeof(UniqueComInterfaceMarshaller<IAzApplicationGroups>))] out IAzApplicationGroups ppGroups);
+    void OpenApplicationGroup([MarshalAs(UnmanagedType.BStr)] string bstrGroupName, Variant varReserved, [MarshalUsing(typeof(UniqueComInterfaceMarshaller<IAzApplicationGroup2>))] out IAzApplicationGroup2 ppGroup);
+    void CreateApplicationGroup([MarshalAs(UnmanagedType.BStr)] string bstrGroupName, Variant varReserved, [MarshalUsing(typeof(UniqueComInterfaceMarshaller<IAzApplicationGroup2>))] out IAzApplicationGroup2 ppGroup);
     void DeleteApplicationGroup([MarshalAs(UnmanagedType.BStr)] string bstrGroupName, Variant varReserved);
-    void get_Roles(out IAzRoles ppRoles);
-    void OpenRole([MarshalAs(UnmanagedType.BStr)] string bstrRoleName, Variant varReserved, out IAzRole ppRole);
-    void CreateRole([MarshalAs(UnmanagedType.BStr)] string bstrRoleName, Variant varReserved, out IAzRole ppRole);
+    void get_Roles([MarshalUsing(typeof(UniqueComInterfaceMarshaller<IAzRoles>))] out IAzRoles ppRoles);
+    void OpenRole([MarshalAs(UnmanagedType.BStr)] string bstrRoleName, Variant varReserved, [MarshalUsing(typeof(UniqueComInterfaceMarshaller<IAzRole>))] out IAzRole ppRole);
+    void CreateRole([MarshalAs(UnmanagedType.BStr)] string bstrRoleName, Variant varReserved, [MarshalUsing(typeof(UniqueComInterfaceMarshaller<IAzRole>))] out IAzRole ppRole);
     void DeleteRole([MarshalAs(UnmanagedType.BStr)] string bstrRoleName, Variant varReserved);
     void InitializeClientContextFromToken(ulong ullTokenHandle, Variant varReserved, out nint ppClientContext); // unused (placeholder, IAzClientContext)
     void AddPropertyItem(int lPropId, Variant varProp, Variant varReserved); // unused (placeholder)
@@ -189,17 +189,17 @@ internal partial interface IAzScope : IDispatch
     void DeletePolicyAdministrator([MarshalAs(UnmanagedType.BStr)] string bstrAdmin, Variant varReserved); // unused (placeholder)
     void AddPolicyReader([MarshalAs(UnmanagedType.BStr)] string bstrReader, Variant varReserved); // unused (placeholder)
     void DeletePolicyReader([MarshalAs(UnmanagedType.BStr)] string bstrReader, Variant varReserved); // unused (placeholder)
-    void get_ApplicationGroups(out IAzApplicationGroups ppGroups);
-    void OpenApplicationGroup([MarshalAs(UnmanagedType.BStr)] string bstrGroupName, Variant varReserved, out IAzApplicationGroup2 ppGroup);
-    void CreateApplicationGroup([MarshalAs(UnmanagedType.BStr)] string bstrGroupName, Variant varReserved, out IAzApplicationGroup2 ppGroup);
+    void get_ApplicationGroups([MarshalUsing(typeof(UniqueComInterfaceMarshaller<IAzApplicationGroups>))] out IAzApplicationGroups ppGroups);
+    void OpenApplicationGroup([MarshalAs(UnmanagedType.BStr)] string bstrGroupName, Variant varReserved, [MarshalUsing(typeof(UniqueComInterfaceMarshaller<IAzApplicationGroup2>))] out IAzApplicationGroup2 ppGroup);
+    void CreateApplicationGroup([MarshalAs(UnmanagedType.BStr)] string bstrGroupName, Variant varReserved, [MarshalUsing(typeof(UniqueComInterfaceMarshaller<IAzApplicationGroup2>))] out IAzApplicationGroup2 ppGroup);
     void DeleteApplicationGroup([MarshalAs(UnmanagedType.BStr)] string bstrGroupName, Variant varReserved);
-    void get_Roles(out IAzRoles ppRoles);
-    void OpenRole([MarshalAs(UnmanagedType.BStr)] string bstrRoleName, Variant varReserved, out IAzRole ppRole);
-    void CreateRole([MarshalAs(UnmanagedType.BStr)] string bstrRoleName, Variant varReserved, out IAzRole ppRole);
+    void get_Roles([MarshalUsing(typeof(UniqueComInterfaceMarshaller<IAzRoles>))] out IAzRoles ppRoles);
+    void OpenRole([MarshalAs(UnmanagedType.BStr)] string bstrRoleName, Variant varReserved, [MarshalUsing(typeof(UniqueComInterfaceMarshaller<IAzRole>))] out IAzRole ppRole);
+    void CreateRole([MarshalAs(UnmanagedType.BStr)] string bstrRoleName, Variant varReserved, [MarshalUsing(typeof(UniqueComInterfaceMarshaller<IAzRole>))] out IAzRole ppRole);
     void DeleteRole([MarshalAs(UnmanagedType.BStr)] string bstrRoleName, Variant varReserved);
-    void get_Tasks(out IAzTasks ppTasks);
-    void OpenTask([MarshalAs(UnmanagedType.BStr)] string bstrTaskName, Variant varReserved, out IAzTask ppTask);
-    void CreateTask([MarshalAs(UnmanagedType.BStr)] string bstrTaskName, Variant varReserved, out IAzTask ppTask);
+    void get_Tasks([MarshalUsing(typeof(UniqueComInterfaceMarshaller<IAzTasks>))] out IAzTasks ppTasks);
+    void OpenTask([MarshalAs(UnmanagedType.BStr)] string bstrTaskName, Variant varReserved, [MarshalUsing(typeof(UniqueComInterfaceMarshaller<IAzTask>))] out IAzTask ppTask);
+    void CreateTask([MarshalAs(UnmanagedType.BStr)] string bstrTaskName, Variant varReserved, [MarshalUsing(typeof(UniqueComInterfaceMarshaller<IAzTask>))] out IAzTask ppTask);
     void DeleteTask([MarshalAs(UnmanagedType.BStr)] string bstrTaskName, Variant varReserved);
     void Submit(int lFlags, Variant varReserved);
     int get_CanBeDelegated(); // unused (placeholder, LONG-typed boolean)

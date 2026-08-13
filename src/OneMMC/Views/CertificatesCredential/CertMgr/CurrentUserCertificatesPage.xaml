@@ -82,9 +82,8 @@
             Title="{x:Bind LocalizedStrings.Common_ErrorTitle}" />
 
         <!--
-            ItemsRepeater + StackLayout inside the ScrollViewer, not ItemsControl with a StackPanel
-            ItemsPanel: ItemsControl does not virtualize, and a StackPanel hands it unbounded height, so
-            every store - and, through the expanders, every certificate row - was realized on load.
+            ItemsRepeater + StackLayout uses this ScrollViewer as its virtualizing scroll host.
+            Collapsed stores expose an empty Rows list; expanding a store materializes only its rows.
         -->
         <ScrollViewer Grid.Row="3" Padding="24,12,24,24">
             <ItemsRepeater
@@ -98,7 +97,7 @@
                         <controls:SettingsExpander
                             Header="{x:Bind DisplayName}"
                             IsExpanded="{x:Bind IsExpanded, Mode=TwoWay}"
-                            ItemsSource="{x:Bind Rows}">
+                            ItemsSource="{x:Bind Rows, Mode=OneWay}">
                             <controls:SettingsExpander.ItemTemplate>
                                 <DataTemplate x:DataType="certModels:CertificateDisplayRow">
                                     <controls:SettingsCard

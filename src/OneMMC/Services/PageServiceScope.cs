@@ -8,17 +8,16 @@ namespace OneMMC.Services;
 /// </summary>
 /// <remarks>
 /// <para>
-/// Resolving a transient <see cref="IDisposable"/> service straight from the root provider
-/// (<c>App.GetRequiredService&lt;T&gt;()</c>) leaks it: the container adds every disposable it creates
-/// to the resolving scope's disposal list, and for the root provider that list is only drained at
-/// process exit. A page that resolves such a service in its constructor therefore pins one instance —
-/// plus everything it references — per navigation.
+/// Resolving a transient graph that contains a container-created <see cref="IDisposable"/> straight
+/// from the root provider (<c>App.GetRequiredService&lt;T&gt;()</c>) retains that disposable: the container
+/// adds every disposable it creates to the resolving scope's disposal list. OneMMC disposes its root
+/// provider only when the main window closes, so a page that does this pins the disposable and everything
+/// it references for the rest of the interactive process lifetime.
 /// </para>
 /// <para>
-/// Pages that resolve a disposable view model must create a <see cref="PageServiceScope"/> instead and
-/// dispose it from their <c>Unloaded</c> handler. Disposing the scope disposes everything resolved
-/// through it and drops the container's references, so the view model and its object graph become
-/// collectable. See <c>doc/MemoryManagement.md</c>.
+/// Pages must use a <see cref="PageServiceScope"/> when the requested transient itself is disposable or
+/// any of its transient dependencies are disposable. Disposing the scope from <c>Unloaded</c> disposes
+/// the whole owned graph and drops the container's references. See <c>doc/MemoryManagement.md</c>.
 /// </para>
 /// </remarks>
 public sealed partial class PageServiceScope : IDisposable

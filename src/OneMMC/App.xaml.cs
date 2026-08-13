@@ -37,6 +37,7 @@ namespace OneMMC
 
         private static bool _isErrorDialogShowing = false;
         private readonly ILogger<App> _logger;
+        private bool _servicesDisposed;
 
         /// <summary>
         /// Initializes the singleton application object.  This is the first line of authored code
@@ -174,6 +175,13 @@ namespace OneMMC
         private void MainWindowInstance_Closed(object sender, WindowEventArgs args)
         {
             _logger.LogInformation("Main window closed. Shutting down logger.");
+
+            if (!_servicesDisposed && Services is IDisposable disposableServices)
+            {
+                _servicesDisposed = true;
+                disposableServices.Dispose();
+            }
+
             LoggingBootstrapper.Shutdown();
         }
 

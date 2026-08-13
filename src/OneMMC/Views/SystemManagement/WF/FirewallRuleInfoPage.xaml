@@ -63,7 +63,7 @@
         </CommandBar>
 
         <!--  Content  -->
-        <ScrollViewer Grid.Row="2">
+        <ScrollViewer x:Name="RuleEditorScrollViewer" Grid.Row="2">
             <StackPanel Padding="16,4,16,24" Spacing="4">
 
                 <!--  ── General ──  -->

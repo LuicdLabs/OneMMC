@@ -79,10 +79,12 @@
 Memory used to grow with the number of pages visited rather than with the data on screen. The full
 diagnosis, rules, and measurement probes are in `doc/MemoryManagement.md`; the binding rules are:
 
-- **Resolve disposable view models from a page scope**: a transient `IDisposable` resolved through
-  `App.GetRequiredService<T>()` is held by the root container until the process exits. Use
-  `PageServiceScope` and dispose it in `Unloaded`. Do not also call `ViewModel.Dispose()`. Never dispose a
-  singleton you were injected with (`AzManService`, `AdmxBundleProvider`).
+- **Resolve transient graphs containing disposables from a page scope**: the DI container tracks every
+  container-created disposable in the resolving scope even when the requested outer service is not
+  `IDisposable`. A root-resolved transient graph is therefore held until the root provider is disposed at
+  main-window close. Use `PageServiceScope` and dispose it in `Unloaded`; resolve once per page. Do not also
+  call `Dispose()` on the resolved service, and never dispose an injected singleton (`AzManService`,
+  `AdmxBundleProvider`).
 - **Navigation parameters carry identifiers, not objects**: `Frame.BackStack` and the breadcrumb trail
   retain them for the session. Pass a path/name/id and resolve services from DI. Small self-contained DTOs
   are fine; live services and view models are not.

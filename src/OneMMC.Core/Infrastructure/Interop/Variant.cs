@@ -227,7 +227,15 @@ internal partial struct Variant : IDisposable
         }
 
         object wrapper = ComActivator.ComWrappers.GetOrCreateObjectForComInstance(_value, CreateObjectFlags.UniqueInstance);
-        return (TInterface)wrapper;
+        try
+        {
+            return (TInterface)wrapper;
+        }
+        catch
+        {
+            ComActivator.Release(wrapper);
+            throw;
+        }
     }
 
     /// <summary>

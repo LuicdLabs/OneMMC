@@ -28,7 +28,7 @@ namespace OneMMC.Core.Features.SystemManagement.Services.ComExp.Native;
 internal partial interface ICOMAdminCatalog : IDispatch
 {
     /// <summary>Gets a top-level catalog collection by name (e.g. "Applications", "ApplicationInstances").</summary>
-    void GetCollection([MarshalAs(UnmanagedType.BStr)] string bstrCollName, out ICatalogCollection ppCatalogCollection);
+    void GetCollection([MarshalAs(UnmanagedType.BStr)] string bstrCollName, [MarshalUsing(typeof(UniqueComInterfaceMarshaller<ICatalogCollection>))] out ICatalogCollection ppCatalogCollection);
 }
 
 /// <summary>
@@ -42,7 +42,7 @@ internal partial interface ICatalogCollection : IDispatch
     nint get__NewEnum();
 
     /// <summary>Gets the object at <paramref name="lIndex"/> (0-based). (slot 8)</summary>
-    void get_Item(int lIndex, out ICatalogObject ppCatalogObject);
+    void get_Item(int lIndex, [MarshalUsing(typeof(UniqueComInterfaceMarshaller<ICatalogObject>))] out ICatalogObject ppCatalogObject);
 
     /// <summary>Gets the number of objects currently populated in the collection. (slot 9)</summary>
     int get_Count();

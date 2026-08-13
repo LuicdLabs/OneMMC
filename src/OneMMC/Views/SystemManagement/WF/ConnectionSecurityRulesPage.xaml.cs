@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using OneMMC.Core.Features.SystemManagement.Models.WF.Authentication;
 using OneMMC.Core.Features.SystemManagement.Models.WF.ConnectionSecurity;
@@ -18,11 +19,15 @@ using OneMMC.Services;
 using OneMMC.Views.Dialogs.NewRule;
 using CommunityToolkit.WinUI.Controls;
 using Microsoft.Extensions.Logging;
+using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media.Animation;
 using Windows.System;
+// Disambiguate DispatcherQueueTimer: both Microsoft.UI.Dispatching and Windows.System
+// declare it; the WinUI 3 timer returned by DispatcherQueue.CreateTimer() is the former.
+using DispatcherQueueTimer = Microsoft.UI.Dispatching.DispatcherQueueTimer;
 
 namespace OneMMC.Views;
 
@@ -31,10 +36,14 @@ public sealed partial class ConnectionSecurityRulesPage : Page
     private readonly ConnectionSecurityService _connectionSecurityService;
     private readonly IAdminService _adminService;
     private readonly ILogger<ConnectionSecurityRulesPage> _logger;
+    private readonly CancellationTokenSource _pageLifetimeCancellation = new();
+    private readonly CancellationToken _pageLifetimeToken;
     private readonly HashSet<ToggleSwitch> _trackedRuleToggles = [];
     private readonly HashSet<ToggleSwitch> _userInitiatedRuleToggles = [];
+    private readonly Dictionary<DispatcherQueueTimer, ToggleSwitch> _toggleExpirationTimers = [];
     private IDisposable? _firewallChangeSubscription;
     private bool _isLoadingRules;
+    private int _pageLifetimeEnded;
 
     public LocalizedStrings LocalizedStrings { get; } = LocalizedStrings.Instance;
     public ConnectionSecurityRulesViewModel ViewModel { get; }
@@ -43,6 +52,7 @@ public sealed partial class ConnectionSecurityRulesPage : Page
 
     public ConnectionSecurityRulesPage()
     {
+        _pageLifetimeToken = _pageLifetimeCancellation.Token;
         _connectionSecurityService = App.GetRequiredService<ConnectionSecurityService>();
         _adminService = App.GetRequiredService<IAdminService>();
         _logger = App.GetRequiredService<ILogger<ConnectionSecurityRulesPage>>();
@@ -65,12 +75,15 @@ public sealed partial class ConnectionSecurityRulesPage : Page
 
     private void OnUnloaded(object sender, RoutedEventArgs e)
     {
+        EndPageLifetime();
+        StopToggleExpirationTimers();
         App.ThemeChanged -= OnThemeChanged;
         _firewallChangeSubscription?.Dispose();
         _firewallChangeSubscription = null;
         _trackedRuleToggles.Clear();
         _userInitiatedRuleToggles.Clear();
         Unloaded -= OnUnloaded;
+        _pageLifetimeCancellation.Dispose();
     }
 
     private void OnThemeChanged(ElementTheme theme)
@@ -80,7 +93,8 @@ public sealed partial class ConnectionSecurityRulesPage : Page
 
     private async Task LoadRulesAsync(bool showLoading, bool showError)
     {
-        if (_isLoadingRules)
+        CancellationToken cancellationToken = _pageLifetimeToken;
+        if (_isLoadingRules || cancellationToken.IsCancellationRequested)
         {
             return;
         }
@@ -93,22 +107,35 @@ public sealed partial class ConnectionSecurityRulesPage : Page
 
         try
         {
-            IReadOnlyList<ConnectionSecurityRuleModel> rules = await Task.Run(() => _connectionSecurityService.GetRules());
+            ConnectionSecurityService connectionSecurityService = _connectionSecurityService;
+            Task<IReadOnlyList<ConnectionSecurityRuleModel>> loadTask =
+                Task.Run(connectionSecurityService.GetRules);
+            IReadOnlyList<ConnectionSecurityRuleModel> rules =
+                await loadTask.WaitAsync(cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();
+
             ViewModel.Rules = new ObservableCollection<ConnectionSecurityRuleItem>(
                 rules.Select(ConnectionSecurityRuleItem.FromModel));
             ViewModel.FilterRules(_lastSearchText);
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Failed to load connection security rules.");
-            if (showError)
+            if (cancellationToken.IsCancellationRequested)
             {
-                await ShowErrorDialogAsync(LocalizedStrings.Common_ErrorTitle, LocalizedStrings.WF_Error_LoadConnectionSecurityRules);
+                _logger.LogDebug("Connection security rule loading was canceled because the page unloaded.");
+            }
+            else
+            {
+                _logger.LogWarning(ex, "Failed to load connection security rules.");
+                if (showError)
+                {
+                    await ShowErrorDialogAsync(LocalizedStrings.Common_ErrorTitle, LocalizedStrings.WF_Error_LoadConnectionSecurityRules);
+                }
             }
         }
         finally
         {
-            if (showLoading)
+            if (showLoading && !cancellationToken.IsCancellationRequested)
             {
                 ViewModel.IsLoading = false;
             }
@@ -152,8 +179,19 @@ public sealed partial class ConnectionSecurityRulesPage : Page
 
     private void OnFirewallRulesChanged(object? sender, EventArgs e)
     {
+        CancellationToken cancellationToken = _pageLifetimeToken;
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return;
+        }
+
         DispatcherQueue.TryEnqueue(async () =>
         {
+            if (cancellationToken.IsCancellationRequested)
+            {
+                return;
+            }
+
             await LoadRulesAsync(showLoading: false, showError: false);
         });
     }
@@ -183,10 +221,15 @@ public sealed partial class ConnectionSecurityRulesPage : Page
         }
 
         ViewModel.SelectedRule = item;
-        BreadcrumbNavigationService.AddBreadcrumb(item.Name, typeof(FirewallRuleInfoPage), item.Model);
+        FirewallRuleNavigationParameter navigationParameter =
+            FirewallRuleNavigationParameter.ForConnectionSecurityRule(item.Model);
+        BreadcrumbNavigationService.AddBreadcrumb(
+            item.Name,
+            typeof(FirewallRuleInfoPage),
+            navigationParameter);
         Frame.Navigate(
             typeof(FirewallRuleInfoPage),
-            item.Model,
+            navigationParameter,
             new SlideNavigationTransitionInfo
             {
                 Effect = SlideNavigationTransitionEffect.FromRight
@@ -213,6 +256,7 @@ public sealed partial class ConnectionSecurityRulesPage : Page
 
         toggleSwitch.RemoveHandler(UIElement.PointerPressedEvent, new PointerEventHandler(RuleToggleSwitch_PointerPressed));
         toggleSwitch.RemoveHandler(UIElement.KeyDownEvent, new KeyEventHandler(RuleToggleSwitch_KeyDown));
+        StopToggleExpirationTimers(toggleSwitch);
         _userInitiatedRuleToggles.Remove(toggleSwitch);
     }
 
@@ -234,16 +278,50 @@ public sealed partial class ConnectionSecurityRulesPage : Page
 
     private void MarkUserInitiatedToggle(ToggleSwitch toggleSwitch)
     {
+        if (!IsPageLifetimeActive)
+        {
+            return;
+        }
+
+        StopToggleExpirationTimers(toggleSwitch);
         _userInitiatedRuleToggles.Add(toggleSwitch);
 
-        var expirationTimer = DispatcherQueue.CreateTimer();
+        DispatcherQueueTimer expirationTimer = DispatcherQueue.CreateTimer();
         expirationTimer.Interval = TimeSpan.FromSeconds(3);
-        expirationTimer.Tick += (_, _) =>
+        expirationTimer.Tick += RuleToggleExpirationTimer_Tick;
+        _toggleExpirationTimers.Add(expirationTimer, toggleSwitch);
+        expirationTimer.Start();
+    }
+
+    private void RuleToggleExpirationTimer_Tick(DispatcherQueueTimer sender, object args)
+    {
+        if (_toggleExpirationTimers.Remove(sender, out ToggleSwitch? toggleSwitch) &&
+            IsPageLifetimeActive)
         {
             _userInitiatedRuleToggles.Remove(toggleSwitch);
-            expirationTimer.Stop();
-        };
-        expirationTimer.Start();
+        }
+
+        sender.Tick -= RuleToggleExpirationTimer_Tick;
+        sender.Stop();
+    }
+
+    private void StopToggleExpirationTimers(ToggleSwitch? toggleSwitch = null)
+    {
+        List<DispatcherQueueTimer> timersToStop = [];
+        foreach ((DispatcherQueueTimer timer, ToggleSwitch trackedToggle) in _toggleExpirationTimers)
+        {
+            if (toggleSwitch is null || ReferenceEquals(toggleSwitch, trackedToggle))
+            {
+                timersToStop.Add(timer);
+            }
+        }
+
+        foreach (DispatcherQueueTimer timer in timersToStop)
+        {
+            _toggleExpirationTimers.Remove(timer);
+            timer.Tick -= RuleToggleExpirationTimer_Tick;
+            timer.Stop();
+        }
     }
 
     private async void RuleToggleSwitch_Toggled(object sender, RoutedEventArgs e)
@@ -257,6 +335,8 @@ public sealed partial class ConnectionSecurityRulesPage : Page
         {
             return;
         }
+
+        StopToggleExpirationTimers(toggleSwitch);
 
         // Read the switch state once here: ToggleSwitch is thread-affine, so evaluating
         // IsOn inside the background Task.Run below throws RPC_E_WRONG_THREAD.
@@ -275,19 +355,45 @@ public sealed partial class ConnectionSecurityRulesPage : Page
 
         bool previousEnabled = item.Model.Enabled;
         string lookupName = GetRuleLookupName(item.Model);
+        CancellationToken cancellationToken = _pageLifetimeToken;
         try
         {
-            await Task.Run(() => _connectionSecurityService.SetRuleEnabled(lookupName, requestedEnabled));
+            ConnectionSecurityService connectionSecurityService = _connectionSecurityService;
+            Task updateTask = Task.Run(
+                () => connectionSecurityService.SetRuleEnabled(lookupName, requestedEnabled));
+            await updateTask.WaitAsync(cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();
+
             item.IsEnabled = requestedEnabled;
             item.Model.Enabled = requestedEnabled;
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Failed to set connection security rule {RuleName} enabled={Enabled}.", lookupName, requestedEnabled);
-            item.IsEnabled = previousEnabled;
-            item.Model.Enabled = previousEnabled;
-            ResetToggleSwitch(toggleSwitch, previousEnabled);
-            await ShowErrorDialogAsync(LocalizedStrings.WF_Error_UpdateConnectionSecurityRule, ex.Message);
+            if (cancellationToken.IsCancellationRequested)
+            {
+                _logger.LogDebug(
+                    "Updating connection security rule {RuleName} was canceled because the page unloaded.",
+                    lookupName);
+            }
+            else
+            {
+                _logger.LogWarning(ex, "Failed to set connection security rule {RuleName} enabled={Enabled}.", lookupName, requestedEnabled);
+                item.IsEnabled = previousEnabled;
+                item.Model.Enabled = previousEnabled;
+                ResetToggleSwitch(toggleSwitch, previousEnabled);
+                await ShowErrorDialogAsync(LocalizedStrings.WF_Error_UpdateConnectionSecurityRule, ex.Message);
+            }
+        }
+    }
+
+    private bool IsPageLifetimeActive
+        => Volatile.Read(ref _pageLifetimeEnded) == 0;
+
+    private void EndPageLifetime()
+    {
+        if (Interlocked.Exchange(ref _pageLifetimeEnded, 1) == 0)
+        {
+            _pageLifetimeCancellation.Cancel();
         }
     }
 

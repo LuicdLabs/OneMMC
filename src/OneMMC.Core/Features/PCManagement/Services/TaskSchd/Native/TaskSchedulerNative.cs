@@ -31,8 +31,8 @@ namespace OneMMC.Core.Features.PCManagement.Services.TaskSchd.Native;
 [GeneratedComInterface, Guid("2FABA4C7-4DA9-4013-9697-20CC3FD40F85")]
 internal partial interface ITaskService : IDispatch
 {
-    void GetFolder([MarshalAs(UnmanagedType.BStr)] string path, out ITaskFolder ppFolder);
-    void GetRunningTasks(int flags, out IRunningTaskCollection ppRunningTasks);
+    void GetFolder([MarshalAs(UnmanagedType.BStr)] string path, [MarshalUsing(typeof(UniqueComInterfaceMarshaller<ITaskFolder>))] out ITaskFolder ppFolder);
+    void GetRunningTasks(int flags, [MarshalUsing(typeof(UniqueComInterfaceMarshaller<IRunningTaskCollection>))] out IRunningTaskCollection ppRunningTasks);
     void NewTask(uint flags, out nint ppDefinition); // unused (placeholder)
     void Connect(Variant serverName, Variant user, Variant domain, Variant password);
     short get_Connected(); // VARIANT_BOOL
@@ -48,15 +48,15 @@ internal partial interface ITaskFolder : IDispatch
 {
     [return: MarshalAs(UnmanagedType.BStr)] string get_Name();
     [return: MarshalAs(UnmanagedType.BStr)] string get_Path();
-    void GetFolder([MarshalAs(UnmanagedType.BStr)] string path, out ITaskFolder ppFolder);
-    void GetFolders(int flags, out ITaskFolderCollection ppFolders);
-    void CreateFolder([MarshalAs(UnmanagedType.BStr)] string subFolderName, Variant sddl, out ITaskFolder ppFolder);
+    void GetFolder([MarshalAs(UnmanagedType.BStr)] string path, [MarshalUsing(typeof(UniqueComInterfaceMarshaller<ITaskFolder>))] out ITaskFolder ppFolder);
+    void GetFolders(int flags, [MarshalUsing(typeof(UniqueComInterfaceMarshaller<ITaskFolderCollection>))] out ITaskFolderCollection ppFolders);
+    void CreateFolder([MarshalAs(UnmanagedType.BStr)] string subFolderName, Variant sddl, [MarshalUsing(typeof(UniqueComInterfaceMarshaller<ITaskFolder>))] out ITaskFolder ppFolder);
     void DeleteFolder([MarshalAs(UnmanagedType.BStr)] string subFolderName, int flags);
-    void GetTask([MarshalAs(UnmanagedType.BStr)] string path, out IRegisteredTask ppTask);
-    void GetTasks(int flags, out IRegisteredTaskCollection ppTasks);
+    void GetTask([MarshalAs(UnmanagedType.BStr)] string path, [MarshalUsing(typeof(UniqueComInterfaceMarshaller<IRegisteredTask>))] out IRegisteredTask ppTask);
+    void GetTasks(int flags, [MarshalUsing(typeof(UniqueComInterfaceMarshaller<IRegisteredTaskCollection>))] out IRegisteredTaskCollection ppTasks);
     void DeleteTask([MarshalAs(UnmanagedType.BStr)] string name, int flags);
-    void RegisterTask([MarshalAs(UnmanagedType.BStr)] string path, [MarshalAs(UnmanagedType.BStr)] string xmlText, int flags, Variant userId, Variant password, int logonType, Variant sddl, out IRegisteredTask ppTask);
-    void RegisterTaskDefinition([MarshalAs(UnmanagedType.BStr)] string path, nint pDefinition, int flags, Variant userId, Variant password, int logonType, Variant sddl, out IRegisteredTask ppTask); // unused (placeholder)
+    void RegisterTask([MarshalAs(UnmanagedType.BStr)] string path, [MarshalAs(UnmanagedType.BStr)] string xmlText, int flags, Variant userId, Variant password, int logonType, Variant sddl, [MarshalUsing(typeof(UniqueComInterfaceMarshaller<IRegisteredTask>))] out IRegisteredTask ppTask);
+    void RegisterTaskDefinition([MarshalAs(UnmanagedType.BStr)] string path, nint pDefinition, int flags, Variant userId, Variant password, int logonType, Variant sddl, [MarshalUsing(typeof(UniqueComInterfaceMarshaller<IRegisteredTask>))] out IRegisteredTask ppTask); // unused (placeholder)
     void GetSecurityDescriptor(int securityInformation, [MarshalAs(UnmanagedType.BStr)] out string pSddl);
     void SetSecurityDescriptor([MarshalAs(UnmanagedType.BStr)] string sddl, int flags);
 }
@@ -66,7 +66,7 @@ internal partial interface ITaskFolder : IDispatch
 internal partial interface ITaskFolderCollection : IDispatch
 {
     int get_Count();
-    void get_Item(Variant index, out ITaskFolder ppFolder);
+    void get_Item(Variant index, [MarshalUsing(typeof(UniqueComInterfaceMarshaller<ITaskFolder>))] out ITaskFolder ppFolder);
     nint get__NewEnum(); // unused (placeholder, IUnknown)
 }
 
@@ -79,9 +79,9 @@ internal partial interface IRegisteredTask : IDispatch
     int get_State();
     short get_Enabled(); // VARIANT_BOOL
     void put_Enabled(short enabled); // VARIANT_BOOL
-    void Run(Variant @params, out IRunningTask ppRunningTask);
-    void RunEx(Variant @params, int flags, int sessionID, [MarshalAs(UnmanagedType.BStr)] string user, out IRunningTask ppRunningTask); // unused (placeholder)
-    void GetInstances(int flags, out IRunningTaskCollection ppRunningTasks);
+    void Run(Variant @params, [MarshalUsing(typeof(UniqueComInterfaceMarshaller<IRunningTask>))] out IRunningTask ppRunningTask);
+    void RunEx(Variant @params, int flags, int sessionID, [MarshalAs(UnmanagedType.BStr)] string user, [MarshalUsing(typeof(UniqueComInterfaceMarshaller<IRunningTask>))] out IRunningTask ppRunningTask); // unused (placeholder)
+    void GetInstances(int flags, [MarshalUsing(typeof(UniqueComInterfaceMarshaller<IRunningTaskCollection>))] out IRunningTaskCollection ppRunningTasks);
     double get_LastRunTime();
     int get_LastTaskResult();
     int get_NumberOfMissedRuns();
@@ -99,7 +99,7 @@ internal partial interface IRegisteredTask : IDispatch
 internal partial interface IRegisteredTaskCollection : IDispatch
 {
     int get_Count();
-    void get_Item(Variant index, out IRegisteredTask ppRegisteredTask);
+    void get_Item(Variant index, [MarshalUsing(typeof(UniqueComInterfaceMarshaller<IRegisteredTask>))] out IRegisteredTask ppRegisteredTask);
     nint get__NewEnum(); // unused (placeholder, IUnknown)
 }
 
@@ -123,6 +123,6 @@ internal partial interface IRunningTask : IDispatch
 internal partial interface IRunningTaskCollection : IDispatch
 {
     int get_Count();
-    void get_Item(Variant index, out IRunningTask ppRunningTask);
+    void get_Item(Variant index, [MarshalUsing(typeof(UniqueComInterfaceMarshaller<IRunningTask>))] out IRunningTask ppRunningTask);
     nint get__NewEnum(); // unused (placeholder, IUnknown)
 }

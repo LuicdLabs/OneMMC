@@ -51,25 +51,50 @@ internal static class FirewallCom
         }
 
         // _NewEnum returns an AddRef'd IUnknown; wrap it (which takes its own ref) then drop ours.
-        object wrapper = ComActivator.ComWrappers.GetOrCreateObjectForComInstance(enumPtr, CreateObjectFlags.UniqueInstance);
-        Marshal.Release(enumPtr);
-        var enumerator = (IEnumVariant)wrapper;
+        object wrapper;
+        try
+        {
+            wrapper = ComActivator.ComWrappers.GetOrCreateObjectForComInstance(enumPtr, CreateObjectFlags.UniqueInstance);
+        }
+        finally
+        {
+            Marshal.Release(enumPtr);
+        }
+
+        IEnumVariant enumerator;
+        try
+        {
+            enumerator = (IEnumVariant)wrapper;
+        }
+        catch
+        {
+            ComActivator.Release(wrapper);
+            throw;
+        }
 
         try
         {
             while (true)
             {
-                int hr = enumerator.Next(1, out Variant variant, out uint fetched);
-                if (hr < 0 || fetched == 0)
+                Variant variant = default;
+                INetFwRule3? rule;
+                try
+                {
+                    int hr = enumerator.Next(1, out variant, out uint fetched);
+                    if (hr < 0 || fetched == 0)
+                    {
+                        yield break;
+                    }
+
+                    // Each element is a VT_DISPATCH holding the rule. The wrapper takes its own
+                    // reference before the element variant's reference is released.
+                    rule = variant.ToComInterface<INetFwRule3>();
+                }
+                finally
                 {
                     variant.Clear();
-                    yield break;
                 }
 
-                // Each element is a VT_DISPATCH holding the rule; wrap as INetFwRule3 (QI) then free
-                // the element variant's own reference.
-                INetFwRule3? rule = variant.ToComInterface<INetFwRule3>();
-                variant.Clear();
                 if (rule is not null)
                 {
                     yield return rule;

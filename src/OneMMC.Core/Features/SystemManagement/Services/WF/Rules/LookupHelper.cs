@@ -9,6 +9,10 @@ namespace OneMMC.Core.Features.SystemManagement.Services.WF.Rules;
 
 internal static class LookupHelper
 {
+    /// <summary>
+    /// Finds a rule and transfers ownership of its unique COM wrapper to the caller. The caller must
+    /// release a non-null result with <see cref="FirewallCom.Release"/>.
+    /// </summary>
     internal static INetFwRule3? FindRule(INetFwRules rules, string? primaryName, string? secondaryName)
     {
         HashSet<string> candidateNames = new(StringComparer.OrdinalIgnoreCase);
@@ -75,14 +79,21 @@ internal static class LookupHelper
     {
         string existingName = existingRule.get_Name() ?? string.Empty;
         INetFwRule3 replacementRule = WindowsFirewallSupport.CreateRule();
-        ComApplier.ApplyRuleToComObject(updatedRule, replacementRule);
-
-        if (!string.IsNullOrWhiteSpace(existingName))
+        try
         {
-            rules.Remove(existingName);
-        }
+            ComApplier.ApplyRuleToComObject(updatedRule, replacementRule);
 
-        rules.Add(replacementRule);
+            if (!string.IsNullOrWhiteSpace(existingName))
+            {
+                rules.Remove(existingName);
+            }
+
+            rules.Add(replacementRule);
+        }
+        finally
+        {
+            FirewallCom.Release(replacementRule);
+        }
     }
 
     private static void AddCandidateName(ISet<string> names, string? name)

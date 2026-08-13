@@ -31,6 +31,7 @@ public sealed partial class AuthorizationStorePage : Page
     private AzManService? _service;
     private AuthorizationStoreViewModel? _viewModel;
     private AzAuthorizationStoreInfo? _store;
+    private int _navigationGeneration;
 
     public AuthorizationStorePage()
     {
@@ -39,6 +40,7 @@ public sealed partial class AuthorizationStorePage : Page
         App.ThemeChanged += OnThemeChanged;
         this.Unloaded += (_, _) =>
         {
+            ++_navigationGeneration;
             App.ThemeChanged -= OnThemeChanged;
             if (_viewModel != null)
             {
@@ -58,19 +60,22 @@ public sealed partial class AuthorizationStorePage : Page
 
         if (e.Parameter is StoreNavigationParameter param)
         {
-            // AzManService is a DI singleton; the navigation parameter deliberately no longer carries it.
+            int generation = ++_navigationGeneration;
+            // AzManService is a DI singleton; the journal carries only the stable store path.
             _service = App.GetRequiredService<AzManService>();
-            _store = param.Store;
-            _viewModel = new AuthorizationStoreViewModel(_service);
-            _viewModel.PropertyChanged += OnViewModelPropertyChanged;
+            var viewModel = new AuthorizationStoreViewModel(_service);
+            _viewModel = viewModel;
+            viewModel.PropertyChanged += OnViewModelPropertyChanged;
 
-            UpdateStoreHeader();
-
-            // Load data
-            await _viewModel.LoadAsync(_store.StorePath);
-            if (_viewModel.Store is not null)
+            await viewModel.LoadAsync(param.StorePath);
+            if (!IsCurrentViewModel(generation, viewModel))
             {
-                _store = _viewModel.Store;
+                return;
+            }
+
+            if (viewModel.Store is not null)
+            {
+                _store = viewModel.Store;
                 UpdateStoreHeader();
             }
             // UI will update automatically
@@ -79,11 +84,19 @@ public sealed partial class AuthorizationStorePage : Page
 
     protected override void OnNavigatedFrom(NavigationEventArgs e)
     {
+        ++_navigationGeneration;
         base.OnNavigatedFrom(e);
-        if (_viewModel != null)
+        if (_viewModel is not null)
         {
             _viewModel.PropertyChanged -= OnViewModelPropertyChanged;
         }
+
+        // Clear the current identity immediately, rather than waiting for Unloaded. A PropertyChanged
+        // invocation may already have copied the delegate before the unsubscribe above; nulling the
+        // field ensures its queued DispatcherQueue callback cannot pass IsCurrentViewModel.
+        _viewModel = null;
+        _service = null;
+        _store = null;
     }
 
     #endregion
@@ -97,13 +110,24 @@ public sealed partial class AuthorizationStorePage : Page
 
     private void OnViewModelPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
+        if (sender is not AuthorizationStoreViewModel viewModel)
+        {
+            return;
+        }
+
+        int generation = _navigationGeneration;
         // UI will update automatically through x:Bind Mode=OneWay
         DispatcherQueue.TryEnqueue(() =>
         {
+            if (!IsCurrentViewModel(generation, viewModel))
+            {
+                return;
+            }
+
             switch (e.PropertyName)
             {
                 case nameof(AuthorizationStoreViewModel.IsLoading):
-                    LoadingRing.IsActive = _viewModel?.IsLoading ?? false;
+                    LoadingRing.IsActive = viewModel.IsLoading;
                     break;
 
                 case nameof(AuthorizationStoreViewModel.HasError):
@@ -112,9 +136,9 @@ public sealed partial class AuthorizationStorePage : Page
                     break;
 
                 case nameof(AuthorizationStoreViewModel.Store):
-                    if (_viewModel?.Store is not null)
+                    if (viewModel.Store is not null)
                     {
-                        _store = _viewModel.Store;
+                        _store = viewModel.Store;
                     }
                     UpdateStoreHeader();
                     break;
@@ -142,12 +166,20 @@ public sealed partial class AuthorizationStorePage : Page
 
     private async void OnRefreshClick(object sender, RoutedEventArgs e)
     {
-        if (_viewModel != null && _store != null)
+        AuthorizationStoreViewModel? viewModel = _viewModel;
+        AzAuthorizationStoreInfo? store = _store;
+        int generation = _navigationGeneration;
+        if (viewModel is not null && store is not null)
         {
-            await _viewModel.LoadAsync(_store.StorePath);
-            if (_viewModel.Store is not null)
+            await viewModel.LoadAsync(store.StorePath);
+            if (!IsCurrentViewModel(generation, viewModel))
             {
-                _store = _viewModel.Store;
+                return;
+            }
+
+            if (viewModel.Store is not null)
+            {
+                _store = viewModel.Store;
                 UpdateStoreHeader();
             }
             // UI will update automatically
@@ -156,16 +188,26 @@ public sealed partial class AuthorizationStorePage : Page
 
     private async void OnPropertiesClick(object sender, RoutedEventArgs e)
     {
-        if (_store == null) return;
+        AzAuthorizationStoreInfo? store = _store;
+        AuthorizationStoreViewModel? viewModel = _viewModel;
+        AzManService? service = _service;
+        int generation = _navigationGeneration;
+        if (store is null) return;
 
-        if (_viewModel != null)
+        if (viewModel is not null)
         {
             try
             {
-                await _viewModel.LoadAsync(_store.StorePath);
-                if (_viewModel.Store is not null)
+                await viewModel.LoadAsync(store.StorePath);
+                if (!IsCurrentViewModel(generation, viewModel))
                 {
-                    _store = _viewModel.Store;
+                    return;
+                }
+
+                if (viewModel.Store is not null)
+                {
+                    store = viewModel.Store;
+                    _store = store;
                     UpdateStoreHeader();
                 }
             }
@@ -175,12 +217,21 @@ public sealed partial class AuthorizationStorePage : Page
             }
         }
 
+        if (!IsCurrentGeneration(generation))
+        {
+            return;
+        }
+
         StoreAdvancedProperties? advancedProperties = null;
-        if (_service != null)
+        if (service is not null)
         {
             try
             {
-                advancedProperties = await _service.GetStoreAdvancedPropertiesAsync(_store.StorePath);
+                advancedProperties = await service.GetStoreAdvancedPropertiesAsync(store.StorePath);
+                if (!IsCurrentGeneration(generation))
+                {
+                    return;
+                }
             }
             catch
             {
@@ -188,7 +239,12 @@ public sealed partial class AuthorizationStorePage : Page
             }
         }
 
-        var dialog = new StorePropertiesDialog(_store, advancedProperties)
+        if (!IsCurrentGeneration(generation))
+        {
+            return;
+        }
+
+        var dialog = new StorePropertiesDialog(store, advancedProperties)
         {
             XamlRoot = this.XamlRoot,
             Style = Application.Current.Resources["DefaultContentDialogStyle"] as Style,
@@ -198,19 +254,28 @@ public sealed partial class AuthorizationStorePage : Page
         while (true)
         {
             var result = await dialog.ShowAsync();
+            if (!IsCurrentGeneration(generation))
+            {
+                return;
+            }
+
             if (dialog.ReopenRequested)
             {
                 await dialog.WaitForReopenAsync();
+                if (!IsCurrentGeneration(generation))
+                {
+                    return;
+                }
                 continue;
             }
 
-            if (result == ContentDialogResult.Primary && dialog.Result != null && _service != null)
+            if (result == ContentDialogResult.Primary && dialog.Result != null && service is not null)
             {
                 try
                 {
                     // Update store properties
-                    await _service.UpdateStorePropertiesAsync(
-                        _store.StorePath,
+                    await service.UpdateStorePropertiesAsync(
+                        store.StorePath,
                         dialog.Result.Description,
                         dialog.Result.ApplicationData,
                         dialog.Result.GenerateAudits);
@@ -234,48 +299,60 @@ public sealed partial class AuthorizationStorePage : Page
                         advancedUpdate.MaxScriptEngines = 0;
                     }
 
-                    await _service.UpdateStoreAdvancedPropertiesAsync(_store.StorePath, advancedUpdate);
+                    await service.UpdateStoreAdvancedPropertiesAsync(store.StorePath, advancedUpdate);
 
                     if (dialog.Result.UpgradeSchemaToV2)
                     {
-                        await _service.UpgradeStoreSchemaToV2Async(_store.StorePath);
+                        await service.UpgradeStoreSchemaToV2Async(store.StorePath);
                     }
 
                     // Update Policy Administrators
                     foreach (var admin in dialog.Result.AddedPolicyAdmins)
                     {
-                        await _service.AddPolicyAdministratorAsync(_store.StorePath, admin);
+                        await service.AddPolicyAdministratorAsync(store.StorePath, admin);
                     }
                     foreach (var admin in dialog.Result.RemovedPolicyAdmins)
                     {
-                        await _service.RemovePolicyAdministratorAsync(_store.StorePath, admin);
+                        await service.RemovePolicyAdministratorAsync(store.StorePath, admin);
                     }
 
                     // Update Policy Readers
                     foreach (var reader in dialog.Result.AddedPolicyReaders)
                     {
-                        await _service.AddPolicyReaderAsync(_store.StorePath, reader);
+                        await service.AddPolicyReaderAsync(store.StorePath, reader);
                     }
                     foreach (var reader in dialog.Result.RemovedPolicyReaders)
                     {
-                        await _service.RemovePolicyReaderAsync(_store.StorePath, reader);
+                        await service.RemovePolicyReaderAsync(store.StorePath, reader);
                     }
 
                     // Reload
-                    if (_viewModel != null)
+                    if (viewModel is not null)
                     {
-                        await _viewModel.LoadAsync(_store.StorePath);
-                        if (_viewModel.Store is not null)
+                        await viewModel.LoadAsync(store.StorePath);
+                        if (!IsCurrentViewModel(generation, viewModel))
                         {
-                            _store = _viewModel.Store;
+                            return;
+                        }
+
+                        if (viewModel.Store is not null)
+                        {
+                            store = viewModel.Store;
+                            _store = store;
                             UpdateStoreHeader();
                         }
                     }
-                    ShowStatus(LocalizedStrings.AuthorizationStorePage_Status_PropertiesUpdated, false);
+                    if (IsCurrentGeneration(generation))
+                    {
+                        ShowStatus(LocalizedStrings.AuthorizationStorePage_Status_PropertiesUpdated, false);
+                    }
                 }
                 catch (Exception ex)
                 {
-                    ShowStatus(string.Format(LocalizedStrings.AuthorizationStorePage_Status_PropertiesUpdateFailed, ex.Message), true);
+                    if (IsCurrentGeneration(generation))
+                    {
+                        ShowStatus(string.Format(LocalizedStrings.AuthorizationStorePage_Status_PropertiesUpdateFailed, ex.Message), true);
+                    }
                 }
             }
 
@@ -285,13 +362,16 @@ public sealed partial class AuthorizationStorePage : Page
 
     private async void OnDeleteClick(object sender, RoutedEventArgs e)
     {
-        if (_store == null) return;
+        AzAuthorizationStoreInfo? store = _store;
+        AzManService? service = _service;
+        int generation = _navigationGeneration;
+        if (store is null || service is null) return;
 
         var dialog = new ContentDialog
         {
             XamlRoot = this.XamlRoot,
             Title = LocalizedStrings.AuthorizationStorePage_DeleteStore_Title,
-            Content = string.Format(LocalizedStrings.AuthorizationStorePage_DeleteStore_Content, _store.Name),
+            Content = string.Format(LocalizedStrings.AuthorizationStorePage_DeleteStore_Content, store.Name),
             PrimaryButtonText = LocalizedStrings.Common_DeleteButton,
             CloseButtonText = LocalizedStrings.Common_CancelButton,
             DefaultButton = ContentDialogButton.Close,
@@ -300,17 +380,15 @@ public sealed partial class AuthorizationStorePage : Page
         };
 
         var result = await dialog.ShowAsync();
-        if (result == ContentDialogResult.Primary)
+        if (result == ContentDialogResult.Primary && IsCurrentGeneration(generation))
         {
             try
             {
-                if (_service == null)
+                await service.DeleteStoreAsync(store.StorePath);
+                if (!IsCurrentGeneration(generation))
                 {
-                    ShowStatus(LocalizedStrings.Common_ErrorTitle, true);
                     return;
                 }
-
-                await _service.DeleteStoreAsync(_store.StorePath);
 
                 if (this.Frame.CanGoBack)
                 {
@@ -319,7 +397,10 @@ public sealed partial class AuthorizationStorePage : Page
             }
             catch (Exception ex)
             {
-                ShowStatus(ex.Message, true);
+                if (IsCurrentGeneration(generation))
+                {
+                    ShowStatus(ex.Message, true);
+                }
             }
         }
     }
@@ -332,6 +413,10 @@ public sealed partial class AuthorizationStorePage : Page
 
     private async void OnAddApplicationClick(object sender, RoutedEventArgs e)
     {
+        AuthorizationStoreViewModel? viewModel = _viewModel;
+        int generation = _navigationGeneration;
+        if (viewModel is null) return;
+
         var dialog = new CreateItemDialog(CreateItemType.Application)
         {
             XamlRoot = this.XamlRoot,
@@ -340,10 +425,13 @@ public sealed partial class AuthorizationStorePage : Page
         };
 
         var result = await dialog.ShowAsync();
-        if (result == ContentDialogResult.Primary && dialog.Result != null && _viewModel != null)
+        var createResult = dialog.Result;
+        if (result == ContentDialogResult.Primary &&
+            createResult is not null &&
+            IsCurrentViewModel(generation, viewModel))
         {
-            var app = await _viewModel.CreateApplicationAsync(dialog.Result.Name, dialog.Result.Description);
-            if (app != null)
+            var app = await viewModel.CreateApplicationAsync(createResult.Name, createResult.Description);
+            if (app is not null && IsCurrentViewModel(generation, viewModel))
             {
                 ShowStatus(string.Format(LocalizedStrings.AuthorizationStorePage_Status_AppCreated, app.Name), false);
             }
@@ -372,7 +460,9 @@ public sealed partial class AuthorizationStorePage : Page
 
     private async void OnDeleteApplicationClick(object sender, RoutedEventArgs e)
     {
-        if (sender is Button btn && btn.Tag is AzApplicationInfo app && _viewModel != null)
+        AuthorizationStoreViewModel? viewModel = _viewModel;
+        int generation = _navigationGeneration;
+        if (sender is Button btn && btn.Tag is AzApplicationInfo app && viewModel is not null)
         {
             var dialog = new ContentDialog
             {
@@ -387,10 +477,10 @@ public sealed partial class AuthorizationStorePage : Page
             };
 
             var result = await dialog.ShowAsync();
-            if (result == ContentDialogResult.Primary)
+            if (result == ContentDialogResult.Primary && IsCurrentViewModel(generation, viewModel))
             {
-                var success = await _viewModel.DeleteApplicationAsync(app.Name);
-                if (success)
+                var success = await viewModel.DeleteApplicationAsync(app.Name);
+                if (success && IsCurrentViewModel(generation, viewModel))
                 {
                     ShowStatus(string.Format(LocalizedStrings.AuthorizationStorePage_Status_AppDeleted, app.Name), false);
                 }
@@ -400,6 +490,10 @@ public sealed partial class AuthorizationStorePage : Page
 
     private async void OnAddGroupClick(object sender, RoutedEventArgs e)
     {
+        AuthorizationStoreViewModel? viewModel = _viewModel;
+        int generation = _navigationGeneration;
+        if (viewModel is null) return;
+
         var dialog = new CreateItemDialog(CreateItemType.Group)
         {
             XamlRoot = this.XamlRoot,
@@ -408,15 +502,18 @@ public sealed partial class AuthorizationStorePage : Page
         };
 
         var result = await dialog.ShowAsync();
-        if (result == ContentDialogResult.Primary && dialog.Result != null && _viewModel != null)
+        var createResult = dialog.Result;
+        if (result == ContentDialogResult.Primary &&
+            createResult is not null &&
+            IsCurrentViewModel(generation, viewModel))
         {
-            var group = await _viewModel.CreateGroupAsync(
-                dialog.Result.Name,
-                dialog.Result.GroupType,
-                dialog.Result.Description,
-                dialog.Result.LdapQuery);
+            var group = await viewModel.CreateGroupAsync(
+                createResult.Name,
+                createResult.GroupType,
+                createResult.Description,
+                createResult.LdapQuery);
 
-            if (group != null)
+            if (group is not null && IsCurrentViewModel(generation, viewModel))
             {
                 ShowStatus(string.Format(LocalizedStrings.AuthorizationStorePage_Status_GroupCreated, group.Name), false);
             }
@@ -425,10 +522,17 @@ public sealed partial class AuthorizationStorePage : Page
 
     private async void OnEditGroupClick(object sender, RoutedEventArgs e)
     {
-        if (sender is Button btn && btn.Tag is AzApplicationGroupInfo group && _service != null && _store != null)
+        AzManService? service = _service;
+        AzAuthorizationStoreInfo? store = _store;
+        AuthorizationStoreViewModel? viewModel = _viewModel;
+        int generation = _navigationGeneration;
+        if (sender is Button btn &&
+            btn.Tag is AzApplicationGroupInfo group &&
+            service is not null &&
+            store is not null)
         {
             // Show group members management dialog
-            var availableStoreGroups = _viewModel?.Groups
+            var availableStoreGroups = viewModel?.Groups
                 .Where(g => !string.Equals(g.Name, group.Name, StringComparison.OrdinalIgnoreCase))
                 .Select(g => g.Name)
                 .ToList();
@@ -440,66 +544,80 @@ public sealed partial class AuthorizationStorePage : Page
                 RequestedTheme = App.CurrentTheme
             };
             var result = await dialog.ShowAsync();
+            var changes = dialog.Result;
 
-            if (result == ContentDialogResult.Primary && dialog.Result != null)
+            if (result == ContentDialogResult.Primary &&
+                changes is not null &&
+                IsCurrentGeneration(generation))
             {
                 try
                 {
                     // Process member changes for store-level groups
-                    foreach (var member in dialog.Result.AddedMembers)
+                    foreach (var member in changes.AddedMembers)
                     {
-                        await _service.AddGroupMemberAsync(_store.StorePath, group.Name, member);
+                        await service.AddGroupMemberAsync(store.StorePath, group.Name, member);
                     }
-                    foreach (var member in dialog.Result.RemovedMembers)
+                    foreach (var member in changes.RemovedMembers)
                     {
-                        await _service.RemoveGroupMemberAsync(_store.StorePath, group.Name, member);
+                        await service.RemoveGroupMemberAsync(store.StorePath, group.Name, member);
                     }
 
                     // Process non-member changes
-                    foreach (var nonMember in dialog.Result.AddedNonMembers)
+                    foreach (var nonMember in changes.AddedNonMembers)
                     {
-                        await _service.AddGroupNonMemberAsync(_store.StorePath, group.Name, nonMember);
+                        await service.AddGroupNonMemberAsync(store.StorePath, group.Name, nonMember);
                     }
-                    foreach (var nonMember in dialog.Result.RemovedNonMembers)
+                    foreach (var nonMember in changes.RemovedNonMembers)
                     {
-                        await _service.RemoveGroupNonMemberAsync(_store.StorePath, group.Name, nonMember);
+                        await service.RemoveGroupNonMemberAsync(store.StorePath, group.Name, nonMember);
                     }
 
                     // Process application group member link changes
-                    foreach (var appMember in dialog.Result.AddedAppMemberLinks)
+                    foreach (var appMember in changes.AddedAppMemberLinks)
                     {
-                        await _service.AddGroupMemberAsync(_store.StorePath, group.Name, appMember, isAppGroup: true);
+                        await service.AddGroupMemberAsync(store.StorePath, group.Name, appMember, isAppGroup: true);
                     }
-                    foreach (var appMember in dialog.Result.RemovedAppMemberLinks)
+                    foreach (var appMember in changes.RemovedAppMemberLinks)
                     {
-                        await _service.RemoveGroupMemberAsync(_store.StorePath, group.Name, appMember, isAppGroup: true);
+                        await service.RemoveGroupMemberAsync(store.StorePath, group.Name, appMember, isAppGroup: true);
                     }
 
                     // Process application group non-member link changes
-                    foreach (var appNonMember in dialog.Result.AddedAppNonMemberLinks)
+                    foreach (var appNonMember in changes.AddedAppNonMemberLinks)
                     {
-                        await _service.AddGroupNonMemberAsync(_store.StorePath, group.Name, appNonMember, isAppGroup: true);
+                        await service.AddGroupNonMemberAsync(store.StorePath, group.Name, appNonMember, isAppGroup: true);
                     }
-                    foreach (var appNonMember in dialog.Result.RemovedAppNonMemberLinks)
+                    foreach (var appNonMember in changes.RemovedAppNonMemberLinks)
                     {
-                        await _service.RemoveGroupNonMemberAsync(_store.StorePath, group.Name, appNonMember, isAppGroup: true);
+                        await service.RemoveGroupNonMemberAsync(store.StorePath, group.Name, appNonMember, isAppGroup: true);
                     }
 
-                    if (dialog.Result.BizRuleChanged)
+                    if (changes.BizRuleChanged)
                     {
-                        await _service.SetStoreGroupBizRuleAsync(_store.StorePath, group.Name, dialog.Result.BizRule, dialog.Result.BizRuleLanguage);
+                        await service.SetStoreGroupBizRuleAsync(store.StorePath, group.Name, changes.BizRule, changes.BizRuleLanguage);
                     }
 
                     // Reload
-                    if (_viewModel != null)
+                    if (viewModel is not null && IsCurrentViewModel(generation, viewModel))
                     {
-                        await _viewModel.LoadAsync(_store.StorePath);
+                        await viewModel.LoadAsync(store.StorePath);
+                        if (!IsCurrentViewModel(generation, viewModel))
+                        {
+                            return;
+                        }
                     }
-                    ShowStatus(string.Format(LocalizedStrings.AuthorizationStorePage_Status_GroupUpdated, group.Name), false);
+
+                    if (IsCurrentGeneration(generation))
+                    {
+                        ShowStatus(string.Format(LocalizedStrings.AuthorizationStorePage_Status_GroupUpdated, group.Name), false);
+                    }
                 }
                 catch (Exception ex)
                 {
-                    ShowStatus(string.Format(LocalizedStrings.AuthorizationStorePage_Status_GroupUpdateFailed, ex.Message), true);
+                    if (IsCurrentGeneration(generation))
+                    {
+                        ShowStatus(string.Format(LocalizedStrings.AuthorizationStorePage_Status_GroupUpdateFailed, ex.Message), true);
+                    }
                 }
             }
         }
@@ -507,7 +625,9 @@ public sealed partial class AuthorizationStorePage : Page
 
     private async void OnDeleteGroupClick(object sender, RoutedEventArgs e)
     {
-        if (sender is Button btn && btn.Tag is AzApplicationGroupInfo group && _viewModel != null)
+        AuthorizationStoreViewModel? viewModel = _viewModel;
+        int generation = _navigationGeneration;
+        if (sender is Button btn && btn.Tag is AzApplicationGroupInfo group && viewModel is not null)
         {
             var dialog = new ContentDialog
             {
@@ -522,10 +642,10 @@ public sealed partial class AuthorizationStorePage : Page
             };
 
             var result = await dialog.ShowAsync();
-            if (result == ContentDialogResult.Primary)
+            if (result == ContentDialogResult.Primary && IsCurrentViewModel(generation, viewModel))
             {
-                var success = await _viewModel.DeleteGroupAsync(group.Name);
-                if (success)
+                var success = await viewModel.DeleteGroupAsync(group.Name);
+                if (success && IsCurrentViewModel(generation, viewModel))
                 {
                     ShowStatus(string.Format(LocalizedStrings.AuthorizationStorePage_Status_GroupDeleted, group.Name), false);
                 }
@@ -535,7 +655,13 @@ public sealed partial class AuthorizationStorePage : Page
 
         #endregion
 
-        #region Private Methods
+    #region Private Methods
+
+        private bool IsCurrentViewModel(int generation, AuthorizationStoreViewModel viewModel)
+            => generation == _navigationGeneration && ReferenceEquals(_viewModel, viewModel);
+
+        private bool IsCurrentGeneration(int generation)
+            => generation == _navigationGeneration;
 
         private void UpdateStatusBar()
         {

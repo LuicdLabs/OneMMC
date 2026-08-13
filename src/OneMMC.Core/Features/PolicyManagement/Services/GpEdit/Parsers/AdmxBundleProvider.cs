@@ -1,6 +1,7 @@
 using System;
 using System.Globalization;
 using Microsoft.Extensions.Logging;
+using Windows.System;
 
 namespace OneMMC.Core.Features.PolicyManagement.Services.GpEdit.Parsers;
 
@@ -18,17 +19,25 @@ namespace OneMMC.Core.Features.PolicyManagement.Services.GpEdit.Parsers;
 /// <see cref="Invalidate"/> if the on-disk definitions are known to have changed.
 /// </para>
 /// </remarks>
-public sealed partial class AdmxBundleProvider
+public sealed partial class AdmxBundleProvider : IDisposable
 {
+    private static readonly TimeSpan StrongCacheIdleTimeout = TimeSpan.FromMinutes(10);
+
     private readonly ILogger<AdmxBundleProvider> _logger;
     private readonly object _gate = new();
+    private readonly Timer _idleTimer;
 
     private AdmxBundle? _bundle;
     private string? _loadedCulture;
+    private WeakReference<AdmxBundle>? _weakBundle;
+    private string? _weakCulture;
+    private bool _disposed;
 
     public AdmxBundleProvider(ILogger<AdmxBundleProvider> logger)
     {
         _logger = logger;
+        _idleTimer = new Timer(OnIdleTimer, null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+        MemoryManager.AppMemoryUsageIncreased += OnAppMemoryUsageIncreased;
     }
 
     /// <summary>
@@ -45,9 +54,23 @@ public sealed partial class AdmxBundleProvider
 
         lock (_gate)
         {
+            ObjectDisposedException.ThrowIf(_disposed, this);
+
             if (_bundle is not null && string.Equals(_loadedCulture, culture, StringComparison.OrdinalIgnoreCase))
             {
+                ResetIdleTimer();
                 return _bundle;
+            }
+
+            if (_weakBundle is not null &&
+                string.Equals(_weakCulture, culture, StringComparison.OrdinalIgnoreCase) &&
+                _weakBundle.TryGetTarget(out AdmxBundle? cachedBundle))
+            {
+                _bundle = cachedBundle;
+                _loadedCulture = culture;
+                ResetIdleTimer();
+                _logger.LogDebug("Promoted the weak ADMX bundle cache for culture {Culture}.", culture);
+                return cachedBundle;
             }
 
             string policyDefinitionsPath = Environment.ExpandEnvironmentVariables(@"%SYSTEMROOT%\PolicyDefinitions");
@@ -56,6 +79,9 @@ public sealed partial class AdmxBundleProvider
 
             _bundle = bundle;
             _loadedCulture = culture;
+            _weakBundle = new WeakReference<AdmxBundle>(bundle);
+            _weakCulture = culture;
+            ResetIdleTimer();
 
             _logger.LogInformation(
                 "Loaded shared ADMX bundle for culture {Culture}: {PolicyCount} policies, {CategoryCount} categories.",
@@ -74,8 +100,93 @@ public sealed partial class AdmxBundleProvider
     {
         lock (_gate)
         {
+            ObjectDisposedException.ThrowIf(_disposed, this);
+
             _bundle = null;
             _loadedCulture = null;
+            _weakBundle = null;
+            _weakCulture = null;
+            _idleTimer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
         }
     }
+
+    /// <summary>
+    /// Releases the process-lifetime timer and memory-pressure subscription.
+    /// </summary>
+    public void Dispose()
+    {
+        lock (_gate)
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            _disposed = true;
+            _bundle = null;
+            _loadedCulture = null;
+            _weakBundle = null;
+            _weakCulture = null;
+        }
+
+        MemoryManager.AppMemoryUsageIncreased -= OnAppMemoryUsageIncreased;
+        _idleTimer.Dispose();
+    }
+
+    private void OnIdleTimer(object? state)
+    {
+        string? culture = DropStrongReference();
+        if (culture is not null)
+        {
+            _logger.LogInformation(
+                "Released the strong ADMX bundle cache for culture {Culture} after {IdleMinutes} idle minutes.",
+                culture,
+                StrongCacheIdleTimeout.TotalMinutes);
+        }
+    }
+
+    private void OnAppMemoryUsageIncreased(object? sender, object e)
+    {
+        AppMemoryUsageLevel level = MemoryManager.AppMemoryUsageLevel;
+        if (level is not (AppMemoryUsageLevel.High or AppMemoryUsageLevel.OverLimit))
+        {
+            return;
+        }
+
+        string? culture = DropStrongReference();
+        if (culture is null)
+        {
+            return;
+        }
+
+        _logger.LogWarning(
+            "Released the strong ADMX bundle cache for culture {Culture} because memory usage is {MemoryLevel}.",
+            culture,
+            level);
+
+        // This is the non-blocking pressure-only hint recommended by the Windows App SDK guidance.
+        // Never run it on window hide/minimize or on the idle timer.
+        GC.Collect(2, GCCollectionMode.Optimized, blocking: false);
+    }
+
+    private string? DropStrongReference()
+    {
+        lock (_gate)
+        {
+            if (_disposed || _bundle is null)
+            {
+                return null;
+            }
+
+            string? culture = _loadedCulture;
+            _weakBundle = new WeakReference<AdmxBundle>(_bundle);
+            _weakCulture = culture;
+            _bundle = null;
+            _loadedCulture = null;
+            return culture;
+        }
+    }
+
+    private void ResetIdleTimer() =>
+        _idleTimer.Change(StrongCacheIdleTimeout, Timeout.InfiniteTimeSpan);
 }

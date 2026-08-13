@@ -11,6 +11,7 @@ using OneMMC.Core.Features.PCManagement.Services.TaskSchd;
 using OneMMC.Core.Localization;
 using OneMMC.Helpers;
 using OneMMC.Localization;
+using OneMMC.Services;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
@@ -28,7 +29,8 @@ namespace OneMMC.Views.PCManagement;
 public sealed partial class TaskPropertiesPage : Page, IUnsavedChangesGuard
 {
     private readonly ITaskSchedulerService _service = App.GetRequiredService<ITaskSchedulerService>();
-    private readonly TaskHistoryService _history = App.GetRequiredService<TaskHistoryService>();
+    private readonly PageServiceScope _serviceScope = new();
+    private readonly TaskHistoryService _history;
 
     public LocalizedStrings LocalizedStrings { get; } = LocalizedStrings.Instance;
 
@@ -51,10 +53,18 @@ public sealed partial class TaskPropertiesPage : Page, IUnsavedChangesGuard
 
     public TaskPropertiesPage()
     {
+        _history = _serviceScope.GetRequiredService<TaskHistoryService>();
         InitializeComponent();
         this.RequestedTheme = App.CurrentTheme;
         App.ThemeChanged += OnThemeChanged;
-        Unloaded += (_, _) => App.ThemeChanged -= OnThemeChanged;
+        Unloaded += OnUnloaded;
+    }
+
+    private void OnUnloaded(object sender, RoutedEventArgs e)
+    {
+        App.ThemeChanged -= OnThemeChanged;
+        _serviceScope.Dispose();
+        Unloaded -= OnUnloaded;
     }
 
     private void OnThemeChanged(ElementTheme theme) => this.RequestedTheme = theme;

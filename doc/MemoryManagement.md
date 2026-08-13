@@ -3,19 +3,25 @@
 How OneMMC keeps its memory footprint flat across a long session, the rules new code must follow, and how
 to measure a regression.
 
-The problem this addresses: memory used to grow with the *number of pages visited*, not with the data
-currently on screen, and it never came back down. That is now fixed — but the fixes are easy to undo by
-accident, so the rules below are load-bearing.
+The original investigation found memory growing with the *number of pages visited*, not just with the data
+currently on screen. Several confirmed retention paths have been fixed, but this is not a claim that every
+future build is leak-free or that the process must return to its launch footprint. The rules and repeatable
+measurements below remain load-bearing.
 
 ## Rules
 
-### 1. Resolve disposable view models from a page scope, never the root provider
+### 1. Resolve transient graphs containing disposables from a page scope
 
 `App.GetRequiredService<T>()` resolves from the **root** `ServiceProvider`. `Microsoft.Extensions.DependencyInjection`
-adds every `IDisposable` it creates to the resolving scope's disposal list, and the root provider's list is
-only drained at process exit. A page that resolves a transient `IDisposable` view model there pins one
-instance — and its entire object graph — per navigation. This is a documented anti-pattern
+adds every `IDisposable` it creates anywhere in the requested graph to the resolving scope's disposal list.
+OneMMC disposes its root provider when the main window closes, so a page that root-resolves such a transient
+graph pins the disposable — and everything it references — for the rest of the interactive process lifetime.
+This is a documented anti-pattern
 ([Dependency injection guidelines → "Disposable transient services captured by container"](https://learn.microsoft.com/dotnet/core/extensions/dependency-injection/guidelines#example-anti-patterns)).
+
+The requested outer type does **not** have to implement `IDisposable`. `TaskHistoryService` is not disposable,
+but its constructor receives a transient `EventViewerService`, which is. Root-resolving a fresh history service
+therefore captured one event-viewer service per call.
 
 Use `PageServiceScope` (`src/OneMMC/Services/PageServiceScope.cs`):
 
@@ -39,7 +45,9 @@ private void OnUnloaded(object sender, RoutedEventArgs e)
 Do **not** also call `ViewModel.Dispose()` — the scope does it. `PageServiceScope.Dispose()` is idempotent,
 because `Unloaded` is not guaranteed to fire exactly once.
 
-Non-disposable view models are not tracked by the container and may still use `App.GetRequiredService<T>()`.
+An outer service that is not disposable may use `App.GetRequiredService<T>()` only when its complete transient
+dependency graph contains no container-created disposable. Explicit singletons are already owned once by the
+root provider and are not a reason to put every consumer in a page scope.
 
 `EventViewerPage.xaml.cs` is the reference implementation for full page cleanup.
 
@@ -49,11 +57,13 @@ Non-disposable view models are not tracked by the container and may still use `A
 with. The breadcrumb trail holds them too. Passing a live service or view model therefore pins it for the
 rest of the session.
 
-Pass a store path, an application name, an instance id. Let the target page resolve services from DI.
-See `StoreNavigationParameter` / `ApplicationNavigationParameter` / `ScopeNavigationParameter`.
+Pass a store path, an application name, a rule lookup name, an instance id. Let the target page resolve
+services from DI and re-query current state. See `StoreNavigationParameter`,
+`FirewallRuleNavigationParameter`, `ApplicationNavigationParameter`, and `ScopeNavigationParameter`.
 
-A small, self-contained DTO with no service or view-model references (for example `DeviceInfo`) is
-acceptable.
+A small DTO containing identifiers and primitive routing data is acceptable. If the target can be renamed,
+update the identifier held by the existing journal parameter after a successful rename. Do not call a DTO
+"lightweight" while it still holds a feature model with nested collections.
 
 ### 3. `Dispose()` releases owned services — clearing collections is insurance, not a GC win
 
@@ -74,18 +84,18 @@ public void Dispose()
 Never dispose a **singleton** you were injected with. `AzManService` and `AdmxBundleProvider` are shared;
 consumers drop their reference and nothing more.
 
-**The collection clearing is not what frees the memory.** Once a page is unloaded it is unreachable, so its
+**The collection clearing is not what frees the memory.** Once the page graph is actually unreachable, its
 view model and every collection hanging off it are unreachable too, and the GC frees the whole graph in one
-pass whether or not the collections were emptied first. `Microsoft.Extensions.DependencyInjection` only
-tracks `IDisposable` services, so a non-disposable transient view model — which is what every
-`ClearCachedData()` caller has — is not retained by the container either. That is the same fact rule 1
-depends on.
+pass whether or not the collections were emptied first. `Unloaded` is a lifecycle notification, not proof
+of reachability: an event publisher, async operation, navigation parameter, cache, or other owner may still
+hold the page. `Microsoft.Extensions.DependencyInjection` tracks the disposables it creates, not every
+non-disposable outer object. A non-disposable transient is safe from container capture only when rule 1's
+complete-graph check also passes.
 
-The nine `ClearCachedData()` calls in `Unloaded` handlers are kept for a different, honest reason: they
-bound the damage if a page *is* retained, which the known upstream `ComWrappers` issue at the end of this
-document can cause. `CertificateStoresViewModelBase.ClearCachedData()` is the reference shape. Do not add
-new ones expecting a measurable saving, and do not repeat the old claim that they make "memory return at
-unload instead of at some later GC" — that was wrong.
+The existing `ClearCachedData()` calls in `Unloaded` handlers are retained as insurance if some unrelated
+owner keeps a page reachable. `CertificateStoresViewModelBase.ClearCachedData()` is the reference shape. Do
+not add new ones expecting a measurable saving, and do not repeat the old claim that they make "memory return
+at unload instead of at some later GC" — that was wrong.
 
 ### 4. Give each list the scrolling host its virtualization model expects
 
@@ -96,7 +106,8 @@ no built-in scrolling. Putting an `ItemsRepeater` with a virtualizing layout ins
 [documented pattern](https://learn.microsoft.com/windows/apps/develop/ui/controls/items-repeater); the
 scroll host supplies the viewport information used for realization.
 
-- Never use `ItemsControl` for a collection that can grow. It does not virtualize at all.
+- Never use `ItemsControl` for a large or unbounded collection. It does not virtualize; a fixed handful of
+  static items is fine.
 - Never override `ItemsPanel` with a plain `StackPanel`. That disables `ItemsStackPanel`.
 - Use `ItemsRepeater` + a virtualizing layout inside a `ScrollViewer` for custom or variable-height
   collections. See `ConnectionSecurityRulesPage.xaml`, or the two certificate pages.
@@ -137,9 +148,14 @@ The CommunityToolkit template creates the `Expander`, `SettingsCard`, presenters
 so those object instances remain allocated. The backing view-model
 collection and its models, strings and metadata also remain loaded. A collapsed subtree is skipped during
 normal measure and can avoid or reduce row realization, but repeater recycling and framework caches make
-the resulting private-byte difference page-dependent. Do not claim that `IsExpanded="False"` materially
-reduces RAM without a Release measurement for that page. `CertificateStoreNode.IsExpanded` defaults to
-`false` for initial UI cost and usability, not as a data-release mechanism.
+the resulting private-byte difference page-dependent. Do not claim that `IsExpanded="False"` alone
+materially reduces RAM without a Release measurement for that page.
+
+The certificate pages now do more than collapse the Toolkit control: `CertificateStoreNode.Rows` is empty
+while collapsed, is flattened from `Sections` on expansion, and is reset to an empty array on collapse. That
+releases the flattened row objects and removes them from the inner repeater's item source when nothing else
+holds them. It does **not** release the store's `Sections`, certificate models, or the expander template
+chrome, so it limits realized/list overhead rather than unloading the whole store.
 
 Expanders over a fixed handful of static rows (property sheets) may stay expanded — the content template is
 inflated regardless and there is nothing to virtualize.
@@ -171,9 +187,17 @@ see `GroupPolicyTreeItem.EnsureChildrenPopulated()`.
 ### 7. Finalizers must never wait on another thread
 
 A blocked finalizer thread stops **all** finalization process-wide, so every native and COM resource that
-relies on a finalizer leaks permanently. `AzManService.Dispose(bool)` therefore does its STA-marshalled COM
-release only on the `disposing` path. Related: a `TaskScheduler` must never silently drop a queued task —
-the caller's `await` would never complete (see `StaTaskScheduler.QueueTask`).
+relies on a finalizer then backs up. A finalizer must never call `Join`, `.Wait()` or `GetResult()` on an
+apartment thread.
+
+`AzManService` atomically stops accepting work and requests terminal cleanup from its owning STA. Explicit
+`Dispose()` drains accepted tasks and joins; the finalizer uses the same terminal-cleanup request but returns
+without waiting. The Task Scheduler COM service is a root-owned singleton and has no finalizer: root-provider
+disposal at process close drains accepted work and releases the cached service as the last STA action.
+`GroupPolicyObjectWrapper`
+does not explicitly `FinalRelease` its apartment-threaded pointer from the finalizer; deterministic release
+is restricted to explicit disposal from the creating COM apartment. A scheduler must also reject work after
+shutdown rather than silently dropping it — a dropped task leaves the caller's `await` pending forever.
 
 ### 8. Cap process-wide caches — but not the navigation journals
 
@@ -181,18 +205,15 @@ A cache keyed by something the user can keep producing needs an explicit bound.
 `SmbClientNameResolver.MaximumCacheEntries` is the example: entries are cheap to recompute, and on a busy
 file server the key space keeps changing, so expired entries used to accumulate for the process lifetime.
 
-The navigation journals do **not** need one. `Frame.BackStack` and the breadcrumb history stacks were
-capped at ten entries in the original fix; both caps have since been removed:
+The navigation journals do **not** currently have evidence justifying a cap. `Frame.BackStack` and the
+breadcrumb history stacks were capped at ten entries in the original fix; both caps have since been removed:
 
-- Once rule 2 is followed, a `PageStackEntry` holds a type name, a small identifier and a shared
-  `NavigationTransitionInfo` — a few hundred bytes. A hundred navigations is tens of KB, and the cap paid
-  for that by losing every back-navigation past the tenth.
-- The breadcrumb caps were worse than pointless. `_backStackSourceType` is a `Stack<bool>`, one byte per
-  entry, and the trim rebuilt the whole stack (`new Stack<T>(stack.Take(10).Reverse())`) on *every*
-  navigation once over the cap — allocating an enumerator, a buffer and a new stack per navigation to save
-  a byte.
-- The two depth constants lived in different files and had to stay equal, or `_backStackSourceType` would
-  drift out of sync with `Frame.BackStack` and back-navigation would take the wrong restore branch.
+- Once rule 2 is followed, journal entries retain routing metadata and identifier DTOs rather than pages,
+  services, view models, or feature models. Their actual cost has not been byte-sized here, so do not invent
+  an exact per-entry number.
+- The cap removed valid back-navigation based only on entry count, not measured retained bytes.
+- Breadcrumb trimming rebuilt its tracking stacks and introduced another depth that had to remain exactly
+  synchronized with `Frame.BackStack`; a mismatch could restore the wrong navigation branch.
 
 `MainWindow` now shares one `SlideNavigationTransitionInfo` across its navigations. This statement applies
 only to `MainWindow`; child frames still create transition objects at navigation sites. Those short-lived
@@ -206,44 +227,96 @@ copy of the device list. It is a correctness fix — filtering used to narrow `D
 deleting characters from the search box could not bring previously excluded devices back — and the extra
 copy is the price. Do not "optimise" it away.
 
-## Why Task Manager still shows 100 MB+
+## Why Task Manager can show 100 MB+
 
-Task Manager's **Memory** column on the Processes tab is the process's *active private working set*. A UWP
-app such as Settings appears to shrink on its own for two reasons, neither of which is the app releasing
-memory:
+A three-digit Task Manager value is not by itself proof of a leak. A
+[working set](https://learn.microsoft.com/windows/win32/memory/working-set) is the set of process pages
+currently resident in physical memory and includes shared as well as private pages. It is a momentary value
+affected by RAM size, system activity and OS trimming policy.
+[`PROCESS_MEMORY_COUNTERS_EX.PrivateUsage`](https://learn.microsoft.com/windows/win32/api/psapi/ns-psapi-process_memory_counters_ex),
+logged here as `private`, is instead the process's private **commit charge**. It is more stable for comparing
+the same route, but it still combines managed heaps, native heaps, XAML/composition allocations, COM/WMI
+state and other process-private runtime data.
 
-1. Process Lifetime Management **suspends** it a few seconds after it leaves the foreground, and the memory
-   manager trims a suspended process's working set — the pages move to the **standby list**, which counts
-   as available memory rather than in-use memory.
-2. Task Manager then *excludes* the suspended portion from the Memory column, so the number falls further
-   than the trim alone accounts for.
+Windows App SDK desktop apps are not automatically suspended like UWP apps. Minimizing OneMMC therefore
+does not imply a prompt PLM suspension or deterministic trim. That does **not** mean its working set can
+never shrink: Windows can age, trim and page out process pages as system conditions change. Compare repeated
+steady-state routes and allocation traces, not the visual behavior of an app with a different lifecycle.
 
-A WinUI 3 app is an ordinary Win32 desktop process. **PLM does not apply to it**: minimizing does not
-suspend it, so nothing ever trims it, and its working set stays at the session high-water mark until the
-whole machine comes under memory pressure. That is a platform difference, not a leak — and it is why the
-navigation probe tells you to read `private` rather than `workingSet`.
+### What the WinUI "first-visit tax" does — and does not — prove
 
-The other half of the answer is that most of the residual number is not the app's to give back. At the end
-of a 25-navigation session the settled managed heap is ~1.6 MB against ~114 MB private: the rest is native
-— the XAML framework, the composition/DirectX device, COM and WMI proxies, fonts, and the AOT image
-itself. An empty WinUI 3 window starts around 60–80 MB. Managed-side work cannot move that number much.
+The earlier shorthand that the whole **53 → 114 MB** change was a permanent XAML type/template cache was too
+strong. The evidence supports a narrower conclusion:
 
-### The app already does what the official guidance asks
+| Layer | Verified behavior | What it means here |
+|---|---|---|
+| `Frame` page cache | Microsoft documents that every `Navigate` and `GoBack` creates a new `Page` by default. Reuse requires `Page.NavigationCacheMode`; OneMMC sets `CacheSize="0"` and enables it nowhere. | The back stack is not an explanation for keeping an old OneMMC `Page` visual tree alive. Its parameter still matters. |
+| WinUI default styles | WinUI source has a core-owned `StyleCache::m_stylesMap`; a control-library resource dictionary is inserted on first lookup and the built-in style cache is cleared during `DXamlCore::ClearCaches()` at core/application shutdown. | Introducing a new control library or style namespace can create a real core-lifetime first-use cost. |
+| Compiled XAML/XBF | WinUI's `XamlNodeStreamCacheManager` deliberately keeps newly seen XBF resources and their mapped buffers in "long term storage" for the manager lifetime, even across its ordinary `Flush()`. | First parsing of a XAML resource can leave bounded framework/parser state after the `Page` instance dies. |
+| Page/control instances | No source or public contract says every realized control tree is retained for the process. Many rendering, text, theme-walk and element caches have explicit clear/release paths. | A departed `Page` that survives repeated full collections is an app or framework retention lead, not an acceptable consequence of the style/XBF caches above. |
+| Private bytes | `PrivateUsage` combines GC, native heaps, XAML, composition, loaded code, COM and feature data. | A one-time jump or plateau is compatible with first-use caches, but cannot identify them or quantify their share. |
+
+Sources: the public [`Frame` remarks](https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft.ui.xaml.controls.frame)
+and [navigation tutorial](https://learn.microsoft.com/windows/apps/develop/ui/navigation/navigate-between-two-pages)
+define the page-cache behavior. The implementation evidence is from the WinUI source at commit
+[`6112d936`](https://github.com/microsoft/microsoft-ui-xaml/tree/6112d936461edb6d81ce7db983c74cc60ea2bc28):
+[`StyleCache`](https://github.com/microsoft/microsoft-ui-xaml/blob/6112d936461edb6d81ce7db983c74cc60ea2bc28/dxaml/xcp/dxaml/lib/DefaultStyles.h#L95-L108),
+its [lookup/insertion](https://github.com/microsoft/microsoft-ui-xaml/blob/6112d936461edb6d81ce7db983c74cc60ea2bc28/dxaml/xcp/dxaml/lib/DefaultStyles.cpp#L511-L626),
+[`DXamlCore::ClearCaches`](https://github.com/microsoft/microsoft-ui-xaml/blob/6112d936461edb6d81ce7db983c74cc60ea2bc28/dxaml/xcp/dxaml/lib/DXamlCore.cpp#L1174-L1207),
+and the XBF [long-term resource storage](https://github.com/microsoft/microsoft-ui-xaml/blob/6112d936461edb6d81ce7db983c74cc60ea2bc28/dxaml/xcp/core/Parser/NodeStreamCache.cpp#L199-L206).
+Those internal details corroborate a mechanism; they are not a supported API or a promise that every WinUI
+version retains the same objects. OneMMC must not call test hooks or internal cache-clearing entry points.
+
+So the defensible verdict is: **a bounded first-use tax is real and plausible, but the measured 61 MB delta
+has not been attributed to it.** Nor is it necessary to "give up WinUI rendering caches" to release pages:
+page-instance lifetime and process/core caches are separate questions. The weak-reference probe below tests
+the former; native/managed snapshot diffs test the latter.
+
+### Local evidence before the settled Page probe (2026-08-13)
+
+The installed setting was `"MemoryProbeMode": false`. In one varied first-visit session the navigation log
+went from approximately **50.8 MB to 130.1 MB private**, while `GC.GetTotalMemory(false)` at the last reading
+was about **7.2 MB**. Because the run did not settle the heap and visited different pages, it cannot prove or
+disprove a leak. It does show why 100 MB+ can coexist with a comparatively small managed heap and why the
+absolute Task Manager number is insufficient evidence.
+
+A later non-probe route was broader and reached **33.8 → 199.6 MB private**, **3.3 → 11.9 MB managed
+heap**, **673 → 1200 process handles**, and **21 → 27 threads**. It mixed first visits, different features,
+background work and unsynchronized collection points, so its endpoint delta is not a leak rate. The Windows
+Firewall drill-down is nevertheless a useful lead: the first editor/info/back cycle moved from roughly
+127 MB / 952 handles to 171.5 MB / 1110 handles, while a second cycle reached 190 MB / 1127 handles. The
+much smaller second handle increase is compatible with first-use/high-water behavior, but only repeated
+settled identical cycles can establish a plateau. This is why the current probe records handles and threads
+alongside Page reachability instead of explaining the whole increase as XAML caching.
+
+An earlier non-probe run exposed a specific managed retention candidate: after entering and leaving GpEdit,
+the reported managed heap rose to 33.3 MB and later remained around **20–22 MB**. That was consistent with
+the singleton ADMX provider intentionally holding the parsed policy bundle strongly. It motivated the
+pressure-aware cache below; it is not a settled before/after benchmark.
+
+### Actions aligned with the official desktop guidance
 
 [Manage memory usage in Windows App SDK desktop apps](https://learn.microsoft.com/windows/apps/develop/launch/reduce-memory-usage)
-is the on-point guidance for this exact situation. It says to hook `Window.Activated` / `AppWindow.Changed`
-and, when the window is hidden, release **cached images and bitmaps, render-target resources, view-model
-data, and the navigation cache** — things you can reload. OneMMC already avoids retaining page instances
-and releases page-owned state on navigation rather than waiting for the window to hide:
+is the on-point guidance for this situation. It recommends releasing data that can be reconstructed and
+responding to `MemoryManager.AppMemoryUsageIncreased` when usage reaches `High` or `OverLimit`. OneMMC now:
 
 - `contentFrame` is declared `CacheSize="0"` (`MainWindow.xaml`), and no page opts into `NavigationCacheMode`.
-- `PageServiceScope` disposes the page's view model and its graph in `Unloaded` (rule 1).
+- Probe mode tracks each successfully departed `Page` through a bounded weak-reference list and reports
+  whether GoBack, breadcrumb or NavigationView departures remain alive after settled collections. It delays
+  committing the record until the complete Frame navigation callback stack unwinds, and drops stopped or
+  failed attempts. The probe cannot itself keep a page alive.
+- Pages that own transient disposable graphs use `PageServiceScope` to dispose those graphs in `Unloaded`
+  (rule 1).
 - Navigation entries carry lightweight identifiers; the journal and breadcrumb history intentionally remain
   uncapped, while process-wide caches with an unbounded key space are capped where recomputation is cheap
   (rule 8).
+- `AdmxBundleProvider` keeps one strong and one weak cache reference. It drops the strong reference after
+  ten idle minutes, or immediately at `High`/`OverLimit` memory pressure. Only the pressure path issues the
+  guidance's non-blocking optimized gen2 collection hint; a live GpEdit/RSoP consumer can still keep the
+  bundle alive until that consumer leaves.
 
-That is why the settled heap sits at ~1.5 MB. There is no meaningful app-level allocation left to release
-when the window is hidden, so the hide-time hook the guidance describes would have nothing to do.
+There is no blanket hide-time collection or navigation-history purge. Add one only for a measured,
+reloadable resource; hiding a window is not evidence that every page-owned object is retained.
 
 ### Rejected: trimming the working set when idle (2026-07-26)
 
@@ -262,9 +335,10 @@ a second run saw 63.5 → 44.2 MB when the aggressive GC happened to return reta
 
 Why it was reverted anyway:
 
-- **It shrinks the number, not the memory.** The pages move to the standby list; the RAM is still resident
-  and Windows would have reclaimed it on its own the moment anything actually needed it. The user gains no
-  available memory — only a smaller figure in Task Manager.
+- **It changes residency, not private commit.** Active pages can move to the standby/available lists and are
+  then reclaimable, so the working-set number falls; the process's private commit does not fall merely
+  because those pages were trimmed. Re-access can fault the pages back in, and Windows already manages
+  working sets under pressure.
 - **`EmptyWorkingSet` is not a memory-management API.** MS Learn's
   [Working Set Information](https://learn.microsoft.com/windows/win32/psapi/working-set-information) says
   it "is useful primarily for testing and tuning", and the Windows App SDK memory guidance never mentions it.
@@ -277,54 +351,98 @@ Why it was reverted anyway:
   the inactivity threshold for releasing resources at "a handful of minutes to a ½ hour or more"; the
   reverted code used 5 s and 30 s.
 
-The one candidate that *would* fit the guidance is the singleton ADMX bundle behind `AdmxBundleProvider`
-(GpEdit): it is reloadable, potentially tens of MB, and already has a clear path. Measure what it actually
-holds before deciding — and use a minute-scale delay, not a second-scale one.
+The singleton ADMX bundle was the measured reloadable candidate. It now uses the ten-minute idle and
+memory-pressure behavior described above; a settled Release before/after run is still required to quantify
+the private-byte benefit.
 
 ## Measuring
 
 `IMemoryDiagnostics` / `MemoryDiagnosticsService` writes a reading to the log on every navigation:
 
 ```
-[Memory] nav:EventViewerPage | private=214.7MB heap=6.2MB committed=14.0MB workingSet=310.4MB
-         allocated=57.3MB gc=22/15/6 finalizers=11/12 backStack=4 breadcrumbs=2 mode=New
+[Memory] post-nav:EventViewerPage | private=114.2MB heap=6.2MB gcHeap=7.1MB
+         committed=14.0MB fragmented=0.4MB workingSet=210.4MB
+         allocated=57.3MB delta=0.8MB gcIndex=6 gc=22/15/6 finalizers=11/12
+         handles=742 threads=31 backStack=4 breadcrumbs=2 mode=New
+         sequence=7 initiator=NavigationView settled
+[Memory][PageLifetime] settledThrough=7 tracked=0 collected=1 alive=0 dropped=0 survivors=none
 ```
 
-**Read `private` first.** It is the memory this process owns. `workingSet` includes pages shared with
-other processes (every loaded DLL) and Windows only trims it under pressure, so it behaves like a
-high-water mark, not current usage — it will look like a leak even when nothing is leaking. `heap` and
-`committed` cover only the managed heap, which in this app is a small fraction of the total; most of
-OneMMC's memory is native (XAML, COM, WMI).
+**Read `private` as the process commit curve, not as a count of live objects.** `workingSet` is current
+residency and includes shared pages. `heap` is `GC.GetTotalMemory(false)`; `gcHeap`, `fragmented` and
+`committed` are managed-GC values from the most recently completed collection. None of those managed
+metrics explains native allocations on its own. `delta` is managed allocation churn since the previous
+reading, while handle and thread counts catch native lifetime regressions that byte totals can hide.
 
 `finalizers=run/armed` is the finalizer-health probe: a run count that stops advancing while gen2
 collections continue means finalization has stalled, and the service logs an error when it detects that.
+
+`PageLifetime` is the direct navigation-release check. On `Frame.Navigating`, probe mode stores only a
+`WeakReference<Page>` plus scalar metadata. `Navigated` copies page name, mode, depths, sequence and
+initiator, but does not carry `NavigationEventArgs` into an async state machine: its `Content` property would
+otherwise keep the destination Page alive. WinUI raises `Navigated` before the old/new Page navigation
+callbacks have all returned, so commit and collection are queued for the next `DispatcherQueue` turn. A
+`NavigationStopped` or `NavigationFailed` in the meantime invalidates the attempt, including a failure that
+restores the old content after `Navigated`. See the corresponding
+[`Frame::ChangeContent` ordering](https://github.com/microsoft/microsoft-ui-xaml/blob/6112d936461edb6d81ce7db983c74cc60ea2bc28/dxaml/xcp/dxaml/lib/Frame_Partial.cpp#L645-L680).
+Collected entries are removed, the metadata list is capped at 128, and `dropped` reports any diagnostic
+records evicted at that bound.
+
+- `collected=1 alive=0` means the departed instance became unreachable by that settled pass.
+- One `alive` observation can be a transition animation, an in-flight async operation or another temporary
+  owner. It is recorded but is not called a leak.
+- Survival across two settled passes emits one warning with page type, destination, `GoBack` / `Breadcrumb`
+  / `NavigationView` initiator, GC-survival count and navigation age. It is a concrete retention lead; use a
+  managed Paths-to-Root snapshot before deciding which owner is wrong.
+- If the number of old live pages grows with repetitions, navigation release is failing even if private
+  bytes happen to plateau. If old pages collect but private bytes still rise linearly, investigate native
+  allocations, process caches, handles and threads instead.
 
 Logs are at `%LOCALAPPDATA%/OneMMC/Logs/`. The probe logs at `Information`, so it is visible at the default
 level.
 
 ### Measure correctly, or the numbers mean nothing
 
-1. **Release build, no debugger attached.** A Debug build under the Visual Studio debugger inflates
-   memory substantially and suppresses collection — its numbers cannot be compared against anything.
+1. **Release build, no debugger attached.** Debugger services and Debug-only lifetime/timing differences
+   inflate and perturb the measurement, so do not compare that absolute total with a Release run.
 2. **Turn on probe mode.** Set `"MemoryProbeMode": true` in `%LOCALAPPDATA%/OneMMC/Settings.json`. Each
-   navigation then forces a full collection and waits for finalizers before reading, so successive
-   readings are comparable. Without it, readings are dominated by garbage that simply has not been
-   collected yet. It pauses the app per navigation, so turn it back off afterwards.
-3. **Repeat the same navigation.** A first visit to any page permanently caches its XAML types and
-   templates in the framework — that is a one-time cost, not a leak. Only the *second and subsequent*
-   visits to the same page tell you whether something is retained. Compare visit 2 against visit 5.
+   navigation requests a full collection/finalizer/full-collection pass on one dedicated `LongRunning`
+   worker, so the UI thread does not wait inside `GC.WaitForPendingFinalizers()`. The await times out after
+   five seconds, logs `settle-timeout`, and refuses to start a second settle worker until the first exits;
+   completion later logs recovery. A timeout is a diagnostic failure, not a comparable settled sample.
+   Turn probe mode back off afterwards.
+3. **Let the feature finish loading before leaving it.** [`Frame.Navigated`](https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft.ui.xaml.controls.frame.navigated)
+   only means the destination content is available; Microsoft explicitly says it may not have completed
+   loading. The shell therefore cannot generically label a snapshot "data loaded". Wait for the page's
+   spinner/progress state to finish, then invoke GoBack, a breadcrumb, or a NavigationView item. The settled
+   sample after that departure tests whether the fully exercised outgoing page was released.
+4. **Repeat the identical route with identical data.** The first visit can load default style dictionaries,
+   XBF resources, composition devices, interop state and intentional feature caches. Compare visit 2 with
+   visits 5 and 10; comparing unrelated page types cannot distinguish a leak from first-use work.
+5. **Exercise every exit path.** For the same page, repeat GoBack, breadcrumb and NavigationView departures.
+   The `initiator=` and `PageLifetime` fields keep those results separate.
 
 Interpret the shape before optimizing the absolute number:
 
 - If private bytes rise to a high-water mark and then oscillate without increasing with navigation count,
-  treat that as framework/native allocator baseline unless a heap diff shows otherwise. Do not optimize
-  Task Manager's working-set display with forced GC or working-set trimming.
+  and departed pages collect, treat that as a steady-state candidate. It is compatible with core-lifetime
+  style/XBF caches and allocator high-water behavior, but does not prove either one. Do not optimize Task
+  Manager's working-set display with forced GC or working-set trimming.
+- If departed pages survive repeatedly, use Visual Studio Memory Usage in managed or mixed mode and inspect
+  `Page`, ViewModel and generated binding instances with Paths to Root / Event Handler Leak insights.
 - If private bytes continue to rise approximately with every repeated visit, capture native heap snapshots
   in a Release run: take snapshot A after visit 2, repeat the same away/back sequence 10–20 times, then take
-  snapshot B. Use the [Memory Usage profiler](https://learn.microsoft.com/visualstudio/profiling/memory-usage)'s
-  native heap diff to identify the allocation families retained in B−A before changing code. Repeated
-  growth under `Microsoft.UI.Xaml`, composition, WinRT or Toolkit
-  frames is evidence to investigate; a large but flat total is not.
+  snapshot B. The [Visual Studio Memory Usage profiler](https://learn.microsoft.com/visualstudio/profiling/memory-usage-without-debugging2)
+  supports managed, native and mixed snapshots and diff reports. For commit not represented by that heap,
+  record `wpr -start VirtualAllocation -filemode` as documented in Microsoft's
+  [memory trace workflow](https://learn.microsoft.com/windows/apps/develop/performance/disk-memory), then group
+  WPA Total Commit by process, commit type and commit stack. WPR
+  [heap snapshots](https://learn.microsoft.com/windows-hardware/test/wpt/record-heap-snapshot) can compare
+  outstanding native heap allocation stacks. The WinUI
+  [XAML activity profile](https://learn.microsoft.com/windows/apps/develop/performance/winui-perf) aligns
+  `Frame::Navigating` / `Frame::Navigated`, layout and graphics-device events with that interval. Repeated
+  growth under `Microsoft.UI.Xaml`, composition, WinRT or Toolkit frames is evidence to investigate; a large
+  but flat total is not.
 
 For a page dominated by many `SettingsExpander` controls, the remaining useful UI experiment is a scoped
 A/B test, not a project-wide rewrite. Compare the Toolkit template with a minimal expander-like template
@@ -334,9 +452,10 @@ cost; element-count reduction is plausible, but a meaningful process-memory redu
 
 ### Historical measured baseline (2026-07-26, x64 Debug, probe mode on)
 
-This is a historical x64 Debug baseline. It is useful only for relative and shape comparison within that
-run; Debug inflates absolute memory, so these values must not be compared with Release measurements. A new
-x64 Release baseline, with no debugger attached, should supersede it.
+This is a historical x64 Debug baseline from an older implementation. It is useful only for relative shape
+inside that run; Debug inflates absolute memory, the probe/log format has since changed, and the route did
+not cover the current COM/cache fixes. Do not compare its values with a current Release run. A new x64
+Release baseline, with no debugger attached, should supersede it.
 
 25 navigations across PCManagement, Event Viewer, Task Scheduler, System Management, Windows Firewall
 (incl. rule editor and rule info), Component Services, Disk Management and Settings:
@@ -347,20 +466,23 @@ x64 Release baseline, with no debugger attached, should supersede it.
 | Private bytes | 53.2 MB | 126.0 MB | **114.1 MB** |
 | Working set | 129.0 MB | 258.6 MB | 248.7 MB |
 
-The settled managed heap sat at **~1.5 MB for the whole session** — it returns to the same value after
-every navigation, so nothing managed is retained per navigation. Private bytes oscillate rather than
-climb (they *fell* 109.4 → 92.5 MB on leaving Disk Management, and 126.0 → 114.1 MB by the end), which is
-native-allocator behaviour, not a leak. The residual rise tracks *first* visits to new page types — the
-XAML framework caches types and templates permanently by design.
+The settled managed heap returned to roughly **1.5 MB** across the pages covered by that route. Private
+bytes oscillated rather than rising on every navigation (for example 109.4 → 92.5 MB on leaving Disk
+Management and 126.0 → 114.1 MB by the end). That run therefore did not show monotonic per-navigation
+growth for its covered route; it does not prove that every feature or native allocation was leak-free. In
+particular, the **53.2 → 114.1 MB** endpoints cannot be assigned to XAML/style caches without an allocation
+or commit-stack diff, and that historical build predates the Page-lifetime probe.
 
-For contrast, the same navigation count without probe mode ended at 343 MB working set: that difference
-is uncollected garbage and an untrimmed working set, not retention.
+For contrast, a run with the same navigation count but without probe mode ended at 343 MB working set. The
+runs had different collection and residency state, so that difference cannot be classified as retention —
+or as proof of no retention — from working-set totals alone.
 
 The firewall drill-down exercised a ten-entry back stack. The cap present during this historical run has
 since been removed; navigation and breadcrumb histories are now intentionally uncapped (rule 8).
 
-Not yet covered by a measured run: **Group Policy Editor** and **Authorization Manager** — the two pages
-with the largest fixes (shared ADMX bundle, singleton `AzManService`). Run probes A and B against them.
+GpEdit and Authorization Manager were not covered by that settled historical route. The later local
+non-probe evidence above found the ADMX strong-cache cost, but probes A and B still need a current Release
+run after these changes.
 
 ### Probes
 
@@ -369,19 +491,23 @@ regression.
 
 | Probe | Steps | What it catches |
 |---|---|---|
-| A | AzMan: Manager → Store → Back, ×5 | Leaked `AzManService` + STA thread; stalled finalizers |
-| B | Group Policy Editor: enter and leave ×5 | ADMX bundle retention, view-model capture |
+| A | AzMan: Manager → Store → Back, ×5 | Thread/handle growth; duplicate singleton/STA ownership |
+| B | Group Policy Editor: enter and leave ×5 | A new ADMX bundle per visit; view-model capture |
+| B-idle | Leave GpEdit, wait >10 minutes, then take a settled sample | Strong ADMX cache did not demote/collect |
 | C | Six main nav pages in rotation ×10 | Overall per-navigation retention; lightweight journal entries |
-| D | Certificates (Local Computer), open once | Peak realized-element count |
+| D | Certificates: expand/collapse the same large store ×10 | Flattened row/repeater growth |
+| E | A drill-down page: breadcrumb to parent ×5, then repeat using NavigationView ×5 | Exit-path-specific Page retention |
 
-For A, also watch the thread count in Task Manager — it must not climb.
+For A, compare the logged `threads` and `handles`; both must plateau. For B, the first parsed bundle is an
+intentional cache, so immediate post-navigation heap size may stay high. The regression signal is another
+bundle-sized increase per visit; B-idle separately tests the ten-minute demotion policy.
 
 ### Verbose logging
 
 Set `"VerboseLogging": true` in `%LOCALAPPDATA%/OneMMC/Settings.json` to restore `Debug` level. It is off
-by default: every `LogDebug` formats a template and allocates property values, which is sustained gen0
-pressure for output nobody reads in production. The `Trace` → Serilog bridge is likewise installed only
-when a debugger is attached.
+by default: enabled debug events add formatting, sink, allocation and I/O work; even disabled calls that use
+non-source-generated `params object[]` overloads can allocate an argument array or box values. The `Trace`
+→ Serilog bridge is likewise installed only when a debugger is attached.
 
 ## Process-level GC knobs (verified mechanism, benefit not yet measured)
 
@@ -427,12 +553,14 @@ A Segment Heap opt-in in `app.manifest` is another untested option for native al
 
 ## Known upstream issue
 
-[microsoft-ui-xaml#10981](https://github.com/microsoft/microsoft-ui-xaml/issues/10981) — WinUI 3 binding
-retention regression (`ComWrappers.ManagedObjectWrapperHolder`) after moving from .NET 8 to .NET 10.
-Backlog, no workaround. If the probes still show residual linear growth after the rules above are
-followed, check this before assuming the cause is in this repository.
+[microsoft-ui-xaml#10981](https://github.com/microsoft/microsoft-ui-xaml/issues/10981) is an open .NET 10
+report whose minimal reproduction dispatches string/double binding updates from background threads at
+**10–20 Hz** and observes growth in `ComWrappers.ManagedObjectWrapperHolder`. It is evidence for that
+high-frequency binding/DispatcherQueue shape, not proof that ordinary navigation or every `{x:Bind}` in
+OneMMC leaks. Consider it only if a current repeated route is linear and a managed heap diff identifies
+the same holder type.
 
-Note that `{x:Bind}` itself is **not** a retention risk: the generated `BindingsTracking` class holds only
-a `WeakReference` to the page's bindings object and self-heals via `ReleaseAllListeners()` when the target
-is collected. `Bindings.StopTracking()` is therefore unnecessary. Hand-written
-`viewModel.PropertyChanged += ...` in code-behind *is* a strong reference and must be unhooked.
+Generated binding tracking in this project uses weak tracking for the page bindings object, but that does
+not rule out an upstream ABI-wrapper regression under a different update pattern. Hand-written
+`viewModel.PropertyChanged += ...` in code-behind is a direct strong subscription and must always be
+unhooked.

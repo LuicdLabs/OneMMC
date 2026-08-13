@@ -39,12 +39,7 @@ public sealed partial class TaskSchedulerService : ITaskSchedulerService, IDispo
         {
             ReleaseService();
             _connection = connection ?? TaskSchedulerConnection.Local;
-            var service = Connect(_connection);
-            if (!TaskSchedulerCom.ToBool(service.get_Connected()))
-            {
-                throw new InvalidOperationException("The Task Scheduler service did not report a connected state.");
-            }
-            _service = service;
+            _service = Connect(_connection);
         });
 
     /// <inheritdoc />
@@ -258,16 +253,29 @@ public sealed partial class TaskSchedulerService : ITaskSchedulerService, IDispo
     private ITaskService Connect(TaskSchedulerConnection connection)
     {
         var service = TaskSchedulerCom.CreateTaskService();
-        // Each VT_BSTR variant owns a BSTR we must free after the call; the Missing sentinel is a
-        // non-allocating shared value, so disposing its copy here is a harmless no-op.
-        using var server = connection.IsRemote
-            ? Variant.FromString(connection.Server!)
-            : TaskSchedulerCom.MissingVariant;
-        using var user = TaskSchedulerCom.OptionalBstr(connection.User);
-        using var domain = TaskSchedulerCom.OptionalBstr(connection.Domain);
-        using var password = TaskSchedulerCom.OptionalBstr(connection.Password);
-        service.Connect(server, user, domain, password);
-        return service;
+        try
+        {
+            // Each VT_BSTR variant owns a BSTR we must free after the call; the Missing sentinel is a
+            // non-allocating shared value, so disposing its copy here is a harmless no-op.
+            using var server = connection.IsRemote
+                ? Variant.FromString(connection.Server!)
+                : TaskSchedulerCom.MissingVariant;
+            using var user = TaskSchedulerCom.OptionalBstr(connection.User);
+            using var domain = TaskSchedulerCom.OptionalBstr(connection.Domain);
+            using var password = TaskSchedulerCom.OptionalBstr(connection.Password);
+            service.Connect(server, user, domain, password);
+            if (!TaskSchedulerCom.ToBool(service.get_Connected()))
+            {
+                throw new InvalidOperationException("The Task Scheduler service did not report a connected state.");
+            }
+
+            return service;
+        }
+        catch
+        {
+            TaskSchedulerCom.Release(service);
+            throw;
+        }
     }
 
     private void ReleaseService()
@@ -479,12 +487,11 @@ public sealed partial class TaskSchedulerService : ITaskSchedulerService, IDispo
     {
         try
         {
-            _executor.RunAsync(ReleaseService).Wait(TimeSpan.FromSeconds(2));
+            _executor.Shutdown(ReleaseService);
         }
         catch (Exception ex)
         {
             _logger.LogDebug(ex, "[TaskSchedulerService] Failed to release the COM service during dispose.");
         }
-        _executor.Dispose();
     }
 }

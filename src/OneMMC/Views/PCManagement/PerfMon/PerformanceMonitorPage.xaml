@@ -24,6 +24,7 @@
         <converters:BoolToTextConverter x:Key="BoolToTextConverter" />
         <converters:ZeroToVisibilityConverter x:Key="ZeroToVisibilityConverter" />
         <converters:DoubleToFormattedStringConverter x:Key="DoubleToFormattedStringConverter" />
+        <converters:DoubleToHeightConverter x:Key="DoubleToHeightConverter" MaxHeight="180" MaxValue="100" />
         <converters:HexColorToBrushConverter x:Key="HexColorToBrushConverter" />
     </Page.Resources>
 
@@ -286,19 +287,12 @@
                                                 VerticalAlignment="Bottom">
                                             <Grid>
                                                 <Rectangle 
+                                                    Height="{x:Bind LastValue, Converter={StaticResource DoubleToHeightConverter}, Mode=OneWay}"
                                                     Fill="{x:Bind ColorHex, Converter={StaticResource HexColorToBrushConverter}}"
                                                     VerticalAlignment="Bottom"
                                                     Opacity="0.7"
                                                     RadiusX="4"
-                                                    RadiusY="4">
-                                                    <Rectangle.Height>
-                                                        <Binding Path="LastValue">
-                                                            <Binding.Converter>
-                                                                <converters:DoubleToHeightConverter MaxHeight="180" MaxValue="100"/>
-                                                            </Binding.Converter>
-                                                        </Binding>
-                                                    </Rectangle.Height>
-                                                </Rectangle>
+                                                    RadiusY="4" />
                                                 <TextBlock 
                                                     Text="{x:Bind LastValue, Converter={StaticResource DoubleToFormattedStringConverter}, Mode=OneWay}"
                                                     FontSize="16"
@@ -342,8 +336,7 @@
                         MinHeight="280"
                         Visibility="{x:Bind ViewModel.IsReportView, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
 
-                    <ScrollViewer>
-                        <StackPanel Spacing="16">
+                    <StackPanel Spacing="16">
                             <!-- Report Header -->
                             <Grid>
                                 <Grid.ColumnDefinitions>
@@ -526,8 +519,7 @@
                                           HorizontalAlignment="Center"
                                           Margin="0,8,0,0"/>
                             </StackPanel>
-                        </StackPanel>
-                    </ScrollViewer>
+                    </StackPanel>
                 </Border>
 
                 <!-- Monitor List Section -->

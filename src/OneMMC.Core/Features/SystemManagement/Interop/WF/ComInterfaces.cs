@@ -103,7 +103,7 @@ internal partial interface INetFwRules : IDispatch
     int get_Count();
     void Add(INetFwRule rule);
     void Remove([MarshalAs(UnmanagedType.BStr)] string name);
-    void get_Item([MarshalAs(UnmanagedType.BStr)] string name, out INetFwRule3 rule);
+    void get_Item([MarshalAs(UnmanagedType.BStr)] string name, [MarshalUsing(typeof(UniqueComInterfaceMarshaller<INetFwRule3>))] out INetFwRule3 rule);
     nint get__NewEnum(); // IUnknown* -> IEnumVARIANT; wrapped by FirewallCom.EnumerateRules
 }
 
@@ -123,7 +123,7 @@ internal partial interface INetFwPolicy2 : IDispatch
     void set_NotificationsDisabled(int profileType, short disabled); // VARIANT_BOOL
     short get_UnicastResponsesToMulticastBroadcastDisabled(int profileType); // VARIANT_BOOL
     void set_UnicastResponsesToMulticastBroadcastDisabled(int profileType, short disabled); // VARIANT_BOOL
-    void get_Rules(out INetFwRules rules);
+    void get_Rules([MarshalUsing(typeof(UniqueComInterfaceMarshaller<INetFwRules>))] out INetFwRules rules);
     void get_ServiceRestriction(out nint serviceRestriction); // unused (INetFwServiceRestriction)
     void EnableRuleGroup(int profileTypesBitmask, [MarshalAs(UnmanagedType.BStr)] string group, short enable);
     short IsRuleGroupEnabled(int profileTypesBitmask, [MarshalAs(UnmanagedType.BStr)] string group);

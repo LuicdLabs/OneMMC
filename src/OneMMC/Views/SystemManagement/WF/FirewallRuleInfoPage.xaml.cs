@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using OneMMC.Core.Features.SystemManagement.Models.WF.Authentication;
 using OneMMC.Core.Features.SystemManagement.Models.WF.ConnectionSecurity;
@@ -28,6 +29,55 @@ using Microsoft.UI.Xaml.Navigation;
 
 namespace OneMMC.Views;
 
+internal enum FirewallRuleNavigationKind
+{
+    FirewallRule,
+    ConnectionSecurityRule
+}
+
+internal sealed class FirewallRuleNavigationParameter
+{
+    private FirewallRuleNavigationParameter(
+        FirewallRuleNavigationKind kind,
+        string lookupName,
+        FirewallRuleDirection? firewallDirection)
+    {
+        Kind = kind;
+        LookupName = lookupName;
+        FirewallDirection = firewallDirection;
+    }
+
+    public FirewallRuleNavigationKind Kind { get; }
+
+    public string LookupName { get; private set; }
+
+    public FirewallRuleDirection? FirewallDirection { get; }
+
+    public void UpdateLookupName(string lookupName)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(lookupName);
+        LookupName = lookupName;
+    }
+
+    public static FirewallRuleNavigationParameter ForFirewallRule(FirewallRuleModel rule)
+    {
+        string lookupName = string.IsNullOrWhiteSpace(rule.OriginalName) ? rule.Name : rule.OriginalName;
+        return new FirewallRuleNavigationParameter(
+            FirewallRuleNavigationKind.FirewallRule,
+            lookupName,
+            rule.Direction);
+    }
+
+    public static FirewallRuleNavigationParameter ForConnectionSecurityRule(ConnectionSecurityRuleModel rule)
+    {
+        string lookupName = string.IsNullOrWhiteSpace(rule.OriginalName) ? rule.Name : rule.OriginalName;
+        return new FirewallRuleNavigationParameter(
+            FirewallRuleNavigationKind.ConnectionSecurityRule,
+            lookupName,
+            null);
+    }
+}
+
 public sealed partial class FirewallRuleInfoPage : Page, IUnsavedChangesGuard
 {
     private const int NetFwAuthenticateNone = 0;
@@ -49,8 +99,15 @@ public sealed partial class FirewallRuleInfoPage : Page, IUnsavedChangesGuard
     private int _allowIfSecureSecureFlags = NetFwAuthenticateWithIntegrity;
     private bool _allowIfSecureOverrideBlockRules;
     private bool _isRefreshingFromSystemChange;
+    private readonly SemaphoreSlim _ruleRefreshGate = new(1, 1);
+    private int _ruleRefreshPending;
+    private int _ruleRefreshWorkerActive;
+    private bool _isApplyInProgress;
     private bool _isPopulatingRuleUi;
     private bool _isSynchronizingProtocolNumber;
+    private int _navigationLoadVersion;
+    private bool _isRuleAvailable;
+    private FirewallRuleNavigationParameter? _navigationParameter;
 
     // Unsaved-changes guard: set when the user edits the rule (Rule.PropertyChanged outside of load /
     // system-refresh), cleared on load and after a successful Apply; prompts on back-navigation.
@@ -67,64 +124,146 @@ public sealed partial class FirewallRuleInfoPage : Page, IUnsavedChangesGuard
         Unloaded += OnUnloaded;
     }
 
-    protected override void OnNavigatedTo(NavigationEventArgs e)
+    protected override async void OnNavigatedTo(NavigationEventArgs e)
     {
         base.OnNavigatedTo(e);
-        ApplyButton.IsEnabled = true;
-        DisableButton.IsEnabled = true;
-        DeleteMenuItem.IsEnabled = true;
-        PredefinedRuleInfoBar.IsOpen = false;
+        int loadVersion = ++_navigationLoadVersion;
+        BeginRuleLoad();
 
-        if (e.Parameter is ConnectionSecurityRuleModel connectionSecurityRule)
+        if (e.Parameter is not FirewallRuleNavigationParameter parameter)
         {
-            _connectionSecurityRule = connectionSecurityRule;
-            Rule = CreateFirewallRuleModel(connectionSecurityRule);
-            TrackRuleChanges(Rule);
-            RestoreRuleAvailabilityUi();
-            _isPopulatingRuleUi = true;
-            try
-            {
-                ApplyDirectionUI(FirewallRuleDirection.ConnectionSecurity);
-                PopulateComboBoxes(Rule);
-                PopulateConnectionSecurityFields(connectionSecurityRule);
-                InitializeAllowIfSecureState();
-            }
-            finally
-            {
-                _isPopulatingRuleUi = false;
-            }
-
-            UpdateDisableButton();
-            _hasUnsavedChanges = false;
+            _navigationParameter = null;
+            MarkRuleUnavailable();
             return;
         }
 
-        if (e.Parameter is FirewallRuleModel rule)
+        _navigationParameter = parameter;
+
+        try
         {
-            _connectionSecurityRule = null;
-            Rule = rule;
-            TrackRuleChanges(Rule);
-            RestoreRuleAvailabilityUi();
-            _isPopulatingRuleUi = true;
-            try
+            if (parameter.Kind == FirewallRuleNavigationKind.ConnectionSecurityRule)
             {
-                ApplyDirectionUI(rule.Direction);
-                PopulateComboBoxes(rule);
-                InitializeAllowIfSecureState();
-            }
-            finally
-            {
-                _isPopulatingRuleUi = false;
+                var service = App.GetRequiredService<ConnectionSecurityService>();
+                ConnectionSecurityRuleModel? connectionSecurityRule =
+                    await Task.Run(() => service.GetRule(parameter.LookupName));
+                if (!IsCurrentNavigationLoad(loadVersion, parameter))
+                {
+                    return;
+                }
+
+                if (connectionSecurityRule is null)
+                {
+                    MarkRuleUnavailable();
+                    return;
+                }
+
+                LoadConnectionSecurityRule(connectionSecurityRule);
+                return;
             }
 
-            UpdateDisableButton();
-            ApplyPredefinedRuleUI(rule);
-            _hasUnsavedChanges = false;
+            if (parameter.FirewallDirection is not { } direction ||
+                direction == FirewallRuleDirection.ConnectionSecurity)
+            {
+                MarkRuleUnavailable();
+                return;
+            }
+
+            var ruleService = App.GetRequiredService<WindowsFirewallRuleService>();
+            FirewallRuleModel? rule = await Task.Run(() =>
+                ruleService.GetRules(direction).FirstOrDefault(candidate =>
+                    string.Equals(candidate.Name, parameter.LookupName, StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(candidate.OriginalName, parameter.LookupName, StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(candidate.DisplayName, parameter.LookupName, StringComparison.OrdinalIgnoreCase)));
+            if (!IsCurrentNavigationLoad(loadVersion, parameter))
+            {
+                return;
+            }
+
+            if (rule is null)
+            {
+                MarkRuleUnavailable();
+                return;
+            }
+
+            LoadFirewallRule(rule);
         }
+        catch (Exception ex)
+        {
+            if (!IsCurrentNavigationLoad(loadVersion, parameter))
+            {
+                return;
+            }
+
+            _logger.LogWarning(
+                ex,
+                "Failed to reload {RuleKind} rule {RuleName} for navigation.",
+                parameter.Kind,
+                parameter.LookupName);
+            MarkRuleLoadFailed(parameter.Kind == FirewallRuleNavigationKind.ConnectionSecurityRule
+                ? LocalizedStrings.WF_Error_LoadConnectionSecurityRules
+                : LocalizedStrings.WF_Error_LoadRules);
+        }
+    }
+
+    protected override void OnNavigatedFrom(NavigationEventArgs e)
+    {
+        ++_navigationLoadVersion;
+        base.OnNavigatedFrom(e);
+    }
+
+    private void LoadConnectionSecurityRule(ConnectionSecurityRuleModel connectionSecurityRule)
+    {
+        _connectionSecurityRule = connectionSecurityRule;
+        Rule = CreateFirewallRuleModel(connectionSecurityRule);
+        Bindings.Update();
+        TrackRuleChanges(Rule);
+        RestoreRuleAvailabilityUi();
+        _isPopulatingRuleUi = true;
+        try
+        {
+            ApplyDirectionUI(FirewallRuleDirection.ConnectionSecurity);
+            PopulateComboBoxes(Rule);
+            PopulateConnectionSecurityFields(connectionSecurityRule);
+            InitializeAllowIfSecureState();
+        }
+        finally
+        {
+            _isPopulatingRuleUi = false;
+        }
+
+        UpdateDisableButton();
+        _hasUnsavedChanges = false;
+    }
+
+    private void LoadFirewallRule(FirewallRuleModel rule)
+    {
+        _connectionSecurityRule = null;
+        Rule = rule;
+        Bindings.Update();
+        TrackRuleChanges(Rule);
+        RestoreRuleAvailabilityUi();
+        _isPopulatingRuleUi = true;
+        try
+        {
+            ApplyDirectionUI(rule.Direction);
+            PopulateComboBoxes(rule);
+            InitializeAllowIfSecureState();
+        }
+        finally
+        {
+            _isPopulatingRuleUi = false;
+        }
+
+        UpdateDisableButton();
+        ApplyPredefinedRuleUI(rule);
+        _hasUnsavedChanges = false;
     }
 
     private void OnUnloaded(object sender, RoutedEventArgs e)
     {
+        ++_navigationLoadVersion;
+        _navigationParameter = null;
+        Interlocked.Exchange(ref _ruleRefreshPending, 0);
         _firewallChangeSubscription?.Dispose();
         _firewallChangeSubscription = null;
         if (_trackedRule is not null)
@@ -663,7 +802,19 @@ public sealed partial class FirewallRuleInfoPage : Page, IUnsavedChangesGuard
             return false;
         }
 
+        int operationLoadVersion = _navigationLoadVersion;
+        FirewallRuleNavigationParameter? operationParameter = _navigationParameter;
+        if (operationParameter is null)
+        {
+            return false;
+        }
+
         SetApplyInProgress(true);
+        await WaitForActiveRuleRefreshAsync();
+        if (!IsCurrentNavigationLoad(operationLoadVersion, operationParameter))
+        {
+            return false;
+        }
 
         if (_connectionSecurityRule is not null)
         {
@@ -672,17 +823,31 @@ public sealed partial class FirewallRuleInfoPage : Page, IUnsavedChangesGuard
                 UpdateConnectionSecurityRuleFromUi();
                 var connectionSecurityService = App.GetRequiredService<ConnectionSecurityService>();
                 await Task.Run(() => connectionSecurityService.UpdateRule(_connectionSecurityRule));
-                _hasUnsavedChanges = false;
+                operationParameter?.UpdateLookupName(GetConnectionSecurityRuleLookupName(_connectionSecurityRule));
+                if (IsCurrentNavigationLoad(operationLoadVersion, operationParameter))
+                {
+                    _hasUnsavedChanges = false;
+                }
                 return true;
             }
             catch (Exception ex)
             {
-                await ShowErrorDialogAsync(LocalizedStrings.WF_Error_UpdateConnectionSecurityRule, ex.Message);
+                if (IsCurrentNavigationLoad(operationLoadVersion, operationParameter))
+                {
+                    await ShowErrorDialogAsync(LocalizedStrings.WF_Error_UpdateConnectionSecurityRule, ex.Message);
+                }
+                else
+                {
+                    _logger.LogWarning(ex, "Failed to update a connection security rule after its page was unloaded.");
+                }
                 return false;
             }
             finally
             {
-                SetApplyInProgress(false);
+                if (IsCurrentNavigationLoad(operationLoadVersion, operationParameter))
+                {
+                    SetApplyInProgress(false);
+                }
             }
         }
 
@@ -709,18 +874,35 @@ public sealed partial class FirewallRuleInfoPage : Page, IUnsavedChangesGuard
                 }
             });
             Rule.OriginalName = ruleToApply.OriginalName;
-            await RefreshRuleStatusFromSystemChangeAsync(includeMutableState: true);
-            _hasUnsavedChanges = false;
+            operationParameter?.UpdateLookupName(GetFirewallRuleLookupName(Rule));
+            if (IsCurrentNavigationLoad(operationLoadVersion, operationParameter))
+            {
+                await RefreshRuleStatusFromSystemChangeAsync(includeMutableState: true);
+                if (IsCurrentNavigationLoad(operationLoadVersion, operationParameter))
+                {
+                    _hasUnsavedChanges = false;
+                }
+            }
             return true;
         }
         catch (Exception ex)
         {
-            await ShowErrorDialogAsync(LocalizedStrings.WF_Error_UpdateRule, ex.Message);
+            if (IsCurrentNavigationLoad(operationLoadVersion, operationParameter))
+            {
+                await ShowErrorDialogAsync(LocalizedStrings.WF_Error_UpdateRule, ex.Message);
+            }
+            else
+            {
+                _logger.LogWarning(ex, "Failed to update a firewall rule after its page was unloaded.");
+            }
             return false;
         }
         finally
         {
-            SetApplyInProgress(false);
+            if (IsCurrentNavigationLoad(operationLoadVersion, operationParameter))
+            {
+                SetApplyInProgress(false);
+            }
         }
     }
 
@@ -1386,6 +1568,7 @@ public sealed partial class FirewallRuleInfoPage : Page, IUnsavedChangesGuard
 
     private void SetApplyInProgress(bool isInProgress)
     {
+        _isApplyInProgress = isInProgress;
         ApplyProgressOverlay.Visibility = isInProgress ? Visibility.Visible : Visibility.Collapsed;
 
         if (isInProgress)
@@ -1396,8 +1579,11 @@ public sealed partial class FirewallRuleInfoPage : Page, IUnsavedChangesGuard
             return;
         }
 
-        RestoreRuleAvailabilityUi();
-        UpdateDisableButton();
+        if (_isRuleAvailable)
+        {
+            RestoreRuleAvailabilityUi();
+            UpdateDisableButton();
+        }
     }
 
     private static FirewallRuleModel CreateRuleApplySnapshot(FirewallRuleModel source)
@@ -1682,69 +1868,137 @@ public sealed partial class FirewallRuleInfoPage : Page, IUnsavedChangesGuard
 
     private void OnFirewallRulesChanged(object? sender, EventArgs e)
     {
-        DispatcherQueue.TryEnqueue(async () =>
-        {
-            await RefreshRuleStatusFromSystemChangeAsync();
-        });
+        // Registry notifications arrive on a worker thread. Coalesce bursts into one UI worker and let the
+        // DispatcherQueue hold only a weak reference until that worker actually begins.
+        Interlocked.Exchange(ref _ruleRefreshPending, 1);
+        TryQueueRuleRefreshWorker();
     }
 
-    private async Task RefreshRuleStatusFromSystemChangeAsync(bool includeMutableState = false)
+    private void TryQueueRuleRefreshWorker()
     {
-        if (_isRefreshingFromSystemChange || string.IsNullOrWhiteSpace(Rule.Name))
+        if (Interlocked.CompareExchange(ref _ruleRefreshWorkerActive, 1, 0) != 0)
         {
             return;
         }
 
-        _isRefreshingFromSystemChange = true;
+        var weakPage = new WeakReference<FirewallRuleInfoPage>(this);
+        if (!DispatcherQueue.TryEnqueue(async () =>
+            {
+                if (weakPage.TryGetTarget(out FirewallRuleInfoPage? page))
+                {
+                    await page.ProcessQueuedRuleRefreshesAsync();
+                }
+            }))
+        {
+            Interlocked.Exchange(ref _ruleRefreshWorkerActive, 0);
+        }
+    }
+
+    private async Task ProcessQueuedRuleRefreshesAsync()
+    {
         try
         {
-            if (_connectionSecurityRule is not null)
+            while (_navigationParameter is not null &&
+                   Interlocked.Exchange(ref _ruleRefreshPending, 0) != 0)
             {
-                var connectionSecurityService = App.GetRequiredService<ConnectionSecurityService>();
-                string lookupName = GetConnectionSecurityRuleLookupName(_connectionSecurityRule);
-                ConnectionSecurityRuleModel? latestRule = await Task.Run(() => connectionSecurityService.GetRule(lookupName));
-                if (latestRule is null)
+                await RefreshRuleStatusFromSystemChangeAsync();
+            }
+        }
+        finally
+        {
+            Interlocked.Exchange(ref _ruleRefreshWorkerActive, 0);
+            if (_navigationParameter is not null && Volatile.Read(ref _ruleRefreshPending) != 0)
+            {
+                TryQueueRuleRefreshWorker();
+            }
+        }
+    }
+
+    private async Task RefreshRuleStatusFromSystemChangeAsync(bool includeMutableState = false)
+    {
+        await _ruleRefreshGate.WaitAsync();
+        try
+        {
+            int loadVersion = _navigationLoadVersion;
+            FirewallRuleNavigationParameter? parameter = _navigationParameter;
+            if ((_isApplyInProgress && !includeMutableState) ||
+                parameter is null ||
+                string.IsNullOrWhiteSpace(Rule.Name))
+            {
+                return;
+            }
+
+            _isRefreshingFromSystemChange = true;
+            try
+            {
+                if (_connectionSecurityRule is not null)
+                {
+                    var connectionSecurityService = App.GetRequiredService<ConnectionSecurityService>();
+                    string lookupName = GetConnectionSecurityRuleLookupName(_connectionSecurityRule);
+                    ConnectionSecurityRuleModel? latestRule = await Task.Run(() => connectionSecurityService.GetRule(lookupName));
+                    if (!IsCurrentNavigationLoad(loadVersion, parameter))
+                    {
+                        return;
+                    }
+
+                    if (latestRule is null)
+                    {
+                        MarkRuleUnavailable();
+                        return;
+                    }
+
+                    _connectionSecurityRule.OriginalName = latestRule.OriginalName;
+                    _connectionSecurityRule.Enabled = latestRule.Enabled;
+                    Rule.Enabled = latestRule.Enabled;
+                    RestoreRuleAvailabilityUi();
+                    UpdateDisableButton();
+                    return;
+                }
+
+                var firewallRuleService = App.GetRequiredService<WindowsFirewallRuleService>();
+                FirewallRuleModel? latest = await Task.Run(() => firewallRuleService.GetRule(GetFirewallRuleLookupName(Rule)));
+                if (!IsCurrentNavigationLoad(loadVersion, parameter))
+                {
+                    return;
+                }
+
+                if (latest is null)
                 {
                     MarkRuleUnavailable();
                     return;
                 }
 
-                _connectionSecurityRule.OriginalName = latestRule.OriginalName;
-                _connectionSecurityRule.Enabled = latestRule.Enabled;
-                Rule.Enabled = latestRule.Enabled;
+                Rule.OriginalName = latest.OriginalName;
+                Rule.Enabled = latest.Enabled;
+                Rule.PolicyModifyState = latest.PolicyModifyState;
+                Rule.IsRuleGroupEnabled = latest.IsRuleGroupEnabled;
+                if (includeMutableState)
+                {
+                    ApplyLatestFirewallRuleMutableState(latest, firewallRuleService);
+                }
+
                 RestoreRuleAvailabilityUi();
                 UpdateDisableButton();
-                return;
             }
-
-            var firewallRuleService = App.GetRequiredService<WindowsFirewallRuleService>();
-            FirewallRuleModel? latest = await Task.Run(() => firewallRuleService.GetRule(GetFirewallRuleLookupName(Rule)));
-            if (latest is null)
+            catch (Exception ex)
             {
-                MarkRuleUnavailable();
-                return;
+                _logger.LogWarning(ex, "Failed to refresh Windows Firewall rule details after a system change.");
             }
-
-            Rule.OriginalName = latest.OriginalName;
-            Rule.Enabled = latest.Enabled;
-            Rule.PolicyModifyState = latest.PolicyModifyState;
-            Rule.IsRuleGroupEnabled = latest.IsRuleGroupEnabled;
-            if (includeMutableState)
+            finally
             {
-                ApplyLatestFirewallRuleMutableState(latest, firewallRuleService);
+                _isRefreshingFromSystemChange = false;
             }
-
-            RestoreRuleAvailabilityUi();
-            UpdateDisableButton();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Failed to refresh Windows Firewall rule details after a system change.");
         }
         finally
         {
-            _isRefreshingFromSystemChange = false;
+            _ruleRefreshGate.Release();
         }
+    }
+
+    private async Task WaitForActiveRuleRefreshAsync()
+    {
+        await _ruleRefreshGate.WaitAsync();
+        _ruleRefreshGate.Release();
     }
 
     private void ApplyLatestFirewallRuleMutableState(
@@ -1781,6 +2035,8 @@ public sealed partial class FirewallRuleInfoPage : Page, IUnsavedChangesGuard
 
     private void MarkRuleUnavailable()
     {
+        _isRuleAvailable = false;
+        RuleEditorScrollViewer.IsEnabled = false;
         ApplyButton.IsEnabled = false;
         DisableButton.IsEnabled = false;
         DeleteMenuItem.IsEnabled = false;
@@ -1790,8 +2046,18 @@ public sealed partial class FirewallRuleInfoPage : Page, IUnsavedChangesGuard
         PredefinedRuleInfoBar.IsOpen = true;
     }
 
+    private void MarkRuleLoadFailed(string message)
+    {
+        MarkRuleUnavailable();
+        PredefinedRuleInfoBar.Severity = InfoBarSeverity.Error;
+        PredefinedRuleInfoBar.Title = LocalizedStrings.Common_ErrorTitle;
+        PredefinedRuleInfoBar.Message = message;
+    }
+
     private void RestoreRuleAvailabilityUi()
     {
+        _isRuleAvailable = true;
+        RuleEditorScrollViewer.IsEnabled = true;
         ApplyButton.IsEnabled = true;
         DisableButton.IsEnabled = true;
         DeleteMenuItem.IsEnabled = true;
@@ -1807,6 +2073,21 @@ public sealed partial class FirewallRuleInfoPage : Page, IUnsavedChangesGuard
 
         PredefinedRuleInfoBar.IsOpen = false;
     }
+
+    private void BeginRuleLoad()
+    {
+        _isRuleAvailable = false;
+        RuleEditorScrollViewer.IsEnabled = false;
+        ApplyButton.IsEnabled = false;
+        DisableButton.IsEnabled = false;
+        DeleteMenuItem.IsEnabled = false;
+        PredefinedRuleInfoBar.IsOpen = false;
+    }
+
+    private bool IsCurrentNavigationLoad(int loadVersion, FirewallRuleNavigationParameter? parameter)
+        => parameter is not null &&
+           loadVersion == _navigationLoadVersion &&
+           ReferenceEquals(_navigationParameter, parameter);
 
     private static string GetFirewallRuleLookupName(FirewallRuleModel rule)
         => string.IsNullOrWhiteSpace(rule.OriginalName) ? rule.Name : rule.OriginalName;
