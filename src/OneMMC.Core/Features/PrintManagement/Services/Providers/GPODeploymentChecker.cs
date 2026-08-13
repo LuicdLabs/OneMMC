@@ -1,7 +1,7 @@
 ﻿using System;
 using Microsoft.Win32;
 
-namespace OneMMC.Core.Features.PrintManagement.Services.PrintManagement.Providers;
+namespace OneMMC.Core.Features.PrintManagement.Services.Providers;
 
 /// <summary>
 /// Checks if a printer is deployed by Group Policy.

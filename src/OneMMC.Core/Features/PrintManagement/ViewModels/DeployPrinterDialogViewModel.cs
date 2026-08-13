@@ -4,9 +4,9 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
-using OneMMC.Core.Features.PrintManagement.Models.PrintManagement;
+using OneMMC.Core.Features.PrintManagement.Models;
 
-namespace OneMMC.Views;
+namespace OneMMC.Core.Features.PrintManagement.ViewModels;
 
 /// <summary>
 /// ViewModel for the Deploy Printer dialog.

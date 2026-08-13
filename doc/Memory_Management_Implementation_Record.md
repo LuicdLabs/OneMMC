@@ -624,7 +624,7 @@ src/OneMMC.Core/Features/PCManagement/ViewModels/DiskMgmt/DiskManagementViewMode
 src/OneMMC.Core/Features/PCManagement/ViewModels/FsMgmt/SharedFoldersViewModel.cs
 src/OneMMC.Core/Features/PCManagement/ViewModels/LusrMgr/LocalUsersGroupsViewModel.cs
 src/OneMMC.Core/Features/PCManagement/ViewModels/Services/ServicesViewModel.cs
-src/OneMMC.Core/Features/PrintManagement/ViewModels/PrintManagement/PrintManagementViewModel.cs
+src/OneMMC.Core/Features/PrintManagement/ViewModels/PrintManagementViewModel.cs
 src/OneMMC.Core/Features/SystemManagement/ViewModels/WF/Rules/FirewallRuleViewModel.cs
 ```
 

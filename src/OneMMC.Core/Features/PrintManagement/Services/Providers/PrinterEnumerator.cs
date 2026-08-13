@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using OneMMC.Core.Features.PrintManagement.Models.PrintManagement;
-using OneMMC.Core.Features.PrintManagement.Services.PrintManagement.Native;
-using OneMMC.Core.Features.PrintManagement.Services.PrintManagement.Helpers;
 using Microsoft.Extensions.Logging;
+using OneMMC.Core.Features.PrintManagement.Services.Native;
+using OneMMC.Core.Features.PrintManagement.Services.Helpers;
+using OneMMC.Core.Features.PrintManagement.Models;
 
-namespace OneMMC.Core.Features.PrintManagement.Services.PrintManagement.Providers;
+namespace OneMMC.Core.Features.PrintManagement.Services.Providers;
 
 /// <summary>
 /// Handles printer enumeration via P/Invoke.

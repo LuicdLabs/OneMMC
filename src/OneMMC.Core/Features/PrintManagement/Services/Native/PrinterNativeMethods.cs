@@ -6,7 +6,7 @@ using Windows.Win32.Graphics.Gdi;
 using Windows.Win32.Graphics.Printing;
 using Win32PInvoke = Windows.Win32.PInvoke;
 
-namespace OneMMC.Core.Features.PrintManagement.Services.PrintManagement.Native;
+namespace OneMMC.Core.Features.PrintManagement.Services.Native;
 
 /// <summary>
 /// Native printer interop wrappers backed by CsWin32-generated bindings.

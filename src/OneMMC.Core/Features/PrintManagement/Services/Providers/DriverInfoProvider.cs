@@ -2,12 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
-using OneMMC.Core.Features.PrintManagement.Models.PrintManagement;
-using OneMMC.Core.Features.PrintManagement.Services.PrintManagement.Native;
 using Microsoft.Extensions.Logging;
 using Microsoft.Win32;
+using OneMMC.Core.Features.PrintManagement.Services.Native;
+using OneMMC.Core.Features.PrintManagement.Models;
 
-namespace OneMMC.Core.Features.PrintManagement.Services.PrintManagement.Providers;
+namespace OneMMC.Core.Features.PrintManagement.Services.Providers;
 
 /// <summary>
 /// Provides driver information including version and isolation mode.

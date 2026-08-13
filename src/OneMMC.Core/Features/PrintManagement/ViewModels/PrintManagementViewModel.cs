@@ -4,11 +4,11 @@ using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using OneMMC.Core.Infrastructure.Admin;
-using OneMMC.Core.Features.PrintManagement.Models.PrintManagement;
-using OneMMC.Core.Features.PrintManagement.Services.PrintManagement;
 using Microsoft.Extensions.Logging;
+using OneMMC.Core.Features.PrintManagement.Services;
+using OneMMC.Core.Features.PrintManagement.Models;
 
-namespace OneMMC.Core.Features.PrintManagement.ViewModels.PrintManagement;
+namespace OneMMC.Core.Features.PrintManagement.ViewModels;
 
 /// <summary>
 /// ViewModel for the Print Management page following MVVM pattern.

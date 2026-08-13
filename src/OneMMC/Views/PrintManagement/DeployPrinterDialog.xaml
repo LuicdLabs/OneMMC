@@ -5,7 +5,7 @@
     xmlns:converters="using:OneMMC.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:models="using:OneMMC.Core.Features.PrintManagement.Models.PrintManagement"
+    xmlns:models="using:OneMMC.Core.Features.PrintManagement.Models"
     mc:Ignorable="d"
     MinWidth="720"
     PrimaryButtonClick="PrimaryButton_Click"

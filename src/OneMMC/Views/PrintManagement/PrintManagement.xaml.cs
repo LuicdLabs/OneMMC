@@ -4,15 +4,15 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-using OneMMC.Core.Features.PrintManagement.Models.PrintManagement;
-using OneMMC.Core.Features.PrintManagement.Services.PrintManagement;
-using OneMMC.Core.Features.PrintManagement.ViewModels.PrintManagement;
+using OneMMC.Core.Features.PrintManagement.ViewModels;
 using OneMMC.Helpers;
 using OneMMC.Localization;
 using Microsoft.Extensions.Logging;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using WinRT.Interop;
+using OneMMC.Core.Features.PrintManagement.Services;
+using OneMMC.Core.Features.PrintManagement.Models;
 
 namespace OneMMC.Views;
 

@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Threading.Tasks;
-using OneMMC.Core.Features.PrintManagement.Models.PrintManagement;
-using OneMMC.Core.Features.PrintManagement.Services.PrintManagement;
 using OneMMC.Helpers;
 using OneMMC.Localization;
 using Microsoft.Extensions.Logging;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using OneMMC.Core.Features.PrintManagement.Services;
+using OneMMC.Core.Features.PrintManagement.Models;
+using OneMMC.Core.Features.PrintManagement.ViewModels;
 
 namespace OneMMC.Views;
 

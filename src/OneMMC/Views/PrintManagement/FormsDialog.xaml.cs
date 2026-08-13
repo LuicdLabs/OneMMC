@@ -1,7 +1,7 @@
 ﻿using System;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using OneMMC.Core.Features.PrintManagement.ViewModels.PrintManagement;
+using OneMMC.Core.Features.PrintManagement.ViewModels;
 using OneMMC.Localization;
 
 namespace OneMMC.Views;
