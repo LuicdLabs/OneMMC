@@ -7,6 +7,7 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using OneMMC.Core.Features.PCManagement.Models.DiskMgmt;
 using OneMMC.Core.Features.PCManagement.Services.DiskMgmt;
+using OneMMC.Core.Infrastructure.Collections;
 
 namespace OneMMC.Core.Features.PCManagement.ViewModels.DiskMgmt
 {
@@ -189,16 +190,21 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.DiskMgmt
                 var volumes = await Task.Run(() => _diskService.GetVolumes());
                 var pools = await Task.Run(() => _diskService.GetStoragePools());
 
-                PhysicalDisks = new ObservableCollection<PhysicalDiskInfo>(disks);
-                CDROMDrives = new ObservableCollection<CDROMInfo>(cdroms);
-                Volumes = new ObservableCollection<VolumeInfo>(volumes);
-                StoragePools = new ObservableCollection<StoragePoolInfo>(pools);
+                PhysicalDisks.ReplaceAll(disks);
+                OnPropertyChanged(nameof(PhysicalDisks));
+                CDROMDrives.ReplaceAll(cdroms);
+                OnPropertyChanged(nameof(CDROMDrives));
+                Volumes.ReplaceAll(volumes);
+                OnPropertyChanged(nameof(Volumes));
+                StoragePools.ReplaceAll(pools);
+                OnPropertyChanged(nameof(StoragePools));
 
                 // Build unified disk items list (physical disks first, then CD-ROMs)
                 var allItems = new List<IDiskItem>();
                 allItems.AddRange(disks);
                 allItems.AddRange(cdroms);
-                AllDiskItems = new ObservableCollection<IDiskItem>(allItems);
+                AllDiskItems.ReplaceAll(allItems);
+                OnPropertyChanged(nameof(AllDiskItems));
 
                 DriveCount = disks.Count + cdroms.Count;
                 TotalPartitions = disks.Sum(d => d.PartitionInfos.Count(p => !p.IsUnallocated));

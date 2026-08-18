@@ -27,18 +27,41 @@ namespace OneMMC.Views
             ViewModel = App.GetRequiredService<DeviceManagerViewModel>();
             this.InitializeComponent();
             this.Loaded += DeviceManagerPage_Loaded;
+        }
+
+        /// <summary>
+        /// Attaches per-visit state.
+        /// </summary>
+        /// <remarks>
+        /// This page sets <see cref="NavigationCacheMode.Enabled"/>, so the constructor runs once per
+        /// session while this runs on every visit. Subscribing here (and unsubscribing in
+        /// <see cref="OnNavigatedFrom"/>) keeps the handler balanced across visits; doing it in the
+        /// constructor and <c>Unloaded</c> detached it permanently after the first navigation away.
+        /// </remarks>
+        protected override void OnNavigatedTo(NavigationEventArgs e)
+        {
+            base.OnNavigatedTo(e);
             ViewModel.PropertyChanged += ViewModel_PropertyChanged;
-            this.Unloaded += (_, _) =>
-            {
-                ViewModel.PropertyChanged -= ViewModel_PropertyChanged;
-                DataContext = null;
-                this.Loaded -= DeviceManagerPage_Loaded;
-            };
+        }
+
+        /// <inheritdoc cref="OnNavigatedTo"/>
+        protected override void OnNavigatedFrom(NavigationEventArgs e)
+        {
+            base.OnNavigatedFrom(e);
+            ViewModel.PropertyChanged -= ViewModel_PropertyChanged;
         }
 
         private async void DeviceManagerPage_Loaded(object sender, RoutedEventArgs e)
         {
-            await ViewModel.LoadDevicesAsync();
+            // The page is cached, so this runs on every visit. Only enumerate when there is nothing to
+            // show: re-running it rebuilt every item container, and discarded containers are not
+            // released. The toolbar refresh and pull-to-refresh remain the way to re-read hardware.
+            // Same guard as ServicesPage. See doc/MemoryManagement.md.
+            if (ViewModel.DeviceCategories.Count == 0)
+            {
+                await ViewModel.LoadDevicesAsync();
+            }
+
             UpdateDeviceCount();
         }
 

@@ -12,6 +12,7 @@ using OneMMC.Core.Features.SystemManagement.Services.WF.Rules;
 using System.Collections.ObjectModel;
 using System.Threading;
 using System.Threading.Tasks;
+using OneMMC.Core.Infrastructure.Collections;
 
 namespace OneMMC.Core.Features.SystemManagement.ViewModels.WF.Rules
 {
@@ -197,7 +198,8 @@ namespace OneMMC.Core.Features.SystemManagement.ViewModels.WF.Rules
                     return;
                 }
 
-                Rules = new ObservableCollection<FirewallRuleModel>(systemRules);
+                Rules.ReplaceAll(systemRules);
+                OnPropertyChanged(nameof(Rules));
             }
             finally
             {
@@ -228,7 +230,8 @@ namespace OneMMC.Core.Features.SystemManagement.ViewModels.WF.Rules
                     rule.Name.Contains(query, System.StringComparison.OrdinalIgnoreCase) ||
                     rule.Description.Contains(query, System.StringComparison.OrdinalIgnoreCase));
 
-            FilteredRules = new ObservableCollection<FirewallRuleModel>(filteredRules);
+            FilteredRules.ReplaceAll(filteredRules);
+            OnPropertyChanged(nameof(FilteredRules));
         }
     }
 }

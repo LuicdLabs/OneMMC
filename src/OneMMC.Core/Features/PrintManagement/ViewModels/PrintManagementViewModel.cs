@@ -7,6 +7,7 @@ using OneMMC.Core.Infrastructure.Admin;
 using Microsoft.Extensions.Logging;
 using OneMMC.Core.Features.PrintManagement.Services;
 using OneMMC.Core.Features.PrintManagement.Models;
+using OneMMC.Core.Infrastructure.Collections;
 
 namespace OneMMC.Core.Features.PrintManagement.ViewModels;
 
@@ -127,11 +128,16 @@ public partial class PrintManagementViewModel : ObservableObject
 
             await Task.WhenAll(printersTask, driversTask, portsTask, formsTask, deployedTask);
 
-            Printers = new ObservableCollection<PrinterInfo>(await printersTask);
-            Drivers = new ObservableCollection<PrintDriverInfo>(await driversTask);
-            Ports = new ObservableCollection<PrintPortInfo>(await portsTask);
-            Forms = new ObservableCollection<PrintFormInfo>(await formsTask);
-            DeployedPrinters = new ObservableCollection<PrinterInfo>(await deployedTask);
+            Printers.ReplaceAll(await printersTask);
+            OnPropertyChanged(nameof(Printers));
+            Drivers.ReplaceAll(await driversTask);
+            OnPropertyChanged(nameof(Drivers));
+            Ports.ReplaceAll(await portsTask);
+            OnPropertyChanged(nameof(Ports));
+            Forms.ReplaceAll(await formsTask);
+            OnPropertyChanged(nameof(Forms));
+            DeployedPrinters.ReplaceAll(await deployedTask);
+            OnPropertyChanged(nameof(DeployedPrinters));
 
             OnPropertyChanged(nameof(PrinterCountText));
             OnPropertyChanged(nameof(DeployedPrinterCountText));

@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using OneMMC.Core.Features.PCManagement.Services.WindowsServices;
 using OneMMC.Core.Features.PCManagement.Services.DiskMgmt.Common;
 using OneMMC.Core.Infrastructure.Admin;
+using OneMMC.Core.Infrastructure.Collections;
 
 namespace OneMMC.Core.Features.PCManagement.ViewModels.Services
 {
@@ -126,14 +127,16 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.Services
 
             if (string.IsNullOrWhiteSpace(FilterText))
             {
-                Services = new ObservableCollection<ServiceInfo>(_allServices);
+                Services.ReplaceAll(_allServices);
+                OnPropertyChanged(nameof(Services));
             }
             else
             {
                 var filtered = _allServices.Where(s => 
                     (s.DisplayName?.Contains(FilterText, StringComparison.OrdinalIgnoreCase) ?? false) || 
                     (s.Name?.Contains(FilterText, StringComparison.OrdinalIgnoreCase) ?? false));
-                Services = new ObservableCollection<ServiceInfo>(filtered);
+                Services.ReplaceAll(filtered);
+                OnPropertyChanged(nameof(Services));
             }
         }
 

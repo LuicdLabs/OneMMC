@@ -95,6 +95,52 @@ For large or unbounded collections:
 These rules prevent UI element count and layout work from scaling with all available data. They are not attempts
 to force the CLR or Windows to return committed or resident pages immediately.
 
+### Update bound collections in place
+
+Never assign a new `ObservableCollection<T>` to a property an items control is already bound to. Mutate the
+bound instance instead, via `ObservableCollectionExtensions.ReplaceAll`.
+
+Handing an items control a different collection instance makes it discard every item container and build new
+element trees. XAML does not release the native side of the discarded trees, and the loss is not recoverable:
+a forced blocking gen2 collection followed by finalizers reclaimed 2.9 MB of a 95 MB process, and the
+discarded containers have no managed GC roots at all (`gcroot` reports none), so this is not deferred
+finalization. The managed heap stays small — 6.3 MB inside a 109 MB process — while committed private bytes
+grow without bound; roughly 88% of the growth lands in the NT process heap, not the GC heap.
+
+Measured on Device Manager with pinned window geometry, 20 consecutive list rebuilds driven by the filter box
+(pure managed work, no interop):
+
+| Bound collection updated by | Private bytes |
+| --- | --- |
+| assigning a new collection | +3.59 MB per rebuild, never returned |
+| `ReplaceAll` on the bound instance | −0.75 MB per rebuild (flat) |
+
+The cost scales with the number of elements realized per container, not with the number of items in the
+source: a rebuild that produces an empty result set is free, and swapping the same list under a bare
+`TextBlock` item template costs 0.54 MB per rebuild against 3.59 MB for a `SettingsExpander` template. It is
+therefore a property of container realization, not of the data or of any one control.
+
+### Cache pages that rebuild expensive item containers
+
+A page whose item containers are expensive to realize should set `NavigationCacheMode="Enabled"` so revisiting
+it reuses the page instance instead of realizing a fresh element tree that will never be released. Device
+Manager round trips measured 9.04 MB per visit uncached against roughly 1.4 MB per visit cached, with handle
+count flat instead of climbing about 20 per visit.
+
+Caching changes page lifetime, so two things must be adjusted together:
+
+- Move per-visit event subscriptions to `OnNavigatedTo`/`OnNavigatedFrom`. Subscribing in the constructor and
+  unsubscribing in `Unloaded` detaches the handler permanently after the first navigation away; removing the
+  `Loaded` handler there also silently stops the page from ever reloading again.
+- Guard the initial load so it only runs when there is nothing to show (`if (Collection.Count == 0)`), and
+  leave explicit refresh to the toolbar and pull-to-refresh. `ServicesPage` and `DeviceManagerPage` are the
+  reference cases.
+
+Do **not** enable caching on a page that disposes a `PageServiceScope` in `Unloaded` — `EventViewerPage`,
+`PerformanceMonitorPage`, `TaskSchedulerPage`, `TaskPropertiesPage`, `AuthorizationManagerPage`. A cached page
+would come back with a disposed scope. Either leave those uncached or first move scope ownership to
+`OnNavigatedTo`/`OnNavigatedFrom`.
+
 ### Bound genuinely unbounded caches
 
 A process-wide cache whose keys can grow indefinitely needs a bound when entries are cheap to reconstruct.

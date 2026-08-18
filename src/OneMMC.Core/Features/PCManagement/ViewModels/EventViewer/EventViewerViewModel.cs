@@ -11,6 +11,7 @@ using OneMMC.Core.Features.PCManagement.Services.EventViewer;
 using OneMMC.Core.Infrastructure.Admin;
 using OneMMC.Core.Localization;
 using Microsoft.Extensions.Logging;
+using OneMMC.Core.Infrastructure.Collections;
 
 namespace OneMMC.Core.Features.PCManagement.ViewModels.EventViewer;
 
@@ -126,7 +127,8 @@ public partial class EventViewerViewModel : ObservableObject, IDisposable
         try
         {
             var roots = await _eventViewerService.BuildLogTreeAsync();
-            RootNodes = new ObservableCollection<EventLogTreeNode>(roots);
+            RootNodes.ReplaceAll(roots);
+            OnPropertyChanged(nameof(RootNodes));
         }
         catch (Exception ex)
         {
