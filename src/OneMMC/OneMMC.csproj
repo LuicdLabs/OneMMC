@@ -177,6 +177,7 @@
         <ApplicationIcon>Assets\icon.ico</ApplicationIcon>
         <SupportedOSPlatformVersion>10.0.19041.0</SupportedOSPlatformVersion>
         <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+		<EventSourceSupport>true</EventSourceSupport>
       </PropertyGroup>
       <ItemGroup>
         <PRIResource Remove="Views\PolicyPolicies\**" />
