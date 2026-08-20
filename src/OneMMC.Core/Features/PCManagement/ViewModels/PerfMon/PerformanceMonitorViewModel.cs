@@ -361,7 +361,7 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.PerfMon
         public async Task LoadCategoriesAsync()
         {
             IsLoading = true;
-            try { Categories = new ObservableCollection<PerformanceCounterCategoryInfo>(await _performanceService.GetCategoriesAsync()); }
+            try { Categories.ReplaceAll(await _performanceService.GetCategoriesAsync()); }
             catch (Exception ex) { StatusMessage = $"Error loading categories: {ex.Message}"; }
             finally { IsLoading = false; }
         }

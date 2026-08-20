@@ -13,6 +13,7 @@ using OneMMC.Core.Features.SystemManagement.Services.WF.ConnectionSecurity;
 using OneMMC.Core.Features.SystemManagement.Services.WF.Monitoring;
 using OneMMC.Core.Features.SystemManagement.Services.WF.Profiles;
 using OneMMC.Core.Features.SystemManagement.Services.WF.Rules;
+using OneMMC.Core.Infrastructure.Collections;
 using OneMMC.Helpers;
 using OneMMC.Localization;
 using OneMMC.Services;
@@ -114,8 +115,7 @@ public sealed partial class ConnectionSecurityRulesPage : Page
                 await loadTask.WaitAsync(cancellationToken);
             cancellationToken.ThrowIfCancellationRequested();
 
-            ViewModel.Rules = new ObservableCollection<ConnectionSecurityRuleItem>(
-                rules.Select(ConnectionSecurityRuleItem.FromModel));
+            ViewModel.Rules.ReplaceAll(rules.Select(ConnectionSecurityRuleItem.FromModel));
             ViewModel.FilterRules(_lastSearchText);
         }
         catch (Exception ex)
@@ -645,7 +645,8 @@ public partial class ConnectionSecurityRulesViewModel : BindableBase
     {
         if (string.IsNullOrWhiteSpace(searchText))
         {
-            FilteredRules = new ObservableCollection<ConnectionSecurityRuleItem>(Rules);
+            FilteredRules.ReplaceAll(Rules);
+            OnPropertyChanged(nameof(FilteredRules));
             return;
         }
 
@@ -655,7 +656,8 @@ public partial class ConnectionSecurityRulesViewModel : BindableBase
             rule.Description.Contains(searchText, StringComparison.OrdinalIgnoreCase))
             .ToList();
 
-        FilteredRules = new ObservableCollection<ConnectionSecurityRuleItem>(filtered);
+        FilteredRules.ReplaceAll(filtered);
+        OnPropertyChanged(nameof(FilteredRules));
     }
 }
 

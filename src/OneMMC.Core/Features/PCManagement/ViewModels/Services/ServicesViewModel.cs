@@ -83,7 +83,6 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.Services
             _serviceManager = serviceManager;
             _logger = logger;
             _adminService = adminService;
-            Services = new ObservableCollection<ServiceInfo>();
             _allServices = new List<ServiceInfo>();
         }
 

@@ -6,6 +6,7 @@ using OneMMC.Core.Features.SystemManagement.Models.WF.ConnectionSecurity;
 using OneMMC.Core.Features.SystemManagement.Models.WF.Monitoring;
 using OneMMC.Core.Features.SystemManagement.Models.WF.Profiles;
 using OneMMC.Core.Features.SystemManagement.Models.WF.Rules;
+using OneMMC.Core.Infrastructure.Collections;
 using OneMMC.Localization;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -15,6 +16,8 @@ namespace OneMMC.Views.Dialogs.ConnectionSecurity;
 public sealed partial class ConnectionSecurityRulePropertiesDialog : ContentDialog
 {
     private readonly Action<ElementTheme> _themeChangedHandler;
+    private readonly ObservableCollection<AuthMethodItem> _firstAuthMethods = new();
+    private readonly ObservableCollection<AuthMethodItem> _secondAuthMethods = new();
 
     public LocalizedStrings LocalizedStrings { get; } = LocalizedStrings.Instance;
 
@@ -29,8 +32,8 @@ public sealed partial class ConnectionSecurityRulePropertiesDialog : ContentDial
         // Select General tab by default
         TabBar.SelectedItem = GeneralTab;
 
-        FirstAuthListView.ItemsSource = new ObservableCollection<AuthMethodItem>();
-        SecondAuthListView.ItemsSource = new ObservableCollection<AuthMethodItem>();
+        FirstAuthListView.ItemsSource = _firstAuthMethods;
+        SecondAuthListView.ItemsSource = _secondAuthMethods;
     }
 
     private void ConnectionSecurityRulePropertiesDialog_Loaded(object sender, RoutedEventArgs e)
@@ -63,22 +66,16 @@ public sealed partial class ConnectionSecurityRulePropertiesDialog : ContentDial
         ApplyAuthValue.Text = rule.RequireAuthorization ? LocalizedStrings.WF_Common_Yes : LocalizedStrings.WF_Common_No;
         ExemptIpsecValue.Text = rule.BypassTunnelIfEncrypted ? LocalizedStrings.WF_Common_Yes : LocalizedStrings.WF_Common_No;
 
-        FirstAuthListView.ItemsSource = new ObservableCollection<AuthMethodItem>(
-        [
-            .. rule.FirstAuthMethods.Select(item => new AuthMethodItem
-            {
-                Name = item.Method,
-                Description = item.Details
-            })
-        ]);
-        SecondAuthListView.ItemsSource = new ObservableCollection<AuthMethodItem>(
-        [
-            .. rule.SecondAuthMethods.Select(item => new AuthMethodItem
-            {
-                Name = item.Method,
-                Description = item.Details
-            })
-        ]);
+        _firstAuthMethods.ReplaceAll(rule.FirstAuthMethods.Select(item => new AuthMethodItem
+        {
+            Name = item.Method,
+            Description = item.Details
+        }));
+        _secondAuthMethods.ReplaceAll(rule.SecondAuthMethods.Select(item => new AuthMethodItem
+        {
+            Name = item.Method,
+            Description = item.Details
+        }));
     }
 
     private void TabBar_SelectionChanged(SelectorBar sender, SelectorBarSelectionChangedEventArgs args)

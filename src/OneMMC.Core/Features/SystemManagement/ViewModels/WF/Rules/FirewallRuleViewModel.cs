@@ -200,6 +200,7 @@ namespace OneMMC.Core.Features.SystemManagement.ViewModels.WF.Rules
 
                 Rules.ReplaceAll(systemRules);
                 OnPropertyChanged(nameof(Rules));
+                ApplyFilter();
             }
             finally
             {
