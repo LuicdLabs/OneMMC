@@ -68,6 +68,7 @@ public sealed partial class AuthorizationManagerPage : Page
         UpdateUIState();
 
         this.Unloaded += OnUnloaded;
+        _serviceScope.Attach(this);
     }
 
     private void OnUnloaded(object sender, RoutedEventArgs e)
@@ -76,10 +77,6 @@ public sealed partial class AuthorizationManagerPage : Page
         App.ThemeChanged -= OnThemeChanged;
         _viewModel.PropertyChanged -= OnViewModelPropertyChanged;
 
-        // Always release: the drill-down page no longer borrows this view model or its service, and
-        // NavigationCacheMode is Disabled, so navigating back rebuilds this page from scratch anyway.
-        // Skipping disposal on drill-in used to leak one view model per Manager -> Store -> Back trip.
-        _serviceScope.Dispose();
     }
 
     #region Event Handlers

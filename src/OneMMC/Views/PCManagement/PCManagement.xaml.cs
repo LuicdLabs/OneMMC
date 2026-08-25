@@ -100,7 +100,6 @@ public sealed partial class PCManagement : Page
 		this.Unloaded += (_, _) =>
 		{
 			App.ThemeChanged -= OnThemeChanged;
-			SettingsItems.Clear();
 			DataContext = null;
 			this.Loaded -= PCManagement_Loaded;
 		};

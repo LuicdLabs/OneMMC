@@ -6,6 +6,7 @@ using System.Collections.Specialized;
 using System.Collections.ObjectModel;
 using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
+using System.Threading;
 using System;
 using OneMMC.Core.Localization;
 
@@ -17,11 +18,12 @@ public sealed partial class ResultantSetOfPolicyPage : Page
     private readonly ILogger<ResultantSetOfPolicyPage> _logger;
 
     /// <summary>
-    /// Owns the view model's lifetime. ResultantSetOfPolicyViewModel is a transient IDisposable whose
-    /// RSoP service parses its own ADMX bundle, so resolving it from the root provider would leave the
-    /// container pinning one per visit to this page. See doc/MemoryManagement.md.
+    /// Owns the transient view model and its disposable policy services. The ADMX bundle is borrowed
+    /// from the process-wide provider, while the per-page policy-service handles are released with this
+    /// scope. See doc/MemoryManagement.md.
     /// </summary>
     private readonly PageServiceScope _serviceScope = new();
+    private readonly CancellationTokenSource _lifetimeCts = new();
 
     public ResultantSetOfPolicyViewModel ViewModel { get; }
 
@@ -40,11 +42,12 @@ public sealed partial class ResultantSetOfPolicyPage : Page
 
         this.Loaded += OnLoaded;
         this.Unloaded += OnUnloaded;
+        _serviceScope.Attach(this);
     }
 
-    private async void OnLoaded(object sender, RoutedEventArgs e)
+    private void OnLoaded(object sender, RoutedEventArgs e)
     {
-        await ViewModel.InitializeAsync();
+        _ = ViewModel.InitializeAsync(_lifetimeCts.Token);
     }
 
     /// <summary>
@@ -72,16 +75,13 @@ public sealed partial class ResultantSetOfPolicyPage : Page
 
     private void OnUnloaded(object sender, RoutedEventArgs e)
     {
+        _lifetimeCts.Cancel();
         App.ThemeChanged -= OnThemeChanged;
         ViewModel.RootNodes.CollectionChanged -= RootNodes_CollectionChanged;
-        PolicyTree.RootNodes.Clear();
-        DataContext = null;
         Loaded -= OnLoaded;
         Unloaded -= OnUnloaded;
 
-        // Disposes the view model (releasing the RSoP service and its ADMX bundle) and drops the
-        // container's reference.
-        _serviceScope.Dispose();
+        _lifetimeCts.Dispose();
     }
 
     private void OnThemeChanged(ElementTheme theme)

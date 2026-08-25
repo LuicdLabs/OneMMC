@@ -47,26 +47,33 @@ public class FirewallMonitoringService
     public IReadOnlyList<MainModeSecurityAssociationModel> GetMainModeSecurityAssociations(bool deduplicate = true)
     {
         using WbemServices session = WbemServices.Connect(WindowsFirewallSupport.StandardCimNamespace);
-        IEnumerable<WbemObject> instances = session
-            .EnumerateInstances("MSFT_NetMainModeSA")
-            .Where(IsDisplayableMainMode);
+        List<MainModeSecurityAssociationModel> items = [];
+        foreach (WbemObject instance in session.EnumerateInstances("MSFT_NetMainModeSA"))
+        {
+            using (instance)
+            {
+                if (!IsDisplayableMainMode(instance))
+                {
+                    continue;
+                }
 
-        IEnumerable<MainModeSecurityAssociationModel> items = instances.Select(instance => new MainModeSecurityAssociationModel
-        {
-            LocalEndpoint = instance.GetValue("LocalEndpoint")?.ToString() ?? string.Empty,
-            RemoteEndpoint = instance.GetValue("RemoteEndpoint")?.ToString() ?? string.Empty,
-            MainMode = ResolveKeyModule(instance.GetValue("KeyModule")),
-            FirstAuthMethod = instance.GetValue("LocalFirstId")?.ToString() ?? string.Empty,
-            SecondAuthMethod = instance.GetValue("LocalSecondId")?.ToString() ?? string.Empty,
-            CipherAlgorithm = ResolveCipher(instance.GetValue("CipherAlgorithm")),
-            HashAlgorithm = ResolveHash(instance.GetValue("HashAlgorithm")),
-            KeyExchange = ResolveGroup(instance.GetValue("GroupId"))
-        }).Select(item =>
-        {
-            item.Name = BuildMainModeDisplayName(item.LocalEndpoint, item.RemoteEndpoint);
-            item.Description = item.MainMode;
-            return item;
-        });
+                var item = new MainModeSecurityAssociationModel
+                {
+                    LocalEndpoint = instance.GetValue("LocalEndpoint")?.ToString() ?? string.Empty,
+                    RemoteEndpoint = instance.GetValue("RemoteEndpoint")?.ToString() ?? string.Empty,
+                    MainMode = ResolveKeyModule(instance.GetValue("KeyModule")),
+                    FirstAuthMethod = instance.GetValue("LocalFirstId")?.ToString() ?? string.Empty,
+                    SecondAuthMethod = instance.GetValue("LocalSecondId")?.ToString() ?? string.Empty,
+                    CipherAlgorithm = ResolveCipher(instance.GetValue("CipherAlgorithm")),
+                    HashAlgorithm = ResolveHash(instance.GetValue("HashAlgorithm")),
+                    KeyExchange = ResolveGroup(instance.GetValue("GroupId"))
+                };
+
+                item.Name = BuildMainModeDisplayName(item.LocalEndpoint, item.RemoteEndpoint);
+                item.Description = item.MainMode;
+                items.Add(item);
+            }
+        }
 
         List<MainModeSecurityAssociationModel> ordered = items
             .OrderBy(item => item.LocalEndpoint, StringComparer.CurrentCultureIgnoreCase)
@@ -89,27 +96,32 @@ public class FirewallMonitoringService
     public IReadOnlyList<QuickModeSecurityAssociationModel> GetQuickModeSecurityAssociations(bool deduplicate = true)
     {
         using WbemServices session = WbemServices.Connect(WindowsFirewallSupport.StandardCimNamespace);
-        IEnumerable<WbemObject> instances = session
-            .EnumerateInstances("MSFT_NetQuickModeSA")
-            .Where(IsInboundAssociation);
-
-        IEnumerable<QuickModeSecurityAssociationModel> items = instances.Select(instance =>
+        List<QuickModeSecurityAssociationModel> items = [];
+        foreach (WbemObject instance in session.EnumerateInstances("MSFT_NetQuickModeSA"))
         {
-            (string ahIntegrity, string espIntegrity, string espEncryption) = ResolveQuickModeAlgorithms(instance);
-            return new QuickModeSecurityAssociationModel
+            using (instance)
             {
-                Name = instance.GetValue("LocalEndpoint")?.ToString() ?? string.Empty,
-                Description = instance.GetValue("RemoteEndpoint")?.ToString() ?? string.Empty,
-                LocalAddress = instance.GetValue("LocalEndpoint")?.ToString() ?? string.Empty,
-                LocalPort = ResolvePort(instance.GetValue("LocalPort")),
-                RemoteAddress = instance.GetValue("RemoteEndpoint")?.ToString() ?? string.Empty,
-                RemotePort = ResolvePort(instance.GetValue("RemotePort")),
-                Protocol = ResolveProtocol(instance.GetValue("IpProtocol")),
-                AhIntegrity = ahIntegrity,
-                EspIntegrity = espIntegrity,
-                EspEncryption = espEncryption
-            };
-        });
+                if (!IsInboundAssociation(instance))
+                {
+                    continue;
+                }
+
+                (string ahIntegrity, string espIntegrity, string espEncryption) = ResolveQuickModeAlgorithms(instance);
+                items.Add(new QuickModeSecurityAssociationModel
+                {
+                    Name = instance.GetValue("LocalEndpoint")?.ToString() ?? string.Empty,
+                    Description = instance.GetValue("RemoteEndpoint")?.ToString() ?? string.Empty,
+                    LocalAddress = instance.GetValue("LocalEndpoint")?.ToString() ?? string.Empty,
+                    LocalPort = ResolvePort(instance.GetValue("LocalPort")),
+                    RemoteAddress = instance.GetValue("RemoteEndpoint")?.ToString() ?? string.Empty,
+                    RemotePort = ResolvePort(instance.GetValue("RemotePort")),
+                    Protocol = ResolveProtocol(instance.GetValue("IpProtocol")),
+                    AhIntegrity = ahIntegrity,
+                    EspIntegrity = espIntegrity,
+                    EspEncryption = espEncryption
+                });
+            }
+        }
 
         List<QuickModeSecurityAssociationModel> ordered = items
             .OrderBy(item => item.LocalAddress, StringComparer.CurrentCultureIgnoreCase)

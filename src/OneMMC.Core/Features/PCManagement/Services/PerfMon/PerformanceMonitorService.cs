@@ -93,10 +93,10 @@ namespace OneMMC.Core.Features.PCManagement.Services.PerfMon
         private readonly ConcurrentDictionary<string, float> _lastValues = new();
 
         /// <summary>
-        /// Semaphore for protecting counter operations.
+        /// Gate protecting counter operations and terminal disposal.
         /// Ensures only one thread can access counters at a time.
         /// </summary>
-        private readonly SemaphoreSlim _semaphore = new(1, 1);
+        private readonly object _counterGate = new();
 
         /// <summary>
         /// Flag indicating whether the service has been disposed.
@@ -232,14 +232,15 @@ namespace OneMMC.Core.Features.PCManagement.Services.PerfMon
         /// <param name="counterInfo">Counter information</param>
         /// <returns>true if the counter exists or was created successfully</returns>
         /// <remarks>
-        /// This method is thread-safe, protected by a semaphore.
+        /// This method is thread-safe, protected by the counter gate.
         /// If the counter already exists in cache, it is reused.
         /// </remarks>
         public bool CreateCounter(PerformanceCounterInfo counterInfo)
         {
-            _semaphore.Wait();
-            try { return CreateCounterCore(counterInfo) is not null; }
-            finally { _semaphore.Release(); }
+            lock (_counterGate)
+            {
+                return !_disposed && CreateCounterCore(counterInfo) is not null;
+            }
         }
 
         /// <summary>
@@ -256,33 +257,42 @@ namespace OneMMC.Core.Features.PCManagement.Services.PerfMon
         public float ReadCounterValue(PerformanceCounterInfo counterInfo)
         {
             var key = GetCounterKey(counterInfo);
-            _semaphore.Wait();
-            try
+            lock (_counterGate)
             {
+                if (_disposed)
+                {
+                    return _lastValues.GetValueOrDefault(key, 0);
+                }
+
+                try
+                {
                 // Try to get counter from cache
-                if (!_activeCounters.TryGetValue(key, out var counter))
-                {
-                    counter = CreateCounterCore(counterInfo);
-                    if (counter is null) return _lastValues.GetValueOrDefault(key, 0);
-                }
+                    if (!_activeCounters.TryGetValue(key, out var counter))
+                    {
+                        counter = CreateCounterCore(counterInfo);
+                        if (counter is null) return _lastValues.GetValueOrDefault(key, 0);
+                    }
 
-                if (TryReadValue(counter, out float value))
-                {
-                    _lastValues[key] = value;
-                    return value;
-                }
+                    if (TryReadValue(counter, out float value))
+                    {
+                        _lastValues[key] = value;
+                        return value;
+                    }
 
-                // Counter may have become invalid (e.g., instance disappeared), attempt to rebuild
-                RemoveCounterCore(key);
-                var newCounter = CreateCounterCore(counterInfo);
-                if (newCounter is not null && TryReadValue(newCounter, out value))
+                    // Counter may have become invalid (e.g., instance disappeared), attempt to rebuild
+                    RemoveCounterCore(key);
+                    var newCounter = CreateCounterCore(counterInfo);
+                    if (newCounter is not null && TryReadValue(newCounter, out value))
+                    {
+                        _lastValues[key] = value;
+                        return value;
+                    }
+                }
+                catch (Exception ex)
                 {
-                    _lastValues[key] = value;
-                    return value;
+                    _logger.LogError(ex, "Failed reading counter {CounterDisplayName}.", counterInfo.DisplayName);
                 }
             }
-            catch (Exception ex) { _logger.LogError(ex, "Failed reading counter {CounterDisplayName}.", counterInfo.DisplayName); }
-            finally { _semaphore.Release(); }
 
             // Return the last successfully read value as fallback
             return _lastValues.GetValueOrDefault(key, 0);
@@ -392,13 +402,12 @@ namespace OneMMC.Core.Features.PCManagement.Services.PerfMon
         public void RemoveCounter(PerformanceCounterInfo counterInfo)
         {
             var key = GetCounterKey(counterInfo);
-            _semaphore.Wait();
-            try
+            lock (_counterGate)
             {
+                if (_disposed) return;
                 RemoveCounterCore(key);
                 _lastValues.TryRemove(key, out _);
             }
-            finally { _semaphore.Release(); }
         }
 
         /// <summary>
@@ -406,21 +415,20 @@ namespace OneMMC.Core.Features.PCManagement.Services.PerfMon
         /// </summary>
         public void DisposeAllCounters()
         {
-            _semaphore.Wait();
-            try
+            lock (_counterGate)
             {
+                if (_disposed) return;
                 foreach (var key in _activeCounters.Keys.ToList())
                 {
                     RemoveCounterCore(key);
                 }
                 _lastValues.Clear();
             }
-            finally { _semaphore.Release(); }
         }
 
         /// <summary>
         /// Remove a cache entry and close its PDH query (which releases its counter too).
-        /// Caller must hold the semaphore.
+        /// Caller must hold <see cref="_counterGate"/>.
         /// </summary>
         private void RemoveCounterCore(string key)
         {
@@ -837,16 +845,22 @@ namespace OneMMC.Core.Features.PCManagement.Services.PerfMon
         /// <remarks>
         /// Disposal process:
         /// 1. Check if already disposed
-        /// 2. Dispose all active counters (closes every PDH query)
-        /// 3. Dispose semaphore
-        /// 4. Mark as disposed
+        /// 2. Mark terminal disposal while holding the counter gate
+        /// 3. Dispose all active counters (closes every PDH query)
         /// </remarks>
         public void Dispose()
         {
-            if (_disposed) return;
-            DisposeAllCounters();
-            _semaphore?.Dispose();
-            _disposed = true;
+            lock (_counterGate)
+            {
+                if (_disposed) return;
+                _disposed = true;
+                foreach (var key in _activeCounters.Keys.ToList())
+                {
+                    RemoveCounterCore(key);
+                }
+                _lastValues.Clear();
+            }
+
             GC.SuppressFinalize(this);
         }
     }

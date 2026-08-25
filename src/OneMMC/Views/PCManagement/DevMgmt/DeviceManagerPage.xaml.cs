@@ -32,12 +32,7 @@ namespace OneMMC.Views
         /// <summary>
         /// Attaches per-visit state.
         /// </summary>
-        /// <remarks>
-        /// This page sets <see cref="NavigationCacheMode.Enabled"/>, so the constructor runs once per
-        /// session while this runs on every visit. Subscribing here (and unsubscribing in
-        /// <see cref="OnNavigatedFrom"/>) keeps the handler balanced across visits; doing it in the
-        /// constructor and <c>Unloaded</c> detached it permanently after the first navigation away.
-        /// </remarks>
+        /// <remarks>Subscriptions are paired with navigation so a departed page has no external event root.</remarks>
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
             base.OnNavigatedTo(e);
@@ -53,10 +48,7 @@ namespace OneMMC.Views
 
         private async void DeviceManagerPage_Loaded(object sender, RoutedEventArgs e)
         {
-            // The page is cached, so this runs on every visit. Only enumerate when there is nothing to
-            // show: re-running it rebuilt every item container, and discarded containers are not
-            // released. The toolbar refresh and pull-to-refresh remain the way to re-read hardware.
-            // Same guard as ServicesPage. See doc/MemoryManagement.md.
+            // Avoid duplicate enumeration if Loaded is raised more than once for the same page instance.
             if (ViewModel.DeviceCategories.Count == 0)
             {
                 await ViewModel.LoadDevicesAsync();

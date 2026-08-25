@@ -85,7 +85,7 @@ DI is bootstrapped in `LoggingBootstrapper.BuildServiceProvider()` (UI project).
 - Most services and every ViewModel are `Transient`. Singletons are the exception and are registered explicitly (`AdminService`, `ITaskSchedulerService`, `AzManService`, `AdmxBundleProvider`, the WF services, `SecurityPolicyService`, …)
 - `ValidateScopes`/`ValidateOnBuild` are enabled in Debug builds only
 
-Resolve services in page code-behind via `App.GetRequiredService<T>()` — **except** transient resolution graphs containing any container-created `IDisposable`, even when the requested outer service is not disposable. Resolve those once from a `PageServiceScope` and dispose the scope in `Unloaded`; see `doc/MemoryManagement.md`.
+Resolve services in page code-behind via `App.GetRequiredService<T>()` — **except** transient resolution graphs containing any container-created `IDisposable`, even when the requested outer service is not disposable. Resolve those once from a `PageServiceScope`, register page cleanup in `Unloaded`, then call `Attach(page)` so the scope disposes automatically after cleanup; see `doc/MemoryManagement.md`.
 
 ### Navigation
 Top-level navigation uses `NavigationView` in `MainWindow.xaml`. Sub-page tab navigation uses **`SelectorBar`** (not `Pivot`). Page routing is index-based through `NavigationService`. Breadcrumb tracking via `BreadcrumbNavigationService`.
@@ -144,16 +144,12 @@ Always use `AdminDialogHelper` for admin-related dialogs and InfoBars. Never cre
 
 ## Memory Management
 
-Resource-lifetime and large-collection rules are documented in `doc/MemoryManagement.md`:
+`doc/MemoryManagement.md` is the authoritative implementation and policy reference.
 
-- Any transient resolution graph containing a container-created `IDisposable` must be resolved once from a `PageServiceScope` (disposed in `Unloaded`), never from the root provider. The outer service need not implement `IDisposable`; `TaskHistoryService` → `EventViewerService` is the reference case. Never dispose an injected singleton.
-- Navigation parameters carry identifiers, not live services or view models — `Frame.BackStack` and the breadcrumb trail retain them for the session.
-- `Dispose()` must release owned services and native/COM handles. Do not clear ordinary managed collections during page unload; an unreachable object graph is collected as a unit.
-- `ListView`/`GridView` need a height-constrained parent and must not be wrapped in another vertical `ScrollViewer`; `ItemsRepeater` has no built-in scroll host and is expected inside one. No `ItemsControl` for large or unbounded collections; no `StackPanel` as `ItemsPanel`.
-- `SettingsExpander` bound to a collection defaults to `IsExpanded="False"`.
-- `TreeView` fills on `Expanding`, clears on `Collapsed`, via `HasUnrealizedChildren`. XAML-wired handlers must be instance methods (`static` → CS0176).
-- Finalizers must never wait on another thread — a blocked finalizer thread stops all finalization process-wide.
-- Bound process-wide caches with an unbounded key space (`SmbClientNameResolver`). Do **not** add timers, forced GC, working-set manipulation, weak-cache layers, or navigation-history caps without a measured production problem and verified benefit.
+- Page teardown cancels work and detaches handlers before `PageServiceScope.Attach(page)` disposes the owned DI graph. Attachment is one-shot; never dispose injected singletons.
+- Keep navigation parameters lightweight and register every nested `Frame` with `NavigationService.TrackFrame`.
+- Preserve bound collection identity with `ReplaceAll`; use height-constrained virtualizing controls for growing data. `StableSettingsExpander` is only for fixed, bounded items.
+- Do not change the documented GC/working-set reclamation policy or add speculative memory machinery without measurement.
 
 ## Known WinUI 3 Pitfalls
 

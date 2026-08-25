@@ -22,6 +22,7 @@ namespace OneMMC.Core.Features.SystemManagement.ViewModels.WF.Rules
     /// </summary>
     public partial class FirewallRuleViewModel : ObservableObject
     {
+        private static readonly SemaphoreSlim RuleLoadGate = new(1, 1);
         private readonly WindowsFirewallService _firewallService;
         private readonly OneMMC.Core.Abstractions.Services.IAdminService _adminService;
         private CancellationTokenSource? _loadRulesCancellationTokenSource;
@@ -174,6 +175,7 @@ namespace OneMMC.Core.Features.SystemManagement.ViewModels.WF.Rules
             _loadRulesCancellationTokenSource?.Cancel();
             var cancellationTokenSource = new CancellationTokenSource();
             _loadRulesCancellationTokenSource = cancellationTokenSource;
+            bool loadGateEntered = false;
 
             if (showLoading)
             {
@@ -186,11 +188,10 @@ namespace OneMMC.Core.Features.SystemManagement.ViewModels.WF.Rules
                 FirewallRuleDirection direction = Direction;
                 await Task.Yield();
 
-                // The token is deliberately not passed to Task.Run: the rule enumeration is a synchronous
-                // WMI walk that cannot be interrupted once started, so the token would only fault the task
-                // when a newer load supersedes this one. Being superseded is the expected outcome of every
-                // external-change refresh, so the stale result is discarded with a plain check instead of
-                // through an OperationCanceledException.
+                // The native enumeration cannot be interrupted after it starts. Serialize page loads so
+                // canceled pages waiting behind the active enumeration do not perform obsolete work.
+                await RuleLoadGate.WaitAsync(cancellationTokenSource.Token);
+                loadGateEntered = true;
                 IReadOnlyList<FirewallRuleModel> systemRules = await Task.Run(() => _firewallService.GetRules(direction));
 
                 if (cancellationTokenSource.IsCancellationRequested)
@@ -202,8 +203,17 @@ namespace OneMMC.Core.Features.SystemManagement.ViewModels.WF.Rules
                 OnPropertyChanged(nameof(Rules));
                 ApplyFilter();
             }
+            catch (OperationCanceledException) when (cancellationTokenSource.IsCancellationRequested)
+            {
+                // Navigating away while waiting for the shared gate is an expected cancellation.
+            }
             finally
             {
+                if (loadGateEntered)
+                {
+                    RuleLoadGate.Release();
+                }
+
                 if (ReferenceEquals(_loadRulesCancellationTokenSource, cancellationTokenSource))
                 {
                     _loadRulesCancellationTokenSource = null;

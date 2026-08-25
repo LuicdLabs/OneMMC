@@ -76,38 +76,12 @@
 
 ## Memory Management
 
-Resource-lifetime and large-collection rules are documented in `doc/MemoryManagement.md`:
+`doc/MemoryManagement.md` is the authoritative implementation and policy reference.
 
-- **Resolve transient graphs containing disposables from a page scope**: the DI container tracks every
-  container-created disposable in the resolving scope even when the requested outer service is not
-  `IDisposable`. A root-resolved transient graph is therefore held until the root provider is disposed at
-  main-window close. Use `PageServiceScope` and dispose it in `Unloaded`; resolve once per page. Do not also
-  call `Dispose()` on the resolved service, and never dispose an injected singleton (`AzManService`,
-  `AdmxBundleProvider`).
-- **Navigation parameters carry identifiers, not objects**: `Frame.BackStack` and the breadcrumb trail
-  retain them for the session. Pass a path/name/id and resolve services from DI. Small self-contained DTOs
-  are fine; live services and view models are not.
-- **`Dispose()` releases owned services and native/COM handles.** Do not clear ordinary managed
-  collections during page unload; an unreachable object graph is collected as a unit.
-- **Use the scrolling host expected by the control**: do not wrap `ListView`/`GridView` in an outer
-  `ScrollViewer`; put them in a height-constrained row. `ItemsRepeater` has no built-in scrolling, so an
-  `ItemsRepeater` with a virtualizing layout inside a `ScrollViewer` is the expected pattern. Never use
-  `ItemsControl` or a plain `StackPanel` for a growing collection.
-- **`SettingsExpander.IsExpanded` is presentation state, not a memory or layout-cycle fix.** `False` may defer
-  initial rendering, but it does not clear items, release backing data/view models, reclaim process RAM, change
-  scroll extent estimation, or fix `LayoutCycleException`. Never propose it as the fix for those problems.
-- **Use `StableSettingsExpander` only for fixed/tightly bounded direct items.** CommunityToolkit
-  `SettingsExpander` contains a nested virtualizing `ItemsRepeater`; exact non-virtualizing measurement avoids
-  WinUI #9308/#1829 extent jumps for small fixed card sets. Never apply it to growing sources (certificates,
-  devices, users, shares, AzMan objects, etc.) because it realizes every item. See `doc/MemoryManagement.md`.
-- **`TreeView` fills on `Expanding` and clears on `Collapsed`** using `HasUnrealizedChildren`. XAML-wired
-  handlers must be instance methods (`static` fails with CS0176).
-- **Finalizers must never wait on another thread** — a blocked finalizer thread stops all finalization
-  process-wide. Do STA/COM marshalling only on the `disposing` path.
-- **Cap process-wide caches with an unbounded key space, not navigation journals.** Keep navigation
-  parameters lightweight; do not cap `Frame.BackStack` or breadcrumb history.
-- **Do not add speculative memory machinery.** Timers, forced GC, working-set manipulation, weak-cache
-  layers, and runtime probes require a measured production problem and a verified benefit.
+- Page teardown cancels work and detaches handlers before `PageServiceScope.Attach(page)` disposes the owned DI graph. Attachment is one-shot; never dispose injected singletons.
+- Keep navigation parameters lightweight and register every nested `Frame` with `NavigationService.TrackFrame`.
+- Preserve bound collection identity with `ReplaceAll`; use height-constrained virtualizing controls for growing data. `StableSettingsExpander` is only for fixed, bounded items.
+- Do not change the documented GC/working-set reclamation policy or add speculative memory machinery without measurement.
 
 ## Administrator Permission Handling
 - **Unified System**: Always use the unified administrator detection system documented in `doc/AdminDetectionSystem.md`.

@@ -1,3 +1,5 @@
 GetDpiForWindow
 SetForegroundWindow
 GetAsyncKeyState
+GetCurrentProcess
+EmptyWorkingSet

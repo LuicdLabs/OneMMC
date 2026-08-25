@@ -39,6 +39,7 @@ namespace OneMMC
     {
         private readonly ILogger<MainWindow> _logger;
         private readonly IAdminService _adminService;
+        private readonly NavigationService _navigationService;
 
         private const double MinimumWidthForTitleBarAppTitle = 900;
 
@@ -152,8 +153,10 @@ namespace OneMMC
 
             BreadcrumbNavigationService.Init(NavigationViewControl, MainBreadcrumb, contentFrame!);
 
-            var navigationService = new NavigationService(contentFrame!);
-            ViewModel = new MainWindowViewModel(navigationService);
+            _navigationService = new NavigationService(
+                contentFrame!,
+                App.GetRequiredService<ILogger<NavigationService>>());
+            ViewModel = new MainWindowViewModel(_navigationService);
 
             var appWindow = AppWindow;
             if (appWindow != null && appWindow.TitleBar != null)
@@ -197,6 +200,8 @@ namespace OneMMC
 
         private void MainWindow_Closed(object sender, WindowEventArgs args)
         {
+            _navigationService.Dispose();
+            NavigationService.CancelPendingReclamation();
             PersistWindowPlacement();
         }
 

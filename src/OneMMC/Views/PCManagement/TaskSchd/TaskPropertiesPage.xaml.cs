@@ -58,12 +58,12 @@ public sealed partial class TaskPropertiesPage : Page, IUnsavedChangesGuard
         this.RequestedTheme = App.CurrentTheme;
         App.ThemeChanged += OnThemeChanged;
         Unloaded += OnUnloaded;
+        _serviceScope.Attach(this);
     }
 
     private void OnUnloaded(object sender, RoutedEventArgs e)
     {
         App.ThemeChanged -= OnThemeChanged;
-        _serviceScope.Dispose();
         Unloaded -= OnUnloaded;
     }
 

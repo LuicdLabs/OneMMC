@@ -85,6 +85,7 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.PerfMon
         
         /// <summary>Flag indicating whether the ViewModel has been disposed</summary>
         private bool _disposed;
+        private int _updateInProgress;
 
         // ====================================================================
         // Observable Properties - Collections
@@ -579,18 +580,24 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.PerfMon
         /// </summary>
         private void OnUpdateTimerElapsed(object? sender, ElapsedEventArgs e)
         {
-            _ = Task.Run(() =>
+            if (_disposed || Interlocked.Exchange(ref _updateInProgress, 1) != 0)
             {
-                try
-                {
-                    UpdateCounterValues();
-                    UpdateDuration();
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Performance monitor timer update failed.");
-                }
-            });
+                return;
+            }
+
+            try
+            {
+                UpdateCounterValues();
+                UpdateDuration();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Performance monitor timer update failed.");
+            }
+            finally
+            {
+                Volatile.Write(ref _updateInProgress, 0);
+            }
         }
 
         /// <summary>
@@ -711,7 +718,9 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.PerfMon
         public void Dispose()
         {
             if (_disposed) return;
+            _disposed = true;
             _updateTimer.Stop();
+            _updateTimer.Elapsed -= OnUpdateTimerElapsed;
             _updateTimer.Dispose();
             _performanceService.Dispose();
             Counters.CollectionChanged -= OnCountersCollectionChanged;
@@ -722,7 +731,6 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.PerfMon
             SearchResults.Clear();
             CommonCounters.Clear();
             FilteredCounters.Clear();
-            _disposed = true;
             GC.SuppressFinalize(this);
         }
 

@@ -81,14 +81,19 @@
             Severity="Error"
             Title="{x:Bind LocalizedStrings.Common_ErrorTitle}" />
 
-        <ScrollViewer Grid.Row="3" Padding="24,12,24,24">
-            <ItemsControl ItemsSource="{x:Bind ViewModel.Stores, Mode=OneWay}">
-                <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <StackPanel Spacing="8" />
-                    </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
-                <ItemsControl.ItemTemplate>
+        <ListView
+            Grid.Row="3"
+            Padding="24,12,24,24"
+            ItemsSource="{x:Bind ViewModel.Stores, Mode=OneWay}"
+            SelectionMode="None">
+            <ListView.ItemContainerStyle>
+                <Style TargetType="ListViewItem">
+                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                    <Setter Property="Padding" Value="0" />
+                    <Setter Property="Margin" Value="0,0,0,8" />
+                </Style>
+            </ListView.ItemContainerStyle>
+            <ListView.ItemTemplate>
                     <DataTemplate x:DataType="certModels:CertificateStoreNode">
                         <controls:SettingsExpander
                             Header="{x:Bind DisplayName}"
@@ -156,8 +161,7 @@
                             </controls:SettingsExpander.ItemTemplate>
                         </controls:SettingsExpander>
                     </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
-        </ScrollViewer>
+            </ListView.ItemTemplate>
+        </ListView>
     </Grid>
 </Page>

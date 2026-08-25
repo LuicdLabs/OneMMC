@@ -120,15 +120,23 @@ public partial class EventViewerViewModel : ObservableObject, IDisposable
     /// Builds the log tree on first load.
     /// </summary>
     [RelayCommand]
-    public async Task InitializeAsync()
+    public async Task InitializeAsync(CancellationToken cancellationToken = default)
     {
+        if (_disposed) return;
+
         IsLoading = true;
         StatusMessage = string.Empty;
         try
         {
-            var roots = await _eventViewerService.BuildLogTreeAsync();
+            var roots = await _eventViewerService.BuildLogTreeAsync(cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();
+            if (_disposed) return;
+
             RootNodes.ReplaceAll(roots);
             OnPropertyChanged(nameof(RootNodes));
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
         }
         catch (Exception ex)
         {
@@ -139,7 +147,10 @@ public partial class EventViewerViewModel : ObservableObject, IDisposable
         }
         finally
         {
-            IsLoading = false;
+            if (!_disposed)
+            {
+                IsLoading = false;
+            }
         }
     }
 
@@ -495,12 +506,6 @@ public partial class EventViewerViewModel : ObservableObject, IDisposable
         _loadCts?.Cancel();
         _loadCts?.Dispose();
         _eventViewerService.Dispose();
-        _allEvents.Clear();
-        RootNodes.Clear();
-        Events.Clear();
-        SelectedEvent = null;
-        SelectedNode = null;
-        CurrentLogInfo = null;
         AdminPermissionRequired = null;
         GC.SuppressFinalize(this);
     }

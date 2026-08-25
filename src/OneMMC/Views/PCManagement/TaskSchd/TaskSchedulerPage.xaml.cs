@@ -45,6 +45,7 @@ public sealed partial class TaskSchedulerPage : Page
         ViewModel.RootFolders.CollectionChanged += OnRootFoldersChanged;
         Loaded += OnLoaded;
         Unloaded += OnUnloaded;
+        _serviceScope.Attach(this);
     }
 
     private static nint OwnerHwnd => App.MainWindowInstance is null ? 0 : WindowNative.GetWindowHandle(App.MainWindowInstance);
@@ -67,7 +68,6 @@ public sealed partial class TaskSchedulerPage : Page
         ViewModel.AdminPermissionRequired -= OnAdminPermissionRequired;
         ViewModel.PropertyChanged -= ViewModel_PropertyChanged;
         ViewModel.RootFolders.CollectionChanged -= OnRootFoldersChanged;
-        _serviceScope.Dispose();
     }
 
     // The view model owns the folder data; whenever it rebuilds the tree (load, folder create/delete,
