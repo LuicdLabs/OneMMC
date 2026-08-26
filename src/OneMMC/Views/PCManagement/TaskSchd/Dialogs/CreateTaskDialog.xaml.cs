@@ -36,11 +36,15 @@ public sealed partial class CreateTaskDialog : ContentDialog
     private EventLogPickerController? _eventPicker;
     private bool _eventListsPopulated;
 
-    public IReadOnlyList<string> Months { get; } =
-    [
-        "January", "February", "March", "April", "May", "June",
-        "July", "August", "September", "October", "November", "December"
-    ];
+    /// <summary>Month names for the Monthly schedule's multi-select "Months" flyout, January first.</summary>
+    /// <remarks>
+    /// Deliberately built by <see cref="BuildMonths"/> so the runtime type is a plain <see cref="string"/>
+    /// array. A non-empty collection expression assigned to <see cref="IReadOnlyList{T}"/> lowers to the
+    /// compiler-synthesized <c>&lt;&gt;z__ReadOnlyArray&lt;T&gt;</c>, which CsWinRT cannot project as a WinRT
+    /// collection; binding one to <c>ItemsControl.ItemsSource</c> fails with E_INVALIDARG
+    /// ("Value does not fall within the expected range").
+    /// </remarks>
+    public IReadOnlyList<string> Months { get; } = BuildMonths();
 
     public IReadOnlyList<string> MonthDays { get; } = BuildMonthDays();
 
@@ -69,6 +73,12 @@ public sealed partial class CreateTaskDialog : ContentDialog
     private static string L(string key) => LocalizationProvider.Current.GetString(ResourceFileNames.TaskSchd, key);
 
     private static nint OwnerHwnd => App.MainWindowInstance is null ? 0 : WindowNative.GetWindowHandle(App.MainWindowInstance);
+
+    private static string[] BuildMonths() =>
+        [
+            "January", "February", "March", "April", "May", "June",
+            "July", "August", "September", "October", "November", "December"
+        ];
 
     private static string[] BuildMonthDays()
     {
