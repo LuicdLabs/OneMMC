@@ -76,27 +76,12 @@
 
 ## Memory Management
 
-Memory used to grow with the number of pages visited rather than with the data on screen. The full
-diagnosis, rules, and measurement probes are in `doc/MemoryManagement.md`; the binding rules are:
+`doc/MemoryManagement.md` is the authoritative implementation and policy reference.
 
-- **Resolve disposable view models from a page scope**: a transient `IDisposable` resolved through
-  `App.GetRequiredService<T>()` is held by the root container until the process exits. Use
-  `PageServiceScope` and dispose it in `Unloaded`. Do not also call `ViewModel.Dispose()`. Never dispose a
-  singleton you were injected with (`AzManService`, `AdmxBundleProvider`).
-- **Navigation parameters carry identifiers, not objects**: `Frame.BackStack` and the breadcrumb trail
-  retain them for the session. Pass a path/name/id and resolve services from DI. Small self-contained DTOs
-  are fine; live services and view models are not.
-- **`Dispose()` clears collections**, not just handles, so memory returns at unload.
-- **Lists need a height-constrained container**: a `ScrollViewer`/`StackPanel` parent gives unbounded
-  height and silently disables virtualization. Never use `ItemsControl` for a growing collection; never
-  override `ItemsPanel` with a plain `StackPanel`. Use `ItemsRepeater` + `StackLayout` inside a
-  `ScrollViewer`, or a `ListView` in a `*`-sized `Grid` row.
-- **`SettingsExpander` bound to a collection defaults to `IsExpanded="False"`.**
-- **`TreeView` fills on `Expanding` and clears on `Collapsed`** using `HasUnrealizedChildren`. XAML-wired
-  handlers must be instance methods (`static` fails with CS0176).
-- **Finalizers must never wait on another thread** — a blocked finalizer thread stops all finalization
-  process-wide. Do STA/COM marshalling only on the `disposing` path.
-- **Cap anything that grows per navigation** (back stack, history stacks, process-wide caches).
+- Page teardown cancels work and detaches handlers before `PageServiceScope.Attach(page)` disposes the owned DI graph. Attachment is one-shot; never dispose injected singletons.
+- Keep navigation parameters lightweight and register every nested `Frame` with `NavigationService.TrackFrame`.
+- Preserve bound collection identity with `ReplaceAll`; use height-constrained virtualizing controls for growing data. `StableSettingsExpander` is only for fixed, bounded items.
+- Do not change the documented GC/working-set reclamation policy or add speculative memory machinery without measurement.
 
 ## Administrator Permission Handling
 - **Unified System**: Always use the unified administrator detection system documented in `doc/AdminDetectionSystem.md`.

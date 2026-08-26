@@ -267,22 +267,6 @@ public sealed partial class SharedFoldersViewModel : ObservableObject
         await RunMutatingOperationAsync(_sharedFoldersService.CloseAllOpenFilesAsync);
     }
 
-    /// <summary>
-    /// Clears cached page state.
-    /// </summary>
-    public void ClearCachedData()
-    {
-        _allShares.Clear();
-        _allSessions.Clear();
-        _allOpenFiles.Clear();
-        Shares.Clear();
-        Sessions.Clear();
-        OpenFiles.Clear();
-        FilterText = string.Empty;
-        _isPolling = false;
-        NotifySectionDescriptions();
-    }
-
     partial void OnFilterTextChanged(string value)
     {
         ApplyFilter();

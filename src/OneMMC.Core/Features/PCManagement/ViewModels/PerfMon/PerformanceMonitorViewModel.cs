@@ -26,6 +26,7 @@ using CommunityToolkit.Mvvm.Input;
 using OneMMC.Core.Features.PCManagement.Models.PerfMon;
 using OneMMC.Core.Features.PCManagement.Services.PerfMon;
 using Microsoft.Extensions.Logging;
+using OneMMC.Core.Infrastructure.Collections;
 
 namespace OneMMC.Core.Features.PCManagement.ViewModels.PerfMon
 {
@@ -84,6 +85,7 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.PerfMon
         
         /// <summary>Flag indicating whether the ViewModel has been disposed</summary>
         private bool _disposed;
+        private int _updateInProgress;
 
         // ====================================================================
         // Observable Properties - Collections
@@ -288,10 +290,12 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.PerfMon
             _monitoringStartTime = DateTime.Now;
             
             // Load predefined common counters
-            CommonCounters = new ObservableCollection<PerformanceCounterInfo>(_performanceService.GetCommonCounters());
+            CommonCounters.ReplaceAll(_performanceService.GetCommonCounters());
+            OnPropertyChanged(nameof(CommonCounters));
             
             // Initialize filtered counter list
-            FilteredCounters = new ObservableCollection<PerformanceCounterInfo>(Counters);
+            FilteredCounters.ReplaceAll(Counters);
+            OnPropertyChanged(nameof(FilteredCounters));
             
             // Subscribe to Counters collection change events to update filter results
             Counters.CollectionChanged += OnCountersCollectionChanged;
@@ -358,7 +362,7 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.PerfMon
         public async Task LoadCategoriesAsync()
         {
             IsLoading = true;
-            try { Categories = new ObservableCollection<PerformanceCounterCategoryInfo>(await _performanceService.GetCategoriesAsync()); }
+            try { Categories.ReplaceAll(await _performanceService.GetCategoriesAsync()); }
             catch (Exception ex) { StatusMessage = $"Error loading categories: {ex.Message}"; }
             finally { IsLoading = false; }
         }
@@ -374,9 +378,11 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.PerfMon
             try
             {
                 // Load counter list
-                AvailableCounters = new ObservableCollection<CounterInfo>(await _performanceService.GetCountersAsync(SelectedCategory.Name));
+                AvailableCounters.ReplaceAll(await _performanceService.GetCountersAsync(SelectedCategory.Name));
+                OnPropertyChanged(nameof(AvailableCounters));
                 // Load instance list; single-instance categories yield an empty list
-                Instances = new ObservableCollection<string>(await _performanceService.GetInstancesAsync(SelectedCategory.Name));
+                Instances.ReplaceAll(await _performanceService.GetInstancesAsync(SelectedCategory.Name));
+                OnPropertyChanged(nameof(Instances));
             }
             catch (Exception ex) { StatusMessage = $"Error loading counters: {ex.Message}"; }
             finally { IsLoading = false; }
@@ -475,7 +481,8 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.PerfMon
             try
             {
                 var results = await _performanceService.SearchCountersAsync(searchTerm);
-                SearchResults = new ObservableCollection<PerformanceCounterInfo>(results);
+                SearchResults.ReplaceAll(results);
+                OnPropertyChanged(nameof(SearchResults));
                 StatusMessage = $"Found {results.Count} counters";
             }
             catch (Exception ex) { StatusMessage = $"Error searching: {ex.Message}"; }
@@ -573,18 +580,24 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.PerfMon
         /// </summary>
         private void OnUpdateTimerElapsed(object? sender, ElapsedEventArgs e)
         {
-            _ = Task.Run(() =>
+            if (_disposed || Interlocked.Exchange(ref _updateInProgress, 1) != 0)
             {
-                try
-                {
-                    UpdateCounterValues();
-                    UpdateDuration();
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Performance monitor timer update failed.");
-                }
-            });
+                return;
+            }
+
+            try
+            {
+                UpdateCounterValues();
+                UpdateDuration();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Performance monitor timer update failed.");
+            }
+            finally
+            {
+                Volatile.Write(ref _updateInProgress, 0);
+            }
         }
 
         /// <summary>
@@ -705,9 +718,11 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.PerfMon
         public void Dispose()
         {
             if (_disposed) return;
+            _disposed = true;
             _updateTimer.Stop();
+            _updateTimer.Elapsed -= OnUpdateTimerElapsed;
             _updateTimer.Dispose();
-            _performanceService.DisposeAllCounters();
+            _performanceService.Dispose();
             Counters.CollectionChanged -= OnCountersCollectionChanged;
             Counters.Clear();
             Categories.Clear();
@@ -716,7 +731,6 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.PerfMon
             SearchResults.Clear();
             CommonCounters.Clear();
             FilteredCounters.Clear();
-            _disposed = true;
             GC.SuppressFinalize(this);
         }
 

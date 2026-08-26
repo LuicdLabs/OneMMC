@@ -4,6 +4,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="using:CommunityToolkit.WinUI.Controls"
+    xmlns:oneMmcControls="using:OneMMC.Controls"
     xmlns:core="using:OneMMC.Core.Features.SystemManagement.Models.ComExp"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="using:OneMMC.Localization"
@@ -115,12 +116,12 @@
                     Text="{x:Bind LocalizedStrings.ComExp_DistributedTransactionCoordinator}" />
 
                 <!--  Local DTC Expander  -->
-                <controls:SettingsExpander Header="{x:Bind LocalizedStrings.ComExp_LocalDtc}" IsExpanded="True">
-                    <controls:SettingsExpander.HeaderIcon>
+                <oneMmcControls:StableSettingsExpander Header="{x:Bind LocalizedStrings.ComExp_LocalDtc}" IsExpanded="True">
+                    <oneMmcControls:StableSettingsExpander.HeaderIcon>
                         <FontIcon Glyph="&#xE7F4;" />
-                    </controls:SettingsExpander.HeaderIcon>
+                    </oneMmcControls:StableSettingsExpander.HeaderIcon>
 
-                    <controls:SettingsExpander.Items>
+                    <oneMmcControls:StableSettingsExpander.Items>
                         <!--  Transaction List  -->
                         <controls:SettingsCard Header="{x:Bind LocalizedStrings.ComExp_Dtc_TransactionList}" IsClickEnabled="True">
                             <controls:SettingsCard.ActionIcon>
@@ -134,8 +135,8 @@
                                 <FontIcon Glyph="&#xE8A7;" />
                             </controls:SettingsCard.ActionIcon>
                         </controls:SettingsCard>
-                    </controls:SettingsExpander.Items>
-                </controls:SettingsExpander>
+                    </oneMmcControls:StableSettingsExpander.Items>
+                </oneMmcControls:StableSettingsExpander>
 
             </StackPanel>
         </ScrollViewer>

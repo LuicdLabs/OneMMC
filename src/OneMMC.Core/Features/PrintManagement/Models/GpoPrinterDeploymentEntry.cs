@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace OneMMC.Core.Features.PrintManagement.Models.PrintManagement;
+namespace OneMMC.Core.Features.PrintManagement.Models;
 
 /// <summary>
 /// Represents a printer connection deployment entry in a Group Policy Object (GPO).

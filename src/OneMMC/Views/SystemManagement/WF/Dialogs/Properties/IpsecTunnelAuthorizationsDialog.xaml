@@ -79,10 +79,11 @@
                                 Glyph="&#xE7F8;" />
 
                             <ListView
-                                x:Name="AllowedComputersListView"
-                                Grid.Column="1"
-                                MinHeight="120"
-                                ItemTemplate="{StaticResource TunnelAuthorizationItemTemplate}"
+                            x:Name="AllowedComputersListView"
+                            Grid.Column="1"
+                            MinHeight="120"
+                            MaxHeight="200"
+                            ItemTemplate="{StaticResource TunnelAuthorizationItemTemplate}"
                                 SelectionMode="Single" />
 
                             <StackPanel Grid.Column="2" Spacing="8">
@@ -129,10 +130,11 @@
                                 Glyph="&#xE7F8;" />
 
                             <ListView
-                                x:Name="DeniedComputersListView"
-                                Grid.Column="1"
-                                MinHeight="120"
-                                ItemTemplate="{StaticResource TunnelAuthorizationItemTemplate}"
+                            x:Name="DeniedComputersListView"
+                            Grid.Column="1"
+                            MinHeight="120"
+                            MaxHeight="200"
+                            ItemTemplate="{StaticResource TunnelAuthorizationItemTemplate}"
                                 SelectionMode="Single" />
 
                             <StackPanel Grid.Column="2" Spacing="8">
@@ -187,10 +189,11 @@
                                 Glyph="&#xE77B;" />
 
                             <ListView
-                                x:Name="AllowedUsersListView"
-                                Grid.Column="1"
-                                MinHeight="120"
-                                ItemTemplate="{StaticResource TunnelAuthorizationItemTemplate}"
+                            x:Name="AllowedUsersListView"
+                            Grid.Column="1"
+                            MinHeight="120"
+                            MaxHeight="200"
+                            ItemTemplate="{StaticResource TunnelAuthorizationItemTemplate}"
                                 SelectionMode="Single" />
 
                             <StackPanel Grid.Column="2" Spacing="8">
@@ -237,10 +240,11 @@
                                 Glyph="&#xE77B;" />
 
                             <ListView
-                                x:Name="DeniedUsersListView"
-                                Grid.Column="1"
-                                MinHeight="120"
-                                ItemTemplate="{StaticResource TunnelAuthorizationItemTemplate}"
+                            x:Name="DeniedUsersListView"
+                            Grid.Column="1"
+                            MinHeight="120"
+                            MaxHeight="200"
+                            ItemTemplate="{StaticResource TunnelAuthorizationItemTemplate}"
                                 SelectionMode="Single" />
 
                             <StackPanel Grid.Column="2" Spacing="8">

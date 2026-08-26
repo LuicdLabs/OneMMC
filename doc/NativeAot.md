@@ -19,10 +19,7 @@
 - [Verification Workflow](#verification-workflow)
 - [Known Upstream Risks](#known-upstream-risks)
 - [References](#references)
-- [Appendix A: Current Verified State (2026-07-10)](#appendix-a-current-verified-state-2026-07-10)
-- [Appendix B: Stage 1 Assessment Baseline (2026-07-02)](#appendix-b-stage-1-assessment-baseline-2026-07-02)
-- [Appendix C: Migration Record (M0-M4)](#appendix-c-migration-record-m0-m4)
-- [Appendix D: Sanctioned Replacements Summary](#appendix-d-sanctioned-replacements-summary)
+- [Sanctioned Replacements Summary](#sanctioned-replacements-summary)
 
 ## Overview
 
@@ -35,9 +32,6 @@ This document is the repository's single Native AOT reference. It is meant to wo
 - a developer guide for day-to-day implementation choices
 - an engineering note that explains why those choices exist
 
-It also preserves the measured baseline and the M0-M4 migration record so future changes can keep
-their historical context without forcing every reader to start from migration history first.
-
 ## Document Scope
 
 Read this document when you are:
@@ -49,8 +43,8 @@ Read this document when you are:
 - adding JSON serialization paths
 - changing build, publish, trim, or analyzer configuration
 
-If you only need the historical migration story, jump to the appendices. For implementation work,
-start with **Developer Guidelines** and the relevant **Deep Dive** section.
+For implementation work, start with **Developer Guidelines** and the relevant **Deep Dive**
+section.
 
 ## Related Files and Entry Points
 
@@ -231,7 +225,7 @@ model. ADSI and NetAPI32 keep the ABI explicit and under repository control.
 #### Code-level examples
 
 - `src/OneMMC.Core/Infrastructure/Interop/Adsi/`
-- `src/OneMMC.Core/Features/UserSecurity/Services/LusrMgr/`
+- `src/OneMMC.Core/Features/PCManagement/Services/LusrMgr/`
 
 ### Performance Counter Model
 
@@ -339,104 +333,7 @@ Notes:
 - `https://github.com/dotnet/runtime/issues/104582`
 - `https://github.com/PowerShell/MMI/issues/54`
 
-## Appendix A: Current Verified State (2026-07-10)
-
-| Check | Result |
-|---|---|
-| `dotnet build` Debug x64, full rebuild, all analyzers on | 0 warnings / 0 errors |
-| `dotnet build` Release x64, full rebuild, all analyzers on | 0 warnings / 0 errors |
-| `dotnet publish` Release win-x64 (ILC + link) | Succeeded, 0 warnings |
-| `dotnet publish` Debug win-x64 (ILC + link) | Succeeded, 0 warnings |
-| Release payload (excluding symbols) | 70.4 MB / 13 files |
-| WmiLight native shim | Statically linked into the exe |
-| Release AOT UIA navigation smoke | PASS |
-| Debug AOT boot smoke | PASS |
-
-Repository-wide gates verified at that point:
-
-- 0 `dynamic` late binding
-- 0 `[ComImport]`
-- 0 `Type.GetTypeFromProgID` / `GetTypeFromCLSID` + `Activator.CreateInstance`
-- 0 `System.Management`
-- 0 `Microsoft.Management.Infrastructure`
-- 0 `System.DirectoryServices*`
-- 0 `System.Diagnostics.PerformanceCounter`
-- 0 `{Binding}` in XAML
-
-`IsAotCompatible` and `IsTrimmable` remain intentionally unset on `OneMMC.Core`. The analyzer
-properties in `Directory.Build.props` produce the needed warning stream without changing the
-library's packaging semantics.
-
-## Appendix B: Stage 1 Assessment Baseline (2026-07-02)
-
-Environment: .NET SDK 10.0.301, Windows App SDK 2.2.0, VS 18 MSVC toolchain, Windows 11 Pro
-26200, `net10.0-windows10.0.19041.0` Release x64.
-
-| Run | Outcome | Distinct warning sites |
-|---|---|---:|
-| A - baseline (analyzers off) | 0 warnings | 0 |
-| B - analyzer build | Succeeded | 1,144 |
-| C - trim-only publish | Succeeded | 1,604 |
-| D - full Native AOT publish | Compiled, but crashed at startup | 2,381 |
-| E - default ReadyToRun publish | 0 warnings | 0 |
-
-| Publish mode | Size | Files | Boots? |
-|---|---:|---:|---|
-| ReadyToRun self-contained (then-default) | 224.4 MB | 276 | Yes |
-| Trimmed experimental publish | 78.7 MB | 118 | Not validated |
-| Native AOT | 75.7 MB | 16 | No - `0xC000027B` at startup |
-
-Key findings:
-
-- the startup failure was a XAML-side problem: non-`partial` WinRT classes plus reflection-based
-  `{Binding}` created a stowed exception in `Microsoft.UI.Xaml.dll`
-- a large share of the warnings came from dependency packages, not from OneMMC's own code
-- the biggest hard blockers were `dynamic` COM, runtime COM activation, `System.Management`, MMI,
-  `System.DirectoryServices*`, and XAML binding metadata
-- the codebase was already structurally favorable because DI was explicit and source generators
-  were already in use
-
-## Appendix C: Migration Record (M0-M4)
-
-This section is historical reference. New code should cite the topic sections above, not the
-stage names below.
-
-### M0 - hygiene (DONE 2026-07-02)
-
-- marked 74 CsWinRT1028 classes as `partial`
-- converted 26 MVVMTK0045 sites to partial properties
-- added source-generated `JsonSerializerContext` for all JSON paths
-- converted all remaining `{Binding}` to `{x:Bind}` and removed reflection property-path helpers
-
-### M1 - boot under AOT (DONE 2026-07-03)
-
-- re-published after M0
-- the AOT executable booted successfully and passed top-level navigation smoke
-- no metadata-rooting workaround was needed once the structural XAML issues were fixed
-
-### M2 - WMI/CIM migration (DONE 2026-07-09)
-
-- replaced `System.Management` feature paths with WmiLight
-- replaced the Windows Firewall MMI write path with the marshal-free `IWbemServices` wrapper
-- established the repository's current WMI rules: WmiLight first, classic WMI COM when instance
-  CRUD requires it
-
-### M3 - COM and `dynamic` rewrite (DONE 2026-07-04)
-
-- replaced late-bound COM and `[ComImport]` patterns with typed `[GeneratedComInterface]` code
-- added the reusable `ComActivator`, source-generated `IDispatch` base, and shared variant helpers
-- ported AzMan, COM+, Task Scheduler, Group Policy, firewall automation, and related COM surfaces
-  to explicit ABI-safe interop
-
-### M4 - package replacements and cutover (DONE 2026-07-10)
-
-- replaced Local Users and Groups internals with NetAPI32
-- replaced PerfMon internals with PDH
-- added the in-house ADSI layer and removed the last `System.DirectoryServices*` consumers
-- made `PublishAot` unconditional and dissolved the old opt-in analyzer switch into
-  `Directory.Build.props`
-
-## Appendix D: Sanctioned Replacements Summary
+## Sanctioned Replacements Summary
 
 For quick review, this is the shortest form of the repository rule set:
 
@@ -448,3 +345,7 @@ For quick review, this is the shortest form of the repository rule set:
 - JSON: source-generated contexts
 - WinRT ABI: `partial` classes
 - MVVM Toolkit: partial properties for `[ObservableProperty]`
+
+`IsAotCompatible` and `IsTrimmable` remain intentionally unset on `OneMMC.Core`. The analyzer
+properties in `Directory.Build.props` produce the needed warning stream without changing the
+library's packaging semantics.

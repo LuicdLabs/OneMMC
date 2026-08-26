@@ -2,7 +2,7 @@
 using Windows.Win32.NetworkManagement.NetManagement;
 using Win32PInvoke = Windows.Win32.PInvoke;
 
-namespace OneMMC.Core.Features.PrintManagement.Services.PrintManagement.Native;
+namespace OneMMC.Core.Features.PrintManagement.Services.Native;
 
 /// <summary>
 /// Native domain join status queries backed by CsWin32-generated bindings.

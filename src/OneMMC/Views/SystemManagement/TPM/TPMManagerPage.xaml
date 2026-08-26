@@ -5,6 +5,7 @@
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:converters="using:OneMMC.Converters"
 	xmlns:cwuc="using:CommunityToolkit.WinUI.Controls"
+	xmlns:oneMmcControls="using:OneMMC.Controls"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:local="using:OneMMC.Views"
 	xmlns:localization="using:OneMMC.Localization"
@@ -28,14 +29,14 @@
 				Severity="{x:Bind ViewModel.StatusSeverity, Mode=OneWay, Converter={StaticResource SeverityConverter}}" />
 
 			<!--  TPM Status Card  -->
-			<cwuc:SettingsExpander
+			<oneMmcControls:StableSettingsExpander
 				Description="{x:Bind LocalizedStrings.TPM_StatusDescription}"
 				Header="{x:Bind LocalizedStrings.TPM_StatusHeader}"
 				IsExpanded="True">
-				<cwuc:SettingsExpander.HeaderIcon>
+				<oneMmcControls:StableSettingsExpander.HeaderIcon>
 					<FontIcon Glyph="&#xEC19;" />
-				</cwuc:SettingsExpander.HeaderIcon>
-				<cwuc:SettingsExpander.Items>
+				</oneMmcControls:StableSettingsExpander.HeaderIcon>
+				<oneMmcControls:StableSettingsExpander.Items>
 					<cwuc:SettingsCard Header="{x:Bind LocalizedStrings.TPM_ManufacturerNameHeader}">
 						<TextBlock Foreground="{ThemeResource TextFillColorSecondaryBrush}" Text="{x:Bind ViewModel.TpmManufacturerName, Mode=OneWay}" />
 					</cwuc:SettingsCard>
@@ -57,8 +58,8 @@
 					<cwuc:SettingsCard Header="{x:Bind LocalizedStrings.TPM_OwnedHeader}">
 						<FontIcon Foreground="{x:Bind HexToBrush(ViewModel.TpmStatusColorHex), Mode=OneWay}" Glyph="{x:Bind ViewModel.TpmOwnedGlyph, Mode=OneWay}" />
 					</cwuc:SettingsCard>
-				</cwuc:SettingsExpander.Items>
-			</cwuc:SettingsExpander>
+				</oneMmcControls:StableSettingsExpander.Items>
+			</oneMmcControls:StableSettingsExpander>
 
 			<!--  TPM Actions  -->
 			<StackPanel Spacing="4">

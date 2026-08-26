@@ -35,6 +35,7 @@
                 <ListView
                     x:Name="ConnectionsListView"
                     MinHeight="160"
+                    MaxHeight="320"
                     SelectionMode="None">
                     <ListView.ItemTemplate>
                         <DataTemplate x:DataType="wfprof:NetworkConnectionItem">

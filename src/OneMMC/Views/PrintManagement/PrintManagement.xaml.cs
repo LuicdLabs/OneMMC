@@ -4,15 +4,15 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-using OneMMC.Core.Features.PrintManagement.Models.PrintManagement;
-using OneMMC.Core.Features.PrintManagement.Services.PrintManagement;
-using OneMMC.Core.Features.PrintManagement.ViewModels.PrintManagement;
+using OneMMC.Core.Features.PrintManagement.ViewModels;
 using OneMMC.Helpers;
 using OneMMC.Localization;
 using Microsoft.Extensions.Logging;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using WinRT.Interop;
+using OneMMC.Core.Features.PrintManagement.Services;
+using OneMMC.Core.Features.PrintManagement.Models;
 
 namespace OneMMC.Views;
 
@@ -50,7 +50,6 @@ public sealed partial class PrintManagement : Page
         {
             App.ThemeChanged -= OnThemeChanged;
             ViewModel.AdminPermissionRequired -= OnAdminPermissionRequired;
-            ViewModel.ClearCachedData();
             DataContext = null;
         };
     }
@@ -563,19 +562,23 @@ public sealed partial class PrintManagement : Page
 
     private string? BuildPrinterConnectionPath(PrinterInfo printer)
     {
+        // Network printer - use server name
         if (!string.IsNullOrWhiteSpace(printer.ServerName))
         {
             string serverName = printer.ServerName.TrimStart('\\');
-            string printerShare = string.IsNullOrWhiteSpace(printer.ShareName) ? printer.Name : printer.ShareName;
+            string printerShare = string.IsNullOrWhiteSpace(printer.ShareName)
+                ? printer.Name
+                : printer.ShareName;
             return $@"\\{serverName}\{printerShare}";
         }
 
-        if (printer.IsShared && !string.IsNullOrWhiteSpace(printer.ShareName))
-        {
-            return $@"\\{ViewModel.ComputerName}\{printer.ShareName}";
-        }
-
-        return null;
+        // Local printer (shared or not) - use local computer name
+        // Windows allows GPO deployment of local printers even if not explicitly shared
+        // For shared printers, prefer the share name; otherwise use printer name
+        string shareName = printer.IsShared && !string.IsNullOrWhiteSpace(printer.ShareName)
+            ? printer.ShareName
+            : printer.Name;
+        return $@"\\{ViewModel.ComputerName}\{shareName}";
     }
 
     private static T? GetContextFromFlyout<T>(MenuFlyout flyout) where T : class

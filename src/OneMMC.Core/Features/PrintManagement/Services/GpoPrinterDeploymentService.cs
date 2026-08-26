@@ -4,13 +4,13 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using OneMMC.Core.Features.PrintManagement.Models.PrintManagement;
 using OneMMC.Core.Infrastructure.Interop;
 using OneMMC.Core.Infrastructure.Interop.Adsi;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using OneMMC.Core.Features.PrintManagement.Models;
 
-namespace OneMMC.Core.Features.PrintManagement.Services.PrintManagement;
+namespace OneMMC.Core.Features.PrintManagement.Services;
 
 /// <summary>
 /// Provides read/write access to printer connection deployments stored in GPOs.

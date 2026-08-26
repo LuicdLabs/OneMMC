@@ -21,9 +21,9 @@ namespace OneMMC.Views.PolicyManagement.GpEdit
         private readonly ILogger<GroupPolicyEditorPage> _logger;
 
         /// <summary>
-        /// Owns the view model's lifetime. GroupPolicyEditorViewModel is a transient IDisposable holding
-        /// a fully parsed ADMX bundle, so resolving it from the root provider would leave the container
-        /// pinning one bundle per visit to this page. See doc/MemoryManagement.md.
+        /// Owns the transient view model and its disposable policy services. The parsed ADMX bundle is
+        /// borrowed from the process-wide provider; the per-page policy-service handles are released with
+        /// this scope. See doc/MemoryManagement.md.
         /// </summary>
         private readonly PageServiceScope _serviceScope = new();
 
@@ -52,20 +52,13 @@ namespace OneMMC.Views.PolicyManagement.GpEdit
 
             this.Loaded += OnLoaded;
             this.Unloaded += OnUnloaded;
+            _serviceScope.Attach(this);
         }
 
-        private async void OnLoaded(object sender, RoutedEventArgs e)
+        private void OnLoaded(object sender, RoutedEventArgs e)
         {
             Loaded -= OnLoaded;
-
-            try
-            {
-                await ViewModel.InitializeAsync(_loadCts.Token);
-            }
-            catch (OperationCanceledException)
-            {
-                // Page was navigated away from while the definitions were loading.
-            }
+            _ = ViewModel.InitializeAsync(_loadCts.Token);
         }
 
         private void PolicySearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
@@ -88,12 +81,8 @@ namespace OneMMC.Views.PolicyManagement.GpEdit
             App.ThemeChanged -= OnThemeChanged;
             ViewModel.AdminPermissionRequired -= OnAdminPermissionRequired;
             ViewModel.RootNodes.CollectionChanged -= RootNodes_CollectionChanged;
-            PolicyTree.RootNodes.Clear();
-            DataContext = null;
             Unloaded -= OnUnloaded;
 
-            // Disposes the view model (releasing its policy tree) and drops the container's reference.
-            _serviceScope.Dispose();
             _loadCts.Dispose();
         }
 

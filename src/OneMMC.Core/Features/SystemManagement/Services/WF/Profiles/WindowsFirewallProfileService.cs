@@ -75,54 +75,68 @@ public class WindowsFirewallProfileService
     public FirewallProfileModel GetProfile(FirewallProfileType profileType)
     {
         INetFwPolicy2 policy = WindowsFirewallSupport.CreatePolicy2();
-        int profileMask = (int)profileType;
-
-        var model = new FirewallProfileModel
+        try
         {
-            ProfileType = profileType,
-            DisplayName = profileType.ToString(),
-            IsActive = (policy.get_CurrentProfileTypes() & profileMask) != 0,
-            IsEnabled = FirewallCom.ToBool(policy.get_FirewallEnabled(profileMask)),
-            DefaultInboundAction = policy.get_DefaultInboundAction(profileMask) == WindowsFirewallSupport.NetFwActionAllow
-                ? FirewallDefaultAction.Allow
-                : FirewallDefaultAction.Block,
-            DefaultOutboundAction = policy.get_DefaultOutboundAction(profileMask) == WindowsFirewallSupport.NetFwActionAllow
-                ? FirewallDefaultAction.Allow
-                : FirewallDefaultAction.Block,
-            BlockAllInboundTraffic = FirewallCom.ToBool(policy.get_BlockAllInboundTraffic(profileMask)),
-            NotificationsDisabled = FirewallCom.ToBool(policy.get_NotificationsDisabled(profileMask)),
-            UnicastResponsesToMulticastBroadcastDisabled = FirewallCom.ToBool(policy.get_UnicastResponsesToMulticastBroadcastDisabled(profileMask)),
-            PolicyModifyState = (FirewallPolicyModifyState)policy.get_LocalPolicyModifyState(),
-            LoggingSettings = ReadLoggingSettings(profileType)
-        };
+            int profileMask = (int)profileType;
 
-        foreach (NetworkConnectionItem connection in BuildProtectedNetworkConnections(policy, profileMask))
-        {
-            model.ProtectedNetworkConnections.Add(connection);
+            var model = new FirewallProfileModel
+            {
+                ProfileType = profileType,
+                DisplayName = profileType.ToString(),
+                IsActive = (policy.get_CurrentProfileTypes() & profileMask) != 0,
+                IsEnabled = FirewallCom.ToBool(policy.get_FirewallEnabled(profileMask)),
+                DefaultInboundAction = policy.get_DefaultInboundAction(profileMask) == WindowsFirewallSupport.NetFwActionAllow
+                    ? FirewallDefaultAction.Allow
+                    : FirewallDefaultAction.Block,
+                DefaultOutboundAction = policy.get_DefaultOutboundAction(profileMask) == WindowsFirewallSupport.NetFwActionAllow
+                    ? FirewallDefaultAction.Allow
+                    : FirewallDefaultAction.Block,
+                BlockAllInboundTraffic = FirewallCom.ToBool(policy.get_BlockAllInboundTraffic(profileMask)),
+                NotificationsDisabled = FirewallCom.ToBool(policy.get_NotificationsDisabled(profileMask)),
+                UnicastResponsesToMulticastBroadcastDisabled = FirewallCom.ToBool(policy.get_UnicastResponsesToMulticastBroadcastDisabled(profileMask)),
+                PolicyModifyState = (FirewallPolicyModifyState)policy.get_LocalPolicyModifyState(),
+                LoggingSettings = ReadLoggingSettings(profileType)
+            };
+
+            foreach (NetworkConnectionItem connection in BuildProtectedNetworkConnections(policy, profileMask))
+            {
+                model.ProtectedNetworkConnections.Add(connection);
+            }
+
+            return model;
         }
-
-        return model;
+        finally
+        {
+            FirewallCom.Release(policy);
+        }
     }
 
     public void UpdateProfile(FirewallProfileModel profile)
     {
         INetFwPolicy2 policy = WindowsFirewallSupport.CreatePolicy2();
-        int profileMask = (int)profile.ProfileType;
+        try
+        {
+            int profileMask = (int)profile.ProfileType;
 
-        policy.set_FirewallEnabled(profileMask, FirewallCom.ToVariantBool(profile.IsEnabled));
-        policy.set_DefaultInboundAction(profileMask, profile.DefaultInboundAction == FirewallDefaultAction.Allow
-                ? WindowsFirewallSupport.NetFwActionAllow
-                : WindowsFirewallSupport.NetFwActionBlock);
-        policy.set_DefaultOutboundAction(profileMask, profile.DefaultOutboundAction == FirewallDefaultAction.Allow
-                ? WindowsFirewallSupport.NetFwActionAllow
-                : WindowsFirewallSupport.NetFwActionBlock);
-        policy.set_BlockAllInboundTraffic(profileMask, FirewallCom.ToVariantBool(profile.BlockAllInboundTraffic));
-        policy.set_NotificationsDisabled(profileMask, FirewallCom.ToVariantBool(profile.NotificationsDisabled));
-        policy.set_UnicastResponsesToMulticastBroadcastDisabled(profileMask, FirewallCom.ToVariantBool(profile.UnicastResponsesToMulticastBroadcastDisabled));
+            policy.set_FirewallEnabled(profileMask, FirewallCom.ToVariantBool(profile.IsEnabled));
+            policy.set_DefaultInboundAction(profileMask, profile.DefaultInboundAction == FirewallDefaultAction.Allow
+                    ? WindowsFirewallSupport.NetFwActionAllow
+                    : WindowsFirewallSupport.NetFwActionBlock);
+            policy.set_DefaultOutboundAction(profileMask, profile.DefaultOutboundAction == FirewallDefaultAction.Allow
+                    ? WindowsFirewallSupport.NetFwActionAllow
+                    : WindowsFirewallSupport.NetFwActionBlock);
+            policy.set_BlockAllInboundTraffic(profileMask, FirewallCom.ToVariantBool(profile.BlockAllInboundTraffic));
+            policy.set_NotificationsDisabled(profileMask, FirewallCom.ToVariantBool(profile.NotificationsDisabled));
+            policy.set_UnicastResponsesToMulticastBroadcastDisabled(profileMask, FirewallCom.ToVariantBool(profile.UnicastResponsesToMulticastBroadcastDisabled));
 
-        UpdateProtectedNetworkConnections(profile);
-        WriteLoggingSettings(profile.ProfileType, profile.LoggingSettings);
-        _logger.LogInformation("Updated firewall profile {ProfileType}.", profile.ProfileType);
+            UpdateProtectedNetworkConnections(profile);
+            WriteLoggingSettings(profile.ProfileType, profile.LoggingSettings);
+            _logger.LogInformation("Updated firewall profile {ProfileType}.", profile.ProfileType);
+        }
+        finally
+        {
+            FirewallCom.Release(policy);
+        }
     }
 
     public IpsecDefaultsModel GetIpsecDefaults()

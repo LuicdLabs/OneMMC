@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
+using OneMMC.Core.Infrastructure.Collections;
 
 namespace OneMMC.Core.Features.PCManagement.ViewModels.LusrMgr;
 
@@ -63,18 +64,6 @@ public partial class LocalUsersGroupsViewModel : ObservableObject
     public void Reload()
     {
         LoadData();
-    }
-
-    public void ClearCachedData()
-    {
-        _allUsers.Clear();
-        _allGroups.Clear();
-        Users.Clear();
-        Groups.Clear();
-        UserSearchText = string.Empty;
-        GroupSearchText = string.Empty;
-        UserCount = 0;
-        GroupCount = 0;
     }
 
     partial void OnUserSearchTextChanged(string value)
@@ -191,7 +180,8 @@ public partial class LocalUsersGroupsViewModel : ObservableObject
                 (u.FullName?.Contains(UserSearchText, StringComparison.OrdinalIgnoreCase) ?? false)
             ).ToList();
         }
-        Users = new ObservableCollection<LocalUser>(filtered);
+        Users.ReplaceAll(filtered);
+        OnPropertyChanged(nameof(Users));
         UserCount = Users.Count;
     }
 
@@ -206,7 +196,8 @@ public partial class LocalUsersGroupsViewModel : ObservableObject
         {
             filtered = _allGroups.Where(g => g.Name.Contains(GroupSearchText, StringComparison.OrdinalIgnoreCase)).ToList();
         }
-        Groups = new ObservableCollection<LocalGroup>(filtered);
+        Groups.ReplaceAll(filtered);
+        OnPropertyChanged(nameof(Groups));
         GroupCount = Groups.Count;
     }
 

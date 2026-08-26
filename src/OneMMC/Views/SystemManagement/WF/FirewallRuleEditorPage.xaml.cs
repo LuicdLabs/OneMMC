@@ -14,14 +14,19 @@ using OneMMC.Services;
 using OneMMC.Views.Dialogs.NewRule;
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Microsoft.UI.Dispatching;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media.Animation;
 using Microsoft.UI.Xaml.Navigation;
 using Windows.System;
+// Disambiguate DispatcherQueueTimer: both Microsoft.UI.Dispatching and Windows.System
+// declare it; the WinUI 3 timer returned by DispatcherQueue.CreateTimer() is the former.
+using DispatcherQueueTimer = Microsoft.UI.Dispatching.DispatcherQueueTimer;
 
 namespace OneMMC.Views;
 
@@ -32,16 +37,21 @@ namespace OneMMC.Views;
 public sealed partial class FirewallRuleEditorPage : Page
 {
     private readonly ILogger<FirewallRuleEditorPage> _logger;
+    private readonly CancellationTokenSource _pageLifetimeCancellation = new();
+    private readonly CancellationToken _pageLifetimeToken;
     private readonly HashSet<ToggleSwitch> _trackedRuleToggles = [];
     private readonly HashSet<ToggleSwitch> _userInitiatedRuleToggles = [];
+    private readonly Dictionary<DispatcherQueueTimer, ToggleSwitch> _toggleExpirationTimers = [];
     private IDisposable? _firewallChangeSubscription;
     private bool _isRefreshingFromSystemChange;
+    private int _pageLifetimeEnded;
 
     public LocalizedStrings LocalizedStrings { get; } = LocalizedStrings.Instance;
     public FirewallRuleViewModel ViewModel { get; }
 
     public FirewallRuleEditorPage()
     {
+        _pageLifetimeToken = _pageLifetimeCancellation.Token;
         _logger = App.GetRequiredService<ILogger<FirewallRuleEditorPage>>();
         ViewModel = App.GetRequiredService<FirewallRuleViewModel>();
         InitializeComponent();
@@ -65,12 +75,20 @@ public sealed partial class FirewallRuleEditorPage : Page
         {
             try
             {
-                await ViewModel.InitializeAsync(direction);
+                await ViewModel.InitializeAsync(direction).WaitAsync(_pageLifetimeToken);
+                _pageLifetimeToken.ThrowIfCancellationRequested();
             }
             catch (Exception ex)
             {
-                await ShowErrorDialogAsync(LocalizedStrings.Common_ErrorTitle, LocalizedStrings.WF_Error_LoadRules);
-                _logger.LogWarning(ex, "Failed to load Windows Firewall rules.");
+                if (_pageLifetimeToken.IsCancellationRequested)
+                {
+                    _logger.LogDebug("Loading Windows Firewall rules was canceled because the page unloaded.");
+                }
+                else
+                {
+                    await ShowErrorDialogAsync(LocalizedStrings.Common_ErrorTitle, LocalizedStrings.WF_Error_LoadRules);
+                    _logger.LogWarning(ex, "Failed to load Windows Firewall rules.");
+                }
             }
         }
     }
@@ -83,22 +101,31 @@ public sealed partial class FirewallRuleEditorPage : Page
 
     private void OnUnloaded(object sender, RoutedEventArgs e)
     {
+        EndPageLifetime();
+        ViewModel.CancelPendingLoad();
+        StopToggleExpirationTimers();
         ViewModel.AdminPermissionRequired -= OnAdminPermissionRequired;
         _firewallChangeSubscription?.Dispose();
         _firewallChangeSubscription = null;
         _trackedRuleToggles.Clear();
         _userInitiatedRuleToggles.Clear();
         Unloaded -= OnUnloaded;
-
-        // Release the loaded rule set rather than holding it until the page is collected.
-        ViewModel.ClearCachedData();
+        _pageLifetimeCancellation.Dispose();
     }
 
     private void OnFirewallRulesChanged(object? sender, EventArgs e)
     {
+        CancellationToken cancellationToken = _pageLifetimeToken;
+        if (cancellationToken.IsCancellationRequested)
+        {
+            return;
+        }
+
         DispatcherQueue.TryEnqueue(async () =>
         {
-            if (_isRefreshingFromSystemChange || ViewModel.IsLoading)
+            if (cancellationToken.IsCancellationRequested ||
+                _isRefreshingFromSystemChange ||
+                ViewModel.IsLoading)
             {
                 return;
             }
@@ -106,11 +133,19 @@ public sealed partial class FirewallRuleEditorPage : Page
             _isRefreshingFromSystemChange = true;
             try
             {
-                await ViewModel.RefreshFromExternalChangeAsync();
+                await ViewModel.RefreshFromExternalChangeAsync().WaitAsync(cancellationToken);
+                cancellationToken.ThrowIfCancellationRequested();
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "Failed to refresh Windows Firewall rules after a system change.");
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    _logger.LogDebug("Refreshing Windows Firewall rules was canceled because the page unloaded.");
+                }
+                else
+                {
+                    _logger.LogWarning(ex, "Failed to refresh Windows Firewall rules after a system change.");
+                }
             }
             finally
             {
@@ -161,10 +196,15 @@ public sealed partial class FirewallRuleEditorPage : Page
         if (sender is CommunityToolkit.WinUI.Controls.SettingsCard card &&
             card.Tag is FirewallRuleModel rule)
         {
-            BreadcrumbNavigationService.AddBreadcrumb(rule.DisplayName, typeof(FirewallRuleInfoPage), rule);
+            FirewallRuleNavigationParameter navigationParameter =
+                FirewallRuleNavigationParameter.ForFirewallRule(rule);
+            BreadcrumbNavigationService.AddBreadcrumb(
+                rule.DisplayName,
+                typeof(FirewallRuleInfoPage),
+                navigationParameter);
             Frame.Navigate(
                 typeof(FirewallRuleInfoPage),
-                rule,
+                navigationParameter,
                 new Microsoft.UI.Xaml.Media.Animation.SlideNavigationTransitionInfo
                 {
                     Effect = Microsoft.UI.Xaml.Media.Animation.SlideNavigationTransitionEffect.FromRight
@@ -192,6 +232,7 @@ public sealed partial class FirewallRuleEditorPage : Page
 
         toggleSwitch.RemoveHandler(UIElement.PointerPressedEvent, new PointerEventHandler(RuleToggle_PointerPressed));
         toggleSwitch.RemoveHandler(UIElement.KeyDownEvent, new KeyEventHandler(RuleToggle_KeyDown));
+        StopToggleExpirationTimers(toggleSwitch);
         _userInitiatedRuleToggles.Remove(toggleSwitch);
     }
 
@@ -213,16 +254,50 @@ public sealed partial class FirewallRuleEditorPage : Page
 
     private void MarkUserInitiatedToggle(ToggleSwitch toggleSwitch)
     {
+        if (!IsPageLifetimeActive)
+        {
+            return;
+        }
+
+        StopToggleExpirationTimers(toggleSwitch);
         _userInitiatedRuleToggles.Add(toggleSwitch);
 
-        var expirationTimer = DispatcherQueue.CreateTimer();
+        DispatcherQueueTimer expirationTimer = DispatcherQueue.CreateTimer();
         expirationTimer.Interval = TimeSpan.FromSeconds(3);
-        expirationTimer.Tick += (_, _) =>
+        expirationTimer.Tick += RuleToggleExpirationTimer_Tick;
+        _toggleExpirationTimers.Add(expirationTimer, toggleSwitch);
+        expirationTimer.Start();
+    }
+
+    private void RuleToggleExpirationTimer_Tick(DispatcherQueueTimer sender, object args)
+    {
+        if (_toggleExpirationTimers.Remove(sender, out ToggleSwitch? toggleSwitch) &&
+            IsPageLifetimeActive)
         {
             _userInitiatedRuleToggles.Remove(toggleSwitch);
-            expirationTimer.Stop();
-        };
-        expirationTimer.Start();
+        }
+
+        sender.Tick -= RuleToggleExpirationTimer_Tick;
+        sender.Stop();
+    }
+
+    private void StopToggleExpirationTimers(ToggleSwitch? toggleSwitch = null)
+    {
+        List<DispatcherQueueTimer> timersToStop = [];
+        foreach ((DispatcherQueueTimer timer, ToggleSwitch trackedToggle) in _toggleExpirationTimers)
+        {
+            if (toggleSwitch is null || ReferenceEquals(toggleSwitch, trackedToggle))
+            {
+                timersToStop.Add(timer);
+            }
+        }
+
+        foreach (DispatcherQueueTimer timer in timersToStop)
+        {
+            _toggleExpirationTimers.Remove(timer);
+            timer.Tick -= RuleToggleExpirationTimer_Tick;
+            timer.Stop();
+        }
     }
 
     private async void RuleToggle_Toggled(object sender, RoutedEventArgs e)
@@ -237,7 +312,10 @@ public sealed partial class FirewallRuleEditorPage : Page
             return;
         }
 
-        if (rule.Enabled == toggleSwitch.IsOn)
+        StopToggleExpirationTimers(toggleSwitch);
+
+        bool requestedEnabled = toggleSwitch.IsOn;
+        if (rule.Enabled == requestedEnabled)
         {
             return;
         }
@@ -251,14 +329,36 @@ public sealed partial class FirewallRuleEditorPage : Page
         }
 
         bool previousEnabled = rule.Enabled;
+        CancellationToken cancellationToken = _pageLifetimeToken;
         try
         {
-            await ViewModel.SetRuleEnabledAsync(rule, toggleSwitch.IsOn);
+            await ViewModel.SetRuleEnabledAsync(rule, requestedEnabled).WaitAsync(cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();
         }
         catch (Exception ex)
         {
-            ResetToggleSwitch(toggleSwitch, previousEnabled);
-            await ShowErrorDialogAsync(LocalizedStrings.WF_Error_UpdateRule, ex.Message);
+            if (cancellationToken.IsCancellationRequested)
+            {
+                _logger.LogDebug(
+                    "Updating Windows Firewall rule {RuleName} was canceled because the page unloaded.",
+                    rule.Name);
+            }
+            else
+            {
+                ResetToggleSwitch(toggleSwitch, previousEnabled);
+                await ShowErrorDialogAsync(LocalizedStrings.WF_Error_UpdateRule, ex.Message);
+            }
+        }
+    }
+
+    private bool IsPageLifetimeActive
+        => Volatile.Read(ref _pageLifetimeEnded) == 0;
+
+    private void EndPageLifetime()
+    {
+        if (Interlocked.Exchange(ref _pageLifetimeEnded, 1) == 0)
+        {
+            _pageLifetimeCancellation.Cancel();
         }
     }
 

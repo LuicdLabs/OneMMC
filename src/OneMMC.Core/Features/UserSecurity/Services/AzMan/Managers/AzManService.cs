@@ -35,6 +35,7 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Threading.Tasks;
 using OneMMC.Core.Features.UserSecurity.Models.AzMan;
 using OneMMC.Core.Features.UserSecurity.Services.AzMan.Native;
@@ -64,7 +65,7 @@ public partial class AzManService : IDisposable
     #region Fields
 
     private readonly Dictionary<string, IAzAuthorizationStore3> _authStores = new(StringComparer.OrdinalIgnoreCase);
-    private bool _disposed;
+    private int _disposeState;
     private readonly object _lockObject = new();
     private readonly List<AzAuthorizationStoreInfo> _openedStores = [];
     private readonly StaTaskScheduler _comScheduler;
@@ -352,56 +353,46 @@ public partial class AzManService : IDisposable
     /// </summary>
     protected virtual void Dispose(bool disposing)
     {
-        if (_disposed)
+        if (Interlocked.Exchange(ref _disposeState, 1) != 0)
         {
             return;
         }
 
-        if (!disposing)
-        {
-            // Finalizer path. Releasing the COM wrappers requires marshalling onto the STA thread that
-            // created them, and blocking the finalizer thread on another thread is never safe: if that
-            // thread has already exited, the wait never returns and *all* finalization in the process
-            // stops, so every native/COM resource that relies on a finalizer leaks permanently.
-            // Skipping the release costs one store's worth of COM references at shutdown, which the OS
-            // reclaims with the process; stalling finalization would cost the whole process.
-            _authStores.Clear();
-            _disposed = true;
-            return;
-        }
+        // Shutdown and QueueTask share one lock, so work accepted before this point is drained before
+        // ReleaseComResources runs. The finalizer only requests shutdown; it never waits on the STA.
+        _comScheduler.Shutdown(ReleaseComResources, waitForThread: disposing);
+    }
 
-        _openedStores.Clear();
-
-        // Release COM wrappers on their owning STA thread.
+    private void ReleaseComResources()
+    {
+        List<Exception>? releaseFailures = null;
         foreach (var store in _authStores.Values)
         {
             try
             {
-                RunComAsync(() =>
-                {
-                    try
-                    {
-                        AzRolesCom.Release(store);
-                    }
-                    catch
-                    {
-                    }
-                }).GetAwaiter().GetResult();
+                AzRolesCom.Release(store);
             }
-            catch
+            catch (Exception ex)
             {
+                (releaseFailures ??= []).Add(ex);
             }
         }
+
         _authStores.Clear();
+        _openedStores.Clear();
 
-        _comScheduler.Dispose();
-
-        _disposed = true;
+        if (releaseFailures is not null)
+        {
+            _logger.LogWarning(
+                new AggregateException(releaseFailures),
+                "[AzManService] One or more authorization stores could not be released during shutdown.");
+        }
     }
 
     /// <summary>
-    /// Safety net for instances that were never disposed. It deliberately does not release the COM
-    /// wrappers — see <see cref="Dispose(bool)"/> for why the finalizer must not block.
+    /// Safety net for instances that were never disposed. It requests terminal cleanup on the owning
+    /// STA but deliberately does not wait, because blocking the finalizer thread can stop all process
+    /// finalization.
     /// </summary>
     ~AzManService()
     {

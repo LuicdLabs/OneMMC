@@ -101,10 +101,11 @@
 
                         <!-- Required EKUs list -->
                         <ListView
-                            x:Name="RequiredEkuList"
-                            Grid.Row="1" Grid.Column="2"
-                            Grid.RowSpan="2"
-                            MinHeight="80" />
+                        x:Name="RequiredEkuList"
+                        Grid.Row="1" Grid.Column="2"
+                        Grid.RowSpan="2"
+                        MinHeight="80"
+                        MaxHeight="200" />
                     </Grid>
                 </StackPanel>
             </Border>

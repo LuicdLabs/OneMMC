@@ -118,6 +118,9 @@
 										x:Name="EventLogsTree"
 										Width="360"
 										Height="320"
+										Collapsed="EventLogsTree_Collapsed"
+										Expanding="EventLogsTree_Expanding"
+										SelectionChanged="EventLogsTree_SelectionChanged"
 										SelectionMode="Multiple" />
 								</Flyout>
 							</DropDownButton.Flyout>

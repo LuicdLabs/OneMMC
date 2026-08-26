@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace OneMMC.Core.Features.PrintManagement.Services.PrintManagement.Native;
+namespace OneMMC.Core.Features.PrintManagement.Services.Native;
 
 /// <summary>
 /// Native structures for printer management P/Invoke calls.

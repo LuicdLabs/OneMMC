@@ -229,14 +229,16 @@ public partial class EventViewerService : IDisposable
                 };
 
                 using var reader = new EventLogReader(query);
-                EventRecord? record;
-                while ((record = reader.ReadEvent()) is not null && results.Count < maxEvents)
+                while (results.Count < maxEvents)
                 {
                     ct.ThrowIfCancellationRequested();
-                    using (record)
+                    using EventRecord? record = reader.ReadEvent();
+                    if (record is null)
                     {
-                        results.Add(MapEventRecord(record));
+                        break;
                     }
+
+                    results.Add(MapEventRecord(record));
                 }
             }
             catch (OperationCanceledException) { throw; }
@@ -307,14 +309,16 @@ public partial class EventViewerService : IDisposable
                 };
 
                 using var reader = new EventLogReader(query);
-                EventRecord? record;
-                while ((record = reader.ReadEvent()) is not null && results.Count < maxEvents)
+                while (results.Count < maxEvents)
                 {
                     ct.ThrowIfCancellationRequested();
-                    using (record)
+                    using EventRecord? record = reader.ReadEvent();
+                    if (record is null)
                     {
-                        results.Add(MapEventRecord(record));
+                        break;
                     }
+
+                    results.Add(MapEventRecord(record));
                 }
             }
             catch (OperationCanceledException) { throw; }
@@ -560,11 +564,12 @@ public partial class EventViewerService : IDisposable
 
     private void OnWatcherEventRecordWritten(object? sender, EventRecordWrittenEventArgs e)
     {
-        if (e.EventRecord is not null)
+        using EventRecord? record = e.EventRecord;
+        if (record is not null)
         {
             try
             {
-                var entry = MapEventRecord(e.EventRecord);
+                var entry = MapEventRecord(record);
                 EventReceived?.Invoke(this, entry);
             }
             catch (Exception ex)

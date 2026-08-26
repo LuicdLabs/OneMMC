@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using OneMMC.Core.Features.PCManagement.Services.WindowsServices;
 using OneMMC.Core.Features.PCManagement.Services.DiskMgmt.Common;
 using OneMMC.Core.Infrastructure.Admin;
+using OneMMC.Core.Infrastructure.Collections;
 
 namespace OneMMC.Core.Features.PCManagement.ViewModels.Services
 {
@@ -82,7 +83,6 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.Services
             _serviceManager = serviceManager;
             _logger = logger;
             _adminService = adminService;
-            Services = new ObservableCollection<ServiceInfo>();
             _allServices = new List<ServiceInfo>();
         }
 
@@ -126,14 +126,16 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.Services
 
             if (string.IsNullOrWhiteSpace(FilterText))
             {
-                Services = new ObservableCollection<ServiceInfo>(_allServices);
+                Services.ReplaceAll(_allServices);
+                OnPropertyChanged(nameof(Services));
             }
             else
             {
                 var filtered = _allServices.Where(s => 
                     (s.DisplayName?.Contains(FilterText, StringComparison.OrdinalIgnoreCase) ?? false) || 
                     (s.Name?.Contains(FilterText, StringComparison.OrdinalIgnoreCase) ?? false));
-                Services = new ObservableCollection<ServiceInfo>(filtered);
+                Services.ReplaceAll(filtered);
+                OnPropertyChanged(nameof(Services));
             }
         }
 
@@ -321,15 +323,6 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.Services
             }
         }
 
-        public void ClearCachedData()
-        {
-            SelectedService = null;
-            _allServices.Clear();
-            Services.Clear();
-            StatusMessage = string.Empty;
-        }
-
-        
     }
 }
 

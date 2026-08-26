@@ -113,26 +113,40 @@ public sealed partial class PerformanceMonitorPage : Page
 
         // Create chart update timer (update every second)
         _chartUpdateTimer = new System.Timers.Timer(1000) { AutoReset = true };
-        _chartUpdateTimer.Elapsed += (_, _) => DispatcherQueue.TryEnqueue(() => { try { UpdateChart(); } catch { } });
-        _chartUpdateTimer.Start();
+        _chartUpdateTimer.Elapsed += ChartUpdateTimer_Elapsed;
 
         // Initialize ViewModel when page loads
-        Loaded += async (_, _) => { await ViewModel.InitializeAsync(); UpdateChart(); };
-        
-        // Clean up resources when page unloads
-        Unloaded += (_, _) =>
-        {
-            _chartUpdateTimer.Stop();
-            _chartUpdateTimer.Dispose();
-            ChartLinesCanvas.Children.Clear();
-            _counterLines.Clear();
-            _counterRetainedLines.Clear();
-            DataContext = null;
+        Loaded += PerformanceMonitorPage_Loaded;
+        _chartUpdateTimer.Start();
+        Unloaded += PerformanceMonitorPage_Unloaded;
+        _serviceScope.Attach(this);
+    }
 
-            // Disposes the view model (stopping its timer and closing its PDH queries) and releases the
-            // container's reference to it.
-            _serviceScope.Dispose();
-        };
+    private async void PerformanceMonitorPage_Loaded(object sender, RoutedEventArgs e)
+    {
+        await ViewModel.InitializeAsync();
+        UpdateChart();
+    }
+
+    private void ChartUpdateTimer_Elapsed(object? sender, ElapsedEventArgs e)
+    {
+        DispatcherQueue.TryEnqueue(() =>
+        {
+            try { UpdateChart(); } catch { }
+        });
+    }
+
+    private void PerformanceMonitorPage_Unloaded(object sender, RoutedEventArgs e)
+    {
+        _chartUpdateTimer.Stop();
+        _chartUpdateTimer.Elapsed -= ChartUpdateTimer_Elapsed;
+        _chartUpdateTimer.Dispose();
+        ChartLinesCanvas.Children.Clear();
+        _counterLines.Clear();
+        _counterRetainedLines.Clear();
+        DataContext = null;
+        Loaded -= PerformanceMonitorPage_Loaded;
+        Unloaded -= PerformanceMonitorPage_Unloaded;
     }
 
 

@@ -27,19 +27,33 @@ namespace OneMMC.Views
             ViewModel = App.GetRequiredService<DeviceManagerViewModel>();
             this.InitializeComponent();
             this.Loaded += DeviceManagerPage_Loaded;
+        }
+
+        /// <summary>
+        /// Attaches per-visit state.
+        /// </summary>
+        /// <remarks>Subscriptions are paired with navigation so a departed page has no external event root.</remarks>
+        protected override void OnNavigatedTo(NavigationEventArgs e)
+        {
+            base.OnNavigatedTo(e);
             ViewModel.PropertyChanged += ViewModel_PropertyChanged;
-            this.Unloaded += (_, _) =>
-            {
-                ViewModel.PropertyChanged -= ViewModel_PropertyChanged;
-                ViewModel.ClearCachedData();
-                DataContext = null;
-                this.Loaded -= DeviceManagerPage_Loaded;
-            };
+        }
+
+        /// <inheritdoc cref="OnNavigatedTo"/>
+        protected override void OnNavigatedFrom(NavigationEventArgs e)
+        {
+            base.OnNavigatedFrom(e);
+            ViewModel.PropertyChanged -= ViewModel_PropertyChanged;
         }
 
         private async void DeviceManagerPage_Loaded(object sender, RoutedEventArgs e)
         {
-            await ViewModel.LoadDevicesAsync();
+            // Avoid duplicate enumeration if Loaded is raised more than once for the same page instance.
+            if (ViewModel.DeviceCategories.Count == 0)
+            {
+                await ViewModel.LoadDevicesAsync();
+            }
+
             UpdateDeviceCount();
         }
 

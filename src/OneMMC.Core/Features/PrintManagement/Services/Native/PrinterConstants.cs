@@ -1,4 +1,4 @@
-﻿namespace OneMMC.Core.Features.PrintManagement.Services.PrintManagement.Native;
+﻿namespace OneMMC.Core.Features.PrintManagement.Services.Native;
 
 /// <summary>
 /// Constants for printer management from winspool.h

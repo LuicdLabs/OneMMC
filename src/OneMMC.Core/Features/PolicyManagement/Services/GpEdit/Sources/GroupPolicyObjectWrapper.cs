@@ -19,8 +19,8 @@ namespace OneMMC.Core.Features.PolicyManagement.Services.GpEdit.Sources
         private static ILogger _logger = NullLogger.Instance;
         private IGroupPolicyObject? _gpo;
         private bool _disposed;
-        private IntPtr _machineRegistryHandle;
-        private IntPtr _userRegistryHandle;
+        private int _owningThreadId;
+        private ApartmentState _owningApartmentState;
 
         /// <summary>
         /// Gets whether the GPO was successfully opened.
@@ -43,6 +43,7 @@ namespace OneMMC.Core.Features.PolicyManagement.Services.GpEdit.Sources
             try
             {
                 wrapper._gpo = ComActivator.CreateInstance<IGroupPolicyObject>(GroupPolicyObjectClsid.GroupPolicyObject);
+                wrapper.CaptureOwningApartment();
                 uint flags = forEditing ? (uint)GpoOpenFlags.Editing : (uint)GpoOpenFlags.LoadRegistry;
                 int hr = wrapper._gpo.OpenLocalMachineGPO(flags);
                 
@@ -81,6 +82,7 @@ namespace OneMMC.Core.Features.PolicyManagement.Services.GpEdit.Sources
             try
             {
                 wrapper._gpo = ComActivator.CreateInstance<IGroupPolicyObject>(GroupPolicyObjectClsid.GroupPolicyObject);
+                wrapper.CaptureOwningApartment();
                 uint flags = forEditing ? (uint)GpoOpenFlags.Editing : (uint)GpoOpenFlags.LoadRegistry;
                 int hr = wrapper._gpo.OpenRemoteMachineGPO(computerName, flags);
                 
@@ -127,16 +129,18 @@ namespace OneMMC.Core.Features.PolicyManagement.Services.GpEdit.Sources
                     return null;
                 }
 
-                // Store the handle for later cleanup
-                if (isUser)
-                    _userRegistryHandle = hKey;
-                else
-                    _machineRegistryHandle = hKey;
-
-                // Create a RegistryKey from the handle
-                // Use SafeRegistryHandle to wrap the native handle
-                var safeHandle = new Microsoft.Win32.SafeHandles.SafeRegistryHandle(hKey, false);
-                return RegistryKey.FromHandle(safeHandle);
+                // IGroupPolicyObject::GetRegistryKey transfers a handle that the caller must close.
+                // Give RegistryKey an owning SafeHandle so disposing the RegistryKey calls RegCloseKey.
+                var safeHandle = new Microsoft.Win32.SafeHandles.SafeRegistryHandle(hKey, ownsHandle: true);
+                try
+                {
+                    return RegistryKey.FromHandle(safeHandle);
+                }
+                catch
+                {
+                    safeHandle.Dispose();
+                    throw;
+                }
             }
             catch (Exception ex)
             {
@@ -163,7 +167,7 @@ namespace OneMMC.Core.Features.PolicyManagement.Services.GpEdit.Sources
             try
             {
                 // Get the GPO's registry key for writing
-                var gpoRegKey = GetRegistryKey(isUser);
+                using RegistryKey? gpoRegKey = GetRegistryKey(isUser);
                 if (gpoRegKey == null)
                 {
                     _logger.LogDebug("[GPO] Failed to get GPO registry key");
@@ -323,38 +327,47 @@ namespace OneMMC.Core.Features.PolicyManagement.Services.GpEdit.Sources
         /// <summary>
         /// Disposes of the GPO wrapper and releases COM resources.
         /// </summary>
+        /// <remarks>
+        /// This type intentionally has no finalizer. The generated COM wrapper provides its own
+        /// fallback finalizer; deterministic release must happen here, on the creating COM apartment.
+        /// </remarks>
         public void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
         }
 
-        /// <summary>
-        /// Finalizer.
-        /// </summary>
-        ~GroupPolicyObjectWrapper()
-        {
-            Dispose(false);
-        }
-
         protected virtual void Dispose(bool disposing)
         {
-            if (_disposed) return;
+            if (_disposed || !disposing) return;
 
-            if (_gpo != null)
+            if (_gpo is not null)
             {
-                try
+                ApartmentState currentApartment = Thread.CurrentThread.GetApartmentState();
+                bool isOwningApartment = _owningApartmentState == ApartmentState.MTA
+                    ? currentApartment == ApartmentState.MTA
+                    : Environment.CurrentManagedThreadId == _owningThreadId;
+                if (!isOwningApartment)
                 {
-                    ComActivator.Release(_gpo);
+                    throw new InvalidOperationException(
+                        "GroupPolicyObjectWrapper must be disposed from the COM apartment that created it.");
                 }
-                catch (Exception ex)
-                {
-                    _logger.LogDebug($"[GPO] Exception releasing COM object: {ex.Message}");
-                }
-                _gpo = null;
             }
 
+            IGroupPolicyObject? gpo = _gpo;
+            _gpo = null;
             _disposed = true;
+
+            if (gpo is not null)
+            {
+                ComActivator.Release(gpo);
+            }
+        }
+
+        private void CaptureOwningApartment()
+        {
+            _owningThreadId = Environment.CurrentManagedThreadId;
+            _owningApartmentState = Thread.CurrentThread.GetApartmentState();
         }
     }
 }

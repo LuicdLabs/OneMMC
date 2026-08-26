@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Threading;
 using System.Threading.Tasks;
 using OneMMC.Core.Features.PCManagement.Models.EventViewer;
 using OneMMC.Core.Features.PCManagement.ViewModels.EventViewer;
@@ -9,6 +10,7 @@ using OneMMC.Localization;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Animation;
+using Microsoft.Extensions.Logging;
 
 namespace OneMMC.Views;
 
@@ -18,6 +20,8 @@ public sealed partial class EventViewerPage : Page
     // from the root provider would leave the container holding it (and its loaded events) until the
     // process exits. See doc/MemoryManagement.md.
     private readonly PageServiceScope _serviceScope = new();
+    private readonly CancellationTokenSource _lifetimeCts = new();
+    private readonly IDisposable _detailFrameNavigationRegistration;
 
     public EventViewerViewModel ViewModel { get; }
     public LocalizedStrings LocalizedStrings { get; } = LocalizedStrings.Instance;
@@ -37,39 +41,35 @@ public sealed partial class EventViewerPage : Page
 
         Loaded += EventViewerPage_Loaded;
         Unloaded += EventViewerPage_Unloaded;
+        _serviceScope.Attach(this);
+        _detailFrameNavigationRegistration = NavigationService.TrackFrame(
+            DetailContentFrame,
+            App.GetRequiredService<ILogger<NavigationService>>());
     }
 
     // ========================================================================
     // Lifecycle
     // ========================================================================
 
-    private async void EventViewerPage_Loaded(object sender, RoutedEventArgs e)
+    private void EventViewerPage_Loaded(object sender, RoutedEventArgs e)
     {
         if (ViewModel.RootNodes.Count == 0)
         {
-            await ViewModel.InitializeAsync();
+            _ = ViewModel.InitializeAsync(_lifetimeCts.Token);
         }
     }
 
     private void EventViewerPage_Unloaded(object sender, RoutedEventArgs e)
     {
-        // The detail frame's journal is deliberately not cleared here. ShowDetail sets
-        // IsNavigationStackEnabled = false before its first Navigate, so the stacks never hold anything,
-        // and the frame is discarded with this page in any case. The clear that used to run here was
-        // therefore dead work that also threw: NavigationHistory::ValidateCanChangePageStack rejects any
-        // journal edit while that frame has a navigation pending (E_INVALID_OPERATION / 0x800710DD),
-        // which is exactly the state a detail navigation leaves behind when the user switches pages.
+        _lifetimeCts.Cancel();
+        _detailFrameNavigationRegistration.Dispose();
         DetailContentFrame.Content = null;
-        EventLogTreeView.RootNodes.Clear();
-        EventsListView.ItemsSource = null;
-        DataContext = null;
         ViewModel.AdminPermissionRequired -= OnAdminPermissionRequired;
         ViewModel.PropertyChanged -= ViewModel_PropertyChanged;
         Loaded -= EventViewerPage_Loaded;
         Unloaded -= EventViewerPage_Unloaded;
 
-        // Disposes the view model and releases the container's reference to it.
-        _serviceScope.Dispose();
+        _lifetimeCts.Dispose();
     }
 
     // ========================================================================
@@ -175,7 +175,11 @@ public sealed partial class EventViewerPage : Page
 
     private void NavigateDetailFrame(bool useSlide, SlideNavigationTransitionEffect slideEffect = SlideNavigationTransitionEffect.FromRight)
     {
-        if (ViewModel.SelectedEvent is null) return;
+        if (ViewModel.SelectedEvent is null)
+        {
+            DetailContentFrame.Content = null;
+            return;
+        }
 
         bool isXmlTab = DetailsSelectorBar.SelectedItem == DetailsSelectorBar.Items[1];
         NavigationTransitionInfo transition = useSlide

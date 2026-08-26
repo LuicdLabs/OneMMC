@@ -69,9 +69,9 @@ namespace OneMMC.Core.Features.PolicyManagement.ViewModels.RSoP
         /// <summary>
         /// Initializes the ViewModel by loading real policy data asynchronously.
         /// </summary>
-        public async Task InitializeAsync()
+        public async Task InitializeAsync(CancellationToken cancellationToken = default)
         {
-            if (RootNodes.Count > 0) return;
+            if (_disposed || cancellationToken.IsCancellationRequested || RootNodes.Count > 0) return;
 
             IsLoading = true;
             StatusMessage = LocalizationProvider.Current.GetString(ResourceFileNames.Policy, RSoPKeys.Loading);
@@ -81,10 +81,13 @@ namespace OneMMC.Core.Features.PolicyManagement.ViewModels.RSoP
             {
                 try
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
                     if (!_rsopService.Initialize())
                     {
                         _syncContext?.Post(_ =>
                         {
+                            if (_disposed || cancellationToken.IsCancellationRequested) return;
+
                             HasError = true;
                             ErrorMessage = LocalizationProvider.Current.GetString(
                                 ResourceFileNames.Policy, RSoPKeys.ErrorLoadFailed);
@@ -96,16 +99,23 @@ namespace OneMMC.Core.Features.PolicyManagement.ViewModels.RSoP
 
                     _syncContext?.Post(_ =>
                     {
+                        if (_disposed || cancellationToken.IsCancellationRequested) return;
+
                         BuildPolicyTree();
                         IsLoading = false;
                         StatusMessage = string.Empty;
                     }, null);
+                }
+                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                {
                 }
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Failed to initialize RSoP ViewModel");
                     _syncContext?.Post(_ =>
                     {
+                        if (_disposed || cancellationToken.IsCancellationRequested) return;
+
                         HasError = true;
                         ErrorMessage = $"{LocalizationProvider.Current.GetString(ResourceFileNames.Policy, RSoPKeys.ErrorLoadFailed)}: {ex.Message}";
                         IsLoading = false;
@@ -121,7 +131,7 @@ namespace OneMMC.Core.Features.PolicyManagement.ViewModels.RSoP
         /// </summary>
         private void BuildPolicyTree()
         {
-            if (_rsopService is null) return;
+            if (_disposed) return;
 
             RootNodes.Clear();
 
@@ -301,17 +311,8 @@ namespace OneMMC.Core.Features.PolicyManagement.ViewModels.RSoP
         {
             if (_disposed) return;
 
-            _rsopService.Dispose();
-
-            // Release the policy graph explicitly so it goes away with the page rather than waiting for
-            // the whole view model to become unreachable.
-            RootNodes.Clear();
-            CurrentPolicies.Clear();
-            _allPoliciesForCurrentNode.Clear();
-            SelectedNode = null;
-            SelectedPolicy = null;
-
             _disposed = true;
+            _rsopService.Dispose();
         }
 
     }

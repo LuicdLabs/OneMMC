@@ -6,6 +6,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using OneMMC.Core.Features.PCManagement.Services.DevMgmt;
+using OneMMC.Core.Infrastructure.Collections;
 using OneMMC.Core.Localization;
 using Microsoft.Extensions.Logging;
 
@@ -148,7 +149,7 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.DevMgmt
                 _allCategories = categories;
 
                 // Update on UI thread
-                DeviceCategories = new ObservableCollection<DeviceCategory>(categories);
+                ReplaceCategories(categories);
             }
             catch (Exception ex)
             {
@@ -318,18 +319,6 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.DevMgmt
             }
         }
 
-        public void ClearCachedData()
-        {
-            SelectedDevice = null;
-            SelectedCategory = null;
-            SelectedDeviceProperties = null;
-            _searchText = string.Empty;
-            OnPropertyChanged(nameof(SearchText));
-            DeviceCategories.Clear();
-            _allCategories = [];
-            IsLoading = false;
-        }
-
         private void FilterDevices()
         {
             // Always filter the unfiltered master list. Filtering DeviceCategories (the previous result)
@@ -339,7 +328,7 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.DevMgmt
             {
                 if (_allCategories.Count > 0)
                 {
-                    DeviceCategories = new ObservableCollection<DeviceCategory>(_allCategories);
+                    ReplaceCategories(_allCategories);
                 }
                 else
                 {
@@ -370,10 +359,30 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.DevMgmt
                 }
             }
 
-            DeviceCategories = new ObservableCollection<DeviceCategory>(filteredCategories);
+            ReplaceCategories(filteredCategories);
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;
+
+        /// <summary>
+        /// Mirrors <paramref name="categories"/> into the already-bound collection instead of
+        /// assigning a fresh <see cref="ObservableCollection{T}"/>.
+        /// </summary>
+        /// <remarks>
+        /// Assigning a new collection made the list view drop every item container and build new
+        /// element trees; the native side of the discarded trees is never released, so each load,
+        /// filter keystroke and page visit cost several MB for the life of the process. Mutating the
+        /// bound instance lets the list view recycle the containers it already has. See
+        /// <c>doc/MemoryManagement.md</c>.
+        /// </remarks>
+        private void ReplaceCategories(IList<DeviceCategory> categories)
+        {
+            _deviceCategories.ReplaceAll(categories);
+
+            // The collection instance is unchanged, so raise the notification the view listens to for
+            // its device-count header.
+            OnPropertyChanged(nameof(DeviceCategories));
+        }
 
         protected void OnPropertyChanged([CallerMemberName] string? propertyName = null)
         {

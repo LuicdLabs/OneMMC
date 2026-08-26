@@ -40,6 +40,11 @@ public sealed partial class AuthorizationManagerPage : Page
     private readonly AuthorizationManagerViewModel _viewModel;
 
     /// <summary>
+    /// Indicates whether this page can still process queued view-model notifications.
+    /// </summary>
+    private volatile bool _isPageActive = true;
+
+    /// <summary>
     /// Search text
     /// </summary>
     public string SearchText { get; set; } = string.Empty;
@@ -63,17 +68,15 @@ public sealed partial class AuthorizationManagerPage : Page
         UpdateUIState();
 
         this.Unloaded += OnUnloaded;
+        _serviceScope.Attach(this);
     }
 
     private void OnUnloaded(object sender, RoutedEventArgs e)
     {
+        _isPageActive = false;
         App.ThemeChanged -= OnThemeChanged;
         _viewModel.PropertyChanged -= OnViewModelPropertyChanged;
 
-        // Always release: the drill-down page no longer borrows this view model or its service, and
-        // NavigationCacheMode is Disabled, so navigating back rebuilds this page from scratch anyway.
-        // Skipping disposal on drill-in used to leak one view model per Manager -> Store -> Back trip.
-        _serviceScope.Dispose();
     }
 
     #region Event Handlers
@@ -91,8 +94,18 @@ public sealed partial class AuthorizationManagerPage : Page
     /// </summary>
     private void OnViewModelPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
+        if (!_isPageActive)
+        {
+            return;
+        }
+
         DispatcherQueue.TryEnqueue(() =>
         {
+            if (!_isPageActive)
+            {
+                return;
+            }
+
             switch (e.PropertyName)
             {
                 case nameof(AuthorizationManagerViewModel.IsLoading):
@@ -205,7 +218,7 @@ public sealed partial class AuthorizationManagerPage : Page
                 return;
             }
 
-            var navigationParameter = new StoreNavigationParameter(store);
+            var navigationParameter = new StoreNavigationParameter(store.StorePath);
 
             // Add breadcrumb and navigate
             BreadcrumbNavigationService.AddBreadcrumb(store.Name, typeof(AuthorizationStorePage), navigationParameter);
@@ -289,18 +302,20 @@ public sealed partial class AuthorizationManagerPage : Page
 /// Store navigation parameter.
 /// </summary>
 /// <remarks>
-/// Deliberately carries only the store descriptor. Navigation parameters are retained by
+/// Deliberately carries only the store path. Navigation parameters are retained by
 /// <see cref="Microsoft.UI.Xaml.Controls.Frame.BackStack"/> and by the breadcrumb trail, so putting a
-/// live service or view model here pinned an open COM store, its STA thread, and the whole manager
-/// object graph for the rest of the session. Pages resolve <c>AzManService</c> (a singleton) from DI
-/// instead. See doc/MemoryManagement.md.
+/// store model, live service, or view model here would pin its object graph for the rest of the
+/// session. Pages resolve <c>AzManService</c> (a singleton) from DI and reload by path instead. See
+/// doc/MemoryManagement.md.
 /// </remarks>
-public class StoreNavigationParameter
+public sealed class StoreNavigationParameter
 {
-    public AzAuthorizationStoreInfo Store { get; }
+    /// <summary>Gets the authorization store path used to reload the store.</summary>
+    public string StorePath { get; }
 
-    public StoreNavigationParameter(AzAuthorizationStoreInfo store)
+    /// <summary>Creates an identifier-only authorization store navigation parameter.</summary>
+    public StoreNavigationParameter(string storePath)
     {
-        Store = store;
+        StorePath = storePath;
     }
 }

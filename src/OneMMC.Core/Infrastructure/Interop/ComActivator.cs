@@ -45,8 +45,8 @@ internal static class ComActivator
         var unknownPtr = (nint)pUnknown;
         try
         {
-            // UniqueInstance: each wrapper owns exactly one AddRef and is deterministically
-            // releasable via IDisposable, matching the previous Marshal.ReleaseComObject discipline.
+            // UniqueInstance: each wrapper owns its native references independently and is
+            // deterministically releasable via ComObject.FinalRelease().
             object wrapper = ComWrappers.GetOrCreateObjectForComInstance(unknownPtr, CreateObjectFlags.UniqueInstance);
             return (TInterface)wrapper;
         }
@@ -57,16 +57,18 @@ internal static class ComActivator
     }
 
     /// <summary>
-    /// Releases a source-generated COM wrapper obtained from <see cref="CreateInstance{TInterface}"/> or
-    /// returned from a COM call. Wrappers created by <see cref="ComWrappers"/> are
-    /// <see cref="IDisposable"/>; managed objects and <see langword="null"/> are ignored. This is the
-    /// ComWrappers-era replacement for <c>Marshal.ReleaseComObject</c> (which throws on such wrappers).
+    /// Releases a unique source-generated COM wrapper obtained from
+    /// <see cref="CreateInstance{TInterface}"/> or a COM out parameter that uses
+    /// <see cref="UniqueComInterfaceMarshaller{T}"/>. Managed objects, shared wrappers, and
+    /// <see langword="null"/> are ignored. This is the ComWrappers-era replacement for
+    /// <c>Marshal.ReleaseComObject</c> (which throws on source-generated wrappers).
     /// </summary>
     internal static void Release(object? comWrapper)
     {
-        if (comWrapper is IDisposable disposable)
+        if (comWrapper is ComObject comObject)
         {
-            disposable.Dispose();
+            // FinalRelease is intentionally a no-op for wrappers not created as UniqueInstance.
+            comObject.FinalRelease();
         }
     }
 }

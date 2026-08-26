@@ -9,6 +9,7 @@ using OneMMC.Core.Features.PCManagement.ViewModels.TaskSchd;
 using OneMMC.Core.Localization;
 using OneMMC.Helpers;
 using OneMMC.Localization;
+using OneMMC.Services;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
@@ -25,6 +26,8 @@ public sealed partial class TaskSchedulerPage : Page
     public TaskSchedulerViewModel ViewModel { get; } = App.GetRequiredService<TaskSchedulerViewModel>();
     public LocalizedStrings LocalizedStrings { get; } = LocalizedStrings.Instance;
 
+    private readonly PageServiceScope _serviceScope = new();
+    private readonly TaskHistoryService _history;
     private readonly IFileDialogService _fileDialog = App.GetRequiredService<IFileDialogService>();
 
     // Guards the programmatic root-node selection (in RebuildTree) so it does not re-enter the
@@ -33,6 +36,7 @@ public sealed partial class TaskSchedulerPage : Page
 
     public TaskSchedulerPage()
     {
+        _history = _serviceScope.GetRequiredService<TaskHistoryService>();
         InitializeComponent();
         this.RequestedTheme = App.CurrentTheme;
         App.ThemeChanged += OnThemeChanged;
@@ -41,6 +45,7 @@ public sealed partial class TaskSchedulerPage : Page
         ViewModel.RootFolders.CollectionChanged += OnRootFoldersChanged;
         Loaded += OnLoaded;
         Unloaded += OnUnloaded;
+        _serviceScope.Attach(this);
     }
 
     private static nint OwnerHwnd => App.MainWindowInstance is null ? 0 : WindowNative.GetWindowHandle(App.MainWindowInstance);
@@ -360,15 +365,14 @@ public sealed partial class TaskSchedulerPage : Page
 
     private async void ToggleAllHistory_Click(object sender, RoutedEventArgs e)
     {
-        var history = App.GetRequiredService<TaskHistoryService>();
         try
         {
-            var enabled = history.IsHistoryEnabled();
+            var enabled = _history.IsHistoryEnabled();
             if (!enabled && !await ConfirmAsync(L(TaskSchdKeys.HistoryEnablePrompt)))
             {
                 return;
             }
-            await history.SetHistoryEnabledAsync(!enabled);
+            await _history.SetHistoryEnabledAsync(!enabled);
             await RefreshHistoryMenuLabelAsync();
         }
         catch (Exception ex) when (App.GetRequiredService<IAdminService>().IsPermissionError(ex))
@@ -381,8 +385,7 @@ public sealed partial class TaskSchedulerPage : Page
     {
         try
         {
-            var history = App.GetRequiredService<TaskHistoryService>();
-            var enabled = await Task.Run(history.IsHistoryEnabled);
+            var enabled = await Task.Run(_history.IsHistoryEnabled);
             HistoryToggleMenuItem.Text = enabled ? L(TaskSchdKeys.CommandDisableAllHistory) : L(TaskSchdKeys.CommandEnableAllHistory);
         }
         catch

@@ -160,7 +160,7 @@ public static partial class DirectoryObjectPickerService
         int Initialize(ref DSOP_INIT_INFO pInitInfo);
 
         [PreserveSig]
-        int InvokeDialog(nint hwndParent, out IDsSelectionDataObject ppdoSelections);
+        int InvokeDialog(nint hwndParent, [MarshalUsing(typeof(UniqueComInterfaceMarshaller<IDsSelectionDataObject>))] out IDsSelectionDataObject ppdoSelections);
     }
 
     /// <summary>Minimal <c>IDataObject</c>: only <c>GetData</c> (the first vtable slot after IUnknown)
@@ -327,6 +327,7 @@ public static partial class DirectoryObjectPickerService
         ArgumentNullException.ThrowIfNull(options);
 
         IDsObjectPicker? picker = null;
+        IDsSelectionDataObject? dataObject = null;
         IntPtr pScopeInfos = IntPtr.Zero;
         IntPtr apwzAttributesToFetch = IntPtr.Zero;
         IntPtr pAttributeString = IntPtr.Zero;
@@ -369,7 +370,7 @@ public static partial class DirectoryObjectPickerService
                 return null;
             }
 
-            hr = picker.InvokeDialog(ownerHwnd, out var dataObject);
+            hr = picker.InvokeDialog(ownerHwnd, out dataObject);
             if (hr != S_OK || dataObject is null)
             {
                 return null;
@@ -387,6 +388,8 @@ public static partial class DirectoryObjectPickerService
         }
         finally
         {
+            ComActivator.Release(dataObject);
+
             if (pAttributeString != IntPtr.Zero)
             {
                 Marshal.FreeHGlobal(pAttributeString);
@@ -693,8 +696,6 @@ public static partial class DirectoryObjectPickerService
             {
                 ReleaseStorageMedium(ref medium);
             }
-
-            ComActivator.Release(dataObject);
         }
     }
 

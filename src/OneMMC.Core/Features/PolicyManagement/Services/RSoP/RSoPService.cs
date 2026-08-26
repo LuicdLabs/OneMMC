@@ -24,6 +24,7 @@ namespace OneMMC.Core.Features.PolicyManagement.Services.RSoP
     {
         private readonly ILogger<RSoPService> _logger;
         private readonly AdmxBundleProvider _admxBundleProvider;
+        private readonly object _lifetimeLock = new();
 
         /// <summary>
         /// Borrowed reference to the process-wide shared bundle. Never disposed or cleared here — see
@@ -32,6 +33,7 @@ namespace OneMMC.Core.Features.PolicyManagement.Services.RSoP
         private AdmxBundle? _admxBundle;
         private IPolicyService? _computerPolicyService;
         private IPolicyService? _userPolicyService;
+        private bool _isInitializing;
         private bool _isInitialized;
         private bool _disposed;
 
@@ -53,32 +55,59 @@ namespace OneMMC.Core.Features.PolicyManagement.Services.RSoP
         /// <returns>True if initialization succeeded.</returns>
         public bool Initialize()
         {
-            if (_isInitialized) return true;
+            lock (_lifetimeLock)
+            {
+                while (_isInitializing && !_disposed)
+                {
+                    Monitor.Wait(_lifetimeLock);
+                }
+
+                if (_disposed) return false;
+                if (_isInitialized) return true;
+                _isInitializing = true;
+            }
+
+            IPolicyService? computerPolicyService = null;
+            IPolicyService? userPolicyService = null;
 
             try
             {
                 // Shared with the Group Policy editor: one parse of PolicyDefinitions per process.
-                _admxBundle = _admxBundleProvider.GetOrLoad(CultureInfo.CurrentCulture.Name);
+                AdmxBundle admxBundle = _admxBundleProvider.GetOrLoad(CultureInfo.CurrentCulture.Name);
 
-                _computerPolicyService = PolicyServiceFactory.CreateMachinePolicyService(PolicyServiceFactory.PolicyMode.PolFile);
-                _userPolicyService = PolicyServiceFactory.CreateUserPolicyService(PolicyServiceFactory.PolicyMode.PolFile);
+                computerPolicyService = PolicyServiceFactory.CreateMachinePolicyService(PolicyServiceFactory.PolicyMode.PolFile);
+                userPolicyService = PolicyServiceFactory.CreateUserPolicyService(PolicyServiceFactory.PolicyMode.PolFile);
 
-                if (_computerPolicyService is null || _userPolicyService is null)
+                if (computerPolicyService is null || userPolicyService is null)
                 {
                     _logger.LogWarning("Failed to initialize POL-based policy services for RSoP, falling back to auto mode");
-                    _computerPolicyService?.Dispose();
-                    _userPolicyService?.Dispose();
-                    _computerPolicyService = PolicyServiceFactory.CreateMachinePolicyService();
-                    _userPolicyService = PolicyServiceFactory.CreateUserPolicyService();
+                    computerPolicyService?.Dispose();
+                    userPolicyService?.Dispose();
+                    computerPolicyService = PolicyServiceFactory.CreateMachinePolicyService();
+                    userPolicyService = PolicyServiceFactory.CreateUserPolicyService();
                 }
 
-                if (_computerPolicyService is null || _userPolicyService is null)
+                if (computerPolicyService is null || userPolicyService is null)
                 {
                     _logger.LogError("Failed to initialize one or both policy services");
                     return false;
                 }
 
-                _isInitialized = true;
+                lock (_lifetimeLock)
+                {
+                    if (_disposed)
+                    {
+                        return false;
+                    }
+
+                    _admxBundle = admxBundle;
+                    _computerPolicyService = computerPolicyService;
+                    _userPolicyService = userPolicyService;
+                    computerPolicyService = null;
+                    userPolicyService = null;
+                    _isInitialized = true;
+                }
+
                 _logger.LogInformation("RSoP service initialized successfully");
                 return true;
             }
@@ -86,6 +115,17 @@ namespace OneMMC.Core.Features.PolicyManagement.Services.RSoP
             {
                 _logger.LogError(ex, "Failed to initialize RSoP service");
                 return false;
+            }
+            finally
+            {
+                computerPolicyService?.Dispose();
+                userPolicyService?.Dispose();
+
+                lock (_lifetimeLock)
+                {
+                    _isInitializing = false;
+                    Monitor.PulseAll(_lifetimeLock);
+                }
             }
         }
 
@@ -238,15 +278,24 @@ namespace OneMMC.Core.Features.PolicyManagement.Services.RSoP
 
         public void Dispose()
         {
-            if (_disposed) return;
+            IPolicyService? computerPolicyService;
+            IPolicyService? userPolicyService;
 
-            _computerPolicyService?.Dispose();
-            _userPolicyService?.Dispose();
-            _computerPolicyService = null;
-            _userPolicyService = null;
-            _admxBundle = null;
-            _isInitialized = false;
-            _disposed = true;
+            lock (_lifetimeLock)
+            {
+                if (_disposed) return;
+
+                _disposed = true;
+                computerPolicyService = _computerPolicyService;
+                userPolicyService = _userPolicyService;
+                _computerPolicyService = null;
+                _userPolicyService = null;
+                _admxBundle = null;
+                _isInitialized = false;
+            }
+
+            computerPolicyService?.Dispose();
+            userPolicyService?.Dispose();
         }
     }
 }

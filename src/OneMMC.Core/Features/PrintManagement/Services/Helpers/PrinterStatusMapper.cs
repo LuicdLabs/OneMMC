@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
-using OneMMC.Core.Features.PrintManagement.Services.PrintManagement.Native;
+using OneMMC.Core.Features.PrintManagement.Services.Native;
 
-namespace OneMMC.Core.Features.PrintManagement.Services.PrintManagement.Helpers;
+namespace OneMMC.Core.Features.PrintManagement.Services.Helpers;
 
 /// <summary>
 /// Maps printer status codes to human-readable strings.

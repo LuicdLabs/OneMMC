@@ -2,7 +2,7 @@
 using System.Collections;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Data;
-using OneMMC.Core.Features.PrintManagement.Models.PrintManagement;
+using OneMMC.Core.Features.PrintManagement.Models;
 using OneMMC.Localization;
 
 namespace OneMMC.Converters;

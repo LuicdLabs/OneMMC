@@ -27,32 +27,34 @@
             TextWrapping="Wrap" />
 
         <!--  Content  -->
-        <ScrollViewer Grid.Row="1">
-            <StackPanel Spacing="12">
-                <TextBox
-                    x:Name="SearchBox"
-                    PlaceholderText="{x:Bind LocalizedStrings.LusrMgr_SearchGroups}"
-                    TextChanged="OnSearchTextChanged" />
+        <Grid Grid.Row="1" RowSpacing="12">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
 
-                <Border>
-                    <ListView
-                        x:Name="GroupsList"
-                        MinHeight="200"
-                        SelectionMode="Single">
-                        <ListView.ItemTemplate>
-                            <DataTemplate x:DataType="models:LocalGroup">
-                                <StackPanel Spacing="2">
-                                    <TextBlock FontWeight="Bold" Text="{x:Bind Name}" />
-                                    <TextBlock
-                                        FontSize="12"
-                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                        Text="{x:Bind Description}" />
-                                </StackPanel>
-                            </DataTemplate>
-                        </ListView.ItemTemplate>
-                    </ListView>
-                </Border>
-            </StackPanel>
-        </ScrollViewer>
+            <TextBox
+                x:Name="SearchBox"
+                Grid.Row="0"
+                PlaceholderText="{x:Bind LocalizedStrings.LusrMgr_SearchGroups}"
+                TextChanged="OnSearchTextChanged" />
+
+            <ListView
+                x:Name="GroupsList"
+                Grid.Row="1"
+                SelectionMode="Single">
+                <ListView.ItemTemplate>
+                    <DataTemplate x:DataType="models:LocalGroup">
+                        <StackPanel Spacing="2">
+                            <TextBlock FontWeight="Bold" Text="{x:Bind Name}" />
+                            <TextBlock
+                                FontSize="12"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Text="{x:Bind Description}" />
+                        </StackPanel>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+        </Grid>
     </Grid>
 </ContentDialog>

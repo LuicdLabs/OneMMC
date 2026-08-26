@@ -68,17 +68,6 @@ public class AppSettings
     public bool VerboseLogging { get; set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether each navigation forces a full collection before recording
-    /// its memory reading.
-    /// </summary>
-    /// <remarks>
-    /// Off by default because it pauses the app on every navigation. Turn it on only while running the
-    /// probes in <c>doc/MemoryManagement.md</c>: without it the readings are dominated by uncollected
-    /// garbage and cannot distinguish a leak from ordinary churn.
-    /// </remarks>
-    public bool MemoryProbeMode { get; set; }
-
-    /// <summary>
     /// Loads settings from the persistent Settings.json file.
     /// If the file does not exist, returns default settings.
     /// </summary>

@@ -1,4 +1,4 @@
-﻿namespace OneMMC.Core.Features.PrintManagement.Models.PrintManagement;
+﻿namespace OneMMC.Core.Features.PrintManagement.Models;
 
 /// <summary>
 /// Represents information about a printer installed on the system.

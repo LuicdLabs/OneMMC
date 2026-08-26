@@ -2,6 +2,7 @@
 using OneMMC.Core.Features.PCManagement.ViewModels.Services;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Data;
+using Microsoft.UI.Xaml.Navigation;
 using System;
 using System.Linq;
 using OneMMC.Helpers;
@@ -23,17 +24,29 @@ public sealed partial class ServicesPage : Page
 
         InitializeComponent();
         this.Loaded += ServicesPage_Loaded;
-        
-        // Subscribe to admin permission required event
-        ViewModel.AdminPermissionRequired += OnAdminPermissionRequired;
+    }
 
-        this.Unloaded += (_, _) =>
-        {
-            ViewModel.AdminPermissionRequired -= OnAdminPermissionRequired;
-            ViewModel.ClearCachedData();
-            DataContext = null;
-            this.Loaded -= ServicesPage_Loaded;
-        };
+    /// <summary>
+    /// Attaches per-visit state.
+    /// </summary>
+    /// <remarks>
+    /// This page sets <see cref="NavigationCacheMode.Enabled"/>, so the constructor runs once per
+    /// session while this runs on every visit. Subscribing here (and unsubscribing in
+    /// <see cref="OnNavigatedFrom"/>) keeps the handler balanced across visits; doing it in the
+    /// constructor and <c>Unloaded</c> detached it permanently after the first navigation away.
+    /// Same pattern as <c>DeviceManagerPage</c>. See <c>doc/MemoryManagement.md</c>.
+    /// </remarks>
+    protected override void OnNavigatedTo(NavigationEventArgs e)
+    {
+        base.OnNavigatedTo(e);
+        ViewModel.AdminPermissionRequired += OnAdminPermissionRequired;
+    }
+
+    /// <inheritdoc cref="OnNavigatedTo"/>
+    protected override void OnNavigatedFrom(NavigationEventArgs e)
+    {
+        base.OnNavigatedFrom(e);
+        ViewModel.AdminPermissionRequired -= OnAdminPermissionRequired;
     }
 
     private async void OnAdminPermissionRequired(object? sender, EventArgs e)
@@ -43,6 +56,10 @@ public sealed partial class ServicesPage : Page
 
     private async void ServicesPage_Loaded(object sender, RoutedEventArgs e)
     {
+        // The page is cached, so this runs on every visit. Only enumerate when there is nothing to
+        // show: re-running it rebuilt every item container, and discarded containers are not
+        // released. The toolbar refresh and pull-to-refresh remain the way to re-read services.
+        // Same guard as DeviceManagerPage. See doc/MemoryManagement.md.
         if (ViewModel.Services.Count == 0)
         {
             await ViewModel.LoadServicesCommand.ExecuteAsync(null);

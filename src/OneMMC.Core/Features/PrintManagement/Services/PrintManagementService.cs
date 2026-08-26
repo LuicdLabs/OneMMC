@@ -6,14 +6,14 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
-using OneMMC.Core.Features.PrintManagement.Models.PrintManagement;
-using OneMMC.Core.Features.PrintManagement.Services.PrintManagement.Native;
-using OneMMC.Core.Features.PrintManagement.Services.PrintManagement.Providers;
 using OneMMC.Core.Localization;
 using Microsoft.Extensions.Logging;
 using Microsoft.Win32;
+using OneMMC.Core.Features.PrintManagement.Services.Providers;
+using OneMMC.Core.Features.PrintManagement.Services.Native;
+using OneMMC.Core.Features.PrintManagement.Models;
 
-namespace OneMMC.Core.Features.PrintManagement.Services.PrintManagement;
+namespace OneMMC.Core.Features.PrintManagement.Services;
 
 /// <summary>
 /// Service for managing printers, drivers, ports, and forms using WMI and P/Invoke.

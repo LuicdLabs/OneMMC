@@ -1,6 +1,6 @@
-﻿using OneMMC.Core.Features.PrintManagement.Services.PrintManagement;
-using OneMMC.Core.Features.PrintManagement.ViewModels.PrintManagement;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
+using OneMMC.Core.Features.PrintManagement.Services;
+using OneMMC.Core.Features.PrintManagement.ViewModels;
 
 namespace OneMMC.Core.Features.PrintManagement;
 

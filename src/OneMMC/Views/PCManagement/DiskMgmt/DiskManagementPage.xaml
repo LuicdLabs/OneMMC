@@ -331,93 +331,100 @@
         </Grid.RowDefinitions>
 
         <!--  Main Content  -->
-        <ScrollViewer Grid.Row="1">
-            <StackPanel Padding="24,24,24,24">
+        <Grid Grid.Row="1" Padding="24">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
 
-                <!--  VHD Section  -->
-                <controls:SettingsCard Description="{x:Bind LocalizedStrings.DiskMgmt_VirtualHardDiskDescription}" Header="{x:Bind LocalizedStrings.DiskMgmt_VirtualHardDisk}">
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <Button
-                            x:Name="CreateVHDButton"
-                            MinWidth="120"
-                            Click="CreateVHDButton_Click"
-                            Content="{x:Bind LocalizedStrings.Common_CreateButton}" />
-                        <DropDownButton
-                            x:Name="VHDOperationsButton"
-                            MinWidth="120"
-                            Content="{x:Bind LocalizedStrings.DiskMgmt_VHDOperations}">
-                            <DropDownButton.Flyout>
-                                <MenuFlyout>
-                                    <MenuFlyoutItem Click="AttachVHDButton_Click" Text="{x:Bind LocalizedStrings.DiskMgmt_Attach}" />
-                                    <MenuFlyoutItem Click="DetachVHDButton_Click" Text="{x:Bind LocalizedStrings.DiskMgmt_Detach}" />
-                                </MenuFlyout>
-                            </DropDownButton.Flyout>
-                        </DropDownButton>
-                    </StackPanel>
-                </controls:SettingsCard>
+            <!--  VHD Section  -->
+            <controls:SettingsCard
+                Grid.Row="0"
+                Description="{x:Bind LocalizedStrings.DiskMgmt_VirtualHardDiskDescription}"
+                Header="{x:Bind LocalizedStrings.DiskMgmt_VirtualHardDisk}">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <Button
+                        x:Name="CreateVHDButton"
+                        MinWidth="120"
+                        Click="CreateVHDButton_Click"
+                        Content="{x:Bind LocalizedStrings.Common_CreateButton}" />
+                    <DropDownButton
+                        x:Name="VHDOperationsButton"
+                        MinWidth="120"
+                        Content="{x:Bind LocalizedStrings.DiskMgmt_VHDOperations}">
+                        <DropDownButton.Flyout>
+                            <MenuFlyout>
+                                <MenuFlyoutItem Click="AttachVHDButton_Click" Text="{x:Bind LocalizedStrings.DiskMgmt_Attach}" />
+                                <MenuFlyoutItem Click="DetachVHDButton_Click" Text="{x:Bind LocalizedStrings.DiskMgmt_Detach}" />
+                            </MenuFlyout>
+                        </DropDownButton.Flyout>
+                    </DropDownButton>
+                </StackPanel>
+            </controls:SettingsCard>
 
-                <!--  Disk Count and Refresh Bar  -->
-                <Grid Margin="0,16,0,16">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="Auto" />
-                    </Grid.ColumnDefinitions>
+            <!--  Disk Count and Refresh Bar  -->
+            <Grid Grid.Row="1" Margin="0,16">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
 
-                    <TextBlock
-                        x:Name="DriveCountText"
-                        Grid.Column="0"
-                        VerticalAlignment="Center"
-                        FontWeight="SemiBold"
-                        Text="{x:Bind ViewModel.DriveCountText, Mode=OneWay}" />
+                <TextBlock
+                    x:Name="DriveCountText"
+                    Grid.Column="0"
+                    VerticalAlignment="Center"
+                    FontWeight="SemiBold"
+                    Text="{x:Bind ViewModel.DriveCountText, Mode=OneWay}" />
 
-                    <StackPanel
-                        Grid.Column="1"
-                        Orientation="Horizontal"
-                        Spacing="4">
-                        <Button
-                            x:Name="RefreshButton"
-                            Click="RefreshButton_Click"
-                            Style="{StaticResource SubtleButtonStyle}"
-                            ToolTipService.ToolTip="{x:Bind LocalizedStrings.Common_Refresh}">
-                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                <FontIcon FontSize="14" Glyph="&#xE72C;" />
-                                <TextBlock Text="{x:Bind LocalizedStrings.Common_Refresh}" />
-                            </StackPanel>
-                        </Button>
-                        <Button
-                            x:Name="MoreOptionsButton"
-                            Style="{StaticResource SubtleButtonStyle}"
-                            ToolTipService.ToolTip="{x:Bind LocalizedStrings.Common_MoreOptionsTooltip}">
-                            <FontIcon FontSize="14" Glyph="&#xE712;" />
-                            <Button.Flyout>
-                                <MenuFlyout>
-                                    <MenuFlyoutItem Click="OpenDiskMgmtButton_Click" Text="{x:Bind LocalizedStrings.DiskMgmt_OpenDiskManagement}">
-                                        <MenuFlyoutItem.Icon>
-                                            <FontIcon Glyph="&#xE8A7;" />
-                                        </MenuFlyoutItem.Icon>
-                                    </MenuFlyoutItem>
-                                </MenuFlyout>
-                            </Button.Flyout>
-                        </Button>
-                    </StackPanel>
-                </Grid>
+                <StackPanel
+                    Grid.Column="1"
+                    Orientation="Horizontal"
+                    Spacing="4">
+                    <Button
+                        x:Name="RefreshButton"
+                        Click="RefreshButton_Click"
+                        Style="{StaticResource SubtleButtonStyle}"
+                        ToolTipService.ToolTip="{x:Bind LocalizedStrings.Common_Refresh}">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <FontIcon FontSize="14" Glyph="&#xE72C;" />
+                            <TextBlock Text="{x:Bind LocalizedStrings.Common_Refresh}" />
+                        </StackPanel>
+                    </Button>
+                    <Button
+                        x:Name="MoreOptionsButton"
+                        Style="{StaticResource SubtleButtonStyle}"
+                        ToolTipService.ToolTip="{x:Bind LocalizedStrings.Common_MoreOptionsTooltip}">
+                        <FontIcon FontSize="14" Glyph="&#xE712;" />
+                        <Button.Flyout>
+                            <MenuFlyout>
+                                <MenuFlyoutItem Click="OpenDiskMgmtButton_Click" Text="{x:Bind LocalizedStrings.DiskMgmt_OpenDiskManagement}">
+                                    <MenuFlyoutItem.Icon>
+                                        <FontIcon Glyph="&#xE8A7;" />
+                                    </MenuFlyoutItem.Icon>
+                                </MenuFlyoutItem>
+                            </MenuFlyout>
+                        </Button.Flyout>
+                    </Button>
+                </StackPanel>
+            </Grid>
 
-                <!--  All Disks List (Physical Disks + CD-ROM)  -->
-                <ListView
-                    x:Name="DisksListView"
-                    ItemTemplateSelector="{StaticResource DiskItemTemplateSelector}"
-                    ItemsSource="{x:Bind ViewModel.AllDiskItems, Mode=OneWay}"
-                    SelectionMode="None">
-                    <ListView.ItemContainerStyle>
-                        <Style TargetType="ListViewItem">
-                            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-                            <Setter Property="Padding" Value="0" />
-                            <Setter Property="Margin" Value="0,0,0,4" />
-                        </Style>
-                    </ListView.ItemContainerStyle>
-                </ListView>
-            </StackPanel>
-        </ScrollViewer>
+            <!--  All Disks List (Physical Disks + CD-ROM)  -->
+            <ListView
+                x:Name="DisksListView"
+                Grid.Row="2"
+                ItemTemplateSelector="{StaticResource DiskItemTemplateSelector}"
+                ItemsSource="{x:Bind ViewModel.AllDiskItems, Mode=OneWay}"
+                SelectionMode="None">
+                <ListView.ItemContainerStyle>
+                    <Style TargetType="ListViewItem">
+                        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                        <Setter Property="Padding" Value="0" />
+                        <Setter Property="Margin" Value="0,0,0,4" />
+                    </Style>
+                </ListView.ItemContainerStyle>
+            </ListView>
+        </Grid>
 
         <!--  Loading Overlay  -->
         <Grid

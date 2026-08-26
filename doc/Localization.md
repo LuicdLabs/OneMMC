@@ -23,10 +23,24 @@ OneMMC implements localization support by using the **WinUI 3 resource system (.
 - **Traditional Chinese (zh-TW)** - Fully supported
 
 ### Core Components
-- **LocalizedStrings** - Unified access point for localized strings (Partial Class)
-- **LocalizationService** - Resource loading and management service
-- **ResourceFiles** - Constant definitions for resource file names
-- **.resw files** - XML-based resource files
+
+The localization system spans two layers:
+
+**UI layer (`OneMMC`, namespace `OneMMC.Localization`)**
+- **LocalizedStrings** - Unified access point for localized strings in XAML/UI (partial class, split per feature)
+- **LocalizationService** - Resource loading and management service; reads the WinUI 3 `.resw`/PRI resource map (singleton `LocalizationService.Instance`)
+- **UILocalizationProvider** - Implements the Core `ILocalizationProvider` by delegating to `LocalizationService.Instance`, bridging Core to the UI resource map
+
+**Core layer (`OneMMC.Core`)**
+- **ILocalizationProvider** (`OneMMC.Core.Abstractions.Services`) - Abstraction used by Core view models/services, which cannot reference WinUI resources directly
+- **LocalizationProvider** (`OneMMC.Core.Localization`) - Static service-locator exposing `Current`; `DefaultLocalizationProvider` is the bracketed-placeholder fallback used before initialization
+- **ResourceFileNames** and per-feature key-constant classes (`CommonKeys`, `DeviceManagerKeys`, …) - Defined in `OneMMC.Core/Localization/ResourceKeys.cs`
+
+**Shared**
+- **.resw files** - XML-based resource files, one per feature, read through the WinUI 3 resource map
+
+> There is **no** `ResourceFiles` class. The resource-file-name constants live in
+> `ResourceKeys.cs` as `ResourceFileNames` (Core), and are shared by both layers.
 
 ---
 
@@ -35,32 +49,37 @@ OneMMC implements localization support by using the **WinUI 3 resource system (.
 ### 1. Layered Architecture
 
 ```
-┌─────────────────────────────────────┐
-│         UI Layer (XAML/C#)          │
-│  Access strings through             │
-│  LocalizedStrings                   │
-└──────────────┬──────────────────────┘
-               │
-┌──────────────▼──────────────────────┐
-│      LocalizedStrings (Partial)     │
-│  - LocalizedStrings.cs (base class) │
-│  - LocalizedStrings.Common.cs       │
-│  - LocalizedStrings.Services.cs     │
-│  - LocalizedStrings.ComExp.cs       │
-│  - ... (feature-based partials)     │
-└──────────────┬──────────────────────┘
-               │
-┌──────────────▼──────────────────────┐
-│       LocalizationService           │
-│  Loads resources from .resw files   │
-└──────────────┬──────────────────────┘
-               │
-┌──────────────▼──────────────────────┐
-│      Resource Files (.resw)         │
-│  - Strings/en-US/*.resw             │
-│  - Strings/zh-TW/*.resw             │
-└─────────────────────────────────────┘
+┌───────────────────────────┐   ┌───────────────────────────────┐
+│   UI Layer (XAML / C#)    │   │  Core Layer (ViewModels /     │
+│  via LocalizedStrings     │   │  Services) via                │
+│                           │   │  LocalizationProvider.Current │
+└─────────────┬─────────────┘   └───────────────┬───────────────┘
+              │                                 │ ILocalizationProvider
+┌─────────────▼─────────────┐                   │
+│   LocalizedStrings        │                   │
+│  - LocalizedStrings.cs    │   ┌───────────────▼───────────────┐
+│  - .Common.cs / .Nav.cs   │   │   UILocalizationProvider      │
+│  - ... feature partials   │   │  (implements ILocalization-   │
+└─────────────┬─────────────┘   │   Provider; delegates to      │
+              │                 │   LocalizationService.Instance)│
+              │                 └───────────────┬───────────────┘
+┌─────────────▼─────────────────────────────────▼───────────────┐
+│                     LocalizationService                        │
+│         Reads the WinUI 3 .resw / PRI resource map             │
+└───────────────────────────────┬───────────────────────────────┘
+                                 │
+┌────────────────────────────────▼──────────────────────────────┐
+│                     Resource Files (.resw)                     │
+│     Strings/en-US/*.resw    +    Strings/zh-TW/*.resw          │
+└────────────────────────────────────────────────────────────────┘
 ```
+
+Both layers ultimately read the same `.resw` data. The UI binds to `LocalizedStrings`; Core code
+calls `LocalizationProvider.Current.GetString(...)`, which resolves to `UILocalizationProvider` at
+runtime. The provider is wired once at startup in `App.xaml.cs` via
+`UILocalizationProvider.InitializeCoreLocalization()` (a static service-locator, **not** DI). Until
+that runs, `LocalizationProvider.Current` returns `DefaultLocalizationProvider`, which yields
+bracketed `[resourceFile/key]` placeholders.
 
 ### 2. Partial Class Design
 
@@ -70,19 +89,20 @@ OneMMC implements localization support by using the **WinUI 3 resource system (.
 // LocalizedStrings.cs - Base class
 public partial class LocalizedStrings
 {
-    protected static string GetResource(string resourceFile, string key) { }
+    protected static string GetResource(string key);                      // uses ResourceFileNames.Resources
+    protected static string GetResource(string resourceFile, string key);
 }
 
 // LocalizedStrings.Common.cs - Common strings
 public partial class LocalizedStrings
 {
-    public string Common_OKButton => GetResource(ResourceFiles.Common, "Common_OKButton");
+    public string Common_OKButton => GetResource(ResourceFileNames.Common, "Common_OKButton");
 }
 
 // LocalizedStrings.Services.cs - Service management strings
 public partial class LocalizedStrings
 {
-    public string Services_Start => GetResource(ResourceFiles.Services, "Services_Start");
+    public string Services_Start => GetResource(ResourceFileNames.Services, "Services_Start");
 }
 ```
 
@@ -91,8 +111,8 @@ public partial class LocalizedStrings
 ## File Organization
 
 ```
-OneMMC/
-├── Localization/                          # Localization code
+OneMMC/                                    # UI project
+├── Localization/                          # Localization code (namespace OneMMC.Localization)
 │   ├── LocalizedStrings.cs                # Base class
 │   ├── LocalizedStrings.Common.cs         # Common strings
 │   ├── LocalizedStrings.Navigation.cs     # Navigation strings
@@ -100,9 +120,10 @@ OneMMC/
 │   ├── LocalizedStrings.ComExp.cs         # Component Services
 │   ├── LocalizedStrings.DiskManagement.cs # Disk Management
 │   ├── LocalizedStrings.*.cs              # Other features...
-│   ├── LocalizationService.cs             # Resource loading service
-│   ├── ResourceFiles.cs                   # Resource file constants
-│   └── UILocalizationProvider.cs          # UI-layer localization provider
+│   └── UILocalizationProvider.cs          # Bridges Core ILocalizationProvider → LocalizationService
+│
+├── Services/
+│   └── LocalizationService.cs             # Resource loading service (namespace OneMMC.Localization)
 │
 ├── Strings/                               # Resource files
 │   ├── en-US/                             # English resources
@@ -113,17 +134,16 @@ OneMMC/
 │   │   ├── ComExp.resw                    # Component Services
 │   │   └── *.resw                         # Other features...
 │   │
-│   └── zh-TW/                             # Traditional Chinese resources
-│       ├── Resources.resw
-│       ├── Common.resw
-│       ├── Navigation.resw
-│       ├── Services.resw
-│       ├── ComExp.resw
+│   └── zh-TW/                             # Traditional Chinese resources (mirrors en-US)
 │       └── *.resw
 │
 └── Converters/                            # Value converters
-    ├── PropertyConverters.cs              # Includes BoolToYesNoConverter, etc.
     └── *.cs
+
+OneMMC.Core/                               # Core project
+└── Localization/
+    ├── ResourceKeys.cs                    # ResourceFileNames + per-feature key classes (CommonKeys, …)
+    └── LocalizationProvider.cs            # Static locator (Current) + DefaultLocalizationProvider
 ```
 
 ---
@@ -186,17 +206,27 @@ Assume we want to add localization support for a new feature named `NetworkManag
 </root>
 ```
 
-### Step 2: Update ResourceFiles.cs
+### Step 2: Update ResourceFileNames
 
-**File**: `OneMMC/Localization/ResourceFiles.cs`
+**File**: `OneMMC.Core/Localization/ResourceKeys.cs`
+
+Add the resource-file-name constant to `ResourceFileNames`. If Core code (view models/services)
+will reference keys for this feature, also add a per-feature key-constant class in the same file.
 
 ```csharp
-public static class ResourceFiles
+public static class ResourceFileNames
 {
     // ... existing constants ...
-    
+
     /// <summary>Network Manager strings (NetworkManager.resw)</summary>
     public const string NetworkManager = "NetworkManager";
+}
+
+// Optional: key constants consumed by Core code
+public static class NetworkManagerKeys
+{
+    public const string PageTitle = "NetworkManager_PageTitle";
+    public const string Enable = "NetworkManager_Enable";
 }
 ```
 
@@ -215,21 +245,21 @@ namespace OneMMC.Localization
     {
         // Page Title
         public string NetworkManager_PageTitle => 
-            GetResource(ResourceFiles.NetworkManager, "NetworkManager_PageTitle");
+            GetResource(ResourceFileNames.NetworkManager, "NetworkManager_PageTitle");
         
         // UI Elements
         public string NetworkManager_Adapters => 
-            GetResource(ResourceFiles.NetworkManager, "NetworkManager_Adapters");
+            GetResource(ResourceFileNames.NetworkManager, "NetworkManager_Adapters");
         
         public string NetworkManager_Status => 
-            GetResource(ResourceFiles.NetworkManager, "NetworkManager_Status");
+            GetResource(ResourceFileNames.NetworkManager, "NetworkManager_Status");
         
         // Actions
         public string NetworkManager_Enable => 
-            GetResource(ResourceFiles.NetworkManager, "NetworkManager_Enable");
+            GetResource(ResourceFileNames.NetworkManager, "NetworkManager_Enable");
         
         public string NetworkManager_Disable => 
-            GetResource(ResourceFiles.NetworkManager, "NetworkManager_Disable");
+            GetResource(ResourceFileNames.NetworkManager, "NetworkManager_Disable");
     }
 }
 ```
@@ -354,7 +384,7 @@ string message = string.Format(
 
 // Or use GetFormattedString
 string message = LocalizationService.Instance.GetFormattedString(
-    ResourceFiles.ComExp, 
+    ResourceFileNames.ComExp, 
     "ComExp_LoadedCount", 
     itemCount
 );
@@ -567,11 +597,11 @@ public partial class LocalizedStrings
 {
     // Page Title
     public string NetworkManager_PageTitle => 
-        GetResource(ResourceFiles.NetworkManager, "NetworkManager_PageTitle");
+        GetResource(ResourceFileNames.NetworkManager, "NetworkManager_PageTitle");
     
     // Actions - action-related strings
     public string NetworkManager_Enable => 
-        GetResource(ResourceFiles.NetworkManager, "NetworkManager_Enable");
+        GetResource(ResourceFileNames.NetworkManager, "NetworkManager_Enable");
 }
 ```
 
@@ -615,8 +645,8 @@ public string GetMessage(int count)
    - Fix: Make sure the Build Action is set to `PRIResource`.
 2. The resource key name is misspelled.
    - Fix: Check that the `name` attribute in the `.resw` file matches the key name used in C#.
-3. The `ResourceFiles` constant is not defined.
-   - Fix: Add the corresponding constant in `ResourceFiles.cs`.
+3. The `ResourceFileNames` constant is not defined.
+   - Fix: Add the corresponding constant in `OneMMC.Core/Localization/ResourceKeys.cs`.
 
 ### Q2: How do I test different languages?
 
@@ -716,7 +746,7 @@ Before submitting code, make sure that:
 
 - [ ] All hard-coded strings have been replaced with localized resources.
 - [ ] Corresponding `.resw` files have been created for all supported languages.
-- [ ] New resource file constants have been added to `ResourceFiles.cs`.
+- [ ] New resource file constants have been added to `OneMMC.Core/Localization/ResourceKeys.cs`.
 - [ ] The corresponding `LocalizedStrings` partial class has been created.
 - [ ] All resource keys follow the naming convention.
 - [ ] Placeholders in formatted strings are used correctly.
@@ -728,15 +758,10 @@ Before submitting code, make sure that:
 
 ## References
 
-### Internal Documentation
-- [ComExp Localization Implementation Summary](ComExp_Localization_Summary.md)
-- [Services Feature Implementation Notes](Feature_Implementation/Services.md)
-- [ComExp Feature Implementation Notes](Feature_Implementation/ComExp.md)
-
 ### External Resources
 - [.resw file format](https://learn.microsoft.com/windows/uwp/app-resources/localize-strings-ui-manifest)
 - [ResourceManager API](https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft.windows.applicationmodel.resources.resourcemanager)
 
 ---
 
-**Last updated**: 2026-02-03
+**Last updated**: 2026-08-13

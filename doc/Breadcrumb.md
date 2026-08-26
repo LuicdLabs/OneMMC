@@ -1,4 +1,4 @@
-﻿# Breadcrumb Navigation Technical Documentation
+﻿# Breadcrumb Navigation
 
 ## Overview
 
@@ -42,9 +42,6 @@ private static Stack<(List<Breadcrumb> Breadcrumbs, Stack<List<Breadcrumb>> Clic
 // True = breadcrumb click navigation (restore from _breadcrumbClickHistory)
 // False = normal forward navigation (only remove the last breadcrumb)
 private static Stack<bool> _backStackSourceType = new Stack<bool>();
-
-// Page metadata cache to avoid repeatedly creating instances
-private static readonly Dictionary<Type, (bool IsHeaderVisible, string PageTitle, bool ClearNavigation)> _pageMetadataCache = new();
 
 // Current state of the navigation state machine
 public static NavigationState CurrentState { get; private set; } = NavigationState.Idle;
@@ -108,17 +105,26 @@ public static void ClearHistory()
 ##### Private Helper Methods
 
 ```csharp
-// Gets cached page metadata to avoid repeatedly creating page instances
+// Returns page metadata. Attached properties are not read at runtime, so this
+// returns constant defaults (true, string.Empty, true). It intentionally does
+// NOT instantiate the page (Activator.CreateInstance was removed to avoid leaks).
 private static (bool IsHeaderVisible, string PageTitle, bool ClearNavigation) GetPageMetadata(Type pageType)
 
-// Clears navigation session data (breadcrumbs, click history, back stack source types, and the frame back stack)
+// Clears navigation session data (breadcrumbs, click history, back stack source types)
 private static void ClearNavigationSession()
 
 // Restores breadcrumbs from a list
 private static void RestoreBreadcrumbs(IEnumerable<Breadcrumb> breadcrumbs)
 
-// Deep-copies the breadcrumb stack
-private static Stack<List<Breadcrumb>> CloneBreadcrumbStack(Stack<List<Breadcrumb>> source)
+// Produces a lightweight copy of a breadcrumb list, dropping Parameter values so
+// old view models and large model graphs are not retained by the history stacks
+private static List<Breadcrumb> ToLightweightBreadcrumbs(IEnumerable<Breadcrumb> breadcrumbs)
+
+// Deep-copies a breadcrumb click-history stack using lightweight (parameter-less) breadcrumbs
+private static Stack<List<Breadcrumb>> CloneLightweightBreadcrumbStack(Stack<List<Breadcrumb>> source)
+
+// Deep-copies a bool stack (back stack source types)
+private static Stack<bool> CloneBoolStack(Stack<bool> source)
 
 // Gets navigation transition animation information
 private static NavigationTransitionInfo GetTransitionInfo(NavigateAnimationType animType, bool navigatingBack = false)
@@ -143,16 +149,39 @@ State definitions for the navigation state machine. These are used to track the 
 - **RestoringState**: A previous breadcrumb state is being restored during back navigation.
 - **NavigatingForward**: Forward navigation is being performed.
 
+Every navigation operation transitions out of `Idle`, does its work, and returns to `Idle` when the
+operation completes. `NavigationView_SelectionChanged` inspects `CurrentState` and skips breadcrumb
+mutation while any non-`Idle` operation is in progress:
+
+```mermaid
+stateDiagram-v2
+    [*] --> Idle
+    Idle --> NavigatingForward: Navigate / NavigateWithBreadcrumb
+    Idle --> NavigatingFromBreadcrumb: breadcrumb item clicked
+    Idle --> RestoringState: Back (NavigationMode.Back)
+
+    NavigatingForward --> Idle: navigation completed
+    NavigatingFromBreadcrumb --> Idle: navigation completed
+    RestoringState --> Idle: state restored
+
+    note right of RestoringState
+        Blocks NavigationView_SelectionChanged
+        from mutating breadcrumbs mid-restore
+    end note
+```
+
 ### Breadcrumb Record
 
 ```csharp
-public record Breadcrumb(string Label, Type Page, object? Parameter = null)
+// Declared at namespace level (OneMMC.Services) so XAML compiled bindings
+// (x:DataType / x:Bind) can reference it.
+public partial record Breadcrumb(string Label, Type Page, object? Parameter = null)
 {
     public override string ToString() => Label;
 }
 ```
 
-Uses a C# `record` type to store the breadcrumb item's label, page type, and optional navigation parameter. `Parameter` is passed back to the target page during breadcrumb click navigation.
+Uses a C# `record` type to store the breadcrumb item's label, page type, and optional navigation parameter. `Parameter` is passed back to the target page during breadcrumb click navigation. Note that the history stacks store *lightweight* copies with `Parameter` set to `null` (via `ToLightweightBreadcrumbs`) so retained history does not keep view models or large model graphs alive.
 
 ## Navigation Logic
 
@@ -163,6 +192,21 @@ This implementation uses three separate history stacks to handle different navig
 1. **_breadcrumbClickHistory** - Stores breadcrumb click history within the same main navigation session.
 2. **_mainNavHistory** - Stores the full state when switching main navigation items, including breadcrumbs, the associated click history, and back stack source types.
 3. **_backStackSourceType** - Tracks the source type of each BackStack item: breadcrumb click or normal forward navigation.
+
+```mermaid
+flowchart LR
+    subgraph Session["Current main-nav session"]
+        BC["BreadCrumbs<br/>(ObservableCollection)"]
+        CH["_breadcrumbClickHistory<br/>Stack&lt;List&lt;Breadcrumb&gt;&gt;"]
+        ST["_backStackSourceType<br/>Stack&lt;bool&gt;"]
+    end
+    MNH["_mainNavHistory<br/>Stack&lt;(Breadcrumbs,<br/>ClickHistory,<br/>BackStackSourceTypes)&gt;"]
+
+    BC -- "breadcrumb click:<br/>save snapshot" --> CH
+    BC -- "AddBreadcrumb → push false<br/>click → push true" --> ST
+    Session -- "switch main nav:<br/>bundle & push (lightweight)" --> MNH
+    MNH -- "Back past session root:<br/>restore whole bundle" --> Session
+```
 
 This design ensures that:
 
@@ -190,6 +234,23 @@ The `RestorePreviousBreadcrumbState()` method restores state using the following
 3. **If it was normal forward navigation and the breadcrumb count is greater than 1**: Only remove the last breadcrumb item.
 4. **If breadcrumbs are exhausted but main navigation history exists**: Restore the full state from `_mainNavHistory`, including breadcrumbs, click history, and back stack source types.
 5. **No-op**: If none of the above applies, write a log entry and exit.
+
+```mermaid
+flowchart TD
+    A[RestorePreviousBreadcrumbState] --> B["CurrentState = RestoringState"]
+    B --> C["Pop _backStackSourceType<br/>(default false if empty)"]
+    C --> D{wasFromBreadcrumbClick<br/>&& _breadcrumbClickHistory.Count > 0?}
+    D -- Yes --> E[Restore full state from<br/>_breadcrumbClickHistory]
+    D -- No --> F{BreadCrumbs.Count > 1?}
+    F -- Yes --> G[Remove last breadcrumb only]
+    F -- No --> H{_mainNavHistory.Count > 0?}
+    H -- Yes --> I[Restore breadcrumbs + click history<br/>+ back stack source types<br/>from _mainNavHistory]
+    H -- No --> J[Log 'Nothing to restore']
+    E --> K["CurrentState = Idle"]
+    G --> K
+    I --> K
+    J --> K
+```
 
 ```csharp
 public static void RestorePreviousBreadcrumbState()
@@ -263,7 +324,7 @@ public static void NavigateFromBreadcrumb(Type targetPageType, int breadcrumbInd
     
     LogDebug("NavigateFromBreadcrumb", $"START - targetPage={targetPageType.Name}, index={breadcrumbIndex}");
 
-    // Get cached page metadata
+    // Get page metadata (returns constant defaults)
     var (isHeaderVisible, _, _) = GetPageMetadata(targetPageType);
 
     // Update title visibility
@@ -341,24 +402,19 @@ public static void ClearBreadcrumbs()
 
 private static void SaveToMainNavHistory()
 {
-    if (BreadCrumbs.Count > 0)
-    {
-        var currentState = BreadCrumbs.Select(b => new Breadcrumb(b.Label, b.Page, b.Parameter)).ToList();
-        
-        // Deep-copy the click history stack
-        var clickHistoryCopy = new Stack<List<Breadcrumb>>(
-            _breadcrumbClickHistory.Reverse().Select(list => list.Select(b => new Breadcrumb(b.Label, b.Page, b.Parameter)).ToList())
-        );
-        
-        // Deep-copy the back stack source type stack
-        var backStackSourceTypeCopy = new Stack<bool>(_backStackSourceType.Reverse());
-        
-        _mainNavHistory.Push((currentState, clickHistoryCopy, backStackSourceTypeCopy));
-        
-        // Clear click history and back stack source types; they have already been saved to main navigation history
-        _breadcrumbClickHistory.Clear();
-        _backStackSourceType.Clear();
-    }
+    if (BreadCrumbs.Count == 0) return;
+
+    // Lightweight copies drop Parameter values so old view models and large model
+    // graphs are not retained by the history stacks.
+    var currentState = ToLightweightBreadcrumbs(BreadCrumbs);
+    var clickHistoryCopy = CloneLightweightBreadcrumbStack(_breadcrumbClickHistory);
+    var backStackSourceTypeCopy = CloneBoolStack(_backStackSourceType);
+
+    _mainNavHistory.Push((currentState, clickHistoryCopy, backStackSourceTypeCopy));
+
+    // Clear click history and back stack source types; they have already been saved to main navigation history
+    _breadcrumbClickHistory.Clear();
+    _backStackSourceType.Clear();
 }
 ```
 
@@ -434,48 +490,71 @@ State changes:
 ### MainWindow Event Handling
 
 ```csharp
-private void MainBreadcrumb_ItemClicked(BreadcrumbBar sender, BreadcrumbBarItemClickedEventArgs args)
+private async void MainBreadcrumb_ItemClicked(BreadcrumbBar sender, BreadcrumbBarItemClickedEventArgs args)
 {
-    // Navigate only when the clicked item is not the last item
-    if (args.Index < BreadcrumbNavigationService.BreadCrumbs.Count - 1)
+    // Navigate only when the clicked item is not the last item (the current page)
+    if (args.Index >= BreadcrumbNavigationService.BreadCrumbs.Count - 1)
     {
-        var crumb = (BreadcrumbNavigationService.Breadcrumb)args.Item;
-        BreadcrumbNavigationService.NavigateFromBreadcrumb(crumb.Page, args.Index, crumb.Parameter);
+        return;
     }
+
+    // Capture the click target before awaiting — the event args are only valid synchronously.
+    var crumb = (Breadcrumb)args.Item;
+    var index = args.Index;
+
+    // Resolve unsaved edits first so the breadcrumb trail is only truncated when the user
+    // actually leaves the page; cancelling here leaves the breadcrumb (and current page) untouched.
+    if (!await EnsureSafeToLeaveCurrentPageAsync())
+    {
+        return;
+    }
+
+    BreadcrumbNavigationService.NavigateFromBreadcrumb(crumb.Page, index, crumb.Parameter);
 }
 
 private void ContentFrame_Navigated(object sender, NavigationEventArgs e)
 {
     if (NavigationViewControl != null && contentFrame != null)
+    {
         NavigationViewControl.IsBackEnabled = contentFrame.CanGoBack;
-    
+    }
+
     // Restore breadcrumb state during back navigation
     if (e.NavigationMode == NavigationMode.Back)
     {
         BreadcrumbNavigationService.RestorePreviousBreadcrumbState();
     }
-    
+
     // Synchronize the NavigationView selection state...
 }
 ```
+
+`Breadcrumb` is declared at namespace level (`OneMMC.Services.Breadcrumb`), so the cast is `(Breadcrumb)args.Item`, not a type nested inside the service.
 
 ### Initialization
 
 In the `MainWindow` constructor:
 
 ```csharp
-BreadcrumbNavigationService.Init(NavigationViewControl, MainBreadcrumb, contentFrame);
+BreadcrumbNavigationService.Init(NavigationViewControl, MainBreadcrumb, contentFrame!);
 ```
 
 ## Attached Property System
 
 ### Design Purpose
 
-To allow pages to declare their own navigation behavior, the implementation uses an attached property system:
+To allow pages to declare their own navigation behavior, the implementation defines an attached property system:
 
 - **IsHeaderVisible**: Controls whether the page title is displayed.
 - **ClearNavigation**: Controls whether breadcrumbs are cleared during navigation.
 - **PageTitle**: Specifies the display title of the page.
+
+> **Note:** These attached properties are still registered (with `Get`/`Set` accessors), but the
+> runtime navigation logic no longer reads them — `GetPageMetadata` returns constant defaults
+> (`IsHeaderVisible = true`, `PageTitle = string.Empty`, `ClearNavigation = true`) and no longer
+> instantiates pages via `Activator.CreateInstance` (removed to prevent memory leaks). Navigation
+> behavior is driven by explicit method arguments (e.g. the `clearNavigation` parameter on
+> `NavigateWithBreadcrumb` and the `pageTitle` passed to `AddBreadcrumb`) instead.
 
 ### Definitions
 
@@ -531,17 +610,21 @@ private static NavigationTransitionInfo GetTransitionInfo(NavigateAnimationType 
 
 ### LogDebug Method
 
-The service includes built-in debug logging. It uses the `[Conditional("DEBUG")]` attribute to ensure it only runs in debug builds. It outputs complete state information, including the state machine state:
+The service includes built-in debug logging. It routes through the shared UI logger
+(`OneMMC.Services.Logging.UiLogger.LogDebug`) rather than `Debug.WriteLine`, so it complies with
+the project-wide ban on direct `Debug.WriteLine`/`Console.WriteLine`/`Trace.WriteLine`. Because
+`LogDebug` maps to the logging pipeline's `Debug` level, its output only appears when
+`VerboseLogging` is enabled (see `doc/Logging.md`). It outputs complete state information, including
+the state machine state:
 
 ```csharp
-[Conditional("DEBUG")]
 private static void LogDebug(string method, string message)
 {
     var breadcrumbStr = string.Join(" > ", BreadCrumbs.Select(b => b.Label));
     var clickHistoryStr = $"ClickHistory={_breadcrumbClickHistory.Count}";
     var mainNavHistoryStr = $"MainNavHistory={_mainNavHistory.Count}";
     var backStackStr = MainFrame != null ? $"BackStack={MainFrame.BackStack.Count}" : "BackStack=N/A";
-    Debug.WriteLine($"[Breadcrumb][{method}] {message} | Crumbs=[{breadcrumbStr}] | {clickHistoryStr} | {mainNavHistoryStr} | {backStackStr} | State={CurrentState}");
+    OneMMC.Services.Logging.UiLogger.LogDebug($"[Breadcrumb][{method}] {message} | Crumbs=[{breadcrumbStr}] | {clickHistoryStr} | {mainNavHistoryStr} | {backStackStr} | State={CurrentState}");
 }
 ```
 
@@ -609,11 +692,10 @@ ViewModel.NavigateToPageCommand.Execute(tag);
 
 ### Memory Management
 
-- History stacks use deep copies to avoid shared reference issues.
-- `SaveToMainNavHistory` copies the entire click history stack and back stack source type stack.
+- History stacks store lightweight copies whose `Parameter` is `null`, so retained history never keeps view models or large model graphs alive.
+- `SaveToMainNavHistory` copies the entire click history stack and back stack source type stack (via `CloneLightweightBreadcrumbStack` / `CloneBoolStack`).
 - Unneeded historical state is cleared promptly.
 - `ObservableCollection` is used to minimize UI updates.
-- **Page metadata cache**: `_pageMetadataCache` is used to avoid repeatedly creating page instances when reading attached properties.
 
 ### UI Responsiveness
 
@@ -621,7 +703,7 @@ ViewModel.NavigateToPageCommand.Execute(tag);
 - The convenience properties `IsNavigatingFromBreadcrumb` and `IsRestoringBreadcrumbState` provide backward compatibility.
 - Navigation animations use the system-provided `NavigationTransitionInfo`.
 - Unnecessary UI updates are avoided during navigation.
-- `[Conditional("DEBUG")]` ensures log calls are completely removed from release builds.
+- `LogDebug` maps to the logging pipeline's `Debug` level, so its output is suppressed unless `VerboseLogging` is enabled.
 
 ## Summary
 
@@ -631,6 +713,6 @@ The Breadcrumb Navigation feature solves complex navigation state management iss
 2. **Back stack source type stack** (`_backStackSourceType`) - Tracks the source of each BackStack item, either breadcrumb click or normal forward navigation, ensuring that the correct restore logic is used when navigating back.
 3. **Main navigation history stack** (`_mainNavHistory`) - Handles back navigation across main navigation items and binds the associated click history and back stack source types.
 4. **Navigation state machine** (`CurrentState`) - Tracks the current navigation operation type, including idle, breadcrumb navigation, state restoration, and forward navigation, preventing incorrect operations during navigation.
-5. **Page metadata cache** (`_pageMetadataCache`) - Avoids repeatedly creating page instances when reading attached properties, improving performance.
+5. **Lightweight history copies** (`ToLightweightBreadcrumbs`) - History stacks store parameter-less breadcrumb copies so retained navigation state never keeps view models or large model graphs alive.
 
 This design ensures that in any navigation scenario, Back operations correctly restore the expected breadcrumb state and provide a consistent, intuitive user experience. The key improvement is that `_backStackSourceType` distinguishes normal forward navigation from breadcrumb click navigation, preventing incorrect state restoration from click history. At the same time, the state machine architecture provides clearer navigation state management and debugging support.

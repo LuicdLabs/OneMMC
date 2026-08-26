@@ -3,7 +3,7 @@
 ## Overview
 
 `AppSdkFileDialogService` is the DI-backed implementation of `IFileDialogService`.
-It lives in Core and wraps Windows App SDK 2.0 storage pickers from
+It lives in Core and wraps Windows App SDK 2.3.1 storage pickers from
 `Microsoft.Windows.Storage.Pickers`.
 
 The service accepts Win32-style filter strings such as
@@ -20,9 +20,9 @@ Windows App SDK picker APIs are extension-based.
 | Interface | `OneMMC.Core.Abstractions.Services.IFileDialogService` |
 | DI mapping | `IFileDialogService -> AppSdkFileDialogService` via `AddOneMMCCore(...)` |
 
-## Windows App SDK 2.0 Behavior
+## Windows App SDK Picker Behavior
 
-This service targets Windows App SDK 2.0.1 picker APIs:
+This service targets the Windows App SDK 2.3.1 `Microsoft.Windows.Storage.Pickers` APIs:
 
 - `FileOpenPicker.FileTypeChoices` is used for grouped open filters with labels.
 - `FileOpenPicker.Title`, `FileSavePicker.Title`, and `FolderPicker.Title` are used for dialog titles.
@@ -31,7 +31,7 @@ This service targets Windows App SDK 2.0.1 picker APIs:
 - `FileSavePicker.ShowOverwritePrompt` is exposed through `SaveFileAsync`.
 - `FolderPicker(WindowId)` replaces the legacy `Windows.Storage.Pickers.FolderPicker` plus `InitializeWithWindow`.
 
-Reference: [Windows App SDK 2.0.1 storage picker updates](https://learn.microsoft.com/windows/apps/windows-app-sdk/release-notes/windows-app-sdk-2-0#version-20-stable-ga-201).
+Reference: [Windows App SDK release notes](https://learn.microsoft.com/windows/apps/windows-app-sdk/release-channels).
 
 ## Public API
 

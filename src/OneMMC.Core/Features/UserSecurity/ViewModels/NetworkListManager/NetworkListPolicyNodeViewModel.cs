@@ -21,6 +21,7 @@ public sealed partial class NetworkListPolicyNodeViewModel : ObservableObject
         Description = node.Description;
         SignatureId = node.SignatureId;
         Kind = node.Kind;
+        IsDomainAuthenticated = node.IsDomainAuthenticated;
         HasCustomName = node.State.HasCustomName;
         NetworkName = node.State.NetworkName;
         IconPayload = node.State.IconPayload;
@@ -83,6 +84,11 @@ public sealed partial class NetworkListPolicyNodeViewModel : ObservableObject
     };
 
     /// <summary>
+    /// Gets whether this identified network is domain-authenticated.
+    /// </summary>
+    public bool IsDomainAuthenticated { get; }
+
+    /// <summary>
     /// Gets whether this is an identified network node.
     /// </summary>
     public bool IsIdentifiedNetwork => Kind == NetworkListPolicyNodeKind.IdentifiedNetwork;
@@ -105,13 +111,26 @@ public sealed partial class NetworkListPolicyNodeViewModel : ObservableObject
     /// <summary>
     /// Gets whether the node exposes a location type combo box.
     /// </summary>
-    public bool ShowsLocationType => Kind != NetworkListPolicyNodeKind.AllNetworks;
+    /// <remarks>
+    /// Mirrors the tab set secpol.msc shows: "All Networks" only ever offers user permissions, and a
+    /// domain-authenticated network has no Network Location tab at all because NLA fixes its location type
+    /// to Domain.
+    /// </remarks>
+    public bool ShowsLocationType => Kind switch
+    {
+        NetworkListPolicyNodeKind.IdentifiedNetwork => !IsDomainAuthenticated,
+        NetworkListPolicyNodeKind.AllNetworks => false,
+        _ => true
+    };
 
     /// <summary>
     /// Gets whether the node exposes a location permission combo box.
     /// </summary>
+    /// <remarks>
+    /// "Identifying Networks" is a location type only; secpol.msc offers no user permissions for it.
+    /// </remarks>
     public bool ShowsLocationPermission =>
-        Kind == NetworkListPolicyNodeKind.IdentifiedNetwork
+        (Kind == NetworkListPolicyNodeKind.IdentifiedNetwork && !IsDomainAuthenticated)
         || Kind == NetworkListPolicyNodeKind.UnidentifiedNetworks;
 
     /// <summary>

@@ -22,6 +22,7 @@ namespace OneMMC.Core.Features.PolicyManagement.ViewModels.GpEdit
         private readonly ILogger<GroupPolicyEditorViewModel> _logger;
         private readonly IAdminService _adminService;
         private readonly AdmxBundleProvider _admxBundleProvider;
+        private readonly object _lifetimeLock = new();
 
         /// <summary>
         /// Borrowed reference to the process-wide shared bundle. Never disposed or cleared here — see
@@ -96,9 +97,15 @@ namespace OneMMC.Core.Features.PolicyManagement.ViewModels.GpEdit
         /// </remarks>
         /// <param name="cancellationToken">Cancels the load when the page goes away.</param>
         /// <returns>A task that completes when the tree has been built or the load was cancelled.</returns>
-        public Task InitializeAsync(CancellationToken cancellationToken = default)
+        public async Task InitializeAsync(CancellationToken cancellationToken = default)
         {
-            return LoadPoliciesAsync(cancellationToken);
+            try
+            {
+                await LoadPoliciesAsync(cancellationToken).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+            {
+            }
         }
 
         private void CheckWindowsEditionSupport()
@@ -124,6 +131,9 @@ namespace OneMMC.Core.Features.PolicyManagement.ViewModels.GpEdit
 
             await Task.Run(() =>
             {
+                IPolicyService? computerPolicyService = null;
+                IPolicyService? userPolicyService = null;
+
                 try
                 {
                     // Borrow the process-wide bundle; the first caller pays for the parse, the rest reuse it.
@@ -132,10 +142,10 @@ namespace OneMMC.Core.Features.PolicyManagement.ViewModels.GpEdit
                     cancellationToken.ThrowIfCancellationRequested();
 
                     // Initialize policy services using the factory
-                    _computerPolicyService = PolicyServiceFactory.CreateMachinePolicyService();
-                    _userPolicyService = PolicyServiceFactory.CreateUserPolicyService();
+                    computerPolicyService = PolicyServiceFactory.CreateMachinePolicyService();
+                    userPolicyService = PolicyServiceFactory.CreateUserPolicyService();
 
-                    if (_computerPolicyService is null || _userPolicyService is null)
+                    if (computerPolicyService is null || userPolicyService is null)
                     {
                         LogDebug("[ERROR] Failed to initialize policy services");
                         _syncContext?.Post(_ =>
@@ -145,6 +155,20 @@ namespace OneMMC.Core.Features.PolicyManagement.ViewModels.GpEdit
                             StatusMessage = "Error";
                         }, null);
                         return;
+                    }
+
+                    cancellationToken.ThrowIfCancellationRequested();
+                    lock (_lifetimeLock)
+                    {
+                        if (_disposed)
+                        {
+                            return;
+                        }
+
+                        _computerPolicyService = computerPolicyService;
+                        _userPolicyService = userPolicyService;
+                        computerPolicyService = null;
+                        userPolicyService = null;
                     }
 
                     LogDebug("[GPO] Policy services initialized successfully");
@@ -175,6 +199,11 @@ namespace OneMMC.Core.Features.PolicyManagement.ViewModels.GpEdit
                         IsLoading = false;
                         StatusMessage = "Error";
                     }, null);
+                }
+                finally
+                {
+                    computerPolicyService?.Dispose();
+                    userPolicyService?.Dispose();
                 }
             }, cancellationToken);
         }
@@ -453,25 +482,28 @@ namespace OneMMC.Core.Features.PolicyManagement.ViewModels.GpEdit
 
         public void Dispose()
         {
-            if (_disposed) return;
+            IPolicyService? computerPolicyService;
+            IPolicyService? userPolicyService;
 
-            _computerPolicyService?.Dispose();
-            _userPolicyService?.Dispose();
-            _computerPolicyService = null;
-            _userPolicyService = null;
+            lock (_lifetimeLock)
+            {
+                if (_disposed) return;
 
-            // Release the policy tree explicitly rather than waiting for the whole view model to become
-            // unreachable: these collections hold the full category graph.
-            RootNodes.Clear();
-            CurrentPolicies.Clear();
-            SelectedNode = null;
-            SelectedPolicy = null;
+                _disposed = true;
+                computerPolicyService = _computerPolicyService;
+                userPolicyService = _userPolicyService;
+                _computerPolicyService = null;
+                _userPolicyService = null;
+            }
+
+            computerPolicyService?.Dispose();
+            userPolicyService?.Dispose();
+
             _lastCategory = null;
 
             // Borrowed from AdmxBundleProvider — drop the reference only, never dispose the shared bundle.
             _admxBundle = null;
 
-            _disposed = true;
         }
 
     }

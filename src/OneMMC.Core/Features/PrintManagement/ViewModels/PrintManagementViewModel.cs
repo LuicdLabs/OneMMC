@@ -4,11 +4,12 @@ using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using OneMMC.Core.Infrastructure.Admin;
-using OneMMC.Core.Features.PrintManagement.Models.PrintManagement;
-using OneMMC.Core.Features.PrintManagement.Services.PrintManagement;
 using Microsoft.Extensions.Logging;
+using OneMMC.Core.Features.PrintManagement.Services;
+using OneMMC.Core.Features.PrintManagement.Models;
+using OneMMC.Core.Infrastructure.Collections;
 
-namespace OneMMC.Core.Features.PrintManagement.ViewModels.PrintManagement;
+namespace OneMMC.Core.Features.PrintManagement.ViewModels;
 
 /// <summary>
 /// ViewModel for the Print Management page following MVVM pattern.
@@ -127,11 +128,16 @@ public partial class PrintManagementViewModel : ObservableObject
 
             await Task.WhenAll(printersTask, driversTask, portsTask, formsTask, deployedTask);
 
-            Printers = new ObservableCollection<PrinterInfo>(await printersTask);
-            Drivers = new ObservableCollection<PrintDriverInfo>(await driversTask);
-            Ports = new ObservableCollection<PrintPortInfo>(await portsTask);
-            Forms = new ObservableCollection<PrintFormInfo>(await formsTask);
-            DeployedPrinters = new ObservableCollection<PrinterInfo>(await deployedTask);
+            Printers.ReplaceAll(await printersTask);
+            OnPropertyChanged(nameof(Printers));
+            Drivers.ReplaceAll(await driversTask);
+            OnPropertyChanged(nameof(Drivers));
+            Ports.ReplaceAll(await portsTask);
+            OnPropertyChanged(nameof(Ports));
+            Forms.ReplaceAll(await formsTask);
+            OnPropertyChanged(nameof(Forms));
+            DeployedPrinters.ReplaceAll(await deployedTask);
+            OnPropertyChanged(nameof(DeployedPrinters));
 
             OnPropertyChanged(nameof(PrinterCountText));
             OnPropertyChanged(nameof(DeployedPrinterCountText));
@@ -168,18 +174,6 @@ public partial class PrintManagementViewModel : ObservableObject
         await LoadDataAsync();
     }
 
-    public void ClearCachedData()
-    {
-        Printers.Clear();
-        Drivers.Clear();
-        Ports.Clear();
-        Forms.Clear();
-        DeployedPrinters.Clear();
-        StatusMessage = string.Empty;
-        OnPropertyChanged(nameof(PrinterCountText));
-        OnPropertyChanged(nameof(DeployedPrinterCountText));
-        OnPropertyChanged(nameof(DriverCountText));
-    }
 }
 
 

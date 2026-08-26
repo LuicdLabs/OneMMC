@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace OneMMC.Core.Features.PrintManagement.Services.PrintManagement.Helpers;
+namespace OneMMC.Core.Features.PrintManagement.Services.Helpers;
 
 /// <summary>
 /// Helper methods for port type detection and description.
