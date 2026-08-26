@@ -535,21 +535,12 @@ public sealed class PublicKeyPolicyService
 
         try
         {
-            // Merge the applied registry state with pending Registry.pol entries so certificates saved a
-            // moment ago show immediately even before the Group Policy refresh has re-applied the file.
+            // Read recovery agents from the local GPO Registry.pol only, exactly as secpol.msc's Local
+            // Security Policy editor does. The applied HKLM\SOFTWARE\Policies registry is deliberately NOT
+            // consulted: it reflects effective policy from every source (domain GPOs, or state left behind
+            // after a local recovery agent was removed but before the next Group Policy refresh cleared it),
+            // so merging it would surface phantom certificates this local editor can neither see nor delete.
             Dictionary<string, byte[]?> blobs = new(StringComparer.OrdinalIgnoreCase);
-            using (RegistryKey? certificatesKey = Registry.LocalMachine.OpenSubKey(certificatesPath))
-            {
-                if (certificatesKey is not null)
-                {
-                    foreach (string thumbprint in certificatesKey.GetSubKeyNames())
-                    {
-                        using RegistryKey? certificateKey = certificatesKey.OpenSubKey(thumbprint);
-                        blobs[thumbprint] = certificateKey?.GetValue(BlobValueName) as byte[];
-                    }
-                }
-            }
-
             foreach (string thumbprint in snapshot.GetKeyNames(certificatesPath))
             {
                 if (string.IsNullOrWhiteSpace(NormalizeThumbprint(thumbprint)))
@@ -560,11 +551,12 @@ public sealed class PublicKeyPolicyService
                 string certificateKeyPath = $@"{certificatesPath}\{thumbprint}";
                 if (snapshot.WillDeleteValue(certificateKeyPath, BlobValueName))
                 {
-                    blobs.Remove(thumbprint);
+                    continue;
                 }
-                else if (snapshot.GetValue(certificateKeyPath, BlobValueName) is byte[] pendingBlob)
+
+                if (snapshot.GetValue(certificateKeyPath, BlobValueName) is byte[] blob)
                 {
-                    blobs[thumbprint] = pendingBlob;
+                    blobs[thumbprint] = blob;
                 }
             }
 
