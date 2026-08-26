@@ -16,6 +16,10 @@ public sealed class NetworkListPolicyService
     private const string LiveSignaturesRoot = @"SOFTWARE\Microsoft\Windows NT\CurrentVersion\NetworkList\Signatures";
     private const string LiveProfilesRoot = @"SOFTWARE\Microsoft\Windows NT\CurrentVersion\NetworkList\Profiles";
     private const string EveryNetworkKey = "EveryNetwork";
+    private const string ManagedSignaturesContainer = "Managed";
+    private const string UnmanagedSignaturesContainer = "Unmanaged";
+    // NLA writes Category=2 (NLM_NETWORK_CATEGORY_DOMAIN_AUTHENTICATED) on a domain network's profile.
+    private const uint DomainAuthenticatedCategory = 2U;
     private const string UnidentifiedSignatureMarker = "0F0000F001";
     private const string IdentifyingSignatureMarker = "0F0000F002";
     // These two pseudo-network keys are stable secpol.msc policy targets. Live identified
@@ -201,7 +205,7 @@ public sealed class NetworkListPolicyService
         List<NetworkListPolicyNode> nodes = [];
         HashSet<string> seenSignatures = new(StringComparer.OrdinalIgnoreCase);
 
-        foreach (string containerName in new[] { "Managed", "Unmanaged" })
+        foreach (string containerName in new[] { ManagedSignaturesContainer, UnmanagedSignaturesContainer })
         {
             using RegistryKey? containerKey = Registry.LocalMachine.OpenSubKey($@"{LiveSignaturesRoot}\{containerName}");
             if (containerKey is null)
@@ -229,6 +233,7 @@ public sealed class NetworkListPolicyService
                     Description = string.Empty,
                     SignatureId = signatureId,
                     Kind = NetworkListPolicyNodeKind.IdentifiedNetwork,
+                    IsDomainAuthenticated = IsDomainAuthenticatedNetwork(containerName, liveSignatureKey),
                     State = ReadPolicyState(snapshot, signatureId)
                 });
             }
@@ -252,19 +257,58 @@ public sealed class NetworkListPolicyService
             return firstNetwork;
         }
 
-        string? profileGuid = liveSignatureKey.GetValue("ProfileGuid") as string;
-        if (!string.IsNullOrWhiteSpace(profileGuid))
+        using RegistryKey? profileKey = OpenProfileKey(liveSignatureKey);
+        if (profileKey?.GetValue("ProfileName") is string profileName && !string.IsNullOrWhiteSpace(profileName))
         {
-            using RegistryKey? profileKey = Registry.LocalMachine.OpenSubKey($@"{LiveProfilesRoot}\{profileGuid}");
-            string? profileName = profileKey?.GetValue("ProfileName") as string;
-            if (!string.IsNullOrWhiteSpace(profileName))
-            {
-                return profileName;
-            }
+            return profileName;
         }
 
         return liveSignatureKey.Name.Split('\\').LastOrDefault() ?? string.Empty;
     }
+
+    /// <summary>
+    /// Determines whether an identified network is domain-authenticated, and therefore has no configurable
+    /// network location.
+    /// </summary>
+    /// <remarks>
+    /// NLA files a domain network's signature under the "Managed" container and stamps <c>Managed=1</c>
+    /// (and, once the location is resolved, <c>Category=2</c>) on the backing profile. Either signal is
+    /// enough; the profile is consulted as well because NLA re-files signatures between the two containers
+    /// as networks are re-identified.
+    /// </remarks>
+    /// <param name="containerName">The signature container the network was discovered in.</param>
+    /// <param name="liveSignatureKey">The live signature key.</param>
+    /// <returns><see langword="true"/> when the network is domain-authenticated.</returns>
+    private static bool IsDomainAuthenticatedNetwork(string containerName, RegistryKey liveSignatureKey)
+    {
+        if (string.Equals(containerName, ManagedSignaturesContainer, StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        using RegistryKey? profileKey = OpenProfileKey(liveSignatureKey);
+        if (profileKey is null)
+        {
+            return false;
+        }
+
+        return HasDwordValue(profileKey, "Managed", 1U)
+            || HasDwordValue(profileKey, "Category", DomainAuthenticatedCategory);
+    }
+
+    private static RegistryKey? OpenProfileKey(RegistryKey liveSignatureKey)
+    {
+        if (liveSignatureKey.GetValue("ProfileGuid") is not string profileGuid
+            || string.IsNullOrWhiteSpace(profileGuid))
+        {
+            return null;
+        }
+
+        return Registry.LocalMachine.OpenSubKey($@"{LiveProfilesRoot}\{profileGuid}");
+    }
+
+    private static bool HasDwordValue(RegistryKey key, string valueName, uint expected) =>
+        key.GetValue(valueName) is int raw && (uint)raw == expected;
 
     private NetworkListPolicyState ReadPolicyState(PolFile snapshot, string signatureId)
     {

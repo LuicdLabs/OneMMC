@@ -173,6 +173,16 @@ public sealed class NetworkListPolicyNode
     public NetworkListPolicyNodeKind Kind { get; set; }
 
     /// <summary>
+    /// Gets or sets whether this identified network is domain-authenticated.
+    /// </summary>
+    /// <remarks>
+    /// NLA always assigns the Domain location type to such a network, so its location type and location
+    /// user permissions are not configurable; secpol.msc omits the Network Location tab for them.
+    /// Always <see langword="false"/> for the synthetic nodes.
+    /// </remarks>
+    public bool IsDomainAuthenticated { get; set; }
+
+    /// <summary>
     /// Gets or sets the current editable state.
     /// </summary>
     public NetworkListPolicyState State { get; set; } = new();
