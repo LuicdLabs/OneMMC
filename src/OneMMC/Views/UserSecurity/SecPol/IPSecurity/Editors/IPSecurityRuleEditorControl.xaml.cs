@@ -57,7 +57,7 @@ public sealed partial class IPSecurityRuleEditorControl : UserControl
         PopulateReferenceComboBox(FilterListComboBox, filterListNames, rule?.FilterListName);
         PopulateReferenceComboBox(FilterActionComboBox, filterActionNames, rule?.FilterActionName);
         ConnectionTypeComboBox.SelectedIndex = ParseConnectionTypeIndex(rule?.ConnectionType);
-        ActiveCheckBox.IsChecked = rule?.IsActive ?? true;
+        ActiveToggleSwitch.IsOn = rule?.IsActive ?? true;
         UseTunnelToggleSwitch.IsOn = _originallyUsedTunnel;
         TunnelEndpointTextBox.Text = rule?.TunnelEndpoint ?? string.Empty;
 
@@ -95,7 +95,7 @@ public sealed partial class IPSecurityRuleEditorControl : UserControl
             FilterActionName = FilterActionComboBox.SelectedItem as string,
             TunnelEndpoint = GetTunnelEndpoint(),
             ConnectionType = GetConnectionType(),
-            IsActive = ActiveCheckBox.IsChecked == true,
+            IsActive = ActiveToggleSwitch.IsOn,
             AuthenticationMethods = methods
         };
 

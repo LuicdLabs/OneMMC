@@ -2,57 +2,63 @@
 <UserControl
     x:Class="OneMMC.Views.UserSecurity.SecPol.IPSecurity.Editors.IPSecurityFilterEditorControl"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:cwuc="using:CommunityToolkit.WinUI.Controls">
 
     <ScrollViewer
         HorizontalScrollBarVisibility="Disabled"
         VerticalScrollBarVisibility="Auto">
-        <StackPanel MinWidth="500" Spacing="16">
+        <StackPanel MinWidth="560" Spacing="4">
             <InfoBar
                 x:Name="ValidationInfoBar"
+                Margin="0,0,0,8"
                 IsClosable="True"
                 IsOpen="False"
                 Severity="Error" />
 
-            <TextBox
-                x:Name="DescriptionTextBox"
-                AcceptsReturn="True"
-                Header="{x:Bind LocalizedStrings.IPSec_Column_Description}"
-                MaxHeight="100"
-                TextWrapping="Wrap" />
+            <cwuc:SettingsCard
+                ContentAlignment="Vertical"
+                Header="{x:Bind LocalizedStrings.IPSec_Column_Description}">
+                <TextBox
+                    x:Name="DescriptionTextBox"
+                    AcceptsReturn="True"
+                    AutomationProperties.Name="{x:Bind LocalizedStrings.IPSec_Column_Description}"
+                    MaxHeight="100"
+                    TextWrapping="Wrap" />
+            </cwuc:SettingsCard>
 
-            <Grid ColumnSpacing="16" RowSpacing="12">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                </Grid.RowDefinitions>
-
+            <cwuc:SettingsCard Header="{x:Bind LocalizedStrings.IPSec_Editor_SourceAddress}">
                 <TextBox
                     x:Name="SourceAddressTextBox"
-                    Header="{x:Bind LocalizedStrings.IPSec_Editor_SourceAddress}" />
-                <TextBox
-                    x:Name="DestinationAddressTextBox"
-                    Grid.Column="1"
-                    Header="{x:Bind LocalizedStrings.IPSec_Editor_DestinationAddress}" />
+                    MinWidth="220"
+                    AutomationProperties.Name="{x:Bind LocalizedStrings.IPSec_Editor_SourceAddress}" />
+            </cwuc:SettingsCard>
+
+            <cwuc:SettingsCard Header="{x:Bind LocalizedStrings.IPSec_Editor_SourceMask}">
                 <TextBox
                     x:Name="SourceMaskTextBox"
-                    Grid.Row="1"
-                    Header="{x:Bind LocalizedStrings.IPSec_Editor_SourceMask}" />
+                    MinWidth="220"
+                    AutomationProperties.Name="{x:Bind LocalizedStrings.IPSec_Editor_SourceMask}" />
+            </cwuc:SettingsCard>
+
+            <cwuc:SettingsCard Header="{x:Bind LocalizedStrings.IPSec_Editor_DestinationAddress}">
+                <TextBox
+                    x:Name="DestinationAddressTextBox"
+                    MinWidth="220"
+                    AutomationProperties.Name="{x:Bind LocalizedStrings.IPSec_Editor_DestinationAddress}" />
+            </cwuc:SettingsCard>
+
+            <cwuc:SettingsCard Header="{x:Bind LocalizedStrings.IPSec_Editor_DestinationMask}">
                 <TextBox
                     x:Name="DestinationMaskTextBox"
-                    Grid.Row="1"
-                    Grid.Column="1"
-                    Header="{x:Bind LocalizedStrings.IPSec_Editor_DestinationMask}" />
+                    MinWidth="220"
+                    AutomationProperties.Name="{x:Bind LocalizedStrings.IPSec_Editor_DestinationMask}" />
+            </cwuc:SettingsCard>
+
+            <cwuc:SettingsCard Header="{x:Bind LocalizedStrings.IPSec_Editor_Protocol}">
                 <ComboBox
                     x:Name="ProtocolComboBox"
-                    Grid.Row="2"
-                    Header="{x:Bind LocalizedStrings.IPSec_Editor_Protocol}"
+                    MinWidth="160"
                     IsEditable="True">
                     <x:String>ANY</x:String>
                     <x:String>TCP</x:String>
@@ -60,28 +66,33 @@
                     <x:String>ICMP</x:String>
                     <x:String>RAW</x:String>
                 </ComboBox>
-                <CheckBox
-                    x:Name="MirroredCheckBox"
-                    Grid.Row="2"
-                    Grid.Column="1"
-                    VerticalAlignment="Bottom"
-                    Content="{x:Bind LocalizedStrings.IPSec_Editor_Mirrored}" />
+            </cwuc:SettingsCard>
+
+            <cwuc:SettingsCard Header="{x:Bind LocalizedStrings.IPSec_Editor_Mirrored}">
+                <ToggleSwitch
+                    x:Name="MirroredToggleSwitch"
+                    AutomationProperties.Name="{x:Bind LocalizedStrings.IPSec_Editor_Mirrored}"
+                    OffContent="{x:Bind LocalizedStrings.IPSec_Value_No}"
+                    OnContent="{x:Bind LocalizedStrings.IPSec_Value_Yes}" />
+            </cwuc:SettingsCard>
+
+            <cwuc:SettingsCard Header="{x:Bind LocalizedStrings.IPSec_Editor_SourcePort}">
                 <NumberBox
                     x:Name="SourcePortNumberBox"
-                    Grid.Row="3"
-                    Header="{x:Bind LocalizedStrings.IPSec_Editor_SourcePort}"
+                    Width="160"
                     Maximum="65535"
                     Minimum="0"
                     SpinButtonPlacementMode="Compact" />
+            </cwuc:SettingsCard>
+
+            <cwuc:SettingsCard Header="{x:Bind LocalizedStrings.IPSec_Editor_DestinationPort}">
                 <NumberBox
                     x:Name="DestinationPortNumberBox"
-                    Grid.Row="3"
-                    Grid.Column="1"
-                    Header="{x:Bind LocalizedStrings.IPSec_Editor_DestinationPort}"
+                    Width="160"
                     Maximum="65535"
                     Minimum="0"
                     SpinButtonPlacementMode="Compact" />
-            </Grid>
+            </cwuc:SettingsCard>
         </StackPanel>
     </ScrollViewer>
 </UserControl>

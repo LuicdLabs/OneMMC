@@ -5,6 +5,17 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:OneMMC.Views.UserSecurity.SecPol.IPSecurity.Rules">
 
+    <UserControl.Resources>
+        <!--  Status pill used for the rule-active column.  -->
+        <Style x:Key="StatusPillBorderStyle" TargetType="Border">
+            <Setter Property="Background" Value="{ThemeResource CardBackgroundFillColorDefaultBrush}" />
+            <Setter Property="BorderBrush" Value="{ThemeResource CardStrokeColorDefaultBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="10" />
+            <Setter Property="Padding" Value="10,3" />
+        </Style>
+    </UserControl.Resources>
+
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -16,7 +27,8 @@
         <CommandBar
             AutomationProperties.AutomationId="IPSecurityRulesCommandBar"
             Background="Transparent"
-            DefaultLabelPosition="Right">
+            DefaultLabelPosition="Right"
+            OverflowButtonVisibility="Collapsed">
             <AppBarButton
                 x:Name="AddRuleButton"
                 AutomationProperties.AutomationId="IPSecurityAddRuleButton"
@@ -40,15 +52,16 @@
         <InfoBar
             x:Name="ErrorInfoBar"
             Grid.Row="1"
-            Margin="4,0,4,12"
+            Margin="0,4,0,8"
             IsClosable="True"
             IsOpen="False"
             Severity="Error"
             Title="{x:Bind LocalizedStrings.Common_ErrorTitle}" />
 
+        <!--  Column headers: caption/tertiary per the Win11 type ramp, aligned with the item template inset.  -->
         <Grid
             Grid.Row="2"
-            Margin="12,0,20,4"
+            Margin="12,4,12,4"
             ColumnSpacing="16">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="2*" />
@@ -59,28 +72,38 @@
             </Grid.ColumnDefinitions>
             <TextBlock
                 FontWeight="SemiBold"
+                Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                Style="{StaticResource CaptionTextBlockStyle}"
                 Text="{x:Bind LocalizedStrings.IPSec_Column_Name}"
-                TextWrapping="WrapWholeWords" />
+                TextTrimming="CharacterEllipsis" />
             <TextBlock
                 Grid.Column="1"
                 FontWeight="SemiBold"
+                Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                Style="{StaticResource CaptionTextBlockStyle}"
                 Text="{x:Bind LocalizedStrings.IPSec_Editor_RuleFilterList}"
-                TextWrapping="WrapWholeWords" />
+                TextTrimming="CharacterEllipsis" />
             <TextBlock
                 Grid.Column="2"
                 FontWeight="SemiBold"
+                Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                Style="{StaticResource CaptionTextBlockStyle}"
                 Text="{x:Bind LocalizedStrings.IPSec_Editor_RuleFilterAction}"
-                TextWrapping="WrapWholeWords" />
+                TextTrimming="CharacterEllipsis" />
             <TextBlock
                 Grid.Column="3"
                 FontWeight="SemiBold"
+                Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                Style="{StaticResource CaptionTextBlockStyle}"
                 Text="{x:Bind LocalizedStrings.IPSec_Editor_ConnectionType}"
-                TextWrapping="WrapWholeWords" />
+                TextTrimming="CharacterEllipsis" />
             <TextBlock
                 Grid.Column="4"
                 FontWeight="SemiBold"
+                Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                Style="{StaticResource CaptionTextBlockStyle}"
                 Text="{x:Bind LocalizedStrings.IPSec_Editor_RuleActive}"
-                TextWrapping="WrapWholeWords" />
+                TextTrimming="CharacterEllipsis" />
         </Grid>
 
         <ListView
@@ -88,13 +111,22 @@
             AutomationProperties.AutomationId="IPSecurityRulesList"
             Grid.Row="3"
             DoubleTapped="RulesListView_DoubleTapped"
-            Padding="0,4,8,8"
+            Padding="0,4,0,4"
             SelectionChanged="RulesListView_SelectionChanged"
             SelectionMode="Single">
+            <ListView.ItemContainerStyle>
+                <Style TargetType="ListViewItem">
+                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                    <Setter Property="Margin" Value="0,0,0,4" />
+                    <Setter Property="MinHeight" Value="56" />
+                    <Setter Property="Padding" Value="0" />
+                </Style>
+            </ListView.ItemContainerStyle>
             <ListView.ItemTemplate>
                 <DataTemplate x:DataType="local:IPSecurityRuleListItem">
                     <Grid
                         MinHeight="56"
+                        Padding="12,8,12,8"
                         ColumnSpacing="16">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="2*" />
@@ -103,36 +135,58 @@
                             <ColumnDefinition Width="1.4*" />
                             <ColumnDefinition Width="1.2*" />
                         </Grid.ColumnDefinitions>
-                        <TextBlock
+                        <StackPanel
                             VerticalAlignment="Center"
-                            Text="{x:Bind Name}"
-                            TextTrimming="CharacterEllipsis"
-                            ToolTipService.ToolTip="{x:Bind Description}" />
+                            Orientation="Horizontal"
+                            Spacing="12">
+                            <FontIcon
+                                FontSize="16"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Glyph="&#xE9D9;" />
+                            <TextBlock
+                                VerticalAlignment="Center"
+                                Style="{StaticResource BodyStrongTextBlockStyle}"
+                                Text="{x:Bind Name}"
+                                TextTrimming="CharacterEllipsis"
+                                TextWrapping="NoWrap"
+                                ToolTipService.ToolTip="{x:Bind Description}" />
+                        </StackPanel>
                         <TextBlock
                             Grid.Column="1"
                             VerticalAlignment="Center"
-                            Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Style="{StaticResource CaptionTextBlockStyle}"
                             Text="{x:Bind FilterListName}"
                             TextTrimming="CharacterEllipsis"
+                            TextWrapping="NoWrap"
                             ToolTipService.ToolTip="{x:Bind FilterListName}" />
                         <TextBlock
                             Grid.Column="2"
                             VerticalAlignment="Center"
-                            Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}"
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Style="{StaticResource CaptionTextBlockStyle}"
                             Text="{x:Bind FilterActionName}"
                             TextTrimming="CharacterEllipsis"
+                            TextWrapping="NoWrap"
                             ToolTipService.ToolTip="{x:Bind FilterActionName}" />
                         <TextBlock
                             Grid.Column="3"
                             VerticalAlignment="Center"
+                            Style="{StaticResource CaptionTextBlockStyle}"
                             Text="{x:Bind ConnectionTypeDisplay}"
                             TextTrimming="CharacterEllipsis"
+                            TextWrapping="NoWrap"
                             ToolTipService.ToolTip="{x:Bind ConnectionTypeDisplay}" />
-                        <TextBlock
+                        <Border
                             Grid.Column="4"
-                            HorizontalAlignment="Center"
+                            HorizontalAlignment="Left"
                             VerticalAlignment="Center"
-                            Text="{x:Bind ActiveDisplay}" />
+                            Style="{StaticResource StatusPillBorderStyle}">
+                            <TextBlock
+                                Style="{StaticResource CaptionTextBlockStyle}"
+                                Text="{x:Bind ActiveDisplay}"
+                                TextTrimming="CharacterEllipsis" />
+                        </Border>
                     </Grid>
                 </DataTemplate>
             </ListView.ItemTemplate>
@@ -141,8 +195,8 @@
         <ProgressRing
             x:Name="BusyProgressRing"
             Grid.RowSpan="4"
-            Width="52"
-            Height="52"
+            Width="44"
+            Height="44"
             HorizontalAlignment="Center"
             VerticalAlignment="Center"
             IsActive="False"

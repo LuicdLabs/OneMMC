@@ -8,102 +8,109 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
+    <Page.Resources>
+        <!--  Status pill used for the "Policy Assigned" column and other compact values.  -->
+        <Style x:Key="StatusPillBorderStyle" TargetType="Border">
+            <Setter Property="Background" Value="{ThemeResource CardBackgroundFillColorDefaultBrush}" />
+            <Setter Property="BorderBrush" Value="{ThemeResource CardStrokeColorDefaultBrush}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="10" />
+            <Setter Property="Padding" Value="10,3" />
+        </Style>
+    </Page.Resources>
+
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
+        <!--  Primary: high-frequency CRUD + rules. Secondary: contextual/utility commands in the "…" More flyout.  -->
         <CommandBar
             Grid.Row="0"
+            Margin="24,8,24,0"
             AutomationProperties.AutomationId="IPSecurityCommandBar"
             DefaultLabelPosition="Right">
-            <AppBarButton
-                AutomationProperties.AutomationId="IPSecurityNewButton"
-                Click="NewItemButton_Click"
-                Icon="Add"
-                IsEnabled="{x:Bind ViewModel.CanCreateItem, Mode=OneWay}"
-                Label="{x:Bind LocalizedStrings.IPSec_Command_New}" />
-            <AppBarButton
-                AutomationProperties.AutomationId="IPSecurityEditButton"
-                Click="EditItemButton_Click"
-                Icon="Edit"
-                IsEnabled="{x:Bind ViewModel.CanEditSelectedItem, Mode=OneWay}"
-                Label="{x:Bind LocalizedStrings.IPSec_Command_Edit}" />
-            <AppBarButton
-                AutomationProperties.AutomationId="IPSecurityDeleteButton"
-                Click="DeleteItemButton_Click"
-                Icon="Delete"
-                IsEnabled="{x:Bind ViewModel.CanDeleteSelectedItem, Mode=OneWay}"
-                Label="{x:Bind LocalizedStrings.IPSec_Command_Delete}" />
-            <AppBarSeparator />
-            <AppBarButton
-                AutomationProperties.AutomationId="IPSecurityAssignButton"
-                Click="AssignPolicyButton_Click"
-                IsEnabled="{x:Bind ViewModel.CanAssignSelectedPolicy, Mode=OneWay}"
-                Label="{x:Bind LocalizedStrings.IPSec_Command_Assign}">
-                <AppBarButton.Icon>
-                    <FontIcon Glyph="&#xE73E;" />
-                </AppBarButton.Icon>
-            </AppBarButton>
-            <AppBarButton
-                AutomationProperties.AutomationId="IPSecurityUnassignButton"
-                Click="UnassignPolicyButton_Click"
-                IsEnabled="{x:Bind ViewModel.CanUnassignSelectedPolicy, Mode=OneWay}"
-                Label="{x:Bind LocalizedStrings.IPSec_Command_Unassign}">
-                <AppBarButton.Icon>
-                    <FontIcon Glyph="&#xE711;" />
-                </AppBarButton.Icon>
-            </AppBarButton>
-            <AppBarButton
-                AutomationProperties.AutomationId="IPSecurityManageRulesButton"
-                Click="ManageRulesButton_Click"
-                Icon="Bullets"
-                IsEnabled="{x:Bind ViewModel.CanManageSelectedPolicyRules, Mode=OneWay}"
-                Label="{x:Bind LocalizedStrings.IPSec_Command_ManageRules}" />
-            <AppBarSeparator />
-            <AppBarButton
-                AutomationProperties.AutomationId="IPSecurityManageFiltersActionsButton"
-                Click="ManageFiltersActionsButton_Click"
-                Icon="List"
-                Label="{x:Bind LocalizedStrings.IPSec_Command_ManageFiltersActions}" />
-            <AppBarButton
-                AutomationProperties.AutomationId="IPSecurityViewDetailsButton"
-                Click="ViewDetailsButton_Click"
-                IsEnabled="{x:Bind ViewModel.CanViewSelectedPolicyDetails, Mode=OneWay}"
-                Label="{x:Bind LocalizedStrings.IPSec_Command_ViewDetails}">
-                <AppBarButton.Icon>
-                    <FontIcon Glyph="&#xE8A5;" />
-                </AppBarButton.Icon>
-            </AppBarButton>
-            <AppBarButton
-                AutomationProperties.AutomationId="IPSecurityRefreshButton"
-                Click="RefreshButton_Click"
-                Icon="Refresh"
-                Label="{x:Bind LocalizedStrings.Common_Refresh}" />
+            <CommandBar.PrimaryCommands>
+                <AppBarButton
+                    AutomationProperties.AutomationId="IPSecurityNewButton"
+                    Click="NewItemButton_Click"
+                    Icon="Add"
+                    IsEnabled="{x:Bind ViewModel.CanCreateItem, Mode=OneWay}"
+                    Label="{x:Bind LocalizedStrings.IPSec_Command_New}" />
+                <AppBarButton
+                    AutomationProperties.AutomationId="IPSecurityEditButton"
+                    Click="EditItemButton_Click"
+                    Icon="Edit"
+                    IsEnabled="{x:Bind ViewModel.CanEditSelectedItem, Mode=OneWay}"
+                    Label="{x:Bind LocalizedStrings.IPSec_Command_Edit}" />
+                <AppBarButton
+                    AutomationProperties.AutomationId="IPSecurityDeleteButton"
+                    Click="DeleteItemButton_Click"
+                    Icon="Delete"
+                    IsEnabled="{x:Bind ViewModel.CanDeleteSelectedItem, Mode=OneWay}"
+                    Label="{x:Bind LocalizedStrings.IPSec_Command_Delete}" />
+                <AppBarSeparator />
+                <AppBarButton
+                    AutomationProperties.AutomationId="IPSecurityManageRulesButton"
+                    Click="ManageRulesButton_Click"
+                    Icon="Bullets"
+                    IsEnabled="{x:Bind ViewModel.CanManageSelectedPolicyRules, Mode=OneWay}"
+                    Label="{x:Bind LocalizedStrings.IPSec_Command_ManageRules}" />
+            </CommandBar.PrimaryCommands>
+            <CommandBar.SecondaryCommands>
+                <AppBarButton
+                    AutomationProperties.AutomationId="IPSecurityAssignButton"
+                    Click="AssignPolicyButton_Click"
+                    IsEnabled="{x:Bind ViewModel.CanAssignSelectedPolicy, Mode=OneWay}"
+                    Label="{x:Bind LocalizedStrings.IPSec_Command_Assign}">
+                    <AppBarButton.Icon>
+                        <FontIcon Glyph="&#xE73E;" />
+                    </AppBarButton.Icon>
+                </AppBarButton>
+                <AppBarButton
+                    AutomationProperties.AutomationId="IPSecurityUnassignButton"
+                    Click="UnassignPolicyButton_Click"
+                    IsEnabled="{x:Bind ViewModel.CanUnassignSelectedPolicy, Mode=OneWay}"
+                    Label="{x:Bind LocalizedStrings.IPSec_Command_Unassign}">
+                    <AppBarButton.Icon>
+                        <FontIcon Glyph="&#xE711;" />
+                    </AppBarButton.Icon>
+                </AppBarButton>
+                <AppBarButton
+                    AutomationProperties.AutomationId="IPSecurityManageFiltersActionsButton"
+                    Click="ManageFiltersActionsButton_Click"
+                    Icon="List"
+                    Label="{x:Bind LocalizedStrings.IPSec_Command_ManageFiltersActions}" />
+                <AppBarButton
+                    AutomationProperties.AutomationId="IPSecurityViewDetailsButton"
+                    Click="ViewDetailsButton_Click"
+                    IsEnabled="{x:Bind ViewModel.CanViewSelectedPolicyDetails, Mode=OneWay}"
+                    Label="{x:Bind LocalizedStrings.IPSec_Command_ViewDetails}">
+                    <AppBarButton.Icon>
+                        <FontIcon Glyph="&#xE8A5;" />
+                    </AppBarButton.Icon>
+                </AppBarButton>
+                <AppBarButton
+                    AutomationProperties.AutomationId="IPSecurityRefreshButton"
+                    Click="RefreshButton_Click"
+                    Icon="Refresh"
+                    Label="{x:Bind LocalizedStrings.Common_Refresh}" />
+            </CommandBar.SecondaryCommands>
         </CommandBar>
 
         <InfoBar
             x:Name="ErrorInfoBar"
-            Title="{x:Bind LocalizedStrings.Common_ErrorTitle}"
             Grid.Row="1"
-            Margin="24,0,24,12"
+            Margin="24,4,24,4"
             IsClosable="True"
             IsOpen="{x:Bind ViewModel.HasError, Mode=OneWay}"
             Message="{x:Bind ViewModel.ErrorMessage, Mode=OneWay}"
-            Severity="Error" />
+            Severity="Error"
+            Title="{x:Bind LocalizedStrings.Common_ErrorTitle}" />
 
-        <TextBlock
-            Grid.Row="2"
-            Margin="24,0,24,12"
-            Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}"
-            Style="{StaticResource CaptionTextBlockStyle}"
-            Text="{x:Bind LocalizedStrings.IPSec_PageDescription}"
-            TextWrapping="Wrap" />
-
-        <Grid Grid.Row="3">
+        <Grid Grid.Row="2">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
@@ -114,86 +121,122 @@
                 x:Name="SearchBox"
                 AutomationProperties.AutomationId="IPSecuritySearchBox"
                 MaxWidth="320"
-                Margin="16,0,16,8"
+                Margin="24,8,24,4"
                 HorizontalAlignment="Right"
                 PlaceholderText="{x:Bind LocalizedStrings.Common_SearchPlaceholder}"
                 QueryIcon="Find"
                 TextChanged="SearchBox_TextChanged" />
 
+            <!--  Column headers: caption/tertiary per the Win11 type ramp, aligned with the item template inset.  -->
             <Grid
                 Grid.Row="1"
-                Margin="16,0,16,0"
+                Margin="36,4,36,4"
                 ColumnSpacing="16">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="2*" />
                     <ColumnDefinition Width="3*" />
-                    <ColumnDefinition Width="2*" />
-                    <ColumnDefinition Width="2*" />
+                    <ColumnDefinition Width="1.6*" />
+                    <ColumnDefinition Width="1.4*" />
                 </Grid.ColumnDefinitions>
                 <TextBlock
                     FontWeight="SemiBold"
+                    Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                    Style="{StaticResource CaptionTextBlockStyle}"
                     Text="{x:Bind LocalizedStrings.IPSec_Column_Name}"
-                    TextWrapping="WrapWholeWords" />
+                    TextTrimming="CharacterEllipsis" />
                 <TextBlock
                     Grid.Column="1"
                     FontWeight="SemiBold"
+                    Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                    Style="{StaticResource CaptionTextBlockStyle}"
                     Text="{x:Bind LocalizedStrings.IPSec_Column_Description}"
-                    TextWrapping="WrapWholeWords" />
+                    TextTrimming="CharacterEllipsis" />
                 <TextBlock
                     Grid.Column="2"
                     FontWeight="SemiBold"
+                    Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                    Style="{StaticResource CaptionTextBlockStyle}"
                     Text="{x:Bind LocalizedStrings.IPSec_Column_PolicyAssigned}"
-                    TextWrapping="WrapWholeWords" />
+                    TextTrimming="CharacterEllipsis" />
                 <TextBlock
                     Grid.Column="3"
                     FontWeight="SemiBold"
+                    Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                    Style="{StaticResource CaptionTextBlockStyle}"
                     Text="{x:Bind LocalizedStrings.IPSec_Column_LastModified}"
-                    TextWrapping="WrapWholeWords" />
+                    TextTrimming="CharacterEllipsis" />
             </Grid>
 
             <ListView
                 x:Name="PolicyListView"
                 AutomationProperties.AutomationId="IPSecurityItemsList"
                 Grid.Row="2"
-                Padding="4,8,12,12"
                 DoubleTapped="PolicyListView_DoubleTapped"
                 ItemsSource="{x:Bind ViewModel.Items, Mode=OneWay}"
+                Padding="24,4,24,12"
                 SelectedItem="{x:Bind ViewModel.SelectedPolicy, Mode=TwoWay}"
                 SelectionMode="Single">
+                <ListView.ItemContainerStyle>
+                    <Style TargetType="ListViewItem">
+                        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                        <Setter Property="Margin" Value="0,0,0,4" />
+                        <Setter Property="MinHeight" Value="60" />
+                        <Setter Property="Padding" Value="0" />
+                    </Style>
+                </ListView.ItemContainerStyle>
                 <ListView.ItemTemplate>
                     <DataTemplate x:DataType="ipsec:IPSecurityPolicyRow">
-                        <Grid MinHeight="48" ColumnSpacing="16">
+                        <Grid
+                            MinHeight="60"
+                            Padding="12,8,12,8"
+                            ColumnSpacing="16"
+                            VerticalAlignment="Stretch">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="2*" />
                                 <ColumnDefinition Width="3*" />
-                                <ColumnDefinition Width="2*" />
-                                <ColumnDefinition Width="2*" />
+                                <ColumnDefinition Width="1.6*" />
+                                <ColumnDefinition Width="1.4*" />
                             </Grid.ColumnDefinitions>
-                            <TextBlock
+                            <StackPanel
                                 VerticalAlignment="Center"
-                                Text="{x:Bind Name}"
-                                TextTrimming="CharacterEllipsis"
-                                TextWrapping="NoWrap"
-                                ToolTipService.ToolTip="{x:Bind Name}" />
+                                Orientation="Horizontal"
+                                Spacing="12">
+                                <FontIcon
+                                    FontSize="16"
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Glyph="&#xE705;" />
+                                <TextBlock
+                                    VerticalAlignment="Center"
+                                    Style="{StaticResource BodyStrongTextBlockStyle}"
+                                    Text="{x:Bind Name}"
+                                    TextTrimming="CharacterEllipsis"
+                                    TextWrapping="NoWrap"
+                                    ToolTipService.ToolTip="{x:Bind Name}" />
+                            </StackPanel>
                             <TextBlock
                                 Grid.Column="1"
                                 VerticalAlignment="Center"
-                                Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{StaticResource CaptionTextBlockStyle}"
                                 Text="{x:Bind Description}"
                                 TextTrimming="CharacterEllipsis"
                                 TextWrapping="NoWrap"
                                 ToolTipService.ToolTip="{x:Bind Description}" />
-                            <TextBlock
+                            <Border
                                 Grid.Column="2"
+                                HorizontalAlignment="Left"
                                 VerticalAlignment="Center"
-                                Text="{x:Bind PolicyAssigned}"
-                                TextTrimming="CharacterEllipsis"
-                                TextWrapping="NoWrap"
-                                ToolTipService.ToolTip="{x:Bind PolicyAssigned}" />
+                                Style="{StaticResource StatusPillBorderStyle}">
+                                <TextBlock
+                                    Style="{StaticResource CaptionTextBlockStyle}"
+                                    Text="{x:Bind PolicyAssigned}"
+                                    TextTrimming="CharacterEllipsis" />
+                            </Border>
                             <TextBlock
                                 Grid.Column="3"
                                 VerticalAlignment="Center"
-                                Foreground="{ThemeResource SystemControlForegroundBaseMediumBrush}"
+                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Style="{StaticResource CaptionTextBlockStyle}"
                                 Text="{x:Bind LastModified}"
                                 TextTrimming="CharacterEllipsis"
                                 TextWrapping="NoWrap"
@@ -203,28 +246,40 @@
                 </ListView.ItemTemplate>
             </ListView>
 
+            <!--  Empty state  -->
             <StackPanel
                 Grid.Row="2"
                 MaxWidth="420"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center"
-                Spacing="12"
+                Spacing="16"
                 Visibility="{x:Bind ViewModel.IsEmpty, Mode=OneWay, Converter={StaticResource BoolToVisibilityConverter}}">
-                <FontIcon
+                <Border
+                    Width="64"
+                    Height="64"
                     HorizontalAlignment="Center"
-                    FontSize="32"
-                    Glyph="&#xE946;" />
+                    Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="32">
+                    <FontIcon
+                        FontSize="28"
+                        Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                        Glyph="&#xE705;" />
+                </Border>
                 <TextBlock
                     HorizontalAlignment="Center"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    Style="{StaticResource BodyTextBlockStyle}"
                     Text="{x:Bind ViewModel.EmptyMessage, Mode=OneWay}"
                     TextAlignment="Center"
                     TextWrapping="Wrap" />
             </StackPanel>
 
             <ProgressRing
-                Grid.RowSpan="3"
-                Width="50"
-                Height="50"
+                Grid.Row="2"
+                Width="44"
+                Height="44"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center"
                 IsActive="{x:Bind ViewModel.IsLoading, Mode=OneWay}" />
