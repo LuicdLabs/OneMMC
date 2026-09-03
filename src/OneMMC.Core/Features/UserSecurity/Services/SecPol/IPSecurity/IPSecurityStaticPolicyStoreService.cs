@@ -80,12 +80,14 @@ public sealed class IPSecurityStaticPolicyStoreService
         // Build GUID→name maps first so NFA rule references can be resolved.
         Dictionary<Guid, string> filterNamesByGuid = [];
         Dictionary<Guid, string> negPolNamesByGuid = [];
+        Dictionary<Guid, IPSecurityFilterActionDefinition> negPolsByGuid = [];
 
         List<IPSecurityFilterListDefinition> filterLists = EnumFilterLists(hStore, filterNamesByGuid);
-        List<IPSecurityFilterActionDefinition> filterActions = EnumFilterActions(hStore, negPolNamesByGuid);
+        List<IPSecurityFilterActionDefinition> filterActions = EnumFilterActions(
+            hStore, negPolNamesByGuid, negPolsByGuid);
         List<IpsecIsakmpData> mainModeObjects = EnumMainModeObjects(hStore);
         List<IPSecurityPolicyDefinition> policies = EnumPolicies(
-            hStore, activePolicyGuid, filterNamesByGuid, negPolNamesByGuid, mainModeObjects);
+            hStore, activePolicyGuid, filterNamesByGuid, negPolNamesByGuid, negPolsByGuid, mainModeObjects);
 
         return new IPSecurityStaticStoreSnapshot
         {
@@ -172,6 +174,7 @@ public sealed class IPSecurityStaticPolicyStoreService
         Guid? activePolicyGuid,
         Dictionary<Guid, string> filterNames,
         Dictionary<Guid, string> negPolNames,
+        Dictionary<Guid, IPSecurityFilterActionDefinition> negPols,
         List<IpsecIsakmpData> mainModeObjects)
     {
         (IntPtr pp, int count) = EnumData(
@@ -192,7 +195,7 @@ public sealed class IPSecurityStaticPolicyStoreService
             int whenChanged = Marshal.ReadInt32(p, 44);
 
             List<IPSecurityRuleDefinition> rules = EnumRulesForPolicy(
-                hStore, id, name, filterNames, negPolNames);
+                hStore, id, name, filterNames, negPolNames, negPols);
 
             IpsecPolicyData policyData;
             unsafe { policyData = *(IpsecPolicyData*)p; }
@@ -242,7 +245,8 @@ public sealed class IPSecurityStaticPolicyStoreService
         Guid policyId,
         string policyName,
         Dictionary<Guid, string> filterNames,
-        Dictionary<Guid, string> negPolNames)
+        Dictionary<Guid, string> negPolNames,
+        Dictionary<Guid, IPSecurityFilterActionDefinition> negPols)
     {
         IntPtr ppp = Marshal.AllocHGlobal(IntPtr.Size);
         IntPtr pCount = Marshal.AllocHGlobal(4);
@@ -262,7 +266,7 @@ public sealed class IPSecurityStaticPolicyStoreService
                 IntPtr p = Marshal.ReadIntPtr(pp, IntPtr.Size * i);
                 if (p == IntPtr.Zero) continue;
 
-                rules.Add(ReadNfaData(p, policyName, filterNames, negPolNames));
+                rules.Add(ReadNfaData(p, policyName, filterNames, negPolNames, negPols));
             }
 
             return rules;
@@ -279,21 +283,26 @@ public sealed class IPSecurityStaticPolicyStoreService
         IntPtr p,
         string policyName,
         Dictionary<Guid, string> filterNames,
-        Dictionary<Guid, string> negPolNames)
+        Dictionary<Guid, string> negPolNames,
+        Dictionary<Guid, IPSecurityFilterActionDefinition> negPols)
     {
         IpsecNfaData nfa;
         unsafe { nfa = *(IpsecNfaData*)p; }
 
         filterNames.TryGetValue(nfa.FilterIdentifier, out string? filterListName);
         negPolNames.TryGetValue(nfa.NegPolIdentifier, out string? filterActionName);
+        negPols.TryGetValue(nfa.NegPolIdentifier, out IPSecurityFilterActionDefinition? filterAction);
 
         return new IPSecurityRuleDefinition
         {
+            Identifier = nfa.NfaIdentifier,
+            IsDefaultResponseRule = nfa.FilterIdentifier == Guid.Empty,
             Name = ReadNativeString(nfa.Name),
             PolicyName = policyName,
             Description = ReadNativeString(nfa.Description),
             FilterListName = filterListName ?? string.Empty,
             FilterActionName = filterActionName ?? string.Empty,
+            FilterAction = filterAction,
             ConnectionType = DescribeInterfaceType(nfa.InterfaceType),
             IsActive = nfa.ActiveFlag != 0,
             AuthenticationMethods = ReadAuthMethods(nfa)
@@ -327,15 +336,23 @@ public sealed class IPSecurityStaticPolicyStoreService
                 _ => IPSecurityAuthenticationMethodKind.Kerberos
             };
 
-            // The pre-shared key itself is never surfaced; only certificate subjects are shown.
-            string detail = kind == IPSecurityAuthenticationMethodKind.CertificateAuthority
+            // The pre-shared key itself is never surfaced. Certificate command flags are encoded
+            // by the reference writer as suffixes on the CA value.
+            string rawDetail = kind == IPSecurityAuthenticationMethodKind.CertificateAuthority
                 ? ReadNativeString(method.AuthMethodValue)
                 : string.Empty;
+            bool certMap = rawDetail.EndsWith(" certmap:yes excludecaname:no", StringComparison.OrdinalIgnoreCase)
+                || rawDetail.EndsWith(" certmap:yes excludecaname:yes", StringComparison.OrdinalIgnoreCase);
+            bool excludeCaName = rawDetail.EndsWith(" excludecaname:yes", StringComparison.OrdinalIgnoreCase);
+            int flagsIndex = rawDetail.IndexOf(" certmap:", StringComparison.OrdinalIgnoreCase);
+            string detail = flagsIndex >= 0 ? rawDetail[..flagsIndex] : rawDetail;
 
             methods.Add(new IPSecurityAuthenticationMethodDefinition
             {
                 Kind = kind,
-                Detail = detail
+                Detail = detail,
+                EnableCertificateToAccountMapping = certMap,
+                ExcludeCertificateAuthorityName = excludeCaName
             });
         }
 
@@ -461,7 +478,8 @@ public sealed class IPSecurityStaticPolicyStoreService
     /// <remarks>See <see cref="IpsecNegPolData"/> for the layout.</remarks>
     private List<IPSecurityFilterActionDefinition> EnumFilterActions(
         IntPtr hStore,
-        Dictionary<Guid, string> guidToName)
+        Dictionary<Guid, string> guidToName,
+        Dictionary<Guid, IPSecurityFilterActionDefinition> definitionsByGuid)
     {
         (IntPtr pp, int count) = EnumData(
             hStore, IPSecurityPolicyNativeMethods.EnumNegPolData);
@@ -475,28 +493,25 @@ public sealed class IPSecurityStaticPolicyStoreService
 
             Guid id = ReadGuid(p, 0);
             string name = ReadString(p, 72);
-            if (string.IsNullOrEmpty(name)) continue;
-
-            guidToName[id] = name;
-
             IpsecNegPolData negPol;
             unsafe { negPol = *(IpsecNegPolData*)p; }
 
             Guid actionGuid = ReadGuid(p, 16);
+            bool negotiateWithInboundPassthrough =
+                actionGuid == IPSecurityPolicyLayout.ActionNegotiateAcceptUnsecuredInbound
+                && negPol.NegPolType == IPSecurityPolicyLayout.NegPolTypeNegotiate;
             IPSecurityFilterActionKind action = actionGuid == NegPolActionBlock
                 ? IPSecurityFilterActionKind.Block
                 : actionGuid == NegPolActionNegotiate
-                    || actionGuid == IPSecurityPolicyLayout.ActionNegotiateAcceptUnsecuredInbound
+                    || negotiateWithInboundPassthrough
                     ? IPSecurityFilterActionKind.Negotiate
                     : IPSecurityFilterActionKind.Permit;
 
-            bool acceptUnsecuredInbound =
-                action == IPSecurityFilterActionKind.Negotiate
-                && actionGuid == IPSecurityPolicyLayout.ActionNegotiateAcceptUnsecuredInbound;
+            bool acceptUnsecuredInbound = negotiateWithInboundPassthrough;
             bool hasTerminator = HasSoftTerminator(negPol);
             bool quickModePfs = ReadQuickModePfs(negPol);
 
-            actions.Add(new IPSecurityFilterActionDefinition
+            var definition = new IPSecurityFilterActionDefinition
             {
                 Name = name,
                 Description = ReadString(p, 80),
@@ -505,7 +520,15 @@ public sealed class IPSecurityStaticPolicyStoreService
                 AcceptUnsecuredInbound = acceptUnsecuredInbound,
                 AllowUnsecuredFallback = hasTerminator,
                 QuickModeSecurityMethods = FormatQuickModeMethods(negPol, hasTerminator)
-            });
+            };
+            definitionsByGuid[id] = definition;
+
+            // Only named actions are shared and therefore belong in the Manage Filter Actions list.
+            if (!string.IsNullOrEmpty(name))
+            {
+                guidToName[id] = name;
+                actions.Add(definition);
+            }
         }
 
         return actions;

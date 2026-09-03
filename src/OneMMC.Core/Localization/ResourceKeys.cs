@@ -660,6 +660,8 @@ public static class IPSecurityPolicyKeys
 
     /// <summary>Resource key for <c>IPSec_Editor_NoRules</c>.</summary>
     public const string EditorNoRules = "IPSec_Editor_NoRules";
+    public const string RuleDynamic = "IPSec_Rule_Dynamic";
+    public const string RuleDefaultResponse = "IPSec_Rule_DefaultResponse";
     public const string EditorFilters = "IPSec_Editor_Filters";
     public const string EditorAddFilterTitle = "IPSec_Editor_AddFilterTitle";
     public const string EditorEditFilterTitle = "IPSec_Editor_EditFilterTitle";

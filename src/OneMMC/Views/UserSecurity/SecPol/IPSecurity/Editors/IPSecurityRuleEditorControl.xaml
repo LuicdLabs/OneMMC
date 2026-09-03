@@ -16,6 +16,7 @@
                 IsOpen="False"
                 Severity="Error" />
 
+            <StackPanel x:Name="NormalRulePanel" Spacing="16">
             <Grid ColumnSpacing="16">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
@@ -86,6 +87,22 @@
                     x:Name="TunnelEndpointTextBox"
                     AutomationProperties.Name="{x:Bind LocalizedStrings.IPSec_Editor_TunnelEndpoint}"
                     Header="{x:Bind LocalizedStrings.IPSec_Editor_TunnelEndpoint}" />
+            </StackPanel>
+            </StackPanel>
+
+            <StackPanel
+                x:Name="DefaultResponseSecurityPanel"
+                Spacing="16"
+                Visibility="Collapsed">
+                <ToggleSwitch
+                    x:Name="DefaultResponsePfsToggleSwitch"
+                    Header="{x:Bind LocalizedStrings.IPSec_Editor_QuickModePfs}"
+                    OffContent="{x:Bind LocalizedStrings.IPSec_Value_No}"
+                    OnContent="{x:Bind LocalizedStrings.IPSec_Value_Yes}" />
+                <local:IPSecuritySecurityMethodsEditorControl
+                    x:Name="DefaultResponseMethodsEditor"
+                    Header="{x:Bind LocalizedStrings.IPSec_Editor_QuickModeMethods, Mode=OneTime}"
+                    MethodMode="QuickMode" />
             </StackPanel>
 
             <TextBlock

@@ -326,6 +326,8 @@ namespace OneMMC.Localization
 
         /// <summary>Gets the localized <c>IPSec_Editor_NoRules</c> string.</summary>
         public string IPSec_Editor_NoRules => GetResource(ResourceFileNames.SecPol, IPSecurityPolicyKeys.EditorNoRules);
+        public string IPSec_Rule_Dynamic => GetResource(ResourceFileNames.SecPol, IPSecurityPolicyKeys.RuleDynamic);
+        public string IPSec_Rule_DefaultResponse => GetResource(ResourceFileNames.SecPol, IPSecurityPolicyKeys.RuleDefaultResponse);
 
         /// <summary>Gets the localized <c>IPSec_Empty_FilterLists</c> string.</summary>
         public string IPSec_Empty_FilterLists => GetResource(ResourceFileNames.SecPol, IPSecurityPolicyKeys.EmptyFilterLists);

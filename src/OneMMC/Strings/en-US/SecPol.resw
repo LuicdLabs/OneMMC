@@ -2185,4 +2185,10 @@ Do you want to install this certificate?</value>
   <data name="IPSec_Editor_NoRules" xml:space="preserve">
     <value>No rules yet. Add one to describe traffic this policy secures.</value>
   </data>
+  <data name="IPSec_Rule_Dynamic" xml:space="preserve">
+    <value>&lt;Dynamic&gt;</value>
+  </data>
+  <data name="IPSec_Rule_DefaultResponse" xml:space="preserve">
+    <value>Default response</value>
+  </data>
 </root>

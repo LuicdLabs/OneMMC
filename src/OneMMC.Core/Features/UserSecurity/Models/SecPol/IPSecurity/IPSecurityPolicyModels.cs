@@ -150,6 +150,12 @@ public sealed class IPSecurityPolicyDefinition
 /// </summary>
 public sealed class IPSecurityRuleDefinition
 {
+    /// <summary>The native NFA identifier used for unnamed rules such as default response.</summary>
+    public Guid Identifier { get; init; }
+
+    /// <summary>Indicates whether this is the policy's dynamic default response rule.</summary>
+    public bool IsDefaultResponseRule { get; init; }
+
     /// <summary>The rule name.</summary>
     public string Name { get; init; } = string.Empty;
 
@@ -164,6 +170,11 @@ public sealed class IPSecurityRuleDefinition
 
     /// <summary>The referenced filter action name.</summary>
     public string FilterActionName { get; init; } = string.Empty;
+
+    /// <summary>
+    /// The resolved filter action, including unnamed rule-owned negotiation policies.
+    /// </summary>
+    public IPSecurityFilterActionDefinition? FilterAction { get; init; }
 
     /// <summary>The optional tunnel endpoint.</summary>
     public string TunnelEndpoint { get; init; } = string.Empty;

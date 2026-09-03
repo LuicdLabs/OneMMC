@@ -128,8 +128,11 @@ public sealed class IPSecurityPolicyService
     {
         return string.Join(
             Environment.NewLine,
-            rules.Select(static rule =>
-                $"{rule.Name}: {rule.FilterListName} -> {rule.FilterActionName} ({rule.ConnectionType})"));
+            rules.Select(static rule => rule.IsDefaultResponseRule
+                ? $"{GetString(IPSecurityPolicyKeys.RuleDynamic)}: "
+                    + $"{GetString(IPSecurityPolicyKeys.RuleDynamic)} -> "
+                    + $"{GetString(IPSecurityPolicyKeys.RuleDefaultResponse)} ({rule.ConnectionType})"
+                : $"{rule.Name}: {rule.FilterListName} -> {rule.FilterActionName} ({rule.ConnectionType})"));
     }
 
     private static string FormatFilters(IReadOnlyList<IPSecurityFilterDefinition> filters)

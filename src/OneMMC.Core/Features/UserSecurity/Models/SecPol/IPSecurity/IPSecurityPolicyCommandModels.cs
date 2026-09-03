@@ -122,6 +122,9 @@ public sealed class IPSecurityFilterActionCommandOptions
 /// </summary>
 public sealed class IPSecurityRuleCommandOptions
 {
+    /// <summary>The existing NFA identifier, required when the rule has no name.</summary>
+    public Guid? Identifier { get; init; }
+
     /// <summary>The existing rule name.</summary>
     public required string Name { get; init; }
 
@@ -148,6 +151,12 @@ public sealed class IPSecurityRuleCommandOptions
 
     /// <summary>Whether the rule is active, or <see langword="null"/> to leave it unspecified.</summary>
     public bool? IsActive { get; init; }
+
+    /// <summary>Quick-mode PFS for an unnamed rule-owned negotiation policy.</summary>
+    public bool? UseQuickModePerfectForwardSecrecy { get; init; }
+
+    /// <summary>Quick-mode methods for an unnamed rule-owned negotiation policy.</summary>
+    public IReadOnlyList<string>? QuickModeSecurityMethods { get; init; }
 
     /// <summary>
     /// The authentication methods in preference order, or <see langword="null"/> to omit authentication tokens.

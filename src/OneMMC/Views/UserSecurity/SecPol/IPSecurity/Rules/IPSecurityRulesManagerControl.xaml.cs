@@ -200,7 +200,7 @@ public sealed partial class IPSecurityRulesManagerControl : UserControl
             string.Format(
                 CultureInfo.CurrentCulture,
                 LocalizedStrings.IPSec_Dialog_EditRule_TitleFormat,
-                selected.Definition.Name),
+                selected.Name),
             LocalizedStrings.Common_SaveButton);
         if (options is null || !await RunMutationAsync(() => _setRuleAsync(options)))
         {
@@ -271,11 +271,13 @@ public sealed partial class IPSecurityRulesManagerControl : UserControl
     private void UpdateCommandState()
     {
         bool hasSelection = RulesListView?.SelectedItem is IPSecurityRuleListItem;
+        bool canDelete = RulesListView?.SelectedItem is IPSecurityRuleListItem selected
+            && !selected.Definition.IsDefaultResponseRule;
         if (AddRuleButton is not null)
         {
             AddRuleButton.IsEnabled = !_isBusy;
             EditRuleButton.IsEnabled = !_isBusy && hasSelection;
-            DeleteRuleButton.IsEnabled = !_isBusy && hasSelection;
+            DeleteRuleButton.IsEnabled = !_isBusy && canDelete;
         }
     }
 
@@ -285,11 +287,28 @@ public sealed partial class IPSecurityRulesManagerControl : UserControl
     {
         return new IPSecurityRuleDefinition
         {
+            Identifier = existing?.Identifier ?? Guid.Empty,
+            IsDefaultResponseRule = existing?.IsDefaultResponseRule ?? false,
             Name = options.NewName ?? options.Name,
             PolicyName = options.PolicyName,
             Description = options.Description ?? existing?.Description ?? string.Empty,
             FilterListName = options.FilterListName ?? existing?.FilterListName ?? string.Empty,
             FilterActionName = options.FilterActionName ?? existing?.FilterActionName ?? string.Empty,
+            FilterAction = existing?.FilterAction is { } action
+                ? new IPSecurityFilterActionDefinition
+                {
+                    Name = action.Name,
+                    Description = action.Description,
+                    Action = action.Action,
+                    UseQuickModePerfectForwardSecrecy =
+                        options.UseQuickModePerfectForwardSecrecy
+                        ?? action.UseQuickModePerfectForwardSecrecy,
+                    AcceptUnsecuredInbound = action.AcceptUnsecuredInbound,
+                    AllowUnsecuredFallback = action.AllowUnsecuredFallback,
+                    QuickModeSecurityMethods =
+                        options.QuickModeSecurityMethods ?? action.QuickModeSecurityMethods
+                }
+                : null,
             TunnelEndpoint = ResolveTunnelEndpoint(options.TunnelEndpoint, existing?.TunnelEndpoint),
             ConnectionType = options.ConnectionType?.ToString() ?? existing?.ConnectionType ?? string.Empty,
             IsActive = options.IsActive ?? existing?.IsActive ?? true,
@@ -304,10 +323,16 @@ public sealed partial class IPSecurityRulesManagerControl : UserControl
         return new IPSecurityRuleListItem
         {
             Definition = rule,
-            Name = rule.Name,
+            Name = rule.IsDefaultResponseRule
+                ? LocalizedStrings.IPSec_Rule_Dynamic
+                : rule.Name,
             Description = rule.Description,
-            FilterListName = rule.FilterListName,
-            FilterActionName = rule.FilterActionName,
+            FilterListName = rule.IsDefaultResponseRule
+                ? LocalizedStrings.IPSec_Rule_Dynamic
+                : rule.FilterListName,
+            FilterActionName = rule.IsDefaultResponseRule
+                ? LocalizedStrings.IPSec_Rule_DefaultResponse
+                : rule.FilterActionName,
             ActiveDisplay = rule.IsActive
                 ? LocalizedStrings.IPSec_Value_Yes
                 : LocalizedStrings.IPSec_Value_No,

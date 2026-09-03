@@ -2159,4 +2159,10 @@
   <data name="IPSec_Editor_NoRules" xml:space="preserve">
     <value>尚無規則。請新增一個以描述此原則所保護的流量。</value>
   </data>
+  <data name="IPSec_Rule_Dynamic" xml:space="preserve">
+    <value>&lt;動態&gt;</value>
+  </data>
+  <data name="IPSec_Rule_DefaultResponse" xml:space="preserve">
+    <value>預設回應</value>
+  </data>
 </root>

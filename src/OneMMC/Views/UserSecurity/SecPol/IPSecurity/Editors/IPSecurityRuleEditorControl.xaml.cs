@@ -16,6 +16,7 @@ public sealed partial class IPSecurityRuleEditorControl : UserControl
     private readonly string _originalName;
     private readonly string _policyName;
     private readonly bool _originallyUsedTunnel;
+    private readonly IPSecurityRuleDefinition? _rule;
 
     /// <summary>Gets localized strings used by the control.</summary>
     public LocalizedStrings LocalizedStrings { get; } = LocalizedStrings.Instance;
@@ -49,6 +50,7 @@ public sealed partial class IPSecurityRuleEditorControl : UserControl
         _mode = mode;
         _originalName = rule?.Name ?? string.Empty;
         _policyName = policyName;
+        _rule = rule;
         _originallyUsedTunnel = !string.IsNullOrWhiteSpace(rule?.TunnelEndpoint);
 
         InitializeComponent();
@@ -60,6 +62,11 @@ public sealed partial class IPSecurityRuleEditorControl : UserControl
         ActiveToggleSwitch.IsOn = rule?.IsActive ?? true;
         UseTunnelToggleSwitch.IsOn = _originallyUsedTunnel;
         TunnelEndpointTextBox.Text = rule?.TunnelEndpoint ?? string.Empty;
+        bool isDefaultResponseRule = rule?.IsDefaultResponseRule == true;
+        NormalRulePanel.Visibility = isDefaultResponseRule ? Visibility.Collapsed : Visibility.Visible;
+        DefaultResponseSecurityPanel.Visibility = isDefaultResponseRule ? Visibility.Visible : Visibility.Collapsed;
+        DefaultResponsePfsToggleSwitch.IsOn = rule?.FilterAction?.UseQuickModePerfectForwardSecrecy ?? false;
+        DefaultResponseMethodsEditor.SetMethods(rule?.FilterAction?.QuickModeSecurityMethods ?? []);
 
         foreach (IPSecurityAuthenticationMethodDefinition method in rule?.AuthenticationMethods ?? [])
         {
@@ -97,18 +104,26 @@ public sealed partial class IPSecurityRuleEditorControl : UserControl
         }
 
         string currentName = NameTextBox.Text;
+        bool isDefaultResponseRule = _rule?.IsDefaultResponseRule == true;
         options = new IPSecurityRuleCommandOptions
         {
+            Identifier = _rule?.Identifier,
             Name = _mode == IPSecurityEditorMode.Create ? currentName : _originalName,
             PolicyName = _policyName,
             NewName = IPSecurityEditorValidation.RenamedValue(_mode, _originalName, currentName),
-            Description = DescriptionTextBox.Text,
-            FilterListName = FilterListComboBox.SelectedItem as string,
-            FilterActionName = FilterActionComboBox.SelectedItem as string,
-            TunnelEndpoint = GetTunnelEndpoint(),
-            ConnectionType = GetConnectionType(),
-            IsActive = ActiveToggleSwitch.IsOn,
-            AuthenticationMethods = methods
+            Description = isDefaultResponseRule ? null : DescriptionTextBox.Text,
+            FilterListName = isDefaultResponseRule ? null : FilterListComboBox.SelectedItem as string,
+            FilterActionName = isDefaultResponseRule ? null : FilterActionComboBox.SelectedItem as string,
+            TunnelEndpoint = isDefaultResponseRule ? null : GetTunnelEndpoint(),
+            ConnectionType = isDefaultResponseRule ? null : GetConnectionType(),
+            IsActive = isDefaultResponseRule ? null : ActiveToggleSwitch.IsOn,
+            AuthenticationMethods = methods,
+            UseQuickModePerfectForwardSecrecy = isDefaultResponseRule
+                ? DefaultResponsePfsToggleSwitch.IsOn
+                : null,
+            QuickModeSecurityMethods = isDefaultResponseRule
+                ? DefaultResponseMethodsEditor.GetMethods()
+                : null
         };
 
         IPSecurityRuleCommandOptions candidate = options;

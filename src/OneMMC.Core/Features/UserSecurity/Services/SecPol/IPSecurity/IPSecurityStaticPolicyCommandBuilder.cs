@@ -245,10 +245,19 @@ public static class IPSecurityStaticPolicyCommandBuilder
             options.TunnelEndpoint,
             options.ConnectionType,
             options.IsActive,
-            options.AuthenticationMethods);
+            options.AuthenticationMethods,
+            options.UseQuickModePerfectForwardSecrecy,
+            options.QuickModeSecurityMethods);
 
         List<string> arguments = Start("set", "rule");
-        Add(arguments, "name", options.Name);
+        if (options.Identifier is { } identifier)
+        {
+            Add(arguments, "id", identifier.ToString("D"));
+        }
+        else
+        {
+            Add(arguments, "name", options.Name);
+        }
         Add(arguments, "policy", options.PolicyName);
         AddRuleOptions(arguments, options, includeReferences: true);
         return arguments;
@@ -391,7 +400,15 @@ public static class IPSecurityStaticPolicyCommandBuilder
     private static void ValidateRuleOptions(IPSecurityRuleCommandOptions options, bool isCreate)
     {
         ArgumentNullException.ThrowIfNull(options);
-        ValidateName(options.Name, nameof(options.Name));
+        if (isCreate || options.Identifier is null)
+        {
+            ValidateName(options.Name, nameof(options.Name));
+        }
+        else if (options.Identifier == Guid.Empty)
+        {
+            throw new ArgumentException("The rule identifier cannot be empty.", nameof(options));
+        }
+
         ValidateName(options.PolicyName, nameof(options.PolicyName));
         ValidateOptionalName(options.NewName, nameof(options.NewName));
         ValidateOptionalText(options.Description, nameof(options.Description));
@@ -412,6 +429,7 @@ public static class IPSecurityStaticPolicyCommandBuilder
         }
 
         ValidateAuthenticationMethods(options.AuthenticationMethods);
+        ValidateMethods(options.QuickModeSecurityMethods, nameof(options.QuickModeSecurityMethods));
         if (!isCreate && options.AuthenticationMethods is { Count: 0 })
         {
             throw new ArgumentException(
@@ -446,6 +464,8 @@ public static class IPSecurityStaticPolicyCommandBuilder
         }
 
         AddOptional(arguments, "activate", options.IsActive);
+        AddOptional(arguments, "qmpfs", options.UseQuickModePerfectForwardSecrecy);
+        AddMethods(arguments, "qmsecmethods", options.QuickModeSecurityMethods);
         if (options.AuthenticationMethods is not null)
         {
             foreach (IPSecurityRuleAuthenticationCommand method in options.AuthenticationMethods)

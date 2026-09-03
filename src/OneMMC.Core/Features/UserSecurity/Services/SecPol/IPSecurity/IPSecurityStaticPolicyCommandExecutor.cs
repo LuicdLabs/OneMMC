@@ -1156,7 +1156,9 @@ public sealed class IPSecurityStaticPolicyCommandExecutor
         // block or permit the inpass encoding is dropped with it, matching the reference writer.
         bool? inpass = GetOptionalBool(parameters, "inpass");
         bool inpassValue = inpass
-            ?? existing?.NegPolAction == IPSecurityPolicyLayout.ActionNegotiateAcceptUnsecuredInbound;
+            ?? (existing is { } current
+                && current.NegPolAction == IPSecurityPolicyLayout.ActionNegotiateAcceptUnsecuredInbound
+                && current.NegPolType == IPSecurityPolicyLayout.NegPolTypeNegotiate);
 
         Guid effectiveAction = actionGuid;
         if (actionGuid == IPSecurityPolicyLayout.ActionNegotiate && inpassValue)
@@ -1687,7 +1689,8 @@ public sealed class IPSecurityStaticPolicyCommandExecutor
 
     private static void SetRule(IntPtr store, Dictionary<string, string> parameters, IReadOnlyList<string> arguments)
     {
-        string name = GetRequired(parameters, "name");
+        string? name = GetOptional(parameters, "name");
+        Guid? ruleId = GetOptionalGuid(parameters, "id");
         string policyName = GetRequired(parameters, "policy");
         string? newName = GetOptional(parameters, "newname");
         string? description = GetOptional(parameters, "description");
@@ -1702,18 +1705,25 @@ public sealed class IPSecurityStaticPolicyCommandExecutor
             throw new InvalidOperationException($"Policy '{policyName}' not found.");
         }
 
-        IntPtr original = FindNfaByName(store, policyGuid, name);
+        IntPtr original = ruleId is { } identifier
+            ? FindNfaByIdentifier(store, policyGuid, identifier)
+            : FindNfaByName(store, policyGuid, name!);
         if (original == IntPtr.Zero)
         {
-            throw new InvalidOperationException($"Rule '{name}' in policy '{policyName}' not found.");
+            throw new InvalidOperationException($"Rule '{name ?? ruleId?.ToString()}' in policy '{policyName}' not found.");
         }
 
         IntPtr pNewName = IntPtr.Zero;
         IntPtr pNewDesc = IntPtr.Zero;
+        AuthMethodBuffer? auth = HasAuthenticationParameters(parameters, arguments)
+            ? BuildAuthMethods(parameters, arguments)
+            : null;
         try
         {
             IpsecNfaData data;
             unsafe { data = *(IpsecNfaData*)original; }
+            Guid negPolIdentifier = data.NegPolIdentifier;
+            bool isDefaultResponseRule = data.FilterIdentifier == Guid.Empty;
 
             if (newName is not null)
             {
@@ -1761,16 +1771,73 @@ public sealed class IPSecurityStaticPolicyCommandExecutor
                 data.ActiveFlag = active.Value ? 1u : 0u;
             }
 
+            if (auth is { } authentication)
+            {
+                data.AuthMethodCount = (uint)authentication.Count;
+                data.AuthMethods = authentication.PointerArray;
+            }
+
             data.WhenChanged = (uint)CurrentUnixSeconds();
 
             int hr;
             unsafe { hr = IPSecurityPolicyNativeMethods.SetNFAData(store, policyGuid, (IntPtr)(&data)); }
             ThrowOnError(hr, "set rule");
+
+            if (isDefaultResponseRule
+                && (GetOptionalBool(parameters, "qmpfs") is not null
+                    || GetOptional(parameters, "qmsecmethods") is not null))
+            {
+                SetRuleOwnedSecurityMethods(store, negPolIdentifier, parameters);
+            }
         }
         finally
         {
+            auth?.Dispose();
             FreeIfNotZero(pNewDesc);
             FreeIfNotZero(pNewName);
+        }
+    }
+
+    private static bool HasAuthenticationParameters(
+        Dictionary<string, string> parameters,
+        IReadOnlyList<string> arguments)
+    {
+        return parameters.ContainsKey("kerberos")
+            || parameters.ContainsKey("psk")
+            || arguments.Skip(4).Any(static argument =>
+                argument.StartsWith("rootca=", StringComparison.OrdinalIgnoreCase));
+    }
+
+    /// <summary>Updates the unnamed negotiation policy owned by a default response rule.</summary>
+    private static void SetRuleOwnedSecurityMethods(
+        IntPtr store,
+        Guid negPolIdentifier,
+        Dictionary<string, string> parameters)
+    {
+        IntPtr original = FindUnnamedNegPol(store, negPolIdentifier);
+        if (original == IntPtr.Zero)
+        {
+            throw new InvalidOperationException("The default response rule's security policy was not found.");
+        }
+
+        IpsecNegPolData data;
+        unsafe { data = *(IpsecNegPolData*)original; }
+
+        FilterActionEncoding encoding = ReadFilterActionEncoding(parameters, actionStr: null, data);
+        SecurityMethodBuffer security = BuildSecurityMethods(parameters, in encoding, data);
+        try
+        {
+            data.SecurityMethodCount = (uint)security.Count;
+            data.SecurityMethods = security.Methods;
+            data.WhenChanged = (uint)CurrentUnixSeconds();
+
+            int hr;
+            unsafe { hr = IPSecurityPolicyNativeMethods.SetNegPolData(store, (IntPtr)(&data)); }
+            ThrowOnError(hr, "set default response security methods");
+        }
+        finally
+        {
+            security.Dispose();
         }
     }
 
@@ -2021,6 +2088,39 @@ public sealed class IPSecurityStaticPolicyCommandExecutor
                 if (name.Equals(nfaName, StringComparison.OrdinalIgnoreCase))
                 {
                     return p;
+                }
+            }
+
+            return IntPtr.Zero;
+        }
+        finally
+        {
+            Marshal.FreeHGlobal(ppp);
+            Marshal.FreeHGlobal(pCount);
+        }
+    }
+
+    private static IntPtr FindNfaByIdentifier(IntPtr store, Guid policyGuid, Guid identifier)
+    {
+        IntPtr ppp = Marshal.AllocHGlobal(IntPtr.Size);
+        IntPtr pCount = Marshal.AllocHGlobal(sizeof(int));
+        try
+        {
+            Marshal.WriteIntPtr(ppp, IntPtr.Zero);
+            Marshal.WriteInt32(pCount, 0);
+            if (IPSecurityPolicyNativeMethods.EnumNFAData(store, policyGuid, ppp, pCount) != 0)
+            {
+                return IntPtr.Zero;
+            }
+
+            int count = Marshal.ReadInt32(pCount);
+            IntPtr array = Marshal.ReadIntPtr(ppp);
+            for (int index = 0; index < count && array != IntPtr.Zero; index++)
+            {
+                IntPtr entry = Marshal.ReadIntPtr(array, IntPtr.Size * index);
+                if (entry != IntPtr.Zero && ReadGuid(entry, 8) == identifier)
+                {
+                    return entry;
                 }
             }
 
@@ -2291,6 +2391,13 @@ public sealed class IPSecurityStaticPolicyCommandExecutor
     {
         if (!parameters.TryGetValue(key, out string? value)) return null;
         return int.TryParse(value, out int result) ? result : null;
+    }
+
+    private static Guid? GetOptionalGuid(Dictionary<string, string> parameters, string key)
+    {
+        return parameters.TryGetValue(key, out string? value) && Guid.TryParse(value, out Guid result)
+            ? result
+            : null;
     }
 
     // ===== Error Handling =====
