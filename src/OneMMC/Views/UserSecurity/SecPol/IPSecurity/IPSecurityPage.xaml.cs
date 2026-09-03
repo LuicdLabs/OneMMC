@@ -216,45 +216,44 @@ public sealed partial class IPSecurityPage : Page
         }
     }
 
+    /// <remarks>
+    /// The policy editor opens no further dialogs, so it is hosted in a <c>ContentDialog</c>. Only
+    /// the two manager surfaces need a real window, because they open editors on top of themselves.
+    /// </remarks>
     private Task<WindowDialogResult> ShowEditorAsync(
         string title,
         UserControl editor,
         Func<bool> validate)
     {
-        var modal = new ModalDialogWindow(new ModalDialogOptions
+        return InlineDialogHost.ShowAsync(new InlineDialogOptions
         {
             Title = title,
             Content = editor,
-            OwnerXamlRoot = XamlRoot,
+            XamlRoot = XamlRoot,
             RequestedTheme = App.CurrentTheme,
             PrimaryButtonText = LocalizedStrings.Common_SaveButton,
             CloseButtonText = LocalizedStrings.Common_CancelButton,
             DefaultButton = WindowDialogResult.Primary,
-            IsPrimaryButtonLeading = true,
-            Width = EditorDialogWidth,
-            Height = EditorDialogHeight,
+            MaxWidth = EditorDialogWidth,
+            MaxHeight = EditorDialogHeight,
             OnPrimaryButtonClick = validate
         });
-
-        return modal.ShowDialogAsync();
     }
 
     private async Task<bool> ShowDeleteConfirmationAsync(string message)
     {
-        var modal = new ModalDialogWindow(new ModalDialogOptions
+        return await InlineDialogHost.ShowAsync(new InlineDialogOptions
         {
             Title = LocalizedStrings.IPSec_DeleteConfirm_Title,
             Content = message,
-            OwnerXamlRoot = XamlRoot,
+            XamlRoot = XamlRoot,
             RequestedTheme = App.CurrentTheme,
             PrimaryButtonText = LocalizedStrings.Common_DeleteButton,
             CloseButtonText = LocalizedStrings.Common_CancelButton,
             DefaultButton = WindowDialogResult.None,
-            Width = 560,
-            Height = 320
-        });
-
-        return await modal.ShowDialogAsync() == WindowDialogResult.Primary;
+            MaxWidth = 480,
+            MaxHeight = 320
+        }) == WindowDialogResult.Primary;
     }
 
     private static string Format(string format, string value)

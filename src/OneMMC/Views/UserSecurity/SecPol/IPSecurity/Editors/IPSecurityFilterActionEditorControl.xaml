@@ -6,79 +6,119 @@
     xmlns:cwuc="using:CommunityToolkit.WinUI.Controls"
     xmlns:editors="using:OneMMC.Views.UserSecurity.SecPol.IPSecurity.Editors">
 
-    <ScrollViewer
-        HorizontalScrollBarVisibility="Disabled"
-        VerticalScrollBarVisibility="Auto">
-        <StackPanel MinWidth="560" Spacing="4">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="ms-appx:///Views/UserSecurity/SecPol/IPSecurity/IPSecurityEditorResources.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <!--
+        The action choice leads, because everything below it only matters when the action negotiates
+        security. The negotiation options are grouped under one expander for exactly that reason.
+    -->
+    <ScrollViewer Style="{StaticResource EditorScrollViewerStyle}">
+        <StackPanel Style="{StaticResource EditorRootPanelStyle}">
             <InfoBar
                 x:Name="ValidationInfoBar"
-                Margin="0,0,0,8"
                 IsClosable="True"
                 IsOpen="False"
                 Severity="Error" />
 
-            <cwuc:SettingsCard Header="{x:Bind LocalizedStrings.IPSec_Column_Name}">
+            <TextBlock
+                Style="{StaticResource EditorSectionHeaderStyle}"
+                Text="{x:Bind LocalizedStrings.IPSec_Section_General}" />
+
+            <cwuc:SettingsCard
+                Description="{x:Bind LocalizedStrings.IPSec_Editor_NameDescription}"
+                Header="{x:Bind LocalizedStrings.IPSec_Column_Name}">
+                <cwuc:SettingsCard.HeaderIcon>
+                    <FontIcon Glyph="&#xE8AC;" />
+                </cwuc:SettingsCard.HeaderIcon>
                 <TextBox
                     x:Name="NameTextBox"
-                    MinWidth="260"
+                    MinWidth="280"
                     AutomationProperties.Name="{x:Bind LocalizedStrings.IPSec_Column_Name}" />
             </cwuc:SettingsCard>
 
             <cwuc:SettingsCard
                 ContentAlignment="Vertical"
+                Description="{x:Bind LocalizedStrings.IPSec_Editor_DescriptionDescription}"
                 Header="{x:Bind LocalizedStrings.IPSec_Column_Description}">
+                <cwuc:SettingsCard.HeaderIcon>
+                    <FontIcon Glyph="&#xE70B;" />
+                </cwuc:SettingsCard.HeaderIcon>
                 <TextBox
                     x:Name="DescriptionTextBox"
+                    MinHeight="72"
+                    MaxHeight="140"
                     AcceptsReturn="True"
                     AutomationProperties.Name="{x:Bind LocalizedStrings.IPSec_Column_Description}"
-                    MaxHeight="120"
                     TextWrapping="Wrap" />
             </cwuc:SettingsCard>
 
-            <cwuc:SettingsCard Header="{x:Bind LocalizedStrings.IPSec_Editor_FilterAction}">
+            <TextBlock
+                Style="{StaticResource EditorSectionHeaderStyle}"
+                Text="{x:Bind LocalizedStrings.IPSec_Editor_FilterAction}" />
+
+            <cwuc:SettingsCard
+                Description="{x:Bind LocalizedStrings.IPSec_Editor_ActionDescription}"
+                Header="{x:Bind LocalizedStrings.IPSec_Editor_FilterAction}">
+                <cwuc:SettingsCard.HeaderIcon>
+                    <FontIcon Glyph="&#xE8D7;" />
+                </cwuc:SettingsCard.HeaderIcon>
                 <ComboBox
                     x:Name="ActionComboBox"
                     MinWidth="220"
+                    AutomationProperties.Name="{x:Bind LocalizedStrings.IPSec_Editor_FilterAction}"
                     SelectionChanged="ActionComboBox_SelectionChanged">
-                    <ComboBoxItem
-                        Content="{x:Bind LocalizedStrings.IPSec_FilterAction_Permit}"
-                        Tag="Permit" />
-                    <ComboBoxItem
-                        Content="{x:Bind LocalizedStrings.IPSec_FilterAction_Block}"
-                        Tag="Block" />
-                    <ComboBoxItem
-                        Content="{x:Bind LocalizedStrings.IPSec_FilterAction_Negotiate}"
-                        Tag="Negotiate" />
+                    <ComboBoxItem Content="{x:Bind LocalizedStrings.IPSec_FilterAction_Permit}" Tag="Permit" />
+                    <ComboBoxItem Content="{x:Bind LocalizedStrings.IPSec_FilterAction_Block}" Tag="Block" />
+                    <ComboBoxItem Content="{x:Bind LocalizedStrings.IPSec_FilterAction_Negotiate}" Tag="Negotiate" />
                 </ComboBox>
             </cwuc:SettingsCard>
 
-            <cwuc:SettingsCard Header="{x:Bind LocalizedStrings.IPSec_Editor_QuickModePfs}">
+            <TextBlock
+                Style="{StaticResource EditorSectionHeaderStyle}"
+                Text="{x:Bind LocalizedStrings.IPSec_Section_Security}" />
+
+            <cwuc:SettingsExpander
+                Description="{x:Bind LocalizedStrings.IPSec_Editor_QuickModePfsDescription}"
+                Header="{x:Bind LocalizedStrings.IPSec_Editor_QuickModePfs}"
+                IsExpanded="True">
+                <cwuc:SettingsExpander.HeaderIcon>
+                    <FontIcon Glyph="&#xE72E;" />
+                </cwuc:SettingsExpander.HeaderIcon>
                 <ToggleSwitch
                     x:Name="QuickModePfsToggleSwitch"
                     AutomationProperties.Name="{x:Bind LocalizedStrings.IPSec_Editor_QuickModePfs}"
                     OffContent="{x:Bind LocalizedStrings.IPSec_Value_No}"
                     OnContent="{x:Bind LocalizedStrings.IPSec_Value_Yes}" />
-            </cwuc:SettingsCard>
-
-            <cwuc:SettingsCard Header="{x:Bind LocalizedStrings.IPSec_Editor_AcceptUnsecuredInbound}">
-                <ToggleSwitch
-                    x:Name="AcceptUnsecuredInboundToggleSwitch"
-                    AutomationProperties.Name="{x:Bind LocalizedStrings.IPSec_Editor_AcceptUnsecuredInbound}"
-                    OffContent="{x:Bind LocalizedStrings.IPSec_Value_No}"
-                    OnContent="{x:Bind LocalizedStrings.IPSec_Value_Yes}" />
-            </cwuc:SettingsCard>
-
-            <cwuc:SettingsCard Header="{x:Bind LocalizedStrings.IPSec_Editor_AllowUnsecuredFallback}">
-                <ToggleSwitch
-                    x:Name="AllowUnsecuredFallbackToggleSwitch"
-                    AutomationProperties.Name="{x:Bind LocalizedStrings.IPSec_Editor_AllowUnsecuredFallback}"
-                    OffContent="{x:Bind LocalizedStrings.IPSec_Value_No}"
-                    OnContent="{x:Bind LocalizedStrings.IPSec_Value_Yes}" />
-            </cwuc:SettingsCard>
+                <cwuc:SettingsExpander.Items>
+                    <cwuc:SettingsCard
+                        Description="{x:Bind LocalizedStrings.IPSec_Editor_AcceptUnsecuredInboundDescription}"
+                        Header="{x:Bind LocalizedStrings.IPSec_Editor_AcceptUnsecuredInbound}">
+                        <ToggleSwitch
+                            x:Name="AcceptUnsecuredInboundToggleSwitch"
+                            AutomationProperties.Name="{x:Bind LocalizedStrings.IPSec_Editor_AcceptUnsecuredInbound}"
+                            OffContent="{x:Bind LocalizedStrings.IPSec_Value_No}"
+                            OnContent="{x:Bind LocalizedStrings.IPSec_Value_Yes}" />
+                    </cwuc:SettingsCard>
+                    <cwuc:SettingsCard
+                        Description="{x:Bind LocalizedStrings.IPSec_Editor_AllowUnsecuredFallbackDescription}"
+                        Header="{x:Bind LocalizedStrings.IPSec_Editor_AllowUnsecuredFallback}">
+                        <ToggleSwitch
+                            x:Name="AllowUnsecuredFallbackToggleSwitch"
+                            AutomationProperties.Name="{x:Bind LocalizedStrings.IPSec_Editor_AllowUnsecuredFallback}"
+                            OffContent="{x:Bind LocalizedStrings.IPSec_Value_No}"
+                            OnContent="{x:Bind LocalizedStrings.IPSec_Value_Yes}" />
+                    </cwuc:SettingsCard>
+                </cwuc:SettingsExpander.Items>
+            </cwuc:SettingsExpander>
 
             <editors:IPSecuritySecurityMethodsEditorControl
                 x:Name="QuickModeMethodsEditor"
-                Margin="0,12,0,0"
                 Header="{x:Bind LocalizedStrings.IPSec_Editor_QuickModeMethods, Mode=OneTime}"
                 MethodMode="QuickMode" />
         </StackPanel>

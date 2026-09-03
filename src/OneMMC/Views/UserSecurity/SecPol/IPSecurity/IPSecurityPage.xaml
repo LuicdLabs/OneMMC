@@ -9,28 +9,61 @@
     mc:Ignorable="d">
 
     <Page.Resources>
-        <!--  Status pill used for the "Policy Assigned" column and other compact values.  -->
-        <Style x:Key="StatusPillBorderStyle" TargetType="Border">
-            <Setter Property="Background" Value="{ThemeResource CardBackgroundFillColorDefaultBrush}" />
-            <Setter Property="BorderBrush" Value="{ThemeResource CardStrokeColorDefaultBrush}" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="10" />
-            <Setter Property="Padding" Value="10,3" />
-        </Style>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="ms-appx:///Views/UserSecurity/SecPol/IPSecurity/IPSecurityEditorResources.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
     </Page.Resources>
 
+    <!--
+        A titled page with the command bar under the heading, then one list. Rows are two-line
+        (name + description) with the assignment state as a trailing chip, so no column-header row
+        has to stay aligned with the item template as the window resizes.
+    -->
     <Grid>
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <!--  Primary: high-frequency CRUD + rules. Secondary: contextual/utility commands in the "…" More flyout.  -->
-        <CommandBar
+        <Grid
             Grid.Row="0"
-            Margin="24,8,24,0"
+            Margin="24,12,24,0"
+            ColumnSpacing="16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <StackPanel VerticalAlignment="Center" Spacing="2">
+                <TextBlock
+                    Style="{StaticResource SubtitleTextBlockStyle}"
+                    Text="{x:Bind LocalizedStrings.IPSec_Section_Policies}" />
+                <TextBlock
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    Style="{StaticResource CaptionTextBlockStyle}"
+                    Text="{x:Bind LocalizedStrings.IPSec_Page_PoliciesDescription}"
+                    TextWrapping="Wrap" />
+            </StackPanel>
+            <AutoSuggestBox
+                x:Name="SearchBox"
+                Grid.Column="1"
+                Width="280"
+                VerticalAlignment="Center"
+                AutomationProperties.AutomationId="IPSecuritySearchBox"
+                PlaceholderText="{x:Bind LocalizedStrings.Common_SearchPlaceholder}"
+                QueryIcon="Find"
+                TextChanged="SearchBox_TextChanged" />
+        </Grid>
+
+        <CommandBar
+            Grid.Row="1"
+            Margin="16,4,16,0"
+            HorizontalAlignment="Left"
             AutomationProperties.AutomationId="IPSecurityCommandBar"
+            Background="Transparent"
             DefaultLabelPosition="Right">
             <CommandBar.PrimaryCommands>
                 <AppBarButton
@@ -58,8 +91,6 @@
                     Icon="Bullets"
                     IsEnabled="{x:Bind ViewModel.CanManageSelectedPolicyRules, Mode=OneWay}"
                     Label="{x:Bind LocalizedStrings.IPSec_Command_ManageRules}" />
-            </CommandBar.PrimaryCommands>
-            <CommandBar.SecondaryCommands>
                 <AppBarButton
                     AutomationProperties.AutomationId="IPSecurityAssignButton"
                     Click="AssignPolicyButton_Click"
@@ -69,6 +100,8 @@
                         <FontIcon Glyph="&#xE73E;" />
                     </AppBarButton.Icon>
                 </AppBarButton>
+            </CommandBar.PrimaryCommands>
+            <CommandBar.SecondaryCommands>
                 <AppBarButton
                     AutomationProperties.AutomationId="IPSecurityUnassignButton"
                     Click="UnassignPolicyButton_Click"
@@ -102,129 +135,74 @@
 
         <InfoBar
             x:Name="ErrorInfoBar"
-            Grid.Row="1"
-            Margin="24,4,24,4"
+            Grid.Row="2"
+            Margin="24,4,24,0"
             IsClosable="True"
             IsOpen="{x:Bind ViewModel.HasError, Mode=OneWay}"
             Message="{x:Bind ViewModel.ErrorMessage, Mode=OneWay}"
             Severity="Error"
             Title="{x:Bind LocalizedStrings.Common_ErrorTitle}" />
 
-        <Grid Grid.Row="2">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="*" />
-            </Grid.RowDefinitions>
-
-            <AutoSuggestBox
-                x:Name="SearchBox"
-                AutomationProperties.AutomationId="IPSecuritySearchBox"
-                MaxWidth="320"
-                Margin="24,8,24,4"
-                HorizontalAlignment="Right"
-                PlaceholderText="{x:Bind LocalizedStrings.Common_SearchPlaceholder}"
-                QueryIcon="Find"
-                TextChanged="SearchBox_TextChanged" />
-
-            <!--  Column headers: caption/tertiary per the Win11 type ramp, aligned with the item template inset.  -->
-            <Grid
-                Grid.Row="1"
-                Margin="36,4,36,4"
-                ColumnSpacing="16">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="2*" />
-                    <ColumnDefinition Width="3*" />
-                    <ColumnDefinition Width="1.6*" />
-                    <ColumnDefinition Width="1.4*" />
-                </Grid.ColumnDefinitions>
-                <TextBlock
-                    FontWeight="SemiBold"
-                    Foreground="{ThemeResource TextFillColorTertiaryBrush}"
-                    Style="{StaticResource CaptionTextBlockStyle}"
-                    Text="{x:Bind LocalizedStrings.IPSec_Column_Name}"
-                    TextTrimming="CharacterEllipsis" />
-                <TextBlock
-                    Grid.Column="1"
-                    FontWeight="SemiBold"
-                    Foreground="{ThemeResource TextFillColorTertiaryBrush}"
-                    Style="{StaticResource CaptionTextBlockStyle}"
-                    Text="{x:Bind LocalizedStrings.IPSec_Column_Description}"
-                    TextTrimming="CharacterEllipsis" />
-                <TextBlock
-                    Grid.Column="2"
-                    FontWeight="SemiBold"
-                    Foreground="{ThemeResource TextFillColorTertiaryBrush}"
-                    Style="{StaticResource CaptionTextBlockStyle}"
-                    Text="{x:Bind LocalizedStrings.IPSec_Column_PolicyAssigned}"
-                    TextTrimming="CharacterEllipsis" />
-                <TextBlock
-                    Grid.Column="3"
-                    FontWeight="SemiBold"
-                    Foreground="{ThemeResource TextFillColorTertiaryBrush}"
-                    Style="{StaticResource CaptionTextBlockStyle}"
-                    Text="{x:Bind LocalizedStrings.IPSec_Column_LastModified}"
-                    TextTrimming="CharacterEllipsis" />
-            </Grid>
-
+        <Grid Grid.Row="3">
             <ListView
                 x:Name="PolicyListView"
+                Padding="24,8,24,16"
                 AutomationProperties.AutomationId="IPSecurityItemsList"
-                Grid.Row="2"
                 DoubleTapped="PolicyListView_DoubleTapped"
                 ItemsSource="{x:Bind ViewModel.Items, Mode=OneWay}"
-                Padding="24,4,24,12"
                 SelectedItem="{x:Bind ViewModel.SelectedPolicy, Mode=TwoWay}"
                 SelectionMode="Single">
                 <ListView.ItemContainerStyle>
                     <Style TargetType="ListViewItem">
                         <Setter Property="HorizontalContentAlignment" Value="Stretch" />
                         <Setter Property="Margin" Value="0,0,0,4" />
-                        <Setter Property="MinHeight" Value="60" />
+                        <Setter Property="MinHeight" Value="68" />
                         <Setter Property="Padding" Value="0" />
                     </Style>
                 </ListView.ItemContainerStyle>
                 <ListView.ItemTemplate>
                     <DataTemplate x:DataType="ipsec:IPSecurityPolicyRow">
-                        <Grid
-                            MinHeight="60"
-                            Padding="12,8,12,8"
-                            ColumnSpacing="16"
-                            VerticalAlignment="Stretch">
+                        <Grid Padding="14,10" ColumnSpacing="14">
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="2*" />
-                                <ColumnDefinition Width="3*" />
-                                <ColumnDefinition Width="1.6*" />
-                                <ColumnDefinition Width="1.4*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
-                            <StackPanel
+                            <FontIcon
                                 VerticalAlignment="Center"
-                                Orientation="Horizontal"
-                                Spacing="12">
-                                <FontIcon
-                                    FontSize="16"
-                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                    Glyph="&#xE705;" />
+                                FontSize="18"
+                                Foreground="{ThemeResource AccentTextFillColorSecondaryBrush}"
+                                Glyph="&#xE705;" />
+                            <StackPanel
+                                Grid.Column="1"
+                                VerticalAlignment="Center"
+                                Spacing="2">
                                 <TextBlock
-                                    VerticalAlignment="Center"
                                     Style="{StaticResource BodyStrongTextBlockStyle}"
                                     Text="{x:Bind Name}"
                                     TextTrimming="CharacterEllipsis"
                                     TextWrapping="NoWrap"
                                     ToolTipService.ToolTip="{x:Bind Name}" />
+                                <TextBlock
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Style="{StaticResource CaptionTextBlockStyle}"
+                                    Text="{x:Bind Description}"
+                                    TextTrimming="CharacterEllipsis"
+                                    TextWrapping="NoWrap"
+                                    ToolTipService.ToolTip="{x:Bind Description}" />
                             </StackPanel>
                             <TextBlock
-                                Grid.Column="1"
+                                Grid.Column="2"
                                 VerticalAlignment="Center"
-                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                Foreground="{ThemeResource TextFillColorTertiaryBrush}"
                                 Style="{StaticResource CaptionTextBlockStyle}"
-                                Text="{x:Bind Description}"
+                                Text="{x:Bind LastModified}"
                                 TextTrimming="CharacterEllipsis"
                                 TextWrapping="NoWrap"
-                                ToolTipService.ToolTip="{x:Bind Description}" />
+                                ToolTipService.ToolTip="{x:Bind LastModified}" />
                             <Border
-                                Grid.Column="2"
-                                HorizontalAlignment="Left"
+                                Grid.Column="3"
                                 VerticalAlignment="Center"
                                 Style="{StaticResource StatusPillBorderStyle}">
                                 <TextBlock
@@ -232,23 +210,13 @@
                                     Text="{x:Bind PolicyAssigned}"
                                     TextTrimming="CharacterEllipsis" />
                             </Border>
-                            <TextBlock
-                                Grid.Column="3"
-                                VerticalAlignment="Center"
-                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                Style="{StaticResource CaptionTextBlockStyle}"
-                                Text="{x:Bind LastModified}"
-                                TextTrimming="CharacterEllipsis"
-                                TextWrapping="NoWrap"
-                                ToolTipService.ToolTip="{x:Bind LastModified}" />
                         </Grid>
                     </DataTemplate>
                 </ListView.ItemTemplate>
             </ListView>
 
-            <!--  Empty state  -->
+            <!--  Empty state: a single circled glyph with the view model's reason underneath.  -->
             <StackPanel
-                Grid.Row="2"
                 MaxWidth="420"
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center"
@@ -277,7 +245,6 @@
             </StackPanel>
 
             <ProgressRing
-                Grid.Row="2"
                 Width="44"
                 Height="44"
                 HorizontalAlignment="Center"

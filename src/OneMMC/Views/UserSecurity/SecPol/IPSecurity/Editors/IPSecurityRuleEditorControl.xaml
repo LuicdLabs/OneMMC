@@ -6,66 +6,95 @@
     xmlns:cwuc="using:CommunityToolkit.WinUI.Controls"
     xmlns:local="using:OneMMC.Views.UserSecurity.SecPol.IPSecurity.Editors">
 
-    <ScrollViewer
-        HorizontalScrollBarVisibility="Disabled"
-        VerticalScrollBarVisibility="Auto">
-        <StackPanel MinWidth="560" Spacing="4">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="ms-appx:///Views/UserSecurity/SecPol/IPSecurity/IPSecurityEditorResources.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <!--
+        Reading order matches how a rule is reasoned about: what it is, what traffic it matches and
+        what it does with it, when it applies, and finally how trust is established. Tunnel settings
+        nest under their own toggle so the transport-mode case stays a single line.
+    -->
+    <ScrollViewer Style="{StaticResource EditorScrollViewerStyle}">
+        <StackPanel Style="{StaticResource EditorRootPanelStyle}">
             <InfoBar
                 x:Name="ValidationInfoBar"
-                Margin="0,0,0,8"
                 IsClosable="True"
                 IsOpen="False"
                 Severity="Error" />
 
-            <cwuc:SettingsCard Header="{x:Bind LocalizedStrings.IPSec_Column_Name}">
+            <TextBlock
+                Style="{StaticResource EditorSectionHeaderStyle}"
+                Text="{x:Bind LocalizedStrings.IPSec_Section_General}" />
+
+            <cwuc:SettingsCard
+                Description="{x:Bind LocalizedStrings.IPSec_Editor_NameDescription}"
+                Header="{x:Bind LocalizedStrings.IPSec_Column_Name}">
+                <cwuc:SettingsCard.HeaderIcon>
+                    <FontIcon Glyph="&#xE8AC;" />
+                </cwuc:SettingsCard.HeaderIcon>
                 <TextBox
                     x:Name="NameTextBox"
-                    MinWidth="260"
+                    MinWidth="280"
                     AutomationProperties.Name="{x:Bind LocalizedStrings.IPSec_Column_Name}" />
             </cwuc:SettingsCard>
 
             <cwuc:SettingsCard
                 ContentAlignment="Vertical"
+                Description="{x:Bind LocalizedStrings.IPSec_Editor_DescriptionDescription}"
                 Header="{x:Bind LocalizedStrings.IPSec_Column_Description}">
+                <cwuc:SettingsCard.HeaderIcon>
+                    <FontIcon Glyph="&#xE70B;" />
+                </cwuc:SettingsCard.HeaderIcon>
                 <TextBox
                     x:Name="DescriptionTextBox"
+                    MinHeight="64"
+                    MaxHeight="120"
                     AcceptsReturn="True"
                     AutomationProperties.Name="{x:Bind LocalizedStrings.IPSec_Column_Description}"
-                    MaxHeight="100"
                     TextWrapping="Wrap" />
             </cwuc:SettingsCard>
 
+            <TextBlock
+                Style="{StaticResource EditorSectionHeaderStyle}"
+                Text="{x:Bind LocalizedStrings.IPSec_Editor_RuleReferencesDescription}" />
+
             <cwuc:SettingsCard Header="{x:Bind LocalizedStrings.IPSec_Editor_RuleFilterList}">
+                <cwuc:SettingsCard.HeaderIcon>
+                    <FontIcon Glyph="&#xE71C;" />
+                </cwuc:SettingsCard.HeaderIcon>
                 <ComboBox
                     x:Name="FilterListComboBox"
-                    MinWidth="220"
-                    HorizontalAlignment="Stretch" />
+                    MinWidth="240"
+                    HorizontalAlignment="Stretch"
+                    AutomationProperties.Name="{x:Bind LocalizedStrings.IPSec_Editor_RuleFilterList}" />
             </cwuc:SettingsCard>
 
             <cwuc:SettingsCard Header="{x:Bind LocalizedStrings.IPSec_Editor_RuleFilterAction}">
+                <cwuc:SettingsCard.HeaderIcon>
+                    <FontIcon Glyph="&#xE8D7;" />
+                </cwuc:SettingsCard.HeaderIcon>
                 <ComboBox
                     x:Name="FilterActionComboBox"
-                    MinWidth="220"
-                    HorizontalAlignment="Stretch" />
+                    MinWidth="240"
+                    HorizontalAlignment="Stretch"
+                    AutomationProperties.Name="{x:Bind LocalizedStrings.IPSec_Editor_RuleFilterAction}" />
             </cwuc:SettingsCard>
 
-            <cwuc:SettingsCard Header="{x:Bind LocalizedStrings.IPSec_Editor_ConnectionType}">
-                <ComboBox
-                    x:Name="ConnectionTypeComboBox"
-                    MinWidth="220">
-                    <ComboBoxItem
-                        Content="{x:Bind LocalizedStrings.IPSec_Editor_ConnectionAll}"
-                        Tag="All" />
-                    <ComboBoxItem
-                        Content="{x:Bind LocalizedStrings.IPSec_Editor_ConnectionLan}"
-                        Tag="Lan" />
-                    <ComboBoxItem
-                        Content="{x:Bind LocalizedStrings.IPSec_Editor_ConnectionDialUp}"
-                        Tag="DialUp" />
-                </ComboBox>
-            </cwuc:SettingsCard>
+            <TextBlock
+                Style="{StaticResource EditorSectionHeaderStyle}"
+                Text="{x:Bind LocalizedStrings.IPSec_Section_Advanced}" />
 
-            <cwuc:SettingsCard Header="{x:Bind LocalizedStrings.IPSec_Editor_RuleActive}">
+            <cwuc:SettingsCard
+                Description="{x:Bind LocalizedStrings.IPSec_Editor_RuleActiveDescription}"
+                Header="{x:Bind LocalizedStrings.IPSec_Editor_RuleActive}">
+                <cwuc:SettingsCard.HeaderIcon>
+                    <FontIcon Glyph="&#xE73E;" />
+                </cwuc:SettingsCard.HeaderIcon>
                 <ToggleSwitch
                     x:Name="ActiveToggleSwitch"
                     AutomationProperties.Name="{x:Bind LocalizedStrings.IPSec_Editor_RuleActive}"
@@ -73,63 +102,83 @@
                     OnContent="{x:Bind LocalizedStrings.IPSec_Value_Yes}" />
             </cwuc:SettingsCard>
 
-            <cwuc:SettingsCard Header="{x:Bind LocalizedStrings.IPSec_Editor_Tunnel}">
+            <cwuc:SettingsCard
+                Description="{x:Bind LocalizedStrings.IPSec_Editor_ConnectionTypeDescription}"
+                Header="{x:Bind LocalizedStrings.IPSec_Editor_ConnectionType}">
+                <cwuc:SettingsCard.HeaderIcon>
+                    <FontIcon Glyph="&#xE968;" />
+                </cwuc:SettingsCard.HeaderIcon>
+                <ComboBox
+                    x:Name="ConnectionTypeComboBox"
+                    MinWidth="240"
+                    AutomationProperties.Name="{x:Bind LocalizedStrings.IPSec_Editor_ConnectionType}">
+                    <ComboBoxItem Content="{x:Bind LocalizedStrings.IPSec_Editor_ConnectionAll}" Tag="All" />
+                    <ComboBoxItem Content="{x:Bind LocalizedStrings.IPSec_Editor_ConnectionLan}" Tag="Lan" />
+                    <ComboBoxItem Content="{x:Bind LocalizedStrings.IPSec_Editor_ConnectionDialUp}" Tag="DialUp" />
+                </ComboBox>
+            </cwuc:SettingsCard>
+
+            <cwuc:SettingsExpander
+                Description="{x:Bind LocalizedStrings.IPSec_Editor_TunnelDescription}"
+                Header="{x:Bind LocalizedStrings.IPSec_Editor_Tunnel}">
+                <cwuc:SettingsExpander.HeaderIcon>
+                    <FontIcon Glyph="&#xE9D9;" />
+                </cwuc:SettingsExpander.HeaderIcon>
                 <ToggleSwitch
                     x:Name="UseTunnelToggleSwitch"
                     AutomationProperties.Name="{x:Bind LocalizedStrings.IPSec_Editor_Tunnel}"
                     OffContent="{x:Bind LocalizedStrings.IPSec_Value_No}"
                     OnContent="{x:Bind LocalizedStrings.IPSec_Value_Yes}"
                     Toggled="UseTunnelToggleSwitch_Toggled" />
-            </cwuc:SettingsCard>
+                <cwuc:SettingsExpander.Items>
+                    <cwuc:SettingsCard Header="{x:Bind LocalizedStrings.IPSec_Editor_TunnelEndpoint}">
+                        <TextBox
+                            x:Name="TunnelEndpointTextBox"
+                            MinWidth="240"
+                            AutomationProperties.Name="{x:Bind LocalizedStrings.IPSec_Editor_TunnelEndpoint}" />
+                    </cwuc:SettingsCard>
+                </cwuc:SettingsExpander.Items>
+            </cwuc:SettingsExpander>
 
-            <cwuc:SettingsCard Header="{x:Bind LocalizedStrings.IPSec_Editor_TunnelEndpoint}">
-                <TextBox
-                    x:Name="TunnelEndpointTextBox"
-                    MinWidth="220"
-                    AutomationProperties.Name="{x:Bind LocalizedStrings.IPSec_Editor_TunnelEndpoint}" />
-            </cwuc:SettingsCard>
+            <StackPanel Margin="0,8,0,0">
+                <TextBlock
+                    Style="{StaticResource EditorSectionHeaderStyle}"
+                    Text="{x:Bind LocalizedStrings.IPSec_Editor_AuthenticationMethods}" />
+                <TextBlock
+                    Style="{StaticResource EditorSectionCaptionStyle}"
+                    Text="{x:Bind LocalizedStrings.IPSec_Editor_AuthenticationMethodsDescription}" />
+            </StackPanel>
 
-            <!--  Authentication methods section  -->
-            <TextBlock
-                Margin="0,12,0,0"
-                Style="{StaticResource SubtitleTextBlockStyle}"
-                Text="{x:Bind LocalizedStrings.IPSec_Editor_AuthenticationMethods}"
-                TextWrapping="Wrap" />
-
-            <Border
-                Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
-                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
-                BorderThickness="1"
-                CornerRadius="8"
-                Padding="8">
-                <StackPanel Spacing="8">
+            <Border Style="{StaticResource EditorListSurfaceStyle}">
+                <Grid>
                     <ListView
                         x:Name="AuthenticationListView"
+                        MinHeight="104"
+                        MaxHeight="180"
                         AutomationProperties.Name="{x:Bind LocalizedStrings.IPSec_Editor_AuthenticationMethods}"
                         ItemsSource="{x:Bind AuthenticationItems}"
-                        MinHeight="150"
-                        MaxHeight="300"
                         SelectionChanged="AuthenticationListView_SelectionChanged"
                         SelectionMode="Single">
                         <ListView.ItemContainerStyle>
                             <Style TargetType="ListViewItem">
                                 <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                                <Setter Property="Margin" Value="0,0,0,2" />
                                 <Setter Property="MinHeight" Value="0" />
                                 <Setter Property="Padding" Value="0" />
                             </Style>
                         </ListView.ItemContainerStyle>
                         <ListView.ItemTemplate>
                             <DataTemplate x:DataType="local:IPSecurityAuthenticationEditorItem">
-                                <Grid Padding="8,8,8,8" ColumnSpacing="12">
+                                <Grid Padding="12,9" ColumnSpacing="12">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="Auto" />
                                         <ColumnDefinition Width="*" />
                                     </Grid.ColumnDefinitions>
                                     <FontIcon
+                                        VerticalAlignment="Center"
                                         FontSize="16"
-                                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                        Glyph="&#xE72E;"
-                                        VerticalAlignment="Center" />
+                                        Foreground="{ThemeResource AccentTextFillColorSecondaryBrush}"
+                                        Glyph="&#xE72E;" />
                                     <StackPanel
                                         Grid.Column="1"
                                         VerticalAlignment="Center"
@@ -149,87 +198,102 @@
                         </ListView.ItemTemplate>
                     </ListView>
 
-                    <CommandBar
-                        Background="Transparent"
-                        DefaultLabelPosition="Right"
-                        OverflowButtonVisibility="Collapsed">
-                        <AppBarButton
-                            Click="MoveAuthenticationUpButton_Click"
-                            Label="{x:Bind LocalizedStrings.IPSec_Editor_MoveUp}">
-                            <AppBarButton.Icon>
-                                <FontIcon Glyph="&#xE70E;" />
-                            </AppBarButton.Icon>
-                        </AppBarButton>
-                        <AppBarButton
-                            Click="MoveAuthenticationDownButton_Click"
-                            Label="{x:Bind LocalizedStrings.IPSec_Editor_MoveDown}">
-                            <AppBarButton.Icon>
-                                <FontIcon Glyph="&#xE70D;" />
-                            </AppBarButton.Icon>
-                        </AppBarButton>
-                        <AppBarButton
-                            Click="DeleteAuthenticationButton_Click"
-                            Label="{x:Bind LocalizedStrings.Common_DeleteButton}">
-                            <AppBarButton.Icon>
-                                <SymbolIcon Symbol="Delete" />
-                            </AppBarButton.Icon>
-                        </AppBarButton>
-                    </CommandBar>
-
-                    <ComboBox
-                        x:Name="AuthenticationKindComboBox"
-                        Header="{x:Bind LocalizedStrings.IPSec_Editor_AuthenticationKind}"
-                        SelectionChanged="AuthenticationKindComboBox_SelectionChanged">
-                        <ComboBoxItem
-                            Content="{x:Bind LocalizedStrings.IPSec_Editor_AuthenticationKerberos}"
-                            Tag="Kerberos" />
-                        <ComboBoxItem
-                            Content="{x:Bind LocalizedStrings.IPSec_Editor_AuthenticationCertificate}"
-                            Tag="CertificateAuthority" />
-                        <ComboBoxItem
-                            Content="{x:Bind LocalizedStrings.IPSec_Editor_AuthenticationPsk}"
-                            Tag="PreSharedKey" />
-                    </ComboBox>
-
-                    <StackPanel
-                        x:Name="CertificateAuthenticationPanel"
-                        Spacing="8"
-                        Visibility="Collapsed">
-                        <TextBox
-                            x:Name="CertificateAuthorityNameTextBox"
-                            Header="{x:Bind LocalizedStrings.IPSec_Editor_CertificateAuthorityName}" />
-                        <CheckBox
-                            x:Name="CertificateMappingCheckBox"
-                            Content="{x:Bind LocalizedStrings.IPSec_Editor_CertificateMapping}" />
-                        <CheckBox
-                            x:Name="ExcludeCertificateAuthorityNameCheckBox"
-                            Content="{x:Bind LocalizedStrings.IPSec_Editor_ExcludeCertificateAuthorityName}" />
-                    </StackPanel>
-
-                    <StackPanel
-                        x:Name="PreSharedKeyAuthenticationPanel"
-                        Spacing="8"
-                        Visibility="Collapsed">
-                        <TextBlock
-                            x:Name="PreSharedKeyStatusTextBlock"
-                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                            Style="{StaticResource CaptionTextBlockStyle}"
-                            TextWrapping="Wrap" />
-                        <PasswordBox
-                            x:Name="PreSharedKeyPasswordBox"
-                            Header="{x:Bind LocalizedStrings.IPSec_Editor_PreSharedKey}" />
-                    </StackPanel>
-
-                    <Button
-                        Click="AddOrReplaceAuthenticationButton_Click"
-                        HorizontalAlignment="Left">
-                        <StackPanel Orientation="Horizontal" Spacing="8">
-                            <FontIcon FontSize="14" Glyph="&#xE710;" />
-                            <TextBlock Text="{x:Bind LocalizedStrings.IPSec_Editor_AddOrReplaceAuthentication}" />
-                        </StackPanel>
-                    </Button>
-                </StackPanel>
+                    <TextBlock
+                        x:Name="EmptyAuthenticationText"
+                        VerticalAlignment="Center"
+                        Style="{StaticResource EditorEmptyStateTextStyle}"
+                        Text="{x:Bind LocalizedStrings.IPSec_Editor_NoAuthenticationMethods}" />
+                </Grid>
             </Border>
+
+            <StackPanel Style="{StaticResource EditorListCommandBarStyle}">
+                <Button
+                    AutomationProperties.Name="{x:Bind LocalizedStrings.IPSec_Editor_MoveUp}"
+                    Click="MoveAuthenticationUpButton_Click"
+                    ToolTipService.ToolTip="{x:Bind LocalizedStrings.IPSec_Editor_MoveUp}">
+                    <FontIcon FontSize="14" Glyph="&#xE70E;" />
+                </Button>
+                <Button
+                    AutomationProperties.Name="{x:Bind LocalizedStrings.IPSec_Editor_MoveDown}"
+                    Click="MoveAuthenticationDownButton_Click"
+                    ToolTipService.ToolTip="{x:Bind LocalizedStrings.IPSec_Editor_MoveDown}">
+                    <FontIcon FontSize="14" Glyph="&#xE70D;" />
+                </Button>
+                <Button
+                    AutomationProperties.Name="{x:Bind LocalizedStrings.Common_DeleteButton}"
+                    Click="DeleteAuthenticationButton_Click"
+                    ToolTipService.ToolTip="{x:Bind LocalizedStrings.Common_DeleteButton}">
+                    <FontIcon FontSize="14" Glyph="&#xE74D;" />
+                </Button>
+            </StackPanel>
+
+            <cwuc:SettingsExpander
+                Margin="0,8,0,0"
+                Header="{x:Bind LocalizedStrings.IPSec_Editor_AddOrReplaceAuthentication}"
+                IsExpanded="True">
+                <cwuc:SettingsExpander.HeaderIcon>
+                    <FontIcon Glyph="&#xE710;" />
+                </cwuc:SettingsExpander.HeaderIcon>
+                <ComboBox
+                    x:Name="AuthenticationKindComboBox"
+                    MinWidth="240"
+                    AutomationProperties.Name="{x:Bind LocalizedStrings.IPSec_Editor_AuthenticationKind}"
+                    SelectionChanged="AuthenticationKindComboBox_SelectionChanged">
+                    <ComboBoxItem Content="{x:Bind LocalizedStrings.IPSec_Editor_AuthenticationKerberos}" Tag="Kerberos" />
+                    <ComboBoxItem Content="{x:Bind LocalizedStrings.IPSec_Editor_AuthenticationCertificate}" Tag="CertificateAuthority" />
+                    <ComboBoxItem Content="{x:Bind LocalizedStrings.IPSec_Editor_AuthenticationPsk}" Tag="PreSharedKey" />
+                </ComboBox>
+                <cwuc:SettingsExpander.ItemsHeader>
+                    <StackPanel Padding="16,4,16,12" Spacing="12">
+                        <!--  Only the panel matching the selected authentication kind is shown.  -->
+                        <StackPanel
+                            x:Name="CertificateAuthenticationPanel"
+                            Spacing="8"
+                            Visibility="Collapsed">
+                            <TextBox
+                                x:Name="CertificateAuthorityNameTextBox"
+                                Header="{x:Bind LocalizedStrings.IPSec_Editor_CertificateAuthorityName}" />
+                            <CheckBox
+                                x:Name="CertificateMappingCheckBox"
+                                Content="{x:Bind LocalizedStrings.IPSec_Editor_CertificateMapping}" />
+                            <CheckBox
+                                x:Name="ExcludeCertificateAuthorityNameCheckBox"
+                                Content="{x:Bind LocalizedStrings.IPSec_Editor_ExcludeCertificateAuthorityName}" />
+                        </StackPanel>
+
+                        <StackPanel
+                            x:Name="PreSharedKeyAuthenticationPanel"
+                            Spacing="8"
+                            Visibility="Collapsed">
+                            <InfoBar
+                                IsClosable="False"
+                                IsOpen="True"
+                                Severity="Informational">
+                                <InfoBar.Content>
+                                    <TextBlock
+                                        x:Name="PreSharedKeyStatusTextBlock"
+                                        Margin="0,0,0,8"
+                                        Style="{StaticResource CaptionTextBlockStyle}"
+                                        TextWrapping="Wrap" />
+                                </InfoBar.Content>
+                            </InfoBar>
+                            <PasswordBox
+                                x:Name="PreSharedKeyPasswordBox"
+                                Header="{x:Bind LocalizedStrings.IPSec_Editor_PreSharedKey}" />
+                        </StackPanel>
+
+                        <Button
+                            HorizontalAlignment="Left"
+                            Click="AddOrReplaceAuthenticationButton_Click"
+                            Style="{StaticResource AccentButtonStyle}">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <FontIcon FontSize="14" Glyph="&#xE710;" />
+                                <TextBlock Text="{x:Bind LocalizedStrings.IPSec_Editor_AddOrReplaceAuthentication}" />
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </cwuc:SettingsExpander.ItemsHeader>
+            </cwuc:SettingsExpander>
         </StackPanel>
     </ScrollViewer>
 </UserControl>

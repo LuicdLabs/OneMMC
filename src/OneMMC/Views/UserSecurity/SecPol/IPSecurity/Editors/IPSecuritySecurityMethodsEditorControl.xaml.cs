@@ -59,6 +59,17 @@ public sealed partial class IPSecuritySecurityMethodsEditorControl : UserControl
         LifetimeSecondsNumberBox.Value = DefaultQuickModeLifetimeSeconds;
         UpdateMode();
         UpdateSelectionState();
+        Methods.CollectionChanged += (_, _) => UpdateEmptyState();
+        UpdateEmptyState();
+    }
+
+    /// <summary>
+    /// Shows or hides the list's empty state. Driven from code-behind so the token collection stays
+    /// a plain <see cref="ObservableCollection{T}"/> with no wrapper view model.
+    /// </summary>
+    private void UpdateEmptyState()
+    {
+        EmptyMethodsText.Visibility = Methods.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
     }
 
     /// <summary>Replaces the editable token list.</summary>

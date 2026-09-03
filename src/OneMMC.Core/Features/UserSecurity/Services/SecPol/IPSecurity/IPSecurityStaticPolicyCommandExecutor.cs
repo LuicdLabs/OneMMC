@@ -1,5 +1,7 @@
-﻿using System.Net;
+using System.Net;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Text;
 using OneMMC.Core.Features.UserSecurity.Services.SecPol.Native;
 using Microsoft.Extensions.Logging;
 using Microsoft.Win32;
@@ -17,11 +19,6 @@ public sealed class IPSecurityStaticPolicyCommandExecutor
 
     private static readonly HashSet<string> AllowedObjectKinds =
         new(StringComparer.OrdinalIgnoreCase) { "policy", "filterlist", "filter", "filteraction", "rule" };
-
-    private static readonly Guid NegPolActionBlock = new("3f91a819-7647-11d1-864d-d46a00000000");
-    private static readonly Guid NegPolActionNegotiate = new("8a171dd3-77e3-11d1-8659-a04f00000000");
-    private static readonly Guid NegPolActionPermit = new("3f91a81a-7647-11d1-864d-d46a00000000");
-    private static readonly Guid NegPolTypeStandard = new("62F49E13-6C37-11d1-864C-14A300000000");
 
     private readonly ILogger<IPSecurityStaticPolicyCommandExecutor> _logger;
 
@@ -44,15 +41,12 @@ public sealed class IPSecurityStaticPolicyCommandExecutor
     {
         cancellationToken.ThrowIfCancellationRequested();
         ValidateCommand(arguments);
+        IPSecurityPolicyLayout.Validate();
 
-        // A new policy must reference an ISAKMP (main-mode) object. On a machine where the
-        // Windows IP Security Policy snap-in has never created one, the store is empty and
-        // policy creation is impossible. Seed a default ISAKMP into the registry *before*
-        // opening the store so the first EnumISAKMPData call inside AddPolicy observes it.
-        if (arguments[2].Equals("add", StringComparison.OrdinalIgnoreCase)
-            && arguments[3].Equals("policy", StringComparison.OrdinalIgnoreCase))
+        if (!IPSecurityPolicyLayout.IsSupportedArchitecture)
         {
-            EnsureDefaultIsakmp();
+            throw new PlatformNotSupportedException(
+                "The legacy IPsec policy store is only supported on 64-bit processes.");
         }
 
         if (!IPSecurityPolicyNativeMethods.TryOpenRegistryStore(out IntPtr store, out int errorCode))
@@ -112,12 +106,11 @@ public sealed class IPSecurityStaticPolicyCommandExecutor
     // ===== Policy Operations =====
 
     /// <remarks>
-    /// IPSEC_POLICY_DATA (80 bytes, x64, verified):
-    /// +0 GUID PolicyIdentifier, +16 DWORD dwPollingInterval,
-    /// +24 PTR pIpsecISAKMPData, +32 PTR ppIpsecNFAData,
-    /// +40 DWORD dwNumNFACount, +44 DWORD dwWhenChanged,
-    /// +48 PTR pszIpsecName, +56 PTR pszDescription,
-    /// +64 GUID ISAKMPIdentifier.
+    /// See <see cref="IpsecPolicyData"/> for the layout. A policy is only enumerable once it owns at
+    /// least one rule, which is why the default response rule is created straight afterwards.
+    /// Main-mode settings (mmsecmethods, mmpfs, qmpermm, mmlifetime) are written to a dedicated
+    /// per-policy ISAKMP object, matching the reference writer: Windows' own tools never share one
+    /// ISAKMP between policies.
     /// </remarks>
     private static void AddPolicy(IntPtr store, Dictionary<string, string> parameters)
     {
@@ -126,25 +119,26 @@ public sealed class IPSecurityStaticPolicyCommandExecutor
         int pollingMinutes = GetOptionalInt(parameters, "pollinginterval") ?? 180;
         bool assign = GetOptionalBool(parameters, "assign") ?? false;
 
-        (Guid isakmpGuid, IntPtr pIsakmp) = GetFirstIsakmp(store);
+        MainModeSettings mainMode = ReadMainModeSettings(parameters);
         Guid policyGuid = Guid.NewGuid();
+        Guid isakmpGuid = CreateMainModeObject(store, mainMode);
 
-        const int size = 80;
-        IntPtr pData = Marshal.AllocHGlobal(size);
         IntPtr pName = AllocString(name);
         IntPtr pDesc = AllocString(description);
+        IntPtr pIsakmp = FindIsakmpPointer(store, isakmpGuid);
         try
         {
-            unsafe { NativeMemory.Clear((void*)pData, size); }
-            WriteGuid(pData, 0, policyGuid);
-            Marshal.WriteInt32(pData, 16, pollingMinutes * 60);
-            Marshal.WriteIntPtr(pData, 24, pIsakmp);
-            Marshal.WriteInt32(pData, 44, CurrentUnixSeconds());
-            Marshal.WriteIntPtr(pData, 48, pName);
-            Marshal.WriteIntPtr(pData, 56, pDesc);
-            WriteGuid(pData, 64, isakmpGuid);
+            IpsecPolicyData data = default;
+            data.PolicyIdentifier = policyGuid;
+            data.PollingIntervalSeconds = (uint)(pollingMinutes * 60);
+            data.IsakmpData = pIsakmp;
+            data.WhenChanged = (uint)CurrentUnixSeconds();
+            data.Name = pName;
+            data.Description = pDesc;
+            data.IsakmpIdentifier = isakmpGuid;
 
-            int hr = IPSecurityPolicyNativeMethods.CreatePolicyData(store, pData);
+            int hr;
+            unsafe { hr = IPSecurityPolicyNativeMethods.CreatePolicyData(store, (IntPtr)(&data)); }
             if (hr != 0)
             {
                 throw new InvalidOperationException(
@@ -154,24 +148,18 @@ public sealed class IPSecurityStaticPolicyCommandExecutor
         }
         finally
         {
-            Marshal.FreeHGlobal(pDesc);
-            Marshal.FreeHGlobal(pName);
-            Marshal.FreeHGlobal(pData);
+            FreeIfNotZero(pDesc);
+            FreeIfNotZero(pName);
         }
 
-        // polstore.dll omits ipsecNFAReference and description when the struct has
-        // no NFAs and an empty description.  EnumPolicyData requires these values
-        // to exist in order to parse the entry, so we write them directly.
-        EnsurePolicyRegistryValues(policyGuid, description, isakmpGuid);
+        // Native tools (the secpol.msc wizard, netsh) always create this rule, and polstore only
+        // reports a policy through IPSecEnumPolicyData once it has one. Creating it also makes
+        // polstore write the policy's ipsecNFAReference value, so no registry patch-up is needed.
+        IPSecurityStaticPolicySeeder.CreateDefaultResponseRule(
+            store, policyGuid, mainMode.IsDefaultResponseRuleActive);
 
-        // Create a default response rule (NFA + NegPol) for the new policy.
-        // Native tools (secpol.msc wizard, netsh) always create this rule.
-        // Without it, IPSecEnumNFAData returns ERROR_NO_DATA (0x800700E8)
-        // and secpol.msc cannot open the policy properties.
-        CreateDefaultResponseRule(store, policyGuid);
-
-        // Remove orphaned ipsecPolicy registry keys left by earlier failed attempts.
-        // These cause secpol.msc to fail with ERROR_NO_DATA (0x800700E8).
+        // Repair step for stores left inconsistent by earlier builds of this app, which created
+        // ipsecPolicy keys through the registry and could leave ones polstore cannot parse.
         CleanOrphanedPolicyRegistryKeys(store);
 
         if (assign)
@@ -194,39 +182,54 @@ public sealed class IPSecurityStaticPolicyCommandExecutor
             throw new InvalidOperationException($"Policy '{name}' not found.");
         }
 
-        const int size = 80;
-        IntPtr pData = Marshal.AllocHGlobal(size);
         IntPtr pNewName = IntPtr.Zero;
         IntPtr pNewDesc = IntPtr.Zero;
         try
         {
-            unsafe { Buffer.MemoryCopy((void*)original, (void*)pData, size, size); }
+            IpsecPolicyData data;
+            unsafe { data = *(IpsecPolicyData*)original; }
 
             if (newName is not null)
             {
                 pNewName = AllocString(newName);
-                Marshal.WriteIntPtr(pData, 48, pNewName);
+                data.Name = pNewName;
             }
 
             if (description is not null)
             {
                 pNewDesc = AllocString(description);
-                Marshal.WriteIntPtr(pData, 56, pNewDesc);
+                data.Description = pNewDesc;
             }
 
             if (pollingMinutes is not null)
             {
-                Marshal.WriteInt32(pData, 16, pollingMinutes.Value * 60);
+                data.PollingIntervalSeconds = (uint)(pollingMinutes.Value * 60);
             }
 
-            Marshal.WriteInt32(pData, 44, CurrentUnixSeconds());
-            ThrowOnError(IPSecurityPolicyNativeMethods.SetPolicyData(store, pData), "set policy");
+            data.WhenChanged = (uint)CurrentUnixSeconds();
+
+            int hr;
+            unsafe { hr = IPSecurityPolicyNativeMethods.SetPolicyData(store, (IntPtr)(&data)); }
+            ThrowOnError(hr, "set policy");
         }
         finally
         {
             FreeIfNotZero(pNewDesc);
             FreeIfNotZero(pNewName);
-            Marshal.FreeHGlobal(pData);
+        }
+
+        // Main-mode settings mutate the policy's referenced ISAKMP object (matching the reference
+        // writer, which never leaves these on the policy itself), then the default response rule's
+        // activation when requested.
+        if (TryReadMainModeSettings(parameters) is { } mainMode)
+        {
+            UpdatePolicyMainMode(store, policyGuid, mainMode);
+        }
+
+        bool? defaultRuleActive = GetOptionalBool(parameters, "activatedefaultrule");
+        if (defaultRuleActive is not null)
+        {
+            SetDefaultResponseRuleActivation(store, policyGuid, defaultRuleActive.Value);
         }
 
         if (assign is true)
@@ -237,6 +240,445 @@ public sealed class IPSecurityStaticPolicyCommandExecutor
         {
             IgnoreUnassignFailure(store, policyGuid);
         }
+    }
+
+    // ===== Main-mode (ISAKMP) plumbing =====
+
+    /// <summary>Main-mode policy settings carried by an add/set policy command.</summary>
+    private readonly struct MainModeSettings
+    {
+        internal uint MasterPfsEnabled { get; init; }
+
+        internal uint QuickModeSessionsPerMainMode { get; init; }
+
+        internal uint MainModeLifetimeSeconds { get; init; }
+
+        internal bool HasOfferOverrides { get; init; }
+
+        internal IReadOnlyList<IpsecMmOffer> Offers { get; init; }
+
+        internal bool IsDefaultResponseRuleActive { get; init; }
+    }
+
+    private static MainModeSettings ReadMainModeSettings(Dictionary<string, string> parameters)
+    {
+        bool masterPfs = GetOptionalBool(parameters, "mmpfs") ?? false;
+        bool defaultRule = GetOptionalBool(parameters, "activatedefaultrule") ?? false;
+        bool hasMethods = GetOptional(parameters, "mmsecmethods") is not null;
+
+        // The reference writer forces qmpermm to 1 when mmpfs is enabled; mirror that so the store
+        // never holds a combination Windows' own tools would not produce.
+        uint qmPerMm = (uint)(GetOptionalInt(parameters, "qmpermm") ?? 0);
+        if (masterPfs)
+        {
+            qmPerMm = 1;
+        }
+
+        uint lifetimeSeconds = (uint)((GetOptionalInt(parameters, "mmlifetime")
+            ?? (int)(IPSecurityPolicyLayout.DefaultMainModeLifetimeSeconds / 60)) * 60);
+
+        return new MainModeSettings
+        {
+            MasterPfsEnabled = masterPfs ? 1u : 0u,
+            QuickModeSessionsPerMainMode = qmPerMm,
+            MainModeLifetimeSeconds = lifetimeSeconds,
+            HasOfferOverrides = hasMethods,
+            Offers = hasMethods
+                ? ParseMainModeOffers(GetRequired(parameters, "mmsecmethods"), lifetimeSeconds)
+                : [],
+            IsDefaultResponseRuleActive = defaultRule
+        };
+    }
+
+    private static MainModeSettings? TryReadMainModeSettings(Dictionary<string, string> parameters)
+    {
+        bool any =
+            GetOptionalBool(parameters, "mmpfs") is not null
+            || GetOptionalInt(parameters, "qmpermm") is not null
+            || GetOptionalInt(parameters, "mmlifetime") is not null
+            || GetOptional(parameters, "mmsecmethods") is not null;
+        return any ? ReadMainModeSettings(parameters) : null;
+    }
+
+    /// <summary>
+    /// Creates the per-policy ISAKMP object the command describes, matching the reference writer:
+    /// one dedicated main-mode object per policy rather than a shared default.
+    /// </summary>
+    private static Guid CreateMainModeObject(IntPtr store, MainModeSettings settings)
+    {
+        Guid identifier = Guid.NewGuid();
+
+        IpsecMmOffer[] offers = settings.HasOfferOverrides && settings.Offers.Count > 0
+            ? [.. settings.Offers]
+            :
+            [
+                new IpsecMmOffer
+                {
+                    EncryptionAlgorithm = IPSecurityPolicyLayout.EncryptionTripleDes,
+                    HashAlgorithm = IPSecurityPolicyLayout.HashSha1,
+                    DiffieHellmanGroup = IPSecurityPolicyLayout.DiffieHellmanMedium,
+                    LifetimeSeconds = settings.MainModeLifetimeSeconds
+                }
+            ];
+
+        int offerSize = Unsafe.SizeOf<IpsecMmOffer>();
+        IntPtr pOffers = Marshal.AllocHGlobal(offerSize * offers.Length);
+        try
+        {
+            unsafe
+            {
+                for (int index = 0; index < offers.Length; index++)
+                {
+                    *(IpsecMmOffer*)(pOffers + (offerSize * index)) = offers[index];
+                }
+            }
+
+            IpsecIsakmpData isakmp = default;
+            isakmp.IsakmpIdentifier = identifier;
+            isakmp.PayloadIdentifier = identifier;
+            isakmp.MasterPfsEnabled = settings.MasterPfsEnabled;
+            isakmp.QuickModeSessionsPerMainMode = settings.QuickModeSessionsPerMainMode;
+            isakmp.MainModeLifetimeSeconds = settings.MainModeLifetimeSeconds;
+            isakmp.OfferCount = (uint)offers.Length;
+            isakmp.Offers = pOffers;
+            isakmp.WhenChanged = (uint)CurrentUnixSeconds();
+
+            int hr;
+            unsafe { hr = IPSecurityPolicyNativeMethods.CreateISAKMPData(store, (IntPtr)(&isakmp)); }
+            ThrowOnError(hr, "create main mode policy");
+            return identifier;
+        }
+        finally
+        {
+            Marshal.FreeHGlobal(pOffers);
+        }
+    }
+
+    /// <summary>
+    /// Mutates the ISAKMP object a policy references, copying the store-owned object first so the
+    /// update works on a caller-owned buffer like every other set operation.
+    /// </summary>
+    private static void UpdatePolicyMainMode(IntPtr store, Guid policyGuid, MainModeSettings settings)
+    {
+        Guid isakmpId = FindPolicyIsakmpReference(store, policyGuid);
+        if (isakmpId == Guid.Empty)
+        {
+            isakmpId = CreateMainModeObject(store, settings);
+            RetargetPolicyIsakmp(store, policyGuid, isakmpId);
+            return;
+        }
+
+        IpsecMmOffer[]? offers = settings.HasOfferOverrides && settings.Offers.Count > 0
+            ? [.. settings.Offers]
+            : null;
+
+        int offerSize = Unsafe.SizeOf<IpsecMmOffer>();
+        int offerCount = offers?.Length ?? 0;
+        IntPtr pOffers = offers is not null && offerCount > 0
+            ? Marshal.AllocHGlobal(offerSize * offerCount)
+            : IntPtr.Zero;
+        IntPtr offersBufferToFree = IntPtr.Zero;
+        try
+        {
+            if (offers is not null)
+            {
+                unsafe
+                {
+                    for (int index = 0; index < offerCount; index++)
+                    {
+                        *(IpsecMmOffer*)(pOffers + (offerSize * index)) = offers[index];
+                    }
+                }
+            }
+
+            IpsecIsakmpData data;
+            IntPtr pExisting = FindIsakmpPointer(store, isakmpId);
+            if (pExisting == IntPtr.Zero)
+            {
+                throw new InvalidOperationException(
+                    "The policy's main mode policy object could not be found in the store.");
+            }
+
+            unsafe { data = *(IpsecIsakmpData*)pExisting; }
+
+            data.MasterPfsEnabled = settings.MasterPfsEnabled;
+            data.QuickModeSessionsPerMainMode = settings.QuickModeSessionsPerMainMode;
+            uint targetLifetime = settings.MainModeLifetimeSeconds;
+            bool lifetimeChanged = targetLifetime != data.MainModeLifetimeSeconds;
+            data.MainModeLifetimeSeconds = targetLifetime;
+            if (pOffers != IntPtr.Zero)
+            {
+                data.OfferCount = (uint)offerCount;
+                data.Offers = pOffers;
+            }
+            else if (lifetimeChanged)
+            {
+                // Keep the existing offers but rewrite their lifetimes so the pair stays
+                // consistent, as the reference writer does.
+                RewriteOfferLifetimes(ref data, targetLifetime, out IntPtr pRewritten);
+                offersBufferToFree = pRewritten;
+            }
+
+            data.WhenChanged = (uint)CurrentUnixSeconds();
+
+            int hr;
+            unsafe { hr = IPSecurityPolicyNativeMethods.SetISAKMPData(store, (IntPtr)(&data)); }
+            ThrowOnError(hr, "set main mode policy");
+        }
+        finally
+        {
+            FreeIfNotZero(offersBufferToFree);
+            FreeIfNotZero(pOffers);
+        }
+    }
+
+    /// <summary>
+    /// Clones the store-owned offer array with a new lifetime so the caller can keep using store
+    /// offers while updating only <c>mmlifetime</c>.
+    /// </summary>
+    /// <param name="data">The ISAKMP struct copy whose offers should be replaced.</param>
+    /// <param name="lifetimeSeconds">The new lifetime written to every offer.</param>
+    /// <param name="pRewritten">The cloned offer array; the caller frees it after the set call.</param>
+    private static void RewriteOfferLifetimes(
+        ref IpsecIsakmpData data, uint lifetimeSeconds, out IntPtr pRewritten)
+    {
+        int count = (int)data.OfferCount;
+        if (count <= 0 || data.Offers == IntPtr.Zero)
+        {
+            pRewritten = IntPtr.Zero;
+            return;
+        }
+
+        int offerSize = Unsafe.SizeOf<IpsecMmOffer>();
+        pRewritten = Marshal.AllocHGlobal(offerSize * count);
+        unsafe
+        {
+            for (int index = 0; index < count; index++)
+            {
+                IpsecMmOffer offer = *(IpsecMmOffer*)(data.Offers + (offerSize * index));
+                offer.LifetimeSeconds = lifetimeSeconds;
+                *(IpsecMmOffer*)(pRewritten + (offerSize * index)) = offer;
+            }
+        }
+
+        data.Offers = pRewritten;
+    }
+
+    private static Guid FindPolicyIsakmpReference(IntPtr store, Guid policyGuid)
+    {
+        Guid found = Guid.Empty;
+        IntPtr ppp = Marshal.AllocHGlobal(IntPtr.Size);
+        IntPtr pCount = Marshal.AllocHGlobal(sizeof(int));
+        try
+        {
+            Marshal.WriteIntPtr(ppp, IntPtr.Zero);
+            Marshal.WriteInt32(pCount, 0);
+            if (IPSecurityPolicyNativeMethods.EnumPolicyData(store, ppp, pCount) != 0)
+            {
+                return Guid.Empty;
+            }
+
+            int count = Marshal.ReadInt32(pCount);
+            IntPtr array = Marshal.ReadIntPtr(ppp);
+            for (int index = 0; index < count && array != IntPtr.Zero; index++)
+            {
+                IntPtr p = Marshal.ReadIntPtr(array, IntPtr.Size * index);
+                if (p == IntPtr.Zero)
+                {
+                    continue;
+                }
+
+                if (ReadGuid(p, 0) == policyGuid)
+                {
+                    found = ReadGuid(p, 64);
+                    break;
+                }
+            }
+        }
+        finally
+        {
+            Marshal.FreeHGlobal(ppp);
+            Marshal.FreeHGlobal(pCount);
+        }
+
+        return found;
+    }
+
+    private static void RetargetPolicyIsakmp(IntPtr store, Guid policyGuid, Guid isakmpGuid)
+    {
+        IntPtr ppp = Marshal.AllocHGlobal(IntPtr.Size);
+        IntPtr pCount = Marshal.AllocHGlobal(sizeof(int));
+        try
+        {
+            Marshal.WriteIntPtr(ppp, IntPtr.Zero);
+            Marshal.WriteInt32(pCount, 0);
+            if (IPSecurityPolicyNativeMethods.EnumPolicyData(store, ppp, pCount) != 0)
+            {
+                throw new InvalidOperationException("The policy could not be enumerated for update.");
+            }
+
+            int count = Marshal.ReadInt32(pCount);
+            IntPtr array = Marshal.ReadIntPtr(ppp);
+            for (int index = 0; index < count && array != IntPtr.Zero; index++)
+            {
+                IntPtr p = Marshal.ReadIntPtr(array, IntPtr.Size * index);
+                if (p == IntPtr.Zero || ReadGuid(p, 0) != policyGuid)
+                {
+                    continue;
+                }
+
+                IpsecPolicyData data;
+                unsafe { data = *(IpsecPolicyData*)p; }
+                data.IsakmpIdentifier = isakmpGuid;
+                data.IsakmpData = FindIsakmpPointer(store, isakmpGuid);
+                data.WhenChanged = (uint)CurrentUnixSeconds();
+
+                int hr;
+                unsafe { hr = IPSecurityPolicyNativeMethods.SetPolicyData(store, (IntPtr)(&data)); }
+                ThrowOnError(hr, "set policy");
+                return;
+            }
+
+            throw new InvalidOperationException($"Policy '{policyGuid}' not found.");
+        }
+        finally
+        {
+            Marshal.FreeHGlobal(ppp);
+            Marshal.FreeHGlobal(pCount);
+        }
+    }
+
+    /// <summary>Returns the store-owned pointer to the ISAKMP object with the given identifier.</summary>
+    private static IntPtr FindIsakmpPointer(IntPtr store, Guid isakmpGuid)
+    {
+        IntPtr ppp = Marshal.AllocHGlobal(IntPtr.Size);
+        IntPtr pCount = Marshal.AllocHGlobal(sizeof(int));
+        try
+        {
+            Marshal.WriteIntPtr(ppp, IntPtr.Zero);
+            Marshal.WriteInt32(pCount, 0);
+            if (IPSecurityPolicyNativeMethods.EnumISAKMPData(store, ppp, pCount) != 0)
+            {
+                return IntPtr.Zero;
+            }
+
+            int count = Marshal.ReadInt32(pCount);
+            IntPtr array = Marshal.ReadIntPtr(ppp);
+            for (int index = 0; index < count && array != IntPtr.Zero; index++)
+            {
+                IntPtr p = Marshal.ReadIntPtr(array, IntPtr.Size * index);
+                if (p == IntPtr.Zero)
+                {
+                    continue;
+                }
+
+                if (ReadGuid(p, 0) == isakmpGuid)
+                {
+                    return p;
+                }
+            }
+
+            return IntPtr.Zero;
+        }
+        finally
+        {
+            Marshal.FreeHGlobal(ppp);
+            Marshal.FreeHGlobal(pCount);
+        }
+    }
+
+    /// <summary>Activates or deactivates a policy's default response rule.</summary>
+    private static void SetDefaultResponseRuleActivation(IntPtr store, Guid policyGuid, bool active)
+    {
+        IntPtr ppp = Marshal.AllocHGlobal(IntPtr.Size);
+        IntPtr pCount = Marshal.AllocHGlobal(sizeof(int));
+        try
+        {
+            Marshal.WriteIntPtr(ppp, IntPtr.Zero);
+            Marshal.WriteInt32(pCount, 0);
+            if (IPSecurityPolicyNativeMethods.EnumNFAData(store, policyGuid, ppp, pCount) != 0)
+            {
+                return;
+            }
+
+            int count = Marshal.ReadInt32(pCount);
+            IntPtr array = Marshal.ReadIntPtr(ppp);
+            for (int index = 0; index < count && array != IntPtr.Zero; index++)
+            {
+                IntPtr p = Marshal.ReadIntPtr(array, IntPtr.Size * index);
+                if (p == IntPtr.Zero)
+                {
+                    continue;
+                }
+
+                IpsecNfaData nfa;
+                unsafe { nfa = *(IpsecNfaData*)p; }
+
+                // The default response rule is the NFA with an all-zero filter reference.
+                if (nfa.FilterIdentifier == Guid.Empty)
+                {
+                    nfa.ActiveFlag = active ? 1u : 0u;
+                    nfa.WhenChanged = (uint)CurrentUnixSeconds();
+
+                    int hr;
+                    unsafe { hr = IPSecurityPolicyNativeMethods.SetNFAData(store, policyGuid, (IntPtr)(&nfa)); }
+                    ThrowOnError(hr, "set default response rule");
+                    return;
+                }
+            }
+        }
+        finally
+        {
+            Marshal.FreeHGlobal(ppp);
+            Marshal.FreeHGlobal(pCount);
+        }
+    }
+
+    /// <summary>
+    /// Parses netsh-style main-mode security methods (<c>Conf-Hash-Group</c>, space separated).
+    /// Each offer inherits the command's main-mode lifetime, matching the reference writer, which
+    /// keeps the ISAKMP lifetime and its offers' lifetimes consistent.
+    /// </summary>
+    private static IReadOnlyList<IpsecMmOffer> ParseMainModeOffers(string spec, uint lifetimeSeconds)
+    {
+        List<IpsecMmOffer> offers = [];
+        foreach (string term in spec.Split([' ', ':'], StringSplitOptions.RemoveEmptyEntries))
+        {
+            string[] parts = term.Split('-');
+            if (parts.Length != 3)
+            {
+                continue;
+            }
+
+            uint encryption = ParseMainModeAlgorithm(parts[0], isConfidentiality: true);
+            uint hash = ParseMainModeAlgorithm(parts[1], isConfidentiality: false);
+            if (encryption == 0 || hash == 0 || !uint.TryParse(parts[2], out uint group))
+            {
+                continue;
+            }
+
+            offers.Add(new IpsecMmOffer
+            {
+                EncryptionAlgorithm = encryption,
+                HashAlgorithm = hash,
+                DiffieHellmanGroup = group,
+                LifetimeSeconds = lifetimeSeconds
+            });
+        }
+
+        return offers;
+    }
+
+    private static uint ParseMainModeAlgorithm(string name, bool isConfidentiality)
+    {
+        return (isConfidentiality ? name : name) switch
+        {
+            "DES" => IPSecurityPolicyLayout.EncryptionDes,
+            "3DES" => IPSecurityPolicyLayout.EncryptionTripleDes,
+            "MD5" => IPSecurityPolicyLayout.HashMd5,
+            "SHA1" => IPSecurityPolicyLayout.HashSha1,
+            _ => 0
+        };
     }
 
     private static void DeletePolicy(IntPtr store, Dictionary<string, string> parameters)
@@ -252,99 +694,6 @@ public sealed class IPSecurityStaticPolicyCommandExecutor
         DeleteAllRules(store, policyId);
         ThrowOnError(IPSecurityPolicyNativeMethods.DeletePolicyData(store, policyPtr), "delete policy");
     }
-
-    /// <summary>
-    /// Creates a default response rule (NFA + NegPol) for a newly created policy.
-    /// This matches the native behavior of secpol.msc and netsh, which always create
-    /// this rule so that <c>IPSecEnumNFAData</c> does not return <c>ERROR_NO_DATA</c>.
-    /// </summary>
-    /// <remarks>
-    /// The NegPol and NFA are written directly to the registry because
-    /// <c>IPSecCreateNegPolData</c> requires in-memory security method structs whose
-    /// layout is undocumented and differs from the serialized <c>ipsecData</c> blob format.
-    /// The binary blobs used here are byte-identical to those produced by secpol.msc.
-    /// </remarks>
-    private static void CreateDefaultResponseRule(IntPtr store, Guid policyGuid)
-    {
-        Guid negPolGuid = Guid.NewGuid();
-        Guid nfaGuid = Guid.NewGuid();
-
-        string negPolKeyPath = $@"{PolicyStoreRegistryPath}\ipsecNegotiationPolicy{{{negPolGuid}}}";
-        string nfaKeyPath = $@"{PolicyStoreRegistryPath}\ipsecNFA{{{nfaGuid}}}";
-        string policyKeyPath = $@"{PolicyStoreRegistryPath}\ipsecPolicy{{{policyGuid}}}";
-
-        int whenChanged = CurrentUnixSeconds();
-
-        // Write the NegPol (filter action) with Negotiate action and default security methods.
-        using (RegistryKey negPolKey = Registry.LocalMachine.CreateSubKey(negPolKeyPath))
-        {
-            negPolKey.SetValue("className", "ipsecNegotiationPolicy", RegistryValueKind.String);
-            negPolKey.SetValue("name", $"ipsecNegotiationPolicy{{{negPolGuid}}}", RegistryValueKind.String);
-            negPolKey.SetValue("ipsecID", $"{{{negPolGuid}}}", RegistryValueKind.String);
-            negPolKey.SetValue("ipsecNegotiationPolicyAction", "{8a171dd3-77e3-11d1-8659-a04f00000000}", RegistryValueKind.String);
-            negPolKey.SetValue("ipsecNegotiationPolicyType", "{62f49e13-6c37-11d1-864c-14a300000000}", RegistryValueKind.String);
-            negPolKey.SetValue("ipsecDataType", 0x100, RegistryValueKind.DWord);
-            negPolKey.SetValue("ipsecData", DefaultNegPolIpsecData, RegistryValueKind.Binary);
-            negPolKey.SetValue("whenChanged", whenChanged, RegistryValueKind.DWord);
-            negPolKey.SetValue("ipsecOwnersReference", new[] { nfaKeyPath }, RegistryValueKind.MultiString);
-        }
-
-        // Write the NFA (rule) with Kerberos authentication and no filter (default response).
-        using (RegistryKey nfaKey = Registry.LocalMachine.CreateSubKey(nfaKeyPath))
-        {
-            nfaKey.SetValue("className", "ipsecNFA", RegistryValueKind.String);
-            nfaKey.SetValue("name", $"ipsecNFA{{{nfaGuid}}}", RegistryValueKind.String);
-            nfaKey.SetValue("ipsecID", $"{{{nfaGuid}}}", RegistryValueKind.String);
-            nfaKey.SetValue("ipsecDataType", 0x100, RegistryValueKind.DWord);
-            nfaKey.SetValue("ipsecData", DefaultNfaKerberosIpsecData, RegistryValueKind.Binary);
-            nfaKey.SetValue("ipsecNegotiationPolicyReference", negPolKeyPath, RegistryValueKind.String);
-            nfaKey.SetValue("whenChanged", whenChanged, RegistryValueKind.DWord);
-            nfaKey.SetValue("ipsecOwnersReference", new[] { policyKeyPath }, RegistryValueKind.MultiString);
-        }
-
-        // Update the policy's ipsecNFAReference to include the new NFA.
-        using (RegistryKey? policyKey = Registry.LocalMachine.OpenSubKey(policyKeyPath, writable: true))
-        {
-            if (policyKey is not null)
-            {
-                policyKey.SetValue("ipsecNFAReference", new[] { nfaKeyPath }, RegistryValueKind.MultiString);
-            }
-        }
-    }
-
-    /// <summary>
-    /// Default <c>ipsecData</c> blob for a NegPol with Negotiate action and 2 standard
-    /// security methods. 185 bytes, byte-identical to secpol.msc output.
-    /// </summary>
-    private static readonly byte[] DefaultNegPolIpsecData = Convert.FromHexString(
-        "B920DC80C82ED111A89E00A0248D3021A4000000020000000000000000000000000000000000000001000000030000000200000002000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100000002000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000");
-
-    /// <summary>
-    /// Default <c>ipsecData</c> blob for an NFA with a single Kerberos authentication method.
-    /// 115 bytes, byte-identical to the NFA created by secpol.msc's wizard.
-    /// </summary>
-    private static readonly byte[] DefaultNfaKerberosIpsecData = Convert.FromHexString(
-        "00ACBB118D49D111863900A0248D30212A0000000100000005000000020000000000FDFFFFFF0200000000000000000000000000000000000200000000000101010101010101010101010101010101000000050000000000000001010101010101010101010101010102010000000000000000");
-
-    /// <summary>
-    /// Default <c>ipsecData</c> blob for a main-mode ISAKMP policy with the standard set of
-    /// key-exchange security methods (8-hour main-mode lifetime). 213 bytes, byte-identical to
-    /// the ISAKMP object secpol.msc / netsh create for a new policy.
-    /// </summary>
-    /// <remarks>
-    /// The ISAKMP's own identifier is embedded as a little-endian GUID at offset +20. It must be
-    /// overwritten with a fresh GUID for each created object; see <see cref="EnsureDefaultIsakmp"/>.
-    /// </remarks>
-    private static readonly byte[] DefaultIsakmpIpsecData = Convert.FromHexString(
-        "B820DC80C82ED111A89E00A0248D3021C00000005269771AF17F2343B4ABB967A6EFEB6A" +
-        "000000000000000000000000000000000000000080700000000000000000000000000000" +
-        "000000000000000002000000000000000300000040000000080000000200000040000000" +
-        "000000000000000000000000000000000000000002000000000000000000000080700000" +
-        "000000000000000003000000400000000800000002000000400000000000000000000000" +
-        "0000000004000000000000000200000000000000000000008070000000000000" + "00");
-
-    /// <summary>Byte offset of the embedded ISAKMP identifier GUID within <see cref="DefaultIsakmpIpsecData"/>.</summary>
-    private const int IsakmpDataGuidOffset = 20;
 
     private static void DeleteAllRules(IntPtr store, Guid policyId)
     {
@@ -367,7 +716,7 @@ public sealed class IPSecurityStaticPolicyCommandExecutor
                 IntPtr p = Marshal.ReadIntPtr(pp, IntPtr.Size * i);
                 if (p == IntPtr.Zero) continue;
 
-                ThrowOnError(IPSecurityPolicyNativeMethods.DeleteNFAData(store, policyId, p), "delete rule");
+                DeleteRuleAndOwnedAction(store, policyId, p);
             }
         }
         finally
@@ -388,36 +737,30 @@ public sealed class IPSecurityStaticPolicyCommandExecutor
 
     // ===== FilterList Operations =====
 
-    /// <remarks>
-    /// IPSEC_FILTER_DATA (56 bytes, x64, verified):
-    /// +0 GUID FilterIdentifier, +16 DWORD dwNumFilterSpecs,
-    /// +24 PTR ppFilterSpecs, +32 DWORD dwWhenChanged,
-    /// +40 PTR pszIpsecName, +48 PTR pszDescription.
-    /// </remarks>
+    /// <remarks>See <see cref="IpsecFilterData"/> for the layout.</remarks>
     private static void AddFilterList(IntPtr store, Dictionary<string, string> parameters)
     {
         string name = GetRequired(parameters, "name");
         string? description = GetOptional(parameters, "description");
 
-        const int size = 56;
-        IntPtr pData = Marshal.AllocHGlobal(size);
         IntPtr pName = AllocString(name);
         IntPtr pDesc = AllocString(description);
         try
         {
-            unsafe { NativeMemory.Clear((void*)pData, size); }
-            WriteGuid(pData, 0, Guid.NewGuid());
-            Marshal.WriteInt32(pData, 32, CurrentUnixSeconds());
-            Marshal.WriteIntPtr(pData, 40, pName);
-            Marshal.WriteIntPtr(pData, 48, pDesc);
+            IpsecFilterData data = default;
+            data.FilterIdentifier = Guid.NewGuid();
+            data.WhenChanged = (uint)CurrentUnixSeconds();
+            data.Name = pName;
+            data.Description = pDesc;
 
-            ThrowOnError(IPSecurityPolicyNativeMethods.CreateFilterData(store, pData), "add filterlist");
+            int hr;
+            unsafe { hr = IPSecurityPolicyNativeMethods.CreateFilterData(store, (IntPtr)(&data)); }
+            ThrowOnError(hr, "add filterlist");
         }
         finally
         {
             FreeIfNotZero(pDesc);
-            Marshal.FreeHGlobal(pName);
-            Marshal.FreeHGlobal(pData);
+            FreeIfNotZero(pName);
         }
     }
 
@@ -433,48 +776,44 @@ public sealed class IPSecurityStaticPolicyCommandExecutor
             throw new InvalidOperationException($"Filter list '{name}' not found.");
         }
 
-        const int size = 56;
-        IntPtr pData = Marshal.AllocHGlobal(size);
         IntPtr pNewName = IntPtr.Zero;
         IntPtr pNewDesc = IntPtr.Zero;
         try
         {
-            unsafe { Buffer.MemoryCopy((void*)original, (void*)pData, size, size); }
+            IpsecFilterData data;
+            unsafe { data = *(IpsecFilterData*)original; }
 
             if (newName is not null)
             {
                 pNewName = AllocString(newName);
-                Marshal.WriteIntPtr(pData, 40, pNewName);
+                data.Name = pNewName;
             }
 
             if (description is not null)
             {
                 pNewDesc = AllocString(description);
-                Marshal.WriteIntPtr(pData, 48, pNewDesc);
+                data.Description = pNewDesc;
             }
 
-            Marshal.WriteInt32(pData, 32, CurrentUnixSeconds());
-            ThrowOnError(IPSecurityPolicyNativeMethods.SetFilterData(store, pData), "set filterlist");
+            data.WhenChanged = (uint)CurrentUnixSeconds();
+
+            int hr;
+            unsafe { hr = IPSecurityPolicyNativeMethods.SetFilterData(store, (IntPtr)(&data)); }
+            ThrowOnError(hr, "set filterlist");
         }
         finally
         {
             FreeIfNotZero(pNewDesc);
             FreeIfNotZero(pNewName);
-            Marshal.FreeHGlobal(pData);
         }
     }
 
     // ===== Filter Operations =====
 
     /// <remarks>
-    /// IPSEC_FILTER_SPEC (84 bytes, x64, derived from NT headers):
-    /// +0 PTR pszSrcDNSName, +8 PTR pszDestDNSName,
-    /// +16 PTR pszDescription, +24 GUID FilterSpecGUID,
-    /// +40 DWORD dwMirrorFlag,
-    /// +44 IPSEC_FILTER (embedded 40 bytes):
-    ///   +44 SrcAddr, +48 SrcMask, +52 DestAddr, +56 DestMask,
-    ///   +60 TunnelAddr, +64 Protocol, +68 SrcPort, +72 DestPort,
-    ///   +76 TunnelFilter, +80 Flags.
+    /// See <see cref="IpsecFilterSpec"/>. The filter list's spec array is an array of pointers, so
+    /// adding a filter means building a new pointer array that keeps the store-owned specs and
+    /// appends ours, then handing the whole list back through <c>IPSecSetFilterData</c>.
     /// </remarks>
     private static void AddFilter(IntPtr store, Dictionary<string, string> parameters)
     {
@@ -496,63 +835,61 @@ public sealed class IPSecurityStaticPolicyCommandExecutor
             throw new InvalidOperationException($"Filter list '{filterListName}' not found.");
         }
 
-        int oldCount = Marshal.ReadInt32(filterListPtr, 16);
-        IntPtr oldSpecs = Marshal.ReadIntPtr(filterListPtr, 24);
+        IpsecFilterData list;
+        unsafe { list = *(IpsecFilterData*)filterListPtr; }
+        int oldCount = (int)list.FilterSpecCount;
 
-        const int specSize = 84;
-        const int filterListSize = 56;
-        IntPtr pSpec = Marshal.AllocHGlobal(specSize);
+        (IpsecAddress source, string? srcDnsName) = ParseAddress(srcAddr, srcMask);
+        (IpsecAddress destination, string? dstDnsName) = ParseAddress(dstAddr, dstMask);
+
+        IntPtr pSpec = Marshal.AllocHGlobal(Unsafe.SizeOf<IpsecFilterSpec>());
         IntPtr pNewArray = Marshal.AllocHGlobal(IntPtr.Size * (oldCount + 1));
-        IntPtr pFilterList = Marshal.AllocHGlobal(filterListSize);
-        IntPtr pSrcDns = IntPtr.Zero;
-        IntPtr pDstDns = IntPtr.Zero;
-        IntPtr pDescStr = IntPtr.Zero;
+        IntPtr pSrcDns = AllocString(srcDnsName);
+        IntPtr pDstDns = AllocString(dstDnsName);
+        IntPtr pDescription = AllocString(description);
         try
         {
-            unsafe { NativeMemory.Clear((void*)pSpec, specSize); }
+            IpsecFilterSpec spec = default;
+            spec.FilterSpecGuid = Guid.NewGuid();
+            spec.MirrorFlag = mirrored ? 1u : 0u;
+            spec.SourceDnsName = pSrcDns;
+            spec.DestinationDnsName = pDstDns;
+            spec.Description = pDescription;
+            spec.SourceAddress = source;
+            spec.DestinationAddress = destination;
+            spec.SourcePort = MakePort(srcPort);
+            spec.DestinationPort = MakePort(dstPort);
+            spec.Protocol = (uint)ParseProtocolNumber(protocol);
+            unsafe { *(IpsecFilterSpec*)pSpec = spec; }
 
-            (uint srcIp, uint srcMaskVal, string? srcDnsName, int srcFlags) = ParseAddress(srcAddr, srcMask, isSrc: true);
-            (uint dstIp, uint dstMaskVal, string? dstDnsName, int dstFlags) = ParseAddress(dstAddr, dstMask, isSrc: false);
-
-            if (srcDnsName is not null) { pSrcDns = AllocString(srcDnsName); Marshal.WriteIntPtr(pSpec, 0, pSrcDns); }
-            if (dstDnsName is not null) { pDstDns = AllocString(dstDnsName); Marshal.WriteIntPtr(pSpec, 8, pDstDns); }
-            if (description is not null) { pDescStr = AllocString(description); Marshal.WriteIntPtr(pSpec, 16, pDescStr); }
-
-            WriteGuid(pSpec, 24, Guid.NewGuid());
-            Marshal.WriteInt32(pSpec, 40, mirrored ? 1 : 0);
-            Marshal.WriteInt32(pSpec, 44, unchecked((int)srcIp));
-            Marshal.WriteInt32(pSpec, 48, unchecked((int)srcMaskVal));
-            Marshal.WriteInt32(pSpec, 52, unchecked((int)dstIp));
-            Marshal.WriteInt32(pSpec, 56, unchecked((int)dstMaskVal));
-            Marshal.WriteInt32(pSpec, 64, ParseProtocolNumber(protocol));
-            Marshal.WriteInt32(pSpec, 68, srcPort);
-            Marshal.WriteInt32(pSpec, 72, dstPort);
-            Marshal.WriteInt32(pSpec, 80, srcFlags | dstFlags);
-
-            for (int i = 0; i < oldCount; i++)
+            for (int index = 0; index < oldCount; index++)
             {
-                Marshal.WriteIntPtr(pNewArray, IntPtr.Size * i, Marshal.ReadIntPtr(oldSpecs, IntPtr.Size * i));
+                Marshal.WriteIntPtr(
+                    pNewArray,
+                    IntPtr.Size * index,
+                    Marshal.ReadIntPtr(list.FilterSpecs, IntPtr.Size * index));
             }
 
             Marshal.WriteIntPtr(pNewArray, IntPtr.Size * oldCount, pSpec);
 
-            unsafe { Buffer.MemoryCopy((void*)filterListPtr, (void*)pFilterList, filterListSize, filterListSize); }
-            Marshal.WriteInt32(pFilterList, 16, oldCount + 1);
-            Marshal.WriteIntPtr(pFilterList, 24, pNewArray);
-            Marshal.WriteInt32(pFilterList, 32, CurrentUnixSeconds());
+            list.FilterSpecCount = (uint)(oldCount + 1);
+            list.FilterSpecs = pNewArray;
+            list.WhenChanged = (uint)CurrentUnixSeconds();
 
-            ThrowOnError(IPSecurityPolicyNativeMethods.SetFilterData(store, pFilterList), "add filter");
+            int hr;
+            unsafe { hr = IPSecurityPolicyNativeMethods.SetFilterData(store, (IntPtr)(&list)); }
+            ThrowOnError(hr, "add filter");
         }
         finally
         {
-            FreeIfNotZero(pDescStr);
+            FreeIfNotZero(pDescription);
             FreeIfNotZero(pDstDns);
             FreeIfNotZero(pSrcDns);
-            Marshal.FreeHGlobal(pFilterList);
             Marshal.FreeHGlobal(pNewArray);
             Marshal.FreeHGlobal(pSpec);
         }
     }
+
 
     private static void DeleteFilter(IntPtr store, Dictionary<string, string> parameters)
     {
@@ -573,72 +910,103 @@ public sealed class IPSecurityStaticPolicyCommandExecutor
             throw new InvalidOperationException($"Filter list '{filterListName}' not found.");
         }
 
-        int oldCount = Marshal.ReadInt32(filterListPtr, 16);
-        IntPtr oldSpecs = Marshal.ReadIntPtr(filterListPtr, 24);
-        if (oldCount == 0 || oldSpecs == IntPtr.Zero) return;
+        IpsecFilterData list;
+        unsafe { list = *(IpsecFilterData*)filterListPtr; }
+        int oldCount = (int)list.FilterSpecCount;
+        if (oldCount == 0 || list.FilterSpecs == IntPtr.Zero) return;
 
-        (uint targetSrcIp, uint targetSrcMask, _, _) = ParseAddress(srcAddr, srcMask, isSrc: true);
-        (uint targetDstIp, uint targetDstMask, _, _) = ParseAddress(dstAddr, dstMask, isSrc: false);
-        int targetProtocol = ParseProtocolNumber(protocol);
+        (IpsecAddress source, _) = ParseAddress(srcAddr, srcMask);
+        (IpsecAddress destination, _) = ParseAddress(dstAddr, dstMask);
+        uint targetProtocol = (uint)ParseProtocolNumber(protocol);
+        IpsecPort targetSrcPort = MakePort(srcPort);
+        IpsecPort targetDstPort = MakePort(dstPort);
 
         int matchIndex = -1;
-        for (int i = 0; i < oldCount; i++)
+        for (int index = 0; index < oldCount; index++)
         {
-            IntPtr spec = Marshal.ReadIntPtr(oldSpecs, IntPtr.Size * i);
-            if (spec == IntPtr.Zero) continue;
+            IntPtr entry = Marshal.ReadIntPtr(list.FilterSpecs, IntPtr.Size * index);
+            if (entry == IntPtr.Zero) continue;
 
-            if (unchecked((uint)Marshal.ReadInt32(spec, 44)) == targetSrcIp
-                && unchecked((uint)Marshal.ReadInt32(spec, 48)) == targetSrcMask
-                && unchecked((uint)Marshal.ReadInt32(spec, 52)) == targetDstIp
-                && unchecked((uint)Marshal.ReadInt32(spec, 56)) == targetDstMask
-                && Marshal.ReadInt32(spec, 64) == targetProtocol
-                && Marshal.ReadInt32(spec, 68) == srcPort
-                && Marshal.ReadInt32(spec, 72) == dstPort
-                && (Marshal.ReadInt32(spec, 40) != 0) == mirrored)
+            IpsecFilterSpec candidate;
+            unsafe { candidate = *(IpsecFilterSpec*)entry; }
+            if (SameAddress(candidate.SourceAddress, source)
+                && SameAddress(candidate.DestinationAddress, destination)
+                && candidate.Protocol == targetProtocol
+                && candidate.SourcePort.Port == targetSrcPort.Port
+                && candidate.DestinationPort.Port == targetDstPort.Port
+                && (candidate.MirrorFlag != 0) == mirrored)
             {
-                matchIndex = i;
+                matchIndex = index;
                 break;
             }
         }
 
         if (matchIndex < 0) return;
 
-        const int filterListSize = 56;
         int newCount = oldCount - 1;
         IntPtr pNewArray = newCount > 0 ? Marshal.AllocHGlobal(IntPtr.Size * newCount) : IntPtr.Zero;
-        IntPtr pFilterList = Marshal.AllocHGlobal(filterListSize);
         try
         {
-            int dest = 0;
-            for (int i = 0; i < oldCount; i++)
+            int writeIndex = 0;
+            for (int index = 0; index < oldCount; index++)
             {
-                if (i == matchIndex) continue;
-                Marshal.WriteIntPtr(pNewArray, IntPtr.Size * dest, Marshal.ReadIntPtr(oldSpecs, IntPtr.Size * i));
-                dest++;
+                if (index == matchIndex) continue;
+                Marshal.WriteIntPtr(
+                    pNewArray,
+                    IntPtr.Size * writeIndex,
+                    Marshal.ReadIntPtr(list.FilterSpecs, IntPtr.Size * index));
+                writeIndex++;
             }
 
-            unsafe { Buffer.MemoryCopy((void*)filterListPtr, (void*)pFilterList, filterListSize, filterListSize); }
-            Marshal.WriteInt32(pFilterList, 16, newCount);
-            Marshal.WriteIntPtr(pFilterList, 24, pNewArray);
-            Marshal.WriteInt32(pFilterList, 32, CurrentUnixSeconds());
+            list.FilterSpecCount = (uint)newCount;
+            list.FilterSpecs = pNewArray;
+            list.WhenChanged = (uint)CurrentUnixSeconds();
 
-            ThrowOnError(IPSecurityPolicyNativeMethods.SetFilterData(store, pFilterList), "delete filter");
+            int hr;
+            unsafe { hr = IPSecurityPolicyNativeMethods.SetFilterData(store, (IntPtr)(&list)); }
+            ThrowOnError(hr, "delete filter");
         }
         finally
         {
-            Marshal.FreeHGlobal(pFilterList);
             FreeIfNotZero(pNewArray);
         }
     }
 
+    private static IpsecPort MakePort(int port)
+    {
+        return new IpsecPort
+        {
+            PortType = port > 0
+                ? IPSecurityPolicyLayout.PortTypeSpecific
+                : IPSecurityPolicyLayout.PortTypeAny,
+            Port = (uint)Math.Max(0, port)
+        };
+    }
+
+    private static bool SameAddress(IpsecAddress left, IpsecAddress right)
+    {
+        return left.AddressType == right.AddressType
+            && left.IpAddress == right.IpAddress
+            && left.SubnetMask == right.SubnetMask;
+    }
+
+
     // ===== FilterAction Operations =====
 
+    /// <summary>
+    /// The encoding a filter action's flags use in the store, all recovered by measurement:
+    /// inpass lives in the action GUID, qmpfs in the first method's flag DWORD, and soft in an
+    /// extra all-zero terminator method after the real ones.
+    /// </summary>
+    private readonly record struct FilterActionEncoding(
+        Guid ActionGuid,
+        bool QuickModePfs,
+        bool AllowUnsecuredFallback);
+
     /// <remarks>
-    /// IPSEC_NEGPOL_DATA (88 bytes, x64, verified):
-    /// +0 GUID NegPolIdentifier, +16 GUID NegPolAction,
-    /// +32 GUID NegPolType, +48 DWORD dwSecurityMethodCount,
-    /// +56 PTR pIpsecSecurityMethods, +64 DWORD dwWhenChanged,
-    /// +72 PTR pszIpsecName, +80 PTR pszDescription.
+    /// See <see cref="IpsecNegPolData"/> for the layout. Negotiate actions encode inpass through
+    /// <see cref="IPSecurityPolicyLayout.ActionNegotiateAcceptUnsecuredInbound"/> and soft through
+    /// a trailing all-zero method, matching the reference writer.
     /// </remarks>
     private static void AddFilterAction(IntPtr store, Dictionary<string, string> parameters)
     {
@@ -646,34 +1014,35 @@ public sealed class IPSecurityStaticPolicyCommandExecutor
         string? description = GetOptional(parameters, "description");
         string actionStr = GetOptional(parameters, "action") ?? "negotiate";
 
-        Guid actionGuid = actionStr.ToLowerInvariant() switch
-        {
-            "block" => NegPolActionBlock,
-            "permit" => NegPolActionPermit,
-            _ => NegPolActionNegotiate
-        };
+        FilterActionEncoding encoding = ReadFilterActionEncoding(parameters, actionStr, null);
+        SecurityMethodBuffer security = BuildSecurityMethods(parameters, in encoding);
 
-        const int size = 88;
-        IntPtr pData = Marshal.AllocHGlobal(size);
         IntPtr pName = AllocString(name);
         IntPtr pDesc = AllocString(description);
         try
         {
-            unsafe { NativeMemory.Clear((void*)pData, size); }
-            WriteGuid(pData, 0, Guid.NewGuid());
-            WriteGuid(pData, 16, actionGuid);
-            WriteGuid(pData, 32, NegPolTypeStandard);
-            Marshal.WriteInt32(pData, 64, CurrentUnixSeconds());
-            Marshal.WriteIntPtr(pData, 72, pName);
-            Marshal.WriteIntPtr(pData, 80, pDesc);
+            IpsecNegPolData data = default;
+            data.NegPolIdentifier = Guid.NewGuid();
+            data.NegPolAction = encoding.ActionGuid;
+            data.NegPolType = encoding.ActionGuid == IPSecurityPolicyLayout.ActionBlock
+                || encoding.ActionGuid == IPSecurityPolicyLayout.ActionPermit
+                    ? IPSecurityPolicyLayout.NegPolTypeStandard
+                    : IPSecurityPolicyLayout.NegPolTypeNegotiate;
+            data.SecurityMethodCount = (uint)security.Count;
+            data.SecurityMethods = security.Methods;
+            data.WhenChanged = (uint)CurrentUnixSeconds();
+            data.Name = pName;
+            data.Description = pDesc;
 
-            ThrowOnError(IPSecurityPolicyNativeMethods.CreateNegPolData(store, pData), "add filteraction");
+            int hr;
+            unsafe { hr = IPSecurityPolicyNativeMethods.CreateNegPolData(store, (IntPtr)(&data)); }
+            ThrowOnError(hr, "add filteraction");
         }
         finally
         {
             FreeIfNotZero(pDesc);
-            Marshal.FreeHGlobal(pName);
-            Marshal.FreeHGlobal(pData);
+            FreeIfNotZero(pName);
+            security.Dispose();
         }
     }
 
@@ -690,59 +1059,564 @@ public sealed class IPSecurityStaticPolicyCommandExecutor
             throw new InvalidOperationException($"Filter action '{name}' not found.");
         }
 
-        const int size = 88;
-        IntPtr pData = Marshal.AllocHGlobal(size);
+        IpsecNegPolData existing;
+        unsafe { existing = *(IpsecNegPolData*)original; }
+
+        FilterActionEncoding encoding = ReadFilterActionEncoding(parameters, actionStr, existing);
+        bool rebuildMethods =
+            actionStr is not null
+            || GetOptional(parameters, "qmsecmethods") is not null
+            || GetOptionalBool(parameters, "qmpfs") is not null
+            || GetOptionalBool(parameters, "soft") is not null;
+
         IntPtr pNewName = IntPtr.Zero;
         IntPtr pNewDesc = IntPtr.Zero;
+        SecurityMethodBuffer? security = null;
+        IntPtr terminatorBuffer = IntPtr.Zero;
         try
         {
-            unsafe { Buffer.MemoryCopy((void*)original, (void*)pData, size, size); }
+            IpsecNegPolData data;
+            unsafe { data = *(IpsecNegPolData*)original; }
 
             if (newName is not null)
             {
                 pNewName = AllocString(newName);
-                Marshal.WriteIntPtr(pData, 72, pNewName);
+                data.Name = pNewName;
             }
 
             if (description is not null)
             {
                 pNewDesc = AllocString(description);
-                Marshal.WriteIntPtr(pData, 80, pNewDesc);
+                data.Description = pNewDesc;
             }
 
-            if (actionStr is not null)
+            data.NegPolAction = encoding.ActionGuid;
+            if (encoding.ActionGuid == IPSecurityPolicyLayout.ActionBlock
+                || encoding.ActionGuid == IPSecurityPolicyLayout.ActionPermit)
             {
-                Guid actionGuid = actionStr.ToLowerInvariant() switch
-                {
-                    "block" => NegPolActionBlock,
-                    "permit" => NegPolActionPermit,
-                    _ => NegPolActionNegotiate
-                };
-                WriteGuid(pData, 16, actionGuid);
+                data.NegPolType = IPSecurityPolicyLayout.NegPolTypeStandard;
+            }
+            else if (actionStr is not null)
+            {
+                data.NegPolType = IPSecurityPolicyLayout.NegPolTypeNegotiate;
             }
 
-            Marshal.WriteInt32(pData, 64, CurrentUnixSeconds());
-            ThrowOnError(IPSecurityPolicyNativeMethods.SetNegPolData(store, pData), "set filteraction");
+            if (rebuildMethods)
+            {
+                // Rebuild when methods, qmpfs, or soft changed — the terminator participates in
+                // the count so both flags need the array rebuilt; a pure action-GUID switch keeps
+                // the store's methods.
+                if (GetOptional(parameters, "qmsecmethods") is not null
+                    || GetOptionalBool(parameters, "qmpfs") is not null
+                    || GetOptionalBool(parameters, "soft") is not null)
+                {
+                    security = BuildSecurityMethods(parameters, in encoding, existing);
+                    data.SecurityMethodCount = (uint)security.Value.Count;
+                    data.SecurityMethods = security.Value.Methods;
+                }
+                else
+                {
+                    ApplySoftTerminator(ref data, in encoding, existing, out terminatorBuffer);
+                }
+            }
+
+            data.WhenChanged = (uint)CurrentUnixSeconds();
+
+            int hr;
+            unsafe { hr = IPSecurityPolicyNativeMethods.SetNegPolData(store, (IntPtr)(&data)); }
+            ThrowOnError(hr, "set filteraction");
         }
         finally
         {
+            FreeIfNotZero(terminatorBuffer);
             FreeIfNotZero(pNewDesc);
             FreeIfNotZero(pNewName);
-            Marshal.FreeHGlobal(pData);
+            security?.Dispose();
         }
+    }
+
+    /// <summary>
+    /// Resolves the effective filter-action encoding for a command, falling back to the existing
+    /// object's values for parameters the command omits.
+    /// </summary>
+    private static FilterActionEncoding ReadFilterActionEncoding(
+        Dictionary<string, string> parameters, string? actionStr, IpsecNegPolData? existing)
+    {
+        Guid actionGuid = actionStr is not null
+            ? ParseAction(actionStr)
+            : existing?.NegPolAction ?? IPSecurityPolicyLayout.ActionNegotiate;
+
+        bool? qmpfs = GetOptionalBool(parameters, "qmpfs");
+        bool qmpfsValue = qmpfs ?? ReadQuickModePfs(existing);
+
+        bool? soft = GetOptionalBool(parameters, "soft");
+        bool softValue = soft ?? HasSoftTerminator(existing);
+
+        // inpass only applies to negotiate actions; when the command switches an action to
+        // block or permit the inpass encoding is dropped with it, matching the reference writer.
+        bool? inpass = GetOptionalBool(parameters, "inpass");
+        bool inpassValue = inpass
+            ?? existing?.NegPolAction == IPSecurityPolicyLayout.ActionNegotiateAcceptUnsecuredInbound;
+
+        Guid effectiveAction = actionGuid;
+        if (actionGuid == IPSecurityPolicyLayout.ActionNegotiate && inpassValue)
+        {
+            effectiveAction = IPSecurityPolicyLayout.ActionNegotiateAcceptUnsecuredInbound;
+        }
+
+        return new FilterActionEncoding(effectiveAction, qmpfsValue, softValue);
+    }
+
+    /// <summary>
+    /// Native buffer holding the quick-mode security methods for one filter action. The count
+    /// includes the all-zero terminator method used to encode <c>soft</c>.
+    /// </summary>
+    private readonly struct SecurityMethodBuffer(int count, IntPtr methods)
+    {
+        /// <summary>Number of entries in the buffer, including the soft terminator when present.</summary>
+        internal int Count { get; } = count;
+
+        /// <summary>Contiguous array to pass as <see cref="IpsecNegPolData.SecurityMethods"/>.</summary>
+        internal IntPtr Methods { get; } = methods;
+
+        internal void Dispose() => FreeIfNotZero(Methods);
+    }
+
+    /// <summary>
+    /// Builds the quick-mode security methods for a filter action.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Accepts the netsh-style <c>qmsecmethods</c> spelling, a space- or colon-separated list of
+    /// <c>ESP[confidentiality,integrity]</c>, <c>AH[integrity]</c> and <c>AH[h]+ESP[c,i]</c> terms,
+    /// each optionally suffixed <c>:kBytesk/secondss</c> to carry per-method lifetimes. Unparsable
+    /// terms are skipped.
+    /// </para>
+    /// <para>
+    /// A negotiate action with no security methods is rejected by polstore with
+    /// <c>ERROR_INVALID_PARAMETER</c>, so when the caller supplies none the snap-in's own default
+    /// pair — ESP 3DES/SHA-1 followed by AH SHA-1 — is used. Block and permit actions carry no
+    /// methods at all.
+    /// </para>
+    /// <para>
+    /// The measured flag encoding is applied here: quick-mode PFS is written to the first method's
+    /// flag DWORD, and <c>soft</c> appends one all-zero terminator method that the declared count
+    /// includes.
+    /// </para>
+    /// </remarks>
+    private static SecurityMethodBuffer BuildSecurityMethods(
+        Dictionary<string, string> parameters, in FilterActionEncoding encoding, IpsecNegPolData? existing = null)
+    {
+        if (encoding.ActionGuid != IPSecurityPolicyLayout.ActionNegotiate
+            && encoding.ActionGuid != IPSecurityPolicyLayout.ActionNegotiateAcceptUnsecuredInbound)
+        {
+            return new SecurityMethodBuffer(0, IntPtr.Zero);
+        }
+
+        List<IpsecSecurityMethod> methods = [];
+        string? spec = GetOptional(parameters, "qmsecmethods");
+        if (spec is not null)
+        {
+            foreach (string term in SplitMethodTerms(spec))
+            {
+                if (TryParseSecurityMethod(term, out IpsecSecurityMethod method))
+                {
+                    methods.Add(method);
+                }
+            }
+        }
+        else if (existing is { } value)
+        {
+            // Preserve the store's methods when the command only changes flags.
+            methods.AddRange(ReadExistingMethods(value, includeTerminator: false));
+        }
+
+        if (methods.Count == 0)
+        {
+            methods.Add(MakeSecurityMethod(
+                IPSecurityPolicyLayout.TransformEsp,
+                IPSecurityPolicyLayout.EncryptionTripleDes,
+                IPSecurityPolicyLayout.HashSha1,
+                lifetimeSeconds: 0,
+                lifetimeKilobytes: 0));
+            methods.Add(MakeSecurityMethod(
+                IPSecurityPolicyLayout.TransformAh,
+                IPSecurityPolicyLayout.HashSha1,
+                0,
+                lifetimeSeconds: 0,
+                lifetimeKilobytes: 0));
+        }
+
+        if (encoding.QuickModePfs && methods.Count > 0)
+        {
+            IpsecSecurityMethod first = methods[0];
+            first.QuickModePfsEnabled = 1;
+            methods[0] = first;
+        }
+
+        // soft is encoded as one extra all-zero method that the declared count includes.
+        if (encoding.AllowUnsecuredFallback)
+        {
+            methods.Add(default);
+        }
+
+        int size = Unsafe.SizeOf<IpsecSecurityMethod>();
+        IntPtr buffer = Marshal.AllocHGlobal(size * methods.Count);
+        unsafe { NativeMemory.Clear((void*)buffer, (nuint)(size * methods.Count)); }
+        for (int index = 0; index < methods.Count; index++)
+        {
+            IpsecSecurityMethod method = methods[index];
+            unsafe { *(IpsecSecurityMethod*)(buffer + (size * index)) = method; }
+        }
+
+        return new SecurityMethodBuffer(methods.Count, buffer);
+    }
+
+    /// <summary>
+    /// Reads the real (non-terminator) methods out of an existing negotiation policy, preserving
+    /// their lifetimes and quick-mode PFS flag.
+    /// </summary>
+    private static List<IpsecSecurityMethod> ReadExistingMethods(
+        IpsecNegPolData existing, bool includeTerminator)
+    {
+        List<IpsecSecurityMethod> methods = [];
+        int count = (int)existing.SecurityMethodCount;
+        int size = Unsafe.SizeOf<IpsecSecurityMethod>();
+        for (int index = 0; index < count && existing.SecurityMethods != IntPtr.Zero; index++)
+        {
+            IpsecSecurityMethod method;
+            unsafe { method = *(IpsecSecurityMethod*)(existing.SecurityMethods + (size * index)); }
+
+            bool isTerminator = method.Transform == 0 && method.PrimaryAlgorithm == 0;
+            if (isTerminator && !includeTerminator)
+            {
+                continue;
+            }
+
+            methods.Add(method);
+        }
+
+        return methods;
+    }
+
+    /// <summary>
+    /// Adjusts the soft terminator in place on an existing struct copy without rebuilding methods.
+    /// The buffer handed out through <paramref name="pBuffer"/> must be freed by the caller after
+    /// the native set call.
+    /// </summary>
+    private static void ApplySoftTerminator(
+        ref IpsecNegPolData data,
+        in FilterActionEncoding encoding,
+        in IpsecNegPolData existing,
+        out IntPtr pBuffer)
+    {
+        pBuffer = IntPtr.Zero;
+        if (encoding.AllowUnsecuredFallback)
+        {
+            if (HasSoftTerminator(existing))
+            {
+                return;
+            }
+
+            // Append an all-zero terminator method to a cloned array.
+            List<IpsecSecurityMethod> methods = [.. ReadExistingMethods(existing, includeTerminator: false)];
+            methods.Add(default);
+            int size = Unsafe.SizeOf<IpsecSecurityMethod>();
+            IntPtr buffer = Marshal.AllocHGlobal(size * methods.Count);
+            unsafe
+            {
+                NativeMemory.Clear((void*)buffer, (nuint)(size * methods.Count));
+                for (int index = 0; index < methods.Count; index++)
+                {
+                    *(IpsecSecurityMethod*)(buffer + (size * index)) = methods[index];
+                }
+            }
+
+            data.SecurityMethodCount = (uint)methods.Count;
+            data.SecurityMethods = buffer;
+            pBuffer = buffer;
+            return;
+        }
+
+        if (!HasSoftTerminator(existing))
+        {
+            return;
+        }
+
+        // Drop the terminator: rebuild without the trailing zero entry.
+        List<IpsecSecurityMethod> kept = [.. ReadExistingMethods(existing, includeTerminator: false)];
+        int entrySize = Unsafe.SizeOf<IpsecSecurityMethod>();
+        IntPtr keptBuffer = Marshal.AllocHGlobal(entrySize * kept.Count);
+        unsafe
+        {
+            NativeMemory.Clear((void*)keptBuffer, (nuint)(entrySize * kept.Count));
+            for (int index = 0; index < kept.Count; index++)
+            {
+                *(IpsecSecurityMethod*)(keptBuffer + (entrySize * index)) = kept[index];
+            }
+        }
+
+        data.SecurityMethodCount = (uint)kept.Count;
+        data.SecurityMethods = keptBuffer;
+        pBuffer = keptBuffer;
+    }
+
+    /// <summary>Reads the quick-mode PFS flag from an existing negotiation policy.</summary>
+    private static bool ReadQuickModePfs(IpsecNegPolData? existing)
+    {
+        if (existing is not { } value || value.SecurityMethods == IntPtr.Zero)
+        {
+            return false;
+        }
+
+        IpsecSecurityMethod first;
+        unsafe { first = *(IpsecSecurityMethod*)value.SecurityMethods; }
+        return first.QuickModePfsEnabled != 0;
+    }
+
+    /// <summary>
+    /// Detects the soft encoding: the last method is all-zero (a terminator) and the count covers it.
+    /// </summary>
+    private static bool HasSoftTerminator(IpsecNegPolData? existing)
+    {
+        if (existing is not { } value || value.SecurityMethods == IntPtr.Zero || value.SecurityMethodCount == 0)
+        {
+            return false;
+        }
+
+        int size = Unsafe.SizeOf<IpsecSecurityMethod>();
+        IpsecSecurityMethod last;
+        unsafe
+        {
+            last = *(IpsecSecurityMethod*)(value.SecurityMethods + (size * ((int)value.SecurityMethodCount - 1)));
+        }
+
+        return last.Transform == 0 && last.PrimaryAlgorithm == 0;
+    }
+
+    private static IpsecSecurityMethod MakeSecurityMethod(
+        uint transform, uint primary, uint secondary, uint lifetimeSeconds, uint lifetimeKilobytes)
+    {
+        return new IpsecSecurityMethod
+        {
+            LifetimeSeconds = lifetimeSeconds,
+            LifetimeKilobytes = lifetimeKilobytes,
+            AlgorithmCount = 1,
+            PrimaryAlgorithm = primary,
+            SecondaryAlgorithm = secondary,
+            Transform = transform
+        };
+    }
+
+    /// <summary>
+    /// Splits a method list on spaces only. A <c>:</c> can also separate terms, but it additionally
+    /// introduces per-method lifetime suffixes (<c>ESP[3DES,SHA1]:50000k/1200s</c>), so colons are
+    /// not treated as separators once the term's brackets have closed and a lifetime suffix may
+    /// follow; the separator colon form therefore only applies to a term with no brackets.
+    /// </summary>
+    private static IEnumerable<string> SplitMethodTerms(string spec)
+    {
+        List<string> terms = [];
+        StringBuilder current = new();
+        bool inBrackets = false;
+        bool sawBrackets = false;
+        foreach (char character in spec)
+        {
+            switch (character)
+            {
+                case '[':
+                    inBrackets = true;
+                    sawBrackets = true;
+                    current.Append(character);
+                    break;
+                case ']':
+                    inBrackets = false;
+                    current.Append(character);
+                    break;
+                case ' ' when !inBrackets:
+                case ':' when !inBrackets && !sawBrackets:
+                    if (current.Length > 0)
+                    {
+                        terms.Add(current.ToString());
+                        current.Clear();
+                    }
+
+                    break;
+                default:
+                    current.Append(character);
+                    break;
+            }
+        }
+
+        if (current.Length > 0)
+        {
+            terms.Add(current.ToString());
+        }
+
+        return terms;
+    }
+
+    private static bool TryParseSecurityMethod(string term, out IpsecSecurityMethod method)
+    {
+        method = default;
+
+        // Split a lifetime suffix first: ESP[3DES,SHA1]:50000k/1200s.
+        string algorithmsPart = term;
+        string? lifetimePart = null;
+        int lifetimeSeparator = term.LastIndexOf(':');
+        if (lifetimeSeparator > 0 && term.IndexOf('[') is var open && open > 0 && lifetimeSeparator > term.LastIndexOf(']'))
+        {
+            algorithmsPart = term[..lifetimeSeparator];
+            lifetimePart = term[(lifetimeSeparator + 1)..];
+        }
+
+        int openIndex = algorithmsPart.IndexOf('[');
+        int closeIndex = algorithmsPart.LastIndexOf(']');
+        if (openIndex <= 0 || closeIndex <= openIndex)
+        {
+            return false;
+        }
+
+        string kind = algorithmsPart[..openIndex].Trim();
+        string[] algorithms = algorithmsPart[(openIndex + 1)..closeIndex]
+            .Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+        if (algorithms.Length == 0)
+        {
+            return false;
+        }
+
+        uint lifetimeSeconds = 0;
+        uint lifetimeKilobytes = 0;
+        if (lifetimePart is not null)
+        {
+            ParseLifetime(lifetimePart, out lifetimeSeconds, out lifetimeKilobytes);
+        }
+
+        if (kind.Equals("AH", StringComparison.OrdinalIgnoreCase))
+        {
+            method = MakeSecurityMethod(
+                IPSecurityPolicyLayout.TransformAh,
+                ParseAlgorithm(algorithms[0]),
+                0,
+                lifetimeSeconds,
+                lifetimeKilobytes);
+            return true;
+        }
+
+        if (kind.Equals("ESP", StringComparison.OrdinalIgnoreCase))
+        {
+            uint confidentiality = ParseAlgorithm(algorithms[0]);
+            uint integrity = algorithms.Length > 1 ? ParseAlgorithm(algorithms[1]) : 0;
+            method = MakeSecurityMethod(
+                IPSecurityPolicyLayout.TransformEsp,
+                confidentiality,
+                integrity,
+                lifetimeSeconds,
+                lifetimeKilobytes);
+            return true;
+        }
+
+        // Combined "AH[hash]+ESP[conf,integrity]" terms collapse into ESP-only offers the way
+        // the reference writer stores them, because a combined term shares one lifetime.
+        if (kind.Contains("AH", StringComparison.OrdinalIgnoreCase)
+            && kind.Contains("ESP", StringComparison.OrdinalIgnoreCase)
+            && algorithmsPart.Contains('+'))
+        {
+            string[] halves = algorithmsPart.Split('+', 2, StringSplitOptions.TrimEntries);
+            uint ahHash = TryParseAlgorithms(halves[0], out uint[] ahAlgorithms) && ahAlgorithms.Length > 0
+                ? ahAlgorithms[0]
+                : 0;
+            if (TryParseAlgorithms(halves.Length > 1 ? halves[1] : string.Empty, out uint[] espAlgorithms)
+                && espAlgorithms.Length >= 1)
+            {
+                method = MakeSecurityMethod(
+                    IPSecurityPolicyLayout.TransformEsp,
+                    espAlgorithms[0],
+                    espAlgorithms.Length > 1 ? espAlgorithms[1] : ahHash,
+                    lifetimeSeconds,
+                    lifetimeKilobytes);
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool TryParseAlgorithms(string term, out uint[] algorithms)
+    {
+        algorithms = [];
+        int open = term.IndexOf('[');
+        int close = term.LastIndexOf(']');
+        if (open < 0 || close <= open)
+        {
+            return false;
+        }
+
+        algorithms = term[(open + 1)..close]
+            .Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+            .Select(static value => value.Trim().ToUpperInvariant() switch
+            {
+                "NONE" => 0u,
+                "DES" => IPSecurityPolicyLayout.EncryptionDes,
+                "3DES" => IPSecurityPolicyLayout.EncryptionTripleDes,
+                "MD5" => IPSecurityPolicyLayout.HashMd5,
+                "SHA1" => IPSecurityPolicyLayout.HashSha1,
+                _ => 0u
+            })
+            .ToArray();
+        return algorithms.Length > 0;
+    }
+
+    /// <summary>Parses a <c>kBytesk/secondss</c> lifetime suffix, for example <c>50000k/1200s</c>.</summary>
+    private static void ParseLifetime(string spec, out uint seconds, out uint kilobytes)
+    {
+        seconds = 0;
+        kilobytes = 0;
+
+        foreach (string part in spec.Split('/', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries))
+        {
+            if (part.EndsWith("s", StringComparison.OrdinalIgnoreCase)
+                && uint.TryParse(part[..^1], out uint s))
+            {
+                seconds = s;
+            }
+            else if (part.EndsWith("k", StringComparison.OrdinalIgnoreCase)
+                && uint.TryParse(part[..^1], out uint k))
+            {
+                kilobytes = k;
+            }
+        }
+    }
+
+    private static uint ParseAlgorithm(string name)
+    {
+        return name.Trim().ToUpperInvariant() switch
+        {
+            "NONE" => 0,
+            "DES" => IPSecurityPolicyLayout.EncryptionDes,
+            "3DES" => IPSecurityPolicyLayout.EncryptionTripleDes,
+            "MD5" => IPSecurityPolicyLayout.HashMd5,
+            "SHA1" => IPSecurityPolicyLayout.HashSha1,
+            _ => 0
+        };
+    }
+
+    /// <summary>Maps a netsh-style filter action verb onto its well-known action GUID.</summary>
+    private static Guid ParseAction(string action)
+    {
+        return action.ToLowerInvariant() switch
+        {
+            "block" => IPSecurityPolicyLayout.ActionBlock,
+            "permit" => IPSecurityPolicyLayout.ActionPermit,
+            _ => IPSecurityPolicyLayout.ActionNegotiate
+        };
     }
 
     // ===== Rule Operations =====
 
     /// <remarks>
-    /// IPSEC_NFA_DATA (112 bytes, x64, derived from NT headers):
-    /// +0 GUID NFAIdentifier, +16 PTR pszIpsecName,
-    /// +24 PTR pszDescription, +32 DWORD dwWhenChanged,
-    /// +40 PTR pszInterfaceName, +48 DWORD dwInterfaceType,
-    /// +52 DWORD dwActiveFlag, +56 DWORD dwTunnelIpAddr,
-    /// +60 DWORD dwTunnelFlags, +64 GUID NegPolIdentifier,
-    /// +80 GUID FilterIdentifier, +96 DWORD dwAuthMethodCount,
-    /// +104 PTR pIpsecAuthMethods.
+    /// See <see cref="IpsecNfaData"/>. Note that the authentication methods are an array of
+    /// <em>pointers</em> to <see cref="IpsecAuthMethod"/>, not a contiguous struct array.
     /// </remarks>
     private static void AddRule(IntPtr store, Dictionary<string, string> parameters, IReadOnlyList<string> arguments)
     {
@@ -773,50 +1647,41 @@ public sealed class IPSecurityStaticPolicyCommandExecutor
             throw new InvalidOperationException($"Filter action '{filterActionName}' not found.");
         }
 
-        int interfaceType = connType?.ToLowerInvariant() switch
+        if (tunnel is not null)
         {
-            "lan" => 1,
-            "dialup" => 2,
-            _ => 0
-        };
+            throw new InvalidOperationException(
+                "Tunnel rules are not supported by this build: the tunnel endpoint field of " +
+                "IPSEC_NFA_DATA has not been recovered, and writing it at a guessed offset would " +
+                "corrupt the rule. Configure the tunnel endpoint with the Windows IP Security " +
+                "Policy snap-in instead.");
+        }
 
-        (int authCount, IntPtr pAuth, List<IntPtr> authAllocs) = BuildAuthMethods(parameters, arguments);
-
-        const int size = 112;
-        IntPtr pData = Marshal.AllocHGlobal(size);
+        AuthMethodBuffer auth = BuildAuthMethods(parameters, arguments);
         IntPtr pName = AllocString(name);
         IntPtr pDesc = AllocString(description);
         try
         {
-            unsafe { NativeMemory.Clear((void*)pData, size); }
-            WriteGuid(pData, 0, Guid.NewGuid());
-            Marshal.WriteIntPtr(pData, 16, pName);
-            Marshal.WriteIntPtr(pData, 24, pDesc);
-            Marshal.WriteInt32(pData, 32, CurrentUnixSeconds());
-            Marshal.WriteInt32(pData, 48, interfaceType);
-            Marshal.WriteInt32(pData, 52, active ? 1 : 0);
+            IpsecNfaData data = default;
+            data.Name = pName;
+            data.NfaIdentifier = Guid.NewGuid();
+            data.AuthMethodCount = (uint)auth.Count;
+            data.AuthMethods = auth.PointerArray;
+            data.InterfaceType = ParseInterfaceType(connType);
+            data.ActiveFlag = active ? 1u : 0u;
+            data.WhenChanged = (uint)CurrentUnixSeconds();
+            data.NegPolIdentifier = negPolGuid;
+            data.FilterIdentifier = filterGuid;
+            data.Description = pDesc;
 
-            if (tunnel is not null && IPAddress.TryParse(tunnel, out IPAddress? tunnelIp))
-            {
-                byte[] bytes = tunnelIp.GetAddressBytes();
-                Marshal.WriteInt32(pData, 56, BitConverter.ToInt32(bytes, 0));
-                Marshal.WriteInt32(pData, 60, 1);
-            }
-
-            WriteGuid(pData, 64, negPolGuid);
-            WriteGuid(pData, 80, filterGuid);
-            Marshal.WriteInt32(pData, 96, authCount);
-            Marshal.WriteIntPtr(pData, 104, pAuth);
-
-            ThrowOnError(IPSecurityPolicyNativeMethods.CreateNFAData(store, policyGuid, pData), "add rule");
+            int hr;
+            unsafe { hr = IPSecurityPolicyNativeMethods.CreateNFAData(store, policyGuid, (IntPtr)(&data)); }
+            ThrowOnError(hr, "add rule");
         }
         finally
         {
-            foreach (IntPtr alloc in authAllocs) Marshal.FreeHGlobal(alloc);
-            FreeIfNotZero(pAuth);
             FreeIfNotZero(pDesc);
-            Marshal.FreeHGlobal(pName);
-            Marshal.FreeHGlobal(pData);
+            FreeIfNotZero(pName);
+            auth.Dispose();
         }
     }
 
@@ -843,24 +1708,23 @@ public sealed class IPSecurityStaticPolicyCommandExecutor
             throw new InvalidOperationException($"Rule '{name}' in policy '{policyName}' not found.");
         }
 
-        const int size = 112;
-        IntPtr pData = Marshal.AllocHGlobal(size);
         IntPtr pNewName = IntPtr.Zero;
         IntPtr pNewDesc = IntPtr.Zero;
         try
         {
-            unsafe { Buffer.MemoryCopy((void*)original, (void*)pData, size, size); }
+            IpsecNfaData data;
+            unsafe { data = *(IpsecNfaData*)original; }
 
             if (newName is not null)
             {
                 pNewName = AllocString(newName);
-                Marshal.WriteIntPtr(pData, 16, pNewName);
+                data.Name = pNewName;
             }
 
             if (description is not null)
             {
                 pNewDesc = AllocString(description);
-                Marshal.WriteIntPtr(pData, 24, pNewDesc);
+                data.Description = pNewDesc;
             }
 
             if (filterListName is not null)
@@ -872,7 +1736,7 @@ public sealed class IPSecurityStaticPolicyCommandExecutor
                     throw new InvalidOperationException($"Filter list '{filterListName}' not found.");
                 }
 
-                WriteGuid(pData, 80, filterGuid);
+                data.FilterIdentifier = filterGuid;
             }
 
             if (filterActionName is not null)
@@ -884,33 +1748,29 @@ public sealed class IPSecurityStaticPolicyCommandExecutor
                     throw new InvalidOperationException($"Filter action '{filterActionName}' not found.");
                 }
 
-                WriteGuid(pData, 64, negPolGuid);
+                data.NegPolIdentifier = negPolGuid;
             }
 
             if (connType is not null)
             {
-                int interfaceType = connType.ToLowerInvariant() switch
-                {
-                    "lan" => 1,
-                    "dialup" => 2,
-                    _ => 0
-                };
-                Marshal.WriteInt32(pData, 48, interfaceType);
+                data.InterfaceType = ParseInterfaceType(connType);
             }
 
             if (active is not null)
             {
-                Marshal.WriteInt32(pData, 52, active.Value ? 1 : 0);
+                data.ActiveFlag = active.Value ? 1u : 0u;
             }
 
-            Marshal.WriteInt32(pData, 32, CurrentUnixSeconds());
-            ThrowOnError(IPSecurityPolicyNativeMethods.SetNFAData(store, policyGuid, pData), "set rule");
+            data.WhenChanged = (uint)CurrentUnixSeconds();
+
+            int hr;
+            unsafe { hr = IPSecurityPolicyNativeMethods.SetNFAData(store, policyGuid, (IntPtr)(&data)); }
+            ThrowOnError(hr, "set rule");
         }
         finally
         {
             FreeIfNotZero(pNewDesc);
             FreeIfNotZero(pNewName);
-            Marshal.FreeHGlobal(pData);
         }
     }
 
@@ -925,69 +1785,175 @@ public sealed class IPSecurityStaticPolicyCommandExecutor
         IntPtr nfaPtr = FindNfaByName(store, policyGuid, ruleName);
         if (nfaPtr == IntPtr.Zero) return;
 
-        ThrowOnError(IPSecurityPolicyNativeMethods.DeleteNFAData(store, policyGuid, nfaPtr), "delete rule");
+        DeleteRuleAndOwnedAction(store, policyGuid, nfaPtr);
     }
+
+    /// <summary>
+    /// Deletes one rule, plus the negotiation policy it owns.
+    /// </summary>
+    /// <remarks>
+    /// A negotiation policy with no name is private to its rule — that is how the snap-in
+    /// distinguishes a rule's own filter action from a shared one — so deleting the rule without it
+    /// would leave an unreachable object in the store. Named (shared) filter actions are left alone.
+    /// </remarks>
+    private static void DeleteRuleAndOwnedAction(IntPtr store, Guid policyGuid, IntPtr nfaPtr)
+    {
+        IpsecNfaData nfa;
+        unsafe { nfa = *(IpsecNfaData*)nfaPtr; }
+
+        IntPtr ownedAction = nfa.NegPolIdentifier == Guid.Empty
+            ? IntPtr.Zero
+            : FindUnnamedNegPol(store, nfa.NegPolIdentifier);
+
+        ThrowOnError(
+            IPSecurityPolicyNativeMethods.DeleteNFAData(store, policyGuid, nfaPtr), "delete rule");
+
+        if (ownedAction != IntPtr.Zero)
+        {
+            // Best effort: a shared action that only looked private must never fail the rule delete.
+            IPSecurityPolicyNativeMethods.DeleteNegPolData(store, ownedAction);
+        }
+    }
+
+    /// <summary>Returns the store-owned pointer to an unnamed negotiation policy, or zero.</summary>
+    private static IntPtr FindUnnamedNegPol(IntPtr store, Guid identifier)
+    {
+        IntPtr arrayHolder = Marshal.AllocHGlobal(IntPtr.Size);
+        IntPtr countHolder = Marshal.AllocHGlobal(sizeof(int));
+        try
+        {
+            Marshal.WriteIntPtr(arrayHolder, IntPtr.Zero);
+            Marshal.WriteInt32(countHolder, 0);
+            if (IPSecurityPolicyNativeMethods.EnumNegPolData(store, arrayHolder, countHolder) != 0)
+            {
+                return IntPtr.Zero;
+            }
+
+            int count = Marshal.ReadInt32(countHolder);
+            IntPtr array = Marshal.ReadIntPtr(arrayHolder);
+            for (int index = 0; index < count && array != IntPtr.Zero; index++)
+            {
+                IntPtr entry = Marshal.ReadIntPtr(array, IntPtr.Size * index);
+                if (entry == IntPtr.Zero) continue;
+
+                IpsecNegPolData candidate;
+                unsafe { candidate = *(IpsecNegPolData*)entry; }
+                if (candidate.NegPolIdentifier == identifier && candidate.Name == IntPtr.Zero)
+                {
+                    return entry;
+                }
+            }
+
+            return IntPtr.Zero;
+        }
+        finally
+        {
+            Marshal.FreeHGlobal(arrayHolder);
+            Marshal.FreeHGlobal(countHolder);
+        }
+    }
+
+    /// <summary>Maps a netsh-style connection type onto its native interface-type value.</summary>
+    private static uint ParseInterfaceType(string? connType)
+    {
+        return connType?.ToLowerInvariant() switch
+        {
+            "lan" => IPSecurityPolicyLayout.InterfaceTypeLan,
+            "dialup" => IPSecurityPolicyLayout.InterfaceTypeDialup,
+            _ => IPSecurityPolicyLayout.InterfaceTypeAll
+        };
+    }
+
 
     // ===== Auth Method Builder =====
 
+    /// <summary>
+    /// Native buffer holding the authentication methods for one rule: an array of
+    /// <see cref="IpsecAuthMethod"/> structs plus the array of pointers into it that
+    /// <see cref="IpsecNfaData.AuthMethods"/> expects.
+    /// </summary>
+    private readonly struct AuthMethodBuffer(int count, IntPtr structs, IntPtr pointerArray, IntPtr[] strings)
+    {
+        /// <summary>Number of methods in the buffer.</summary>
+        internal int Count { get; } = count;
+
+        /// <summary>Array of pointers to pass as <see cref="IpsecNfaData.AuthMethods"/>.</summary>
+        internal IntPtr PointerArray { get; } = pointerArray;
+
+        private IntPtr Structs { get; } = structs;
+
+        private IntPtr[] Strings { get; } = strings;
+
+        internal void Dispose()
+        {
+            foreach (IntPtr value in Strings)
+            {
+                FreeIfNotZero(value);
+            }
+
+            FreeIfNotZero(PointerArray);
+            FreeIfNotZero(Structs);
+        }
+    }
+
     /// <remarks>
-    /// IPSEC_AUTH_METHOD (32 bytes, x64, derived from NT headers):
-    /// +0 DWORD dwAuthType (1=PSK, 2=Certificate, 3=Kerberos),
-    /// +4 DWORD dwAuthLen, +8 PTR pszAuthMethod,
-    /// +16 DWORD dwAltAuthLen, +24 PTR pszAltAuthMethod.
+    /// See <see cref="IpsecAuthMethod"/>. Kerberos is authentication type 5. The length field next
+    /// to the value pointer is left zero: polstore derives the serialized length from the string
+    /// itself, exactly as it does for the rule name and description.
     /// </remarks>
-    private static (int Count, IntPtr Array, List<IntPtr> Allocs) BuildAuthMethods(
+    private static AuthMethodBuffer BuildAuthMethods(
         Dictionary<string, string> parameters, IReadOnlyList<string> arguments)
     {
-        List<(int Type, string? Value)> methods = [];
-        List<IntPtr> allocs = [];
+        List<(uint Type, string? Value)> methods = [];
 
         if (GetOptionalBool(parameters, "kerberos") is true)
         {
-            methods.Add((3, null));
+            methods.Add((IPSecurityPolicyLayout.AuthKerberos, null));
         }
 
         string? psk = GetOptional(parameters, "psk");
         if (psk is not null)
         {
-            methods.Add((1, psk));
+            methods.Add((IPSecurityPolicyLayout.AuthPreSharedKey, psk));
         }
 
         const string rootcaPrefix = "rootca=";
-        for (int i = 4; i < arguments.Count; i++)
+        for (int index = 4; index < arguments.Count; index++)
         {
-            if (arguments[i].StartsWith(rootcaPrefix, StringComparison.OrdinalIgnoreCase))
+            if (arguments[index].StartsWith(rootcaPrefix, StringComparison.OrdinalIgnoreCase))
             {
-                methods.Add((2, arguments[i][rootcaPrefix.Length..]));
+                methods.Add((IPSecurityPolicyLayout.AuthCertificate, arguments[index][rootcaPrefix.Length..]));
             }
         }
 
         if (methods.Count == 0)
         {
-            methods.Add((3, null));
+            methods.Add((IPSecurityPolicyLayout.AuthKerberos, null));
         }
 
-        const int authMethodSize = 32;
-        IntPtr pArray = Marshal.AllocHGlobal(authMethodSize * methods.Count);
-        unsafe { NativeMemory.Clear((void*)pArray, (nuint)(authMethodSize * methods.Count)); }
+        int structSize = Unsafe.SizeOf<IpsecAuthMethod>();
+        IntPtr structs = Marshal.AllocHGlobal(structSize * methods.Count);
+        IntPtr pointerArray = Marshal.AllocHGlobal(IntPtr.Size * methods.Count);
+        IntPtr[] strings = new IntPtr[methods.Count];
 
-        for (int i = 0; i < methods.Count; i++)
+        unsafe { NativeMemory.Clear((void*)structs, (nuint)(structSize * methods.Count)); }
+
+        for (int index = 0; index < methods.Count; index++)
         {
-            IntPtr entry = pArray + (authMethodSize * i);
-            Marshal.WriteInt32(entry, 0, methods[i].Type);
+            IntPtr entry = structs + (structSize * index);
+            strings[index] = AllocString(methods[index].Value);
 
-            if (methods[i].Value is { } value)
-            {
-                IntPtr pValue = AllocString(value);
-                allocs.Add(pValue);
-                int byteLen = value.Length * 2;
-                Marshal.WriteInt32(entry, 4, byteLen);
-                Marshal.WriteIntPtr(entry, 8, pValue);
-            }
+            IpsecAuthMethod method = default;
+            method.AuthType = methods[index].Type;
+            method.AuthMethodValue = strings[index];
+            unsafe { *(IpsecAuthMethod*)entry = method; }
+
+            Marshal.WriteIntPtr(pointerArray, IntPtr.Size * index, entry);
         }
 
-        return (methods.Count, pArray, allocs);
+        return new AuthMethodBuffer(methods.Count, structs, pointerArray, strings);
     }
+
 
     // ===== Generic Find / Delete Helpers =====
 
@@ -1050,7 +2016,7 @@ public sealed class IPSecurityStaticPolicyCommandExecutor
                 IntPtr p = Marshal.ReadIntPtr(pp, IntPtr.Size * i);
                 if (p == IntPtr.Zero) continue;
 
-                IntPtr pName = Marshal.ReadIntPtr(p, 16);
+                IntPtr pName = Marshal.ReadIntPtr(p, 0);
                 string? nfaName = pName != IntPtr.Zero ? Marshal.PtrToStringUni(pName) : null;
                 if (name.Equals(nfaName, StringComparison.OrdinalIgnoreCase))
                 {
@@ -1079,173 +2045,26 @@ public sealed class IPSecurityStaticPolicyCommandExecutor
         ThrowOnError(deleteFunc(store, ptr), $"delete {objectKind}");
     }
 
+    // ===== Registry Repair (the only remaining direct registry access) =====
+
     /// <summary>
-    /// Returns the GUID and store-owned pointer of the first ISAKMP in the store.
-    /// The returned pointer is owned by the store; the caller must NOT free it.
+    /// Root of the legacy local policy store. Used only by
+    /// <see cref="CleanOrphanedPolicyRegistryKeys"/>; every mutation goes through polstore.dll.
     /// </summary>
-    private static (Guid Guid, IntPtr Ptr) GetFirstIsakmp(IntPtr store)
-    {
-        IntPtr ppp = Marshal.AllocHGlobal(IntPtr.Size);
-        IntPtr pCount = Marshal.AllocHGlobal(sizeof(int));
-        try
-        {
-            int hr = IPSecurityPolicyNativeMethods.EnumISAKMPData(store, ppp, pCount);
-            if (hr != 0)
-            {
-                throw new InvalidOperationException(
-                    "Cannot create a policy: the ISAKMP store could not be enumerated " +
-                    $"(native error 0x{hr:X8}).");
-            }
-
-            int count = Marshal.ReadInt32(pCount);
-            IntPtr pp = Marshal.ReadIntPtr(ppp);
-            for (int i = 0; i < count; i++)
-            {
-                IntPtr p = Marshal.ReadIntPtr(pp, IntPtr.Size * i);
-                if (p != IntPtr.Zero)
-                {
-                    Guid guid = ReadGuid(p, 0);
-                    return (guid, p);
-                }
-            }
-
-            throw new InvalidOperationException(
-                "Cannot create a policy: no ISAKMP objects exist in the store and the default " +
-                "ISAKMP could not be enumerated after being seeded.");
-        }
-        finally
-        {
-            Marshal.FreeHGlobal(ppp);
-            Marshal.FreeHGlobal(pCount);
-        }
-    }
-
-    // ===== Struct Helpers =====
-
-    // ===== Registry Helpers =====
-
     private const string PolicyStoreRegistryPath =
         @"SOFTWARE\Policies\Microsoft\Windows\IPSec\Policy\Local";
 
+
     /// <summary>
-    /// Ensures the local store contains at least one ISAKMP (main-mode) object, creating a
-    /// default one when the store is empty. Every legacy IPsec policy must reference an ISAKMP;
-    /// secpol.msc creates one implicitly, but a machine where the snap-in has never run has none,
-    /// which is why policy creation previously failed across machines.
+    /// Removes orphaned <c>ipsecPolicy{...}</c> keys that <c>IPSecEnumPolicyData</c> cannot parse.
     /// </summary>
     /// <remarks>
-    /// The ISAKMP is written directly to the registry — like the default response rule — because
-    /// <c>IPSecCreateISAKMPData</c> requires an in-memory <c>CRYPTO_BUNDLE</c> security-method
-    /// struct whose layout is undocumented and differs from the serialized <c>ipsecData</c> blob.
-    /// The blob written here is byte-identical to the one secpol.msc / netsh produce, with only the
-    /// embedded identifier GUID replaced. Writing it before the store is opened guarantees the first
-    /// <c>IPSecEnumISAKMPData</c> call observes it.
+    /// This is the one operation with no native equivalent: <c>IPSecDeletePolicyData</c> needs a
+    /// parsed struct, so a key polstore refuses to parse can only be removed through the registry.
+    /// Such keys are a legacy of earlier builds that created policies by writing serialized blobs;
+    /// the native creation path no longer produces them. The step deletes only keys whose GUID is
+    /// absent from the enumeration, never a policy the store can see.
     /// </remarks>
-    private static void EnsureDefaultIsakmp()
-    {
-        if (HasAnyIsakmp())
-        {
-            return;
-        }
-
-        Guid isakmpGuid = Guid.NewGuid();
-        byte[] ipsecData = (byte[])DefaultIsakmpIpsecData.Clone();
-        // The blob stores the identifier as a little-endian GUID, which is exactly the byte
-        // order Guid.ToByteArray() produces.
-        isakmpGuid.ToByteArray().CopyTo(ipsecData, IsakmpDataGuidOffset);
-
-        string keyPath = $@"{PolicyStoreRegistryPath}\ipsecISAKMPPolicy{{{isakmpGuid}}}";
-        using RegistryKey isakmpKey = Registry.LocalMachine.CreateSubKey(keyPath);
-        isakmpKey.SetValue("className", "ipsecISAKMPPolicy", RegistryValueKind.String);
-        isakmpKey.SetValue("name", $"ipsecISAKMPPolicy{{{isakmpGuid}}}", RegistryValueKind.String);
-        isakmpKey.SetValue("ipsecID", $"{{{isakmpGuid}}}", RegistryValueKind.String);
-        isakmpKey.SetValue("ipsecDataType", 0x100, RegistryValueKind.DWord);
-        isakmpKey.SetValue("ipsecData", ipsecData, RegistryValueKind.Binary);
-        isakmpKey.SetValue("whenChanged", CurrentUnixSeconds(), RegistryValueKind.DWord);
-        // The owners reference is populated as policies are linked; an empty multi-string is the
-        // valid initial state and does not prevent enumeration or secpol.msc from opening it.
-        isakmpKey.SetValue("ipsecOwnersReference", Array.Empty<string>(), RegistryValueKind.MultiString);
-    }
-
-    /// <summary>
-    /// Returns whether the local store already contains at least one enumerable ISAKMP object.
-    /// </summary>
-    private static bool HasAnyIsakmp()
-    {
-        if (!IPSecurityPolicyNativeMethods.TryOpenRegistryStore(out IntPtr store, out _))
-        {
-            // Treat an unreadable store as "no ISAKMP"; the subsequent open in ExecuteAsync
-            // surfaces the real open failure with the correct exception type.
-            return false;
-        }
-
-        IntPtr ppp = Marshal.AllocHGlobal(IntPtr.Size);
-        IntPtr pCount = Marshal.AllocHGlobal(sizeof(int));
-        try
-        {
-            int hr = IPSecurityPolicyNativeMethods.EnumISAKMPData(store, ppp, pCount);
-            if (hr != 0)
-            {
-                return false;
-            }
-
-            int count = Marshal.ReadInt32(pCount);
-            IntPtr pp = Marshal.ReadIntPtr(ppp);
-            for (int i = 0; i < count; i++)
-            {
-                if (Marshal.ReadIntPtr(pp, IntPtr.Size * i) != IntPtr.Zero)
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-        finally
-        {
-            Marshal.FreeHGlobal(ppp);
-            Marshal.FreeHGlobal(pCount);
-            IPSecurityPolicyNativeMethods.CloseStore(store);
-        }
-    }
-
-    /// <summary>
-    /// Writes registry values that <c>IPSecCreatePolicyData</c> omits when the struct
-    /// has no NFA references or description. Without these values, <c>EnumPolicyData</c>
-    /// silently skips the entry and <c>secpol.msc</c> fails with <c>ERROR_NO_DATA</c>.
-    /// </summary>
-    private static void EnsurePolicyRegistryValues(Guid policyGuid, string description, Guid isakmpGuid)
-    {
-        string keyPath = $@"{PolicyStoreRegistryPath}\ipsecPolicy{{{policyGuid}}}";
-        using RegistryKey? key = Registry.LocalMachine.OpenSubKey(keyPath, writable: true);
-        if (key is null) return;
-
-        if (key.GetValue("ipsecNFAReference") is null)
-        {
-            key.SetValue("ipsecNFAReference", Array.Empty<string>(), RegistryValueKind.MultiString);
-        }
-
-        if (key.GetValue("description") is null)
-        {
-            key.SetValue("description", description, RegistryValueKind.String);
-        }
-
-        if (key.GetValue("ipsecOwnersReference") is null)
-        {
-            key.SetValue("ipsecOwnersReference", Array.Empty<string>(), RegistryValueKind.MultiString);
-        }
-
-        if (key.GetValue("ipsecISAKMPReference") is null)
-        {
-            string isakmpRef = $@"{PolicyStoreRegistryPath}\ipsecISAKMPPolicy{{{isakmpGuid}}}";
-            key.SetValue("ipsecISAKMPReference", isakmpRef, RegistryValueKind.String);
-        }
-    }
-
-    /// <summary>
-    /// Removes orphaned <c>ipsecPolicy{...}</c> registry keys that were created by
-    /// earlier failed attempts and are not recognized by <c>EnumPolicyData</c>.
-    /// </summary>
     internal static void CleanOrphanedPolicyRegistryKeys(IntPtr store)
     {
         using RegistryKey? baseKey = Registry.LocalMachine.OpenSubKey(PolicyStoreRegistryPath, writable: true);
@@ -1293,12 +2112,6 @@ public sealed class IPSecurityStaticPolicyCommandExecutor
 
     // ===== Struct Helpers =====
 
-    private static void WriteGuid(IntPtr ptr, int offset, Guid value)
-    {
-        byte[] bytes = value.ToByteArray();
-        Marshal.Copy(bytes, 0, ptr + offset, 16);
-    }
-
     private static Guid ReadGuid(IntPtr ptr, int offset)
     {
         byte[] bytes = new byte[16];
@@ -1321,32 +2134,80 @@ public sealed class IPSecurityStaticPolicyCommandExecutor
         return (int)DateTimeOffset.UtcNow.ToUnixTimeSeconds();
     }
 
-    private static (uint Addr, uint Mask, string? DnsName, int Flags) ParseAddress(
-        string address, string? mask, bool isSrc)
+    /// <summary>
+    /// Translates a netsh-style address token into an <see cref="IpsecAddress"/>.
+    /// </summary>
+    /// <remarks>
+    /// Addresses are stored in network byte order, which is exactly the byte order
+    /// <see cref="IPAddress.GetAddressBytes"/> produces, so the bytes are copied through unchanged.
+    /// A subnet mask is only written when one was supplied: for a single host Windows leaves the
+    /// mask zero and lets the address type imply /32.
+    /// </remarks>
+    private static (IpsecAddress Address, string? DnsName) ParseAddress(string address, string? mask)
     {
         if (address.Equals("any", StringComparison.OrdinalIgnoreCase))
         {
-            return (0, 0, null, 0);
+            return (
+                new IpsecAddress
+                {
+                    AddressType = IPSecurityPolicyLayout.AddressTypeAny,
+                    AddressCount = IPSecurityPolicyLayout.AddressCountOne
+                },
+                null);
         }
 
         if (address.Equals("me", StringComparison.OrdinalIgnoreCase))
         {
-            return (0, 0xFFFFFFFF, null, isSrc ? 0x01 : 0x02);
+            return (
+                new IpsecAddress
+                {
+                    AddressType = IPSecurityPolicyLayout.AddressTypeMe,
+                    AddressCount = IPSecurityPolicyLayout.AddressCountOne
+                },
+                null);
         }
 
-        if (IPAddress.TryParse(address, out IPAddress? ip))
+        if (address.Equals("dns", StringComparison.OrdinalIgnoreCase))
         {
-            uint addr = BitConverter.ToUInt32(ip.GetAddressBytes(), 0);
-            uint maskVal = 0xFFFFFFFF;
-            if (mask is not null && IPAddress.TryParse(mask, out IPAddress? maskIp))
+            return (
+                new IpsecAddress
+                {
+                    AddressType = IPSecurityPolicyLayout.AddressTypeDnsServer,
+                    AddressCount = IPSecurityPolicyLayout.AddressCountOne
+                },
+                null);
+        }
+
+        if (IPAddress.TryParse(address, out IPAddress? ip)
+            && ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+        {
+            uint maskValue = 0;
+            if (mask is not null
+                && IPAddress.TryParse(mask, out IPAddress? maskIp)
+                && maskIp.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
             {
-                maskVal = BitConverter.ToUInt32(maskIp.GetAddressBytes(), 0);
+                maskValue = BitConverter.ToUInt32(maskIp.GetAddressBytes(), 0);
             }
 
-            return (addr, maskVal, null, 0);
+            return (
+                new IpsecAddress
+                {
+                    AddressType = IPSecurityPolicyLayout.AddressTypeSpecific,
+                    AddressCount = IPSecurityPolicyLayout.AddressCountOne,
+                    IpAddress = BitConverter.ToUInt32(ip.GetAddressBytes(), 0),
+                    SubnetMask = maskValue
+                },
+                null);
         }
 
-        return (0, 0, address, 0);
+        // Anything else is treated as a DNS name, which polstore resolves when the policy is applied.
+        return (
+            new IpsecAddress
+            {
+                AddressType = IPSecurityPolicyLayout.AddressTypeSpecific,
+                AddressCount = IPSecurityPolicyLayout.AddressCountOne
+            },
+            address);
     }
 
     private static int ParseProtocolNumber(string? protocol)

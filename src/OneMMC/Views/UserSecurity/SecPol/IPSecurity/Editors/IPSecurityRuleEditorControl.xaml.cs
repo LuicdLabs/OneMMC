@@ -69,6 +69,18 @@ public sealed partial class IPSecurityRuleEditorControl : UserControl
         AuthenticationKindComboBox.SelectedIndex = 0;
         UpdateTunnelState();
         UpdateAuthenticationEditorState();
+        AuthenticationItems.CollectionChanged += (_, _) => UpdateEmptyState();
+        UpdateEmptyState();
+    }
+
+    /// <summary>
+    /// Shows or hides the authentication list's empty state. Driven from code-behind so the
+    /// collection stays a plain <see cref="ObservableCollection{T}"/> with no wrapper view model.
+    /// </summary>
+    private void UpdateEmptyState()
+    {
+        EmptyAuthenticationText.Visibility =
+            AuthenticationItems.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
     }
 
     /// <summary>

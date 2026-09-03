@@ -3,39 +3,70 @@
     x:Class="OneMMC.Views.UserSecurity.SecPol.IPSecurity.Editors.IPSecurityPolicyEditorControl"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:cwuc="using:CommunityToolkit.WinUI.Controls"
     xmlns:editors="using:OneMMC.Views.UserSecurity.SecPol.IPSecurity.Editors"
-    xmlns:cwuc="using:CommunityToolkit.WinUI.Controls">
+    xmlns:local="using:OneMMC.Views.UserSecurity.SecPol.IPSecurity">
 
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="ms-appx:///Views/UserSecurity/SecPol/IPSecurity/IPSecurityEditorResources.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <!--
+        Fluent layout: grouped SettingsCards under section headers, each card carrying an icon and a
+        one-line description so the setting explains itself. Content width is bounded so the dialog
+        keeps a comfortable measure instead of stretching to the window.
+    -->
     <ScrollViewer
-        HorizontalScrollBarVisibility="Disabled"
-        VerticalScrollBarVisibility="Auto">
-        <StackPanel MinWidth="560" Spacing="4">
+        Style="{StaticResource EditorScrollViewerStyle}">
+        <StackPanel Style="{StaticResource EditorRootPanelStyle}">
             <InfoBar
                 x:Name="ValidationInfoBar"
-                Margin="0,0,0,8"
                 IsClosable="True"
                 IsOpen="False"
                 Severity="Error" />
 
-            <cwuc:SettingsCard Header="{x:Bind LocalizedStrings.IPSec_Column_Name}">
+            <TextBlock
+                Style="{StaticResource EditorSectionHeaderStyle}"
+                Text="{x:Bind LocalizedStrings.IPSec_Section_General}" />
+
+            <cwuc:SettingsCard
+                Description="{x:Bind LocalizedStrings.IPSec_Editor_NameDescription}"
+                Header="{x:Bind LocalizedStrings.IPSec_Column_Name}">
+                <cwuc:SettingsCard.HeaderIcon>
+                    <FontIcon Glyph="&#xE8AC;" />
+                </cwuc:SettingsCard.HeaderIcon>
                 <TextBox
                     x:Name="NameTextBox"
-                    MinWidth="260"
+                    MinWidth="280"
                     AutomationProperties.Name="{x:Bind LocalizedStrings.IPSec_Column_Name}" />
             </cwuc:SettingsCard>
 
             <cwuc:SettingsCard
                 ContentAlignment="Vertical"
+                Description="{x:Bind LocalizedStrings.IPSec_Editor_DescriptionDescription}"
                 Header="{x:Bind LocalizedStrings.IPSec_Column_Description}">
+                <cwuc:SettingsCard.HeaderIcon>
+                    <FontIcon Glyph="&#xE70B;" />
+                </cwuc:SettingsCard.HeaderIcon>
                 <TextBox
                     x:Name="DescriptionTextBox"
+                    MinHeight="72"
+                    MaxHeight="140"
                     AcceptsReturn="True"
                     AutomationProperties.Name="{x:Bind LocalizedStrings.IPSec_Column_Description}"
-                    MaxHeight="120"
                     TextWrapping="Wrap" />
             </cwuc:SettingsCard>
 
-            <cwuc:SettingsCard Header="{x:Bind LocalizedStrings.IPSec_Editor_Assigned}">
+            <cwuc:SettingsCard
+                Description="{x:Bind LocalizedStrings.IPSec_Editor_AssignedDescription}"
+                Header="{x:Bind LocalizedStrings.IPSec_Editor_Assigned}">
+                <cwuc:SettingsCard.HeaderIcon>
+                    <FontIcon Glyph="&#xE73E;" />
+                </cwuc:SettingsCard.HeaderIcon>
                 <ToggleSwitch
                     x:Name="AssignedToggleSwitch"
                     AutomationProperties.Name="{x:Bind LocalizedStrings.IPSec_Editor_Assigned}"
@@ -43,7 +74,12 @@
                     OnContent="{x:Bind LocalizedStrings.IPSec_Value_Yes}" />
             </cwuc:SettingsCard>
 
-            <cwuc:SettingsCard Header="{x:Bind LocalizedStrings.IPSec_Editor_DefaultResponseRule}">
+            <cwuc:SettingsCard
+                Description="{x:Bind LocalizedStrings.IPSec_Editor_DefaultResponseRuleDescription}"
+                Header="{x:Bind LocalizedStrings.IPSec_Editor_DefaultResponseRule}">
+                <cwuc:SettingsCard.HeaderIcon>
+                    <FontIcon Glyph="&#xE8AF;" />
+                </cwuc:SettingsCard.HeaderIcon>
                 <ToggleSwitch
                     x:Name="DefaultResponseRuleToggleSwitch"
                     AutomationProperties.Name="{x:Bind LocalizedStrings.IPSec_Editor_DefaultResponseRule}"
@@ -51,47 +87,72 @@
                     OnContent="{x:Bind LocalizedStrings.IPSec_Value_Yes}" />
             </cwuc:SettingsCard>
 
-            <cwuc:SettingsCard Header="{x:Bind LocalizedStrings.IPSec_Editor_MasterPfs}">
+            <TextBlock
+                Style="{StaticResource EditorSectionHeaderStyle}"
+                Text="{x:Bind LocalizedStrings.IPSec_Section_Security}" />
+
+            <cwuc:SettingsExpander
+                Description="{x:Bind LocalizedStrings.IPSec_Editor_MasterPfsDescription}"
+                Header="{x:Bind LocalizedStrings.IPSec_Editor_MasterPfs}"
+                IsExpanded="True">
+                <cwuc:SettingsExpander.HeaderIcon>
+                    <FontIcon Glyph="&#xE72E;" />
+                </cwuc:SettingsExpander.HeaderIcon>
                 <ToggleSwitch
                     x:Name="MasterPfsToggleSwitch"
                     AutomationProperties.Name="{x:Bind LocalizedStrings.IPSec_Editor_MasterPfs}"
                     OffContent="{x:Bind LocalizedStrings.IPSec_Value_No}"
                     OnContent="{x:Bind LocalizedStrings.IPSec_Value_Yes}"
                     Toggled="MasterPfsToggleSwitch_Toggled" />
-            </cwuc:SettingsCard>
-
-            <cwuc:SettingsCard Header="{x:Bind LocalizedStrings.IPSec_Editor_QuickModeSessions}">
-                <NumberBox
-                    x:Name="QuickModeSessionsNumberBox"
-                    Width="160"
-                    Maximum="2147483647"
-                    Minimum="1"
-                    SpinButtonPlacementMode="Compact" />
-            </cwuc:SettingsCard>
-
-            <cwuc:SettingsCard Header="{x:Bind LocalizedStrings.IPSec_Editor_MainModeLifetime}">
-                <NumberBox
-                    x:Name="MainModeLifetimeNumberBox"
-                    Width="160"
-                    Maximum="2147483647"
-                    Minimum="1"
-                    SpinButtonPlacementMode="Compact" />
-            </cwuc:SettingsCard>
-
-            <cwuc:SettingsCard Header="{x:Bind LocalizedStrings.IPSec_Editor_PollingInterval}">
-                <NumberBox
-                    x:Name="PollingIntervalNumberBox"
-                    Width="160"
-                    Maximum="2147483647"
-                    Minimum="1"
-                    SpinButtonPlacementMode="Compact" />
-            </cwuc:SettingsCard>
+                <cwuc:SettingsExpander.Items>
+                    <cwuc:SettingsCard
+                        Description="{x:Bind LocalizedStrings.IPSec_Editor_QuickModeSessionsDescription}"
+                        Header="{x:Bind LocalizedStrings.IPSec_Editor_QuickModeSessions}">
+                        <NumberBox
+                            x:Name="QuickModeSessionsNumberBox"
+                            Width="168"
+                            AutomationProperties.Name="{x:Bind LocalizedStrings.IPSec_Editor_QuickModeSessions}"
+                            Maximum="2147483647"
+                            Minimum="1"
+                            SpinButtonPlacementMode="Compact" />
+                    </cwuc:SettingsCard>
+                    <cwuc:SettingsCard
+                        Description="{x:Bind LocalizedStrings.IPSec_Editor_MainModeLifetimeDescription}"
+                        Header="{x:Bind LocalizedStrings.IPSec_Editor_MainModeLifetime}">
+                        <NumberBox
+                            x:Name="MainModeLifetimeNumberBox"
+                            Width="168"
+                            AutomationProperties.Name="{x:Bind LocalizedStrings.IPSec_Editor_MainModeLifetime}"
+                            Maximum="2147483647"
+                            Minimum="1"
+                            SpinButtonPlacementMode="Compact" />
+                    </cwuc:SettingsCard>
+                </cwuc:SettingsExpander.Items>
+            </cwuc:SettingsExpander>
 
             <editors:IPSecuritySecurityMethodsEditorControl
                 x:Name="MainModeMethodsEditor"
-                Margin="0,12,0,0"
                 Header="{x:Bind LocalizedStrings.IPSec_Editor_MainModeMethods, Mode=OneTime}"
                 MethodMode="MainMode" />
+
+            <TextBlock
+                Style="{StaticResource EditorSectionHeaderStyle}"
+                Text="{x:Bind LocalizedStrings.IPSec_Section_Advanced}" />
+
+            <cwuc:SettingsCard
+                Description="{x:Bind LocalizedStrings.IPSec_Editor_PollingIntervalDescription}"
+                Header="{x:Bind LocalizedStrings.IPSec_Editor_PollingInterval}">
+                <cwuc:SettingsCard.HeaderIcon>
+                    <FontIcon Glyph="&#xE823;" />
+                </cwuc:SettingsCard.HeaderIcon>
+                <NumberBox
+                    x:Name="PollingIntervalNumberBox"
+                    Width="168"
+                    AutomationProperties.Name="{x:Bind LocalizedStrings.IPSec_Editor_PollingInterval}"
+                    Maximum="2147483647"
+                    Minimum="1"
+                    SpinButtonPlacementMode="Compact" />
+            </cwuc:SettingsCard>
         </StackPanel>
     </ScrollViewer>
 </UserControl>

@@ -83,8 +83,9 @@ public sealed class IPSecurityStaticPolicyStoreService
 
         List<IPSecurityFilterListDefinition> filterLists = EnumFilterLists(hStore, filterNamesByGuid);
         List<IPSecurityFilterActionDefinition> filterActions = EnumFilterActions(hStore, negPolNamesByGuid);
+        List<IpsecIsakmpData> mainModeObjects = EnumMainModeObjects(hStore);
         List<IPSecurityPolicyDefinition> policies = EnumPolicies(
-            hStore, activePolicyGuid, filterNamesByGuid, negPolNamesByGuid);
+            hStore, activePolicyGuid, filterNamesByGuid, negPolNamesByGuid, mainModeObjects);
 
         return new IPSecurityStaticStoreSnapshot
         {
@@ -94,27 +95,84 @@ public sealed class IPSecurityStaticPolicyStoreService
         };
     }
 
+    /// <summary>
+    /// Enumerates the store's main-mode (ISAKMP) objects so policies can resolve their reference.
+    /// </summary>
+    private static List<IpsecIsakmpData> EnumMainModeObjects(IntPtr hStore)
+    {
+        (IntPtr pp, int count) = EnumData(hStore, IPSecurityPolicyNativeMethods.EnumISAKMPData);
+        List<IpsecIsakmpData> objects = [];
+        if (count == 0 || pp == IntPtr.Zero)
+        {
+            return objects;
+        }
+
+        for (int i = 0; i < count; i++)
+        {
+            IntPtr p = Marshal.ReadIntPtr(pp, IntPtr.Size * i);
+            if (p == IntPtr.Zero)
+            {
+                continue;
+            }
+
+            unsafe
+            {
+                objects.Add(*(IpsecIsakmpData*)p);
+            }
+        }
+
+        return objects;
+    }
+
+    /// <summary>Formats a main-mode object as netsh-style security-method tokens.</summary>
+    private static List<string> FormatMainModeMethods(IpsecIsakmpData isakmp)
+    {
+        List<string> methods = [];
+        int count = (int)isakmp.OfferCount;
+        int size = System.Runtime.CompilerServices.Unsafe.SizeOf<IpsecMmOffer>();
+        for (int index = 0; index < count && isakmp.Offers != IntPtr.Zero; index++)
+        {
+            IpsecMmOffer offer;
+            unsafe { offer = *(IpsecMmOffer*)(isakmp.Offers + (size * index)); }
+            methods.Add($"{FormatConfidentiality(offer.EncryptionAlgorithm)}-{FormatIntegrity(offer.HashAlgorithm)}-{offer.DiffieHellmanGroup}");
+        }
+
+        return methods;
+    }
+
+    /// <summary>Formats a confidentiality algorithm identifier.</summary>
+    private static string FormatConfidentiality(uint algorithm)
+    {
+        return algorithm switch
+        {
+            IPSecurityPolicyLayout.EncryptionDes => "DES",
+            IPSecurityPolicyLayout.EncryptionTripleDes => "3DES",
+            0 => "None",
+            _ => algorithm.ToString(CultureInfo.InvariantCulture)
+        };
+    }
+
+    /// <summary>Formats an integrity algorithm identifier.</summary>
+    private static string FormatIntegrity(uint algorithm)
+    {
+        return algorithm switch
+        {
+            IPSecurityPolicyLayout.HashMd5 => "MD5",
+            IPSecurityPolicyLayout.HashSha1 => "SHA1",
+            0 => "None",
+            _ => algorithm.ToString(CultureInfo.InvariantCulture)
+        };
+    }
+
     // ===== Policy Enumeration =====
 
-    /// <remarks>
-    /// <c>IPSEC_POLICY_DATA</c> layout (80 bytes, x64, verified):
-    /// <code>
-    /// +0   GUID    PolicyIdentifier      (16)
-    /// +16  DWORD   dwPollingInterval     (4, seconds)
-    /// +24  PTR     pIpsecISAKMPData      (8)
-    /// +32  PTR     ppIpsecNFAData        (8)
-    /// +40  DWORD   dwNumNFACount         (4)
-    /// +44  DWORD   dwWhenChanged         (4, Unix seconds)
-    /// +48  PTR     pszIpsecName          (8)
-    /// +56  PTR     pszDescription        (8)
-    /// +64  GUID    ISAKMPIdentifier      (16)
-    /// </code>
-    /// </remarks>
+    /// <remarks>See <see cref="IpsecPolicyData"/> for the layout.</remarks>
     private List<IPSecurityPolicyDefinition> EnumPolicies(
         IntPtr hStore,
         Guid? activePolicyGuid,
         Dictionary<Guid, string> filterNames,
-        Dictionary<Guid, string> negPolNames)
+        Dictionary<Guid, string> negPolNames,
+        List<IpsecIsakmpData> mainModeObjects)
     {
         (IntPtr pp, int count) = EnumData(
             hStore, IPSecurityPolicyNativeMethods.EnumPolicyData);
@@ -136,12 +194,36 @@ public sealed class IPSecurityStaticPolicyStoreService
             List<IPSecurityRuleDefinition> rules = EnumRulesForPolicy(
                 hStore, id, name, filterNames, negPolNames);
 
+            IpsecPolicyData policyData;
+            unsafe { policyData = *(IpsecPolicyData*)p; }
+
+            // Resolve the referenced main-mode object to read the settings the snap-in surfaces.
+            IpsecIsakmpData? isakmp = null;
+            foreach (IpsecIsakmpData candidate in mainModeObjects)
+            {
+                if (candidate.IsakmpIdentifier == policyData.IsakmpIdentifier)
+                {
+                    isakmp = candidate;
+                    break;
+                }
+            }
+
+            bool defaultRuleActive = rules.Exists(static rule =>
+                string.IsNullOrEmpty(rule.FilterListName) && rule.IsActive);
+
             policies.Add(new IPSecurityPolicyDefinition
             {
                 Name = name,
                 Description = ReadString(p, 56),
                 IsAssigned = activePolicyGuid.HasValue && activePolicyGuid.Value == id,
+                UseMasterPerfectForwardSecrecy = isakmp?.MasterPfsEnabled != 0,
+                QuickModeSessionsPerMainMode = (int)(isakmp?.QuickModeSessionsPerMainMode ?? 0),
+                MainModeLifetimeMinutes = isakmp is { } mode && mode.MainModeLifetimeSeconds > 0
+                    ? (int)(mode.MainModeLifetimeSeconds / 60)
+                    : 0,
+                IsDefaultResponseRuleActive = defaultRuleActive,
                 PollingIntervalMinutes = pollingSeconds > 0 ? pollingSeconds / 60 : 0,
+                MainModeSecurityMethods = isakmp is { } current ? FormatMainModeMethods(current) : [],
                 LastModifiedTime = whenChanged > 0
                     ? DateTimeOffset.FromUnixTimeSeconds(whenChanged)
                     : null,
@@ -154,24 +236,7 @@ public sealed class IPSecurityStaticPolicyStoreService
 
     // ===== Rule (NFA) Enumeration =====
 
-    /// <remarks>
-    /// <c>IPSEC_NFA_DATA</c> layout (112 bytes, x64, derived from NT headers):
-    /// <code>
-    /// +0   GUID    NFAIdentifier         (16)
-    /// +16  PTR     pszIpsecName          (8)
-    /// +24  PTR     pszDescription        (8)
-    /// +32  DWORD   dwWhenChanged         (4)
-    /// +40  PTR     pszInterfaceName      (8)
-    /// +48  DWORD   dwInterfaceType       (4)
-    /// +52  DWORD   dwActiveFlag          (4)
-    /// +56  DWORD   dwTunnelIpAddr        (4)
-    /// +60  DWORD   dwTunnelFlags         (4)
-    /// +64  GUID    NegPolIdentifier      (16)
-    /// +80  GUID    FilterIdentifier      (16)
-    /// +96  DWORD   dwAuthMethodCount     (4)
-    /// +104 PTR     pIpsecAuthMethods     (8)
-    /// </code>
-    /// </remarks>
+    /// <remarks>See <see cref="IpsecNfaData"/> for the layout.</remarks>
     private List<IPSecurityRuleDefinition> EnumRulesForPolicy(
         IntPtr hStore,
         Guid policyId,
@@ -191,15 +256,6 @@ public sealed class IPSecurityStaticPolicyStoreService
             IntPtr pp = Marshal.ReadIntPtr(ppp);
             if (count == 0 || pp == IntPtr.Zero) return [];
 
-            // Dump first NFA struct for layout verification.
-            IntPtr firstNfa = Marshal.ReadIntPtr(pp, 0);
-            if (firstNfa != IntPtr.Zero)
-            {
-                _logger.LogDebug(
-                    "IPSEC_NFA_DATA hex dump (first 128 bytes, policy '{Policy}'):\n{Hex}",
-                    policyName, DumpHex(firstNfa, 128));
-            }
-
             List<IPSecurityRuleDefinition> rules = new(count);
             for (int i = 0; i < count; i++)
             {
@@ -218,35 +274,91 @@ public sealed class IPSecurityStaticPolicyStoreService
         }
     }
 
+    /// <remarks>See <see cref="IpsecNfaData"/> for the layout this reads.</remarks>
     private static IPSecurityRuleDefinition ReadNfaData(
         IntPtr p,
         string policyName,
         Dictionary<Guid, string> filterNames,
         Dictionary<Guid, string> negPolNames)
     {
-        // Offsets are derived from NT headers and not yet verified on this build.
-        // Read only the GUID at +0 (known safe) and return a placeholder until
-        // the hex dump above confirms the real field positions.
+        IpsecNfaData nfa;
+        unsafe { nfa = *(IpsecNfaData*)p; }
+
+        filterNames.TryGetValue(nfa.FilterIdentifier, out string? filterListName);
+        negPolNames.TryGetValue(nfa.NegPolIdentifier, out string? filterActionName);
+
         return new IPSecurityRuleDefinition
         {
-            Name = string.Empty,
+            Name = ReadNativeString(nfa.Name),
             PolicyName = policyName,
+            Description = ReadNativeString(nfa.Description),
+            FilterListName = filterListName ?? string.Empty,
+            FilterActionName = filterActionName ?? string.Empty,
+            ConnectionType = DescribeInterfaceType(nfa.InterfaceType),
+            IsActive = nfa.ActiveFlag != 0,
+            AuthenticationMethods = ReadAuthMethods(nfa)
         };
     }
 
+    /// <summary>Reads the rule's authentication methods, which are an array of pointers.</summary>
+    private static List<IPSecurityAuthenticationMethodDefinition> ReadAuthMethods(IpsecNfaData nfa)
+    {
+        List<IPSecurityAuthenticationMethodDefinition> methods = [];
+        if (nfa.AuthMethods == IntPtr.Zero)
+        {
+            return methods;
+        }
+
+        for (int index = 0; index < (int)nfa.AuthMethodCount; index++)
+        {
+            IntPtr entry = Marshal.ReadIntPtr(nfa.AuthMethods, IntPtr.Size * index);
+            if (entry == IntPtr.Zero)
+            {
+                continue;
+            }
+
+            IpsecAuthMethod method;
+            unsafe { method = *(IpsecAuthMethod*)entry; }
+
+            IPSecurityAuthenticationMethodKind kind = method.AuthType switch
+            {
+                IPSecurityPolicyLayout.AuthPreSharedKey => IPSecurityAuthenticationMethodKind.PreSharedKey,
+                IPSecurityPolicyLayout.AuthCertificate => IPSecurityAuthenticationMethodKind.CertificateAuthority,
+                _ => IPSecurityAuthenticationMethodKind.Kerberos
+            };
+
+            // The pre-shared key itself is never surfaced; only certificate subjects are shown.
+            string detail = kind == IPSecurityAuthenticationMethodKind.CertificateAuthority
+                ? ReadNativeString(method.AuthMethodValue)
+                : string.Empty;
+
+            methods.Add(new IPSecurityAuthenticationMethodDefinition
+            {
+                Kind = kind,
+                Detail = detail
+            });
+        }
+
+        return methods;
+    }
+
+    private static string DescribeInterfaceType(uint interfaceType)
+    {
+        return interfaceType switch
+        {
+            IPSecurityPolicyLayout.InterfaceTypeLan => "lan",
+            IPSecurityPolicyLayout.InterfaceTypeDialup => "dialup",
+            IPSecurityPolicyLayout.InterfaceTypeAll => "all",
+            _ => string.Empty
+        };
+    }
+
+    private static string ReadNativeString(IntPtr pointer)
+        => pointer == IntPtr.Zero ? string.Empty : Marshal.PtrToStringUni(pointer) ?? string.Empty;
+
     // ===== Filter List Enumeration =====
 
-    /// <remarks>
-    /// <c>IPSEC_FILTER_DATA</c> layout (56 bytes, x64, verified):
-    /// <code>
-    /// +0   GUID    FilterIdentifier      (16)
-    /// +16  DWORD   dwNumFilterSpecs      (4)
-    /// +24  PTR     ppFilterSpecs         (8, IPSEC_FILTER_SPEC**)
-    /// +32  DWORD   dwWhenChanged         (4)
-    /// +40  PTR     pszIpsecName          (8)
-    /// +48  PTR     pszDescription        (8)
-    /// </code>
-    /// </remarks>
+    /// <remarks>See <see cref="IpsecFilterData"/> for the layout.</remarks>
     private List<IPSecurityFilterListDefinition> EnumFilterLists(
         IntPtr hStore,
         Dictionary<Guid, string> guidToName)
@@ -283,93 +395,70 @@ public sealed class IPSecurityStaticPolicyStoreService
         return filterLists;
     }
 
-    /// <remarks>
-    /// <c>IPSEC_FILTER_SPEC</c> layout (x64, derived from NT headers):
-    /// <code>
-    /// +0   PTR     pszSrcDNSName         (8)
-    /// +8   PTR     pszDestDNSName        (8)
-    /// +16  PTR     pszDescription        (8)
-    /// +24  GUID    FilterSpecGUID        (16)
-    /// +40  DWORD   dwMirrorFlag          (4)
-    /// +44  IPSEC_FILTER (embedded, 40 bytes):
-    ///   +44  ULONG SrcAddr
-    ///   +48  ULONG SrcMask
-    ///   +52  ULONG DestAddr
-    ///   +56  ULONG DestMask
-    ///   +60  ULONG TunnelAddr
-    ///   +64  ULONG Protocol
-    ///   +68  ULONG SrcPort
-    ///   +72  ULONG DestPort
-    ///   +76  ULONG TunnelFilter
-    ///   +80  ULONG Flags
-    /// </code>
-    /// </remarks>
-    private List<IPSecurityFilterDefinition> ReadFilterSpecs(
+    /// <remarks>See <see cref="IpsecFilterSpec"/> for the layout this reads.</remarks>
+    private static List<IPSecurityFilterDefinition> ReadFilterSpecs(
         IntPtr filterData,
         string filterListName,
         int count)
     {
-        IntPtr ppSpecs = Marshal.ReadIntPtr(filterData, 24);
-        if (ppSpecs == IntPtr.Zero) return [];
+        IpsecFilterData list;
+        unsafe { list = *(IpsecFilterData*)filterData; }
+        if (list.FilterSpecs == IntPtr.Zero) return [];
 
-        // Dump first filter spec for layout verification.
-        IntPtr firstSpec = Marshal.ReadIntPtr(ppSpecs, 0);
-        if (firstSpec != IntPtr.Zero)
+        List<IPSecurityFilterDefinition> filters = new(count);
+        for (int index = 0; index < count; index++)
         {
-            _logger.LogDebug(
-                "IPSEC_FILTER_SPEC hex dump (first 96 bytes, filter list '{FilterList}'):\n{Hex}",
-                filterListName, DumpHex(firstSpec, 96));
+            IntPtr entry = Marshal.ReadIntPtr(list.FilterSpecs, IntPtr.Size * index);
+            if (entry == IntPtr.Zero) continue;
+
+            filters.Add(ReadFilterSpec(entry, filterListName));
         }
 
-        // Offsets are derived from NT headers and not yet verified on this build.
-        // Return empty until the hex dump confirms the real field positions.
-        return [];
+        return filters;
     }
 
     private static IPSecurityFilterDefinition ReadFilterSpec(IntPtr spec, string filterListName)
     {
-        string srcDns = ReadString(spec, 0);
-        string dstDns = ReadString(spec, 8);
-
-        uint srcAddr = unchecked((uint)Marshal.ReadInt32(spec, 44));
-        uint srcMask = unchecked((uint)Marshal.ReadInt32(spec, 48));
-        uint dstAddr = unchecked((uint)Marshal.ReadInt32(spec, 52));
-        uint dstMask = unchecked((uint)Marshal.ReadInt32(spec, 56));
-        uint protocol = unchecked((uint)Marshal.ReadInt32(spec, 64));
-        uint srcPort = unchecked((uint)Marshal.ReadInt32(spec, 68));
-        uint dstPort = unchecked((uint)Marshal.ReadInt32(spec, 72));
-        int mirrorFlag = Marshal.ReadInt32(spec, 40);
+        IpsecFilterSpec data;
+        unsafe { data = *(IpsecFilterSpec*)spec; }
 
         return new IPSecurityFilterDefinition
         {
             FilterListName = filterListName,
-            Description = ReadString(spec, 16),
-            SourceAddress = FormatAddress(srcAddr, srcDns),
-            SourceMask = FormatIpAddress(srcMask),
-            DestinationAddress = FormatAddress(dstAddr, dstDns),
-            DestinationMask = FormatIpAddress(dstMask),
-            Protocol = FormatProtocol(protocol),
-            SourcePort = (int)srcPort,
-            DestinationPort = (int)dstPort,
-            IsMirrored = mirrorFlag != 0
+            Description = ReadNativeString(data.Description),
+            SourceAddress = DescribeEndpoint(data.SourceAddress, ReadNativeString(data.SourceDnsName)),
+            SourceMask = FormatIpAddress(data.SourceAddress.SubnetMask),
+            DestinationAddress = DescribeEndpoint(data.DestinationAddress, ReadNativeString(data.DestinationDnsName)),
+            DestinationMask = FormatIpAddress(data.DestinationAddress.SubnetMask),
+            Protocol = FormatProtocol(data.Protocol),
+            SourcePort = data.SourcePort.PortType == IPSecurityPolicyLayout.PortTypeAny ? 0 : (int)data.SourcePort.Port,
+            DestinationPort = data.DestinationPort.PortType == IPSecurityPolicyLayout.PortTypeAny ? 0 : (int)data.DestinationPort.Port,
+            IsMirrored = data.MirrorFlag != 0
         };
     }
 
+    /// <summary>Renders one filter endpoint the way the legacy snap-in labels it.</summary>
+    private static string DescribeEndpoint(IpsecAddress address, string dnsName)
+    {
+        if (!string.IsNullOrEmpty(dnsName))
+        {
+            return dnsName;
+        }
+
+        return address.AddressType switch
+        {
+            IPSecurityPolicyLayout.AddressTypeMe => "me",
+            IPSecurityPolicyLayout.AddressTypeDnsServer => "dns",
+            IPSecurityPolicyLayout.AddressTypeSpecific when address.IpAddress != 0
+                => FormatIpAddress(address.IpAddress),
+            _ => "any"
+        };
+    }
+
+
     // ===== Filter Action (NegPol) Enumeration =====
 
-    /// <remarks>
-    /// <c>IPSEC_NEGPOL_DATA</c> layout (88 bytes, x64, verified):
-    /// <code>
-    /// +0   GUID    NegPolIdentifier      (16)
-    /// +16  GUID    NegPolAction          (16)
-    /// +32  GUID    NegPolType            (16)
-    /// +48  DWORD   dwSecurityMethodCount (4)
-    /// +56  PTR     pIpsecSecurityMethods (8)
-    /// +64  DWORD   dwWhenChanged         (4)
-    /// +72  PTR     pszIpsecName          (8)
-    /// +80  PTR     pszDescription        (8)
-    /// </code>
-    /// </remarks>
+    /// <remarks>See <see cref="IpsecNegPolData"/> for the layout.</remarks>
     private List<IPSecurityFilterActionDefinition> EnumFilterActions(
         IntPtr hStore,
         Dictionary<Guid, string> guidToName)
@@ -390,22 +479,114 @@ public sealed class IPSecurityStaticPolicyStoreService
 
             guidToName[id] = name;
 
+            IpsecNegPolData negPol;
+            unsafe { negPol = *(IpsecNegPolData*)p; }
+
             Guid actionGuid = ReadGuid(p, 16);
             IPSecurityFilterActionKind action = actionGuid == NegPolActionBlock
                 ? IPSecurityFilterActionKind.Block
                 : actionGuid == NegPolActionNegotiate
+                    || actionGuid == IPSecurityPolicyLayout.ActionNegotiateAcceptUnsecuredInbound
                     ? IPSecurityFilterActionKind.Negotiate
                     : IPSecurityFilterActionKind.Permit;
+
+            bool acceptUnsecuredInbound =
+                action == IPSecurityFilterActionKind.Negotiate
+                && actionGuid == IPSecurityPolicyLayout.ActionNegotiateAcceptUnsecuredInbound;
+            bool hasTerminator = HasSoftTerminator(negPol);
+            bool quickModePfs = ReadQuickModePfs(negPol);
 
             actions.Add(new IPSecurityFilterActionDefinition
             {
                 Name = name,
                 Description = ReadString(p, 80),
-                Action = action
+                Action = action,
+                UseQuickModePerfectForwardSecrecy = quickModePfs,
+                AcceptUnsecuredInbound = acceptUnsecuredInbound,
+                AllowUnsecuredFallback = hasTerminator,
+                QuickModeSecurityMethods = FormatQuickModeMethods(negPol, hasTerminator)
             });
         }
 
         return actions;
+    }
+
+    /// <summary>Reads the quick-mode PFS flag from the first security method.</summary>
+    private static bool ReadQuickModePfs(IpsecNegPolData negPol)
+    {
+        if (negPol.SecurityMethods == IntPtr.Zero || negPol.SecurityMethodCount == 0)
+        {
+            return false;
+        }
+
+        IpsecSecurityMethod first;
+        unsafe { first = *(IpsecSecurityMethod*)negPol.SecurityMethods; }
+        return first.QuickModePfsEnabled != 0;
+    }
+
+    /// <summary>
+    /// Detects the soft encoding: the last method is an all-zero terminator entry.
+    /// </summary>
+    private static bool HasSoftTerminator(IpsecNegPolData negPol)
+    {
+        if (negPol.SecurityMethods == IntPtr.Zero || negPol.SecurityMethodCount == 0)
+        {
+            return false;
+        }
+
+        int size = System.Runtime.CompilerServices.Unsafe.SizeOf<IpsecSecurityMethod>();
+        IpsecSecurityMethod last;
+        unsafe
+        {
+            last = *(IpsecSecurityMethod*)(
+                negPol.SecurityMethods + (size * ((int)negPol.SecurityMethodCount - 1)));
+        }
+
+        return last.Transform == 0 && last.PrimaryAlgorithm == 0;
+    }
+
+    /// <summary>Formats a negotiation policy's methods as netsh-style tokens with lifetimes.</summary>
+    private static List<string> FormatQuickModeMethods(IpsecNegPolData negPol, bool skipTerminator)
+    {
+        List<string> methods = [];
+        int count = (int)negPol.SecurityMethodCount;
+        int size = System.Runtime.CompilerServices.Unsafe.SizeOf<IpsecSecurityMethod>();
+        for (int index = 0; index < count && negPol.SecurityMethods != IntPtr.Zero; index++)
+        {
+            IpsecSecurityMethod method;
+            unsafe { method = *(IpsecSecurityMethod*)(negPol.SecurityMethods + (size * index)); }
+
+            bool isTerminator = method.Transform == 0 && method.PrimaryAlgorithm == 0;
+            if (isTerminator && skipTerminator)
+            {
+                continue;
+            }
+
+            methods.Add(FormatQuickModeMethod(method, isTerminator));
+        }
+
+        return methods;
+    }
+
+    private static string FormatQuickModeMethod(IpsecSecurityMethod method, bool isTerminator)
+    {
+        if (isTerminator)
+        {
+            return "NONE";
+        }
+
+        string lifetime = method.LifetimeSeconds > 0 || method.LifetimeKilobytes > 0
+            ? $":{method.LifetimeKilobytes}k/{method.LifetimeSeconds}s"
+            : string.Empty;
+
+        if (method.Transform == IPSecurityPolicyLayout.TransformAh)
+        {
+            return $"AH[{FormatIntegrity(method.PrimaryAlgorithm)}]{lifetime}";
+        }
+
+        string confidentiality = FormatConfidentiality(method.PrimaryAlgorithm);
+        string integrity = FormatIntegrity(method.SecondaryAlgorithm);
+        return $"ESP[{confidentiality},{integrity}]{lifetime}";
     }
 
     // ===== Authentication Methods =====
@@ -531,24 +712,6 @@ public sealed class IPSecurityStaticPolicyStoreService
         return new Guid(bytes);
     }
 
-    private static string DumpHex(IntPtr ptr, int length)
-    {
-        byte[] buffer = new byte[length];
-        Marshal.Copy(ptr, buffer, 0, length);
-        var sb = new System.Text.StringBuilder(length * 4);
-        for (int row = 0; row < length; row += 16)
-        {
-            sb.Append($"+{row,3:D3}  ");
-            int end = Math.Min(row + 16, length);
-            for (int col = row; col < end; col++)
-            {
-                sb.Append($"{buffer[col]:X2} ");
-                if (col == row + 7) sb.Append(' ');
-            }
-            sb.AppendLine();
-        }
-        return sb.ToString();
-    }
 
     // ===== Formatting Helpers =====
 
@@ -559,11 +722,6 @@ public sealed class IPSecurityStaticPolicyStoreService
         return $"{bytes[0]}.{bytes[1]}.{bytes[2]}.{bytes[3]}";
     }
 
-    private static string FormatAddress(uint addr, string dnsName)
-    {
-        if (!string.IsNullOrEmpty(dnsName)) return dnsName;
-        return addr == 0 ? "any" : FormatIpAddress(addr);
-    }
 
     private static string FormatProtocol(uint protocol)
     {
@@ -577,13 +735,4 @@ public sealed class IPSecurityStaticPolicyStoreService
         };
     }
 
-    private static string FormatConnectionType(int interfaceType)
-    {
-        return interfaceType switch
-        {
-            1 => "lan",
-            2 => "dialup",
-            _ => "all"
-        };
-    }
 }

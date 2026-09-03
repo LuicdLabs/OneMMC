@@ -5,9 +5,21 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:OneMMC.Views.UserSecurity.SecPol.IPSecurity.Manage">
 
-    <Grid>
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="ms-appx:///Views/UserSecurity/SecPol/IPSecurity/IPSecurityEditorResources.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <!--
+        SelectorBar chooses the collection, one button row acts on it, and each row shows the name
+        with its description underneath. Two columns of trimmed text needed a header row to be
+        readable; a two-line row does not, so the header is gone.
+    -->
+    <Grid MinWidth="680" RowSpacing="4">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
@@ -16,7 +28,7 @@
 
         <SelectorBar
             x:Name="SectionSelectorBar"
-            Margin="0,0,0,12"
+            Grid.Row="0"
             AutomationProperties.AutomationId="IPSecurityManageSelectorBar"
             SelectionChanged="SectionSelectorBar_SelectionChanged">
             <SelectorBarItem
@@ -29,129 +41,111 @@
                 Text="{x:Bind LocalizedStrings.IPSec_Section_FilterActions}" />
         </SelectorBar>
 
-        <CommandBar
+        <StackPanel
             Grid.Row="1"
-            AutomationProperties.AutomationId="IPSecurityManageCommandBar"
-            Background="Transparent"
-            DefaultLabelPosition="Right"
-            OverflowButtonVisibility="Collapsed">
-            <AppBarButton
+            Margin="0,8,0,0"
+            Orientation="Horizontal"
+            Spacing="8">
+            <Button
                 x:Name="AddButton"
                 AutomationProperties.AutomationId="IPSecurityManageAddButton"
                 Click="AddButton_Click"
-                Icon="Add"
-                Label="{x:Bind LocalizedStrings.IPSec_Command_New}" />
-            <AppBarButton
+                Style="{StaticResource AccentButtonStyle}">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <FontIcon FontSize="14" Glyph="&#xE710;" />
+                    <TextBlock Text="{x:Bind LocalizedStrings.IPSec_Command_New}" />
+                </StackPanel>
+            </Button>
+            <Button
                 x:Name="EditButton"
                 AutomationProperties.AutomationId="IPSecurityManageEditButton"
-                Click="EditButton_Click"
-                Icon="Edit"
-                Label="{x:Bind LocalizedStrings.IPSec_Command_Edit}" />
-            <AppBarButton
+                Click="EditButton_Click">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <FontIcon FontSize="14" Glyph="&#xE70F;" />
+                    <TextBlock Text="{x:Bind LocalizedStrings.IPSec_Command_Edit}" />
+                </StackPanel>
+            </Button>
+            <Button
                 x:Name="DeleteButton"
                 AutomationProperties.AutomationId="IPSecurityManageDeleteButton"
-                Click="DeleteButton_Click"
-                Icon="Delete"
-                Label="{x:Bind LocalizedStrings.IPSec_Command_Delete}" />
-        </CommandBar>
+                Click="DeleteButton_Click">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <FontIcon FontSize="14" Glyph="&#xE74D;" />
+                    <TextBlock Text="{x:Bind LocalizedStrings.IPSec_Command_Delete}" />
+                </StackPanel>
+            </Button>
+        </StackPanel>
 
         <InfoBar
             x:Name="ErrorInfoBar"
             Grid.Row="2"
-            Margin="0,4,0,8"
             IsClosable="True"
             IsOpen="False"
             Severity="Error"
             Title="{x:Bind LocalizedStrings.Common_ErrorTitle}" />
 
-        <!--  Column headers: caption/tertiary per the Win11 type ramp, aligned with the item template inset.  -->
-        <Grid
-            Grid.Row="3"
-            Margin="12,4,12,4"
-            ColumnSpacing="16">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="2*" />
-                <ColumnDefinition Width="3*" />
-            </Grid.ColumnDefinitions>
-            <TextBlock
-                FontWeight="SemiBold"
-                Foreground="{ThemeResource TextFillColorTertiaryBrush}"
-                Style="{StaticResource CaptionTextBlockStyle}"
-                Text="{x:Bind LocalizedStrings.IPSec_Column_Name}"
-                TextTrimming="CharacterEllipsis" />
-            <TextBlock
-                Grid.Column="1"
-                FontWeight="SemiBold"
-                Foreground="{ThemeResource TextFillColorTertiaryBrush}"
-                Style="{StaticResource CaptionTextBlockStyle}"
-                Text="{x:Bind LocalizedStrings.IPSec_Column_Description}"
-                TextTrimming="CharacterEllipsis" />
-        </Grid>
-
-        <ListView
-            x:Name="ItemsListView"
-            Grid.Row="4"
-            AutomationProperties.AutomationId="IPSecurityManageList"
-            DoubleTapped="ItemsListView_DoubleTapped"
-            Padding="0,4,0,4"
-            SelectionChanged="ItemsListView_SelectionChanged"
-            SelectionMode="Single">
-            <ListView.ItemContainerStyle>
-                <Style TargetType="ListViewItem">
-                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-                    <Setter Property="Margin" Value="0,0,0,4" />
-                    <Setter Property="MinHeight" Value="56" />
-                    <Setter Property="Padding" Value="0" />
-                </Style>
-            </ListView.ItemContainerStyle>
-            <ListView.ItemTemplate>
-                <DataTemplate x:DataType="local:IPSecurityManageListItem">
-                    <Grid
-                        MinHeight="56"
-                        Padding="12,8,12,8"
-                        ColumnSpacing="16">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="2*" />
-                            <ColumnDefinition Width="3*" />
-                        </Grid.ColumnDefinitions>
-                        <StackPanel
-                            VerticalAlignment="Center"
-                            Orientation="Horizontal"
-                            Spacing="12">
+        <Grid Grid.Row="3">
+            <ListView
+                x:Name="ItemsListView"
+                AutomationProperties.AutomationId="IPSecurityManageItemsList"
+                DoubleTapped="ItemsListView_DoubleTapped"
+                SelectionChanged="ItemsListView_SelectionChanged"
+                SelectionMode="Single">
+                <ListView.ItemContainerStyle>
+                    <Style TargetType="ListViewItem">
+                        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                        <Setter Property="Margin" Value="0,0,0,4" />
+                        <Setter Property="MinHeight" Value="60" />
+                        <Setter Property="Padding" Value="0" />
+                    </Style>
+                </ListView.ItemContainerStyle>
+                <ListView.ItemTemplate>
+                    <DataTemplate x:DataType="local:IPSecurityManageListItem">
+                        <Grid Padding="14,10" ColumnSpacing="14">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
                             <FontIcon
-                                FontSize="16"
-                                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                                Glyph="&#xE71C;" />
-                            <TextBlock
                                 VerticalAlignment="Center"
-                                Style="{StaticResource BodyStrongTextBlockStyle}"
-                                Text="{x:Bind Name}"
-                                TextTrimming="CharacterEllipsis"
-                                TextWrapping="NoWrap"
-                                ToolTipService.ToolTip="{x:Bind Name}" />
-                        </StackPanel>
-                        <TextBlock
-                            Grid.Column="1"
-                            VerticalAlignment="Center"
-                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                            Style="{StaticResource CaptionTextBlockStyle}"
-                            Text="{x:Bind Description}"
-                            TextTrimming="CharacterEllipsis"
-                            TextWrapping="NoWrap"
-                            ToolTipService.ToolTip="{x:Bind Description}" />
-                    </Grid>
-                </DataTemplate>
-            </ListView.ItemTemplate>
-        </ListView>
+                                FontSize="18"
+                                Foreground="{ThemeResource AccentTextFillColorSecondaryBrush}"
+                                Glyph="&#xE71C;" />
+                            <StackPanel
+                                Grid.Column="1"
+                                VerticalAlignment="Center"
+                                Spacing="2">
+                                <TextBlock
+                                    Style="{StaticResource BodyStrongTextBlockStyle}"
+                                    Text="{x:Bind Name}"
+                                    TextTrimming="CharacterEllipsis"
+                                    ToolTipService.ToolTip="{x:Bind Name}" />
+                                <TextBlock
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Style="{StaticResource CaptionTextBlockStyle}"
+                                    Text="{x:Bind Description}"
+                                    TextTrimming="CharacterEllipsis"
+                                    ToolTipService.ToolTip="{x:Bind Description}" />
+                            </StackPanel>
+                        </Grid>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
 
-        <ProgressRing
-            x:Name="BusyProgressRing"
-            Grid.RowSpan="5"
-            Width="44"
-            Height="44"
-            HorizontalAlignment="Center"
-            VerticalAlignment="Center"
-            IsActive="False"
-            Visibility="Collapsed" />
+            <TextBlock
+                x:Name="EmptyItemsText"
+                VerticalAlignment="Center"
+                Style="{StaticResource EditorEmptyStateTextStyle}"
+                Text="{x:Bind LocalizedStrings.IPSec_Empty_FilterLists}" />
+
+            <ProgressRing
+                x:Name="BusyProgressRing"
+                Width="44"
+                Height="44"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                IsActive="False"
+                Visibility="Collapsed" />
+        </Grid>
     </Grid>
 </UserControl>

@@ -8,15 +8,19 @@ using Microsoft.UI.Xaml.Controls;
 namespace OneMMC.Views;
 
 /// <summary>
-/// Displays the read-only details of an IP Security Policies row in a modal window.
+/// Displays the read-only details of an IP Security Policies row.
 /// </summary>
+/// <remarks>
+/// Hosted in a <c>ContentDialog</c>: the view is read-only and opens nothing on top of itself, so
+/// there is no reason to create a top-level window for it.
+/// </remarks>
 public sealed class IPSecurityDetailsModal
 {
     private const int DialogWidth = 760;
     private const int DialogHeight = 560;
     private const double FieldSpacing = 12;
 
-    private readonly ModalDialogWindow _window;
+    private readonly InlineDialogOptions _options;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="IPSecurityDetailsModal"/> class.
@@ -33,26 +37,26 @@ public sealed class IPSecurityDetailsModal
             localizedStrings.IPSec_Dialog_Details_TitleFormat,
             row.Name);
 
-        _window = new ModalDialogWindow(new ModalDialogOptions
+        _options = new InlineDialogOptions
         {
             Title = title,
             Content = CreateContent(row, localizedStrings),
-            OwnerXamlRoot = ownerXamlRoot,
+            XamlRoot = ownerXamlRoot,
             RequestedTheme = App.CurrentTheme,
             CloseButtonText = localizedStrings.Common_CloseButton,
             DefaultButton = WindowDialogResult.None,
-            Width = DialogWidth,
-            Height = DialogHeight
-        });
+            MaxWidth = DialogWidth,
+            MaxHeight = DialogHeight
+        };
     }
 
     /// <summary>
-    /// Shows the modal window and completes when it is dismissed.
+    /// Shows the dialog and completes when it is dismissed.
     /// </summary>
     /// <returns>The dialog result.</returns>
     public Task<WindowDialogResult> ShowAsync()
     {
-        return _window.ShowDialogAsync();
+        return InlineDialogHost.ShowAsync(_options);
     }
 
     private static UIElement CreateContent(IPSecurityPolicyRow row, LocalizedStrings localizedStrings)

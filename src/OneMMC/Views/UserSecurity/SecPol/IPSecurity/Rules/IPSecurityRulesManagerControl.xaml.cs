@@ -75,6 +75,14 @@ public sealed partial class IPSecurityRulesManagerControl : UserControl
         }
 
         UpdateCommandState();
+        RuleItems.CollectionChanged += (_, _) => UpdateEmptyState();
+        UpdateEmptyState();
+    }
+
+    /// <summary>Shows or hides the list's empty state.</summary>
+    private void UpdateEmptyState()
+    {
+        EmptyRulesText.Visibility = RuleItems.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
     }
 
     /// <summary>
@@ -142,22 +150,22 @@ public sealed partial class IPSecurityRulesManagerControl : UserControl
             return;
         }
 
-        var confirmationWindow = new ModalDialogWindow(new ModalDialogOptions
+        var confirmation = new InlineDialogOptions
         {
             Title = LocalizedStrings.IPSec_DeleteConfirm_Title,
             Content = string.Format(
                 CultureInfo.CurrentCulture,
                 LocalizedStrings.IPSec_DeleteRule_MessageFormat,
                 selected.Definition.Name),
-            OwnerXamlRoot = XamlRoot,
+            XamlRoot = XamlRoot,
             RequestedTheme = App.CurrentTheme,
             PrimaryButtonText = LocalizedStrings.Common_DeleteButton,
             CloseButtonText = LocalizedStrings.Common_CancelButton,
             DefaultButton = WindowDialogResult.None,
-            Width = ConfirmationDialogWidth,
-            Height = ConfirmationDialogHeight
-        });
-        if (await confirmationWindow.ShowDialogAsync() != WindowDialogResult.Primary
+            MaxWidth = ConfirmationDialogWidth,
+            MaxHeight = ConfirmationDialogHeight
+        };
+        if (await InlineDialogHost.ShowAsync(confirmation) != WindowDialogResult.Primary
             || !await RunMutationAsync(() => _deleteRuleAsync(_policy.Name, selected.Definition.Name)))
         {
             return;
@@ -212,23 +220,24 @@ public sealed partial class IPSecurityRulesManagerControl : UserControl
         string title,
         string primaryButtonText)
     {
+        // The rule editor is a leaf: everything it needs is inline, so a ContentDialog on this
+        // manager's own XAML root is the right host.
         IPSecurityRuleCommandOptions? result = null;
-        var modalWindow = new ModalDialogWindow(new ModalDialogOptions
+        var options = new InlineDialogOptions
         {
             Title = title,
             Content = editor,
-            OwnerXamlRoot = XamlRoot,
+            XamlRoot = XamlRoot,
             RequestedTheme = App.CurrentTheme,
             PrimaryButtonText = primaryButtonText,
             CloseButtonText = LocalizedStrings.Common_CancelButton,
             DefaultButton = WindowDialogResult.Primary,
-            IsPrimaryButtonLeading = true,
-            Width = EditorDialogWidth,
-            Height = EditorDialogHeight,
+            MaxWidth = EditorDialogWidth,
+            MaxHeight = EditorDialogHeight,
             OnPrimaryButtonClick = () => editor.TryBuildResult(out result)
-        });
+        };
 
-        return await modalWindow.ShowDialogAsync() == WindowDialogResult.Primary ? result : null;
+        return await InlineDialogHost.ShowAsync(options) == WindowDialogResult.Primary ? result : null;
     }
 
     private async Task<bool> RunMutationAsync(Func<Task<bool>> mutation)

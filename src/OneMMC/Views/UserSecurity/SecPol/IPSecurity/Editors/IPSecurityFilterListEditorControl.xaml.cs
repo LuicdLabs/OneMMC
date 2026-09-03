@@ -29,6 +29,15 @@ public sealed partial class IPSecurityFilterListEditorControl : UserControl
     internal ObservableCollection<IPSecurityFilterEditorItem> FilterItems { get; } = [];
 
     /// <summary>
+    /// Shows or hides the list's empty state. Driven from code-behind rather than a binding so the
+    /// filter collection stays a plain <see cref="ObservableCollection{T}"/> with no wrapper.
+    /// </summary>
+    private void UpdateEmptyState()
+    {
+        EmptyFiltersText.Visibility = FilterItems.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+    }
+
+    /// <summary>
     /// Initializes a filter-list editor.
     /// </summary>
     /// <param name="mode">The editor mode.</param>
@@ -56,6 +65,9 @@ public sealed partial class IPSecurityFilterListEditorControl : UserControl
         {
             FilterItems.Add(CreateFilterItem(filter));
         }
+
+        FilterItems.CollectionChanged += (_, _) => UpdateEmptyState();
+        UpdateEmptyState();
     }
 
     /// <summary>
@@ -153,23 +165,24 @@ public sealed partial class IPSecurityFilterListEditorControl : UserControl
         IPSecurityFilterEditorControl editor,
         string title)
     {
+        // A ContentDialog on this editor's own XAML root: the filter editor is a leaf, and this
+        // editor is itself hosted in a window precisely so this dialog can be an inline one.
         IPSecurityFilterCommandOptions? result = null;
-        var modalWindow = new ModalDialogWindow(new ModalDialogOptions
+        var options = new InlineDialogOptions
         {
             Title = title,
             Content = editor,
-            OwnerXamlRoot = XamlRoot,
+            XamlRoot = XamlRoot,
             RequestedTheme = App.CurrentTheme,
             PrimaryButtonText = LocalizedStrings.Common_OKButton,
             CloseButtonText = LocalizedStrings.Common_CancelButton,
             DefaultButton = WindowDialogResult.Primary,
-            IsPrimaryButtonLeading = true,
-            Width = FilterDialogWidth,
-            Height = FilterDialogHeight,
+            MaxWidth = FilterDialogWidth,
+            MaxHeight = FilterDialogHeight,
             OnPrimaryButtonClick = () => editor.TryBuildResult(out result)
-        });
+        };
 
-        return await modalWindow.ShowDialogAsync() == WindowDialogResult.Primary ? result : null;
+        return await InlineDialogHost.ShowAsync(options) == WindowDialogResult.Primary ? result : null;
     }
 
     private IPSecurityFilterEditorItem CreateFilterItem(IPSecurityFilterCommandOptions filter)

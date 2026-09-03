@@ -312,6 +312,105 @@ namespace OneMMC.Localization
         public string IPSec_Editor_PollingInterval => GetResource(ResourceFileNames.SecPol, IPSecurityPolicyKeys.EditorPollingInterval);
         public string IPSec_Editor_MainModeMethods => GetResource(ResourceFileNames.SecPol, IPSecurityPolicyKeys.EditorMainModeMethods);
         public string IPSec_Editor_MethodsHelp => GetResource(ResourceFileNames.SecPol, IPSecurityPolicyKeys.EditorMethodsHelp);
+
+        /// <summary>Gets the localized <c>IPSec_Section_General</c> string.</summary>
+        public string IPSec_Section_General => GetResource(ResourceFileNames.SecPol, IPSecurityPolicyKeys.SectionGeneral);
+
+        /// <summary>Gets the localized <c>IPSec_Section_Security</c> string.</summary>
+        public string IPSec_Section_Security => GetResource(ResourceFileNames.SecPol, IPSecurityPolicyKeys.SectionSecurity);
+
+        /// <summary>Gets the localized <c>IPSec_Section_Addresses</c> string.</summary>
+        public string IPSec_Section_Addresses => GetResource(ResourceFileNames.SecPol, IPSecurityPolicyKeys.SectionAddresses);
+
+        /// <summary>Gets the localized <c>IPSec_Section_Advanced</c> string.</summary>
+        public string IPSec_Section_Advanced => GetResource(ResourceFileNames.SecPol, IPSecurityPolicyKeys.SectionAdvanced);
+
+        /// <summary>Gets the localized <c>IPSec_Page_PoliciesDescription</c> string.</summary>
+        public string IPSec_Page_PoliciesDescription => GetResource(ResourceFileNames.SecPol, IPSecurityPolicyKeys.PagePoliciesDescription);
+
+        /// <summary>Gets the localized <c>IPSec_Editor_NameDescription</c> string.</summary>
+        public string IPSec_Editor_NameDescription => GetResource(ResourceFileNames.SecPol, IPSecurityPolicyKeys.EditorNameDescription);
+
+        /// <summary>Gets the localized <c>IPSec_Editor_DescriptionDescription</c> string.</summary>
+        public string IPSec_Editor_DescriptionDescription => GetResource(ResourceFileNames.SecPol, IPSecurityPolicyKeys.EditorDescriptionDescription);
+
+        /// <summary>Gets the localized <c>IPSec_Editor_AssignedDescription</c> string.</summary>
+        public string IPSec_Editor_AssignedDescription => GetResource(ResourceFileNames.SecPol, IPSecurityPolicyKeys.EditorAssignedDescription);
+
+        /// <summary>Gets the localized <c>IPSec_Editor_DefaultResponseRuleDescription</c> string.</summary>
+        public string IPSec_Editor_DefaultResponseRuleDescription => GetResource(ResourceFileNames.SecPol, IPSecurityPolicyKeys.EditorDefaultResponseRuleDescription);
+
+        /// <summary>Gets the localized <c>IPSec_Editor_MasterPfsDescription</c> string.</summary>
+        public string IPSec_Editor_MasterPfsDescription => GetResource(ResourceFileNames.SecPol, IPSecurityPolicyKeys.EditorMasterPfsDescription);
+
+        /// <summary>Gets the localized <c>IPSec_Editor_QuickModeSessionsDescription</c> string.</summary>
+        public string IPSec_Editor_QuickModeSessionsDescription => GetResource(ResourceFileNames.SecPol, IPSecurityPolicyKeys.EditorQuickModeSessionsDescription);
+
+        /// <summary>Gets the localized <c>IPSec_Editor_MainModeLifetimeDescription</c> string.</summary>
+        public string IPSec_Editor_MainModeLifetimeDescription => GetResource(ResourceFileNames.SecPol, IPSecurityPolicyKeys.EditorMainModeLifetimeDescription);
+
+        /// <summary>Gets the localized <c>IPSec_Editor_PollingIntervalDescription</c> string.</summary>
+        public string IPSec_Editor_PollingIntervalDescription => GetResource(ResourceFileNames.SecPol, IPSecurityPolicyKeys.EditorPollingIntervalDescription);
+
+        /// <summary>Gets the localized <c>IPSec_Editor_FiltersDescription</c> string.</summary>
+        public string IPSec_Editor_FiltersDescription => GetResource(ResourceFileNames.SecPol, IPSecurityPolicyKeys.EditorFiltersDescription);
+
+        /// <summary>Gets the localized <c>IPSec_Editor_MirroredDescription</c> string.</summary>
+        public string IPSec_Editor_MirroredDescription => GetResource(ResourceFileNames.SecPol, IPSecurityPolicyKeys.EditorMirroredDescription);
+
+        /// <summary>Gets the localized <c>IPSec_Editor_ProtocolDescription</c> string.</summary>
+        public string IPSec_Editor_ProtocolDescription => GetResource(ResourceFileNames.SecPol, IPSecurityPolicyKeys.EditorProtocolDescription);
+
+        /// <summary>Gets the localized <c>IPSec_Editor_PortsDescription</c> string.</summary>
+        public string IPSec_Editor_PortsDescription => GetResource(ResourceFileNames.SecPol, IPSecurityPolicyKeys.EditorPortsDescription);
+
+        /// <summary>Gets the localized <c>IPSec_Editor_ActionDescription</c> string.</summary>
+        public string IPSec_Editor_ActionDescription => GetResource(ResourceFileNames.SecPol, IPSecurityPolicyKeys.EditorActionDescription);
+
+        /// <summary>Gets the localized <c>IPSec_Editor_QuickModePfsDescription</c> string.</summary>
+        public string IPSec_Editor_QuickModePfsDescription => GetResource(ResourceFileNames.SecPol, IPSecurityPolicyKeys.EditorQuickModePfsDescription);
+
+        /// <summary>Gets the localized <c>IPSec_Editor_AcceptUnsecuredInboundDescription</c> string.</summary>
+        public string IPSec_Editor_AcceptUnsecuredInboundDescription => GetResource(ResourceFileNames.SecPol, IPSecurityPolicyKeys.EditorAcceptUnsecuredInboundDescription);
+
+        /// <summary>Gets the localized <c>IPSec_Editor_AllowUnsecuredFallbackDescription</c> string.</summary>
+        public string IPSec_Editor_AllowUnsecuredFallbackDescription => GetResource(ResourceFileNames.SecPol, IPSecurityPolicyKeys.EditorAllowUnsecuredFallbackDescription);
+
+        /// <summary>Gets the localized <c>IPSec_Editor_RuleActiveDescription</c> string.</summary>
+        public string IPSec_Editor_RuleActiveDescription => GetResource(ResourceFileNames.SecPol, IPSecurityPolicyKeys.EditorRuleActiveDescription);
+
+        /// <summary>Gets the localized <c>IPSec_Editor_TunnelDescription</c> string.</summary>
+        public string IPSec_Editor_TunnelDescription => GetResource(ResourceFileNames.SecPol, IPSecurityPolicyKeys.EditorTunnelDescription);
+
+        /// <summary>Gets the localized <c>IPSec_Editor_ConnectionTypeDescription</c> string.</summary>
+        public string IPSec_Editor_ConnectionTypeDescription => GetResource(ResourceFileNames.SecPol, IPSecurityPolicyKeys.EditorConnectionTypeDescription);
+
+        /// <summary>Gets the localized <c>IPSec_Editor_AuthenticationMethodsDescription</c> string.</summary>
+        public string IPSec_Editor_AuthenticationMethodsDescription => GetResource(ResourceFileNames.SecPol, IPSecurityPolicyKeys.EditorAuthenticationMethodsDescription);
+
+        /// <summary>Gets the localized <c>IPSec_Editor_RuleReferencesDescription</c> string.</summary>
+        public string IPSec_Editor_RuleReferencesDescription => GetResource(ResourceFileNames.SecPol, IPSecurityPolicyKeys.EditorRuleReferencesDescription);
+
+        /// <summary>Gets the localized <c>IPSec_Editor_SecurityMethodsDescription</c> string.</summary>
+        public string IPSec_Editor_SecurityMethodsDescription => GetResource(ResourceFileNames.SecPol, IPSecurityPolicyKeys.EditorSecurityMethodsDescription);
+
+        /// <summary>Gets the localized <c>IPSec_Editor_NoSecurityMethods</c> string.</summary>
+        public string IPSec_Editor_NoSecurityMethods => GetResource(ResourceFileNames.SecPol, IPSecurityPolicyKeys.EditorNoSecurityMethods);
+
+        /// <summary>Gets the localized <c>IPSec_Editor_NoFilters</c> string.</summary>
+        public string IPSec_Editor_NoFilters => GetResource(ResourceFileNames.SecPol, IPSecurityPolicyKeys.EditorNoFilters);
+
+        /// <summary>Gets the localized <c>IPSec_Editor_NoAuthenticationMethods</c> string.</summary>
+        public string IPSec_Editor_NoAuthenticationMethods => GetResource(ResourceFileNames.SecPol, IPSecurityPolicyKeys.EditorNoAuthenticationMethods);
+
+        /// <summary>Gets the localized <c>IPSec_Editor_NoRules</c> string.</summary>
+        public string IPSec_Editor_NoRules => GetResource(ResourceFileNames.SecPol, IPSecurityPolicyKeys.EditorNoRules);
+
+        /// <summary>Gets the localized <c>IPSec_Empty_FilterLists</c> string.</summary>
+        public string IPSec_Empty_FilterLists => GetResource(ResourceFileNames.SecPol, IPSecurityPolicyKeys.EmptyFilterLists);
+
+        /// <summary>Gets the localized <c>IPSec_Empty_FilterActions</c> string.</summary>
+        public string IPSec_Empty_FilterActions => GetResource(ResourceFileNames.SecPol, IPSecurityPolicyKeys.EmptyFilterActions);
         public string IPSec_Editor_Filters => GetResource(ResourceFileNames.SecPol, IPSecurityPolicyKeys.EditorFilters);
         public string IPSec_Editor_AddFilterTitle => GetResource(ResourceFileNames.SecPol, IPSecurityPolicyKeys.EditorAddFilterTitle);
         public string IPSec_Editor_EditFilterTitle => GetResource(ResourceFileNames.SecPol, IPSecurityPolicyKeys.EditorEditFilterTitle);

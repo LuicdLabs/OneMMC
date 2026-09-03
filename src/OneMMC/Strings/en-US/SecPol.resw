@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -2172,5 +2172,98 @@ Do you want to install this certificate?</value>
   </data>
   <data name="IPSec_Dialog_EditRule_TitleFormat" xml:space="preserve">
     <value>Edit rule: {0}</value>
+  </data>
+  <data name="IPSec_Section_General" xml:space="preserve">
+    <value>General</value>
+  </data>
+  <data name="IPSec_Section_Security" xml:space="preserve">
+    <value>Security</value>
+  </data>
+  <data name="IPSec_Section_Addresses" xml:space="preserve">
+    <value>Addresses and ports</value>
+  </data>
+  <data name="IPSec_Section_Advanced" xml:space="preserve">
+    <value>Advanced</value>
+  </data>
+  <data name="IPSec_Page_PoliciesDescription" xml:space="preserve">
+    <value>Policies stored on this computer. Only one policy can be assigned at a time.</value>
+  </data>
+  <data name="IPSec_Editor_NameDescription" xml:space="preserve">
+    <value>Shown in the list and used to identify this item in scripts.</value>
+  </data>
+  <data name="IPSec_Editor_DescriptionDescription" xml:space="preserve">
+    <value>Optional notes about what this item is for.</value>
+  </data>
+  <data name="IPSec_Editor_AssignedDescription" xml:space="preserve">
+    <value>Apply this policy to the local computer.</value>
+  </data>
+  <data name="IPSec_Editor_DefaultResponseRuleDescription" xml:space="preserve">
+    <value>Respond to requests for secure communication that no other rule covers.</value>
+  </data>
+  <data name="IPSec_Editor_MasterPfsDescription" xml:space="preserve">
+    <value>Require a new main mode key for every quick mode negotiation.</value>
+  </data>
+  <data name="IPSec_Editor_QuickModeSessionsDescription" xml:space="preserve">
+    <value>Quick mode sessions allowed per main mode key.</value>
+  </data>
+  <data name="IPSec_Editor_MainModeLifetimeDescription" xml:space="preserve">
+    <value>Minutes before the main mode key is renegotiated.</value>
+  </data>
+  <data name="IPSec_Editor_PollingIntervalDescription" xml:space="preserve">
+    <value>Minutes between checks for policy changes.</value>
+  </data>
+  <data name="IPSec_Editor_FiltersDescription" xml:space="preserve">
+    <value>Traffic this list matches. A rule applies its filter action to every filter here.</value>
+  </data>
+  <data name="IPSec_Editor_MirroredDescription" xml:space="preserve">
+    <value>Also match traffic in the opposite direction.</value>
+  </data>
+  <data name="IPSec_Editor_ProtocolDescription" xml:space="preserve">
+    <value>Restrict this filter to a single IP protocol.</value>
+  </data>
+  <data name="IPSec_Editor_PortsDescription" xml:space="preserve">
+    <value>Leave at zero to match any port.</value>
+  </data>
+  <data name="IPSec_Editor_ActionDescription" xml:space="preserve">
+    <value>What happens to traffic that matches a rule using this action.</value>
+  </data>
+  <data name="IPSec_Editor_QuickModePfsDescription" xml:space="preserve">
+    <value>Require a new key for each quick mode session.</value>
+  </data>
+  <data name="IPSec_Editor_AcceptUnsecuredInboundDescription" xml:space="preserve">
+    <value>Accept unsecured inbound traffic, then reply with IPsec.</value>
+  </data>
+  <data name="IPSec_Editor_AllowUnsecuredFallbackDescription" xml:space="preserve">
+    <value>Fall back to unsecured communication when the peer does not support IPsec.</value>
+  </data>
+  <data name="IPSec_Editor_RuleActiveDescription" xml:space="preserve">
+    <value>Evaluate this rule while the policy is assigned.</value>
+  </data>
+  <data name="IPSec_Editor_TunnelDescription" xml:space="preserve">
+    <value>Send matching traffic through an IPsec tunnel to a specific endpoint.</value>
+  </data>
+  <data name="IPSec_Editor_ConnectionTypeDescription" xml:space="preserve">
+    <value>Network connections this rule applies to.</value>
+  </data>
+  <data name="IPSec_Editor_AuthenticationMethodsDescription" xml:space="preserve">
+    <value>How trust is established with the other computer, in preference order.</value>
+  </data>
+  <data name="IPSec_Editor_RuleReferencesDescription" xml:space="preserve">
+    <value>The filter list this rule matches and the action it applies.</value>
+  </data>
+  <data name="IPSec_Editor_SecurityMethodsDescription" xml:space="preserve">
+    <value>Offered to the peer in this order until one is accepted.</value>
+  </data>
+  <data name="IPSec_Editor_NoSecurityMethods" xml:space="preserve">
+    <value>No security methods yet. Add one below.</value>
+  </data>
+  <data name="IPSec_Editor_NoFilters" xml:space="preserve">
+    <value>No filters yet. Add one to describe the traffic this list matches.</value>
+  </data>
+  <data name="IPSec_Editor_NoAuthenticationMethods" xml:space="preserve">
+    <value>No authentication methods yet. Add one below.</value>
+  </data>
+  <data name="IPSec_Editor_NoRules" xml:space="preserve">
+    <value>No rules yet. Add one to describe traffic this policy secures.</value>
   </data>
 </root>

@@ -5,70 +5,78 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:cwuc="using:CommunityToolkit.WinUI.Controls">
 
-    <ScrollViewer
-        HorizontalScrollBarVisibility="Disabled"
-        VerticalScrollBarVisibility="Auto">
-        <StackPanel MinWidth="560" Spacing="4">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="ms-appx:///Views/UserSecurity/SecPol/IPSecurity/IPSecurityEditorResources.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <!--
+        Source and destination are paired inside one SettingsExpander each: address and mask belong
+        together, and nesting the mask keeps the closed state to the single value that matters.
+    -->
+    <ScrollViewer Style="{StaticResource EditorScrollViewerStyle}">
+        <StackPanel Style="{StaticResource EditorRootPanelStyle}">
             <InfoBar
                 x:Name="ValidationInfoBar"
-                Margin="0,0,0,8"
                 IsClosable="True"
                 IsOpen="False"
                 Severity="Error" />
 
-            <cwuc:SettingsCard
-                ContentAlignment="Vertical"
-                Header="{x:Bind LocalizedStrings.IPSec_Column_Description}">
-                <TextBox
-                    x:Name="DescriptionTextBox"
-                    AcceptsReturn="True"
-                    AutomationProperties.Name="{x:Bind LocalizedStrings.IPSec_Column_Description}"
-                    MaxHeight="100"
-                    TextWrapping="Wrap" />
-            </cwuc:SettingsCard>
+            <TextBlock
+                Style="{StaticResource EditorSectionHeaderStyle}"
+                Text="{x:Bind LocalizedStrings.IPSec_Section_Addresses}" />
 
-            <cwuc:SettingsCard Header="{x:Bind LocalizedStrings.IPSec_Editor_SourceAddress}">
+            <cwuc:SettingsExpander
+                Description="{x:Bind LocalizedStrings.IPSec_Editor_SourceMask}"
+                Header="{x:Bind LocalizedStrings.IPSec_Editor_SourceAddress}"
+                IsExpanded="True">
+                <cwuc:SettingsExpander.HeaderIcon>
+                    <FontIcon Glyph="&#xE8AB;" />
+                </cwuc:SettingsExpander.HeaderIcon>
                 <TextBox
                     x:Name="SourceAddressTextBox"
                     MinWidth="220"
                     AutomationProperties.Name="{x:Bind LocalizedStrings.IPSec_Editor_SourceAddress}" />
-            </cwuc:SettingsCard>
+                <cwuc:SettingsExpander.Items>
+                    <cwuc:SettingsCard Header="{x:Bind LocalizedStrings.IPSec_Editor_SourceMask}">
+                        <TextBox
+                            x:Name="SourceMaskTextBox"
+                            MinWidth="220"
+                            AutomationProperties.Name="{x:Bind LocalizedStrings.IPSec_Editor_SourceMask}" />
+                    </cwuc:SettingsCard>
+                </cwuc:SettingsExpander.Items>
+            </cwuc:SettingsExpander>
 
-            <cwuc:SettingsCard Header="{x:Bind LocalizedStrings.IPSec_Editor_SourceMask}">
-                <TextBox
-                    x:Name="SourceMaskTextBox"
-                    MinWidth="220"
-                    AutomationProperties.Name="{x:Bind LocalizedStrings.IPSec_Editor_SourceMask}" />
-            </cwuc:SettingsCard>
-
-            <cwuc:SettingsCard Header="{x:Bind LocalizedStrings.IPSec_Editor_DestinationAddress}">
+            <cwuc:SettingsExpander
+                Description="{x:Bind LocalizedStrings.IPSec_Editor_DestinationMask}"
+                Header="{x:Bind LocalizedStrings.IPSec_Editor_DestinationAddress}"
+                IsExpanded="True">
+                <cwuc:SettingsExpander.HeaderIcon>
+                    <FontIcon Glyph="&#xE8AD;" />
+                </cwuc:SettingsExpander.HeaderIcon>
                 <TextBox
                     x:Name="DestinationAddressTextBox"
                     MinWidth="220"
                     AutomationProperties.Name="{x:Bind LocalizedStrings.IPSec_Editor_DestinationAddress}" />
-            </cwuc:SettingsCard>
+                <cwuc:SettingsExpander.Items>
+                    <cwuc:SettingsCard Header="{x:Bind LocalizedStrings.IPSec_Editor_DestinationMask}">
+                        <TextBox
+                            x:Name="DestinationMaskTextBox"
+                            MinWidth="220"
+                            AutomationProperties.Name="{x:Bind LocalizedStrings.IPSec_Editor_DestinationMask}" />
+                    </cwuc:SettingsCard>
+                </cwuc:SettingsExpander.Items>
+            </cwuc:SettingsExpander>
 
-            <cwuc:SettingsCard Header="{x:Bind LocalizedStrings.IPSec_Editor_DestinationMask}">
-                <TextBox
-                    x:Name="DestinationMaskTextBox"
-                    MinWidth="220"
-                    AutomationProperties.Name="{x:Bind LocalizedStrings.IPSec_Editor_DestinationMask}" />
-            </cwuc:SettingsCard>
-
-            <cwuc:SettingsCard Header="{x:Bind LocalizedStrings.IPSec_Editor_Protocol}">
-                <ComboBox
-                    x:Name="ProtocolComboBox"
-                    MinWidth="160"
-                    IsEditable="True">
-                    <x:String>ANY</x:String>
-                    <x:String>TCP</x:String>
-                    <x:String>UDP</x:String>
-                    <x:String>ICMP</x:String>
-                    <x:String>RAW</x:String>
-                </ComboBox>
-            </cwuc:SettingsCard>
-
-            <cwuc:SettingsCard Header="{x:Bind LocalizedStrings.IPSec_Editor_Mirrored}">
+            <cwuc:SettingsCard
+                Description="{x:Bind LocalizedStrings.IPSec_Editor_MirroredDescription}"
+                Header="{x:Bind LocalizedStrings.IPSec_Editor_Mirrored}">
+                <cwuc:SettingsCard.HeaderIcon>
+                    <FontIcon Glyph="&#xE8AB;" />
+                </cwuc:SettingsCard.HeaderIcon>
                 <ToggleSwitch
                     x:Name="MirroredToggleSwitch"
                     AutomationProperties.Name="{x:Bind LocalizedStrings.IPSec_Editor_Mirrored}"
@@ -76,22 +84,70 @@
                     OnContent="{x:Bind LocalizedStrings.IPSec_Value_Yes}" />
             </cwuc:SettingsCard>
 
-            <cwuc:SettingsCard Header="{x:Bind LocalizedStrings.IPSec_Editor_SourcePort}">
-                <NumberBox
-                    x:Name="SourcePortNumberBox"
-                    Width="160"
-                    Maximum="65535"
-                    Minimum="0"
-                    SpinButtonPlacementMode="Compact" />
-            </cwuc:SettingsCard>
+            <TextBlock
+                Style="{StaticResource EditorSectionHeaderStyle}"
+                Text="{x:Bind LocalizedStrings.IPSec_Editor_Protocol}" />
 
-            <cwuc:SettingsCard Header="{x:Bind LocalizedStrings.IPSec_Editor_DestinationPort}">
-                <NumberBox
-                    x:Name="DestinationPortNumberBox"
-                    Width="160"
-                    Maximum="65535"
-                    Minimum="0"
-                    SpinButtonPlacementMode="Compact" />
+            <cwuc:SettingsExpander
+                Description="{x:Bind LocalizedStrings.IPSec_Editor_ProtocolDescription}"
+                Header="{x:Bind LocalizedStrings.IPSec_Editor_Protocol}"
+                IsExpanded="True">
+                <cwuc:SettingsExpander.HeaderIcon>
+                    <FontIcon Glyph="&#xE968;" />
+                </cwuc:SettingsExpander.HeaderIcon>
+                <ComboBox
+                    x:Name="ProtocolComboBox"
+                    MinWidth="168"
+                    AutomationProperties.Name="{x:Bind LocalizedStrings.IPSec_Editor_Protocol}"
+                    IsEditable="True">
+                    <x:String>ANY</x:String>
+                    <x:String>TCP</x:String>
+                    <x:String>UDP</x:String>
+                    <x:String>ICMP</x:String>
+                    <x:String>RAW</x:String>
+                </ComboBox>
+                <cwuc:SettingsExpander.Items>
+                    <cwuc:SettingsCard
+                        Description="{x:Bind LocalizedStrings.IPSec_Editor_PortsDescription}"
+                        Header="{x:Bind LocalizedStrings.IPSec_Editor_SourcePort}">
+                        <NumberBox
+                            x:Name="SourcePortNumberBox"
+                            Width="168"
+                            AutomationProperties.Name="{x:Bind LocalizedStrings.IPSec_Editor_SourcePort}"
+                            Maximum="65535"
+                            Minimum="0"
+                            SpinButtonPlacementMode="Compact" />
+                    </cwuc:SettingsCard>
+                    <cwuc:SettingsCard Header="{x:Bind LocalizedStrings.IPSec_Editor_DestinationPort}">
+                        <NumberBox
+                            x:Name="DestinationPortNumberBox"
+                            Width="168"
+                            AutomationProperties.Name="{x:Bind LocalizedStrings.IPSec_Editor_DestinationPort}"
+                            Maximum="65535"
+                            Minimum="0"
+                            SpinButtonPlacementMode="Compact" />
+                    </cwuc:SettingsCard>
+                </cwuc:SettingsExpander.Items>
+            </cwuc:SettingsExpander>
+
+            <TextBlock
+                Style="{StaticResource EditorSectionHeaderStyle}"
+                Text="{x:Bind LocalizedStrings.IPSec_Column_Description}" />
+
+            <cwuc:SettingsCard
+                ContentAlignment="Vertical"
+                Description="{x:Bind LocalizedStrings.IPSec_Editor_DescriptionDescription}"
+                Header="{x:Bind LocalizedStrings.IPSec_Column_Description}">
+                <cwuc:SettingsCard.HeaderIcon>
+                    <FontIcon Glyph="&#xE70B;" />
+                </cwuc:SettingsCard.HeaderIcon>
+                <TextBox
+                    x:Name="DescriptionTextBox"
+                    MinHeight="72"
+                    MaxHeight="140"
+                    AcceptsReturn="True"
+                    AutomationProperties.Name="{x:Bind LocalizedStrings.IPSec_Column_Description}"
+                    TextWrapping="Wrap" />
             </cwuc:SettingsCard>
         </StackPanel>
     </ScrollViewer>
