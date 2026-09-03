@@ -645,88 +645,9 @@ public static class IPSecurityPolicyKeys
     public const string EditorMainModeLifetime = "IPSec_Editor_MainModeLifetime";
     public const string EditorPollingInterval = "IPSec_Editor_PollingInterval";
     public const string EditorMainModeMethods = "IPSec_Editor_MainModeMethods";
-    public const string EditorMethodsHelp = "IPSec_Editor_MethodsHelp";
-
-    /// <summary>Resource key for <c>IPSec_Section_General</c>.</summary>
-    public const string SectionGeneral = "IPSec_Section_General";
-
-    /// <summary>Resource key for <c>IPSec_Section_Security</c>.</summary>
-    public const string SectionSecurity = "IPSec_Section_Security";
-
-    /// <summary>Resource key for <c>IPSec_Section_Addresses</c>.</summary>
-    public const string SectionAddresses = "IPSec_Section_Addresses";
-
-    /// <summary>Resource key for <c>IPSec_Section_Advanced</c>.</summary>
-    public const string SectionAdvanced = "IPSec_Section_Advanced";
 
     /// <summary>Resource key for <c>IPSec_Page_PoliciesDescription</c>.</summary>
     public const string PagePoliciesDescription = "IPSec_Page_PoliciesDescription";
-
-    /// <summary>Resource key for <c>IPSec_Editor_NameDescription</c>.</summary>
-    public const string EditorNameDescription = "IPSec_Editor_NameDescription";
-
-    /// <summary>Resource key for <c>IPSec_Editor_DescriptionDescription</c>.</summary>
-    public const string EditorDescriptionDescription = "IPSec_Editor_DescriptionDescription";
-
-    /// <summary>Resource key for <c>IPSec_Editor_AssignedDescription</c>.</summary>
-    public const string EditorAssignedDescription = "IPSec_Editor_AssignedDescription";
-
-    /// <summary>Resource key for <c>IPSec_Editor_DefaultResponseRuleDescription</c>.</summary>
-    public const string EditorDefaultResponseRuleDescription = "IPSec_Editor_DefaultResponseRuleDescription";
-
-    /// <summary>Resource key for <c>IPSec_Editor_MasterPfsDescription</c>.</summary>
-    public const string EditorMasterPfsDescription = "IPSec_Editor_MasterPfsDescription";
-
-    /// <summary>Resource key for <c>IPSec_Editor_QuickModeSessionsDescription</c>.</summary>
-    public const string EditorQuickModeSessionsDescription = "IPSec_Editor_QuickModeSessionsDescription";
-
-    /// <summary>Resource key for <c>IPSec_Editor_MainModeLifetimeDescription</c>.</summary>
-    public const string EditorMainModeLifetimeDescription = "IPSec_Editor_MainModeLifetimeDescription";
-
-    /// <summary>Resource key for <c>IPSec_Editor_PollingIntervalDescription</c>.</summary>
-    public const string EditorPollingIntervalDescription = "IPSec_Editor_PollingIntervalDescription";
-
-    /// <summary>Resource key for <c>IPSec_Editor_FiltersDescription</c>.</summary>
-    public const string EditorFiltersDescription = "IPSec_Editor_FiltersDescription";
-
-    /// <summary>Resource key for <c>IPSec_Editor_MirroredDescription</c>.</summary>
-    public const string EditorMirroredDescription = "IPSec_Editor_MirroredDescription";
-
-    /// <summary>Resource key for <c>IPSec_Editor_ProtocolDescription</c>.</summary>
-    public const string EditorProtocolDescription = "IPSec_Editor_ProtocolDescription";
-
-    /// <summary>Resource key for <c>IPSec_Editor_PortsDescription</c>.</summary>
-    public const string EditorPortsDescription = "IPSec_Editor_PortsDescription";
-
-    /// <summary>Resource key for <c>IPSec_Editor_ActionDescription</c>.</summary>
-    public const string EditorActionDescription = "IPSec_Editor_ActionDescription";
-
-    /// <summary>Resource key for <c>IPSec_Editor_QuickModePfsDescription</c>.</summary>
-    public const string EditorQuickModePfsDescription = "IPSec_Editor_QuickModePfsDescription";
-
-    /// <summary>Resource key for <c>IPSec_Editor_AcceptUnsecuredInboundDescription</c>.</summary>
-    public const string EditorAcceptUnsecuredInboundDescription = "IPSec_Editor_AcceptUnsecuredInboundDescription";
-
-    /// <summary>Resource key for <c>IPSec_Editor_AllowUnsecuredFallbackDescription</c>.</summary>
-    public const string EditorAllowUnsecuredFallbackDescription = "IPSec_Editor_AllowUnsecuredFallbackDescription";
-
-    /// <summary>Resource key for <c>IPSec_Editor_RuleActiveDescription</c>.</summary>
-    public const string EditorRuleActiveDescription = "IPSec_Editor_RuleActiveDescription";
-
-    /// <summary>Resource key for <c>IPSec_Editor_TunnelDescription</c>.</summary>
-    public const string EditorTunnelDescription = "IPSec_Editor_TunnelDescription";
-
-    /// <summary>Resource key for <c>IPSec_Editor_ConnectionTypeDescription</c>.</summary>
-    public const string EditorConnectionTypeDescription = "IPSec_Editor_ConnectionTypeDescription";
-
-    /// <summary>Resource key for <c>IPSec_Editor_AuthenticationMethodsDescription</c>.</summary>
-    public const string EditorAuthenticationMethodsDescription = "IPSec_Editor_AuthenticationMethodsDescription";
-
-    /// <summary>Resource key for <c>IPSec_Editor_RuleReferencesDescription</c>.</summary>
-    public const string EditorRuleReferencesDescription = "IPSec_Editor_RuleReferencesDescription";
-
-    /// <summary>Resource key for <c>IPSec_Editor_SecurityMethodsDescription</c>.</summary>
-    public const string EditorSecurityMethodsDescription = "IPSec_Editor_SecurityMethodsDescription";
 
     /// <summary>Resource key for <c>IPSec_Editor_NoSecurityMethods</c>.</summary>
     public const string EditorNoSecurityMethods = "IPSec_Editor_NoSecurityMethods";

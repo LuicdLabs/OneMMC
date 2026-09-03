@@ -7,7 +7,6 @@ using OneMMC.Views.UserSecurity.SecPol.IPSecurity.Editors;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
-
 namespace OneMMC.Views.UserSecurity.SecPol.IPSecurity.Rules;
 
 /// <summary>
@@ -150,7 +149,7 @@ public sealed partial class IPSecurityRulesManagerControl : UserControl
             return;
         }
 
-        var confirmation = new InlineDialogOptions
+        var confirmation = new ContentDialog
         {
             Title = LocalizedStrings.IPSec_DeleteConfirm_Title,
             Content = string.Format(
@@ -160,12 +159,11 @@ public sealed partial class IPSecurityRulesManagerControl : UserControl
             XamlRoot = XamlRoot,
             RequestedTheme = App.CurrentTheme,
             PrimaryButtonText = LocalizedStrings.Common_DeleteButton,
-            CloseButtonText = LocalizedStrings.Common_CancelButton,
-            DefaultButton = WindowDialogResult.None,
-            MaxWidth = ConfirmationDialogWidth,
-            MaxHeight = ConfirmationDialogHeight
+            CloseButtonText = LocalizedStrings.Common_CancelButton
         };
-        if (await InlineDialogHost.ShowAsync(confirmation) != WindowDialogResult.Primary
+        confirmation.Resources["ContentDialogMaxWidth"] = (double)ConfirmationDialogWidth;
+        confirmation.Resources["ContentDialogMaxHeight"] = (double)ConfirmationDialogHeight;
+        if (await confirmation.ShowAsync() != ContentDialogResult.Primary
             || !await RunMutationAsync(() => _deleteRuleAsync(_policy.Name, selected.Definition.Name)))
         {
             return;
@@ -223,7 +221,7 @@ public sealed partial class IPSecurityRulesManagerControl : UserControl
         // The rule editor is a leaf: everything it needs is inline, so a ContentDialog on this
         // manager's own XAML root is the right host.
         IPSecurityRuleCommandOptions? result = null;
-        var options = new InlineDialogOptions
+        var dialog = new ContentDialog
         {
             Title = title,
             Content = editor,
@@ -231,13 +229,13 @@ public sealed partial class IPSecurityRulesManagerControl : UserControl
             RequestedTheme = App.CurrentTheme,
             PrimaryButtonText = primaryButtonText,
             CloseButtonText = LocalizedStrings.Common_CancelButton,
-            DefaultButton = WindowDialogResult.Primary,
-            MaxWidth = EditorDialogWidth,
-            MaxHeight = EditorDialogHeight,
-            OnPrimaryButtonClick = () => editor.TryBuildResult(out result)
+            DefaultButton = ContentDialogButton.Primary
         };
+        dialog.Resources["ContentDialogMaxWidth"] = (double)EditorDialogWidth;
+        dialog.Resources["ContentDialogMaxHeight"] = (double)EditorDialogHeight;
+        dialog.PrimaryButtonClick += (_, args) => args.Cancel = !editor.TryBuildResult(out result);
 
-        return await InlineDialogHost.ShowAsync(options) == WindowDialogResult.Primary ? result : null;
+        return await dialog.ShowAsync() == ContentDialogResult.Primary ? result : null;
     }
 
     private async Task<bool> RunMutationAsync(Func<Task<bool>> mutation)

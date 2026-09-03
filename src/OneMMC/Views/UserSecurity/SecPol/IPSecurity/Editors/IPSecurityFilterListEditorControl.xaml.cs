@@ -2,7 +2,6 @@
 using System.Globalization;
 using OneMMC.Core.Features.UserSecurity.Models.SecPol.IPSecurity;
 using OneMMC.Core.Features.UserSecurity.Services.SecPol.IPSecurity;
-using OneMMC.Helpers;
 using OneMMC.Localization;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -168,7 +167,7 @@ public sealed partial class IPSecurityFilterListEditorControl : UserControl
         // A ContentDialog on this editor's own XAML root: the filter editor is a leaf, and this
         // editor is itself hosted in a window precisely so this dialog can be an inline one.
         IPSecurityFilterCommandOptions? result = null;
-        var options = new InlineDialogOptions
+        var dialog = new ContentDialog
         {
             Title = title,
             Content = editor,
@@ -176,13 +175,13 @@ public sealed partial class IPSecurityFilterListEditorControl : UserControl
             RequestedTheme = App.CurrentTheme,
             PrimaryButtonText = LocalizedStrings.Common_OKButton,
             CloseButtonText = LocalizedStrings.Common_CancelButton,
-            DefaultButton = WindowDialogResult.Primary,
-            MaxWidth = FilterDialogWidth,
-            MaxHeight = FilterDialogHeight,
-            OnPrimaryButtonClick = () => editor.TryBuildResult(out result)
+            DefaultButton = ContentDialogButton.Primary
         };
+        dialog.Resources["ContentDialogMaxWidth"] = (double)FilterDialogWidth;
+        dialog.Resources["ContentDialogMaxHeight"] = (double)FilterDialogHeight;
+        dialog.PrimaryButtonClick += (_, args) => args.Cancel = !editor.TryBuildResult(out result);
 
-        return await InlineDialogHost.ShowAsync(options) == WindowDialogResult.Primary ? result : null;
+        return await dialog.ShowAsync() == ContentDialogResult.Primary ? result : null;
     }
 
     private IPSecurityFilterEditorItem CreateFilterItem(IPSecurityFilterCommandOptions filter)

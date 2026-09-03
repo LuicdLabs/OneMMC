@@ -7,7 +7,6 @@ using OneMMC.Views.UserSecurity.SecPol.IPSecurity.Editors;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
-
 namespace OneMMC.Views.UserSecurity.SecPol.IPSecurity.Manage;
 
 /// <summary>
@@ -315,7 +314,7 @@ public sealed partial class IPSecurityManageListsActionsControl : UserControl
         string primaryButtonText)
     {
         IPSecurityFilterActionCommandOptions? options = null;
-        return await ShowInlineEditorAsync(title, editor, primaryButtonText, () => editor.TryBuildResult(out options)) == WindowDialogResult.Primary
+        return await ShowInlineEditorAsync(title, editor, primaryButtonText, () => editor.TryBuildResult(out options)) == ContentDialogResult.Primary
             ? options
             : null;
     }
@@ -353,13 +352,13 @@ public sealed partial class IPSecurityManageListsActionsControl : UserControl
     }
 
     /// <summary>Hosts a leaf editor, which needs nothing more than a ContentDialog.</summary>
-    private Task<WindowDialogResult> ShowInlineEditorAsync(
+    private Task<ContentDialogResult> ShowInlineEditorAsync(
         string title,
         UserControl editor,
         string primaryButtonText,
         Func<bool> validate)
     {
-        return InlineDialogHost.ShowAsync(new InlineDialogOptions
+        var dialog = new ContentDialog
         {
             Title = title,
             Content = editor,
@@ -367,27 +366,30 @@ public sealed partial class IPSecurityManageListsActionsControl : UserControl
             RequestedTheme = App.CurrentTheme,
             PrimaryButtonText = primaryButtonText,
             CloseButtonText = LocalizedStrings.Common_CancelButton,
-            DefaultButton = WindowDialogResult.Primary,
-            MaxWidth = EditorDialogWidth,
-            MaxHeight = EditorDialogHeight,
-            OnPrimaryButtonClick = validate
-        });
+            DefaultButton = ContentDialogButton.Primary
+        };
+        dialog.Resources["ContentDialogMaxWidth"] = (double)EditorDialogWidth;
+        dialog.Resources["ContentDialogMaxHeight"] = (double)EditorDialogHeight;
+        dialog.PrimaryButtonClick += (_, args) => args.Cancel = !validate();
+
+        return dialog.ShowAsync().AsTask();
     }
 
     private async Task<bool> ConfirmDeleteAsync(string message)
     {
-        return await InlineDialogHost.ShowAsync(new InlineDialogOptions
+        var dialog = new ContentDialog
         {
             Title = LocalizedStrings.IPSec_DeleteConfirm_Title,
             Content = message,
             XamlRoot = XamlRoot,
             RequestedTheme = App.CurrentTheme,
             PrimaryButtonText = LocalizedStrings.Common_DeleteButton,
-            CloseButtonText = LocalizedStrings.Common_CancelButton,
-            DefaultButton = WindowDialogResult.None,
-            MaxWidth = ConfirmationDialogWidth,
-            MaxHeight = ConfirmationDialogHeight
-        }) == WindowDialogResult.Primary;
+            CloseButtonText = LocalizedStrings.Common_CancelButton
+        };
+        dialog.Resources["ContentDialogMaxWidth"] = (double)ConfirmationDialogWidth;
+        dialog.Resources["ContentDialogMaxHeight"] = (double)ConfirmationDialogHeight;
+
+        return await dialog.ShowAsync() == ContentDialogResult.Primary;
     }
 
     private async Task<bool> RunMutationAsync(Func<Task<bool>> mutation)

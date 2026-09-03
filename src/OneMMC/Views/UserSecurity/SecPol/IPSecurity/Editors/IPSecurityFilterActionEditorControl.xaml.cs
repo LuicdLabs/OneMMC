@@ -105,9 +105,7 @@ public sealed partial class IPSecurityFilterActionEditorControl : UserControl
     private void UpdateNegotiationState()
     {
         bool enabled = GetAction() == IPSecurityFilterActionKind.Negotiate;
-        QuickModePfsToggleSwitch.IsEnabled = enabled;
-        AcceptUnsecuredInboundToggleSwitch.IsEnabled = enabled;
-        AllowUnsecuredFallbackToggleSwitch.IsEnabled = enabled;
+        NegotiationPanel.Visibility = enabled ? Visibility.Visible : Visibility.Collapsed;
         QuickModeMethodsEditor.IsEnabled = enabled;
     }
 

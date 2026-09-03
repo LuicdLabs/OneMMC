@@ -200,7 +200,7 @@ public sealed partial class IPSecurityPage : Page
             : Format(LocalizedStrings.IPSec_Dialog_EditPolicy_TitleFormat, policy!.Name);
 
         if (await ShowEditorAsync(title, editor, () => editor.TryBuildResult(out result))
-            != WindowDialogResult.Primary
+            != ContentDialogResult.Primary
             || result is null)
         {
             return;
@@ -217,15 +217,16 @@ public sealed partial class IPSecurityPage : Page
     }
 
     /// <remarks>
-    /// The policy editor opens no further dialogs, so it is hosted in a <c>ContentDialog</c>. Only
-    /// the two manager surfaces need a real window, because they open editors on top of themselves.
+    /// The policy editor opens no further dialogs, so it is hosted in a <see cref="ContentDialog"/>.
+    /// Only the two manager surfaces need a real window, because they open editors on top of
+    /// themselves and WinUI allows one ContentDialog per XAML root.
     /// </remarks>
-    private Task<WindowDialogResult> ShowEditorAsync(
+    private Task<ContentDialogResult> ShowEditorAsync(
         string title,
         UserControl editor,
         Func<bool> validate)
     {
-        return InlineDialogHost.ShowAsync(new InlineDialogOptions
+        var dialog = new ContentDialog
         {
             Title = title,
             Content = editor,
@@ -233,27 +234,30 @@ public sealed partial class IPSecurityPage : Page
             RequestedTheme = App.CurrentTheme,
             PrimaryButtonText = LocalizedStrings.Common_SaveButton,
             CloseButtonText = LocalizedStrings.Common_CancelButton,
-            DefaultButton = WindowDialogResult.Primary,
-            MaxWidth = EditorDialogWidth,
-            MaxHeight = EditorDialogHeight,
-            OnPrimaryButtonClick = validate
-        });
+            DefaultButton = ContentDialogButton.Primary
+        };
+        dialog.Resources["ContentDialogMaxWidth"] = (double)EditorDialogWidth;
+        dialog.Resources["ContentDialogMaxHeight"] = (double)EditorDialogHeight;
+        dialog.PrimaryButtonClick += (_, args) => args.Cancel = !validate();
+
+        return dialog.ShowAsync().AsTask();
     }
 
     private async Task<bool> ShowDeleteConfirmationAsync(string message)
     {
-        return await InlineDialogHost.ShowAsync(new InlineDialogOptions
+        var dialog = new ContentDialog
         {
             Title = LocalizedStrings.IPSec_DeleteConfirm_Title,
             Content = message,
             XamlRoot = XamlRoot,
             RequestedTheme = App.CurrentTheme,
             PrimaryButtonText = LocalizedStrings.Common_DeleteButton,
-            CloseButtonText = LocalizedStrings.Common_CancelButton,
-            DefaultButton = WindowDialogResult.None,
-            MaxWidth = 480,
-            MaxHeight = 320
-        }) == WindowDialogResult.Primary;
+            CloseButtonText = LocalizedStrings.Common_CancelButton
+        };
+        dialog.Resources["ContentDialogMaxWidth"] = 480.0;
+        dialog.Resources["ContentDialogMaxHeight"] = 320.0;
+
+        return await dialog.ShowAsync() == ContentDialogResult.Primary;
     }
 
     private static string Format(string format, string value)

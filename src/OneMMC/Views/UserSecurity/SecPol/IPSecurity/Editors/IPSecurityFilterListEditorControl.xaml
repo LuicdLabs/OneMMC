@@ -3,29 +3,19 @@
     x:Class="OneMMC.Views.UserSecurity.SecPol.IPSecurity.Editors.IPSecurityFilterListEditorControl"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:cwuc="using:CommunityToolkit.WinUI.Controls"
     xmlns:local="using:OneMMC.Views.UserSecurity.SecPol.IPSecurity.Editors">
-
-    <UserControl.Resources>
-        <ResourceDictionary>
-            <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="ms-appx:///Views/UserSecurity/SecPol/IPSecurity/IPSecurityEditorResources.xaml" />
-            </ResourceDictionary.MergedDictionaries>
-        </ResourceDictionary>
-    </UserControl.Resources>
 
     <!--
         The filter collection is the point of this dialog, so it gets the growing row and a
-        height-constrained virtualizing ListView; name and description stay fixed above it.
+        height-constrained list; name and description stay fixed above it.
     -->
-    <Grid MinWidth="560" RowSpacing="4">
+    <Grid MinWidth="560" RowSpacing="12">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
-            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
         <InfoBar
@@ -35,116 +25,72 @@
             IsOpen="False"
             Severity="Error" />
 
-        <cwuc:SettingsCard
-            Grid.Row="1"
-            Description="{x:Bind LocalizedStrings.IPSec_Editor_NameDescription}"
-            Header="{x:Bind LocalizedStrings.IPSec_Column_Name}">
-            <cwuc:SettingsCard.HeaderIcon>
-                <FontIcon Glyph="&#xE8AC;" />
-            </cwuc:SettingsCard.HeaderIcon>
+        <Grid Grid.Row="1" ColumnSpacing="16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
             <TextBox
                 x:Name="NameTextBox"
-                MinWidth="280"
-                AutomationProperties.Name="{x:Bind LocalizedStrings.IPSec_Column_Name}" />
-        </cwuc:SettingsCard>
-
-        <cwuc:SettingsCard
-            Grid.Row="2"
-            ContentAlignment="Vertical"
-            Description="{x:Bind LocalizedStrings.IPSec_Editor_DescriptionDescription}"
-            Header="{x:Bind LocalizedStrings.IPSec_Column_Description}">
-            <cwuc:SettingsCard.HeaderIcon>
-                <FontIcon Glyph="&#xE70B;" />
-            </cwuc:SettingsCard.HeaderIcon>
+                AutomationProperties.Name="{x:Bind LocalizedStrings.IPSec_Column_Name}"
+                Header="{x:Bind LocalizedStrings.IPSec_Column_Name}" />
             <TextBox
                 x:Name="DescriptionTextBox"
-                MinHeight="64"
-                MaxHeight="110"
-                AcceptsReturn="True"
+                Grid.Column="1"
                 AutomationProperties.Name="{x:Bind LocalizedStrings.IPSec_Column_Description}"
-                TextWrapping="Wrap" />
-        </cwuc:SettingsCard>
+                Header="{x:Bind LocalizedStrings.IPSec_Column_Description}" />
+        </Grid>
 
-        <StackPanel Grid.Row="3" Margin="0,8,0,0">
-            <TextBlock
-                Style="{StaticResource EditorSectionHeaderStyle}"
-                Text="{x:Bind LocalizedStrings.IPSec_Editor_Filters}" />
-            <TextBlock
-                Style="{StaticResource EditorSectionCaptionStyle}"
-                Text="{x:Bind LocalizedStrings.IPSec_Editor_FiltersDescription}" />
-        </StackPanel>
+        <TextBlock
+            Grid.Row="2"
+            Margin="0,8,0,0"
+            FontWeight="SemiBold"
+            Text="{x:Bind LocalizedStrings.IPSec_Editor_Filters}" />
 
-        <Border
-            Grid.Row="4"
-            MinHeight="220"
-            Style="{StaticResource EditorListSurfaceStyle}">
-            <Grid>
-                <ListView
-                    x:Name="FiltersListView"
-                    AutomationProperties.Name="{x:Bind LocalizedStrings.IPSec_Editor_Filters}"
-                    ItemsSource="{x:Bind FilterItems}"
-                    SelectionMode="Single">
-                    <ListView.ItemContainerStyle>
-                        <Style TargetType="ListViewItem">
-                            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-                            <Setter Property="Margin" Value="0,0,0,2" />
-                            <Setter Property="MinHeight" Value="0" />
-                            <Setter Property="Padding" Value="0" />
-                        </Style>
-                    </ListView.ItemContainerStyle>
-                    <ListView.ItemTemplate>
-                        <DataTemplate x:DataType="local:IPSecurityFilterEditorItem">
-                            <Grid
-                                Padding="12,10"
-                                ColumnSpacing="12">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-                                <FontIcon
-                                    VerticalAlignment="Top"
-                                    Margin="0,2,0,0"
-                                    FontSize="16"
-                                    Foreground="{ThemeResource AccentTextFillColorSecondaryBrush}"
-                                    Glyph="&#xE71C;" />
-                                <TextBlock
-                                    Grid.Column="1"
-                                    VerticalAlignment="Center"
-                                    Style="{StaticResource BodyTextBlockStyle}"
-                                    Text="{x:Bind Summary}"
-                                    TextWrapping="WrapWholeWords" />
-                            </Grid>
-                        </DataTemplate>
-                    </ListView.ItemTemplate>
-                </ListView>
-
-                <!--  Visibility is driven from code-behind so the collection needs no wrapper view model.  -->
-                <TextBlock
-                    x:Name="EmptyFiltersText"
-                    VerticalAlignment="Center"
-                    Style="{StaticResource EditorEmptyStateTextStyle}"
-                    Text="{x:Bind LocalizedStrings.IPSec_Editor_NoFilters}" />
-            </Grid>
-        </Border>
-
-        <StackPanel Grid.Row="5" Style="{StaticResource EditorListCommandBarStyle}">
+        <StackPanel Grid.Row="3" Orientation="Horizontal" Spacing="8">
             <Button
                 x:Name="AddFilterButton"
                 Click="AddFilterButton_Click"
-                Style="{StaticResource AccentButtonStyle}">
-                <StackPanel Orientation="Horizontal" Spacing="8">
-                    <FontIcon FontSize="14" Glyph="&#xE710;" />
-                    <TextBlock Text="{x:Bind LocalizedStrings.IPSec_Command_New}" />
-                </StackPanel>
-            </Button>
+                Content="{x:Bind LocalizedStrings.Common_AddButton}" />
             <Button
                 x:Name="EditFilterButton"
                 Click="EditFilterButton_Click"
-                Content="{x:Bind LocalizedStrings.IPSec_Command_Edit}" />
+                Content="{x:Bind LocalizedStrings.Common_EditButton}" />
             <Button
                 x:Name="DeleteFilterButton"
                 Click="DeleteFilterButton_Click"
-                Content="{x:Bind LocalizedStrings.IPSec_Command_Delete}" />
+                Content="{x:Bind LocalizedStrings.Common_DeleteButton}" />
         </StackPanel>
+
+        <Grid Grid.Row="4">
+            <ListView
+                x:Name="FiltersListView"
+                BorderBrush="{ThemeResource ControlStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                MinHeight="220"
+                AutomationProperties.Name="{x:Bind LocalizedStrings.IPSec_Editor_Filters}"
+                ItemsSource="{x:Bind FilterItems}"
+                SelectionMode="Single">
+                <ListView.ItemTemplate>
+                    <DataTemplate x:DataType="local:IPSecurityFilterEditorItem">
+                        <TextBlock
+                            Style="{StaticResource BodyTextBlockStyle}"
+                            Text="{x:Bind Summary}"
+                            TextWrapping="WrapWholeWords" />
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+
+            <!--  Visibility is driven from code-behind so the collection needs no wrapper view model.  -->
+            <TextBlock
+                x:Name="EmptyFiltersText"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                Style="{StaticResource CaptionTextBlockStyle}"
+                Text="{x:Bind LocalizedStrings.IPSec_Editor_NoFilters}"
+                TextAlignment="Center"
+                TextWrapping="Wrap" />
+        </Grid>
     </Grid>
 </UserControl>

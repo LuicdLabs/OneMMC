@@ -370,3 +370,8 @@ FodyWeavers.xsd
 # .claude
 .kiro
 .playwright-mcp
+
+# Local scratch: UI reference screenshots and on-machine IPsec backup exports
+/Desktop/
+/uireference/
+

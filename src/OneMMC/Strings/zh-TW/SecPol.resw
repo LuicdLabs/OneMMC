@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
     <xsd:element name="root" msdata:IsDataSet="true">
@@ -1889,9 +1889,6 @@
   <data name="IPSec_Editor_MainModeMethods" xml:space="preserve">
     <value>主要模式安全性方法</value>
   </data>
-  <data name="IPSec_Editor_MethodsHelp" xml:space="preserve">
-    <value>請依喜好順序輸入安全性方法，每行一個。</value>
-  </data>
   <data name="IPSec_Editor_Filters" xml:space="preserve">
     <value>IP 篩選器</value>
   </data>
@@ -2147,86 +2144,8 @@
   <data name="IPSec_Dialog_EditRule_TitleFormat" xml:space="preserve">
     <value>編輯規則：{0}</value>
   </data>
-  <data name="IPSec_Section_General" xml:space="preserve">
-    <value>一般</value>
-  </data>
-  <data name="IPSec_Section_Security" xml:space="preserve">
-    <value>安全性</value>
-  </data>
-  <data name="IPSec_Section_Addresses" xml:space="preserve">
-    <value>位址與通訊埠</value>
-  </data>
-  <data name="IPSec_Section_Advanced" xml:space="preserve">
-    <value>進階</value>
-  </data>
   <data name="IPSec_Page_PoliciesDescription" xml:space="preserve">
     <value>儲存在此電腦上的原則。一次只能指派一個原則。</value>
-  </data>
-  <data name="IPSec_Editor_NameDescription" xml:space="preserve">
-    <value>顯示於清單中，並用於在指令碼中識別此項目。</value>
-  </data>
-  <data name="IPSec_Editor_DescriptionDescription" xml:space="preserve">
-    <value>關於此項目用途的選擇性附註。</value>
-  </data>
-  <data name="IPSec_Editor_AssignedDescription" xml:space="preserve">
-    <value>將此原則套用至本機電腦。</value>
-  </data>
-  <data name="IPSec_Editor_DefaultResponseRuleDescription" xml:space="preserve">
-    <value>回應其他規則未涵蓋的安全通訊要求。</value>
-  </data>
-  <data name="IPSec_Editor_MasterPfsDescription" xml:space="preserve">
-    <value>每次快速模式協商都要求新的主要模式金鑰。</value>
-  </data>
-  <data name="IPSec_Editor_QuickModeSessionsDescription" xml:space="preserve">
-    <value>每個主要模式金鑰允許的快速模式工作階段數。</value>
-  </data>
-  <data name="IPSec_Editor_MainModeLifetimeDescription" xml:space="preserve">
-    <value>重新協商主要模式金鑰前的分鐘數。</value>
-  </data>
-  <data name="IPSec_Editor_PollingIntervalDescription" xml:space="preserve">
-    <value>檢查原則變更的間隔分鐘數。</value>
-  </data>
-  <data name="IPSec_Editor_FiltersDescription" xml:space="preserve">
-    <value>此清單所比對的流量。規則會將其篩選器動作套用至此處的每個篩選器。</value>
-  </data>
-  <data name="IPSec_Editor_MirroredDescription" xml:space="preserve">
-    <value>同時比對相反方向的流量。</value>
-  </data>
-  <data name="IPSec_Editor_ProtocolDescription" xml:space="preserve">
-    <value>將此篩選器限制為單一 IP 協定。</value>
-  </data>
-  <data name="IPSec_Editor_PortsDescription" xml:space="preserve">
-    <value>保留為零可比對任何通訊埠。</value>
-  </data>
-  <data name="IPSec_Editor_ActionDescription" xml:space="preserve">
-    <value>使用此動作的規則所比對到的流量會如何處理。</value>
-  </data>
-  <data name="IPSec_Editor_QuickModePfsDescription" xml:space="preserve">
-    <value>每個快速模式工作階段都要求新的金鑰。</value>
-  </data>
-  <data name="IPSec_Editor_AcceptUnsecuredInboundDescription" xml:space="preserve">
-    <value>接受未受保護的傳入流量，然後以 IPsec 回應。</value>
-  </data>
-  <data name="IPSec_Editor_AllowUnsecuredFallbackDescription" xml:space="preserve">
-    <value>當對等電腦不支援 IPsec 時，退回為未受保護的通訊。</value>
-  </data>
-  <data name="IPSec_Editor_RuleActiveDescription" xml:space="preserve">
-    <value>在指派原則時評估此規則。</value>
-  </data>
-  <data name="IPSec_Editor_TunnelDescription" xml:space="preserve">
-    <value>透過 IPsec 通道將比對到的流量傳送至特定端點。</value>
-  </data>
-  <data name="IPSec_Editor_ConnectionTypeDescription" xml:space="preserve">
-    <value>此規則套用的網路連線類型。</value>
-  </data>
-  <data name="IPSec_Editor_AuthenticationMethodsDescription" xml:space="preserve">
-    <value>依偏好順序建立與另一部電腦之間信任的方式。</value>
-  </data>
-  <data name="IPSec_Editor_RuleReferencesDescription" xml:space="preserve">
-    <value>此規則比對的篩選器清單以及所套用的動作。</value>
-  </data>
-  <data name="IPSec_Editor_SecurityMethodsDescription" xml:space="preserve">
-    <value>依此順序提供給對等電腦，直到其中一項被接受為止。</value>
   </data>
   <data name="IPSec_Editor_NoSecurityMethods" xml:space="preserve">
     <value>尚無安全性方法。請在下方新增。</value>

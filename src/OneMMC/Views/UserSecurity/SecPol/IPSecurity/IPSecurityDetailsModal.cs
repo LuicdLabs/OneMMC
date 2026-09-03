@@ -1,6 +1,5 @@
 ﻿using System.Globalization;
 using OneMMC.Core.Features.UserSecurity.Models.SecPol.IPSecurity;
-using OneMMC.Helpers;
 using OneMMC.Localization;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -11,8 +10,8 @@ namespace OneMMC.Views;
 /// Displays the read-only details of an IP Security Policies row.
 /// </summary>
 /// <remarks>
-/// Hosted in a <c>ContentDialog</c>: the view is read-only and opens nothing on top of itself, so
-/// there is no reason to create a top-level window for it.
+/// Hosted in a <see cref="ContentDialog"/>: the view is read-only and opens nothing on top of
+/// itself, so there is no reason to create a top-level window for it.
 /// </remarks>
 public sealed class IPSecurityDetailsModal
 {
@@ -20,43 +19,40 @@ public sealed class IPSecurityDetailsModal
     private const int DialogHeight = 560;
     private const double FieldSpacing = 12;
 
-    private readonly InlineDialogOptions _options;
+    private readonly ContentDialog _dialog;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="IPSecurityDetailsModal"/> class.
     /// </summary>
     /// <param name="row">The selected IP Security Policies row.</param>
-    /// <param name="ownerXamlRoot">The optional XAML root used to own and center the modal window.</param>
+    /// <param name="ownerXamlRoot">The XAML root that owns the dialog.</param>
     public IPSecurityDetailsModal(IPSecurityPolicyRow row, XamlRoot? ownerXamlRoot = null)
     {
         ArgumentNullException.ThrowIfNull(row);
 
         LocalizedStrings localizedStrings = LocalizedStrings.Instance;
-        string title = string.Format(
-            CultureInfo.CurrentCulture,
-            localizedStrings.IPSec_Dialog_Details_TitleFormat,
-            row.Name);
-
-        _options = new InlineDialogOptions
+        _dialog = new ContentDialog
         {
-            Title = title,
+            Title = string.Format(
+                CultureInfo.CurrentCulture,
+                localizedStrings.IPSec_Dialog_Details_TitleFormat,
+                row.Name),
             Content = CreateContent(row, localizedStrings),
             XamlRoot = ownerXamlRoot,
             RequestedTheme = App.CurrentTheme,
-            CloseButtonText = localizedStrings.Common_CloseButton,
-            DefaultButton = WindowDialogResult.None,
-            MaxWidth = DialogWidth,
-            MaxHeight = DialogHeight
+            CloseButtonText = localizedStrings.Common_CloseButton
         };
+        _dialog.Resources["ContentDialogMaxWidth"] = (double)DialogWidth;
+        _dialog.Resources["ContentDialogMaxHeight"] = (double)DialogHeight;
     }
 
     /// <summary>
     /// Shows the dialog and completes when it is dismissed.
     /// </summary>
     /// <returns>The dialog result.</returns>
-    public Task<WindowDialogResult> ShowAsync()
+    public async Task<ContentDialogResult> ShowAsync()
     {
-        return InlineDialogHost.ShowAsync(_options);
+        return await _dialog.ShowAsync();
     }
 
     private static UIElement CreateContent(IPSecurityPolicyRow row, LocalizedStrings localizedStrings)
