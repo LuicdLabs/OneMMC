@@ -37,13 +37,13 @@
                 TextChanged="SearchBox_TextChanged" />
 
             <TextBlock
+                x:Name="LiveUpdateStatusText"
                 Grid.Column="1"
                 Margin="16,0"
                 HorizontalAlignment="Right"
                 VerticalAlignment="Center"
                 Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                 Style="{StaticResource CaptionTextBlockStyle}"
-                Text="{x:Bind ViewModel.AutoRefreshStatus, Mode=OneWay}"
                 TextTrimming="CharacterEllipsis" />
 
             <CommandBar
@@ -56,19 +56,6 @@
                     <AppBarButton.Icon>
                         <FontIcon Glyph="&#xE72C;" />
                     </AppBarButton.Icon>
-                </AppBarButton>
-                <AppBarButton>
-                    <AppBarButton.Icon>
-                        <FontIcon Glyph="&#xE712;" />
-                    </AppBarButton.Icon>
-                    <AppBarButton.Flyout>
-                        <MenuFlyout>
-                            <ToggleMenuFlyoutItem
-                                x:Name="LiveMonitorMenuItem"
-                                Click="LiveMonitorMenuItem_Click"
-                                Text="{x:Bind LocalizedStrings.FsMgmt_AutoRefresh_Label}" />
-                        </MenuFlyout>
-                    </AppBarButton.Flyout>
                 </AppBarButton>
             </CommandBar>
         </Grid>

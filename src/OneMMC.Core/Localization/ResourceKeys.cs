@@ -1018,7 +1018,6 @@ public static class FsMgmtKeys
     public const string PermissionFilesOnly = "FsMgmt_Permissions_FilesOnly";
     public const string DurationDaysFormat = "FsMgmt_Duration_DaysFormat";
     public const string DurationHoursFormat = "FsMgmt_Duration_HoursFormat";
-    public const string AutoRefreshLabel = "FsMgmt_AutoRefresh_Label";
     public const string AutoRefreshActive = "FsMgmt_AutoRefresh_Active";
 }
 
@@ -1509,5 +1508,15 @@ public static class ComExpKeys
     public const string RunClsid = "ComExp_Run_Clsid";
     public const string RunProgId = "ComExp_Run_ProgId";
     public const string RunDll = "ComExp_Run_Dll";
+
+    // Distributed Transaction Coordinator (status messages)
+    public const string LoadingStatistics = "ComExp_LoadingStatistics";
+    public const string LoadedSuccess = "ComExp_LoadedSuccess";
+    public const string DtcLoadingTransactions = "ComExp_Dtc_LoadingTransactions";
+    public const string DtcActiveTransactionsCount = "ComExp_Dtc_ActiveTransactionsCount";
+    public const string DtcStatisticsUnavailable = "ComExp_Dtc_StatisticsUnavailable";
+
+    // Live updates
+    public const string AutoRefreshActive = "ComExp_AutoRefresh_Active";
 }
 

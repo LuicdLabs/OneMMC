@@ -5,6 +5,7 @@ using CommunityToolkit.Mvvm.Input;
 using OneMMC.Core.Features.PCManagement.Models.FsMgmt;
 using OneMMC.Core.Features.PCManagement.Services.FsMgmt;
 using OneMMC.Core.Infrastructure.Admin;
+using OneMMC.Core.Infrastructure.Collections;
 using OneMMC.Core.Localization;
 using Microsoft.Extensions.Logging;
 
@@ -36,14 +37,6 @@ public sealed partial class SharedFoldersViewModel : ObservableObject
 
     [ObservableProperty]
     public partial bool IsLoading { get; set; }
-
-    /// <summary>Gets or sets whether live monitoring (change-driven auto-update) is active.</summary>
-    [ObservableProperty]
-    public partial bool IsAutoRefreshEnabled { get; set; }
-
-    /// <summary>Gets or sets the localized live monitoring status shown in the page header.</summary>
-    [ObservableProperty]
-    public partial string AutoRefreshStatus { get; set; } = string.Empty;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SharedFoldersViewModel"/> class.
@@ -153,32 +146,17 @@ public sealed partial class SharedFoldersViewModel : ObservableObject
     public Task RefreshAsync() => LoadAsync();
 
     /// <summary>
-    /// Enables or disables live monitoring. The page owns the actual dispatcher timer; this method
-    /// keeps the observable state in sync with the toggle.
+    /// Re-reads the Server service state and applies only the differences to the displayed lists, so the
+    /// UI changes solely when the underlying Windows state changes (a session connects or disconnects, a
+    /// connection count changes, connected/idle time advances, a file is opened or closed). The page runs
+    /// this on its live-update timer for as long as it is loaded; re-reading is part of how the page
+    /// refreshes rather than an option the user turns on.
     /// </summary>
-    /// <param name="enabled">Whether live monitoring should be active.</param>
-    public void SetAutoRefresh(bool enabled)
+    public async Task OnLiveUpdateTickAsync()
     {
-        IsAutoRefreshEnabled = enabled;
-        AutoRefreshStatus = enabled ? GetString(FsMgmtKeys.AutoRefreshActive) : string.Empty;
-
-        if (!enabled)
-        {
-            _isPolling = false;
-        }
-    }
-
-    /// <summary>
-    /// Polls the Server service and applies only the differences to the displayed lists, so the UI
-    /// changes solely when the underlying Windows state changes (a session connects or disconnects,
-    /// a connection count changes, connected/idle time advances, a file is opened or closed). The
-    /// page invokes this once per second while live monitoring is active.
-    /// </summary>
-    public async Task OnAutoRefreshTickAsync()
-    {
-        // Skip while disabled, while a poll is still running, or while an explicit load/mutation is
-        // in flight (that path refreshes the same data and manages its own loading state).
-        if (!IsAutoRefreshEnabled || _isPolling || IsLoading)
+        // Skip while a tick is still running, or while an explicit load/mutation is in flight (that path
+        // refreshes the same data and manages its own loading state).
+        if (_isPolling || IsLoading)
         {
             return;
         }
@@ -320,87 +298,11 @@ public sealed partial class SharedFoldersViewModel : ObservableObject
         // Merge in place so unchanged rows keep their instances and are never re-rendered. The UI
         // updates only where Windows state actually changed — added/removed sessions, changed
         // connection counts, or advancing connected/idle time — instead of rebuilding on a timer.
-        ReconcileCollection(Shares, shares, ShareIdentityEquals, ShareValueEquals);
-        ReconcileCollection(Sessions, sessions, SessionIdentityEquals, SessionValueEquals);
-        ReconcileCollection(OpenFiles, openFiles, OpenFileIdentityEquals, OpenFileValueEquals);
+        Shares.Reconcile(shares, ShareIdentityEquals, ShareValueEquals);
+        Sessions.Reconcile(sessions, SessionIdentityEquals, SessionValueEquals);
+        OpenFiles.Reconcile(openFiles, OpenFileIdentityEquals, OpenFileValueEquals);
 
         NotifySectionDescriptions();
-    }
-
-    /// <summary>
-    /// Synchronises <paramref name="target"/> to <paramref name="desired"/> in place: unchanged
-    /// items keep their existing instance (no change notification is raised), reordered items are
-    /// moved, items whose values changed are replaced, new items are inserted, and removed items
-    /// are deleted. Keeping the bound collection stable means only genuinely changed rows re-render.
-    /// </summary>
-    /// <typeparam name="T">The item type.</typeparam>
-    /// <param name="target">The bound collection to update in place.</param>
-    /// <param name="desired">The desired final contents, in order.</param>
-    /// <param name="identityEquals">Returns whether two items represent the same entity.</param>
-    /// <param name="valueEquals">Returns whether two same-identity items are visually identical.</param>
-    private static void ReconcileCollection<T>(
-        ObservableCollection<T> target,
-        IReadOnlyList<T> desired,
-        Func<T, T, bool> identityEquals,
-        Func<T, T, bool> valueEquals)
-    {
-        // Pass 1: remove items no longer present, so a disconnect is a single Remove rather than a
-        // cascade of Move events pulling the survivors forward.
-        for (int index = target.Count - 1; index >= 0; index--)
-        {
-            T current = target[index];
-            if (!ContainsIdentity(desired, current, identityEquals))
-            {
-                target.RemoveAt(index);
-            }
-        }
-
-        // Pass 2: insert new items, move any that are genuinely out of order, and replace items
-        // whose values changed. Unchanged items keep their instance and raise no notification.
-        for (int index = 0; index < desired.Count; index++)
-        {
-            T desiredItem = desired[index];
-
-            int existingIndex = -1;
-            for (int search = index; search < target.Count; search++)
-            {
-                if (identityEquals(target[search], desiredItem))
-                {
-                    existingIndex = search;
-                    break;
-                }
-            }
-
-            if (existingIndex < 0)
-            {
-                target.Insert(index, desiredItem);
-            }
-            else
-            {
-                if (existingIndex != index)
-                {
-                    target.Move(existingIndex, index);
-                }
-
-                if (!valueEquals(target[index], desiredItem))
-                {
-                    target[index] = desiredItem;
-                }
-            }
-        }
-    }
-
-    private static bool ContainsIdentity<T>(IReadOnlyList<T> items, T candidate, Func<T, T, bool> identityEquals)
-    {
-        for (int index = 0; index < items.Count; index++)
-        {
-            if (identityEquals(items[index], candidate))
-            {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     private static bool ShareIdentityEquals(SharedFolderShare a, SharedFolderShare b) =>

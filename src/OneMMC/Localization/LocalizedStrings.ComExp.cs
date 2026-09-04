@@ -98,6 +98,9 @@ namespace OneMMC.Localization
         public string ComExp_PropertiesButton => GetResource(ResourceFileNames.ComExp, "ComExp_PropertiesButton");
         public string ComExp_RefreshButton => GetResource(ResourceFileNames.ComExp, "ComExp_RefreshButton");
 
+        // Live updates (the DTC pages re-read on a timer and show only what changed)
+        public string ComExp_AutoRefresh_Active => GetResource(ResourceFileNames.ComExp, "ComExp_AutoRefresh_Active");
+
         // Common Values
         public string ComExp_Yes => GetResource(ResourceFileNames.ComExp, "ComExp_Yes");
         public string ComExp_No => GetResource(ResourceFileNames.ComExp, "ComExp_No");

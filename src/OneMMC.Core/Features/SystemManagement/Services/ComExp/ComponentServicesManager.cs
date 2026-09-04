@@ -739,43 +739,43 @@ public sealed class ComponentServicesManager
 
             try
             {
-                // Query WMI for MSFT_DtcTransactionTask
+                // Query WMI for MSFT_DtcTransactionTask. The *Task classes expose
+                // no enumerable instances, so invoke Get as a class-level method
+                // via WmiConnection.GetClass/ExecuteMethod instead of querying.
                 using var connection = new WmiConnection(@"root\MsDTC");
+                using WmiClass taskClass = connection.GetClass("MSFT_DtcTransactionTask");
 
-                foreach (WmiObject obj in connection.CreateQuery("SELECT * FROM MSFT_DtcTransactionTask").DisposeItems())
+                try
                 {
-                    try
+                    using WmiMethod getMethod = taskClass.GetMethod("Get");
+                    using WmiMethodParameters inParams = getMethod.CreateInParameters();
+                    inParams.SetPropertyValue("DtcName", "Local");
+
+                    connection.ExecuteMethod(getMethod, inParams, out WmiMethodParameters outParams);
+                    using (outParams)
                     {
-                        using WmiMethod getMethod = obj.GetMethod("Get");
-                        using WmiMethodParameters inParams = getMethod.CreateInParameters();
-                        inParams.SetPropertyValue("DtcName", "Local");
-
-                        obj.ExecuteMethod(getMethod, inParams, out WmiMethodParameters outParams);
-                        using (outParams)
+                        if (outParams?["cmdletOutput"] is WmiObject[] transactions)
                         {
-                            if (outParams?["cmdletOutput"] is WmiObject[] transactions)
+                            foreach (var txn in transactions)
                             {
-                                foreach (var txn in transactions)
+                                using (txn)
                                 {
-                                    using (txn)
-                                    {
-                                        var state = txn["State"]?.ToString() ?? "Unknown";
-                                        var transactionId = txn["TransactionId"]?.ToString() ?? string.Empty;
+                                    var state = txn["State"]?.ToString() ?? "Unknown";
+                                    var transactionId = txn["TransactionId"]?.ToString() ?? string.Empty;
 
-                                        results.Add(new DtcTransactionItem
-                                        {
-                                            Status = state,
-                                            UnitOfWorkId = transactionId
-                                        });
-                                    }
+                                    results.Add(new DtcTransactionItem
+                                    {
+                                        Status = state,
+                                        UnitOfWorkId = transactionId
+                                    });
                                 }
                             }
                         }
                     }
-                    catch (Exception ex)
-                    {
-                        _logger.LogDebug($"[ComponentServicesManager] Failed to invoke Get method: {ex.Message}");
-                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogDebug($"[ComponentServicesManager] Failed to invoke Get method: {ex.Message}");
                 }
 
                 _logger.LogDebug($"[ComponentServicesManager] DTC transaction list loaded: {results.Count}");
@@ -797,47 +797,49 @@ public sealed class ComponentServicesManager
 
             try
             {
-                // Query WMI for transaction statistics
+                // Query WMI for transaction statistics. The *Task classes expose
+                // no enumerable instances, so invoke Get as a class-level method
+                // via WmiConnection.GetClass/ExecuteMethod instead of querying.
                 using var connection = new WmiConnection(@"root\MsDTC");
+                using WmiClass taskClass = connection.GetClass("MSFT_DtcTransactionsStatisticsTask");
 
                 // Call the Get method to retrieve statistics
-                foreach (WmiObject obj in connection.CreateQuery("SELECT * FROM MSFT_DtcTransactionsStatisticsTask").DisposeItems())
+                try
                 {
-                    try
-                    {
-                        using WmiMethod getMethod = obj.GetMethod("Get");
-                        using WmiMethodParameters inParams = getMethod.CreateInParameters();
-                        inParams.SetPropertyValue("DtcName", "Local");
+                    using WmiMethod getMethod = taskClass.GetMethod("Get");
+                    using WmiMethodParameters inParams = getMethod.CreateInParameters();
+                    inParams.SetPropertyValue("DtcName", "Local");
 
-                        obj.ExecuteMethod(getMethod, inParams, out WmiMethodParameters outParams);
-                        using (outParams)
+                    connection.ExecuteMethod(getMethod, inParams, out WmiMethodParameters outParams);
+                    using (outParams)
+                    {
+                        // MSFT_DtcTransactionsStatisticsTask.Get returns the embedded
+                        // DtcTransactionsStatistics instance in the "cmdletOutput" parameter.
+                        if (outParams?["cmdletOutput"] is WmiObject statsObj)
                         {
-                            if (outParams?["Statistics"] is WmiObject statsObj)
+                            using (statsObj)
                             {
-                                using (statsObj)
+                                return new DtcTransactionsStatistics
                                 {
-                                    return new DtcTransactionsStatistics
-                                    {
-                                        Open = Convert.ToUInt32(statsObj["Open"]),
-                                        OpenMax = Convert.ToUInt32(statsObj["OpenMax"]),
-                                        InDoubt = Convert.ToUInt32(statsObj["InDoubt"]),
-                                        Committed = Convert.ToUInt32(statsObj["Committed"]),
-                                        Aborted = Convert.ToUInt32(statsObj["Aborted"]),
-                                        ForcedCommit = Convert.ToUInt32(statsObj["ForcedCommit"]),
-                                        ForcedAbort = Convert.ToUInt32(statsObj["ForcedAbort"]),
-                                        Heuristic = Convert.ToUInt32(statsObj["Heuristic"]),
-                                        ResponseTimeMin = 0, // Not available in WMI
-                                        ResponseTimeAverage = 0,
-                                        ResponseTimeMax = 0
-                                    };
-                                }
+                                    Open = Convert.ToUInt32(statsObj["Open"]),
+                                    OpenMax = Convert.ToUInt32(statsObj["OpenMax"]),
+                                    InDoubt = Convert.ToUInt32(statsObj["InDoubt"]),
+                                    Committed = Convert.ToUInt32(statsObj["Committed"]),
+                                    Aborted = Convert.ToUInt32(statsObj["Aborted"]),
+                                    ForcedCommit = Convert.ToUInt32(statsObj["ForcedCommit"]),
+                                    ForcedAbort = Convert.ToUInt32(statsObj["ForcedAbort"]),
+                                    Heuristic = Convert.ToUInt32(statsObj["Heuristic"]),
+                                    ResponseTimeMin = 0, // Not available in WMI
+                                    ResponseTimeAverage = 0,
+                                    ResponseTimeMax = 0
+                                };
                             }
                         }
                     }
-                    catch (Exception ex)
-                    {
-                        _logger.LogDebug($"[ComponentServicesManager] Failed to invoke Get method: {ex.Message}");
-                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogDebug($"[ComponentServicesManager] Failed to invoke Get method: {ex.Message}");
                 }
 
                 // Fallback: Try to query DtcTransactionsStatistics directly

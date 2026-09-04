@@ -244,6 +244,11 @@
     <value>回應時間 (最大值)</value>
   </data>
 
+  <!-- Live updates -->
+  <data name="ComExp_AutoRefresh_Active" xml:space="preserve">
+    <value>即時更新中</value>
+  </data>
+
   <!-- Status Messages -->
   <data name="ComExp_Loading" xml:space="preserve">
     <value>載入中...</value>
@@ -259,6 +264,15 @@
   </data>
   <data name="ComExp_LoadingStatistics" xml:space="preserve">
     <value>正在載入 DTC 統計資料...</value>
+  </data>
+  <data name="ComExp_Dtc_LoadingTransactions" xml:space="preserve">
+    <value>正在載入 DTC 交易清單...</value>
+  </data>
+  <data name="ComExp_Dtc_ActiveTransactionsCount" xml:space="preserve">
+    <value>{0} 個進行中的交易</value>
+  </data>
+  <data name="ComExp_Dtc_StatisticsUnavailable" xml:space="preserve">
+    <value>無法取得 DTC 統計資料。請確認 MSDTC 服務是否正在執行。</value>
   </data>
   <data name="ComExp_LoadedSuccess" xml:space="preserve">
     <value>載入成功。</value>

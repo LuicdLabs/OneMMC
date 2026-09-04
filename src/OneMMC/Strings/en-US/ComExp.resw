@@ -244,6 +244,11 @@
     <value>Response Time (Max)</value>
   </data>
 
+  <!-- Live updates -->
+  <data name="ComExp_AutoRefresh_Active" xml:space="preserve">
+    <value>Live updates</value>
+  </data>
+
   <!-- Status Messages -->
   <data name="ComExp_Loading" xml:space="preserve">
     <value>Loading...</value>
@@ -259,6 +264,15 @@
   </data>
   <data name="ComExp_LoadingStatistics" xml:space="preserve">
     <value>Loading DTC statistics...</value>
+  </data>
+  <data name="ComExp_Dtc_LoadingTransactions" xml:space="preserve">
+    <value>Loading DTC transaction list...</value>
+  </data>
+  <data name="ComExp_Dtc_ActiveTransactionsCount" xml:space="preserve">
+    <value>{0} active transaction(s)</value>
+  </data>
+  <data name="ComExp_Dtc_StatisticsUnavailable" xml:space="preserve">
+    <value>DTC statistics are unavailable. Check that the MSDTC service is running.</value>
   </data>
   <data name="ComExp_LoadedSuccess" xml:space="preserve">
     <value>Loaded successfully.</value>

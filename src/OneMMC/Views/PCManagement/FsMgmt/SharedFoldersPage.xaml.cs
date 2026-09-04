@@ -25,7 +25,7 @@ public sealed partial class SharedFoldersPage : Page
     /// </summary>
     public SharedFoldersViewModel ViewModel { get; }
 
-    private DispatcherQueueTimer? _autoRefreshTimer;
+    private DispatcherQueueTimer? _liveUpdateTimer;
     private bool _isAdminDialogOpen;
     private bool _adminRequiredSeen;
 
@@ -44,22 +44,17 @@ public sealed partial class SharedFoldersPage : Page
         _adminRequiredSeen = false;
         await ViewModel.LoadAsync();
 
-        // Turn on live monitoring by default so the page stays current without pressing Refresh.
-        // Skipped when the initial load needed elevation, to avoid re-prompting every interval.
-        if (!_adminRequiredSeen && !LiveMonitorMenuItem.IsChecked)
+        // Live updating is part of how this page refreshes, not something the user turns on. It stays off
+        // when the initial load needed elevation, to avoid re-prompting every interval.
+        if (!_adminRequiredSeen)
         {
-            ApplyLiveMonitoring(true);
+            StartLiveUpdates();
         }
     }
 
     private void SharedFoldersPage_Unloaded(object sender, RoutedEventArgs e)
     {
-        ApplyLiveMonitoring(false);
-        if (_autoRefreshTimer is not null)
-        {
-            _autoRefreshTimer.Tick -= AutoRefreshTimer_Tick;
-            _autoRefreshTimer = null;
-        }
+        StopLiveUpdates();
 
         ViewModel.AdminPermissionRequired -= ViewModel_AdminPermissionRequired;
     }
@@ -68,12 +63,9 @@ public sealed partial class SharedFoldersPage : Page
     {
         _adminRequiredSeen = true;
 
-        // Live monitoring would otherwise re-trigger this prompt on every refresh interval, so
-        // stop it after the first permission failure.
-        if (LiveMonitorMenuItem.IsChecked)
-        {
-            ApplyLiveMonitoring(false);
-        }
+        // Live updates would otherwise re-trigger this prompt on every interval, so stop after the first
+        // permission failure; Refresh still lets the user retry once they have elevated.
+        StopLiveUpdates();
 
         if (_isAdminDialogOpen)
         {
@@ -91,57 +83,47 @@ public sealed partial class SharedFoldersPage : Page
         }
     }
 
-    private void LiveMonitorMenuItem_Click(object sender, RoutedEventArgs e)
+    private void StartLiveUpdates()
     {
-        // ToggleMenuFlyoutItem flips IsChecked before raising Click, so it already holds the new state.
-        ApplyLiveMonitoring(LiveMonitorMenuItem.IsChecked);
+        _liveUpdateTimer ??= CreateLiveUpdateTimer();
+        _liveUpdateTimer.Start();
+        LiveUpdateStatusText.Text = LocalizedStrings.FsMgmt_AutoRefresh_Active;
     }
 
-    private void ApplyLiveMonitoring(bool enabled)
+    private void StopLiveUpdates()
     {
-        LiveMonitorMenuItem.IsChecked = enabled;
-        ViewModel.SetAutoRefresh(enabled);
+        LiveUpdateStatusText.Text = string.Empty;
 
-        if (enabled)
+        if (_liveUpdateTimer is null)
         {
-            StartAutoRefreshTimer();
+            return;
         }
-        else
-        {
-            StopAutoRefreshTimer();
-        }
-    }
 
-    private void StartAutoRefreshTimer()
-    {
-        _autoRefreshTimer ??= CreateAutoRefreshTimer();
-        _autoRefreshTimer.Start();
-    }
-
-    private void StopAutoRefreshTimer()
-    {
-        _autoRefreshTimer?.Stop();
+        _liveUpdateTimer.Stop();
+        _liveUpdateTimer.Tick -= LiveUpdateTimer_Tick;
+        _liveUpdateTimer = null;
     }
 
     /// <summary>
-    /// Interval for live monitoring. Every tick re-enumerates shares, sessions, and open files over WMI
-    /// and resolves client names, so a one-second cadence produced continuous allocation churn for a view
-    /// that changes far more slowly than that. Five seconds still reads as "live" to the user.
+    /// Interval between reads. Every tick re-enumerates shares, sessions, and open files over WMI and
+    /// resolves client names, so a one-second cadence produced continuous allocation churn for a view
+    /// that changes far more slowly than that. Five seconds still reads as "live" to the user, and the
+    /// view model applies only the differences, so a tick that reads unchanged state updates nothing.
     /// </summary>
-    private static readonly TimeSpan AutoRefreshInterval = TimeSpan.FromSeconds(5);
+    private static readonly TimeSpan LiveUpdateInterval = TimeSpan.FromSeconds(5);
 
-    private DispatcherQueueTimer CreateAutoRefreshTimer()
+    private DispatcherQueueTimer CreateLiveUpdateTimer()
     {
         DispatcherQueueTimer timer = DispatcherQueue.CreateTimer();
-        timer.Interval = AutoRefreshInterval;
+        timer.Interval = LiveUpdateInterval;
         timer.IsRepeating = true;
-        timer.Tick += AutoRefreshTimer_Tick;
+        timer.Tick += LiveUpdateTimer_Tick;
         return timer;
     }
 
-    private async void AutoRefreshTimer_Tick(DispatcherQueueTimer sender, object args)
+    private async void LiveUpdateTimer_Tick(DispatcherQueueTimer sender, object args)
     {
-        await ViewModel.OnAutoRefreshTickAsync();
+        await ViewModel.OnLiveUpdateTickAsync();
     }
 
     private void SearchBox_TextChanged(AutoSuggestBox sender, AutoSuggestBoxTextChangedEventArgs args)
