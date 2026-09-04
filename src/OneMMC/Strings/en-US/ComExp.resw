@@ -375,4 +375,128 @@
   <data name="ComExp_Dcom_ServiceParameters" xml:space="preserve">
     <value>Service Parameters</value>
   </data>
+
+  <!-- DCOM Config list + detail -->
+  <data name="ComExp_Dcom_SearchPlaceholder" xml:space="preserve">
+    <value>Search name or Application ID</value>
+  </data>
+  <data name="ComExp_Dcom_Tab_General" xml:space="preserve">
+    <value>General</value>
+  </data>
+  <data name="ComExp_Dcom_Tab_Location" xml:space="preserve">
+    <value>Location</value>
+  </data>
+  <data name="ComExp_Dcom_Tab_Security" xml:space="preserve">
+    <value>Security</value>
+  </data>
+  <data name="ComExp_Dcom_Tab_Endpoints" xml:space="preserve">
+    <value>Endpoints</value>
+  </data>
+  <data name="ComExp_Dcom_Tab_Identity" xml:space="preserve">
+    <value>Identity</value>
+  </data>
+  <data name="ComExp_Dcom_ApplicationName" xml:space="preserve">
+    <value>Application Name</value>
+  </data>
+  <data name="ComExp_Dcom_ApplicationType" xml:space="preserve">
+    <value>Application Type</value>
+  </data>
+  <data name="ComExp_Dcom_AuthenticationLevel" xml:space="preserve">
+    <value>Authentication Level</value>
+  </data>
+  <data name="ComExp_Dcom_LocalPath" xml:space="preserve">
+    <value>Local Path</value>
+  </data>
+  <data name="ComExp_Dcom_Type_LocalServer" xml:space="preserve">
+    <value>Local Server</value>
+  </data>
+  <data name="ComExp_Dcom_Type_LocalService" xml:space="preserve">
+    <value>Local Service</value>
+  </data>
+  <data name="ComExp_Dcom_Type_Surrogate" xml:space="preserve">
+    <value>Surrogate</value>
+  </data>
+  <data name="ComExp_Dcom_Identity" xml:space="preserve">
+    <value>Identity</value>
+  </data>
+  <data name="ComExp_Dcom_Identity_Interactive" xml:space="preserve">
+    <value>The interactive user</value>
+  </data>
+  <data name="ComExp_Dcom_Identity_Launching" xml:space="preserve">
+    <value>The launching user</value>
+  </data>
+  <data name="ComExp_Dcom_Identity_ThisUser" xml:space="preserve">
+    <value>This user</value>
+  </data>
+  <data name="ComExp_Dcom_Identity_ServiceFormat" xml:space="preserve">
+    <value>Service ({0})</value>
+  </data>
+  <data name="ComExp_Dcom_RunOnThisComputer" xml:space="preserve">
+    <value>Run application on this computer</value>
+  </data>
+  <data name="ComExp_Dcom_RunOnFollowingComputer" xml:space="preserve">
+    <value>Run application on the following computer</value>
+  </data>
+  <data name="ComExp_Dcom_RemoteComputerName" xml:space="preserve">
+    <value>Computer name</value>
+  </data>
+  <data name="ComExp_Dcom_LaunchPermissions" xml:space="preserve">
+    <value>Launch and Activation Permissions</value>
+  </data>
+  <data name="ComExp_Dcom_AccessPermissions" xml:space="preserve">
+    <value>Access Permissions</value>
+  </data>
+  <data name="ComExp_Dcom_UseDefault" xml:space="preserve">
+    <value>Use Default</value>
+  </data>
+  <data name="ComExp_Dcom_UseCustom" xml:space="preserve">
+    <value>Customize</value>
+  </data>
+  <data name="ComExp_Dcom_EndpointsEmpty" xml:space="preserve">
+    <value>No custom endpoints are configured for this application.</value>
+  </data>
+  <data name="ComExp_Dcom_NoSelection" xml:space="preserve">
+    <value>Select an application to view its properties.</value>
+  </data>
+  <data name="ComExp_Dcom_NoResults" xml:space="preserve">
+    <value>No applications match the current search.</value>
+  </data>
+  <data name="ComExp_Dcom_ReadOnlyNote" xml:space="preserve">
+    <value>Properties are read-only here. To change them, use dcomcnfg.exe (Component Services).</value>
+  </data>
+  <data name="ComExp_Dcom_NotSet" xml:space="preserve">
+    <value>(not set)</value>
+  </data>
+
+  <!-- Running Processes tree + detail -->
+  <data name="ComExp_Run_SummaryFormat" xml:space="preserve">
+    <value>{0} running processes</value>
+  </data>
+  <data name="ComExp_Run_NoProcesses" xml:space="preserve">
+    <value>No COM+ applications are currently running.</value>
+  </data>
+  <data name="ComExp_Run_SelectPrompt" xml:space="preserve">
+    <value>Select an item to view its details.</value>
+  </data>
+  <data name="ComExp_Run_PartitionId" xml:space="preserve">
+    <value>Partition ID</value>
+  </data>
+  <data name="ComExp_Run_ApplicationId" xml:space="preserve">
+    <value>Application ID</value>
+  </data>
+  <data name="ComExp_Run_InstanceId" xml:space="preserve">
+    <value>Instance ID</value>
+  </data>
+  <data name="ComExp_Run_Type" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="ComExp_Run_Clsid" xml:space="preserve">
+    <value>CLSID</value>
+  </data>
+  <data name="ComExp_Run_ProgId" xml:space="preserve">
+    <value>ProgID</value>
+  </data>
+  <data name="ComExp_Run_Dll" xml:space="preserve">
+    <value>DLL</value>
+  </data>
 </root>

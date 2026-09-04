@@ -4,20 +4,14 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:localization="using:OneMMC.Localization"
+    xmlns:cwuc="using:CommunityToolkit.WinUI.Controls"
     xmlns:converters="using:OneMMC.Converters"
-    xmlns:local="using:OneMMC.Core.Features.SystemManagement.Models.ComExp"
+    xmlns:models="using:OneMMC.Core.Features.SystemManagement.Models.ComExp"
     mc:Ignorable="d">
 
     <Page.Resources>
         <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
         <converters:BoolToYesNoConverter x:Key="BoolToYesNoConverter" />
-
-        <Style x:Key="PropertyHeaderStyle" TargetType="TextBlock">
-            <Setter Property="FontWeight" Value="SemiBold" />
-            <Setter Property="FontSize" Value="16" />
-            <Setter Property="Margin" Value="0,0,0,8" />
-        </Style>
 
         <Style x:Key="PropertyLabelStyle" TargetType="TextBlock">
             <Setter Property="Foreground" Value="{ThemeResource TextFillColorSecondaryBrush}" />
@@ -33,51 +27,194 @@
         </Style>
     </Page.Resources>
 
-    <Grid RowDefinitions="Auto,*">
+    <Grid RowDefinitions="Auto,*,Auto">
         <CommandBar DefaultLabelPosition="Right">
             <AppBarButton Icon="Refresh" Label="{x:Bind LocalizedStrings.ComExp_RefreshButton}" Click="RefreshButton_Click" />
         </CommandBar>
 
-        <Grid Grid.Row="1" RowDefinitions="*,Auto" Padding="24,8,24,24">
-            <Grid ColumnDefinitions="*" RowDefinitions="Auto,*">
-                <Grid ColumnDefinitions="2*,2*,*,*,*,*">
-                    <TextBlock Text="{x:Bind LocalizedStrings.ComExp_Process_Name}" FontWeight="SemiBold" Padding="8,4" />
-                    <TextBlock Grid.Column="1" Text="{x:Bind LocalizedStrings.ComExp_Process_Executable}" FontWeight="SemiBold" Padding="8,4" />
-                    <TextBlock Grid.Column="2" Text="{x:Bind LocalizedStrings.ComExp_Process_Id}" FontWeight="SemiBold" Padding="8,4" />
-                    <TextBlock Grid.Column="3" Text="{x:Bind LocalizedStrings.ComExp_Process_IsPaused}" FontWeight="SemiBold" Padding="8,4" />
-                    <TextBlock Grid.Column="4" Text="{x:Bind LocalizedStrings.ComExp_Process_IsRecycling}" FontWeight="SemiBold" Padding="8,4" />
-                    <TextBlock Grid.Column="5" Text="{x:Bind LocalizedStrings.ComExp_Process_IsNTService}" FontWeight="SemiBold" Padding="8,4" />
+        <!-- Content: TreeView | ContentSizer | details -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" MinWidth="320" />
+            </Grid.ColumnDefinitions>
+
+            <Border
+                x:Name="TreePanel"
+                Grid.Column="0"
+                Width="300"
+                MinWidth="220"
+                BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                BorderThickness="0,0,1,0">
+                <Grid RowDefinitions="Auto,*">
+                    <AutoSuggestBox
+                        x:Name="SearchBox"
+                        Margin="12,4,12,8"
+                        PlaceholderText="{x:Bind LocalizedStrings.Common_SearchPlaceholder}"
+                        QueryIcon="Find"
+                        TextChanged="SearchBox_TextChanged" />
+                    <!--
+                        Explicit TreeViewNode hierarchy (RootNodes built in code-behind), matching the
+                        other management trees in this app (TaskSchd, RSoP, GpEdit, SecPol). The data-bound
+                        ItemsSource + TreeViewItem-template approach corrupts single-selection visuals,
+                        so the node content is a plain template bound to TreeViewNode.Content.
+                    -->
+                    <TreeView
+                        x:Name="ProcessesTreeView"
+                        Grid.Row="1"
+                        AllowDrop="False"
+                        CanDragItems="False"
+                        CanReorderItems="False"
+                        Collapsed="ProcessesTreeView_Collapsed"
+                        Expanding="ProcessesTreeView_Expanding"
+                        ItemInvoked="ProcessesTreeView_ItemInvoked"
+                        SelectionChanged="ProcessesTreeView_SelectionChanged"
+                        SelectionMode="Single">
+                        <TreeView.ItemTemplate>
+                            <DataTemplate x:DataType="TreeViewNode">
+                                <TextBlock
+                                    VerticalAlignment="Center"
+                                    Text="{x:Bind ((models:ComPlusTreeItem)Content).Title}"
+                                    TextTrimming="CharacterEllipsis" />
+                            </DataTemplate>
+                        </TreeView.ItemTemplate>
+                    </TreeView>
                 </Grid>
+            </Border>
 
-                <ListView
-                    Grid.Row="1"
-                    ItemsSource="{x:Bind ViewModel.Processes, Mode=OneWay}"
-                    SelectedItem="{x:Bind ViewModel.SelectedProcess, Mode=TwoWay}"
-                    SelectionMode="Single">
-                    <ListView.ItemTemplate>
-                        <DataTemplate x:DataType="local:ProcessInfo">
-                            <Grid ColumnDefinitions="2*,2*,*,*,*,*" Padding="4,8">
-                                <TextBlock Text="{x:Bind Name}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
-                                <TextBlock Grid.Column="1" Text="{x:Bind ExecutableName}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
-                                <TextBlock Grid.Column="2" Text="{x:Bind ProcessId}" VerticalAlignment="Center" />
-                                <TextBlock Grid.Column="3" Text="{x:Bind IsPaused, Converter={StaticResource BoolToYesNoConverter}}" VerticalAlignment="Center" />
-                                <TextBlock Grid.Column="4" Text="{x:Bind IsRecycling, Converter={StaticResource BoolToYesNoConverter}}" VerticalAlignment="Center" />
-                                <TextBlock Grid.Column="5" Text="{x:Bind IsNTService, Converter={StaticResource BoolToYesNoConverter}}" VerticalAlignment="Center" />
-                            </Grid>
-                        </DataTemplate>
-                    </ListView.ItemTemplate>
-                </ListView>
-            </Grid>
+            <cwuc:ContentSizer
+                Grid.Column="1"
+                Width="12"
+                TargetControl="{x:Bind TreePanel}" />
 
-            <Grid Grid.Row="1" ColumnDefinitions="*,Auto" Padding="8,12,8,0">
-                <TextBlock Text="{x:Bind ViewModel.StatusMessage, Mode=OneWay}" />
-                <ProgressRing
-                    Grid.Column="1"
-                    Width="20"
-                    Height="20"
-                    IsActive="{x:Bind ViewModel.IsLoading, Mode=OneWay}"
-                    Visibility="{x:Bind ViewModel.IsLoading, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}" />
-            </Grid>
+            <ScrollViewer Grid.Column="2" Padding="16">
+                <StackPanel Spacing="12">
+                    <!-- Root summary -->
+                    <StackPanel
+                        Spacing="8"
+                        Visibility="{x:Bind ViewModel.IsRootSelected, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}">
+                        <TextBlock Style="{StaticResource SubtitleTextBlockStyle}" Text="{x:Bind LocalizedStrings.ComExp_RunningProcesses}" />
+                        <TextBlock
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Text="{x:Bind ViewModel.SummaryText, Mode=OneWay}"
+                            TextWrapping="Wrap" />
+                        <TextBlock
+                            Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                            Text="{x:Bind LocalizedStrings.ComExp_Run_NoProcesses}"
+                            TextWrapping="Wrap"
+                            Visibility="{x:Bind ViewModel.HasNoProcesses, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}" />
+                    </StackPanel>
+
+                    <!-- Process details -->
+                    <StackPanel
+                        Spacing="8"
+                        Visibility="{x:Bind ViewModel.IsProcessSelected, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}">
+                        <TextBlock
+                            Style="{StaticResource SubtitleTextBlockStyle}"
+                            Text="{x:Bind ViewModel.SelectedProcess.DisplayTitle, Mode=OneWay}"
+                            TextWrapping="Wrap" />
+                        <Grid ColumnDefinitions="150,*">
+                            <TextBlock Text="{x:Bind LocalizedStrings.ComExp_Process_Executable}" Style="{StaticResource PropertyLabelStyle}" />
+                            <TextBlock Grid.Column="1" Style="{StaticResource PropertyValueStyle}" Text="{x:Bind ViewModel.SelectedProcess.ExecutableName, Mode=OneWay}" />
+                        </Grid>
+                        <Grid ColumnDefinitions="150,*">
+                            <TextBlock Text="{x:Bind LocalizedStrings.ComExp_Process_Id}" Style="{StaticResource PropertyLabelStyle}" />
+                            <TextBlock Grid.Column="1" Style="{StaticResource PropertyValueStyle}" Text="{x:Bind ViewModel.SelectedProcessIdText, Mode=OneWay}" />
+                        </Grid>
+                        <Grid ColumnDefinitions="150,*">
+                            <TextBlock Text="{x:Bind LocalizedStrings.ComExp_Process_IsPaused}" Style="{StaticResource PropertyLabelStyle}" />
+                            <TextBlock Grid.Column="1" Style="{StaticResource PropertyValueStyle}" Text="{x:Bind ViewModel.SelectedProcess.IsPaused, Converter={StaticResource BoolToYesNoConverter}, Mode=OneWay}" />
+                        </Grid>
+                        <Grid ColumnDefinitions="150,*">
+                            <TextBlock Text="{x:Bind LocalizedStrings.ComExp_Process_IsRecycling}" Style="{StaticResource PropertyLabelStyle}" />
+                            <TextBlock Grid.Column="1" Style="{StaticResource PropertyValueStyle}" Text="{x:Bind ViewModel.SelectedProcess.IsRecycling, Converter={StaticResource BoolToYesNoConverter}, Mode=OneWay}" />
+                        </Grid>
+                        <Grid ColumnDefinitions="150,*">
+                            <TextBlock Text="{x:Bind LocalizedStrings.ComExp_Process_IsNTService}" Style="{StaticResource PropertyLabelStyle}" />
+                            <TextBlock Grid.Column="1" Style="{StaticResource PropertyValueStyle}" Text="{x:Bind ViewModel.SelectedProcess.IsNTService, Converter={StaticResource BoolToYesNoConverter}, Mode=OneWay}" />
+                        </Grid>
+                    </StackPanel>
+
+                    <!-- Application instance details -->
+                    <StackPanel
+                        Spacing="8"
+                        Visibility="{x:Bind ViewModel.IsInstanceSelected, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}">
+                        <TextBlock
+                            Style="{StaticResource SubtitleTextBlockStyle}"
+                            Text="{x:Bind ViewModel.SelectedInstance.ApplicationName, Mode=OneWay}"
+                            TextWrapping="Wrap" />
+                        <Grid ColumnDefinitions="150,*">
+                            <TextBlock Text="{x:Bind LocalizedStrings.ComExp_Run_PartitionId}" Style="{StaticResource PropertyLabelStyle}" />
+                            <TextBlock Grid.Column="1" Style="{StaticResource PropertyValueStyle}" Text="{x:Bind ViewModel.SelectedInstance.PartitionId, Mode=OneWay}" />
+                        </Grid>
+                        <Grid ColumnDefinitions="150,*">
+                            <TextBlock Text="{x:Bind LocalizedStrings.ComExp_Run_ApplicationId}" Style="{StaticResource PropertyLabelStyle}" />
+                            <TextBlock Grid.Column="1" Style="{StaticResource PropertyValueStyle}" Text="{x:Bind ViewModel.SelectedInstance.ApplicationId, Mode=OneWay}" />
+                        </Grid>
+                        <Grid ColumnDefinitions="150,*">
+                            <TextBlock Text="{x:Bind LocalizedStrings.ComExp_Run_InstanceId}" Style="{StaticResource PropertyLabelStyle}" />
+                            <TextBlock Grid.Column="1" Style="{StaticResource PropertyValueStyle}" Text="{x:Bind ViewModel.SelectedInstance.InstanceId, Mode=OneWay}" />
+                        </Grid>
+                        <Grid ColumnDefinitions="150,*">
+                            <TextBlock Text="{x:Bind LocalizedStrings.ComExp_Run_Type}" Style="{StaticResource PropertyLabelStyle}" />
+                            <TextBlock Grid.Column="1" Style="{StaticResource PropertyValueStyle}" Text="{x:Bind ViewModel.SelectedInstance.ActivationType, Mode=OneWay}" />
+                        </Grid>
+                        <Grid ColumnDefinitions="150,*">
+                            <TextBlock Text="{x:Bind LocalizedStrings.ComExp_Application_Description}" Style="{StaticResource PropertyLabelStyle}" />
+                            <TextBlock Grid.Column="1" Style="{StaticResource PropertyValueStyle}" Text="{x:Bind ViewModel.SelectedInstance.Description, Mode=OneWay}" />
+                        </Grid>
+                    </StackPanel>
+
+                    <!-- Component details -->
+                    <StackPanel
+                        Spacing="8"
+                        Visibility="{x:Bind ViewModel.IsComponentSelected, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}">
+                        <TextBlock
+                            Style="{StaticResource SubtitleTextBlockStyle}"
+                            Text="{x:Bind ViewModel.SelectedComponent.DisplayName, Mode=OneWay}"
+                            TextWrapping="Wrap" />
+                        <Grid ColumnDefinitions="150,*">
+                            <TextBlock Text="{x:Bind LocalizedStrings.ComExp_Run_Clsid}" Style="{StaticResource PropertyLabelStyle}" />
+                            <TextBlock Grid.Column="1" Style="{StaticResource PropertyValueStyle}" Text="{x:Bind ViewModel.SelectedComponent.Clsid, Mode=OneWay}" />
+                        </Grid>
+                        <Grid ColumnDefinitions="150,*">
+                            <TextBlock Text="{x:Bind LocalizedStrings.ComExp_Run_ProgId}" Style="{StaticResource PropertyLabelStyle}" />
+                            <TextBlock Grid.Column="1" Style="{StaticResource PropertyValueStyle}" Text="{x:Bind ViewModel.SelectedComponent.ProgId, Mode=OneWay}" />
+                        </Grid>
+                        <Grid ColumnDefinitions="150,*">
+                            <TextBlock Text="{x:Bind LocalizedStrings.ComExp_Run_Dll}" Style="{StaticResource PropertyLabelStyle}" />
+                            <TextBlock Grid.Column="1" Style="{StaticResource PropertyValueStyle}" Text="{x:Bind ViewModel.SelectedComponent.DllPath, Mode=OneWay}" />
+                        </Grid>
+                        <Grid ColumnDefinitions="150,*">
+                            <TextBlock Text="{x:Bind LocalizedStrings.ComExp_Application_Description}" Style="{StaticResource PropertyLabelStyle}" />
+                            <TextBlock Grid.Column="1" Style="{StaticResource PropertyValueStyle}" Text="{x:Bind ViewModel.SelectedComponent.Description, Mode=OneWay}" />
+                        </Grid>
+                    </StackPanel>
+
+                    <!-- Selection prompt -->
+                    <TextBlock
+                        Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                        Text="{x:Bind LocalizedStrings.ComExp_Run_SelectPrompt}"
+                        TextWrapping="Wrap"
+                        Visibility="{x:Bind ViewModel.IsRootSelected, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}" />
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
+
+        <!-- Status bar -->
+        <Grid Grid.Row="2" ColumnDefinitions="*,Auto" Padding="24,12,24,24">
+            <TextBlock
+                VerticalAlignment="Center"
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                Text="{x:Bind ViewModel.StatusMessage, Mode=OneWay}"
+                TextWrapping="Wrap" />
+            <ProgressRing
+                Grid.Column="1"
+                Width="20"
+                Height="20"
+                IsActive="{x:Bind ViewModel.IsLoading, Mode=OneWay}"
+                Visibility="{x:Bind ViewModel.IsLoading, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}" />
         </Grid>
     </Grid>
 </Page>

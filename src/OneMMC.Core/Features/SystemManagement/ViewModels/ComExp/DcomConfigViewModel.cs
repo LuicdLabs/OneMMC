@@ -6,56 +6,43 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using OneMMC.Core.Features.SystemManagement.Models.ComExp;
 using OneMMC.Core.Features.SystemManagement.Services.ComExp;
+using OneMMC.Core.Infrastructure.Collections;
+using OneMMC.Core.Localization;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace OneMMC.Core.Features.SystemManagement.ViewModels.ComExp;
 
+/// <summary>
+/// ViewModel for the DCOM Config page (Component Services \ DCOM Config).
+/// Lists {GUID} application identities from HKLM\SOFTWARE\Classes\AppID and
+/// exposes the selected application's General / Location / Security / Endpoints / Identity details.
+/// </summary>
 public partial class DcomConfigViewModel : ObservableObject
 {
     private readonly ComponentServicesManager _service;
     private readonly ILogger<DcomConfigViewModel> _logger;
 
+    /// <summary>All loaded DCOM applications (unfiltered).</summary>
     public ObservableCollection<DcomApplicationInfo> Applications { get; } = new();
 
-    private DcomApplicationInfo? _selectedApplication;
-    public DcomApplicationInfo? SelectedApplication
-    {
-        get => _selectedApplication;
-        set
-        {
-            if (SetProperty(ref _selectedApplication, value))
-            {
-                OnPropertyChanged(nameof(SelectedApplicationName));
-                OnPropertyChanged(nameof(SelectedApplicationAppId));
-                OnPropertyChanged(nameof(SelectedApplicationLocalService));
-                OnPropertyChanged(nameof(SelectedApplicationRunAs));
-                OnPropertyChanged(nameof(SelectedApplicationDllSurrogate));
-                OnPropertyChanged(nameof(SelectedApplicationServiceParameters));
-            }
-        }
-    }
+    /// <summary>Applications matching <see cref="SearchText"/>.</summary>
+    public ObservableCollection<DcomApplicationInfo> FilteredApplications { get; } = new();
 
-    private bool _isLoading;
-    public bool IsLoading
-    {
-        get => _isLoading;
-        set => SetProperty(ref _isLoading, value);
-    }
+    [ObservableProperty]
+    public partial DcomApplicationInfo? SelectedApplication { get; set; }
 
-    private string _statusMessage = string.Empty;
-    public string StatusMessage
-    {
-        get => _statusMessage;
-        set => SetProperty(ref _statusMessage, value);
-    }
+    [ObservableProperty]
+    public partial string SearchText { get; set; } = string.Empty;
 
-    public string SelectedApplicationName => SelectedApplication?.Name ?? string.Empty;
-    public string SelectedApplicationAppId => SelectedApplication?.AppId ?? string.Empty;
-    public string SelectedApplicationLocalService => SelectedApplication?.LocalService ?? string.Empty;
-    public string SelectedApplicationRunAs => SelectedApplication?.RunAs ?? string.Empty;
-    public string SelectedApplicationDllSurrogate => SelectedApplication?.DllSurrogate ?? string.Empty;
-    public string SelectedApplicationServiceParameters => SelectedApplication?.ServiceParameters ?? string.Empty;
+    [ObservableProperty]
+    public partial bool IsLoading { get; set; }
+
+    [ObservableProperty]
+    public partial string StatusMessage { get; set; } = string.Empty;
+
+    public bool HasSelection => SelectedApplication is not null;
+    public bool HasNoResults => FilteredApplications.Count == 0;
 
     public DcomConfigViewModel(ComponentServicesManager service)
         : this(service, NullLogger<DcomConfigViewModel>.Instance)
@@ -68,28 +55,35 @@ public partial class DcomConfigViewModel : ObservableObject
         _logger = logger;
     }
 
+    partial void OnSelectedApplicationChanged(DcomApplicationInfo? value)
+    {
+        OnPropertyChanged(nameof(HasSelection));
+    }
+
+    partial void OnSearchTextChanged(string value)
+    {
+        ApplyFilter();
+    }
+
     [RelayCommand]
     public async Task LoadApplicationsAsync()
     {
         _logger.LogInformation("Loading DCOM applications");
+        var L = LocalizationProvider.Current;
         IsLoading = true;
-        StatusMessage = "Loading DCOM applications...";
+        StatusMessage = L.GetString(ResourceFileNames.ComExp, ComExpKeys.LoadingDcomApps);
 
         try
         {
-            Applications.Clear();
             var apps = await _service.GetDcomApplicationsAsync();
-            foreach (var app in apps)
-            {
-                Applications.Add(app);
-            }
-
-            SelectedApplication = Applications.FirstOrDefault();
-            StatusMessage = $"Loaded {Applications.Count} applications.";
+            Applications.ReplaceAll(apps);
+            ApplyFilter();
+            SelectedApplication = FilteredApplications.FirstOrDefault();
+            StatusMessage = L.GetFormattedString(ResourceFileNames.ComExp, ComExpKeys.LoadedCount, Applications.Count);
         }
         catch (Exception ex)
         {
-            StatusMessage = $"Failed to load DCOM applications: {ex.Message}";
+            StatusMessage = L.GetFormattedString(ResourceFileNames.ComExp, ComExpKeys.LoadFailed, ex.Message);
             _logger.LogError(ex, "Failed to load DCOM applications");
         }
         finally
@@ -97,6 +91,30 @@ public partial class DcomConfigViewModel : ObservableObject
             IsLoading = false;
         }
     }
+
+    private void ApplyFilter()
+    {
+        string filter = SearchText?.Trim() ?? string.Empty;
+        if (string.IsNullOrEmpty(filter))
+        {
+            FilteredApplications.ReplaceAll(Applications);
+        }
+        else
+        {
+            FilteredApplications.ReplaceAll(Applications.Where(app =>
+                app.Name.Contains(filter, StringComparison.OrdinalIgnoreCase)
+                || app.AppId.Contains(filter, StringComparison.OrdinalIgnoreCase)));
+        }
+
+        if (SelectedApplication is not null && !FilteredApplications.Contains(SelectedApplication))
+        {
+            SelectedApplication = FilteredApplications.FirstOrDefault();
+        }
+        else if (SelectedApplication is null)
+        {
+            SelectedApplication = FilteredApplications.FirstOrDefault();
+        }
+
+        OnPropertyChanged(nameof(HasNoResults));
+    }
 }
-
-

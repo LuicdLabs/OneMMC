@@ -137,5 +137,48 @@ namespace OneMMC.Localization
         // DCOM Properties
         public string ComExp_Dcom_DllSurrogate => GetResource(ResourceFileNames.ComExp, "ComExp_Dcom_DllSurrogate");
         public string ComExp_Dcom_ServiceParameters => GetResource(ResourceFileNames.ComExp, "ComExp_Dcom_ServiceParameters");
+
+        // DCOM Config list + detail (General / Location / Security / Endpoints / Identity)
+        public string ComExp_Dcom_SearchPlaceholder => GetResource(ResourceFileNames.ComExp, "ComExp_Dcom_SearchPlaceholder");
+        public string ComExp_Dcom_Tab_General => GetResource(ResourceFileNames.ComExp, "ComExp_Dcom_Tab_General");
+        public string ComExp_Dcom_Tab_Location => GetResource(ResourceFileNames.ComExp, "ComExp_Dcom_Tab_Location");
+        public string ComExp_Dcom_Tab_Security => GetResource(ResourceFileNames.ComExp, "ComExp_Dcom_Tab_Security");
+        public string ComExp_Dcom_Tab_Endpoints => GetResource(ResourceFileNames.ComExp, "ComExp_Dcom_Tab_Endpoints");
+        public string ComExp_Dcom_Tab_Identity => GetResource(ResourceFileNames.ComExp, "ComExp_Dcom_Tab_Identity");
+        public string ComExp_Dcom_ApplicationName => GetResource(ResourceFileNames.ComExp, "ComExp_Dcom_ApplicationName");
+        public string ComExp_Dcom_ApplicationType => GetResource(ResourceFileNames.ComExp, "ComExp_Dcom_ApplicationType");
+        public string ComExp_Dcom_AuthenticationLevel => GetResource(ResourceFileNames.ComExp, "ComExp_Dcom_AuthenticationLevel");
+        public string ComExp_Dcom_LocalPath => GetResource(ResourceFileNames.ComExp, "ComExp_Dcom_LocalPath");
+        public string ComExp_Dcom_Type_LocalServer => GetResource(ResourceFileNames.ComExp, "ComExp_Dcom_Type_LocalServer");
+        public string ComExp_Dcom_Type_LocalService => GetResource(ResourceFileNames.ComExp, "ComExp_Dcom_Type_LocalService");
+        public string ComExp_Dcom_Type_Surrogate => GetResource(ResourceFileNames.ComExp, "ComExp_Dcom_Type_Surrogate");
+        public string ComExp_Dcom_Identity => GetResource(ResourceFileNames.ComExp, "ComExp_Dcom_Identity");
+        public string ComExp_Dcom_Identity_Interactive => GetResource(ResourceFileNames.ComExp, "ComExp_Dcom_Identity_Interactive");
+        public string ComExp_Dcom_Identity_Launching => GetResource(ResourceFileNames.ComExp, "ComExp_Dcom_Identity_Launching");
+        public string ComExp_Dcom_Identity_ThisUser => GetResource(ResourceFileNames.ComExp, "ComExp_Dcom_Identity_ThisUser");
+        public string ComExp_Dcom_RunOnThisComputer => GetResource(ResourceFileNames.ComExp, "ComExp_Dcom_RunOnThisComputer");
+        public string ComExp_Dcom_RunOnFollowingComputer => GetResource(ResourceFileNames.ComExp, "ComExp_Dcom_RunOnFollowingComputer");
+        public string ComExp_Dcom_RemoteComputerName => GetResource(ResourceFileNames.ComExp, "ComExp_Dcom_RemoteComputerName");
+        public string ComExp_Dcom_LaunchPermissions => GetResource(ResourceFileNames.ComExp, "ComExp_Dcom_LaunchPermissions");
+        public string ComExp_Dcom_AccessPermissions => GetResource(ResourceFileNames.ComExp, "ComExp_Dcom_AccessPermissions");
+        public string ComExp_Dcom_UseDefault => GetResource(ResourceFileNames.ComExp, "ComExp_Dcom_UseDefault");
+        public string ComExp_Dcom_UseCustom => GetResource(ResourceFileNames.ComExp, "ComExp_Dcom_UseCustom");
+        public string ComExp_Dcom_EndpointsEmpty => GetResource(ResourceFileNames.ComExp, "ComExp_Dcom_EndpointsEmpty");
+        public string ComExp_Dcom_NoSelection => GetResource(ResourceFileNames.ComExp, "ComExp_Dcom_NoSelection");
+        public string ComExp_Dcom_NoResults => GetResource(ResourceFileNames.ComExp, "ComExp_Dcom_NoResults");
+        public string ComExp_Dcom_ReadOnlyNote => GetResource(ResourceFileNames.ComExp, "ComExp_Dcom_ReadOnlyNote");
+        public string ComExp_Dcom_NotSet => GetResource(ResourceFileNames.ComExp, "ComExp_Dcom_NotSet");
+
+        // Running Processes tree + detail
+        public string ComExp_Run_SummaryFormat => GetResource(ResourceFileNames.ComExp, "ComExp_Run_SummaryFormat");
+        public string ComExp_Run_NoProcesses => GetResource(ResourceFileNames.ComExp, "ComExp_Run_NoProcesses");
+        public string ComExp_Run_SelectPrompt => GetResource(ResourceFileNames.ComExp, "ComExp_Run_SelectPrompt");
+        public string ComExp_Run_PartitionId => GetResource(ResourceFileNames.ComExp, "ComExp_Run_PartitionId");
+        public string ComExp_Run_ApplicationId => GetResource(ResourceFileNames.ComExp, "ComExp_Run_ApplicationId");
+        public string ComExp_Run_InstanceId => GetResource(ResourceFileNames.ComExp, "ComExp_Run_InstanceId");
+        public string ComExp_Run_Type => GetResource(ResourceFileNames.ComExp, "ComExp_Run_Type");
+        public string ComExp_Run_Clsid => GetResource(ResourceFileNames.ComExp, "ComExp_Run_Clsid");
+        public string ComExp_Run_ProgId => GetResource(ResourceFileNames.ComExp, "ComExp_Run_ProgId");
+        public string ComExp_Run_Dll => GetResource(ResourceFileNames.ComExp, "ComExp_Run_Dll");
     }
 }

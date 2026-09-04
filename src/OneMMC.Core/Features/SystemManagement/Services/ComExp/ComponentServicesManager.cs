@@ -116,23 +116,74 @@ public sealed class ComponentServicesManager
                     return results;
                 }
 
+                // Resolve executable paths up front with a single CLSID sweep so per-app
+                // lookups below stay dictionary lookups (HKCR\CLSID holds 7000+ keys).
+                var localPaths = BuildAppIdLocalPathMap();
+
                 foreach (var subKeyName in appIdKey.GetSubKeyNames())
                 {
+                    // Named <ExeName> keys are just AppID mappings, not DCOM entries.
+                    // Component Services lists only {GUID} application identities.
+                    if (!IsAppIdGuid(subKeyName))
+                    {
+                        continue;
+                    }
+
                     using var subKey = appIdKey.OpenSubKey(subKeyName);
                     if (subKey == null)
                     {
                         continue;
                     }
 
-                    string name = Convert.ToString(subKey.GetValue(null), CultureInfo.InvariantCulture) ?? subKeyName;
+                    string? name = Convert.ToString(subKey.GetValue(null), CultureInfo.InvariantCulture);
+                    if (string.IsNullOrWhiteSpace(name))
+                    {
+                        name = subKeyName;
+                    }
+
+                    string? localService = Convert.ToString(subKey.GetValue("LocalService"), CultureInfo.InvariantCulture);
+                    string? runAs = Convert.ToString(subKey.GetValue("RunAs"), CultureInfo.InvariantCulture);
+                    string? serviceParameters = Convert.ToString(subKey.GetValue("ServiceParameters"), CultureInfo.InvariantCulture);
+                    string? remoteServerName = Convert.ToString(subKey.GetValue("RemoteServerName"), CultureInfo.InvariantCulture);
+
+                    var valueNames = new HashSet<string>(subKey.GetValueNames(), StringComparer.OrdinalIgnoreCase);
+                    bool hasDllSurrogate = valueNames.Contains("DllSurrogate");
+                    string? dllSurrogate = hasDllSurrogate
+                        ? Convert.ToString(subKey.GetValue("DllSurrogate"), CultureInfo.InvariantCulture)
+                        : null;
+
+                    uint? authenticationLevel = ReadDword(subKey, "AuthenticationLevel");
+
+                    if (!localPaths.TryGetValue(subKeyName, out string? localPath))
+                    {
+                        localPath = null;
+                    }
+
+                    if (string.IsNullOrEmpty(localPath) && LooksLikePath(name))
+                    {
+                        localPath = name;
+                    }
+
+                    bool isService = !string.IsNullOrEmpty(localService);
                     var info = new DcomApplicationInfo
                     {
                         Name = name,
                         AppId = subKeyName,
-                        LocalService = Convert.ToString(subKey.GetValue("LocalService"), CultureInfo.InvariantCulture),
-                        RunAs = Convert.ToString(subKey.GetValue("RunAs"), CultureInfo.InvariantCulture),
-                        DllSurrogate = Convert.ToString(subKey.GetValue("DllSurrogate"), CultureInfo.InvariantCulture),
-                        ServiceParameters = Convert.ToString(subKey.GetValue("ServiceParameters"), CultureInfo.InvariantCulture)
+                        LocalService = localService,
+                        RunAs = runAs,
+                        DllSurrogate = dllSurrogate,
+                        HasDllSurrogate = hasDllSurrogate,
+                        ServiceParameters = serviceParameters,
+                        AuthenticationLevel = authenticationLevel,
+                        AuthenticationLevelDisplay = GetLocalizedAuthentication(authenticationLevel?.ToString(CultureInfo.InvariantCulture)),
+                        ApplicationType = GetLocalizedApplicationType(isService, hasDllSurrogate),
+                        IsService = isService,
+                        LocalPath = localPath,
+                        RemoteServerName = remoteServerName,
+                        RunOnThisComputer = !valueNames.Contains("_LocalService"),
+                        HasCustomLaunchPermissions = valueNames.Contains("LaunchPermission"),
+                        HasCustomAccessPermissions = valueNames.Contains("AccessPermission"),
+                        IdentityDisplay = GetLocalizedIdentity(localService, runAs)
                     };
 
                     results.Add(info);
@@ -147,6 +198,141 @@ public sealed class ComponentServicesManager
 
             return results.OrderBy(app => app.Name, StringComparer.OrdinalIgnoreCase).ToList();
         });
+    }
+
+    /// <summary>
+    /// Checks whether an AppID subkey name is a GUID identity (<c>{...}</c>).
+    /// Plain executable names are Exe-to-AppID mappings and are not DCOM entries.
+    /// </summary>
+    private static bool IsAppIdGuid(string subKeyName)
+    {
+        return subKeyName.Length == 38
+            && subKeyName[0] == '{'
+            && subKeyName[^1] == '}'
+            && Guid.TryParse(subKeyName, out _);
+    }
+
+    /// <summary>
+    /// Reads a REG_DWORD value, returning <see langword="null"/> when absent or non-numeric.
+    /// </summary>
+    private static uint? ReadDword(RegistryKey key, string valueName)
+    {
+        try
+        {
+            object? raw = key.GetValue(valueName);
+            return raw switch
+            {
+                int i => unchecked((uint)i),
+                uint u => u,
+                long l => unchecked((uint)l),
+                _ => null
+            };
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Builds an AppID-to-executable map with a single sweep over <c>HKCR\CLSID</c>,
+    /// preferring <c>LocalServer32</c> and falling back to <c>InprocServer32</c>.
+    /// </summary>
+    private Dictionary<string, string> BuildAppIdLocalPathMap()
+    {
+        var map = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        var inprocFallback = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+        try
+        {
+            using var clsidKey = Registry.ClassesRoot.OpenSubKey("CLSID");
+            if (clsidKey == null)
+            {
+                return map;
+            }
+
+            foreach (var clsidName in clsidKey.GetSubKeyNames())
+            {
+                string? appId = null;
+                try
+                {
+                    using var clsidSubKey = clsidKey.OpenSubKey(clsidName);
+                    if (clsidSubKey == null)
+                    {
+                        continue;
+                    }
+
+                    appId = Convert.ToString(clsidSubKey.GetValue("AppID"), CultureInfo.InvariantCulture);
+                    if (string.IsNullOrWhiteSpace(appId))
+                    {
+                        continue;
+                    }
+
+                    if (map.ContainsKey(appId))
+                    {
+                        continue;
+                    }
+
+                    string? localServer = ReadDefaultValue(clsidSubKey, "LocalServer32");
+                    if (!string.IsNullOrWhiteSpace(localServer))
+                    {
+                        map[appId] = localServer;
+                        continue;
+                    }
+
+                    if (!inprocFallback.ContainsKey(appId))
+                    {
+                        string? inproc = ReadDefaultValue(clsidSubKey, "InprocServer32");
+                        if (!string.IsNullOrWhiteSpace(inproc))
+                        {
+                            inprocFallback[appId] = inproc;
+                        }
+                    }
+                }
+                catch
+                {
+                    // Skip unreadable CLSID keys; best-effort enrichment only.
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogDebug($"[ComponentServicesManager] CLSID sweep for DCOM paths failed: {ex.Message}");
+        }
+
+        foreach (var entry in inprocFallback)
+        {
+            map.TryAdd(entry.Key, entry.Value);
+        }
+
+        return map;
+    }
+
+    private static string? ReadDefaultValue(RegistryKey parent, string subKeyName)
+    {
+        try
+        {
+            using var subKey = parent.OpenSubKey(subKeyName);
+            return Convert.ToString(subKey?.GetValue(null), CultureInfo.InvariantCulture);
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private static bool LooksLikePath(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return false;
+        }
+
+        return value.Contains('\\', StringComparison.Ordinal)
+            || value.EndsWith(".exe", StringComparison.OrdinalIgnoreCase)
+            || value.EndsWith(".dll", StringComparison.OrdinalIgnoreCase)
+            || value.EndsWith(".cpl", StringComparison.OrdinalIgnoreCase)
+            || value.EndsWith(".ocx", StringComparison.OrdinalIgnoreCase);
     }
 
     public Task<IReadOnlyList<ProcessInfo>> GetRunningProcessesAsync()
@@ -233,11 +419,11 @@ public sealed class ComponentServicesManager
         });
     }
 
-    public Task<IReadOnlyList<ProcessInfo>> GetComPlusRunningProcessesAsync()
+    public Task<IReadOnlyList<ComPlusRunningProcess>> GetComPlusRunningProcessesAsync()
     {
-        return Task.Run<IReadOnlyList<ProcessInfo>>(() =>
+        return Task.Run<IReadOnlyList<ComPlusRunningProcess>>(() =>
         {
-            var results = new List<ProcessInfo>();
+            var results = new List<ComPlusRunningProcess>();
             _logger.LogDebug("[ComponentServicesManager] Loading COM+ running processes...");
 
             ICOMAdminCatalog? catalog = null;
@@ -247,13 +433,14 @@ public sealed class ComponentServicesManager
             {
                 catalog = ComActivator.CreateInstance<ICOMAdminCatalog>(ComAdminCatalogClsid.ComAdminCatalog);
 
-                // Build appId -> (name, isNTService) lookups from the Applications collection up front so
+                // Build appId lookups from the Applications collection up front so
                 // the ApplicationInstances loop is a pure dictionary lookup (no nested COM enumeration).
                 catalog.GetCollection("Applications", out applications);
                 applications.Populate();
 
                 var appIdToName = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-                var appIdIsNTService = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
+                var appIdToActivation = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+                var appIdToDescription = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
                 int appCount = applications.get_Count();
                 for (int i = 0; i < appCount; i++)
@@ -273,15 +460,27 @@ public sealed class ComponentServicesManager
                             appIdToName[appId] = name;
                         }
 
-                        var runAsNTService = ReadComProperty(app, "RunForever");
-                        appIdIsNTService[appId] = runAsNTService == "1"
-                            || string.Equals(runAsNTService, "true", StringComparison.OrdinalIgnoreCase);
+                        var activation = ReadComProperty(app, "Activation");
+                        if (!string.IsNullOrWhiteSpace(activation))
+                        {
+                            appIdToActivation[appId] = activation;
+                        }
+
+                        var description = ReadComProperty(app, "Description");
+                        if (!string.IsNullOrWhiteSpace(description))
+                        {
+                            appIdToDescription[appId] = description;
+                        }
                     }
                     finally
                     {
                         ComActivator.Release(app);
                     }
                 }
+
+                // A process is an NT-service host when the SCM reports a service on its PID
+                // (e.g. COMSysApp hosting System Application) — verified against MMC output.
+                var servicePids = LoadServiceProcessIds();
 
                 catalog.GetCollection("ApplicationInstances", out applicationInstances);
                 applicationInstances.Populate();
@@ -306,29 +505,49 @@ public sealed class ComponentServicesManager
                         }
 
                         appIdToName.TryGetValue(appId, out string? appName);
+                        appName ??= appId;
+                        appIdToActivation.TryGetValue(appId, out string? activation);
+                        appIdToDescription.TryGetValue(appId, out string? appDescription);
 
                         string? executableName;
+                        string? filePath = null;
                         try
                         {
                             var process = Process.GetProcessById(processId);
                             executableName = process.ProcessName + ".exe";
+                            try
+                            {
+                                filePath = process.MainModule?.FileName;
+                            }
+                            catch
+                            {
+                                // Protected process; name is enough.
+                            }
                         }
                         catch
                         {
                             executableName = "dllhost.exe";
                         }
 
-                        appIdIsNTService.TryGetValue(appId, out bool isNTService);
-
-                        results.Add(new ProcessInfo
+                        results.Add(new ComPlusRunningProcess
                         {
                             ProcessId = processId,
-                            Name = appName ?? "(Unknown COM+ Application)",
-                            Description = appId,
+                            Name = appName,
                             ExecutableName = executableName,
-                            IsPaused = false,
-                            IsRecycling = false,
-                            IsNTService = isNTService
+                            FilePath = filePath,
+                            IsPaused = ParseComBool(ReadComProperty(instance, "IsPaused")),
+                            IsRecycling = ParseComBool(ReadComProperty(instance, "HasRecycled")),
+                            IsNTService = servicePids.Contains(processId),
+                            Instance = new ComPlusApplicationInstance
+                            {
+                                ApplicationId = appId,
+                                ApplicationName = appName,
+                                Description = appDescription,
+                                PartitionId = ReadComProperty(instance, "PartitionID"),
+                                InstanceId = ReadComProperty(instance, "InstanceID"),
+                                ActivationType = GetLocalizedActivation(activation),
+                                Components = LoadComponents(applications, appId)
+                            }
                         });
                     }
                     catch (Exception ex)
@@ -358,8 +577,115 @@ public sealed class ComponentServicesManager
                 ComActivator.Release(catalog);
             }
 
-            return results.OrderBy(item => item.Name, StringComparer.OrdinalIgnoreCase).ToList();
+            return results
+                .OrderBy(item => item.Name, StringComparer.OrdinalIgnoreCase)
+                .ThenBy(item => item.ProcessId)
+                .ToList();
         });
+    }
+
+    /// <summary>
+    /// Loads the hosted components of a COM+ application via the related
+    /// <c>Components</c> collection (keyed by application ID).
+    /// </summary>
+    private List<ComPlusComponentInfo> LoadComponents(ICatalogCollection applications, string appId)
+    {
+        var results = new List<ComPlusComponentInfo>();
+        ICatalogCollection? components = null;
+        Variant key = Variant.FromString(appId);
+        try
+        {
+            try
+            {
+                applications.GetCollection("Components", key, out components);
+                components.Populate();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogDebug($"[ComponentServicesManager] Components collection unavailable for {appId}: {ex.Message}");
+                return results;
+            }
+
+            int count = components.get_Count();
+            for (int i = 0; i < count; i++)
+            {
+                components.get_Item(i, out ICatalogObject component);
+                try
+                {
+                    var clsid = ReadComProperty(component, "CLSID");
+                    var progId = ReadComProperty(component, "ProgID");
+                    var description = ReadComProperty(component, "Description");
+                    results.Add(new ComPlusComponentInfo
+                    {
+                        DisplayName = progId ?? description ?? clsid ?? appId,
+                        Clsid = clsid,
+                        ProgId = progId,
+                        DllPath = ReadComProperty(component, "DLL"),
+                        Description = description
+                    });
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogDebug($"[ComponentServicesManager] Failed to read component: {ex.Message}");
+                }
+                finally
+                {
+                    ComActivator.Release(component);
+                }
+            }
+        }
+        finally
+        {
+            key.Clear();
+            ComActivator.Release(components);
+        }
+
+        return results.OrderBy(c => c.DisplayName, StringComparer.OrdinalIgnoreCase).ToList();
+    }
+
+    /// <summary>
+    /// Parses a COM catalog boolean rendered by <see cref="Variant.ToInvariantString"/>
+    /// (<c>"True"/"False"</c>) plus the numeric forms some providers return.
+    /// </summary>
+    private static bool ParseComBool(string? value)
+    {
+        return string.Equals(value, bool.TrueString, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(value, "1", StringComparison.Ordinal)
+            || string.Equals(value, "-1", StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// Builds the set of PIDs hosting an SCM service (single WMI query),
+    /// used to reproduce the classic "NT Service" column.
+    /// </summary>
+    private HashSet<int> LoadServiceProcessIds()
+    {
+        var result = new HashSet<int>();
+        try
+        {
+            using var connection = new WmiConnection();
+            foreach (WmiObject obj in connection.CreateQuery("SELECT ProcessId FROM Win32_Service").DisposeItems())
+            {
+                try
+                {
+                    var raw = obj["ProcessId"];
+                    if (raw is not null && int.TryParse(Convert.ToString(raw, CultureInfo.InvariantCulture), NumberStyles.Integer, CultureInfo.InvariantCulture, out int pid) && pid != 0)
+                    {
+                        result.Add(pid);
+                    }
+                }
+                catch
+                {
+                    // Skip unparsable entries.
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogDebug($"[ComponentServicesManager] Service PID query failed: {ex.Message}");
+        }
+
+        return result;
     }
 
     public Task<DtcStatusInfo> GetDtcStatusAsync()
@@ -671,14 +997,52 @@ public sealed class ComponentServicesManager
         var L = LocalizationProvider.Current;
         return authValue switch
         {
+            null or "" or "0" => L.GetString(ResourceFileNames.ComExp, ComExpKeys.FormatDefault),
             "1" => L.GetString(ResourceFileNames.ComExp, "ComExp_Auth_None"),
             "2" => L.GetString(ResourceFileNames.ComExp, "ComExp_Auth_Connect"),
             "3" => L.GetString(ResourceFileNames.ComExp, "ComExp_Auth_Call"),
             "4" => L.GetString(ResourceFileNames.ComExp, "ComExp_Auth_Packet"),
             "5" => L.GetString(ResourceFileNames.ComExp, "ComExp_Auth_PacketIntegrity"),
             "6" => L.GetString(ResourceFileNames.ComExp, "ComExp_Auth_PacketPrivacy"),
-            _ => authValue ?? L.GetString(ResourceFileNames.ComExp, "ComExp_Format_Default")
+            _ => authValue ?? L.GetString(ResourceFileNames.ComExp, ComExpKeys.FormatDefault)
         };
+    }
+
+    private static string GetLocalizedApplicationType(bool isService, bool hasDllSurrogate)
+    {
+        var L = LocalizationProvider.Current;
+        if (isService)
+        {
+            return L.GetString(ResourceFileNames.ComExp, ComExpKeys.DcomTypeLocalService);
+        }
+
+        if (hasDllSurrogate)
+        {
+            return L.GetString(ResourceFileNames.ComExp, ComExpKeys.DcomTypeSurrogate);
+        }
+
+        return L.GetString(ResourceFileNames.ComExp, ComExpKeys.DcomTypeLocalServer);
+    }
+
+    private static string GetLocalizedIdentity(string? localService, string? runAs)
+    {
+        var L = LocalizationProvider.Current;
+        if (!string.IsNullOrEmpty(localService))
+        {
+            return L.GetFormattedString(ResourceFileNames.ComExp, ComExpKeys.DcomIdentityServiceFormat, localService);
+        }
+
+        if (string.Equals(runAs, "Interactive User", StringComparison.OrdinalIgnoreCase))
+        {
+            return L.GetString(ResourceFileNames.ComExp, ComExpKeys.DcomIdentityInteractive);
+        }
+
+        if (!string.IsNullOrWhiteSpace(runAs))
+        {
+            return L.GetString(ResourceFileNames.ComExp, ComExpKeys.DcomIdentityThisUser);
+        }
+
+        return L.GetString(ResourceFileNames.ComExp, ComExpKeys.DcomIdentityLaunching);
     }
 
     #endregion

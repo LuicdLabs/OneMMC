@@ -1438,3 +1438,76 @@ public static class TaskSchdKeys
     public const string CommandSecurity = "TaskSchd_Command_Security";
 }
 
+/// <summary>
+/// Resource key constants for Component Services DCOM Config.
+/// </summary>
+public static class ComExpKeys
+{
+    public const string DcomConfig = "ComExp_DcomConfig";
+    public const string DcomConfigDescription = "ComExp_DcomConfig_Description";
+    public const string ApplicationName = "ComExp_Application_Name";
+    public const string ApplicationId = "ComExp_Application_Id";
+    public const string DcomAppId = "ComExp_Dcom_AppId";
+    public const string ApplicationAuthenticationLevel = "ComExp_Application_AuthenticationLevel";
+    public const string LoadingDcomApps = "ComExp_LoadingDcomApps";
+    public const string LoadedCount = "ComExp_LoadedCount";
+    public const string LoadFailed = "ComExp_LoadFailed";
+    public const string NoDataAvailable = "ComExp_NoDataAvailable";
+    public const string AuthNone = "ComExp_Auth_None";
+    public const string AuthConnect = "ComExp_Auth_Connect";
+    public const string AuthCall = "ComExp_Auth_Call";
+    public const string AuthPacket = "ComExp_Auth_Packet";
+    public const string AuthPacketIntegrity = "ComExp_Auth_PacketIntegrity";
+    public const string AuthPacketPrivacy = "ComExp_Auth_PacketPrivacy";
+    public const string FormatDefault = "ComExp_Format_Default";
+
+    // DCOM Config list + detail
+    public const string DcomSearchPlaceholder = "ComExp_Dcom_SearchPlaceholder";
+    public const string DcomTabGeneral = "ComExp_Dcom_Tab_General";
+    public const string DcomTabLocation = "ComExp_Dcom_Tab_Location";
+    public const string DcomTabSecurity = "ComExp_Dcom_Tab_Security";
+    public const string DcomTabEndpoints = "ComExp_Dcom_Tab_Endpoints";
+    public const string DcomTabIdentity = "ComExp_Dcom_Tab_Identity";
+    public const string DcomApplicationName = "ComExp_Dcom_ApplicationName";
+    public const string DcomApplicationType = "ComExp_Dcom_ApplicationType";
+    public const string DcomAuthenticationLevel = "ComExp_Dcom_AuthenticationLevel";
+    public const string DcomLocalPath = "ComExp_Dcom_LocalPath";
+    public const string DcomTypeLocalServer = "ComExp_Dcom_Type_LocalServer";
+    public const string DcomTypeLocalService = "ComExp_Dcom_Type_LocalService";
+    public const string DcomTypeSurrogate = "ComExp_Dcom_Type_Surrogate";
+    public const string DcomLocalService = "ComExp_Dcom_LocalService";
+    public const string DcomRunAs = "ComExp_Dcom_RunAs";
+    public const string DcomDllSurrogate = "ComExp_Dcom_DllSurrogate";
+    public const string DcomServiceParameters = "ComExp_Dcom_ServiceParameters";
+    public const string DcomIdentity = "ComExp_Dcom_Identity";
+    public const string DcomIdentityInteractive = "ComExp_Dcom_Identity_Interactive";
+    public const string DcomIdentityLaunching = "ComExp_Dcom_Identity_Launching";
+    public const string DcomIdentityThisUser = "ComExp_Dcom_Identity_ThisUser";
+    public const string DcomIdentityServiceFormat = "ComExp_Dcom_Identity_ServiceFormat";
+    public const string DcomRunOnThisComputer = "ComExp_Dcom_RunOnThisComputer";
+    public const string DcomRunOnFollowingComputer = "ComExp_Dcom_RunOnFollowingComputer";
+    public const string DcomRemoteComputerName = "ComExp_Dcom_RemoteComputerName";
+    public const string DcomLaunchPermissions = "ComExp_Dcom_LaunchPermissions";
+    public const string DcomAccessPermissions = "ComExp_Dcom_AccessPermissions";
+    public const string DcomUseDefault = "ComExp_Dcom_UseDefault";
+    public const string DcomUseCustom = "ComExp_Dcom_UseCustom";
+    public const string DcomEndpointsEmpty = "ComExp_Dcom_EndpointsEmpty";
+    public const string DcomNoSelection = "ComExp_Dcom_NoSelection";
+    public const string DcomNoResults = "ComExp_Dcom_NoResults";
+    public const string DcomReadOnlyNote = "ComExp_Dcom_ReadOnlyNote";
+    public const string DcomNotSet = "ComExp_Dcom_NotSet";
+
+    // Running Processes
+    public const string LoadingProcesses = "ComExp_LoadingProcesses";
+    public const string RunSummaryFormat = "ComExp_Run_SummaryFormat";
+    public const string RunNoProcesses = "ComExp_Run_NoProcesses";
+    public const string RunSelectPrompt = "ComExp_Run_SelectPrompt";
+    public const string RunPartitionId = "ComExp_Run_PartitionId";
+    public const string RunApplicationId = "ComExp_Run_ApplicationId";
+    public const string RunInstanceId = "ComExp_Run_InstanceId";
+    public const string RunType = "ComExp_Run_Type";
+    public const string RunClsid = "ComExp_Run_Clsid";
+    public const string RunProgId = "ComExp_Run_ProgId";
+    public const string RunDll = "ComExp_Run_Dll";
+}
+
