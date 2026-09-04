@@ -156,7 +156,8 @@ public sealed partial class IPSecurityRulesManagerControl : UserControl
                 CultureInfo.CurrentCulture,
                 LocalizedStrings.IPSec_DeleteRule_MessageFormat,
                 selected.Definition.Name),
-            XamlRoot = XamlRoot,
+            Style = Application.Current.Resources["DefaultContentDialogStyle"] as Style,
+            XamlRoot = this.XamlRoot,
             RequestedTheme = App.CurrentTheme,
             PrimaryButtonText = LocalizedStrings.Common_DeleteButton,
             CloseButtonText = LocalizedStrings.Common_CancelButton
@@ -225,7 +226,8 @@ public sealed partial class IPSecurityRulesManagerControl : UserControl
         {
             Title = title,
             Content = editor,
-            XamlRoot = XamlRoot,
+            Style = Application.Current.Resources["DefaultContentDialogStyle"] as Style,
+            XamlRoot = this.XamlRoot,
             RequestedTheme = App.CurrentTheme,
             PrimaryButtonText = primaryButtonText,
             CloseButtonText = LocalizedStrings.Common_CancelButton,
@@ -333,9 +335,6 @@ public sealed partial class IPSecurityRulesManagerControl : UserControl
             FilterActionName = rule.IsDefaultResponseRule
                 ? LocalizedStrings.IPSec_Rule_DefaultResponse
                 : rule.FilterActionName,
-            ActiveDisplay = rule.IsActive
-                ? LocalizedStrings.IPSec_Value_Yes
-                : LocalizedStrings.IPSec_Value_No,
             ConnectionTypeDisplay = ConvertConnectionType(rule.ConnectionType)
         };
     }
@@ -414,8 +413,6 @@ internal sealed class IPSecurityRuleListItem
     public string FilterListName { get; set; } = string.Empty;
 
     public string FilterActionName { get; set; } = string.Empty;
-
-    public string ActiveDisplay { get; set; } = string.Empty;
 
     public string ConnectionTypeDisplay { get; set; } = string.Empty;
 }

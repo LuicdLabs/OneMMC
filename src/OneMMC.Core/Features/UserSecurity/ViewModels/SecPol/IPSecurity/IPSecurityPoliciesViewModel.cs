@@ -15,7 +15,7 @@ namespace OneMMC.Core.Features.UserSecurity.ViewModels.SecPol.IPSecurity;
 public sealed partial class IPSecurityPoliciesViewModel : ObservableObject
 {
     private readonly IPSecurityPolicyService _policyService;
-    private readonly IPSecurityStaticPolicyMutationService _mutationService;
+    private readonly IPSecurityMutationService _mutationService;
     private readonly ILogger<IPSecurityPoliciesViewModel> _logger;
     private readonly IAdminService _adminService;
     private IPSecurityPolicySnapshot _snapshot = new();
@@ -29,7 +29,7 @@ public sealed partial class IPSecurityPoliciesViewModel : ObservableObject
     /// <param name="adminService">The administrator service.</param>
     public IPSecurityPoliciesViewModel(
         IPSecurityPolicyService policyService,
-        IPSecurityStaticPolicyMutationService mutationService,
+        IPSecurityMutationService mutationService,
         ILogger<IPSecurityPoliciesViewModel> logger,
         IAdminService adminService)
     {

@@ -1,8 +1,8 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
-using OneMMC.Core.Features.UserSecurity.Models.NetworkListManager;
+using OneMMC.Core.Features.UserSecurity.Models.SecPol.NetworkListManager;
 using OneMMC.Core.Localization;
 
-namespace OneMMC.Core.Features.UserSecurity.ViewModels.NetworkListManager;
+namespace OneMMC.Core.Features.UserSecurity.ViewModels.SecPol.NetworkListManager;
 
 /// <summary>
 /// Observable wrapper used by the Network List Manager page.

@@ -5,13 +5,13 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol.IPSecurity;
 
 /// <summary>
 /// Validates legacy static IPsec mutations and builds policy-script tokens consumed by
-/// <see cref="IPSecurityStaticPolicyNativeClient"/>.
+/// <see cref="IPSecurityNativeClient"/>.
 /// </summary>
 /// <remarks>
 /// This type is side-effect free. It never opens the policy store, changes a policy store, or logs command values.
 /// Returned lists begin with <c>ipsec static</c> and are converted into native policy-script lines at execution time.
 /// </remarks>
-public static class IPSecurityStaticPolicyCommandBuilder
+public static class IPSecurityCommandBuilder
 {
     private const string AllSelector = "all";
 

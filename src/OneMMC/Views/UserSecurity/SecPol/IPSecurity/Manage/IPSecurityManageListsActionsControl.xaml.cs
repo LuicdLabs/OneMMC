@@ -362,7 +362,8 @@ public sealed partial class IPSecurityManageListsActionsControl : UserControl
         {
             Title = title,
             Content = editor,
-            XamlRoot = XamlRoot,
+            Style = Application.Current.Resources["DefaultContentDialogStyle"] as Style,
+            XamlRoot = this.XamlRoot,
             RequestedTheme = App.CurrentTheme,
             PrimaryButtonText = primaryButtonText,
             CloseButtonText = LocalizedStrings.Common_CancelButton,
@@ -381,7 +382,8 @@ public sealed partial class IPSecurityManageListsActionsControl : UserControl
         {
             Title = LocalizedStrings.IPSec_DeleteConfirm_Title,
             Content = message,
-            XamlRoot = XamlRoot,
+            Style = Application.Current.Resources["DefaultContentDialogStyle"] as Style,
+            XamlRoot = this.XamlRoot,
             RequestedTheme = App.CurrentTheme,
             PrimaryButtonText = LocalizedStrings.Common_DeleteButton,
             CloseButtonText = LocalizedStrings.Common_CancelButton

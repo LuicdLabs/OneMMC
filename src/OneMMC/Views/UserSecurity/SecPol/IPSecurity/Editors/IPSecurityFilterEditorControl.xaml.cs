@@ -33,15 +33,6 @@ public sealed partial class IPSecurityFilterEditorControl : UserControl
     }
 
     /// <summary>
-    /// Initializes a filter editor from a store definition.
-    /// </summary>
-    /// <param name="filter">The filter to edit.</param>
-    public IPSecurityFilterEditorControl(IPSecurityFilterDefinition filter)
-        : this(IPSecurityEditorValidation.ToFilterOptions(filter))
-    {
-    }
-
-    /// <summary>
     /// Initializes a filter editor from command options.
     /// </summary>
     /// <param name="filter">The filter values to edit.</param>
@@ -85,7 +76,7 @@ public sealed partial class IPSecurityFilterEditorControl : UserControl
 
         IPSecurityFilterCommandOptions candidate = options;
         bool isValid = IPSecurityEditorValidation.TryValidate(
-            () => _ = IPSecurityStaticPolicyCommandBuilder.BuildAddFilter(candidate),
+            () => _ = IPSecurityCommandBuilder.BuildAddFilter(candidate),
             ValidationInfoBar,
             LocalizedStrings.IPSec_Editor_ValidationInvalid);
         if (!isValid)

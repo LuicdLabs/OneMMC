@@ -90,7 +90,7 @@ public sealed class IPSecurityPolicySnapshot
 /// <summary>
 /// A typed snapshot of the legacy static local IPsec policy store.
 /// </summary>
-public sealed class IPSecurityStaticStoreSnapshot
+public sealed class IPSecurityStoreSnapshot
 {
     /// <summary>The policies in the store.</summary>
     public IReadOnlyList<IPSecurityPolicyDefinition> Policies { get; init; } = [];

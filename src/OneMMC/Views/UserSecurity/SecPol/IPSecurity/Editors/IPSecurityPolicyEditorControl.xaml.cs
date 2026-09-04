@@ -1,7 +1,6 @@
 ﻿using OneMMC.Core.Features.UserSecurity.Models.SecPol.IPSecurity;
 using OneMMC.Core.Features.UserSecurity.Services.SecPol.IPSecurity;
 using OneMMC.Localization;
-using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 
 namespace OneMMC.Views.UserSecurity.SecPol.IPSecurity.Editors;
@@ -85,11 +84,11 @@ public sealed partial class IPSecurityPolicyEditorControl : UserControl
             {
                 if (_mode == IPSecurityEditorMode.Create)
                 {
-                    _ = IPSecurityStaticPolicyCommandBuilder.BuildAddPolicy(candidate);
+                    _ = IPSecurityCommandBuilder.BuildAddPolicy(candidate);
                 }
                 else
                 {
-                    _ = IPSecurityStaticPolicyCommandBuilder.BuildSetPolicy(candidate);
+                    _ = IPSecurityCommandBuilder.BuildSetPolicy(candidate);
                 }
             },
             ValidationInfoBar,

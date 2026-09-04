@@ -132,11 +132,11 @@ public sealed partial class IPSecurityRuleEditorControl : UserControl
             {
                 if (_mode == IPSecurityEditorMode.Create)
                 {
-                    _ = IPSecurityStaticPolicyCommandBuilder.BuildAddRule(candidate);
+                    _ = IPSecurityCommandBuilder.BuildAddRule(candidate);
                 }
                 else
                 {
-                    _ = IPSecurityStaticPolicyCommandBuilder.BuildSetRule(candidate);
+                    _ = IPSecurityCommandBuilder.BuildSetRule(candidate);
                 }
             },
             ValidationInfoBar,

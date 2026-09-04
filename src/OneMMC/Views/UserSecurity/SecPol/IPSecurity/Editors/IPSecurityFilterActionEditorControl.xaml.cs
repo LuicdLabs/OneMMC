@@ -80,11 +80,11 @@ public sealed partial class IPSecurityFilterActionEditorControl : UserControl
             {
                 if (_mode == IPSecurityEditorMode.Create)
                 {
-                    _ = IPSecurityStaticPolicyCommandBuilder.BuildAddFilterAction(candidate);
+                    _ = IPSecurityCommandBuilder.BuildAddFilterAction(candidate);
                 }
                 else
                 {
-                    _ = IPSecurityStaticPolicyCommandBuilder.BuildSetFilterAction(candidate);
+                    _ = IPSecurityCommandBuilder.BuildSetFilterAction(candidate);
                 }
             },
             ValidationInfoBar,

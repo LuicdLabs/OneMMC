@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using OneMMC.Core.Features.UserSecurity.ViewModels.NetworkListManager;
+using OneMMC.Core.Features.UserSecurity.ViewModels.SecPol.NetworkListManager;
 using OneMMC.Helpers;
 using OneMMC.Localization;
 using OneMMC.Services;

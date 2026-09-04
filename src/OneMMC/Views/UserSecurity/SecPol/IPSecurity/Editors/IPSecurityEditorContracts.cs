@@ -23,9 +23,6 @@ public sealed class IPSecurityFilterListEditorResult
     /// <summary>Gets the options that create or update the filter list.</summary>
     public required IPSecurityFilterListCommandOptions Options { get; init; }
 
-    /// <summary>Gets the filters that existed when the editor opened.</summary>
-    public IReadOnlyList<IPSecurityFilterCommandOptions> OriginalFilters { get; init; } = [];
-
     /// <summary>Gets the filters currently contained by the edited list.</summary>
     public IReadOnlyList<IPSecurityFilterCommandOptions> Filters { get; init; } = [];
 }

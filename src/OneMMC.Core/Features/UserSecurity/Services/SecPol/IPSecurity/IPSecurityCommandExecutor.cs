@@ -12,7 +12,7 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol.IPSecurity;
 /// Executes validated mutation commands against the legacy static local IPsec policy store
 /// using the native <c>polstore.dll</c> struct-based create, set, and delete APIs.
 /// </summary>
-public sealed class IPSecurityStaticPolicyCommandExecutor
+public sealed class IPSecurityCommandExecutor
 {
     private static readonly HashSet<string> AllowedVerbs =
         new(StringComparer.OrdinalIgnoreCase) { "add", "set", "delete" };
@@ -20,14 +20,14 @@ public sealed class IPSecurityStaticPolicyCommandExecutor
     private static readonly HashSet<string> AllowedObjectKinds =
         new(StringComparer.OrdinalIgnoreCase) { "policy", "filterlist", "filter", "filteraction", "rule" };
 
-    private readonly ILogger<IPSecurityStaticPolicyCommandExecutor> _logger;
+    private readonly ILogger<IPSecurityCommandExecutor> _logger;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="IPSecurityStaticPolicyCommandExecutor"/> class.
+    /// Initializes a new instance of the <see cref="IPSecurityCommandExecutor"/> class.
     /// </summary>
     /// <param name="logger">The logger instance.</param>
-    public IPSecurityStaticPolicyCommandExecutor(
-        ILogger<IPSecurityStaticPolicyCommandExecutor> logger)
+    public IPSecurityCommandExecutor(
+        ILogger<IPSecurityCommandExecutor> logger)
     {
         _logger = logger;
     }
@@ -155,7 +155,7 @@ public sealed class IPSecurityStaticPolicyCommandExecutor
         // Native tools (the secpol.msc wizard, netsh) always create this rule, and polstore only
         // reports a policy through IPSecEnumPolicyData once it has one. Creating it also makes
         // polstore write the policy's ipsecNFAReference value, so no registry patch-up is needed.
-        IPSecurityStaticPolicySeeder.CreateDefaultResponseRule(
+        IPSecuritySeeder.CreateDefaultResponseRule(
             store, policyGuid, mainMode.IsDefaultResponseRuleActive);
 
         // Repair step for stores left inconsistent by earlier builds of this app, which created

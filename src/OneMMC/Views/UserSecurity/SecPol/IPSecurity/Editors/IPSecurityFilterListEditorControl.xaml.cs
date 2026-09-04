@@ -93,16 +93,16 @@ public sealed partial class IPSecurityFilterListEditorControl : UserControl
             {
                 if (_mode == IPSecurityEditorMode.Create)
                 {
-                    _ = IPSecurityStaticPolicyCommandBuilder.BuildAddFilterList(options);
+                    _ = IPSecurityCommandBuilder.BuildAddFilterList(options);
                 }
                 else
                 {
-                    _ = IPSecurityStaticPolicyCommandBuilder.BuildSetFilterList(options);
+                    _ = IPSecurityCommandBuilder.BuildSetFilterList(options);
                 }
 
                 foreach (IPSecurityFilterCommandOptions filter in filters)
                 {
-                    _ = IPSecurityStaticPolicyCommandBuilder.BuildAddFilter(filter);
+                    _ = IPSecurityCommandBuilder.BuildAddFilter(filter);
                 }
             },
             ValidationInfoBar,
@@ -112,7 +112,6 @@ public sealed partial class IPSecurityFilterListEditorControl : UserControl
             ? new IPSecurityFilterListEditorResult
             {
                 Options = options,
-                OriginalFilters = _originalFilters,
                 Filters = filters
             }
             : null;
@@ -171,7 +170,8 @@ public sealed partial class IPSecurityFilterListEditorControl : UserControl
         {
             Title = title,
             Content = editor,
-            XamlRoot = XamlRoot,
+            Style = Application.Current.Resources["DefaultContentDialogStyle"] as Style,
+            XamlRoot = this.XamlRoot,
             RequestedTheme = App.CurrentTheme,
             PrimaryButtonText = LocalizedStrings.Common_OKButton,
             CloseButtonText = LocalizedStrings.Common_CancelButton,

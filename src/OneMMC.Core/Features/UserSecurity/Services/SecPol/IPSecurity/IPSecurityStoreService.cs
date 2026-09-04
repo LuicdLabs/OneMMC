@@ -11,7 +11,7 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol.IPSecurity;
 /// Reads the legacy static local IPsec policy store through the native <c>polstore.dll</c>
 /// enum APIs (<c>IPSecEnumPolicyData</c>, <c>IPSecEnumFilterData</c>, etc.).
 /// </summary>
-public sealed class IPSecurityStaticPolicyStoreService
+public sealed class IPSecurityStoreService
 {
     /// <summary>Well-known NegPol action GUID: Block.</summary>
     private static readonly Guid NegPolActionBlock = new("3f91a819-7647-11d1-864d-d46a00000000");
@@ -19,16 +19,16 @@ public sealed class IPSecurityStaticPolicyStoreService
     /// <summary>Well-known NegPol action GUID: Negotiate security.</summary>
     private static readonly Guid NegPolActionNegotiate = new("8a171dd3-77e3-11d1-8659-a04f00000000");
 
-    private readonly ILogger<IPSecurityStaticPolicyStoreService> _logger;
+    private readonly ILogger<IPSecurityStoreService> _logger;
     private readonly IAdminService _adminService;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="IPSecurityStaticPolicyStoreService"/> class.
+    /// Initializes a new instance of the <see cref="IPSecurityStoreService"/> class.
     /// </summary>
     /// <param name="logger">The logger instance.</param>
     /// <param name="adminService">The administrator service.</param>
-    public IPSecurityStaticPolicyStoreService(
-        ILogger<IPSecurityStaticPolicyStoreService> logger,
+    public IPSecurityStoreService(
+        ILogger<IPSecurityStoreService> logger,
         IAdminService adminService)
     {
         _logger = logger;
@@ -39,14 +39,14 @@ public sealed class IPSecurityStaticPolicyStoreService
     /// Loads the legacy static local IPsec policy store by enumerating native objects.
     /// </summary>
     /// <returns>A typed snapshot of policies, shared filter lists, and shared filter actions.</returns>
-    public IPSecurityStaticStoreSnapshot LoadSnapshot()
+    public IPSecurityStoreSnapshot LoadSnapshot()
     {
         if (!IPSecurityPolicyNativeMethods.IsAvailable)
         {
             _logger.LogWarning(
                 "The legacy IPsec policy store APIs are not available on this system. " +
                 "Returning an empty snapshot.");
-            return new IPSecurityStaticStoreSnapshot();
+            return new IPSecurityStoreSnapshot();
         }
 
         if (!IPSecurityPolicyNativeMethods.TryOpenRegistryStore(out IntPtr hStore, out int openError))
@@ -60,7 +60,7 @@ public sealed class IPSecurityStaticPolicyStoreService
             _logger.LogWarning(
                 "The legacy IPsec policy store could not be opened (native error 0x{ErrorCode:X8}).",
                 openError);
-            return new IPSecurityStaticStoreSnapshot();
+            return new IPSecurityStoreSnapshot();
         }
 
         try
@@ -73,7 +73,7 @@ public sealed class IPSecurityStaticPolicyStoreService
         }
     }
 
-    private IPSecurityStaticStoreSnapshot LoadFromNativeStore(IntPtr hStore)
+    private IPSecurityStoreSnapshot LoadFromNativeStore(IntPtr hStore)
     {
         Guid? activePolicyGuid = ReadActivePolicyGuid();
 
@@ -89,7 +89,7 @@ public sealed class IPSecurityStaticPolicyStoreService
         List<IPSecurityPolicyDefinition> policies = EnumPolicies(
             hStore, activePolicyGuid, filterNamesByGuid, negPolNamesByGuid, negPolsByGuid, mainModeObjects);
 
-        return new IPSecurityStaticStoreSnapshot
+        return new IPSecurityStoreSnapshot
         {
             Policies = policies.OrderBy(static p => p.Name, StringComparer.CurrentCultureIgnoreCase).ToList(),
             FilterLists = filterLists.OrderBy(static f => f.Name, StringComparer.CurrentCultureIgnoreCase).ToList(),

@@ -9,7 +9,7 @@
     mc:Ignorable="d">
 
     <!--
-        A titled page with the command bar under the heading, then one list. Rows are two-line
+        The search box sits above the command bar and policy list. Rows are two-line
         (name + description) with the assignment state as a trailing chip, so no column-header row
         has to stay aligned with the item template as the window resizes.
     -->
@@ -21,108 +21,107 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <Grid
+        <AutoSuggestBox
+            x:Name="SearchBox"
             Grid.Row="0"
+            Width="280"
             Margin="24,12,24,0"
-            ColumnSpacing="16">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
-            <StackPanel VerticalAlignment="Center" Spacing="2">
-                <TextBlock
-                    Style="{StaticResource SubtitleTextBlockStyle}"
-                    Text="{x:Bind LocalizedStrings.IPSec_Section_Policies}" />
-                <TextBlock
-                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-                    Style="{StaticResource CaptionTextBlockStyle}"
-                    Text="{x:Bind LocalizedStrings.IPSec_Page_PoliciesDescription}"
-                    TextWrapping="Wrap" />
-            </StackPanel>
-            <AutoSuggestBox
-                x:Name="SearchBox"
-                Grid.Column="1"
-                Width="280"
-                VerticalAlignment="Center"
-                AutomationProperties.AutomationId="IPSecuritySearchBox"
-                PlaceholderText="{x:Bind LocalizedStrings.Common_SearchPlaceholder}"
-                QueryIcon="Find"
-                TextChanged="SearchBox_TextChanged" />
-        </Grid>
+            HorizontalAlignment="Right"
+            VerticalAlignment="Center"
+            AutomationProperties.AutomationId="IPSecuritySearchBox"
+            PlaceholderText="{x:Bind LocalizedStrings.Common_SearchPlaceholder}"
+            QueryIcon="Find"
+            TextChanged="SearchBox_TextChanged" />
 
         <CommandBar
             Grid.Row="1"
             Margin="16,4,16,0"
-            HorizontalAlignment="Left"
             AutomationProperties.AutomationId="IPSecurityCommandBar"
             Background="Transparent"
             DefaultLabelPosition="Right">
-            <CommandBar.PrimaryCommands>
-                <AppBarButton
-                    AutomationProperties.AutomationId="IPSecurityNewButton"
-                    Click="NewItemButton_Click"
-                    Icon="Add"
-                    IsEnabled="{x:Bind ViewModel.CanCreateItem, Mode=OneWay}"
-                    Label="{x:Bind LocalizedStrings.IPSec_Command_New}" />
-                <AppBarButton
-                    AutomationProperties.AutomationId="IPSecurityEditButton"
-                    Click="EditItemButton_Click"
-                    Icon="Edit"
-                    IsEnabled="{x:Bind ViewModel.CanEditSelectedItem, Mode=OneWay}"
-                    Label="{x:Bind LocalizedStrings.IPSec_Command_Edit}" />
-                <AppBarButton
-                    AutomationProperties.AutomationId="IPSecurityDeleteButton"
-                    Click="DeleteItemButton_Click"
-                    Icon="Delete"
-                    IsEnabled="{x:Bind ViewModel.CanDeleteSelectedItem, Mode=OneWay}"
-                    Label="{x:Bind LocalizedStrings.IPSec_Command_Delete}" />
-                <AppBarSeparator />
-                <AppBarButton
-                    AutomationProperties.AutomationId="IPSecurityManageRulesButton"
-                    Click="ManageRulesButton_Click"
-                    Icon="Bullets"
-                    IsEnabled="{x:Bind ViewModel.CanManageSelectedPolicyRules, Mode=OneWay}"
-                    Label="{x:Bind LocalizedStrings.IPSec_Command_ManageRules}" />
-                <AppBarButton
-                    AutomationProperties.AutomationId="IPSecurityAssignButton"
-                    Click="AssignPolicyButton_Click"
-                    IsEnabled="{x:Bind ViewModel.CanAssignSelectedPolicy, Mode=OneWay}"
-                    Label="{x:Bind LocalizedStrings.IPSec_Command_Assign}">
-                    <AppBarButton.Icon>
-                        <FontIcon Glyph="&#xE73E;" />
-                    </AppBarButton.Icon>
-                </AppBarButton>
-            </CommandBar.PrimaryCommands>
-            <CommandBar.SecondaryCommands>
-                <AppBarButton
-                    AutomationProperties.AutomationId="IPSecurityUnassignButton"
-                    Click="UnassignPolicyButton_Click"
-                    IsEnabled="{x:Bind ViewModel.CanUnassignSelectedPolicy, Mode=OneWay}"
-                    Label="{x:Bind LocalizedStrings.IPSec_Command_Unassign}">
-                    <AppBarButton.Icon>
-                        <FontIcon Glyph="&#xE711;" />
-                    </AppBarButton.Icon>
-                </AppBarButton>
-                <AppBarButton
-                    AutomationProperties.AutomationId="IPSecurityManageFiltersActionsButton"
-                    Click="ManageFiltersActionsButton_Click"
-                    Icon="List"
-                    Label="{x:Bind LocalizedStrings.IPSec_Command_ManageFiltersActions}" />
-                <AppBarButton
-                    AutomationProperties.AutomationId="IPSecurityViewDetailsButton"
-                    Click="ViewDetailsButton_Click"
-                    IsEnabled="{x:Bind ViewModel.CanViewSelectedPolicyDetails, Mode=OneWay}"
-                    Label="{x:Bind LocalizedStrings.IPSec_Command_ViewDetails}">
-                    <AppBarButton.Icon>
-                        <FontIcon Glyph="&#xE8A5;" />
-                    </AppBarButton.Icon>
-                </AppBarButton>
-                <AppBarButton
-                    AutomationProperties.AutomationId="IPSecurityRefreshButton"
-                    Click="RefreshButton_Click"
-                    Icon="Refresh"
-                    Label="{x:Bind LocalizedStrings.Common_Refresh}" />
-            </CommandBar.SecondaryCommands>
+            <AppBarButton
+                AutomationProperties.AutomationId="IPSecurityNewButton"
+                Click="NewItemButton_Click"
+                Icon="Add"
+                IsEnabled="{x:Bind ViewModel.CanCreateItem, Mode=OneWay}"
+                Label="{x:Bind LocalizedStrings.IPSec_Command_New}" />
+            <AppBarButton
+                AutomationProperties.AutomationId="IPSecurityEditButton"
+                Click="EditItemButton_Click"
+                Icon="Edit"
+                IsEnabled="{x:Bind ViewModel.CanEditSelectedItem, Mode=OneWay}"
+                Label="{x:Bind LocalizedStrings.IPSec_Command_Edit}" />
+            <AppBarButton
+                AutomationProperties.AutomationId="IPSecurityDeleteButton"
+                Click="DeleteItemButton_Click"
+                Icon="Delete"
+                IsEnabled="{x:Bind ViewModel.CanDeleteSelectedItem, Mode=OneWay}"
+                Label="{x:Bind LocalizedStrings.IPSec_Command_Delete}" />
+            <AppBarButton
+                AutomationProperties.AutomationId="IPSecurityRefreshButton"
+                Click="RefreshButton_Click"
+                Icon="Refresh"
+                Label="{x:Bind LocalizedStrings.Common_Refresh}" />
+            <AppBarSeparator />
+            <AppBarButton
+                AutomationProperties.AutomationId="IPSecurityAssignButton"
+                Click="AssignPolicyButton_Click"
+                IsEnabled="{x:Bind ViewModel.CanAssignSelectedPolicy, Mode=OneWay}"
+                Label="{x:Bind LocalizedStrings.IPSec_Command_Assign}">
+                <AppBarButton.Icon>
+                    <FontIcon Glyph="&#xE73E;" />
+                </AppBarButton.Icon>
+            </AppBarButton>
+
+            <!--  Overflow: less-common actions grouped under a single "More" button, matching the Task Scheduler command bar.  -->
+            <AppBarButton
+                AutomationProperties.AutomationId="IPSecurityMoreButton"
+                Label="{x:Bind LocalizedStrings.Common_MoreOptionsTooltip}"
+                LabelPosition="Collapsed">
+                <AppBarButton.Icon>
+                    <FontIcon Glyph="&#xE712;" />
+                </AppBarButton.Icon>
+                <AppBarButton.Flyout>
+                    <MenuFlyout>
+                        <MenuFlyoutItem
+                            AutomationProperties.AutomationId="IPSecurityUnassignButton"
+                            Click="UnassignPolicyButton_Click"
+                            IsEnabled="{x:Bind ViewModel.CanUnassignSelectedPolicy, Mode=OneWay}"
+                            Text="{x:Bind LocalizedStrings.IPSec_Command_Unassign}">
+                            <MenuFlyoutItem.Icon>
+                                <FontIcon Glyph="&#xE711;" />
+                            </MenuFlyoutItem.Icon>
+                        </MenuFlyoutItem>
+                        <MenuFlyoutItem
+                            AutomationProperties.AutomationId="IPSecurityManageRulesButton"
+                            Click="ManageRulesButton_Click"
+                            IsEnabled="{x:Bind ViewModel.CanManageSelectedPolicyRules, Mode=OneWay}"
+                            Text="{x:Bind LocalizedStrings.IPSec_Command_ManageRules}">
+                            <MenuFlyoutItem.Icon>
+                                <SymbolIcon Symbol="Bullets" />
+                            </MenuFlyoutItem.Icon>
+                        </MenuFlyoutItem>
+                        <MenuFlyoutSeparator />
+                        <MenuFlyoutItem
+                            AutomationProperties.AutomationId="IPSecurityManageFiltersActionsButton"
+                            Click="ManageFiltersActionsButton_Click"
+                            Text="{x:Bind LocalizedStrings.IPSec_Command_ManageFiltersActions}">
+                            <MenuFlyoutItem.Icon>
+                                <SymbolIcon Symbol="List" />
+                            </MenuFlyoutItem.Icon>
+                        </MenuFlyoutItem>
+                        <MenuFlyoutItem
+                            AutomationProperties.AutomationId="IPSecurityViewDetailsButton"
+                            Click="ViewDetailsButton_Click"
+                            IsEnabled="{x:Bind ViewModel.CanViewSelectedPolicyDetails, Mode=OneWay}"
+                            Text="{x:Bind LocalizedStrings.IPSec_Command_ViewDetails}">
+                            <MenuFlyoutItem.Icon>
+                                <FontIcon Glyph="&#xE8A5;" />
+                            </MenuFlyoutItem.Icon>
+                        </MenuFlyoutItem>
+                    </MenuFlyout>
+                </AppBarButton.Flyout>
+            </AppBarButton>
         </CommandBar>
 
         <InfoBar
@@ -144,14 +143,6 @@
                 ItemsSource="{x:Bind ViewModel.Items, Mode=OneWay}"
                 SelectedItem="{x:Bind ViewModel.SelectedPolicy, Mode=TwoWay}"
                 SelectionMode="Single">
-                <ListView.ItemContainerStyle>
-                    <Style TargetType="ListViewItem">
-                        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-                        <Setter Property="Margin" Value="0,0,0,4" />
-                        <Setter Property="MinHeight" Value="68" />
-                        <Setter Property="Padding" Value="0" />
-                    </Style>
-                </ListView.ItemContainerStyle>
                 <ListView.ItemTemplate>
                     <DataTemplate x:DataType="ipsec:IPSecurityPolicyRow">
                         <Grid Padding="14,10" ColumnSpacing="14">

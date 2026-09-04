@@ -22,7 +22,7 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol.IPSecurity;
 /// and <c>ipsecNFAReference</c> itself, which is why no registry patch-up step is needed any more.
 /// </para>
 /// </remarks>
-internal static unsafe class IPSecurityStaticPolicySeeder
+internal static unsafe class IPSecuritySeeder
 {
     /// <summary>
     /// Creates the default response rule (a negotiation policy plus an NFA) for a newly created

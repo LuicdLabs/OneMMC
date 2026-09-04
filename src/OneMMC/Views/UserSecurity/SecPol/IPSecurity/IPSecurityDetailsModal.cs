@@ -38,6 +38,7 @@ public sealed class IPSecurityDetailsModal
                 localizedStrings.IPSec_Dialog_Details_TitleFormat,
                 row.Name),
             Content = CreateContent(row, localizedStrings),
+            Style = Application.Current.Resources["DefaultContentDialogStyle"] as Style,
             XamlRoot = ownerXamlRoot,
             RequestedTheme = App.CurrentTheme,
             CloseButtonText = localizedStrings.Common_CloseButton

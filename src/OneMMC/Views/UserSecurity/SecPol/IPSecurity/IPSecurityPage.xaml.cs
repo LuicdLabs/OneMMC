@@ -230,7 +230,8 @@ public sealed partial class IPSecurityPage : Page
         {
             Title = title,
             Content = editor,
-            XamlRoot = XamlRoot,
+            Style = Application.Current.Resources["DefaultContentDialogStyle"] as Style,
+            XamlRoot = this.XamlRoot,
             RequestedTheme = App.CurrentTheme,
             PrimaryButtonText = LocalizedStrings.Common_SaveButton,
             CloseButtonText = LocalizedStrings.Common_CancelButton,
@@ -249,7 +250,8 @@ public sealed partial class IPSecurityPage : Page
         {
             Title = LocalizedStrings.IPSec_DeleteConfirm_Title,
             Content = message,
-            XamlRoot = XamlRoot,
+            Style = Application.Current.Resources["DefaultContentDialogStyle"] as Style,
+            XamlRoot = this.XamlRoot,
             RequestedTheme = App.CurrentTheme,
             PrimaryButtonText = LocalizedStrings.Common_DeleteButton,
             CloseButtonText = LocalizedStrings.Common_CancelButton

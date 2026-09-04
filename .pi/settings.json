@@ -1,0 +1,6 @@
+{
+  "packages": [
+    "npm:pi-mcp-adapter",
+    "npm:pi-web-access"
+  ]
+}

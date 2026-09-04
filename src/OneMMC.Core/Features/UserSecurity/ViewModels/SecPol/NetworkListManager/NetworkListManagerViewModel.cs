@@ -2,12 +2,12 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using OneMMC.Core.Abstractions.Services;
-using OneMMC.Core.Features.UserSecurity.Models.NetworkListManager;
-using OneMMC.Core.Features.UserSecurity.Services.NetworkListManager;
+using OneMMC.Core.Features.UserSecurity.Models.SecPol.NetworkListManager;
+using OneMMC.Core.Features.UserSecurity.Services.SecPol.NetworkListManager;
 using OneMMC.Core.Localization;
 using Microsoft.Extensions.Logging;
 
-namespace OneMMC.Core.Features.UserSecurity.ViewModels.NetworkListManager;
+namespace OneMMC.Core.Features.UserSecurity.ViewModels.SecPol.NetworkListManager;
 
 /// <summary>
 /// View model for the Network List Manager Policies page.
