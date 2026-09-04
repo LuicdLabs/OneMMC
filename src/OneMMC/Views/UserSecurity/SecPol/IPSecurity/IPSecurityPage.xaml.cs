@@ -87,19 +87,11 @@ public sealed partial class IPSecurityPage : Page
         await DeleteSelectedItemAsync();
     }
 
-    private async void AssignPolicyButton_Click(object sender, RoutedEventArgs e)
+    private async void ToggleAssignPolicyButton_Click(object sender, RoutedEventArgs e)
     {
         if (ViewModel.SelectedPolicy?.Policy is { } policy)
         {
-            await ViewModel.AssignPolicyAsync(policy.Name, isAssigned: true);
-        }
-    }
-
-    private async void UnassignPolicyButton_Click(object sender, RoutedEventArgs e)
-    {
-        if (ViewModel.SelectedPolicy?.Policy is { } policy)
-        {
-            await ViewModel.AssignPolicyAsync(policy.Name, isAssigned: false);
+            await ViewModel.AssignPolicyAsync(policy.Name, isAssigned: !policy.IsAssigned);
         }
     }
 

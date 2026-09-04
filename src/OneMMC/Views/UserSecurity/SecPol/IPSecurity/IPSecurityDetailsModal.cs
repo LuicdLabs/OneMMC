@@ -76,7 +76,14 @@ public sealed class IPSecurityDetailsModal
             panel.Children.Add(CreateReadOnlyField(detail.Name, detail.Value));
         }
 
-        return panel;
+        return new ScrollViewer
+        {
+            Content = panel,
+            HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled,
+            VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+            HorizontalScrollMode = ScrollMode.Disabled,
+            VerticalScrollMode = ScrollMode.Enabled,
+        };
     }
 
     private static TextBox CreateReadOnlyField(string name, string value)

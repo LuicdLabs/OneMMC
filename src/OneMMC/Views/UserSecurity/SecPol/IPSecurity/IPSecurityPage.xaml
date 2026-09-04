@@ -64,12 +64,12 @@
                 Label="{x:Bind LocalizedStrings.Common_Refresh}" />
             <AppBarSeparator />
             <AppBarButton
-                AutomationProperties.AutomationId="IPSecurityAssignButton"
-                Click="AssignPolicyButton_Click"
-                IsEnabled="{x:Bind ViewModel.CanAssignSelectedPolicy, Mode=OneWay}"
-                Label="{x:Bind LocalizedStrings.IPSec_Command_Assign}">
+                AutomationProperties.AutomationId="IPSecurityAssignToggleButton"
+                Click="ToggleAssignPolicyButton_Click"
+                IsEnabled="{x:Bind ViewModel.CanToggleAssignSelectedPolicy, Mode=OneWay}"
+                Label="{x:Bind ViewModel.AssignToggleLabel, Mode=OneWay}">
                 <AppBarButton.Icon>
-                    <FontIcon Glyph="&#xE73E;" />
+                    <FontIcon Glyph="{x:Bind ViewModel.AssignToggleGlyph, Mode=OneWay}" />
                 </AppBarButton.Icon>
             </AppBarButton>
 
@@ -83,15 +83,6 @@
                 </AppBarButton.Icon>
                 <AppBarButton.Flyout>
                     <MenuFlyout>
-                        <MenuFlyoutItem
-                            AutomationProperties.AutomationId="IPSecurityUnassignButton"
-                            Click="UnassignPolicyButton_Click"
-                            IsEnabled="{x:Bind ViewModel.CanUnassignSelectedPolicy, Mode=OneWay}"
-                            Text="{x:Bind LocalizedStrings.IPSec_Command_Unassign}">
-                            <MenuFlyoutItem.Icon>
-                                <FontIcon Glyph="&#xE711;" />
-                            </MenuFlyoutItem.Icon>
-                        </MenuFlyoutItem>
                         <MenuFlyoutItem
                             AutomationProperties.AutomationId="IPSecurityManageRulesButton"
                             Click="ManageRulesButton_Click"
