@@ -11,6 +11,7 @@ using OneMMC.Core.Features.PCManagement.Services.WindowsServices;
 using OneMMC.Core.Features.PCManagement.Services.DiskMgmt.Common;
 using OneMMC.Core.Infrastructure.Admin;
 using OneMMC.Core.Infrastructure.Collections;
+using OneMMC.Core.Localization;
 
 namespace OneMMC.Core.Features.PCManagement.ViewModels.Services
 {
@@ -86,23 +87,28 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.Services
             _allServices = new List<ServiceInfo>();
         }
 
+        private static string L(string key) => LocalizationProvider.Current.GetString(ResourceFileNames.Services, key);
+
+        private static string LF(string key, params object?[] args) =>
+            string.Format(System.Globalization.CultureInfo.CurrentCulture, L(key), args);
+
         [RelayCommand]
         public async Task LoadServicesAsync()
         {
             IsLoading = true;
-            StatusMessage = "Loading services...";
+            StatusMessage = L(ServicesKeys.StatusLoading);
             _logger.LogInformation("Loading Windows services.");
             try
             {
                 var services = await _serviceManager.GetAllServicesAsync();
                 _allServices = services;
                 FilterServices();
-                StatusMessage = $"Loaded {Services.Count} services.";
+                StatusMessage = LF(ServicesKeys.StatusLoadedFormat, Services.Count);
                 _logger.LogInformation("Loaded {ServiceCount} services.", Services.Count);
             }
             catch (Exception ex)
             {
-                StatusMessage = $"Error loading services: {ex.Message}";
+                StatusMessage = LF(ServicesKeys.StatusLoadErrorFormat, ex.Message);
                 _logger.LogError(ex, "Failed to load services.");
                 
                 // Check if the error is related to permission issues
@@ -157,7 +163,7 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.Services
             }
             catch (Exception ex)
             {
-                StatusMessage = $"Error starting service: {ex.Message}";
+                StatusMessage = LF(ServicesKeys.StatusStartErrorFormat, ex.Message);
                 _logger.LogError(ex, "Failed to start service {ServiceName}.", selectedName);
             }
             finally
@@ -184,7 +190,7 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.Services
             }
             catch (Exception ex)
             {
-                StatusMessage = $"Error stopping service: {ex.Message}";
+                StatusMessage = LF(ServicesKeys.StatusStopErrorFormat, ex.Message);
                 _logger.LogError(ex, "Failed to stop service {ServiceName}.", selectedName);
             }
             finally
@@ -211,7 +217,7 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.Services
             }
             catch (Exception ex)
             {
-                StatusMessage = $"Error restarting service: {ex.Message}";
+                StatusMessage = LF(ServicesKeys.StatusRestartErrorFormat, ex.Message);
                 _logger.LogError(ex, "Failed to restart service {ServiceName}.", selectedName);
             }
             finally
@@ -239,12 +245,12 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.Services
                 {
                     await LoadServiceDetailsAsync();
                 }
-                return OperationResult.Ok($"Startup type for {serviceName} updated.");
+                return OperationResult.Ok(LF(ServicesKeys.StatusStartupTypeUpdatedFormat, serviceName));
             }
             catch (Exception ex)
             {
                 bool accessDenied = _adminService.IsPermissionError(ex);
-                StatusMessage = $"Error setting startup type: {ex.Message}";
+                StatusMessage = LF(ServicesKeys.StatusStartupTypeErrorFormat, ex.Message);
                 _logger.LogError(ex, "Failed to update startup type for service {ServiceName} to {StartupType}.", serviceName, startupType);
                 return new OperationResult(false, ex.Message, isAccessDenied: accessDenied);
             }
@@ -262,12 +268,12 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.Services
                 {
                     await LoadServiceDetailsAsync();
                 }
-                return OperationResult.Ok($"Log on account for {serviceName} updated.");
+                return OperationResult.Ok(LF(ServicesKeys.StatusLogOnUpdatedFormat, serviceName));
             }
             catch (Exception ex)
             {
                 bool accessDenied = _adminService.IsPermissionError(ex);
-                StatusMessage = $"Error setting log on account: {ex.Message}";
+                StatusMessage = LF(ServicesKeys.StatusLogOnErrorFormat, ex.Message);
                 _logger.LogError(ex, "Failed to update logon account for service {ServiceName}.", serviceName);
                 return new OperationResult(false, ex.Message, isAccessDenied: accessDenied);
             }
@@ -287,7 +293,7 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.Services
             }
             catch (Exception ex)
             {
-                StatusMessage = $"Error loading details: {ex.Message}";
+                StatusMessage = LF(ServicesKeys.StatusDetailsErrorFormat, ex.Message);
                 _logger.LogError(ex, "Failed to load service recovery details for {ServiceName}.", SelectedService.Name);
             }
         }
@@ -310,14 +316,14 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.Services
                     await LoadServiceDetailsAsync();
                 }
 
-                StatusMessage = "Recovery options updated.";
+                StatusMessage = L(ServicesKeys.StatusRecoveryUpdated);
                 _logger.LogInformation("Updated recovery options for service {ServiceName}.", serviceName);
-                return OperationResult.Ok($"Recovery options for {serviceName} updated.");
+                return OperationResult.Ok(LF(ServicesKeys.StatusRecoveryUpdatedFormat, serviceName));
             }
             catch (Exception ex)
             {
                 bool accessDenied = _adminService.IsPermissionError(ex);
-                StatusMessage = $"Error setting recovery options: {ex.Message}";
+                StatusMessage = LF(ServicesKeys.StatusRecoveryErrorFormat, ex.Message);
                 _logger.LogError(ex, "Failed to update recovery options for service {ServiceName}.", serviceName);
                 return new OperationResult(false, ex.Message, isAccessDenied: accessDenied);
             }

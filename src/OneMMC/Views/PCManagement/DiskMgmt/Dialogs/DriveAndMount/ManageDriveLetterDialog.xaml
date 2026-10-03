@@ -28,7 +28,7 @@
             <TextBlock Text="{x:Bind LocalizedStrings.DiskMgmt_AssignDriveLetter}" Style="{StaticResource BodyTextBlockStyle}" />
             <ComboBox x:Name="DriveLetterComboBox" 
                       MinWidth="100"
-                      PlaceholderText="Select" />
+                      PlaceholderText="{x:Bind LocalizedStrings.DiskMgmt_SelectPlaceholder}" />
         </StackPanel>
     </StackPanel>
 </ContentDialog>

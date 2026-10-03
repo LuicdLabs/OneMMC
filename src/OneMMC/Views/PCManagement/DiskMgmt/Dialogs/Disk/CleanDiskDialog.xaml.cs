@@ -15,7 +15,7 @@ public sealed partial class CleanDiskDialog : ContentDialog
         this.InitializeComponent();
         this.Closing += CleanDiskDialog_Closing;
 
-        DiskInfoTextBlock.Text = $"Disk {disk.Index} - {FormatSize(disk.Size)}";
+        DiskInfoTextBlock.Text = string.Format(LocalizedStrings.DiskMgmt_DiskInfoFormat, disk.Index, FormatSize(disk.Size));
     }
 
     private void CleanDiskDialog_Closing(ContentDialog sender, ContentDialogClosingEventArgs args)

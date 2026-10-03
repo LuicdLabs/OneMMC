@@ -2,6 +2,7 @@
 using System.Runtime.InteropServices;
 using OneMMC.Core.Features.PCManagement.Services.DiskMgmt.Common;
 using OneMMC.Core.Infrastructure.Wmi;
+using OneMMC.Core.Localization;
 using WmiLight;
 
 namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
@@ -39,9 +40,9 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
                 outParams?.Dispose();
 
                 return rv == DiskManagementConstants.WMI_SUCCESS
-                    ? OperationResult.Ok($"Disk successfully initialized as {(useGpt ? "GPT" : "MBR")} format.")
+                    ? OperationResult.Ok(DiskMgmtText.Format(DiskMgmtKeys.OkInitializedFormat, useGpt ? "GPT" : "MBR"))
                     : OperationResult.Fail(
-                        $"Initialization failed. Error code: {rv} - {ErrorMessages.GetMsftErrorMessage(rv)}", rv);
+                        DiskMgmtText.Format(DiskMgmtKeys.ErrInitializeCodeFormat, rv, ErrorMessages.GetMsftErrorMessage(rv)), rv);
             }, diskIndex: diskIndex);
         }
 
@@ -61,9 +62,9 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
                 outParams?.Dispose();
 
                 return rv == DiskManagementConstants.WMI_SUCCESS
-                    ? OperationResult.Ok(online ? "Disk is now online." : "Disk is now offline.")
+                    ? OperationResult.Ok(DiskMgmtText.Get(online ? DiskMgmtKeys.OkOnline : DiskMgmtKeys.OkOffline))
                     : OperationResult.Fail(
-                        $"Operation failed. Error code: {rv} - {ErrorMessages.GetMsftErrorMessage(rv)}", rv);
+                        DiskMgmtText.Format(DiskMgmtKeys.ErrErrorCodeFormat, rv, ErrorMessages.GetMsftErrorMessage(rv)), rv);
             }, diskIndex: diskIndex);
         }
 
@@ -105,9 +106,9 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
                 outParams?.Dispose();
 
                 return rv == DiskManagementConstants.WMI_SUCCESS
-                    ? OperationResult.Ok(readOnly ? "Disk set to read-only." : "Disk set to read-write.")
+                    ? OperationResult.Ok(DiskMgmtText.Get(readOnly ? DiskMgmtKeys.OkReadOnly : DiskMgmtKeys.OkReadWrite))
                     : OperationResult.Fail(
-                        $"Operation failed. Error code: {rv} - {ErrorMessages.GetMsftErrorMessage(rv)}", rv);
+                        DiskMgmtText.Format(DiskMgmtKeys.ErrErrorCodeFormat, rv, ErrorMessages.GetMsftErrorMessage(rv)), rv);
             }, diskIndex: diskIndex);
         }
 
@@ -156,9 +157,9 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
                 outParams?.Dispose();
 
                 return rv == DiskManagementConstants.WMI_SUCCESS
-                    ? OperationResult.Ok("Disk cleaned, all partitions removed.")
+                    ? OperationResult.Ok(DiskMgmtText.Get(DiskMgmtKeys.OkCleaned))
                     : OperationResult.Fail(
-                        $"Clean failed. Error code: {rv} - {ErrorMessages.GetMsftErrorMessage(rv)}", rv);
+                        DiskMgmtText.Format(DiskMgmtKeys.ErrCleanCodeFormat, rv, ErrorMessages.GetMsftErrorMessage(rv)), rv);
             }, diskIndex: diskIndex);
         }
 
@@ -227,12 +228,12 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
             catch (WmiException wex)
             {
                 DiagnosticLogger.LogOperationError(operationName, wex, diskIndex, null, null, $"WMI Error Code: 0x{wex.HResult:X8}");
-                return OperationResult.Fail($"{operationName} failed: {wex.Message}");
+                return OperationResult.Fail(DiskMgmtText.Format(DiskMgmtKeys.ErrOperationFailedFormat, operationName, wex.Message));
             }
             catch (COMException comEx)
             {
                 DiagnosticLogger.LogOperationError(operationName, comEx, diskIndex, null, null, $"COM HRESULT: 0x{comEx.HResult:X8}");
-                return OperationResult.Fail($"{operationName} failed with COM error: {comEx.Message} (0x{comEx.HResult:X8})");
+                return OperationResult.Fail(DiskMgmtText.Format(DiskMgmtKeys.ErrOperationComFailedFormat, operationName, $"{comEx.Message} (0x{comEx.HResult:X8})"));
             }
             catch (UnauthorizedAccessException)
             {
@@ -241,7 +242,7 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
             catch (Exception ex)
             {
                 DiagnosticLogger.LogOperationError(operationName, ex, diskIndex, null, null);
-                return OperationResult.Fail($"Error during {operationName}: {ex.Message}");
+                return OperationResult.Fail(DiskMgmtText.Format(DiskMgmtKeys.ErrErrorDuringFormat, operationName, ex.Message));
             }
         }
 

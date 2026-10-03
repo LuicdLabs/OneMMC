@@ -567,4 +567,828 @@
   <data name="DiskMgmt_CannotDeleteOemRecoveryPartition" xml:space="preserve">
     <value>無法刪除 OEM 復原分割區。製造商使用此分割區進行系統復原。</value>
   </data>
+  <data name="DiskMgmt_ErrorTitle" xml:space="preserve">
+    <value>錯誤</value>
+  </data>
+  <data name="DiskMgmt_Result_VhdCreateFailed" xml:space="preserve">
+    <value>建立 VHD 失敗</value>
+  </data>
+  <data name="DiskMgmt_Result_VhdAttachFailed" xml:space="preserve">
+    <value>連接 VHD 失敗</value>
+  </data>
+  <data name="DiskMgmt_Result_VhdDetachFailed" xml:space="preserve">
+    <value>中斷連接 VHD 失敗</value>
+  </data>
+  <data name="DiskMgmt_Result_EjectFailed" xml:space="preserve">
+    <value>退出失敗</value>
+  </data>
+  <data name="DiskMgmt_Result_AssignDriveLetterFailed" xml:space="preserve">
+    <value>指派磁碟機代號失敗</value>
+  </data>
+  <data name="DiskMgmt_Result_ChangeDriveLetterFailed" xml:space="preserve">
+    <value>變更磁碟機代號失敗</value>
+  </data>
+  <data name="DiskMgmt_Result_FormatFailed" xml:space="preserve">
+    <value>格式化磁碟區失敗</value>
+  </data>
+  <data name="DiskMgmt_Result_InitializeFailed" xml:space="preserve">
+    <value>初始化磁碟失敗</value>
+  </data>
+  <data name="DiskMgmt_Result_CreateVolumeFailed" xml:space="preserve">
+    <value>建立磁碟區失敗</value>
+  </data>
+  <data name="DiskMgmt_Result_SetOnlineFailed" xml:space="preserve">
+    <value>設定上線失敗</value>
+  </data>
+  <data name="DiskMgmt_Result_SetOfflineFailed" xml:space="preserve">
+    <value>設定離線失敗</value>
+  </data>
+  <data name="DiskMgmt_Result_SetReadOnlyFailed" xml:space="preserve">
+    <value>設定唯讀失敗</value>
+  </data>
+  <data name="DiskMgmt_Result_ClearReadOnlyFailed" xml:space="preserve">
+    <value>清除唯讀失敗</value>
+  </data>
+  <data name="DiskMgmt_Result_CleanFailed" xml:space="preserve">
+    <value>清理磁碟失敗</value>
+  </data>
+  <data name="DiskMgmt_Result_DeleteVolumeFailed" xml:space="preserve">
+    <value>刪除磁碟區失敗</value>
+  </data>
+  <data name="DiskMgmt_Result_ExtendFailed" xml:space="preserve">
+    <value>延伸磁碟區失敗</value>
+  </data>
+  <data name="DiskMgmt_Result_ShrinkFailed" xml:space="preserve">
+    <value>壓縮磁碟區失敗</value>
+  </data>
+  <data name="DiskMgmt_Result_RemoveDriveLetterFailed" xml:space="preserve">
+    <value>移除磁碟機代號失敗</value>
+  </data>
+  <data name="DiskMgmt_Result_MountFailed" xml:space="preserve">
+    <value>掛接到資料夾失敗</value>
+  </data>
+  <data name="DiskMgmt_Result_MarkActiveFailed" xml:space="preserve">
+    <value>標示為使用中失敗</value>
+  </data>
+  <data name="DiskMgmt_Result_QueryFailed" xml:space="preserve">
+    <value>查詢失敗</value>
+  </data>
+  <data name="DiskMgmt_Result_NoSpaceAvailable" xml:space="preserve">
+    <value>沒有可用空間</value>
+  </data>
+  <data name="DiskMgmt_Result_OperationNotSupported" xml:space="preserve">
+    <value>不支援此作業</value>
+  </data>
+  <data name="DiskMgmt_Msg_CannotFormatWithoutLetter" xml:space="preserve">
+    <value>無法格式化沒有磁碟機代號的分割區。</value>
+  </data>
+  <data name="DiskMgmt_Msg_InvalidCdrom" xml:space="preserve">
+    <value>無效的 CD-ROM 光碟機。</value>
+  </data>
+  <data name="DiskMgmt_Msg_ResizeNotSupported" xml:space="preserve">
+    <value>此分割區類型 (系統/保留/復原) 不支援調整大小作業。</value>
+  </data>
+  <data name="DiskMgmt_Msg_NoExtendSpace" xml:space="preserve">
+    <value>沒有可供延伸的未配置空間。</value>
+  </data>
+  <data name="DiskMgmt_Msg_ExtendNeedsLetter" xml:space="preserve">
+    <value>目前尚不支援延伸沒有磁碟機代號的分割區。請先指派磁碟機代號。</value>
+  </data>
+  <data name="DiskMgmt_Msg_NoShrinkSpace" xml:space="preserve">
+    <value>沒有可壓縮的空間。這可能是因為有無法移動的檔案。</value>
+  </data>
+  <data name="DiskMgmt_Msg_ShrinkSizeZero" xml:space="preserve">
+    <value>壓縮大小必須大於 0。</value>
+  </data>
+  <data name="DiskMgmt_Msg_ShrinkNeedsLetter" xml:space="preserve">
+    <value>目前尚不支援壓縮沒有磁碟機代號的分割區。請先指派磁碟機代號。</value>
+  </data>
+  <data name="DiskMgmt_Msg_NoDriveLetter" xml:space="preserve">
+    <value>此分割區沒有磁碟機代號。</value>
+  </data>
+  <data name="DiskMgmt_Msg_CannotMountWithoutLetter" xml:space="preserve">
+    <value>無法掛接沒有磁碟機代號的分割區。</value>
+  </data>
+  <data name="DiskMgmt_FileFilter_Vhd" xml:space="preserve">
+    <value>虛擬硬碟</value>
+  </data>
+  <data name="DiskMgmt_FileFilter_Vhdx" xml:space="preserve">
+    <value>虛擬硬碟 (*.vhdx)</value>
+  </data>
+  <data name="DiskMgmt_FileFilter_VhdLegacy" xml:space="preserve">
+    <value>虛擬硬碟 (*.vhd)</value>
+  </data>
+  <data name="DiskMgmt_SelectVhdToDetach" xml:space="preserve">
+    <value>選取要中斷連接的虛擬硬碟</value>
+  </data>
+  <data name="DiskMgmt_SelectVhd" xml:space="preserve">
+    <value>選取虛擬硬碟</value>
+  </data>
+  <data name="DiskMgmt_SelectPlaceholder" xml:space="preserve">
+    <value>選取</value>
+  </data>
+  <data name="DiskMgmt_Alloc512" xml:space="preserve">
+    <value>512 位元組</value>
+  </data>
+  <data name="DiskMgmt_Alloc1024" xml:space="preserve">
+    <value>1024 位元組</value>
+  </data>
+  <data name="DiskMgmt_Alloc2048" xml:space="preserve">
+    <value>2048 位元組</value>
+  </data>
+  <data name="DiskMgmt_Alloc4096" xml:space="preserve">
+    <value>4096 位元組</value>
+  </data>
+  <data name="DiskMgmt_Alloc8192" xml:space="preserve">
+    <value>8192 位元組</value>
+  </data>
+  <data name="DiskMgmt_DiskInfoFormat" xml:space="preserve">
+    <value>磁碟 {0} - {1}</value>
+  </data>
+  <data name="DiskMgmt_MaxSizeFormat" xml:space="preserve">
+    <value>最大大小: {0} MB (最小: {1} MB)</value>
+  </data>
+  <data name="DiskMgmt_NoShrinkSpaceShort" xml:space="preserve">
+    <value>0 MB (沒有可壓縮的空間)</value>
+  </data>
+  <data name="DiskMgmt_DriveCountSingular" xml:space="preserve">
+    <value>{0} 部磁碟機</value>
+  </data>
+  <data name="DiskMgmt_DriveCountPlural" xml:space="preserve">
+    <value>{0} 部磁碟機</value>
+  </data>
+  <data name="DiskMgmt_Status_Loading" xml:space="preserve">
+    <value>正在載入磁碟資訊...</value>
+  </data>
+  <data name="DiskMgmt_Status_LoadedFormat" xml:space="preserve">
+    <value>已載入 {0} 個磁碟、{1} 個分割區、{2} 部 CD/DVD 光碟機</value>
+  </data>
+  <data name="DiskMgmt_Status_StoragePoolsSuffixFormat" xml:space="preserve">
+    <value>、{0} 個存放集區</value>
+  </data>
+  <data name="DiskMgmt_Status_LoadErrorFormat" xml:space="preserve">
+    <value>載入磁碟時發生錯誤: {0}</value>
+  </data>
+  <data name="DiskMgmt_Status_Refreshing" xml:space="preserve">
+    <value>正在重新整理...</value>
+  </data>
+  <data name="DiskMgmt_Status_RefreshErrorFormat" xml:space="preserve">
+    <value>重新整理時發生錯誤: {0}</value>
+  </data>
+  <data name="DiskMgmt_Status_FailedFormat" xml:space="preserve">
+    <value>失敗: {0}</value>
+  </data>
+  <data name="DiskMgmt_Status_ErrorFormat" xml:space="preserve">
+    <value>錯誤: {0}</value>
+  </data>
+  <data name="DiskMgmt_Status_CreatingVhd" xml:space="preserve">
+    <value>正在建立虛擬硬碟...</value>
+  </data>
+  <data name="DiskMgmt_Status_CreateVhdErrorFormat" xml:space="preserve">
+    <value>建立 VHD 時發生錯誤: {0}</value>
+  </data>
+  <data name="DiskMgmt_Status_AttachingVhd" xml:space="preserve">
+    <value>正在連接虛擬硬碟...</value>
+  </data>
+  <data name="DiskMgmt_Status_AttachVhdErrorFormat" xml:space="preserve">
+    <value>連接 VHD 時發生錯誤: {0}</value>
+  </data>
+  <data name="DiskMgmt_Status_DetachingVhd" xml:space="preserve">
+    <value>正在中斷連接虛擬硬碟...</value>
+  </data>
+  <data name="DiskMgmt_Status_DetachVhdErrorFormat" xml:space="preserve">
+    <value>中斷連接 VHD 時發生錯誤: {0}</value>
+  </data>
+  <data name="DiskMgmt_Status_EjectingMedia" xml:space="preserve">
+    <value>正在退出媒體...</value>
+  </data>
+  <data name="DiskMgmt_Status_EjectErrorFormat" xml:space="preserve">
+    <value>退出媒體時發生錯誤: {0}</value>
+  </data>
+  <data name="DiskMgmt_Status_LoadingMedia" xml:space="preserve">
+    <value>正在載入媒體...</value>
+  </data>
+  <data name="DiskMgmt_Status_LoadMediaErrorFormat" xml:space="preserve">
+    <value>載入媒體時發生錯誤: {0}</value>
+  </data>
+  <data name="DiskMgmt_Status_ChangingDriveLetter" xml:space="preserve">
+    <value>正在變更磁碟機代號...</value>
+  </data>
+  <data name="DiskMgmt_Status_ChangeDriveLetterErrorFormat" xml:space="preserve">
+    <value>變更磁碟機代號時發生錯誤: {0}</value>
+  </data>
+  <data name="DiskMgmt_Status_RemovingDriveLetter" xml:space="preserve">
+    <value>正在移除磁碟機代號...</value>
+  </data>
+  <data name="DiskMgmt_Status_RemoveDriveLetterErrorFormat" xml:space="preserve">
+    <value>移除磁碟機代號時發生錯誤: {0}</value>
+  </data>
+  <data name="DiskMgmt_Status_AssigningDriveLetter" xml:space="preserve">
+    <value>正在指派磁碟機代號...</value>
+  </data>
+  <data name="DiskMgmt_Status_AssignDriveLetterErrorFormat" xml:space="preserve">
+    <value>指派磁碟機代號時發生錯誤: {0}</value>
+  </data>
+  <data name="DiskMgmt_Status_ManageDriveLetterErrorFormat" xml:space="preserve">
+    <value>管理磁碟機代號時發生錯誤: {0}</value>
+  </data>
+  <data name="DiskMgmt_Status_ConsoleOpened" xml:space="preserve">
+    <value>已開啟磁碟管理主控台</value>
+  </data>
+  <data name="DiskMgmt_Status_OpenConsoleErrorFormat" xml:space="preserve">
+    <value>開啟磁碟管理時發生錯誤: {0}</value>
+  </data>
+  <data name="DiskMgmt_Status_BringingOnline" xml:space="preserve">
+    <value>正在讓磁碟上線...</value>
+  </data>
+  <data name="DiskMgmt_Status_TakingOffline" xml:space="preserve">
+    <value>正在讓磁碟離線...</value>
+  </data>
+  <data name="DiskMgmt_Status_Formatting" xml:space="preserve">
+    <value>正在格式化磁碟區...</value>
+  </data>
+  <data name="DiskMgmt_Status_FormatErrorFormat" xml:space="preserve">
+    <value>格式化磁碟區時發生錯誤: {0}</value>
+  </data>
+  <data name="DiskMgmt_Status_InitializingFormat" xml:space="preserve">
+    <value>正在初始化磁碟 {0}...</value>
+  </data>
+  <data name="DiskMgmt_Status_InitializeErrorFormat" xml:space="preserve">
+    <value>初始化磁碟時發生錯誤: {0}</value>
+  </data>
+  <data name="DiskMgmt_Status_CreatingVolume" xml:space="preserve">
+    <value>正在建立磁碟區...</value>
+  </data>
+  <data name="DiskMgmt_Status_CreateVolumeErrorFormat" xml:space="preserve">
+    <value>建立磁碟區時發生錯誤: {0}</value>
+  </data>
+  <data name="DiskMgmt_Status_DeletingVolume" xml:space="preserve">
+    <value>正在刪除磁碟區...</value>
+  </data>
+  <data name="DiskMgmt_Status_DeleteVolumeErrorFormat" xml:space="preserve">
+    <value>刪除磁碟區時發生錯誤: {0}</value>
+  </data>
+  <data name="DiskMgmt_Status_Extending" xml:space="preserve">
+    <value>正在延伸磁碟區...</value>
+  </data>
+  <data name="DiskMgmt_Status_ExtendErrorFormat" xml:space="preserve">
+    <value>延伸磁碟區時發生錯誤: {0}</value>
+  </data>
+  <data name="DiskMgmt_Status_Shrinking" xml:space="preserve">
+    <value>正在壓縮磁碟區...</value>
+  </data>
+  <data name="DiskMgmt_Status_ShrinkErrorFormat" xml:space="preserve">
+    <value>壓縮磁碟區時發生錯誤: {0}</value>
+  </data>
+  <data name="DiskMgmt_Status_MarkingActive" xml:space="preserve">
+    <value>正在將分割區標示為使用中...</value>
+  </data>
+  <data name="DiskMgmt_Status_MarkActiveErrorFormat" xml:space="preserve">
+    <value>將分割區標示為使用中時發生錯誤: {0}</value>
+  </data>
+  <data name="DiskMgmt_Status_Mounting" xml:space="preserve">
+    <value>正在將磁碟區掛接到資料夾...</value>
+  </data>
+  <data name="DiskMgmt_Status_MountErrorFormat" xml:space="preserve">
+    <value>掛接磁碟區時發生錯誤: {0}</value>
+  </data>
+  <data name="DiskMgmt_Status_Cleaning" xml:space="preserve">
+    <value>正在清理磁碟...</value>
+  </data>
+  <data name="DiskMgmt_Status_CleanErrorFormat" xml:space="preserve">
+    <value>清理磁碟時發生錯誤: {0}</value>
+  </data>
+  <data name="DiskMgmt_Status_SettingReadOnly" xml:space="preserve">
+    <value>正在將磁碟設為唯讀...</value>
+  </data>
+  <data name="DiskMgmt_Status_ClearingReadOnly" xml:space="preserve">
+    <value>正在清除唯讀屬性...</value>
+  </data>
+  <data name="DiskMgmt_Err_DriveLetterEmpty" xml:space="preserve">
+    <value>磁碟機代號不可為空白。</value>
+  </data>
+  <data name="DiskMgmt_Err_SizeRequired" xml:space="preserve">
+    <value>大小必須大於 0。</value>
+  </data>
+  <data name="DiskMgmt_Err_DiskNotFound" xml:space="preserve">
+    <value>找不到指定的磁碟。</value>
+  </data>
+  <data name="DiskMgmt_Err_PartitionNotFound" xml:space="preserve">
+    <value>找不到指定的分割區。</value>
+  </data>
+  <data name="DiskMgmt_Err_VolumeNotFound" xml:space="preserve">
+    <value>找不到磁碟區。</value>
+  </data>
+  <data name="DiskMgmt_Err_DriveLetterInUse" xml:space="preserve">
+    <value>磁碟機代號已在使用中。</value>
+  </data>
+  <data name="DiskMgmt_Err_DriveLetterSame" xml:space="preserve">
+    <value>新舊磁碟機代號相同。</value>
+  </data>
+  <data name="DiskMgmt_Err_FolderNotExist" xml:space="preserve">
+    <value>資料夾不存在。</value>
+  </data>
+  <data name="DiskMgmt_Err_DriveNotReady" xml:space="preserve">
+    <value>磁碟機尚未就緒。</value>
+  </data>
+  <data name="DiskMgmt_Err_NoExtensionSpace" xml:space="preserve">
+    <value>沒有可供延伸的空間。</value>
+  </data>
+  <data name="DiskMgmt_Err_NoAccessPath" xml:space="preserve">
+    <value>此分割區未指派磁碟機代號。</value>
+  </data>
+  <data name="DiskMgmt_Err_SystemDriveFormat" xml:space="preserve">
+    <value>⚠️ 嚴禁格式化系統磁碟機！磁碟機 '{0}' 包含 Windows 作業系統，格式化後系統將無法開機。</value>
+  </data>
+  <data name="DiskMgmt_Err_SystemDriveLetterRemoval" xml:space="preserve">
+    <value>⚠️ 嚴禁移除系統磁碟機代號！磁碟機 '{0}' 包含 Windows 作業系統，移除後將導致系統運作異常。</value>
+  </data>
+  <data name="DiskMgmt_Err_SystemDiskClean" xml:space="preserve">
+    <value>⚠️ 嚴禁清理系統磁碟！此磁碟包含 Windows 作業系統，清理後系統將無法開機。</value>
+  </data>
+  <data name="DiskMgmt_Err_CriticalPartitionsOnDisk" xml:space="preserve">
+    <value>⚠️ 此磁碟包含重要的系統分割區 (EFI、復原分割區)，清理後可能導致系統無法開機。</value>
+  </data>
+  <data name="DiskMgmt_Err_CannotDeleteSystemPartition" xml:space="preserve">
+    <value>⚠️ 無法對系統分割區執行此作業。磁碟機 "{0}" 包含 Windows 作業系統。</value>
+  </data>
+  <data name="DiskMgmt_Err_CannotDeleteEfiPartition" xml:space="preserve">
+    <value>⚠️ 無法刪除 EFI 系統分割區。開機時需要此分割區。</value>
+  </data>
+  <data name="DiskMgmt_Err_CannotDeleteRecoveryPartition" xml:space="preserve">
+    <value>⚠️ 無法刪除復原分割區。此分割區用於系統復原。</value>
+  </data>
+  <data name="DiskMgmt_Err_CannotDeleteMsrPartition" xml:space="preserve">
+    <value>⚠️ 無法刪除 Microsoft 保留分割區。系統運作需要此分割區。</value>
+  </data>
+  <data name="DiskMgmt_Err_CriticalSystemPartition" xml:space="preserve">
+    <value>⚠️ 無法對此重要的系統分割區執行此作業。</value>
+  </data>
+  <data name="DiskMgmt_Err_SpecialPartitionOperation" xml:space="preserve">
+    <value>此分割區類型 (系統/保留/復原) 不支援此作業。</value>
+  </data>
+  <data name="DiskMgmt_Err_PartitionNotSupportResize" xml:space="preserve">
+    <value>此分割區不支援調整大小，它可能是系統、復原或特殊的分割區類型。</value>
+  </data>
+  <data name="DiskMgmt_Err_MbrOnly" xml:space="preserve">
+    <value>只有 MBR 磁碟支援標示使用中的分割區。GPT 磁碟使用 EFI 系統分割區開機。</value>
+  </data>
+  <data name="DiskMgmt_Err_DiskMustBeCleanedBeforeConversion" xml:space="preserve">
+    <value>轉換前必須先清除磁碟上的所有分割區。請先使用 [清理磁碟] 功能。</value>
+  </data>
+  <data name="DiskMgmt_Err_DiskAlreadyGpt" xml:space="preserve">
+    <value>磁碟已經是 GPT 格式。</value>
+  </data>
+  <data name="DiskMgmt_Err_DiskAlreadyMbr" xml:space="preserve">
+    <value>磁碟已經是 MBR 格式。</value>
+  </data>
+  <data name="DiskMgmt_Err_DiskAlreadyDynamic" xml:space="preserve">
+    <value>磁碟已經是動態磁碟。</value>
+  </data>
+  <data name="DiskMgmt_Err_DiskAlreadyBasic" xml:space="preserve">
+    <value>磁碟已經是基本磁碟。</value>
+  </data>
+  <data name="DiskMgmt_Err_VhdPathEmpty" xml:space="preserve">
+    <value>VHD 路徑不可為空白。</value>
+  </data>
+  <data name="DiskMgmt_Err_VhdFileNotFound" xml:space="preserve">
+    <value>找不到 VHD 檔案。</value>
+  </data>
+  <data name="DiskMgmt_Err_VhdFileAlreadyExists" xml:space="preserve">
+    <value>VHD 檔案已經存在。</value>
+  </data>
+  <data name="DiskMgmt_Err_VhdFileInUse" xml:space="preserve">
+    <value>檔案正由另一個處理程序使用。</value>
+  </data>
+  <data name="DiskMgmt_Err_DynamicDiskDeprecated" xml:space="preserve">
+    <value>此版本不提供動態磁碟轉換功能。
+
+提示:
+• 請使用 Windows 磁碟管理主控台 (diskmgmt.msc) 進行轉換
+• Microsoft 已將動態磁碟標示為已淘汰的技術
+• 可考慮改用儲存空間作為替代方案</value>
+  </data>
+  <data name="DiskMgmt_Err_DynamicDiskSystemWarning" xml:space="preserve">
+    <value>⚠️ 不建議將系統磁碟轉換為動態磁碟。此作業可能導致系統無法開機或無法升級。</value>
+  </data>
+  <data name="DiskMgmt_Err_InvalidDriveLetter" xml:space="preserve">
+    <value>無效的磁碟機代號</value>
+  </data>
+  <data name="DiskMgmt_Err_InvalidCurrentDriveLetter" xml:space="preserve">
+    <value>目前的磁碟機代號無效</value>
+  </data>
+  <data name="DiskMgmt_Err_InvalidNewDriveLetter" xml:space="preserve">
+    <value>新的磁碟機代號無效</value>
+  </data>
+  <data name="DiskMgmt_Err_DriveLetterRange" xml:space="preserve">
+    <value>磁碟機代號必須是 A 到 Z 的單一字母。</value>
+  </data>
+  <data name="DiskMgmt_Err_DriveLetterSameAsCurrent" xml:space="preserve">
+    <value>新的磁碟機代號與目前的相同。</value>
+  </data>
+  <data name="DiskMgmt_Err_DriveLetterInUseFormat" xml:space="preserve">
+    <value>磁碟機代號 {0}: 已在使用中。</value>
+  </data>
+  <data name="DiskMgmt_Err_VolumeInfoWin32Format" xml:space="preserve">
+    <value>無法取得磁碟區資訊。Win32 錯誤: {0}</value>
+  </data>
+  <data name="DiskMgmt_Err_VolumeInfoForWin32Format" xml:space="preserve">
+    <value>無法取得 {0}: 的磁碟區資訊。Win32 錯誤: {1}</value>
+  </data>
+  <data name="DiskMgmt_Err_RemoveOldLetterWin32Format" xml:space="preserve">
+    <value>無法移除舊的磁碟機代號。Win32 錯誤: {0}</value>
+  </data>
+  <data name="DiskMgmt_Err_SetNewLetterWin32Format" xml:space="preserve">
+    <value>無法設定新的磁碟機代號。Win32 錯誤: {0}</value>
+  </data>
+  <data name="DiskMgmt_Err_SetNewLetterRestoredFormat" xml:space="preserve">
+    <value>無法設定新的磁碟機代號。Win32 錯誤: {0}。已還原原本的磁碟機代號。</value>
+  </data>
+  <data name="DiskMgmt_Err_SetNewLetterRollbackFailedFormat" xml:space="preserve">
+    <value>無法設定新的磁碟機代號 (Win32 錯誤: {0})。警告: 還原也失敗 (Win32 錯誤: {1})。磁碟區 GUID: {2} - 需要手動處理。</value>
+  </data>
+  <data name="DiskMgmt_Err_AssignLetterWin32Format" xml:space="preserve">
+    <value>無法指派磁碟機代號。Win32 錯誤: {0}</value>
+  </data>
+  <data name="DiskMgmt_Err_RemovalWin32Format" xml:space="preserve">
+    <value>移除失敗。Win32 錯誤: {0}</value>
+  </data>
+  <data name="DiskMgmt_Err_RemovalFailedFormat" xml:space="preserve">
+    <value>移除失敗: {0}</value>
+  </data>
+  <data name="DiskMgmt_Err_OpenDeviceWin32Format" xml:space="preserve">
+    <value>無法開啟裝置: Win32 錯誤 {0}</value>
+  </data>
+  <data name="DiskMgmt_Err_ActionWin32Format" xml:space="preserve">
+    <value>{0} 失敗: Win32 錯誤 {1}</value>
+  </data>
+  <data name="DiskMgmt_Err_OperationFailedFormat" xml:space="preserve">
+    <value>{0} 失敗: {1}</value>
+  </data>
+  <data name="DiskMgmt_Err_OperationComFailedFormat" xml:space="preserve">
+    <value>{0} 失敗，COM 錯誤: {1}</value>
+  </data>
+  <data name="DiskMgmt_Err_ErrorDuringFormat" xml:space="preserve">
+    <value>執行 {0} 時發生錯誤: {1}</value>
+  </data>
+  <data name="DiskMgmt_Err_FailedFormat" xml:space="preserve">
+    <value>失敗: {0}</value>
+  </data>
+  <data name="DiskMgmt_Err_ErrorCodeFormat" xml:space="preserve">
+    <value>作業失敗。錯誤碼: {0} - {1}</value>
+  </data>
+  <data name="DiskMgmt_Err_ErrorCodeOnlyFormat" xml:space="preserve">
+    <value>作業失敗。錯誤碼: {0}</value>
+  </data>
+  <data name="DiskMgmt_Err_InitializeCodeFormat" xml:space="preserve">
+    <value>初始化失敗。錯誤碼: {0} - {1}</value>
+  </data>
+  <data name="DiskMgmt_Err_CleanCodeFormat" xml:space="preserve">
+    <value>清理失敗。錯誤碼: {0} - {1}</value>
+  </data>
+  <data name="DiskMgmt_Err_DeletionCodeFormat" xml:space="preserve">
+    <value>刪除失敗。錯誤碼: {0} - {1}</value>
+  </data>
+  <data name="DiskMgmt_Err_AssignmentCodeFormat" xml:space="preserve">
+    <value>指派失敗。錯誤碼: {0} - {1}</value>
+  </data>
+  <data name="DiskMgmt_Err_FormattingCodeFormat" xml:space="preserve">
+    <value>格式化失敗。錯誤碼: {0} - {1}</value>
+  </data>
+  <data name="DiskMgmt_Err_ResizeCodeFormat" xml:space="preserve">
+    <value>調整大小失敗。錯誤碼: {0} - {1}</value>
+  </data>
+  <data name="DiskMgmt_Err_CreatePartitionCodeFormat" xml:space="preserve">
+    <value>無法建立分割區。錯誤碼: {0} - {1}</value>
+  </data>
+  <data name="DiskMgmt_Err_SizeLimitsCodeFormat" xml:space="preserve">
+    <value>無法查詢分割區大小限制。錯誤碼: {0} - {1}</value>
+  </data>
+  <data name="DiskMgmt_Err_SizeLimitsFormat" xml:space="preserve">
+    <value>無法查詢分割區大小限制: {0}</value>
+  </data>
+  <data name="DiskMgmt_Err_PathEmpty" xml:space="preserve">
+    <value>路徑不可為空白。</value>
+  </data>
+  <data name="DiskMgmt_Err_SizeAtLeast1Mb" xml:space="preserve">
+    <value>大小至少必須為 1 MB。</value>
+  </data>
+  <data name="DiskMgmt_Err_FileAlreadyExists" xml:space="preserve">
+    <value>檔案已經存在。</value>
+  </data>
+  <data name="DiskMgmt_Err_FileNotFoundFormat" xml:space="preserve">
+    <value>找不到檔案: {0}</value>
+  </data>
+  <data name="DiskMgmt_Err_VolumeNotFoundFormat" xml:space="preserve">
+    <value>找不到磁碟區 {0}:。</value>
+  </data>
+  <data name="DiskMgmt_Err_ValueWithDetailFormat" xml:space="preserve">
+    <value>{0}: {1}</value>
+  </data>
+  <data name="DiskMgmt_Err_SystemLetterRemovalProhibited" xml:space="preserve">
+    <value>嚴禁移除系統磁碟機代號！</value>
+  </data>
+  <data name="DiskMgmt_Err_FolderPathEmpty" xml:space="preserve">
+    <value>資料夾路徑不可為空白。</value>
+  </data>
+  <data name="DiskMgmt_Err_FolderNotEmptyFormat" xml:space="preserve">
+    <value>資料夾必須是空的才能做為掛接點: {0}</value>
+  </data>
+  <data name="DiskMgmt_Err_MountWin32Format" xml:space="preserve">
+    <value>無法將磁碟區掛接到資料夾。Win32 錯誤: {0}</value>
+  </data>
+  <data name="DiskMgmt_Err_FormatAfterCreateFailedFormat" xml:space="preserve">
+    <value>已建立分割區，但格式化失敗: {0}</value>
+  </data>
+  <data name="DiskMgmt_Err_CreatePartitionFailedFormat" xml:space="preserve">
+    <value>無法建立分割區: {0}</value>
+  </data>
+  <data name="DiskMgmt_Err_PartitionNoReference" xml:space="preserve">
+    <value>已建立分割區，但無法取得用於格式化的參考。請手動格式化。</value>
+  </data>
+  <data name="DiskMgmt_Err_LocatePartitionForFormat" xml:space="preserve">
+    <value>找不到要格式化的分割區 - 缺少磁碟/分割區編號。</value>
+  </data>
+  <data name="DiskMgmt_Err_FormattingErrorFormat" xml:space="preserve">
+    <value>格式化期間發生錯誤: {0}</value>
+  </data>
+  <data name="DiskMgmt_Err_FindPartitionForFormat" xml:space="preserve">
+    <value>找不到要格式化的分割區。</value>
+  </data>
+  <data name="DiskMgmt_Err_FindVolumeForFormat" xml:space="preserve">
+    <value>找不到要格式化的對應磁碟區。</value>
+  </data>
+  <data name="DiskMgmt_Err_FallbackFormatFailedFormat" xml:space="preserve">
+    <value>替代格式化方式失敗: {0}</value>
+  </data>
+  <data name="DiskMgmt_Err_FormattingFailedFormat" xml:space="preserve">
+    <value>格式化失敗: {0}</value>
+  </data>
+  <data name="DiskMgmt_Err_ExtendExceedsFormat" xml:space="preserve">
+    <value>要求的延伸大小超過可用空間。最多可延伸至: {0}</value>
+  </data>
+  <data name="DiskMgmt_Err_ExtendMaxUnknown" xml:space="preserve">
+    <value>無法判斷最大可延伸大小。請以 MB 指定明確的大小。</value>
+  </data>
+  <data name="DiskMgmt_Err_ExtensionFailedFormat" xml:space="preserve">
+    <value>延伸失敗: {0}</value>
+  </data>
+  <data name="DiskMgmt_Err_ShrinkExceedsPartitionFormat" xml:space="preserve">
+    <value>要求的壓縮大小 ({0} MB) 超過目前的分割區大小 ({1} MB)。</value>
+  </data>
+  <data name="DiskMgmt_Err_ShrinkExceedsShrinkableFormat" xml:space="preserve">
+    <value>壓縮大小超過可壓縮的空間。最小大小: {0}</value>
+  </data>
+  <data name="DiskMgmt_Err_ShrinkUnsafeFormat" xml:space="preserve">
+    <value>壓縮可能超過安全限制。估計的最小分割區大小: {0}。</value>
+  </data>
+  <data name="DiskMgmt_Err_ShrinkFailedFormat" xml:space="preserve">
+    <value>壓縮失敗: {0}</value>
+  </data>
+  <data name="DiskMgmt_Err_EstimateShrink" xml:space="preserve">
+    <value>無法估計可壓縮的空間。</value>
+  </data>
+  <data name="DiskMgmt_Err_QueryExtendable" xml:space="preserve">
+    <value>無法查詢可延伸的空間。可能沒有可用的未配置空間。</value>
+  </data>
+  <data name="DiskMgmt_Err_SystemDiskOperation" xml:space="preserve">
+    <value>無法對系統磁碟執行此作業。此磁碟包含 Windows 作業系統。</value>
+  </data>
+  <data name="DiskMgmt_Err_CriticalPartitionsWarning" xml:space="preserve">
+    <value>此磁碟包含重要的系統分割區 (EFI、復原分割區)。此作業可能導致系統無法開機。</value>
+  </data>
+  <data name="DiskMgmt_Err_SystemPartitionOperationFormat" xml:space="preserve">
+    <value>無法對系統分割區執行此作業。磁碟機 "{0}" 包含 Windows 作業系統。</value>
+  </data>
+  <data name="DiskMgmt_Ok_LetterChangedFormat" xml:space="preserve">
+    <value>已將磁碟機代號從 {0}: 變更為 {1}:。</value>
+  </data>
+  <data name="DiskMgmt_Ok_LetterRemovedFormat" xml:space="preserve">
+    <value>已成功移除磁碟機代號 {0}:。</value>
+  </data>
+  <data name="DiskMgmt_Ok_LetterAssignedFormat" xml:space="preserve">
+    <value>已成功指派磁碟機代號 {0}:。</value>
+  </data>
+  <data name="DiskMgmt_Ok_InitializedFormat" xml:space="preserve">
+    <value>已成功將磁碟初始化為 {0} 格式。</value>
+  </data>
+  <data name="DiskMgmt_Ok_Online" xml:space="preserve">
+    <value>磁碟現已上線。</value>
+  </data>
+  <data name="DiskMgmt_Ok_Offline" xml:space="preserve">
+    <value>磁碟現已離線。</value>
+  </data>
+  <data name="DiskMgmt_Ok_ReadOnly" xml:space="preserve">
+    <value>已將磁碟設為唯讀。</value>
+  </data>
+  <data name="DiskMgmt_Ok_ReadWrite" xml:space="preserve">
+    <value>已將磁碟設為可讀寫。</value>
+  </data>
+  <data name="DiskMgmt_Ok_Cleaned" xml:space="preserve">
+    <value>已清理磁碟，所有分割區皆已移除。</value>
+  </data>
+  <data name="DiskMgmt_Ok_VhdCreated" xml:space="preserve">
+    <value>已成功建立虛擬硬碟。</value>
+  </data>
+  <data name="DiskMgmt_Ok_VhdAttached" xml:space="preserve">
+    <value>已成功連接虛擬硬碟。</value>
+  </data>
+  <data name="DiskMgmt_Ok_VhdDetached" xml:space="preserve">
+    <value>已成功中斷連接虛擬硬碟。</value>
+  </data>
+  <data name="DiskMgmt_Ok_VolumeCreatedFormat" xml:space="preserve">
+    <value>已成功建立 {0} 磁碟區。</value>
+  </data>
+  <data name="DiskMgmt_Ok_PartitionDeleted" xml:space="preserve">
+    <value>已成功刪除分割區。</value>
+  </data>
+  <data name="DiskMgmt_Ok_PartitionCreated" xml:space="preserve">
+    <value>已成功建立分割區。</value>
+  </data>
+  <data name="DiskMgmt_Ok_MarkedActive" xml:space="preserve">
+    <value>已將分割區標示為使用中。</value>
+  </data>
+  <data name="DiskMgmt_Ok_MountedFormat" xml:space="preserve">
+    <value>已成功將磁碟區掛接到 {0}。</value>
+  </data>
+  <data name="DiskMgmt_Ok_Formatted" xml:space="preserve">
+    <value>格式化成功。</value>
+  </data>
+  <data name="DiskMgmt_Ok_ExtendedFormat" xml:space="preserve">
+    <value>已成功延伸磁碟區。新大小: {0}</value>
+  </data>
+  <data name="DiskMgmt_Ok_ShrunkFormat" xml:space="preserve">
+    <value>已成功將磁碟區壓縮 {0} MB。</value>
+  </data>
+  <data name="DiskMgmt_Query_NoShrinkable" xml:space="preserve">
+    <value>沒有可壓縮的空間。</value>
+  </data>
+  <data name="DiskMgmt_Query_ShrinkableFormat" xml:space="preserve">
+    <value>可壓縮空間: {0} MB</value>
+  </data>
+  <data name="DiskMgmt_Query_ExtendableFormat" xml:space="preserve">
+    <value>可延伸空間: {0} MB</value>
+  </data>
+  <data name="DiskMgmt_Query_EstimatedShrinkableFormat" xml:space="preserve">
+    <value>估計的可壓縮空間: {0} MB (因有無法移動的檔案，實際可能較少)</value>
+  </data>
+  <data name="DiskMgmt_Query_Success" xml:space="preserve">
+    <value>成功</value>
+  </data>
+  <data name="DiskMgmt_Msft_1" xml:space="preserve">
+    <value>不支援的作業</value>
+  </data>
+  <data name="DiskMgmt_Msft_2" xml:space="preserve">
+    <value>未指定的錯誤</value>
+  </data>
+  <data name="DiskMgmt_Msft_3" xml:space="preserve">
+    <value>逾時</value>
+  </data>
+  <data name="DiskMgmt_Msft_4" xml:space="preserve">
+    <value>作業失敗</value>
+  </data>
+  <data name="DiskMgmt_Msft_5" xml:space="preserve">
+    <value>無效的參數</value>
+  </data>
+  <data name="DiskMgmt_Msft_40002" xml:space="preserve">
+    <value>資源不足</value>
+  </data>
+  <data name="DiskMgmt_Msft_40003" xml:space="preserve">
+    <value>找不到物件</value>
+  </data>
+  <data name="DiskMgmt_Msft_40004" xml:space="preserve">
+    <value>不支援此方法 (此物件或此設定不支援此作業)</value>
+  </data>
+  <data name="DiskMgmt_Msft_41000" xml:space="preserve">
+    <value>磁碟尚未初始化</value>
+  </data>
+  <data name="DiskMgmt_Msft_41001" xml:space="preserve">
+    <value>磁碟尚未就緒</value>
+  </data>
+  <data name="DiskMgmt_Msft_41002" xml:space="preserve">
+    <value>磁碟正在使用中</value>
+  </data>
+  <data name="DiskMgmt_Msft_41003" xml:space="preserve">
+    <value>磁碟區正在使用中</value>
+  </data>
+  <data name="DiskMgmt_Msft_41010" xml:space="preserve">
+    <value>指定的分割區類型無效</value>
+  </data>
+  <data name="DiskMgmt_Msft_41011" xml:space="preserve">
+    <value>MBR 磁碟只能使用前 2 TB</value>
+  </data>
+  <data name="DiskMgmt_Msft_41012" xml:space="preserve">
+    <value>指定的位移無效</value>
+  </data>
+  <data name="DiskMgmt_Msft_41013" xml:space="preserve">
+    <value>無法轉換含有資料或其他已知分割區之磁碟的樣式</value>
+  </data>
+  <data name="DiskMgmt_Msft_41014" xml:space="preserve">
+    <value>磁碟不夠大，無法支援 GPT 磁碟分割樣式</value>
+  </data>
+  <data name="DiskMgmt_Msft_41015" xml:space="preserve">
+    <value>裝置中沒有媒體</value>
+  </data>
+  <data name="DiskMgmt_Msft_41017" xml:space="preserve">
+    <value>指定的磁碟分割配置無效</value>
+  </data>
+  <data name="DiskMgmt_Msft_42002" xml:space="preserve">
+    <value>要求的存取路徑已在使用中</value>
+  </data>
+  <data name="DiskMgmt_Msft_42004" xml:space="preserve">
+    <value>無法將存取路徑指派給隱藏的分割區</value>
+  </data>
+  <data name="DiskMgmt_Msft_42007" xml:space="preserve">
+    <value>存取路徑無效</value>
+  </data>
+  <data name="DiskMgmt_Msft_42008" xml:space="preserve">
+    <value>無法刪除系統或開機分割區</value>
+  </data>
+  <data name="DiskMgmt_Msft_UnknownFormat" xml:space="preserve">
+    <value>錯誤碼 {0}</value>
+  </data>
+  <data name="DiskMgmt_Vhd_2" xml:space="preserve">
+    <value>找不到檔案</value>
+  </data>
+  <data name="DiskMgmt_Vhd_3" xml:space="preserve">
+    <value>找不到路徑</value>
+  </data>
+  <data name="DiskMgmt_Vhd_32" xml:space="preserve">
+    <value>檔案正由另一個處理程序使用</value>
+  </data>
+  <data name="DiskMgmt_Vhd_87" xml:space="preserve">
+    <value>無效的參數</value>
+  </data>
+  <data name="DiskMgmt_Vhd_183" xml:space="preserve">
+    <value>檔案已經存在</value>
+  </data>
+  <data name="DiskMgmt_Vhd_UnknownFormat" xml:space="preserve">
+    <value>錯誤碼: {0}</value>
+  </data>
+  <data name="DiskMgmt_PartName_Efi" xml:space="preserve">
+    <value>EFI 系統分割區</value>
+  </data>
+  <data name="DiskMgmt_PartName_Recovery" xml:space="preserve">
+    <value>復原分割區</value>
+  </data>
+  <data name="DiskMgmt_PartName_Msr" xml:space="preserve">
+    <value>Microsoft 保留分割區</value>
+  </data>
+  <data name="DiskMgmt_Warn_Efi" xml:space="preserve">
+    <value>⚠️ EFI 系統分割區 - 開機時需要此分割區，請勿修改</value>
+  </data>
+  <data name="DiskMgmt_Warn_Msr" xml:space="preserve">
+    <value>⚠️ Microsoft 保留分割區 - 系統運作需要此分割區</value>
+  </data>
+  <data name="DiskMgmt_Warn_BiosBoot" xml:space="preserve">
+    <value>⚠️ BIOS 開機分割區 - 開機時需要此分割區</value>
+  </data>
+  <data name="DiskMgmt_Warn_Recovery" xml:space="preserve">
+    <value>⚠️ 復原分割區 - 此分割區用於系統復原，請勿修改</value>
+  </data>
+  <data name="DiskMgmt_Warn_SystemDriveFormat" xml:space="preserve">
+    <value>⚠️ 系統磁碟機 ({0}) - 包含 Windows 作業系統</value>
+  </data>
+  <data name="DiskMgmt_Warn_BootSystem" xml:space="preserve">
+    <value>⚠️ 開機/系統分割區 - 包含開機檔案</value>
+  </data>
+  <data name="DiskMgmt_PartType_System" xml:space="preserve">
+    <value>系統</value>
+  </data>
+  <data name="DiskMgmt_PartType_Reserved" xml:space="preserve">
+    <value>保留</value>
+  </data>
+  <data name="DiskMgmt_PartType_Basic" xml:space="preserve">
+    <value>基本</value>
+  </data>
+  <data name="DiskMgmt_PartType_Recovery" xml:space="preserve">
+    <value>復原</value>
+  </data>
+  <data name="DiskMgmt_PartType_LdmMetadata" xml:space="preserve">
+    <value>LDM 中繼資料</value>
+  </data>
+  <data name="DiskMgmt_PartType_LdmData" xml:space="preserve">
+    <value>LDM 資料</value>
+  </data>
+  <data name="DiskMgmt_PartType_BiosBoot" xml:space="preserve">
+    <value>BIOS 開機</value>
+  </data>
+  <data name="DiskMgmt_PartType_LinuxReserved" xml:space="preserve">
+    <value>Linux 保留</value>
+  </data>
+  <data name="DiskMgmt_DiskType_UsbDrive" xml:space="preserve">
+    <value>USB 磁碟機</value>
+  </data>
+  <data name="DiskMgmt_CdromDriveFormat" xml:space="preserve">
+    <value>CD-ROM 光碟機 ({0})</value>
+  </data>
+  <data name="DiskMgmt_Ok_CdromEjected" xml:space="preserve">
+    <value>已成功退出 CD-ROM。</value>
+  </data>
+  <data name="DiskMgmt_Ok_CdromLoaded" xml:space="preserve">
+    <value>已成功載入 CD-ROM。</value>
+  </data>
+  <data name="DiskMgmt_Action_Load" xml:space="preserve">
+    <value>載入</value>
+  </data>
 </root>

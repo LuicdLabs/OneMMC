@@ -72,7 +72,7 @@ public sealed partial class CreateStoreDialog : ContentDialog
         var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindowInstance);
         var result = await App.GetRequiredService<OneMMC.Core.Abstractions.Services.IFileDialogService>().SaveFileAsync(
             hwnd,
-            "XML Files\0*.xml\0All Files\0*.*\0",
+            $"{LocalizedStrings.Common_FileFilter_XmlFiles}\0*.xml\0{LocalizedStrings.Common_FileFilter_AllFiles}\0*.*\0",
             LocalizedStrings.CreateStoreDialog_FileDialog_Title,
             Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
             "xml");

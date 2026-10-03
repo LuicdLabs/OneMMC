@@ -189,4 +189,52 @@
   <data name="Certificates_DeleteConfirmMessage" xml:space="preserve">
     <value>Delete "{0}" from this certificate store?</value>
   </data>
+  <data name="Certificates_Store_Personal" xml:space="preserve">
+    <value>Personal</value>
+  </data>
+  <data name="Certificates_Store_CA" xml:space="preserve">
+    <value>Intermediate Certification Authorities</value>
+  </data>
+  <data name="Certificates_Store_Root" xml:space="preserve">
+    <value>Trusted Root Certification Authorities</value>
+  </data>
+  <data name="Certificates_Store_Trust" xml:space="preserve">
+    <value>Enterprise Trust</value>
+  </data>
+  <data name="Certificates_Store_AuthRoot" xml:space="preserve">
+    <value>Third-Party Root Certification Authorities</value>
+  </data>
+  <data name="Certificates_Store_TrustedPublisher" xml:space="preserve">
+    <value>Trusted Publishers</value>
+  </data>
+  <data name="Certificates_Store_Disallowed" xml:space="preserve">
+    <value>Untrusted Certificates</value>
+  </data>
+  <data name="Certificates_Store_TrustedPeople" xml:space="preserve">
+    <value>Trusted People</value>
+  </data>
+  <data name="Certificates_Store_UserDS" xml:space="preserve">
+    <value>Active Directory User Object</value>
+  </data>
+  <data name="Certificates_Store_ClientAuthIssuer" xml:space="preserve">
+    <value>Client Authentication Issuers</value>
+  </data>
+  <data name="Certificates_Store_SmartCardRoot" xml:space="preserve">
+    <value>Smart Card Trusted Roots</value>
+  </data>
+  <data name="Certificates_Store_FlightRoot" xml:space="preserve">
+    <value>Preview Build Roots</value>
+  </data>
+  <data name="Certificates_Store_TestSignRoot" xml:space="preserve">
+    <value>Test Roots</value>
+  </data>
+  <data name="Certificates_Store_TrustedAppRoot" xml:space="preserve">
+    <value>Trusted Packaged App Installation Authorities</value>
+  </data>
+  <data name="Certificates_Store_OemEsim" xml:space="preserve">
+    <value>OEM eSIM Certification Authorities</value>
+  </data>
+  <data name="Certificates_Store_PasspointTrustedRoots" xml:space="preserve">
+    <value>Passpoint Trusted Roots</value>
+  </data>
 </root>

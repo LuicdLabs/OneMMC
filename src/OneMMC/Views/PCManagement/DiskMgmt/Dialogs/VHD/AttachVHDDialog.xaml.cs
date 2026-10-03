@@ -38,8 +38,8 @@ public sealed partial class AttachVHDDialog : ContentDialog
         
         var selectedPath = await App.GetRequiredService<OneMMC.Core.Abstractions.Services.IFileDialogService>().OpenFileAsync(
             hwnd,
-            "Virtual Hard Disk\0*.vhdx;*.vhd\0All Files\0*.*\0",
-            "Select Virtual Hard Disk");
+            $"{LocalizedStrings.DiskMgmt_FileFilter_Vhd}\0*.vhdx;*.vhd\0{LocalizedStrings.Common_FileFilter_AllFiles}\0*.*\0",
+            LocalizedStrings.DiskMgmt_SelectVhd);
 
         if (!string.IsNullOrEmpty(selectedPath))
         {

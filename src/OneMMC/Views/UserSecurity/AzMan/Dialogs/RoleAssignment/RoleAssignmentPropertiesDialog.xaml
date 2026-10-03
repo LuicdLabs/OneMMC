@@ -12,7 +12,7 @@
     DefaultButton="Primary"
     IsPrimaryButtonEnabled="True"
     PrimaryButtonClick="OnPrimaryButtonClick"
-    AutomationProperties.Name="Role Assignment Properties">
+    AutomationProperties.Name="{x:Bind LocalizedStrings.RoleAssignmentPropertiesDialog_Title}">
 
     <ContentDialog.PrimaryButtonStyle>
         <Style TargetType="Button" BasedOn="{StaticResource DefaultButtonStyle}">
@@ -42,11 +42,11 @@
                 Text="{x:Bind LocalizedStrings.RoleAssignmentPropertiesDialog_Tab_General, Mode=OneTime}"
                 Tag="General"
                 IsSelected="True"
-                AutomationProperties.Name="General" />
+                AutomationProperties.Name="{x:Bind LocalizedStrings.RoleAssignmentPropertiesDialog_Tab_General}" />
             <SelectorBarItem
                 Text="{x:Bind LocalizedStrings.RoleAssignmentPropertiesDialog_Tab_AssignedUsers, Mode=OneTime}"
                 Tag="AssignedUsers"
-                AutomationProperties.Name="Assigned Users" />
+                AutomationProperties.Name="{x:Bind LocalizedStrings.RoleAssignmentPropertiesDialog_Tab_AssignedUsers}" />
         </SelectorBar>
 
         <!-- General Tab Panel -->
@@ -70,7 +70,7 @@
                     <TextBox
                         x:Name="NameTextBox"
                         IsReadOnly="True"
-                        AutomationProperties.Name="Name" />
+                        AutomationProperties.Name="{x:Bind LocalizedStrings.RoleAssignmentPropertiesDialog_Name_Header}" />
                 </StackPanel>
 
                 <!-- Description Field (Editable) -->
@@ -85,7 +85,7 @@
                         TextWrapping="Wrap"
                         MinHeight="120"
                         MaxHeight="240"
-                        AutomationProperties.Name="Description" />
+                        AutomationProperties.Name="{x:Bind LocalizedStrings.RoleAssignmentPropertiesDialog_Description_Header}" />
                 </StackPanel>
             </StackPanel>
         </ScrollViewer>
@@ -101,7 +101,7 @@
                 <StackPanel Orientation="Horizontal" Spacing="8">
                     <Button
                         Click="OnAddUsersClick"
-                        AutomationProperties.Name="Add Users">
+                        AutomationProperties.Name="{x:Bind LocalizedStrings.Common_AddButtonEllipsis}">
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <FontIcon Glyph="&#xE710;" FontSize="16" />
                             <TextBlock Text="{x:Bind LocalizedStrings.Common_AddButtonEllipsis, Mode=OneTime}" />
@@ -111,7 +111,7 @@
                         x:Name="RemoveButton"
                         Click="OnRemoveMemberClick"
                         IsEnabled="False"
-                        AutomationProperties.Name="Remove">
+                        AutomationProperties.Name="{x:Bind LocalizedStrings.Common_RemoveButton}">
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <FontIcon Glyph="&#xE738;" FontSize="16" />
                             <TextBlock Text="{x:Bind LocalizedStrings.Common_RemoveButton, Mode=OneTime}" />

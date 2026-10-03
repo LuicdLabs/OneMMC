@@ -273,4 +273,73 @@
   <data name="Service_Status_PausePending" xml:space="preserve">
     <value>暫停中</value>
   </data>
+  <data name="Services_Status_Loading" xml:space="preserve">
+    <value>正在載入服務...</value>
+  </data>
+  <data name="Services_Status_LoadedFormat" xml:space="preserve">
+    <value>已載入 {0} 個服務。</value>
+  </data>
+  <data name="Services_Status_LoadErrorFormat" xml:space="preserve">
+    <value>載入服務時發生錯誤: {0}</value>
+  </data>
+  <data name="Services_Status_StartErrorFormat" xml:space="preserve">
+    <value>啟動服務時發生錯誤: {0}</value>
+  </data>
+  <data name="Services_Status_StopErrorFormat" xml:space="preserve">
+    <value>停止服務時發生錯誤: {0}</value>
+  </data>
+  <data name="Services_Status_RestartErrorFormat" xml:space="preserve">
+    <value>重新啟動服務時發生錯誤: {0}</value>
+  </data>
+  <data name="Services_Status_StartupTypeUpdatedFormat" xml:space="preserve">
+    <value>已更新 {0} 的啟動類型。</value>
+  </data>
+  <data name="Services_Status_StartupTypeErrorFormat" xml:space="preserve">
+    <value>設定啟動類型時發生錯誤: {0}</value>
+  </data>
+  <data name="Services_Status_LogOnUpdatedFormat" xml:space="preserve">
+    <value>已更新 {0} 的登入帳戶。</value>
+  </data>
+  <data name="Services_Status_LogOnErrorFormat" xml:space="preserve">
+    <value>設定登入帳戶時發生錯誤: {0}</value>
+  </data>
+  <data name="Services_Status_DetailsErrorFormat" xml:space="preserve">
+    <value>載入詳細資料時發生錯誤: {0}</value>
+  </data>
+  <data name="Services_Status_RecoveryUpdated" xml:space="preserve">
+    <value>已更新復原選項。</value>
+  </data>
+  <data name="Services_Status_RecoveryUpdatedFormat" xml:space="preserve">
+    <value>已更新 {0} 的復原選項。</value>
+  </data>
+  <data name="Services_Status_RecoveryErrorFormat" xml:space="preserve">
+    <value>設定復原選項時發生錯誤: {0}</value>
+  </data>
+  <data name="Services_Err_OpenScManager" xml:space="preserve">
+    <value>無法開啟服務控制管理員。</value>
+  </data>
+  <data name="Services_Err_OpenService" xml:space="preserve">
+    <value>無法開啟服務。</value>
+  </data>
+  <data name="Services_Err_SetStartupTypeFormat" xml:space="preserve">
+    <value>無法設定啟動類型。錯誤: {0}</value>
+  </data>
+  <data name="Services_Err_SetDelayedAutoStartFormat" xml:space="preserve">
+    <value>無法設定延遲自動啟動。錯誤: {0}</value>
+  </data>
+  <data name="Services_Err_SetRecoveryFormat" xml:space="preserve">
+    <value>無法設定復原選項。錯誤: {0}</value>
+  </data>
+  <data name="Services_Err_OpenProcessTokenFormat" xml:space="preserve">
+    <value>無法開啟處理程序權杖。錯誤: {0}</value>
+  </data>
+  <data name="Services_Err_LookupPrivilegeFormat" xml:space="preserve">
+    <value>無法查詢權限 {0}。錯誤: {1}</value>
+  </data>
+  <data name="Services_Err_EnablePrivilegeFormat" xml:space="preserve">
+    <value>無法啟用權限 {0}。錯誤: {1}</value>
+  </data>
+  <data name="Services_Err_QueryConfigFormat" xml:space="preserve">
+    <value>無法查詢服務設定。錯誤: {0}</value>
+  </data>
 </root>

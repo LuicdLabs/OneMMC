@@ -128,12 +128,12 @@ internal sealed class StoreManagement
                 catch (COMException ex)
                 {
                     _logger.LogError(ex, "COM error creating store. ErrorCode=0x{ErrorCode:X8}", ex.ErrorCode);
-                    throw new AzManException($"Failed to create authorization store: {GetComErrorMessage(ex)}", ex);
+                    throw new AzManException(OneMMC.Core.Localization.LocalizationProvider.Current.GetFormattedString(OneMMC.Core.Localization.ResourceFileNames.AzMan, OneMMC.Core.Localization.AzManKeys.ErrCreateStoreFormat, GetComErrorMessage(ex)), ex);
                 }
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Error creating store");
-                    throw new AzManException($"Failed to create authorization store: {ex.Message}", ex);
+                    throw new AzManException(OneMMC.Core.Localization.LocalizationProvider.Current.GetFormattedString(OneMMC.Core.Localization.ResourceFileNames.AzMan, OneMMC.Core.Localization.AzManKeys.ErrCreateStoreFormat, ex.Message), ex);
                 }
             }
         });
@@ -174,7 +174,7 @@ internal sealed class StoreManagement
                         // Check local file
                         if (!path.StartsWith(@"\\") && !System.IO.File.Exists(path))
                         {
-                            throw new System.IO.FileNotFoundException($"File not found: {path}", path);
+                            throw new System.IO.FileNotFoundException(OneMMC.Core.Localization.LocalizationProvider.Current.GetFormattedString(OneMMC.Core.Localization.ResourceFileNames.AzMan, OneMMC.Core.Localization.AzManKeys.ErrFileNotFoundFormat, path), path);
                         }
                     }
 
@@ -197,17 +197,17 @@ internal sealed class StoreManagement
                 catch (COMException ex)
                 {
                     _logger.LogError(ex, "COM error opening store. ErrorCode=0x{ErrorCode:X8}", ex.ErrorCode);
-                    throw new AzManException($"Failed to open authorization store: {GetComErrorMessage(ex)}", ex);
+                    throw new AzManException(OneMMC.Core.Localization.LocalizationProvider.Current.GetFormattedString(OneMMC.Core.Localization.ResourceFileNames.AzMan, OneMMC.Core.Localization.AzManKeys.ErrOpenStoreFormat, GetComErrorMessage(ex)), ex);
                 }
                 catch (System.IO.FileNotFoundException ex)
                 {
                     _logger.LogWarning(ex, "Store file not found while opening store");
-                    throw new AzManException($"Failed to open authorization store: File or path not accessible ({ex.Message}).", ex);
+                    throw new AzManException(OneMMC.Core.Localization.LocalizationProvider.Current.GetFormattedString(OneMMC.Core.Localization.ResourceFileNames.AzMan, OneMMC.Core.Localization.AzManKeys.ErrOpenStoreInaccessibleFormat, ex.Message), ex);
                 }
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Error opening store");
-                    throw new AzManException($"Failed to open authorization store: {ex.Message}", ex);
+                    throw new AzManException(OneMMC.Core.Localization.LocalizationProvider.Current.GetFormattedString(OneMMC.Core.Localization.ResourceFileNames.AzMan, OneMMC.Core.Localization.AzManKeys.ErrOpenStoreFormat, ex.Message), ex);
                 }
             }
         });
@@ -268,7 +268,7 @@ internal sealed class StoreManagement
                             $"Failed to delete authorization store: the store at '{storePath}' could not be found. It may have already been deleted.", ex);
                     }
 
-                    throw new AzManException($"Failed to delete authorization store: {GetComErrorMessage(ex)}", ex);
+                    throw new AzManException(OneMMC.Core.Localization.LocalizationProvider.Current.GetFormattedString(OneMMC.Core.Localization.ResourceFileNames.AzMan, OneMMC.Core.Localization.AzManKeys.ErrDeleteStoreFormat, GetComErrorMessage(ex)), ex);
                 }
                 catch (System.IO.FileNotFoundException ex)
                 {
@@ -342,7 +342,7 @@ internal sealed class StoreManagement
                 }
                 catch (COMException ex)
                 {
-                    throw new AzManException($"Failed to refresh store: {GetComErrorMessage(ex)}", ex);
+                    throw new AzManException(OneMMC.Core.Localization.LocalizationProvider.Current.GetFormattedString(OneMMC.Core.Localization.ResourceFileNames.AzMan, OneMMC.Core.Localization.AzManKeys.ErrRefreshStoreFormat, GetComErrorMessage(ex)), ex);
                 }
             }
         });
@@ -541,7 +541,7 @@ internal sealed class StoreManagement
 
         if (!IsActiveDirectoryStore(storePath))
         {
-            throw new AzManException("Schema upgrade to version 2.0 is only supported for XML and Active Directory authorization stores.");
+            throw new AzManException(OneMMC.Core.Localization.LocalizationProvider.Current.GetString(OneMMC.Core.Localization.ResourceFileNames.AzMan, OneMMC.Core.Localization.AzManKeys.ErrSchemaUpgradeUnsupported));
         }
 
         // EnsureAdStoreSchemaV2 tries (1) MANAGE_STORE_ONLY handle with UpgradeStoresFunctionalLevel,

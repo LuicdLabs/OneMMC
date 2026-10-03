@@ -7,6 +7,7 @@ using System.Linq;
 using OneMMC.Core.Features.PCManagement.Services.DiskMgmt.Common;
 using OneMMC.Core.Features.PCManagement.Models.DiskMgmt;
 using OneMMC.Core.Infrastructure.Wmi;
+using OneMMC.Core.Localization;
 using WmiLight;
 
 namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
@@ -176,7 +177,7 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
             return new PartitionInfo
             {
                 DeviceId = $"Unallocated-{diskIndex}-{suffix}",
-                Name = "Unallocated Space",
+                Name = DiskMgmtText.Get(DiskMgmtKeys.UnallocatedSpace),
                 Size = size,
                 TotalSize = size,
                 FreeSpace = size,
@@ -564,8 +565,8 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
                         drives.Add(new CDROMInfo
                         {
                             DeviceId = drive.Name.TrimEnd('\\'),
-                            Name = $"CD-ROM Drive ({drive.Name.TrimEnd('\\')})",
-                            Caption = $"CD-ROM Drive ({drive.Name.TrimEnd('\\')})",
+                            Name = DiskMgmtText.Format(DiskMgmtKeys.CdromDriveFormat, drive.Name.TrimEnd('\\')),
+                            Caption = DiskMgmtText.Format(DiskMgmtKeys.CdromDriveFormat, drive.Name.TrimEnd('\\')),
                             Drive = drive.Name.TrimEnd('\\'),
                             MediaLoaded = drive.IsReady,
                             VolumeName = drive.IsReady ? (drive.VolumeLabel ?? "") : "",
@@ -727,8 +728,8 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
 
             if (iface.Contains("NVME") || model.Contains("NVME")) return "NVMe SSD";
             if (media.Contains("SSD") || model.Contains("SSD")) return "SSD";
-            if (model.Contains("VIRTUAL") || model.Contains("VHDX") || model.Contains("MSFT")) return "Virtual Disk";
-            if (iface.Contains("USB")) return "USB Drive";
+            if (model.Contains("VIRTUAL") || model.Contains("VHDX") || model.Contains("MSFT")) return DiskMgmtText.Get(DiskMgmtKeys.VirtualDisk);
+            if (iface.Contains("USB")) return DiskMgmtText.Get(DiskMgmtKeys.DiskTypeUsbDrive);
             return "HDD";
         }
 
@@ -768,7 +769,7 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
             }
             catch { }
 
-            return "Unknown";
+            return DiskMgmtText.Get(DiskMgmtKeys.HealthUnknown);
         }
 
         public string GetDiskPartitionStyle(uint diskIndex) => DetermineDiskPartitionStyle(diskIndex);

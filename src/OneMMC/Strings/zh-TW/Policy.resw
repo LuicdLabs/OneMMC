@@ -258,4 +258,52 @@
   <data name="RSoP_SourceLocalPolicy" xml:space="preserve">
     <value>本機原則</value>
   </data>
+  <data name="Policy_Error_ServiceNotInitialized" xml:space="preserve">
+    <value>原則服務尚未初始化</value>
+  </data>
+  <data name="Policy_Error_InitServicesFailed" xml:space="preserve">
+    <value>無法初始化原則服務</value>
+  </data>
+  <data name="Policy_Error_LoadPoliciesFormat" xml:space="preserve">
+    <value>無法載入原則: {0}</value>
+  </data>
+  <data name="Policy_Error_SavePolicyFormat" xml:space="preserve">
+    <value>無法儲存原則: {0}</value>
+  </data>
+  <data name="Policy_Status_LoadingAdmx" xml:space="preserve">
+    <value>正在載入 ADMX 檔案...</value>
+  </data>
+  <data name="Policy_Status_Error" xml:space="preserve">
+    <value>錯誤</value>
+  </data>
+  <data name="Policy_Status_Ready" xml:space="preserve">
+    <value>就緒</value>
+  </data>
+  <data name="Policy_Error_ServiceDisposed" xml:space="preserve">
+    <value>服務已被處置</value>
+  </data>
+  <data name="Policy_Error_InitializeFormat" xml:space="preserve">
+    <value>初始化失敗: {0}</value>
+  </data>
+  <data name="Policy_Error_SetStateFormat" xml:space="preserve">
+    <value>無法設定原則狀態: {0}</value>
+  </data>
+  <data name="Policy_Error_SavePolFileFormat" xml:space="preserve">
+    <value>無法儲存 POL 檔案: {0}</value>
+  </data>
+  <data name="Policy_Error_SaveFailedFormat" xml:space="preserve">
+    <value>儲存失敗: {0}</value>
+  </data>
+  <data name="Policy_Error_ReloadFailedFormat" xml:space="preserve">
+    <value>重新載入失敗: {0}</value>
+  </data>
+  <data name="Policy_Error_InitPolServiceFormat" xml:space="preserve">
+    <value>無法初始化 POL 檔案原則服務: {0}</value>
+  </data>
+  <data name="Policy_Error_OpenRegistryKeyFormat" xml:space="preserve">
+    <value>無法開啟登錄機碼: {0}</value>
+  </data>
+  <data name="Policy_Error_InitRegistryServiceFormat" xml:space="preserve">
+    <value>無法初始化登錄原則服務: {0}</value>
+  </data>
 </root>

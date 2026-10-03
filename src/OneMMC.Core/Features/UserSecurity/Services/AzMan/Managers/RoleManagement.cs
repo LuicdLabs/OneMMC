@@ -379,7 +379,7 @@ internal sealed class RoleManagement
     {
         if (string.IsNullOrWhiteSpace(memberSid))
         {
-            throw new AzManException("Cannot add member: the security identifier (SID) is empty. The account may not have been resolved correctly.");
+            throw new AzManException(OneMMC.Core.Localization.LocalizationProvider.Current.GetString(OneMMC.Core.Localization.ResourceFileNames.AzMan, OneMMC.Core.Localization.AzManKeys.ErrAddMemberEmptySid));
         }
 
         try
@@ -388,7 +388,7 @@ internal sealed class RoleManagement
         }
         catch (ArgumentException)
         {
-            throw new AzManException($"Cannot add member: '{memberSid}' is not a valid security identifier (SID).");
+            throw new AzManException(OneMMC.Core.Localization.LocalizationProvider.Current.GetFormattedString(OneMMC.Core.Localization.ResourceFileNames.AzMan, OneMMC.Core.Localization.AzManKeys.ErrAddMemberInvalidSidFormat, memberSid));
         }
     }
 }

@@ -8,7 +8,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using OneMMC.Core.Features.PCManagement.Services.EventViewer;
+using OneMMC.Core.Localization;
 using OneMMC.Helpers;
+using OneMMC.Localization;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 
@@ -39,24 +41,24 @@ public partial class CheckableItem : ObservableObject
 /// </summary>
 public sealed partial class NewEventFilterContent : UserControl
 {
-    private const string AllSourcesLabel = "<All Event Sources>";
-    private const string AllKeywordsLabel = "<All Keywords>";
-    private const string SelectLogsLabel = "<Select event logs>";
+    private static readonly string AllSourcesLabel = L(TaskSchdKeys.FilterAllEventSources);
+    private static readonly string AllKeywordsLabel = L(TaskSchdKeys.FilterAllKeywords);
+    private static readonly string SelectLogsLabel = L(TaskSchdKeys.FilterSelectEventLogs);
 
     // The classic Windows Logs shown under the "Windows Logs" group, in taskschd.msc order.
     private static readonly string[] ClassicWindowsLogs =
         ["Application", "Security", "Setup", "System", "ForwardedEvents"];
 
-    // The reserved Microsoft keyword bits (from winmeta.xml) the Keywords picker exposes.
+    // The reserved Microsoft keyword bits (from winmeta.xml) the Keywords picker exposes, by localized name.
     private static readonly (string Name, long Mask)[] KeywordDefinitions =
     [
-        ("Audit Failure", 0x10000000000000),
-        ("Audit Success", 0x20000000000000),
-        ("Classic", 0x80000000000000),
-        ("Correlation Hint", 0x40000000000000),
-        ("Response Time", 0x01000000000000),
-        ("SQM", 0x08000000000000),
-        ("WDI Diag", 0x04000000000000),
+        (EventViewerText(EventViewerKeys.KeywordAuditFailure), 0x10000000000000),
+        (EventViewerText(EventViewerKeys.KeywordAuditSuccess), 0x20000000000000),
+        (EventViewerText(EventViewerKeys.KeywordClassic), 0x80000000000000),
+        (EventViewerText(EventViewerKeys.KeywordCorrelationHint), 0x40000000000000),
+        (EventViewerText(EventViewerKeys.KeywordResponseTime), 0x01000000000000),
+        (EventViewerText(EventViewerKeys.KeywordSqm), 0x08000000000000),
+        (EventViewerText(EventViewerKeys.KeywordWdiDiag), 0x04000000000000),
     ];
 
     private readonly Dictionary<TreeViewNode, string> _logChannelByNode = [];
@@ -88,9 +90,15 @@ public sealed partial class NewEventFilterContent : UserControl
         public IReadOnlyList<string>? MicrosoftChannels { get; } = microsoftChannels;
     }
 
+    public LocalizedStrings LocalizedStrings { get; } = LocalizedStrings.Instance;
+
     public NewEventFilterContent() : this(null)
     {
     }
+
+    private static string L(string key) => LocalizationProvider.Current.GetString(ResourceFileNames.TaskSchd, key);
+
+    private static string EventViewerText(string key) => LocalizationProvider.Current.GetString(ResourceFileNames.EventViewer, key);
 
     /// <summary>
     /// Creates the editor, optionally pre-loaded with an existing subscription. When
@@ -348,13 +356,14 @@ public sealed partial class NewEventFilterContent : UserControl
     {
         if (range.From is null && range.To is { } upto)
         {
-            return $"All Events upto {FormatRangeTime(upto)}";
+            return string.Format(CultureInfo.CurrentCulture, L(TaskSchdKeys.FilterRangeUpToFormat), FormatRangeTime(upto));
         }
         if (range.From is { } from && range.To is null)
         {
-            return $"From {FormatRangeTime(from)}";
+            return string.Format(CultureInfo.CurrentCulture, L(TaskSchdKeys.FilterRangeFromFormat), FormatRangeTime(from));
         }
-        return $"From {FormatRangeTime(range.From!.Value)} to {FormatRangeTime(range.To!.Value)}";
+        return string.Format(CultureInfo.CurrentCulture, L(TaskSchdKeys.FilterRangeFromToFormat),
+            FormatRangeTime(range.From!.Value), FormatRangeTime(range.To!.Value));
     }
 
     private static string FormatRangeTime(DateTime value) =>
@@ -387,7 +396,7 @@ public sealed partial class NewEventFilterContent : UserControl
             return;
         }
 
-        var windowsNode = new TreeViewNode { Content = "Windows Logs", IsExpanded = true };
+        var windowsNode = new TreeViewNode { Content = EventViewerText(EventViewerKeys.TreeWindowsLogs), IsExpanded = true };
         foreach (var classic in ClassicWindowsLogs)
         {
             var channel = names.FirstOrDefault(n => string.Equals(n, classic, StringComparison.OrdinalIgnoreCase));
@@ -427,7 +436,7 @@ public sealed partial class NewEventFilterContent : UserControl
 
         var appsNode = new TreeViewNode
         {
-            Content = "Applications and Services Logs",
+            Content = EventViewerText(EventViewerKeys.TreeAppServicesLogs),
             HasUnrealizedChildren = appsChannels.Count > 0 || microsoftChannels.Count > 0,
         };
         _deferredLogGroupsByNode[appsNode] = new DeferredLogGroup(appsChannels, microsoftChannels);

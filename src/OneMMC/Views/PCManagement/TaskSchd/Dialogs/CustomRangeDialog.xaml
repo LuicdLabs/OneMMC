@@ -12,11 +12,8 @@
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-	Title="Custom Range"
 	mc:Ignorable="d"
-	CloseButtonText="Cancel"
-	DefaultButton="Primary"
-	PrimaryButtonText="OK">
+	DefaultButton="Primary">
 
 	<Grid MinWidth="480" RowSpacing="14">
 		<Grid.RowDefinitions>
@@ -29,7 +26,7 @@
 		<TextBlock
 			Grid.Row="0"
 			Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-			Text="Enter a custom date range for your filter."
+			Text="{x:Bind LocalizedStrings.TaskSchd_CustomRange_Instruction}"
 			TextWrapping="Wrap" />
 
 		<!--  From bound  -->
@@ -50,15 +47,15 @@
 				Grid.Row="0"
 				Grid.Column="0"
 				VerticalAlignment="Center"
-				Text="From:" />
+				Text="{x:Bind LocalizedStrings.TaskSchd_CustomRange_From}" />
 			<ComboBox
 				x:Name="FromModeCombo"
 				Grid.Row="0"
 				Grid.Column="1"
 				Width="118"
 				SelectionChanged="Mode_SelectionChanged">
-				<ComboBoxItem Content="First Event" />
-				<ComboBoxItem Content="Events On" />
+				<ComboBoxItem Content="{x:Bind LocalizedStrings.TaskSchd_CustomRange_FirstEvent}" />
+				<ComboBoxItem Content="{x:Bind LocalizedStrings.TaskSchd_CustomRange_EventsOn}" />
 			</ComboBox>
 			<Grid
 				Grid.Row="1"
@@ -100,15 +97,15 @@
 				Grid.Row="0"
 				Grid.Column="0"
 				VerticalAlignment="Center"
-				Text="To:" />
+				Text="{x:Bind LocalizedStrings.TaskSchd_CustomRange_To}" />
 			<ComboBox
 				x:Name="ToModeCombo"
 				Grid.Row="0"
 				Grid.Column="1"
 				Width="118"
 				SelectionChanged="Mode_SelectionChanged">
-				<ComboBoxItem Content="Last Event" />
-				<ComboBoxItem Content="Events On" />
+				<ComboBoxItem Content="{x:Bind LocalizedStrings.TaskSchd_CustomRange_LastEvent}" />
+				<ComboBoxItem Content="{x:Bind LocalizedStrings.TaskSchd_CustomRange_EventsOn}" />
 			</ComboBox>
 			<Grid
 				Grid.Row="1"

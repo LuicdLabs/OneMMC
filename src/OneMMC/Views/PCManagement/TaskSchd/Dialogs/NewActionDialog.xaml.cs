@@ -1,5 +1,6 @@
 ﻿using OneMMC.Core.Features.PCManagement.Models.TaskSchd;
 using OneMMC.Core.Localization;
+using OneMMC.Localization;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using WinRT.Interop;
@@ -16,6 +17,8 @@ public sealed partial class NewActionDialog : ContentDialog
     private const int ActionExec = 0;
     private const int ActionEmail = 1;
     private const int ActionMessage = 2;
+
+    public LocalizedStrings LocalizedStrings { get; } = LocalizedStrings.Instance;
 
     /// <summary>The action built when the dialog is committed; <see langword="null"/> if cancelled.</summary>
     public ActionModel? ResultAction { get; private set; }
@@ -141,7 +144,7 @@ public sealed partial class NewActionDialog : ContentDialog
     private async void BrowseProgram_Click(object sender, RoutedEventArgs e)
     {
         var path = await App.GetRequiredService<IFileDialogService>()
-            .OpenFileAsync(OwnerHwnd, "Programs\0*.exe;*.bat;*.cmd;*.ps1\0All Files\0*.*\0", title: L(TaskSchdKeys.ActionProgramScript));
+            .OpenFileAsync(OwnerHwnd, $"{LocalizedStrings.Common_FileFilter_Programs}\0*.exe;*.bat;*.cmd;*.ps1\0{LocalizedStrings.Common_FileFilter_AllFiles}\0*.*\0", title: L(TaskSchdKeys.ActionProgramScript));
         if (!string.IsNullOrEmpty(path))
         {
             ProgramScriptBox.Text = path;
@@ -151,7 +154,7 @@ public sealed partial class NewActionDialog : ContentDialog
     private async void BrowseAttachment_Click(object sender, RoutedEventArgs e)
     {
         var path = await App.GetRequiredService<IFileDialogService>()
-            .OpenFileAsync(OwnerHwnd, "All Files\0*.*\0", title: L(TaskSchdKeys.ActionEmailAttachment));
+            .OpenFileAsync(OwnerHwnd, $"{LocalizedStrings.Common_FileFilter_AllFiles}\0*.*\0", title: L(TaskSchdKeys.ActionEmailAttachment));
         if (!string.IsNullOrEmpty(path))
         {
             EmailAttachmentBox.Text = path;

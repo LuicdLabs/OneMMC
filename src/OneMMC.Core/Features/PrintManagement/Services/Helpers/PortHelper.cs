@@ -1,4 +1,5 @@
 ﻿using System;
+using OneMMC.Core.Localization;
 
 namespace OneMMC.Core.Features.PrintManagement.Services.Helpers;
 
@@ -22,19 +23,19 @@ internal static class PortHelper
             return "COM";
 
         if (portName.StartsWith("PORTPROMPT", StringComparison.OrdinalIgnoreCase))
-            return "Local Port";
+            return L(PrintMgmtKeys.PortTypeLocal);
 
         if (portName.StartsWith("FILE", StringComparison.OrdinalIgnoreCase))
-            return "Local Port";
+            return L(PrintMgmtKeys.PortTypeLocal);
 
         if (portName.StartsWith("nul", StringComparison.OrdinalIgnoreCase))
-            return "Local Port";
+            return L(PrintMgmtKeys.PortTypeLocal);
 
         if (portName.Contains("IP_", StringComparison.OrdinalIgnoreCase) ||
             portName.StartsWith("WSD", StringComparison.OrdinalIgnoreCase))
-            return "Standard TCP/IP Port";
+            return L(PrintMgmtKeys.PortTypeStandardTcpIp);
 
-        return "Local Port";
+        return L(PrintMgmtKeys.PortTypeLocal);
     }
 
     /// <summary>
@@ -43,28 +44,30 @@ internal static class PortHelper
     internal static string GetPortDescription(string portName)
     {
         if (portName.StartsWith("USB", StringComparison.OrdinalIgnoreCase))
-            return "USB Virtual Printer Port";
+            return L(PrintMgmtKeys.PortDescUsbVirtual);
 
         if (portName.StartsWith("PORTPROMPT", StringComparison.OrdinalIgnoreCase))
-            return "Local Port";
+            return L(PrintMgmtKeys.PortTypeLocal);
 
         if (portName.Equals("FILE:", StringComparison.OrdinalIgnoreCase))
-            return "Print to File";
+            return L(PrintMgmtKeys.PortDescPrintToFile);
 
         if (portName.StartsWith("LPT", StringComparison.OrdinalIgnoreCase))
-            return "Printer Port";
+            return L(PrintMgmtKeys.PortDescPrinterPort);
 
         if (portName.StartsWith("COM", StringComparison.OrdinalIgnoreCase))
-            return "Serial Port";
+            return L(PrintMgmtKeys.PortDescSerial);
 
         if (portName.StartsWith("nul", StringComparison.OrdinalIgnoreCase))
-            return "Null Port";
+            return L(PrintMgmtKeys.PortDescNull);
 
         if (portName.StartsWith("WSD", StringComparison.OrdinalIgnoreCase))
-            return "WS Discovery Port";
+            return L(PrintMgmtKeys.PortDescWsDiscovery);
 
-        return "Local Port";
+        return L(PrintMgmtKeys.PortTypeLocal);
     }
+
+    private static string L(string key) => LocalizationProvider.Current.GetString(ResourceFileNames.PrintManagement, key);
 }
 
 

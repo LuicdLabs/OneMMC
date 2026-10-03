@@ -306,4 +306,19 @@
   <data name="LegalDocument_LoadError" xml:space="preserve">
     <value>Unable to load the document. Please try again later.</value>
   </data>
+  <data name="Common_FileFilter_AllFiles" xml:space="preserve">
+    <value>All Files</value>
+  </data>
+  <data name="Common_FileFilter_XmlFiles" xml:space="preserve">
+    <value>XML Files</value>
+  </data>
+  <data name="Common_FileFilter_Programs" xml:space="preserve">
+    <value>Programs</value>
+  </data>
+  <data name="Common_FileFilter_VbScript" xml:space="preserve">
+    <value>VBScript Files</value>
+  </data>
+  <data name="Common_FileFilter_JScript" xml:space="preserve">
+    <value>JScript Files</value>
+  </data>
 </root>

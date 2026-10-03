@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Runtime.InteropServices;
 using OneMMC.Core.Features.PCManagement.Services.DiskMgmt.Common;
+using OneMMC.Core.Localization;
 using Windows.Win32.Storage.FileSystem;
 using Win32PInvoke = Windows.Win32.PInvoke;
 
@@ -17,8 +18,8 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
             return ExecuteIoctl(
                 driveLetter,
                 DiskManagementConstants.IOCTL_STORAGE_EJECT_MEDIA,
-                "CD-ROM ejected successfully.",
-                "Eject",
+                DiskMgmtText.Get(DiskMgmtKeys.OkCdromEjected),
+                DiskMgmtText.Get(DiskMgmtKeys.Eject),
                 "EjectCDROM",
                 logDebug,
                 logError);
@@ -32,8 +33,8 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
             return ExecuteIoctl(
                 driveLetter,
                 DiskManagementConstants.IOCTL_STORAGE_LOAD_MEDIA,
-                "CD-ROM loaded successfully.",
-                "Load",
+                DiskMgmtText.Get(DiskMgmtKeys.OkCdromLoaded),
+                DiskMgmtText.Get(DiskMgmtKeys.ActionLoad),
                 "LoadCDROM",
                 logDebug,
                 logError);
@@ -47,7 +48,7 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
         {
             if (string.IsNullOrEmpty(currentDriveLetter) || string.IsNullOrEmpty(newDriveLetter))
             {
-                return OperationResult.Fail("Drive letter cannot be empty.");
+                return OperationResult.Fail(ErrorMessages.DriveLetterEmpty);
             }
 
             var currentNormalized = currentDriveLetter.TrimEnd(':').ToUpper();
@@ -55,12 +56,12 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
 
             if (currentNormalized == newNormalized)
             {
-                return OperationResult.Fail("New drive letter is the same as current.");
+                return OperationResult.Fail(DiskMgmtText.Get(DiskMgmtKeys.ErrDriveLetterSameAsCurrent));
             }
 
             if (System.IO.DriveInfo.GetDrives().Any(d => d.Name.TrimEnd('\\').Equals(newNormalized + ":", StringComparison.OrdinalIgnoreCase)))
             {
-                return OperationResult.Fail($"Drive letter {newNormalized}: is already in use.");
+                return OperationResult.Fail(DiskMgmtText.Format(DiskMgmtKeys.ErrDriveLetterInUseFormat, newNormalized));
             }
 
             try
@@ -69,7 +70,7 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
                 if (!Win32PInvoke.GetVolumeNameForVolumeMountPoint(currentNormalized + ":\\", volumeName))
                 {
                     var lastErr = Marshal.GetLastWin32Error();
-                    return OperationResult.Fail($"Unable to get volume information. Win32 Error: {lastErr}");
+                    return OperationResult.Fail(DiskMgmtText.Format(DiskMgmtKeys.ErrVolumeInfoWin32Format, lastErr));
                 }
 
                 string volumeGuid = new string(volumeName).TrimEnd('\0');
@@ -77,23 +78,23 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
                 if (!Win32PInvoke.DeleteVolumeMountPoint(currentNormalized + ":\\"))
                 {
                     var lastErr = Marshal.GetLastWin32Error();
-                    return OperationResult.Fail($"Unable to remove old drive letter. Win32 Error: {lastErr}");
+                    return OperationResult.Fail(DiskMgmtText.Format(DiskMgmtKeys.ErrRemoveOldLetterWin32Format, lastErr));
                 }
 
                 if (!Win32PInvoke.SetVolumeMountPoint(newNormalized + ":\\", volumeGuid))
                 {
                     var setError = Marshal.GetLastWin32Error();
                     Win32PInvoke.SetVolumeMountPoint(currentNormalized + ":\\", volumeGuid);
-                    return OperationResult.Fail($"Unable to set new drive letter. Win32 Error: {setError}");
+                    return OperationResult.Fail(DiskMgmtText.Format(DiskMgmtKeys.ErrSetNewLetterWin32Format, setError));
                 }
 
                 logDebug("ChangeCDROMDriveLetter", $"Changed from {currentNormalized}: to {newNormalized}:", null, null, null);
-                return OperationResult.Ok($"Drive letter changed from {currentNormalized}: to {newNormalized}:.");
+                return OperationResult.Ok(DiskMgmtText.Format(DiskMgmtKeys.OkLetterChangedFormat, currentNormalized, newNormalized));
             }
             catch (Exception ex)
             {
                 logError("ChangeCDROMDriveLetter", ex, null, null, null);
-                return OperationResult.Fail($"Failed: {ex.Message}");
+                return OperationResult.Fail(DiskMgmtText.Format(DiskMgmtKeys.ErrFailedFormat, ex.Message));
             }
         }
 
@@ -104,7 +105,7 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
         {
             if (string.IsNullOrEmpty(driveLetter))
             {
-                return OperationResult.Fail("Drive letter cannot be empty.");
+                return OperationResult.Fail(ErrorMessages.DriveLetterEmpty);
             }
 
             var normalizedLetter = driveLetter.TrimEnd(':').ToUpper();
@@ -114,16 +115,16 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
                 if (!Win32PInvoke.DeleteVolumeMountPoint(normalizedLetter + ":\\"))
                 {
                     var lastErr = Marshal.GetLastWin32Error();
-                    return OperationResult.Fail($"Removal failed. Win32 Error: {lastErr}");
+                    return OperationResult.Fail(DiskMgmtText.Format(DiskMgmtKeys.ErrRemovalWin32Format, lastErr));
                 }
 
                 logDebug("RemoveCDROMDriveLetter", $"Removed drive letter {normalizedLetter}:", null, null, null);
-                return OperationResult.Ok($"Drive letter {normalizedLetter}: removed successfully.");
+                return OperationResult.Ok(DiskMgmtText.Format(DiskMgmtKeys.OkLetterRemovedFormat, normalizedLetter));
             }
             catch (Exception ex)
             {
                 logError("RemoveCDROMDriveLetter", ex, null, null, null);
-                return OperationResult.Fail($"Failed: {ex.Message}");
+                return OperationResult.Fail(DiskMgmtText.Format(DiskMgmtKeys.ErrFailedFormat, ex.Message));
             }
         }
 
@@ -135,7 +136,7 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
         {
             if (string.IsNullOrEmpty(currentDriveLetter) || string.IsNullOrEmpty(newDriveLetter))
             {
-                return OperationResult.Fail("Drive letter cannot be empty.");
+                return OperationResult.Fail(ErrorMessages.DriveLetterEmpty);
             }
 
             var currentNormalized = currentDriveLetter.TrimEnd(':').ToUpper();
@@ -143,7 +144,7 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
 
             if (System.IO.DriveInfo.GetDrives().Any(d => d.Name.TrimEnd('\\').Equals(newNormalized + ":", StringComparison.OrdinalIgnoreCase)))
             {
-                return OperationResult.Fail($"Drive letter {newNormalized}: is already in use.");
+                return OperationResult.Fail(DiskMgmtText.Format(DiskMgmtKeys.ErrDriveLetterInUseFormat, newNormalized));
             }
 
             try
@@ -152,7 +153,7 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
                 if (!Win32PInvoke.GetVolumeNameForVolumeMountPoint(currentNormalized + ":\\", volumeName))
                 {
                     var lastErr = Marshal.GetLastWin32Error();
-                    return OperationResult.Fail($"Unable to get volume information. Win32 Error: {lastErr}");
+                    return OperationResult.Fail(DiskMgmtText.Format(DiskMgmtKeys.ErrVolumeInfoWin32Format, lastErr));
                 }
 
                 string volumeGuid = new string(volumeName).TrimEnd('\0');
@@ -160,16 +161,16 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
                 if (!Win32PInvoke.SetVolumeMountPoint(newNormalized + ":\\", volumeGuid))
                 {
                     var setError = Marshal.GetLastWin32Error();
-                    return OperationResult.Fail($"Unable to assign drive letter. Win32 Error: {setError}");
+                    return OperationResult.Fail(DiskMgmtText.Format(DiskMgmtKeys.ErrAssignLetterWin32Format, setError));
                 }
 
                 logDebug("AssignCDROMDriveLetter", $"Assigned drive letter {newNormalized}:", null, null, null);
-                return OperationResult.Ok($"Drive letter {newNormalized}: assigned successfully.");
+                return OperationResult.Ok(DiskMgmtText.Format(DiskMgmtKeys.OkLetterAssignedFormat, newNormalized));
             }
             catch (Exception ex)
             {
                 logError("AssignCDROMDriveLetter", ex, null, null, null);
-                return OperationResult.Fail($"Failed: {ex.Message}");
+                return OperationResult.Fail(DiskMgmtText.Format(DiskMgmtKeys.ErrFailedFormat, ex.Message));
             }
         }
 
@@ -184,7 +185,7 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
         {
             if (string.IsNullOrEmpty(driveLetter))
             {
-                return OperationResult.Fail("Drive letter cannot be empty.");
+                return OperationResult.Fail(ErrorMessages.DriveLetterEmpty);
             }
 
             try
@@ -208,7 +209,7 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
                 {
                     var error = Marshal.GetLastWin32Error();
                     logDebug(operationName, $"Failed to open device {devicePath}: Win32 Error {error}", null, null, null);
-                    return OperationResult.Fail($"Failed to open device: Win32 Error {error}");
+                    return OperationResult.Fail(DiskMgmtText.Format(DiskMgmtKeys.ErrOpenDeviceWin32Format, error));
                 }
 
                 bool result;
@@ -230,12 +231,12 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
                 }
 
                 var deviceError = Marshal.GetLastWin32Error();
-                return OperationResult.Fail($"{actionName} failed: Win32 Error {deviceError}");
+                return OperationResult.Fail(DiskMgmtText.Format(DiskMgmtKeys.ErrActionWin32Format, actionName, deviceError));
             }
             catch (Exception ex)
             {
                 logError(operationName, ex, null, null, null);
-                return OperationResult.Fail($"{operationName} failed: {ex.Message}");
+                return OperationResult.Fail(DiskMgmtText.Format(DiskMgmtKeys.ErrOperationFailedFormat, operationName, ex.Message));
             }
         }
     }

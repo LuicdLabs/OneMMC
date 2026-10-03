@@ -652,7 +652,7 @@
     <value>Add &gt;</value>
   </data>
   <data name="WF_AdvancedCertCriteria_CertificateName" xml:space="preserve">
-    <value>Certificate name:</value>
+    <value>Certificate name</value>
   </data>
   <data name="WF_AdvancedCertCriteria_CertificateNameRestriction" xml:space="preserve">
     <value>Certificate name restriction</value>
@@ -2284,5 +2284,53 @@ Details: {0}</value>
   </data>
   <data name="WF_WindowsFirewall_PropertiesDescription" xml:space="preserve">
     <value>Customize profile and IPsec settings</value>
+  </data>
+  <data name="WF_Principals_SecureConnectionRequired" xml:space="preserve">
+    <value>You can specify user and computer authentication only when the action is set to "Allow only secure connections."</value>
+  </data>
+  <data name="WF_Err_RuleNameRequired" xml:space="preserve">
+    <value>Firewall rule name is required.</value>
+  </data>
+  <data name="WF_Err_CsrNameRequired" xml:space="preserve">
+    <value>Connection security rule name is required.</value>
+  </data>
+  <data name="WF_Err_InvalidRequestNone" xml:space="preserve">
+    <value>OutboundSecurity=None with InboundSecurity=Request is not a valid Windows Firewall connection security rule combination.</value>
+  </data>
+  <data name="WF_Err_InboundNoneWithOutboundAuth" xml:space="preserve">
+    <value>InboundSecurity=None cannot be combined with outbound authentication requirements.</value>
+  </data>
+  <data name="WF_Err_RequireInClearOutNeedsTunnel" xml:space="preserve">
+    <value>Require inbound and clear outbound authentication mode requires tunnel mode.</value>
+  </data>
+  <data name="WF_Err_Ikev2ClientToGatewayOnly" xml:space="preserve">
+    <value>IKEv2 keying is only valid for client-to-gateway tunnel rules.</value>
+  </data>
+  <data name="WF_Err_Ikev2FirstAuthOnly" xml:space="preserve">
+    <value>IKEv2 tunnel rules support first authentication only.</value>
+  </data>
+  <data name="WF_Err_Ikev2UnsupportedAuth" xml:space="preserve">
+    <value>IKEv2 tunnel rules do not support Kerberos, NTLM, or preshared key authentication.</value>
+  </data>
+  <data name="WF_Err_CsrNotFoundFormat" xml:space="preserve">
+    <value>Connection security rule '{0}' was not found.</value>
+  </data>
+  <data name="WF_Err_CsrCreatedNotQueryableFormat" xml:space="preserve">
+    <value>Connection security rule '{0}' was created but could not be queried.</value>
+  </data>
+  <data name="WF_Err_ProposalRequired" xml:space="preserve">
+    <value>At least one proposal is required.</value>
+  </data>
+  <data name="WF_Err_IpsecSettingsNotFound" xml:space="preserve">
+    <value>The firewall IPsec settings instance could not be found.</value>
+  </data>
+  <data name="WF_Err_ProfileNotFoundFormat" xml:space="preserve">
+    <value>The firewall profile '{0}' could not be found.</value>
+  </data>
+  <data name="WF_Err_RuleNotFoundFormat" xml:space="preserve">
+    <value>Windows Firewall rule '{0}' was not found.</value>
+  </data>
+  <data name="WF_Err_CompartmentRange" xml:space="preserve">
+    <value>Firewall rule compartment must be a number from 0 through 65535.</value>
   </data>
 </root>

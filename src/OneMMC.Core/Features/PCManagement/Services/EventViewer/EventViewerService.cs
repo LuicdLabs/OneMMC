@@ -629,18 +629,19 @@ public partial class EventViewerService : IDisposable
     /// <summary>
     /// Converts an <see cref="EventRecord"/> to an <see cref="EventLogEntry"/> model.
     /// </summary>
+    private static string EvText(string key) => LocalizationProvider.Current.GetString(ResourceFileNames.EventViewer, key);
+
     private EventLogEntry MapEventRecord(EventRecord record)
     {
         var level = (byte)(record.Level ?? 4);
-        var levelDisplay = level switch
+        var levelDisplay = EvText(level switch
         {
-            1 => "Critical",
-            2 => "Error",
-            3 => "Warning",
-            4 => "Information",
-            5 => "Verbose",
-            _ => "Information"
-        };
+            1 => EventViewerKeys.LevelCritical,
+            2 => EventViewerKeys.LevelError,
+            3 => EventViewerKeys.LevelWarning,
+            5 => EventViewerKeys.LevelVerbose,
+            _ => EventViewerKeys.LevelInformation
+        });
 
         string xmlData;
         try
@@ -768,7 +769,7 @@ public partial class EventViewerService : IDisposable
         // Raw value fallback: Task 0 = "None" (matches eventvwr behavior)
         var rawTask = record.Task;
         if (rawTask is null or 0)
-            return "None";
+            return EvText(EventViewerKeys.TaskCategoryNone);
 
         return rawTask.Value.ToString();
     }
@@ -791,16 +792,16 @@ public partial class EventViewerService : IDisposable
 
         return rawOpcode.Value switch
         {
-            0 => "Info",
-            1 => "Start",
-            2 => "Stop",
-            3 => "DataCollectionStart",
-            4 => "DataCollectionStop",
-            5 => "Extension",
-            6 => "Reply",
-            7 => "Resume",
-            8 => "Suspend",
-            9 => "Send",
+            0 => EvText(EventViewerKeys.OpcodeInfo),
+            1 => EvText(EventViewerKeys.OpcodeStart),
+            2 => EvText(EventViewerKeys.OpcodeStop),
+            3 => EvText(EventViewerKeys.OpcodeDataCollectionStart),
+            4 => EvText(EventViewerKeys.OpcodeDataCollectionStop),
+            5 => EvText(EventViewerKeys.OpcodeExtension),
+            6 => EvText(EventViewerKeys.OpcodeReply),
+            7 => EvText(EventViewerKeys.OpcodeResume),
+            8 => EvText(EventViewerKeys.OpcodeSuspend),
+            9 => EvText(EventViewerKeys.OpcodeSend),
             _ => rawOpcode.Value.ToString()
         };
     }
@@ -836,12 +837,12 @@ public partial class EventViewerService : IDisposable
         var names = new List<string>();
 
         // Well-known keyword bitmask values defined by ETW/Windows
-        if ((kw & 0x0001000000000000UL) != 0) names.Add("Response Time");
-        if ((kw & 0x0010000000000000UL) != 0) names.Add("WDI Diag");
-        if ((kw & 0x0020000000000000UL) != 0) names.Add("SQM");
-        if ((kw & 0x0040000000000000UL) != 0) names.Add("Audit Failure");
-        if ((kw & 0x0080000000000000UL) != 0) names.Add("Audit Success");
-        if ((kw & 0x0100000000000000UL) != 0) names.Add("Correlation Hint");
+        if ((kw & 0x0001000000000000UL) != 0) names.Add(EvText(EventViewerKeys.KeywordResponseTime));
+        if ((kw & 0x0010000000000000UL) != 0) names.Add(EvText(EventViewerKeys.KeywordWdiDiag));
+        if ((kw & 0x0020000000000000UL) != 0) names.Add(EvText(EventViewerKeys.KeywordSqm));
+        if ((kw & 0x0040000000000000UL) != 0) names.Add(EvText(EventViewerKeys.KeywordAuditFailure));
+        if ((kw & 0x0080000000000000UL) != 0) names.Add(EvText(EventViewerKeys.KeywordAuditSuccess));
+        if ((kw & 0x0100000000000000UL) != 0) names.Add(EvText(EventViewerKeys.KeywordCorrelationHint));
 
         if (names.Count > 0)
             return string.Join(", ", names);

@@ -396,10 +396,190 @@
   <data name="PrintMgmt_OpenLegacy" xml:space="preserve">
     <value>開啟舊版列印管理</value>
   </data>
-  <data name="PrintMgmt_ErrorDriverInUse">
+  <data name="PrintMgmt_ErrorDriverInUse" xml:space="preserve">
     <value>此驅動程式套件目前正在使用中，無法移除。</value>
   </data>
-  <data name="PrintMgmt_ErrorDriverInBox">
+  <data name="PrintMgmt_ErrorDriverInBox" xml:space="preserve">
     <value>此驅動程式套件隨附於 Windows，無法被移除。</value>
+  </data>
+  <data name="PrintMgmt_PrinterStatus_Ready" xml:space="preserve">
+    <value>就緒</value>
+  </data>
+  <data name="PrintMgmt_PrinterStatus_Paused" xml:space="preserve">
+    <value>已暫停</value>
+  </data>
+  <data name="PrintMgmt_PrinterStatus_Error" xml:space="preserve">
+    <value>錯誤</value>
+  </data>
+  <data name="PrintMgmt_PrinterStatus_PendingDeletion" xml:space="preserve">
+    <value>等待刪除</value>
+  </data>
+  <data name="PrintMgmt_PrinterStatus_PaperJam" xml:space="preserve">
+    <value>卡紙</value>
+  </data>
+  <data name="PrintMgmt_PrinterStatus_PaperOut" xml:space="preserve">
+    <value>缺紙</value>
+  </data>
+  <data name="PrintMgmt_PrinterStatus_ManualFeed" xml:space="preserve">
+    <value>手動送紙</value>
+  </data>
+  <data name="PrintMgmt_PrinterStatus_PaperProblem" xml:space="preserve">
+    <value>紙張問題</value>
+  </data>
+  <data name="PrintMgmt_PrinterStatus_Offline" xml:space="preserve">
+    <value>離線</value>
+  </data>
+  <data name="PrintMgmt_PrinterStatus_IoActive" xml:space="preserve">
+    <value>I/O 作用中</value>
+  </data>
+  <data name="PrintMgmt_PrinterStatus_Busy" xml:space="preserve">
+    <value>忙碌</value>
+  </data>
+  <data name="PrintMgmt_PrinterStatus_Printing" xml:space="preserve">
+    <value>列印中</value>
+  </data>
+  <data name="PrintMgmt_PrinterStatus_OutputBinFull" xml:space="preserve">
+    <value>出紙槽已滿</value>
+  </data>
+  <data name="PrintMgmt_PrinterStatus_NotAvailable" xml:space="preserve">
+    <value>無法使用</value>
+  </data>
+  <data name="PrintMgmt_PrinterStatus_Waiting" xml:space="preserve">
+    <value>等候中</value>
+  </data>
+  <data name="PrintMgmt_PrinterStatus_Processing" xml:space="preserve">
+    <value>處理中</value>
+  </data>
+  <data name="PrintMgmt_PrinterStatus_Initializing" xml:space="preserve">
+    <value>正在初始化</value>
+  </data>
+  <data name="PrintMgmt_PrinterStatus_WarmingUp" xml:space="preserve">
+    <value>正在預熱</value>
+  </data>
+  <data name="PrintMgmt_PrinterStatus_TonerLow" xml:space="preserve">
+    <value>碳粉不足</value>
+  </data>
+  <data name="PrintMgmt_PrinterStatus_NoToner" xml:space="preserve">
+    <value>沒有碳粉</value>
+  </data>
+  <data name="PrintMgmt_PrinterStatus_UserIntervention" xml:space="preserve">
+    <value>需要使用者介入</value>
+  </data>
+  <data name="PrintMgmt_PrinterStatus_OutOfMemory" xml:space="preserve">
+    <value>記憶體不足</value>
+  </data>
+  <data name="PrintMgmt_PrinterStatus_DoorOpen" xml:space="preserve">
+    <value>機蓋開啟</value>
+  </data>
+  <data name="PrintMgmt_PrinterStatus_PowerSave" xml:space="preserve">
+    <value>省電模式</value>
+  </data>
+  <data name="PrintMgmt_FormType_BuiltIn" xml:space="preserve">
+    <value>內建</value>
+  </data>
+  <data name="PrintMgmt_FormType_Printer" xml:space="preserve">
+    <value>印表機</value>
+  </data>
+  <data name="PrintMgmt_FormType_UserDefined" xml:space="preserve">
+    <value>使用者定義</value>
+  </data>
+  <data name="PrintMgmt_FormType_Unknown" xml:space="preserve">
+    <value>未知</value>
+  </data>
+  <data name="PrintMgmt_PortType_Local" xml:space="preserve">
+    <value>本機連接埠</value>
+  </data>
+  <data name="PrintMgmt_PortType_StandardTcpIp" xml:space="preserve">
+    <value>標準 TCP/IP 連接埠</value>
+  </data>
+  <data name="PrintMgmt_PortDesc_UsbVirtual" xml:space="preserve">
+    <value>USB 虛擬印表機連接埠</value>
+  </data>
+  <data name="PrintMgmt_PortDesc_PrintToFile" xml:space="preserve">
+    <value>列印至檔案</value>
+  </data>
+  <data name="PrintMgmt_PortDesc_PrinterPort" xml:space="preserve">
+    <value>印表機連接埠</value>
+  </data>
+  <data name="PrintMgmt_PortDesc_Serial" xml:space="preserve">
+    <value>序列埠</value>
+  </data>
+  <data name="PrintMgmt_PortDesc_Null" xml:space="preserve">
+    <value>Null 連接埠</value>
+  </data>
+  <data name="PrintMgmt_PortDesc_WsDiscovery" xml:space="preserve">
+    <value>WS 探索連接埠</value>
+  </data>
+  <data name="PrintMgmt_LocalRegistryDeployment" xml:space="preserve">
+    <value>本機/登錄部署</value>
+  </data>
+  <data name="PrintMgmt_ServerLabel" xml:space="preserve">
+    <value>伺服器:</value>
+  </data>
+  <data name="PrintMgmt_PerUserGpoLabel" xml:space="preserve">
+    <value>每位使用者的 GPO:</value>
+  </data>
+  <data name="PrintMgmt_PerComputerGpoLabel" xml:space="preserve">
+    <value>每台電腦的 GPO:</value>
+  </data>
+  <data name="PrintMgmt_Error_QueryDefaults" xml:space="preserve">
+    <value>無法查詢印表機預設設定。</value>
+  </data>
+  <data name="PrintMgmt_Error_LoadDefaults" xml:space="preserve">
+    <value>無法載入目前的印表機預設設定。</value>
+  </data>
+  <data name="PrintMgmt_Error_SaveDefaults" xml:space="preserve">
+    <value>無法儲存印表機預設設定。</value>
+  </data>
+  <data name="PrintMgmt_Error_DeletePrinter" xml:space="preserve">
+    <value>無法刪除印表機。</value>
+  </data>
+  <data name="PrintMgmt_Error_RenamePrinter" xml:space="preserve">
+    <value>無法重新命名印表機。</value>
+  </data>
+  <data name="PrintMgmt_Error_AddUserConnection" xml:space="preserve">
+    <value>無法新增目前使用者的印表機連線。</value>
+  </data>
+  <data name="PrintMgmt_Error_RemoveUserConnection" xml:space="preserve">
+    <value>無法移除目前使用者的印表機連線。</value>
+  </data>
+  <data name="PrintMgmt_Error_DeleteDriver" xml:space="preserve">
+    <value>無法刪除印表機驅動程式。</value>
+  </data>
+  <data name="PrintMgmt_Error_PausePrinter" xml:space="preserve">
+    <value>無法暫停印表機。</value>
+  </data>
+  <data name="PrintMgmt_Error_ResumePrinter" xml:space="preserve">
+    <value>無法恢復印表機列印。</value>
+  </data>
+  <data name="PrintMgmt_Error_OpenPrintServer" xml:space="preserve">
+    <value>無法開啟列印伺服器。</value>
+  </data>
+  <data name="PrintMgmt_Error_OpenPrinterFormat" xml:space="preserve">
+    <value>無法開啟印表機 '{0}'。</value>
+  </data>
+  <data name="PrintMgmt_Error_InvalidInfoBuffer" xml:space="preserve">
+    <value>多工緩衝處理器傳回的印表機資訊緩衝區大小無效。</value>
+  </data>
+  <data name="PrintMgmt_Error_QueryInfoSize" xml:space="preserve">
+    <value>無法查詢印表機資訊大小。</value>
+  </data>
+  <data name="PrintMgmt_Error_QueryInfo" xml:space="preserve">
+    <value>無法查詢印表機資訊。</value>
+  </data>
+  <data name="PrintMgmt_Error_UpdateIsolationGroups" xml:space="preserve">
+    <value>無法更新列印驅動程式隔離群組。</value>
+  </data>
+  <data name="PrintMgmt_Error_InvalidConnectionPath" xml:space="preserve">
+    <value>印表機連線路徑無效。</value>
+  </data>
+  <data name="PrintMgmt_Error_ResolveDomain" xml:space="preserve">
+    <value>無法解析 Active Directory 網域。</value>
+  </data>
+  <data name="PrintMgmt_Error_ConnectDirectory" xml:space="preserve">
+    <value>無法連線到 Active Directory。</value>
+  </data>
+  <data name="PrintMgmt_Error_DomainNotFound" xml:space="preserve">
+    <value>找不到 Active Directory 網域。</value>
   </data>
 </root>

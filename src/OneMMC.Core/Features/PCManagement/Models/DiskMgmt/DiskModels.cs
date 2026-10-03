@@ -182,9 +182,9 @@ namespace OneMMC.Core.Features.PCManagement.Models.DiskMgmt
                         : GetString(DiskMgmtKeys.OemRecoveryPartition);
 
                 // Provide meaningful names for system partitions without drive letters
-                if (IsEfiSystemPartition) return "EFI System Partition";
-                if (IsRecoveryPartition) return "Recovery Partition";
-                if (IsMsrPartition) return "Microsoft Reserved Partition";
+                if (IsEfiSystemPartition) return GetString(DiskMgmtKeys.PartNameEfi);
+                if (IsRecoveryPartition) return GetString(DiskMgmtKeys.PartNameRecovery);
+                if (IsMsrPartition) return GetString(DiskMgmtKeys.PartNameMsr);
                 if (!string.IsNullOrEmpty(VolumeLabel)) return VolumeLabel;
                 if (!string.IsNullOrEmpty(DriveLetter)) return $"{GetString("DiskMgmt_LocalDiskLabel")} ({DriveLetter})";
                 return GetString("DiskMgmt_NoLabel");
@@ -197,6 +197,22 @@ namespace OneMMC.Core.Features.PCManagement.Models.DiskMgmt
         public string Status => IsUnallocated ? "Unallocated" : "Online";
         public string LocalizedStatus => IsUnallocated ? GetString("DiskMgmt_Unallocated") : GetString("DiskMgmt_Online");
         public string PartitionType => Type ?? "";
+
+        /// <summary>Localized display text for <see cref="PartitionType"/>; unknown tokens are shown as-is.</summary>
+        public string LocalizedPartitionType => PartitionType switch
+        {
+            "System" => GetString(DiskMgmtKeys.PartTypeSystem),
+            "Reserved" => GetString(DiskMgmtKeys.PartTypeReserved),
+            "Basic" => GetString(DiskMgmtKeys.PartTypeBasic),
+            "Recovery" => GetString(DiskMgmtKeys.PartTypeRecovery),
+            "LDM Metadata" => GetString(DiskMgmtKeys.PartTypeLdmMetadata),
+            "LDM Data" => GetString(DiskMgmtKeys.PartTypeLdmData),
+            "BIOS Boot" => GetString(DiskMgmtKeys.PartTypeBiosBoot),
+            "Linux Reserved" => GetString(DiskMgmtKeys.PartTypeLinuxReserved),
+            "Unallocated" => GetString("DiskMgmt_Unallocated"),
+            "Unknown" => GetString(DiskMgmtKeys.HealthUnknown),
+            _ => PartitionType,
+        };
         public string HealthStatus => IsUnallocated ? string.Empty : "Healthy";
         public string LocalizedHealthStatus => IsUnallocated ? string.Empty : GetString("DiskMgmt_Healthy");
         public bool HasDriveLetter => !string.IsNullOrEmpty(DriveLetter);
@@ -468,16 +484,16 @@ namespace OneMMC.Core.Features.PCManagement.Models.DiskMgmt
                 {
                     return partitionTypeInfo.DisplayName switch
                     {
-                        "EFI System Partition" => "⚠️ EFI System Partition - This partition is required for boot, do not modify",
-                        "Microsoft Reserved Partition" => "⚠️ Microsoft Reserved Partition - This partition is required for system operation",
-                        "BIOS Boot Partition" => "⚠️ BIOS Boot Partition - This partition is required for boot",
-                        var name when name.Contains("Recovery") => "⚠️ Recovery Partition - This partition is used for system recovery, do not modify",
+                        "EFI System Partition" => GetString(DiskMgmtKeys.WarnEfi),
+                        "Microsoft Reserved Partition" => GetString(DiskMgmtKeys.WarnMsr),
+                        "BIOS Boot Partition" => GetString(DiskMgmtKeys.WarnBiosBoot),
+                        var name when name.Contains("Recovery") => GetString(DiskMgmtKeys.WarnRecovery),
                         _ => null
                     };
                 }
                 
-                if (IsSystemDrive) return $"⚠️ System Drive ({SystemDriveLetter}) - Contains Windows operating system";
-                if (IsBoot || IsSystem) return "⚠️ Boot/System Partition - Contains boot files";
+                if (IsSystemDrive) return string.Format(System.Globalization.CultureInfo.CurrentCulture, GetString(DiskMgmtKeys.WarnSystemDriveFormat), SystemDriveLetter);
+                if (IsBoot || IsSystem) return GetString(DiskMgmtKeys.WarnBootSystem);
                 return null;
             }
         }
@@ -569,7 +585,15 @@ namespace OneMMC.Core.Features.PCManagement.Models.DiskMgmt
         public ulong AllocatedSize { get; set; }
         public bool IsReadOnly { get; set; }
 
-        public string HealthStatusText => HealthStatus switch { 0 => "Healthy", 1 => "Warning", 2 => "Unhealthy", _ => "Unknown" };
+        public string HealthStatusText => HealthStatus switch
+        {
+            0 => GetString(DiskMgmtKeys.Healthy),
+            1 => GetString(DiskMgmtKeys.HealthWarning),
+            2 => GetString(DiskMgmtKeys.HealthUnhealthy),
+            _ => GetString(DiskMgmtKeys.HealthUnknown)
+        };
+
+        private static string GetString(string key) => LocalizationProvider.Current.GetString(ResourceFileNames.DiskManagement, key);
     }
 
     public class UnallocatedSpace

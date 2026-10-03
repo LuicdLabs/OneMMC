@@ -1425,7 +1425,6 @@
   <data name="Common_FailedToRemoveUser_Format" xml:space="preserve">
     <value>Failed to remove user: {0}</value>
   </data>
-  <!-- Authorization Rule Dialog -->
   <data name="AuthorizationRuleDialog_ScriptSourceCode_Label" xml:space="preserve">
     <value>Script source code:</value>
   </data>
@@ -1450,7 +1449,6 @@
   <data name="AuthorizationRuleDialog_ClearRule_Button" xml:space="preserve">
     <value>Clear Rule from Store</value>
   </data>
-  <!-- Definition Assign Items Dialog -->
   <data name="DefinitionAssignItemsDialog_Tab_Roles" xml:space="preserve">
     <value>Roles</value>
   </data>
@@ -1460,7 +1458,6 @@
   <data name="DefinitionAssignItemsDialog_Tab_Operations" xml:space="preserve">
     <value>Operations</value>
   </data>
-  <!-- Definition Properties Dialog -->
   <data name="DefinitionPropertiesDialog_Tab_General" xml:space="preserve">
     <value>General</value>
   </data>
@@ -1479,11 +1476,9 @@
   <data name="DefinitionPropertiesDialog_AuthorizationRule_Button" xml:space="preserve">
     <value>Authorization Rule...</value>
   </data>
-  <!-- Edit Item Dialog -->
   <data name="EditItemDialog_GroupType_Bizrule" xml:space="preserve">
     <value>Business Rule</value>
   </data>
-  <!-- Group Members Dialog -->
   <data name="GroupMembersDialog_Tab_General" xml:space="preserve">
     <value>General</value>
   </data>
@@ -1517,7 +1512,6 @@
   <data name="GroupMembersDialog_AppGroupExclusions_Header" xml:space="preserve">
     <value>Exclusions (Authorization Manager application groups)</value>
   </data>
-  <!-- Store Properties Dialog -->
   <data name="StorePropertiesDialog_Tab_Limits" xml:space="preserve">
     <value>Limits</value>
   </data>
@@ -1560,7 +1554,6 @@
   <data name="StorePropertiesDialog_StoreChangeAuditing" xml:space="preserve">
     <value>Authorization store change auditing</value>
   </data>
-  <!-- Group Type Display Text -->
   <data name="GroupType_BusinessRuleAppGroup" xml:space="preserve">
     <value>Business Rule Application Group</value>
   </data>
@@ -1573,7 +1566,6 @@
   <data name="GroupType_Unknown" xml:space="preserve">
     <value>Unknown</value>
   </data>
-  <!-- Error Messages -->
   <data name="Error_FailedToCloseStore" xml:space="preserve">
     <value>Failed to close store: {0}</value>
   </data>
@@ -1604,7 +1596,6 @@
   <data name="Error_ClassNotRegistered" xml:space="preserve">
     <value>Class not registered. Please ensure AzMan components are installed.</value>
   </data>
-  <!-- BizRule Validator Messages -->
   <data name="BizRuleValidator_Error_EmptyScript" xml:space="preserve">
     <value>Script cannot be empty.</value>
   </data>
@@ -1638,7 +1629,6 @@
   <data name="BizRuleValidator_SampleDescription" xml:space="preserve">
     <value>Sample business rule</value>
   </data>
-  <!-- Common UI Strings -->
   <data name="Common_OK" xml:space="preserve">
     <value>OK</value>
   </data>
@@ -1648,8 +1638,70 @@
   <data name="Common_Save" xml:space="preserve">
     <value>Save</value>
   </data>
-  <!-- Additional Error Messages -->
   <data name="Error_StoreNotOpen" xml:space="preserve">
     <value>Store '{0}' is not open. Please open the store first.</value>
+  </data>
+  <data name="AzMan_Err_StoreNotOpenFormat" xml:space="preserve">
+    <value>Store '{0}' is not open. Please open the store first.</value>
+  </data>
+  <data name="AzMan_Err_StoreFileNotFoundFormat" xml:space="preserve">
+    <value>Store file not found: {0}. The store has been closed.</value>
+  </data>
+  <data name="AzMan_Err_CreateApplicationFormat" xml:space="preserve">
+    <value>Failed to create application: {0}</value>
+  </data>
+  <data name="AzMan_Err_ExportStoreFormat" xml:space="preserve">
+    <value>Failed to export store: {0}</value>
+  </data>
+  <data name="AzMan_Err_ExportApplicationFormat" xml:space="preserve">
+    <value>Failed to export application: {0}</value>
+  </data>
+  <data name="AzMan_Err_ImportFileNotFoundFormat" xml:space="preserve">
+    <value>Import file not found: {0}</value>
+  </data>
+  <data name="AzMan_Err_NoApplicationsInImport" xml:space="preserve">
+    <value>No applications found in import file.</value>
+  </data>
+  <data name="AzMan_Err_ApplicationExistsFormat" xml:space="preserve">
+    <value>Application '{0}' already exists in target store.</value>
+  </data>
+  <data name="AzMan_Err_ImportApplicationFormat" xml:space="preserve">
+    <value>Failed to import application: {0}</value>
+  </data>
+  <data name="AzMan_Err_NotBasicGroupFormat" xml:space="preserve">
+    <value>Cannot modify members of group '{0}' because it is not a Basic group.</value>
+  </data>
+  <data name="AzMan_Err_EmptySid" xml:space="preserve">
+    <value>The security identifier (SID) is empty. The account may not have been resolved correctly.</value>
+  </data>
+  <data name="AzMan_Err_AddMemberEmptySid" xml:space="preserve">
+    <value>Cannot add member: the security identifier (SID) is empty. The account may not have been resolved correctly.</value>
+  </data>
+  <data name="AzMan_Err_AddMemberInvalidSidFormat" xml:space="preserve">
+    <value>Cannot add member: '{0}' is not a valid security identifier (SID).</value>
+  </data>
+  <data name="AzMan_Err_CreateStoreFormat" xml:space="preserve">
+    <value>Failed to create authorization store: {0}</value>
+  </data>
+  <data name="AzMan_Err_FileNotFoundFormat" xml:space="preserve">
+    <value>File not found: {0}</value>
+  </data>
+  <data name="AzMan_Err_OpenStoreFormat" xml:space="preserve">
+    <value>Failed to open authorization store: {0}</value>
+  </data>
+  <data name="AzMan_Err_OpenStoreInaccessibleFormat" xml:space="preserve">
+    <value>Failed to open authorization store: File or path not accessible ({0}).</value>
+  </data>
+  <data name="AzMan_Err_DeleteStoreFormat" xml:space="preserve">
+    <value>Failed to delete authorization store: {0}</value>
+  </data>
+  <data name="AzMan_Err_RefreshStoreFormat" xml:space="preserve">
+    <value>Failed to refresh store: {0}</value>
+  </data>
+  <data name="AzMan_Err_SchemaUpgradeUnsupported" xml:space="preserve">
+    <value>Schema upgrade to version 2.0 is only supported for XML and Active Directory authorization stores.</value>
+  </data>
+  <data name="AzMan_Err_BizRuleFileNotFoundFormat" xml:space="preserve">
+    <value>Business rule file not found: {0}</value>
   </data>
 </root>

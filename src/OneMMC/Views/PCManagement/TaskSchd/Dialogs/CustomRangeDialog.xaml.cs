@@ -1,4 +1,6 @@
 ﻿using System;
+using OneMMC.Core.Localization;
+using OneMMC.Localization;
 using Microsoft.UI.Xaml.Controls;
 
 namespace OneMMC.Views.PCManagement;
@@ -29,9 +31,14 @@ public sealed partial class CustomRangeDialog : ContentDialog
     /// <summary>The committed range; <see langword="null"/> when the dialog was cancelled.</summary>
     public CustomRangeSelection? Result { get; private set; }
 
+    public LocalizedStrings LocalizedStrings { get; } = LocalizedStrings.Instance;
+
     public CustomRangeDialog(CustomRangeSelection? initial = null)
     {
         InitializeComponent();
+        Title = L(TaskSchdKeys.CustomRangeTitle);
+        PrimaryButtonText = L(TaskSchdKeys.ButtonOk);
+        CloseButtonText = L(TaskSchdKeys.ButtonCancel);
 
         var seed = DateTimeOffset.Now;
         var from = initial?.From ?? seed.DateTime;
@@ -82,7 +89,7 @@ public sealed partial class CustomRangeDialog : ContentDialog
         if (from is { } f && to is { } t && f >= t)
         {
             args.Cancel = true;
-            ValidationBar.Message = "The From date must be earlier than the To date.";
+            ValidationBar.Message = L(TaskSchdKeys.CustomRangeInvalid);
             ValidationBar.IsOpen = true;
             return;
         }
@@ -92,4 +99,6 @@ public sealed partial class CustomRangeDialog : ContentDialog
 
     private static DateTime? Combine(CalendarDatePicker date, TimePicker time) =>
         date.Date is { } d ? d.Date + time.Time : null;
+
+    private static string L(string key) => LocalizationProvider.Current.GetString(ResourceFileNames.TaskSchd, key);
 }

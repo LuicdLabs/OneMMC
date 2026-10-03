@@ -17,10 +17,7 @@
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-	Title="Create a Task"
-	CloseButtonText="Cancel"
 	DefaultButton="Primary"
-	PrimaryButtonText="Add"
 	Style="{StaticResource DefaultContentDialogStyle}"
 	mc:Ignorable="d">
 
@@ -51,15 +48,15 @@
 					Severity="Error" />
 
 				<!--  ============================ Task Information ============================  -->
-				<TextBlock Style="{StaticResource SectionHeaderStyle}" Text="Task Information" />
+				<TextBlock Style="{StaticResource SectionHeaderStyle}" Text="{x:Bind LocalizedStrings.TaskSchd_Create_TaskInformation}" />
 
 				<StackPanel Spacing="4">
-					<TextBlock Text="Name" />
-					<TextBox x:Name="NameBox" PlaceholderText="Enter a name for the task" />
+					<TextBlock Text="{x:Bind LocalizedStrings.TaskSchd_General_Name}" />
+					<TextBox x:Name="NameBox" PlaceholderText="{x:Bind LocalizedStrings.TaskSchd_Create_NamePlaceholder}" />
 				</StackPanel>
 
 				<StackPanel Spacing="4">
-					<TextBlock Text="Description" />
+					<TextBlock Text="{x:Bind LocalizedStrings.TaskSchd_General_Description}" />
 					<TextBox
 						x:Name="DescriptionBox"
 						AcceptsReturn="True"
@@ -68,8 +65,8 @@
 				</StackPanel>
 
 				<!--  ================================ Trigger ================================  -->
-				<TextBlock Style="{StaticResource SectionHeaderStyle}" Text="Trigger" />
-				<TextBlock Text="When do you want the task to start?" />
+				<TextBlock Style="{StaticResource SectionHeaderStyle}" Text="{x:Bind LocalizedStrings.TaskSchd_Create_Trigger}" />
+				<TextBlock Text="{x:Bind LocalizedStrings.TaskSchd_Create_TriggerPrompt}" />
 
 				<!--
 					Trigger kind. The selected index drives which settings panel below is visible
@@ -80,13 +77,13 @@
 					x:Name="TriggerComboBox"
 					HorizontalAlignment="Stretch"
 					SelectionChanged="TriggerComboBox_SelectionChanged">
-					<ComboBoxItem Content="Daily" />
-					<ComboBoxItem Content="Weekly" />
-					<ComboBoxItem Content="Monthly" />
-					<ComboBoxItem Content="One time" />
-					<ComboBoxItem Content="When the computer starts" />
-					<ComboBoxItem Content="When I log on" />
-					<ComboBoxItem Content="When a specific event is logged" />
+					<ComboBoxItem Content="{x:Bind LocalizedStrings.TaskSchd_Schedule_Daily}" />
+					<ComboBoxItem Content="{x:Bind LocalizedStrings.TaskSchd_Schedule_Weekly}" />
+					<ComboBoxItem Content="{x:Bind LocalizedStrings.TaskSchd_Schedule_Monthly}" />
+					<ComboBoxItem Content="{x:Bind LocalizedStrings.TaskSchd_Schedule_OneTime}" />
+					<ComboBoxItem Content="{x:Bind LocalizedStrings.TaskSchd_Create_WhenComputerStarts}" />
+					<ComboBoxItem Content="{x:Bind LocalizedStrings.TaskSchd_Create_WhenILogOn}" />
+					<ComboBoxItem Content="{x:Bind LocalizedStrings.TaskSchd_Create_WhenEventLogged}" />
 				</ComboBox>
 
 				<!--  Daily: start date/time + recur-every-N-days.  -->
@@ -100,19 +97,19 @@
 						implementation would share a single ITrigger.StartBoundary editor here.
 					-->
 					<StackPanel Orientation="Horizontal" Spacing="8">
-						<TextBlock Style="{StaticResource InlineLabelStyle}" Text="Start:" />
-						<CalendarDatePicker PlaceholderText="Pick a date" />
+						<TextBlock Style="{StaticResource InlineLabelStyle}" Text="{x:Bind LocalizedStrings.TaskSchd_Trigger_StartLabel}" />
+						<CalendarDatePicker PlaceholderText="{x:Bind LocalizedStrings.TaskSchd_PickDatePlaceholder}" />
 						<TimePicker />
 					</StackPanel>
-					<CheckBox Content="Synchronize across time zones" />
+					<CheckBox Content="{x:Bind LocalizedStrings.TaskSchd_Trigger_SyncTimeZones}" />
 					<StackPanel Orientation="Horizontal" Spacing="8">
-						<TextBlock Style="{StaticResource InlineLabelStyle}" Text="Recur every:" />
+						<TextBlock Style="{StaticResource InlineLabelStyle}" Text="{x:Bind LocalizedStrings.TaskSchd_Trigger_RecurEvery}" />
 						<NumberBox
 							Width="120"
 							Minimum="1"
 							SpinButtonPlacementMode="Compact"
 							Value="1" />
-						<TextBlock VerticalAlignment="Center" Text="days" />
+						<TextBlock VerticalAlignment="Center" Text="{x:Bind LocalizedStrings.TaskSchd_Trigger_DaysSuffix}" />
 					</StackPanel>
 				</StackPanel>
 
@@ -122,19 +119,19 @@
 					Spacing="10"
 					Visibility="Collapsed">
 					<StackPanel Orientation="Horizontal" Spacing="8">
-						<TextBlock Style="{StaticResource InlineLabelStyle}" Text="Start:" />
-						<CalendarDatePicker PlaceholderText="Pick a date" />
+						<TextBlock Style="{StaticResource InlineLabelStyle}" Text="{x:Bind LocalizedStrings.TaskSchd_Trigger_StartLabel}" />
+						<CalendarDatePicker PlaceholderText="{x:Bind LocalizedStrings.TaskSchd_PickDatePlaceholder}" />
 						<TimePicker />
 					</StackPanel>
-					<CheckBox Content="Synchronize across time zones" />
+					<CheckBox Content="{x:Bind LocalizedStrings.TaskSchd_Trigger_SyncTimeZones}" />
 					<StackPanel Orientation="Horizontal" Spacing="8">
-						<TextBlock Style="{StaticResource InlineLabelStyle}" Text="Recur every:" />
+						<TextBlock Style="{StaticResource InlineLabelStyle}" Text="{x:Bind LocalizedStrings.TaskSchd_Trigger_RecurEvery}" />
 						<NumberBox
 							Width="120"
 							Minimum="1"
 							SpinButtonPlacementMode="Compact"
 							Value="1" />
-						<TextBlock VerticalAlignment="Center" Text="weeks on:" />
+						<TextBlock VerticalAlignment="Center" Text="{x:Bind LocalizedStrings.TaskSchd_Trigger_WeeksOnSuffix}" />
 					</StackPanel>
 					<!--  Days of the week, 4 per row.  -->
 					<Grid ColumnSpacing="16" RowSpacing="8">
@@ -151,31 +148,31 @@
 						<CheckBox
 							Grid.Row="0"
 							Grid.Column="0"
-							Content="Sunday" />
+							Content="{x:Bind LocalizedStrings.TaskSchd_Day_Sunday}" />
 						<CheckBox
 							Grid.Row="0"
 							Grid.Column="1"
-							Content="Monday" />
+							Content="{x:Bind LocalizedStrings.TaskSchd_Day_Monday}" />
 						<CheckBox
 							Grid.Row="0"
 							Grid.Column="2"
-							Content="Tuesday" />
+							Content="{x:Bind LocalizedStrings.TaskSchd_Day_Tuesday}" />
 						<CheckBox
 							Grid.Row="0"
 							Grid.Column="3"
-							Content="Wednesday" />
+							Content="{x:Bind LocalizedStrings.TaskSchd_Day_Wednesday}" />
 						<CheckBox
 							Grid.Row="1"
 							Grid.Column="0"
-							Content="Thursday" />
+							Content="{x:Bind LocalizedStrings.TaskSchd_Day_Thursday}" />
 						<CheckBox
 							Grid.Row="1"
 							Grid.Column="1"
-							Content="Friday" />
+							Content="{x:Bind LocalizedStrings.TaskSchd_Day_Friday}" />
 						<CheckBox
 							Grid.Row="1"
 							Grid.Column="2"
-							Content="Saturday" />
+							Content="{x:Bind LocalizedStrings.TaskSchd_Day_Saturday}" />
 					</Grid>
 				</StackPanel>
 
@@ -185,11 +182,11 @@
 					Spacing="10"
 					Visibility="Collapsed">
 					<StackPanel Orientation="Horizontal" Spacing="8">
-						<TextBlock Style="{StaticResource InlineLabelStyle}" Text="Start:" />
-						<CalendarDatePicker PlaceholderText="Pick a date" />
+						<TextBlock Style="{StaticResource InlineLabelStyle}" Text="{x:Bind LocalizedStrings.TaskSchd_Trigger_StartLabel}" />
+						<CalendarDatePicker PlaceholderText="{x:Bind LocalizedStrings.TaskSchd_PickDatePlaceholder}" />
 						<TimePicker />
 					</StackPanel>
-					<CheckBox Content="Synchronize across time zones" />
+					<CheckBox Content="{x:Bind LocalizedStrings.TaskSchd_Trigger_SyncTimeZones}" />
 
 					<!--
 						Months / Days are multi-select. WinUI has no multi-select ComboBox, so the idiomatic
@@ -198,8 +195,8 @@
 						chosen items back into the button's Content.
 					-->
 					<StackPanel Orientation="Horizontal" Spacing="8">
-						<TextBlock Style="{StaticResource InlineLabelStyle}" Text="Months:" />
-						<DropDownButton Content="Select months">
+						<TextBlock Style="{StaticResource InlineLabelStyle}" Text="{x:Bind LocalizedStrings.TaskSchd_Trigger_MonthsLabel}" />
+						<DropDownButton Content="{x:Bind LocalizedStrings.TaskSchd_Trigger_SelectMonths}">
 							<DropDownButton.Flyout>
 								<Flyout>
 									<ListView
@@ -217,13 +214,13 @@
 						x:Name="MonthlyScheduleMode"
 						MaxColumns="2"
 						SelectionChanged="MonthlyScheduleMode_SelectionChanged">
-						<x:String>Days</x:String>
-						<x:String>On</x:String>
+						<RadioButton Content="{x:Bind LocalizedStrings.TaskSchd_Trigger_MonthlyDays}" />
+						<RadioButton Content="{x:Bind LocalizedStrings.TaskSchd_Trigger_MonthlyOn}" />
 					</RadioButtons>
 
 					<StackPanel Orientation="Horizontal" Spacing="8">
-						<TextBlock Style="{StaticResource InlineLabelStyle}" Text="Days:" />
-						<DropDownButton x:Name="MonthlyDaysDropDown" Content="Select days">
+						<TextBlock Style="{StaticResource InlineLabelStyle}" Text="{x:Bind LocalizedStrings.TaskSchd_Trigger_DaysLabel}" />
+						<DropDownButton x:Name="MonthlyDaysDropDown" Content="{x:Bind LocalizedStrings.TaskSchd_Trigger_SelectDays}">
 							<DropDownButton.Flyout>
 								<Flyout>
 									<GridView
@@ -237,7 +234,7 @@
 					</StackPanel>
 
 					<StackPanel Orientation="Horizontal" Spacing="8">
-						<TextBlock Style="{StaticResource InlineLabelStyle}" Text="On:" />
+						<TextBlock Style="{StaticResource InlineLabelStyle}" Text="{x:Bind LocalizedStrings.TaskSchd_Trigger_OnLabel}" />
 						<!--
 							Simplified to single-select ComboBoxes for the prototype; the real dialog lets you
 							pick multiple occurrences and weekdays. TODO(TaskScheduler): make these multi-select.
@@ -245,24 +242,24 @@
 						<ComboBox
 							x:Name="MonthlyOccurrenceCombo"
 							Width="140"
-							PlaceholderText="Occurrence">
-							<ComboBoxItem Content="First" />
-							<ComboBoxItem Content="Second" />
-							<ComboBoxItem Content="Third" />
-							<ComboBoxItem Content="Fourth" />
-							<ComboBoxItem Content="Last" />
+							PlaceholderText="{x:Bind LocalizedStrings.TaskSchd_Trigger_OccurrencePlaceholder}">
+							<ComboBoxItem Content="{x:Bind LocalizedStrings.TaskSchd_Week_First}" />
+							<ComboBoxItem Content="{x:Bind LocalizedStrings.TaskSchd_Week_Second}" />
+							<ComboBoxItem Content="{x:Bind LocalizedStrings.TaskSchd_Week_Third}" />
+							<ComboBoxItem Content="{x:Bind LocalizedStrings.TaskSchd_Week_Fourth}" />
+							<ComboBoxItem Content="{x:Bind LocalizedStrings.TaskSchd_Week_Last}" />
 						</ComboBox>
 						<ComboBox
 							x:Name="MonthlyWeekdayCombo"
 							Width="150"
-							PlaceholderText="Day of week">
-							<ComboBoxItem Content="Sunday" />
-							<ComboBoxItem Content="Monday" />
-							<ComboBoxItem Content="Tuesday" />
-							<ComboBoxItem Content="Wednesday" />
-							<ComboBoxItem Content="Thursday" />
-							<ComboBoxItem Content="Friday" />
-							<ComboBoxItem Content="Saturday" />
+							PlaceholderText="{x:Bind LocalizedStrings.TaskSchd_Trigger_DayOfWeekPlaceholder}">
+							<ComboBoxItem Content="{x:Bind LocalizedStrings.TaskSchd_Day_Sunday}" />
+							<ComboBoxItem Content="{x:Bind LocalizedStrings.TaskSchd_Day_Monday}" />
+							<ComboBoxItem Content="{x:Bind LocalizedStrings.TaskSchd_Day_Tuesday}" />
+							<ComboBoxItem Content="{x:Bind LocalizedStrings.TaskSchd_Day_Wednesday}" />
+							<ComboBoxItem Content="{x:Bind LocalizedStrings.TaskSchd_Day_Thursday}" />
+							<ComboBoxItem Content="{x:Bind LocalizedStrings.TaskSchd_Day_Friday}" />
+							<ComboBoxItem Content="{x:Bind LocalizedStrings.TaskSchd_Day_Saturday}" />
 						</ComboBox>
 					</StackPanel>
 				</StackPanel>
@@ -273,18 +270,18 @@
 					Spacing="10"
 					Visibility="Collapsed">
 					<StackPanel Orientation="Horizontal" Spacing="8">
-						<TextBlock Style="{StaticResource InlineLabelStyle}" Text="Start:" />
-						<CalendarDatePicker PlaceholderText="Pick a date" />
+						<TextBlock Style="{StaticResource InlineLabelStyle}" Text="{x:Bind LocalizedStrings.TaskSchd_Trigger_StartLabel}" />
+						<CalendarDatePicker PlaceholderText="{x:Bind LocalizedStrings.TaskSchd_PickDatePlaceholder}" />
 						<TimePicker />
 					</StackPanel>
-					<CheckBox Content="Synchronize across time zones" />
+					<CheckBox Content="{x:Bind LocalizedStrings.TaskSchd_Trigger_SyncTimeZones}" />
 				</StackPanel>
 
 				<!--  Shown for "When the computer starts" and "When I log on": no extra settings.  -->
 				<StackPanel x:Name="TriggerNoSettingsPanel" Visibility="Collapsed">
 					<TextBlock
 						Foreground="{ThemeResource TextFillColorSecondaryBrush}"
-						Text="This trigger has no additional settings."
+						Text="{x:Bind LocalizedStrings.TaskSchd_Create_NoTriggerSettings}"
 						TextWrapping="Wrap" />
 				</StackPanel>
 
@@ -294,36 +291,36 @@
 					Spacing="10"
 					Visibility="Collapsed">
 					<StackPanel Orientation="Horizontal" Spacing="8">
-						<TextBlock Style="{StaticResource InlineLabelStyle}" Text="Log:" />
+						<TextBlock Style="{StaticResource InlineLabelStyle}" Text="{x:Bind LocalizedStrings.TaskSchd_Event_LogLabel}" />
 						<!--  Items populated in code-behind from the real event-log channels (EventLogSession.GetLogNames).  -->
 						<ComboBox
 							x:Name="EventLogCombo"
 							Width="320"
 							IsEditable="True"
-							PlaceholderText="Select a log"
+							PlaceholderText="{x:Bind LocalizedStrings.TaskSchd_Event_SelectLog}"
 							SelectionChanged="EventLogCombo_SelectionChanged" />
 					</StackPanel>
 					<StackPanel Orientation="Horizontal" Spacing="8">
-						<TextBlock Style="{StaticResource InlineLabelStyle}" Text="Source:" />
+						<TextBlock Style="{StaticResource InlineLabelStyle}" Text="{x:Bind LocalizedStrings.TaskSchd_Event_SourceLabel}" />
 						<!--  Items populated in code-behind: the providers for the selected log (or all providers).  -->
 						<ComboBox
 							x:Name="EventSourceCombo"
 							Width="320"
 							IsEditable="True"
-							PlaceholderText="Select a source" />
+							PlaceholderText="{x:Bind LocalizedStrings.TaskSchd_Event_SelectSource}" />
 					</StackPanel>
 					<StackPanel Orientation="Horizontal" Spacing="8">
-						<TextBlock Style="{StaticResource InlineLabelStyle}" Text="Event ID:" />
+						<TextBlock Style="{StaticResource InlineLabelStyle}" Text="{x:Bind LocalizedStrings.TaskSchd_Event_EventIdLabel}" />
 						<TextBox
 							x:Name="EventIdBox"
 							Width="160"
-							PlaceholderText="e.g. 127" />
+							PlaceholderText="{x:Bind LocalizedStrings.TaskSchd_Event_EventIdPlaceholder}" />
 					</StackPanel>
 				</StackPanel>
 
 				<!--  ================================= Action ================================  -->
-				<TextBlock Style="{StaticResource SectionHeaderStyle}" Text="Action" />
-				<TextBlock Text="What action do you want the task to perform?" />
+				<TextBlock Style="{StaticResource SectionHeaderStyle}" Text="{x:Bind LocalizedStrings.TaskSchd_Create_Action}" />
+				<TextBlock Text="{x:Bind LocalizedStrings.TaskSchd_Create_ActionPrompt}" />
 
 				<!--
 					Action kind. The selected index drives which settings panel below is visible
@@ -334,9 +331,9 @@
 					x:Name="ActionComboBox"
 					HorizontalAlignment="Stretch"
 					SelectionChanged="ActionComboBox_SelectionChanged">
-					<ComboBoxItem Content="Start a program" />
-					<ComboBoxItem Content="Send an e-mail (deprecated)" />
-					<ComboBoxItem Content="Display a message (deprecated)" />
+					<ComboBoxItem Content="{x:Bind LocalizedStrings.TaskSchd_Action_StartProgram}" />
+					<ComboBoxItem Content="{x:Bind LocalizedStrings.TaskSchd_Action_SendEmail}" />
+					<ComboBoxItem Content="{x:Bind LocalizedStrings.TaskSchd_Action_DisplayMessage}" />
 				</ComboBox>
 
 				<!--  Start a program: program/script (+ Browse), arguments, start-in folder.  -->
@@ -345,7 +342,7 @@
 					Spacing="10"
 					Visibility="Collapsed">
 					<StackPanel Spacing="4">
-						<TextBlock Text="Program/script" />
+						<TextBlock Text="{x:Bind LocalizedStrings.TaskSchd_Action_ProgramScript}" />
 						<Grid ColumnSpacing="8">
 							<Grid.ColumnDefinitions>
 								<ColumnDefinition Width="*" />
@@ -354,19 +351,19 @@
 							<TextBox
 								x:Name="ProgramScriptBox"
 								Grid.Column="0"
-								PlaceholderText="Example: C:\Docs\Public\example.exe" />
+								PlaceholderText="{x:Bind LocalizedStrings.TaskSchd_Action_ProgramPlaceholder}" />
 							<Button
 								Grid.Column="1"
 								Click="BrowseProgram_Click"
-								Content="Browse..." />
+								Content="{x:Bind LocalizedStrings.TaskSchd_Action_Browse}" />
 						</Grid>
 					</StackPanel>
 					<StackPanel Spacing="4">
-						<TextBlock Text="Add arguments (optional):" />
+						<TextBlock Text="{x:Bind LocalizedStrings.TaskSchd_Action_AddArguments}" />
 						<TextBox x:Name="ArgumentsBox" />
 					</StackPanel>
 					<StackPanel Spacing="4">
-						<TextBlock Text="Start in (optional):" />
+						<TextBlock Text="{x:Bind LocalizedStrings.TaskSchd_Action_StartIn}" />
 						<TextBox x:Name="StartInBox" />
 					</StackPanel>
 				</StackPanel>
@@ -377,19 +374,19 @@
 					Spacing="10"
 					Visibility="Collapsed">
 					<StackPanel Spacing="4">
-						<TextBlock Text="From:" />
+						<TextBlock Text="{x:Bind LocalizedStrings.TaskSchd_Action_EmailFrom}" />
 						<TextBox x:Name="EmailFromBox" />
 					</StackPanel>
 					<StackPanel Spacing="4">
-						<TextBlock Text="To:" />
+						<TextBlock Text="{x:Bind LocalizedStrings.TaskSchd_Action_EmailTo}" />
 						<TextBox x:Name="EmailToBox" />
 					</StackPanel>
 					<StackPanel Spacing="4">
-						<TextBlock Text="Subject:" />
+						<TextBlock Text="{x:Bind LocalizedStrings.TaskSchd_Action_EmailSubject}" />
 						<TextBox x:Name="EmailSubjectBox" />
 					</StackPanel>
 					<StackPanel Spacing="4">
-						<TextBlock Text="Text:" />
+						<TextBlock Text="{x:Bind LocalizedStrings.TaskSchd_Action_EmailText}" />
 						<TextBox
 							x:Name="EmailTextBox"
 							AcceptsReturn="True"
@@ -397,7 +394,7 @@
 							TextWrapping="Wrap" />
 					</StackPanel>
 					<StackPanel Spacing="4">
-						<TextBlock Text="Attachment:" />
+						<TextBlock Text="{x:Bind LocalizedStrings.TaskSchd_Action_EmailAttachment}" />
 						<Grid ColumnSpacing="8">
 							<Grid.ColumnDefinitions>
 								<ColumnDefinition Width="*" />
@@ -407,11 +404,11 @@
 							<Button
 								Grid.Column="1"
 								Click="BrowseAttachment_Click"
-								Content="Browse..." />
+								Content="{x:Bind LocalizedStrings.TaskSchd_Action_Browse}" />
 						</Grid>
 					</StackPanel>
 					<StackPanel Spacing="4">
-						<TextBlock Text="SMTP server:" />
+						<TextBlock Text="{x:Bind LocalizedStrings.TaskSchd_Action_EmailServer}" />
 						<TextBox x:Name="EmailSmtpBox" />
 					</StackPanel>
 				</StackPanel>
@@ -422,11 +419,11 @@
 					Spacing="10"
 					Visibility="Collapsed">
 					<StackPanel Spacing="4">
-						<TextBlock Text="Title:" />
+						<TextBlock Text="{x:Bind LocalizedStrings.TaskSchd_Action_MessageTitle}" />
 						<TextBox x:Name="MessageTitleBox" />
 					</StackPanel>
 					<StackPanel Spacing="4">
-						<TextBlock Text="Message:" />
+						<TextBlock Text="{x:Bind LocalizedStrings.TaskSchd_Action_MessageBody}" />
 						<TextBox
 							x:Name="MessageBodyBox"
 							AcceptsReturn="True"

@@ -67,5 +67,7 @@ namespace OneMMC.Localization
 
         // Load more
         public string EventViewer_LoadMore => GetResource(ResourceFileNames.EventViewer, "EventViewer_LoadMore");
+
+        public string EventViewer_FileFilter_Evtx => GetResource(ResourceFileNames.EventViewer, "EventViewer_FileFilter_Evtx");
     }
 }

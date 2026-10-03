@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using OneMMC.Core.Features.PCManagement.Services.DiskMgmt.Common;
+using OneMMC.Core.Localization;
 using Windows.Win32.Foundation;
 using Windows.Win32.Storage.Vhd;
 using Win32PInvoke = Windows.Win32.PInvoke;
@@ -25,12 +26,12 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
         {
             if (string.IsNullOrEmpty(path))
             {
-                return OperationResult.Fail("Path cannot be empty.");
+                return OperationResult.Fail(DiskMgmtText.Get(DiskMgmtKeys.ErrPathEmpty));
             }
 
             if (sizeInBytes < DiskManagementConstants.BYTES_PER_MB)
             {
-                return OperationResult.Fail("Size must be at least 1 MB.");
+                return OperationResult.Fail(DiskMgmtText.Get(DiskMgmtKeys.ErrSizeAtLeast1Mb));
             }
 
             try
@@ -43,7 +44,7 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
 
                 if (File.Exists(path))
                 {
-                    return OperationResult.Fail("File already exists.");
+                    return OperationResult.Fail(DiskMgmtText.Get(DiskMgmtKeys.ErrFileAlreadyExists));
                 }
 
                 var storageType = new VIRTUAL_STORAGE_TYPE
@@ -92,13 +93,13 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
                     }
 
                     logDebug("CreateVHD", $"Virtual hard disk created: {path}", null, null, null);
-                    return OperationResult.Ok("Virtual hard disk created successfully.");
+                    return OperationResult.Ok(DiskMgmtText.Get(DiskMgmtKeys.OkVhdCreated));
                 }
             }
             catch (Exception ex)
             {
                 logError("CreateVHD", ex, null, null, null);
-                return OperationResult.Fail($"CreateVHD failed: {ex.Message}");
+                return OperationResult.Fail(DiskMgmtText.Format(DiskMgmtKeys.ErrOperationFailedFormat, "CreateVHD", ex.Message));
             }
         }
 
@@ -110,12 +111,12 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
         {
             if (string.IsNullOrEmpty(path))
             {
-                return OperationResult.Fail("Path cannot be empty.");
+                return OperationResult.Fail(DiskMgmtText.Get(DiskMgmtKeys.ErrPathEmpty));
             }
 
             if (!File.Exists(path))
             {
-                return OperationResult.Fail($"File not found: {path}");
+                return OperationResult.Fail(DiskMgmtText.Format(DiskMgmtKeys.ErrFileNotFoundFormat, path));
             }
 
             try
@@ -183,13 +184,13 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
                     }
 
                     logDebug("AttachVHD", $"Virtual hard disk attached: {path}", null, null, null);
-                    return OperationResult.Ok("Virtual hard disk attached successfully.");
+                    return OperationResult.Ok(DiskMgmtText.Get(DiskMgmtKeys.OkVhdAttached));
                 }
             }
             catch (Exception ex)
             {
                 logError("AttachVHD", ex, null, null, null);
-                return OperationResult.Fail($"AttachVHD failed: {ex.Message}");
+                return OperationResult.Fail(DiskMgmtText.Format(DiskMgmtKeys.ErrOperationFailedFormat, "AttachVHD", ex.Message));
             }
         }
 
@@ -200,12 +201,12 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
         {
             if (string.IsNullOrEmpty(path))
             {
-                return OperationResult.Fail("Path cannot be empty.");
+                return OperationResult.Fail(DiskMgmtText.Get(DiskMgmtKeys.ErrPathEmpty));
             }
 
             if (!File.Exists(path))
             {
-                return OperationResult.Fail($"File not found: {path}");
+                return OperationResult.Fail(DiskMgmtText.Format(DiskMgmtKeys.ErrFileNotFoundFormat, path));
             }
 
             try
@@ -256,13 +257,13 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
                     }
 
                     logDebug("DetachVHD", $"Virtual hard disk detached: {path}", null, null, null);
-                    return OperationResult.Ok("Virtual hard disk detached successfully.");
+                    return OperationResult.Ok(DiskMgmtText.Get(DiskMgmtKeys.OkVhdDetached));
                 }
             }
             catch (Exception ex)
             {
                 logError("DetachVHD", ex, null, null, null);
-                return OperationResult.Fail($"DetachVHD failed: {ex.Message}");
+                return OperationResult.Fail(DiskMgmtText.Format(DiskMgmtKeys.ErrOperationFailedFormat, "DetachVHD", ex.Message));
             }
         }
     }

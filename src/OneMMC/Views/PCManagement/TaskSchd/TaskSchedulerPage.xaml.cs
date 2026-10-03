@@ -317,7 +317,7 @@ public sealed partial class TaskSchedulerPage : Page
 
         var path = await _fileDialog.SaveFileAsync(
             OwnerHwnd,
-            "XML Files\0*.xml\0All Files\0*.*\0",
+            $"{LocalizedStrings.Common_FileFilter_XmlFiles}\0*.xml\0{LocalizedStrings.Common_FileFilter_AllFiles}\0*.*\0",
             title: L(TaskSchdKeys.CommandExportTask),
             defaultExtension: ".xml",
             suggestedFileName: task.Name + ".xml");
@@ -330,7 +330,7 @@ public sealed partial class TaskSchedulerPage : Page
 
     private async void ImportTask_Click(object sender, RoutedEventArgs e)
     {
-        var path = await _fileDialog.OpenFileAsync(OwnerHwnd, "XML Files\0*.xml\0All Files\0*.*\0", title: L(TaskSchdKeys.CommandImportTask));
+        var path = await _fileDialog.OpenFileAsync(OwnerHwnd, $"{LocalizedStrings.Common_FileFilter_XmlFiles}\0*.xml\0{LocalizedStrings.Common_FileFilter_AllFiles}\0*.*\0", title: L(TaskSchdKeys.CommandImportTask));
         if (string.IsNullOrEmpty(path))
         {
             return;

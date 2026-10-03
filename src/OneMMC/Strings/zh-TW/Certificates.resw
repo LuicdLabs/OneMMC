@@ -189,4 +189,52 @@
   <data name="Certificates_DeleteConfirmMessage" xml:space="preserve">
     <value>要從此憑證存放區刪除「{0}」嗎？</value>
   </data>
+  <data name="Certificates_Store_Personal" xml:space="preserve">
+    <value>個人</value>
+  </data>
+  <data name="Certificates_Store_CA" xml:space="preserve">
+    <value>中繼憑證授權單位</value>
+  </data>
+  <data name="Certificates_Store_Root" xml:space="preserve">
+    <value>受信任的根憑證授權單位</value>
+  </data>
+  <data name="Certificates_Store_Trust" xml:space="preserve">
+    <value>企業信任</value>
+  </data>
+  <data name="Certificates_Store_AuthRoot" xml:space="preserve">
+    <value>協力廠商根憑證授權單位</value>
+  </data>
+  <data name="Certificates_Store_TrustedPublisher" xml:space="preserve">
+    <value>受信任的發行者</value>
+  </data>
+  <data name="Certificates_Store_Disallowed" xml:space="preserve">
+    <value>不受信任的憑證</value>
+  </data>
+  <data name="Certificates_Store_TrustedPeople" xml:space="preserve">
+    <value>受信任的人</value>
+  </data>
+  <data name="Certificates_Store_UserDS" xml:space="preserve">
+    <value>Active Directory 使用者物件</value>
+  </data>
+  <data name="Certificates_Store_ClientAuthIssuer" xml:space="preserve">
+    <value>用戶端驗證簽發者</value>
+  </data>
+  <data name="Certificates_Store_SmartCardRoot" xml:space="preserve">
+    <value>智慧卡受信任的根</value>
+  </data>
+  <data name="Certificates_Store_FlightRoot" xml:space="preserve">
+    <value>預覽組建根</value>
+  </data>
+  <data name="Certificates_Store_TestSignRoot" xml:space="preserve">
+    <value>測試根</value>
+  </data>
+  <data name="Certificates_Store_TrustedAppRoot" xml:space="preserve">
+    <value>受信任的封裝應用程式安裝授權單位</value>
+  </data>
+  <data name="Certificates_Store_OemEsim" xml:space="preserve">
+    <value>OEM eSIM 憑證授權單位</value>
+  </data>
+  <data name="Certificates_Store_PasspointTrustedRoots" xml:space="preserve">
+    <value>Passpoint 受信任的根</value>
+  </data>
 </root>

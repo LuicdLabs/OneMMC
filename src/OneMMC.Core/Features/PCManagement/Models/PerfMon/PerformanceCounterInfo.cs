@@ -281,7 +281,15 @@ namespace OneMMC.Core.Features.PCManagement.Models.PerfMon
         /// Get counter detailed description information.
         /// Includes scaling ratio, instance, category, target computer, etc.
         /// </summary>
-        public string Description => $"Scale: {Scale:F1} | Instance: {(string.IsNullOrEmpty(InstanceName) ? "---" : InstanceName)} | Parent: --- | Object: {CategoryName} | Target PC: \\\\{(MachineName == "." ? Environment.MachineName : MachineName)}";
+        public string Description => string.Format(
+            System.Globalization.CultureInfo.CurrentCulture,
+            OneMMC.Core.Localization.LocalizationProvider.Current.GetString(
+                OneMMC.Core.Localization.ResourceFileNames.PerfMon,
+                OneMMC.Core.Localization.PerfMonKeys.CounterDescriptionFormat),
+            Scale,
+            string.IsNullOrEmpty(InstanceName) ? "---" : InstanceName,
+            CategoryName,
+            MachineName == "." ? Environment.MachineName : MachineName);
 
         // --------------------------------------------------------------------
         // Public Methods

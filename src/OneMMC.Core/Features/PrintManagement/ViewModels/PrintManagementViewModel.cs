@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -8,6 +9,7 @@ using Microsoft.Extensions.Logging;
 using OneMMC.Core.Features.PrintManagement.Services;
 using OneMMC.Core.Features.PrintManagement.Models;
 using OneMMC.Core.Infrastructure.Collections;
+using OneMMC.Core.Localization;
 
 namespace OneMMC.Core.Features.PrintManagement.ViewModels;
 
@@ -108,6 +110,8 @@ public partial class PrintManagementViewModel : ObservableObject
         _computerName = _printService.GetComputerName();
     }
 
+    private static string L(string key) => LocalizationProvider.Current.GetString(ResourceFileNames.PrintManagement, key);
+
     /// <summary>
     /// Loads all print management data (printers, drivers, ports, forms).
     /// </summary>
@@ -115,7 +119,7 @@ public partial class PrintManagementViewModel : ObservableObject
     public async Task LoadDataAsync()
     {
         IsLoading = true;
-        StatusMessage = "Loading...";
+        StatusMessage = L(PrintMgmtKeys.Loading);
         _logger.LogInformation("Loading print management data.");
 
         try
@@ -143,14 +147,14 @@ public partial class PrintManagementViewModel : ObservableObject
             OnPropertyChanged(nameof(DeployedPrinterCountText));
             OnPropertyChanged(nameof(DriverCountText));
 
-            StatusMessage = $"Loaded {Printers.Count} printers, {Drivers.Count} drivers, {Ports.Count} ports, {Forms.Count} forms.";
+            StatusMessage = string.Format(CultureInfo.CurrentCulture, L(PrintMgmtKeys.LoadedFormat), Printers.Count, Drivers.Count, Ports.Count, Forms.Count);
             _logger.LogInformation(
                 "Loaded {PrinterCount} printers, {DriverCount} drivers, {PortCount} ports, {FormCount} forms.",
                 Printers.Count, Drivers.Count, Ports.Count, Forms.Count);
         }
         catch (Exception ex)
         {
-            StatusMessage = $"Error: {ex.Message}";
+            StatusMessage = string.Format(CultureInfo.CurrentCulture, L(PrintMgmtKeys.ErrorLoadingFormat), ex.Message);
             _logger.LogError(ex, "Failed to load print management data.");
 
             if (_adminService.IsPermissionError(ex))

@@ -23,7 +23,7 @@ public sealed partial class CreateSimpleVolumeDialog : ContentDialog
         this.InitializeComponent();
         this.Closing += CreateSimpleVolumeDialog_Closing;
 
-        DiskInfoTextBlock.Text = $"Disk {disk.Index} - {DiskFormatHelper.FormatSize(disk.Size)}";
+        DiskInfoTextBlock.Text = string.Format(LocalizedStrings.DiskMgmt_DiskInfoFormat, disk.Index, DiskFormatHelper.FormatSize(disk.Size));
         
         ulong unallocatedSpace;
         if (maxSpaceOverrideBytes.HasValue)
@@ -43,7 +43,7 @@ public sealed partial class CreateSimpleVolumeDialog : ContentDialog
         VolumeSizeNumberBox.Minimum = MinimumVolumeSizeMB;
         VolumeSizeNumberBox.Maximum = maxSizeMB;
         VolumeSizeNumberBox.Value = maxSizeMB;
-        MaxSizeTextBlock.Text = $"Maximum size: {maxSizeMB} MB (Minimum: {MinimumVolumeSizeMB} MB)";
+        MaxSizeTextBlock.Text = string.Format(LocalizedStrings.DiskMgmt_MaxSizeFormat, maxSizeMB, MinimumVolumeSizeMB);
 
         foreach (var letter in availableLetters)
         {

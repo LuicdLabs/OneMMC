@@ -44,7 +44,7 @@ internal sealed class GroupManagement
     {
         if (group.get_Type() != AzManService.AZ_GROUPTYPE_BASIC)
         {
-            throw new AzManException($"Cannot modify members of group '{groupName}' because it is not a Basic group.");
+            throw new AzManException(OneMMC.Core.Localization.LocalizationProvider.Current.GetFormattedString(OneMMC.Core.Localization.ResourceFileNames.AzMan, OneMMC.Core.Localization.AzManKeys.ErrNotBasicGroupFormat, groupName));
         }
     }
 
@@ -537,7 +537,7 @@ internal sealed class GroupManagement
     {
         if (string.IsNullOrWhiteSpace(memberSid))
         {
-            throw new AzManException("The security identifier (SID) is empty. The account may not have been resolved correctly.");
+            throw new AzManException(OneMMC.Core.Localization.LocalizationProvider.Current.GetString(OneMMC.Core.Localization.ResourceFileNames.AzMan, OneMMC.Core.Localization.AzManKeys.ErrEmptySid));
         }
 
         try

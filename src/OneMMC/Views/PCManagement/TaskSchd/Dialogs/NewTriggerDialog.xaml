@@ -41,10 +41,7 @@
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-	Title="Create a New Trigger"
-	CloseButtonText="Cancel"
 	DefaultButton="Primary"
-	PrimaryButtonText="OK"
 	Style="{StaticResource DefaultContentDialogStyle}"
 	mc:Ignorable="d">
 
@@ -82,22 +79,22 @@
 			<TextBlock
 				VerticalAlignment="Center"
 				Width="100"
-				Text="Begin the task:" />
+				Text="{x:Bind LocalizedStrings.TaskSchd_Trigger_BeginLabel}" />
 			<ComboBox
 				x:Name="BeginTaskComboBox"
 				Width="340"
 				SelectionChanged="BeginTaskComboBox_SelectionChanged">
 				<!--  Index order must stay in sync with the switch in BeginTaskComboBox_SelectionChanged.  -->
-				<ComboBoxItem Content="On a schedule" />
-				<ComboBoxItem Content="At log on" />
-				<ComboBoxItem Content="At startup" />
-				<ComboBoxItem Content="On idle" />
-				<ComboBoxItem Content="On an event" />
-				<ComboBoxItem Content="At task creation/modification" />
-				<ComboBoxItem Content="On connection to user session" />
-				<ComboBoxItem Content="On disconnect from user session" />
-				<ComboBoxItem Content="On workstation lock" />
-				<ComboBoxItem Content="On workstation unlock" />
+				<ComboBoxItem Content="{x:Bind LocalizedStrings.TaskSchd_Trigger_OnSchedule}" />
+				<ComboBoxItem Content="{x:Bind LocalizedStrings.TaskSchd_Trigger_AtLogon}" />
+				<ComboBoxItem Content="{x:Bind LocalizedStrings.TaskSchd_Trigger_AtStartup}" />
+				<ComboBoxItem Content="{x:Bind LocalizedStrings.TaskSchd_Trigger_OnIdle}" />
+				<ComboBoxItem Content="{x:Bind LocalizedStrings.TaskSchd_Trigger_OnEvent}" />
+				<ComboBoxItem Content="{x:Bind LocalizedStrings.TaskSchd_Trigger_AtCreation}" />
+				<ComboBoxItem Content="{x:Bind LocalizedStrings.TaskSchd_Trigger_OnConnect}" />
+				<ComboBoxItem Content="{x:Bind LocalizedStrings.TaskSchd_Trigger_OnDisconnect}" />
+				<ComboBoxItem Content="{x:Bind LocalizedStrings.TaskSchd_Trigger_OnLock}" />
+				<ComboBoxItem Content="{x:Bind LocalizedStrings.TaskSchd_Trigger_OnUnlock}" />
 			</ComboBox>
 		</StackPanel>
 
@@ -109,7 +106,7 @@
 			<StackPanel Spacing="12">
 
 				<!--  ============================ Settings ============================  -->
-				<TextBlock Style="{StaticResource SectionHeaderStyle}" Text="Settings" />
+				<TextBlock Style="{StaticResource SectionHeaderStyle}" Text="{x:Bind LocalizedStrings.TaskSchd_Tab_Settings}" />
 
 				<!--  On a schedule: One time / Daily / Weekly / Monthly + Start + recurrence detail.  -->
 				<StackPanel
@@ -120,19 +117,19 @@
 						x:Name="ScheduleKindRadios"
 						MaxColumns="4"
 						SelectionChanged="ScheduleKind_SelectionChanged">
-						<x:String>One time</x:String>
-						<x:String>Daily</x:String>
-						<x:String>Weekly</x:String>
-						<x:String>Monthly</x:String>
+						<RadioButton Content="{x:Bind LocalizedStrings.TaskSchd_Schedule_OneTime}" />
+						<RadioButton Content="{x:Bind LocalizedStrings.TaskSchd_Schedule_Daily}" />
+						<RadioButton Content="{x:Bind LocalizedStrings.TaskSchd_Schedule_Weekly}" />
+						<RadioButton Content="{x:Bind LocalizedStrings.TaskSchd_Schedule_Monthly}" />
 					</RadioButtons>
 
 					<!--  Start = the trigger StartBoundary; shared by all four schedule kinds.  -->
 					<StackPanel Orientation="Horizontal" Spacing="8">
-						<TextBlock Style="{StaticResource InlineLabelStyle}" Text="Start:" />
-						<CalendarDatePicker x:Name="ScheduleStartDate" PlaceholderText="Pick a date" />
+						<TextBlock Style="{StaticResource InlineLabelStyle}" Text="{x:Bind LocalizedStrings.TaskSchd_Trigger_StartLabel}" />
+						<CalendarDatePicker x:Name="ScheduleStartDate" PlaceholderText="{x:Bind LocalizedStrings.TaskSchd_PickDatePlaceholder}" />
 						<TimePicker x:Name="ScheduleStartTime" ClockIdentifier="24HourClock" />
 					</StackPanel>
-					<CheckBox x:Name="ScheduleStartSync" Content="Synchronize across time zones" />
+					<CheckBox x:Name="ScheduleStartSync" Content="{x:Bind LocalizedStrings.TaskSchd_Trigger_SyncTimeZones}" />
 
 					<!--  Daily detail: recur every N days.  -->
 					<StackPanel
@@ -140,14 +137,14 @@
 						Orientation="Horizontal"
 						Spacing="8"
 						Visibility="Collapsed">
-						<TextBlock Style="{StaticResource InlineLabelStyle}" Text="Recur every:" />
+						<TextBlock Style="{StaticResource InlineLabelStyle}" Text="{x:Bind LocalizedStrings.TaskSchd_Trigger_RecurEvery}" />
 						<NumberBox
 							x:Name="DailyRecurBox"
 							Width="120"
 							Minimum="1"
 							SpinButtonPlacementMode="Compact"
 							Value="1" />
-						<TextBlock VerticalAlignment="Center" Text="days" />
+						<TextBlock VerticalAlignment="Center" Text="{x:Bind LocalizedStrings.TaskSchd_Trigger_DaysSuffix}" />
 					</StackPanel>
 
 					<!--  Weekly detail: recur every N weeks + day-of-week checkboxes.  -->
@@ -156,14 +153,14 @@
 						Spacing="10"
 						Visibility="Collapsed">
 						<StackPanel Orientation="Horizontal" Spacing="8">
-							<TextBlock Style="{StaticResource InlineLabelStyle}" Text="Recur every:" />
+							<TextBlock Style="{StaticResource InlineLabelStyle}" Text="{x:Bind LocalizedStrings.TaskSchd_Trigger_RecurEvery}" />
 							<NumberBox
 								x:Name="WeeklyRecurBox"
 								Width="120"
 								Minimum="1"
 								SpinButtonPlacementMode="Compact"
 								Value="1" />
-							<TextBlock VerticalAlignment="Center" Text="weeks on:" />
+							<TextBlock VerticalAlignment="Center" Text="{x:Bind LocalizedStrings.TaskSchd_Trigger_WeeksOnSuffix}" />
 						</StackPanel>
 						<!--  Days of the week, 4 per row (TODO(TaskScheduler): bind to IWeeklyTrigger.DaysOfWeek bitmask).  -->
 						<Grid ColumnSpacing="16" RowSpacing="8">
@@ -181,37 +178,37 @@
 								x:Name="SundayCheck"
 								Grid.Row="0"
 								Grid.Column="0"
-								Content="Sunday" />
+								Content="{x:Bind LocalizedStrings.TaskSchd_Day_Sunday}" />
 							<CheckBox
 								x:Name="MondayCheck"
 								Grid.Row="0"
 								Grid.Column="1"
-								Content="Monday" />
+								Content="{x:Bind LocalizedStrings.TaskSchd_Day_Monday}" />
 							<CheckBox
 								x:Name="TuesdayCheck"
 								Grid.Row="0"
 								Grid.Column="2"
-								Content="Tuesday" />
+								Content="{x:Bind LocalizedStrings.TaskSchd_Day_Tuesday}" />
 							<CheckBox
 								x:Name="WednesdayCheck"
 								Grid.Row="0"
 								Grid.Column="3"
-								Content="Wednesday" />
+								Content="{x:Bind LocalizedStrings.TaskSchd_Day_Wednesday}" />
 							<CheckBox
 								x:Name="ThursdayCheck"
 								Grid.Row="1"
 								Grid.Column="0"
-								Content="Thursday" />
+								Content="{x:Bind LocalizedStrings.TaskSchd_Day_Thursday}" />
 							<CheckBox
 								x:Name="FridayCheck"
 								Grid.Row="1"
 								Grid.Column="1"
-								Content="Friday" />
+								Content="{x:Bind LocalizedStrings.TaskSchd_Day_Friday}" />
 							<CheckBox
 								x:Name="SaturdayCheck"
 								Grid.Row="1"
 								Grid.Column="2"
-								Content="Saturday" />
+								Content="{x:Bind LocalizedStrings.TaskSchd_Day_Saturday}" />
 						</Grid>
 					</StackPanel>
 
@@ -227,8 +224,8 @@
 							TODO(TaskScheduler): reflect the chosen items back into the button's Content.
 						-->
 						<StackPanel Orientation="Horizontal" Spacing="8">
-							<TextBlock Style="{StaticResource InlineLabelStyle}" Text="Months:" />
-							<DropDownButton Content="Select months">
+							<TextBlock Style="{StaticResource InlineLabelStyle}" Text="{x:Bind LocalizedStrings.TaskSchd_Trigger_MonthsLabel}" />
+							<DropDownButton Content="{x:Bind LocalizedStrings.TaskSchd_Trigger_SelectMonths}">
 								<DropDownButton.Flyout>
 									<Flyout>
 										<ListView
@@ -247,13 +244,13 @@
 							x:Name="MonthlyScheduleMode"
 							MaxColumns="2"
 							SelectionChanged="MonthlyScheduleMode_SelectionChanged">
-							<x:String>Days</x:String>
-							<x:String>On</x:String>
+							<RadioButton Content="{x:Bind LocalizedStrings.TaskSchd_Trigger_MonthlyDays}" />
+							<RadioButton Content="{x:Bind LocalizedStrings.TaskSchd_Trigger_MonthlyOn}" />
 						</RadioButtons>
 
 						<StackPanel Orientation="Horizontal" Spacing="8">
-							<TextBlock Style="{StaticResource InlineLabelStyle}" Text="Days:" />
-							<DropDownButton x:Name="MonthlyDaysDropDown" Content="Select days">
+							<TextBlock Style="{StaticResource InlineLabelStyle}" Text="{x:Bind LocalizedStrings.TaskSchd_Trigger_DaysLabel}" />
+							<DropDownButton x:Name="MonthlyDaysDropDown" Content="{x:Bind LocalizedStrings.TaskSchd_Trigger_SelectDays}">
 								<DropDownButton.Flyout>
 									<Flyout>
 										<GridView
@@ -268,7 +265,7 @@
 						</StackPanel>
 
 						<StackPanel Orientation="Horizontal" Spacing="8">
-							<TextBlock Style="{StaticResource InlineLabelStyle}" Text="On:" />
+							<TextBlock Style="{StaticResource InlineLabelStyle}" Text="{x:Bind LocalizedStrings.TaskSchd_Trigger_OnLabel}" />
 							<!--
 								Simplified to single-select ComboBoxes for the prototype; the real dialog lets you
 								pick multiple occurrences and weekdays. TODO(TaskScheduler): make these multi-select
@@ -277,24 +274,24 @@
 							<ComboBox
 								x:Name="MonthlyOccurrenceCombo"
 								Width="140"
-								PlaceholderText="Occurrence">
-								<ComboBoxItem Content="First" />
-								<ComboBoxItem Content="Second" />
-								<ComboBoxItem Content="Third" />
-								<ComboBoxItem Content="Fourth" />
-								<ComboBoxItem Content="Last" />
+								PlaceholderText="{x:Bind LocalizedStrings.TaskSchd_Trigger_OccurrencePlaceholder}">
+								<ComboBoxItem Content="{x:Bind LocalizedStrings.TaskSchd_Week_First}" />
+								<ComboBoxItem Content="{x:Bind LocalizedStrings.TaskSchd_Week_Second}" />
+								<ComboBoxItem Content="{x:Bind LocalizedStrings.TaskSchd_Week_Third}" />
+								<ComboBoxItem Content="{x:Bind LocalizedStrings.TaskSchd_Week_Fourth}" />
+								<ComboBoxItem Content="{x:Bind LocalizedStrings.TaskSchd_Week_Last}" />
 							</ComboBox>
 							<ComboBox
 								x:Name="MonthlyWeekdayCombo"
 								Width="150"
-								PlaceholderText="Day of week">
-								<ComboBoxItem Content="Sunday" />
-								<ComboBoxItem Content="Monday" />
-								<ComboBoxItem Content="Tuesday" />
-								<ComboBoxItem Content="Wednesday" />
-								<ComboBoxItem Content="Thursday" />
-								<ComboBoxItem Content="Friday" />
-								<ComboBoxItem Content="Saturday" />
+								PlaceholderText="{x:Bind LocalizedStrings.TaskSchd_Trigger_DayOfWeekPlaceholder}">
+								<ComboBoxItem Content="{x:Bind LocalizedStrings.TaskSchd_Day_Sunday}" />
+								<ComboBoxItem Content="{x:Bind LocalizedStrings.TaskSchd_Day_Monday}" />
+								<ComboBoxItem Content="{x:Bind LocalizedStrings.TaskSchd_Day_Tuesday}" />
+								<ComboBoxItem Content="{x:Bind LocalizedStrings.TaskSchd_Day_Wednesday}" />
+								<ComboBoxItem Content="{x:Bind LocalizedStrings.TaskSchd_Day_Thursday}" />
+								<ComboBoxItem Content="{x:Bind LocalizedStrings.TaskSchd_Day_Friday}" />
+								<ComboBoxItem Content="{x:Bind LocalizedStrings.TaskSchd_Day_Saturday}" />
 							</ComboBox>
 						</StackPanel>
 					</StackPanel>
@@ -311,8 +308,8 @@
 					Spacing="10"
 					Visibility="Collapsed">
 					<RadioButtons x:Name="UserModeRadios" SelectionChanged="UserMode_SelectionChanged">
-						<x:String>Any user</x:String>
-						<x:String>Specific user:</x:String>
+						<RadioButton Content="{x:Bind LocalizedStrings.TaskSchd_Trigger_AnyUser}" />
+						<RadioButton Content="{x:Bind LocalizedStrings.TaskSchd_Trigger_SpecificUser}" />
 					</RadioButtons>
 					<StackPanel Orientation="Horizontal" Spacing="12">
 						<TextBlock
@@ -323,18 +320,18 @@
 						<Button
 							x:Name="ChangeUserButton"
 							Click="ChangeUser_Click"
-							Content="Change User..." />
+							Content="{x:Bind LocalizedStrings.TaskSchd_Trigger_ChangeUser}" />
 					</StackPanel>
 				</StackPanel>
 
 				<!--  Shared "no additional settings" panel for "At startup" and "At task creation/modification".  -->
 				<StackPanel x:Name="NoSettingsPanel" Visibility="Collapsed">
-					<TextBlock Style="{StaticResource SecondaryTextStyle}" Text="No additional settings required." />
+					<TextBlock Style="{StaticResource SecondaryTextStyle}" Text="{x:Bind LocalizedStrings.TaskSchd_Trigger_NoSettingsRequired}" />
 				</StackPanel>
 
 				<!--  On idle: the idle conditions live on the Conditions page, not here.  -->
 				<StackPanel x:Name="IdlePanel" Visibility="Collapsed">
-					<TextBlock Style="{StaticResource SecondaryTextStyle}" Text="To change idle conditions, use the Conditions page in the Create Task or task Properties sheet." />
+					<TextBlock Style="{StaticResource SecondaryTextStyle}" Text="{x:Bind LocalizedStrings.TaskSchd_Trigger_IdleHint}" />
 				</StackPanel>
 
 				<!--  On an event: Basic (Log/Source/Event ID) or Custom (opens the New Event Filter modal).  -->
@@ -346,36 +343,36 @@
 						x:Name="EventModeRadios"
 						MaxColumns="2"
 						SelectionChanged="EventMode_SelectionChanged">
-						<x:String>Basic</x:String>
-						<x:String>Custom</x:String>
+						<RadioButton Content="{x:Bind LocalizedStrings.TaskSchd_Trigger_EventBasic}" />
+						<RadioButton Content="{x:Bind LocalizedStrings.TaskSchd_Trigger_EventCustom}" />
 					</RadioButtons>
 
 					<StackPanel x:Name="BasicEventSubPanel" Spacing="10">
 						<StackPanel Orientation="Horizontal" Spacing="8">
-							<TextBlock Style="{StaticResource InlineLabelStyle}" Text="Log:" />
+							<TextBlock Style="{StaticResource InlineLabelStyle}" Text="{x:Bind LocalizedStrings.TaskSchd_Event_LogLabel}" />
 							<!--  Items populated in code-behind from the real event-log channels (EventLogSession.GetLogNames).  -->
 							<ComboBox
 								x:Name="EventLogCombo"
 								Width="320"
 								IsEditable="True"
-								PlaceholderText="Select a log"
+								PlaceholderText="{x:Bind LocalizedStrings.TaskSchd_Event_SelectLog}"
 								SelectionChanged="EventLogCombo_SelectionChanged" />
 						</StackPanel>
 						<StackPanel Orientation="Horizontal" Spacing="8">
-							<TextBlock Style="{StaticResource InlineLabelStyle}" Text="Source:" />
+							<TextBlock Style="{StaticResource InlineLabelStyle}" Text="{x:Bind LocalizedStrings.TaskSchd_Event_SourceLabel}" />
 							<!--  Items populated in code-behind: the providers for the selected log (or all providers).  -->
 							<ComboBox
 								x:Name="EventSourceCombo"
 								Width="320"
 								IsEditable="True"
-								PlaceholderText="Select a source" />
+								PlaceholderText="{x:Bind LocalizedStrings.TaskSchd_Event_SelectSource}" />
 						</StackPanel>
 						<StackPanel Orientation="Horizontal" Spacing="8">
-							<TextBlock Style="{StaticResource InlineLabelStyle}" Text="Event ID:" />
+							<TextBlock Style="{StaticResource InlineLabelStyle}" Text="{x:Bind LocalizedStrings.TaskSchd_Event_EventIdLabel}" />
 							<TextBox
 								x:Name="EventIdBox"
 								Width="160"
-								PlaceholderText="e.g. 127" />
+								PlaceholderText="{x:Bind LocalizedStrings.TaskSchd_Event_EventIdPlaceholder}" />
 						</StackPanel>
 					</StackPanel>
 
@@ -398,8 +395,8 @@
 					Spacing="10"
 					Visibility="Collapsed">
 					<RadioButtons x:Name="SessionUserModeRadios" SelectionChanged="SessionUserMode_SelectionChanged">
-						<x:String>Any user</x:String>
-						<x:String>Specific user:</x:String>
+						<RadioButton Content="{x:Bind LocalizedStrings.TaskSchd_Trigger_AnyUser}" />
+						<RadioButton Content="{x:Bind LocalizedStrings.TaskSchd_Trigger_SpecificUser}" />
 					</RadioButtons>
 					<StackPanel Orientation="Horizontal" Spacing="12">
 						<TextBlock
@@ -409,16 +406,16 @@
 						<Button
 							x:Name="SessionChangeUserButton"
 							Click="ChangeUser_Click"
-							Content="Change User..." />
+							Content="{x:Bind LocalizedStrings.TaskSchd_Trigger_ChangeUser}" />
 					</StackPanel>
 					<RadioButtons x:Name="ConnectionSourceRadios">
-						<x:String>Connection from remote computer</x:String>
-						<x:String>Connection from local computer</x:String>
+						<RadioButton Content="{x:Bind LocalizedStrings.TaskSchd_Trigger_ConnectionRemote}" />
+						<RadioButton Content="{x:Bind LocalizedStrings.TaskSchd_Trigger_ConnectionLocal}" />
 					</RadioButtons>
 				</StackPanel>
 
 				<!--  ====================  ADVANCED SETTINGS  ====================  -->
-				<TextBlock Style="{StaticResource SectionHeaderStyle}" Text="Advanced settings" />
+				<TextBlock Style="{StaticResource SectionHeaderStyle}" Text="{x:Bind LocalizedStrings.TaskSchd_Trigger_AdvancedSettings}" />
 
 				<!--
 					Delay row. The label and default change with the trigger type and the whole row is
@@ -433,18 +430,12 @@
 						x:Name="DelayCheckBox"
 						MinWidth="250"
 						Checked="OnDelayChanged"
-						Content="Delay task for:"
+						Content="{x:Bind LocalizedStrings.TaskSchd_Trigger_Delay}"
 						Unchecked="OnDelayChanged" />
 					<ComboBox
 						x:Name="DelayCombo"
 						MinWidth="170"
-						IsEditable="True">
-						<ComboBoxItem Content="15 minutes" />
-						<ComboBoxItem Content="30 minutes" />
-						<ComboBoxItem Content="1 hour" />
-						<ComboBoxItem Content="12 hours" />
-						<ComboBoxItem Content="1 day" />
-					</ComboBox>
+						IsEditable="True" />
 				</StackPanel>
 
 				<!--  Repeat task every: interval + duration + "stop all" (interval/duration/stop-all enabled only when checked).  -->
@@ -453,43 +444,27 @@
 						<CheckBox
 							x:Name="RepeatCheckBox"
 							Checked="OnRepeatChanged"
-							Content="Repeat task every:"
+							Content="{x:Bind LocalizedStrings.TaskSchd_Trigger_RepeatEvery}"
 							Unchecked="OnRepeatChanged" />
 						<ComboBox
 							x:Name="RepeatEveryCombo"
 							MinWidth="150"
-							IsEditable="True"
-							Text="1 hour">
-							<ComboBoxItem Content="5 minutes" />
-							<ComboBoxItem Content="10 minutes" />
-							<ComboBoxItem Content="15 minutes" />
-							<ComboBoxItem Content="30 minutes" />
-							<ComboBoxItem Content="1 hour" />
-						</ComboBox>
+							IsEditable="True" />
 					</StackPanel>
 					<StackPanel
 						Margin="28,0,0,0"
 						Orientation="Horizontal"
 						Spacing="8">
-						<TextBlock VerticalAlignment="Center" Text="for a duration of:" />
+						<TextBlock VerticalAlignment="Center" Text="{x:Bind LocalizedStrings.TaskSchd_Trigger_ForDuration}" />
 						<ComboBox
 							x:Name="DurationCombo"
 							MinWidth="150"
-							IsEditable="True"
-							Text="1 day">
-							<ComboBoxItem Content="15 minutes" />
-							<ComboBoxItem Content="30 minutes" />
-							<ComboBoxItem Content="1 hour" />
-							<ComboBoxItem Content="12 hours" />
-							<ComboBoxItem Content="1 day" />
-							<!--  Indefinitely maps to an empty Repetition.Duration.  -->
-							<ComboBoxItem Content="Indefinitely" />
-						</ComboBox>
+							IsEditable="True" />
 					</StackPanel>
 					<CheckBox
 						x:Name="StopAllCheckBox"
 						Margin="28,0,0,0"
-						Content="Stop all running tasks at end of repetition duration" />
+						Content="{x:Bind LocalizedStrings.TaskSchd_Trigger_StopAllAtEnd}" />
 				</StackPanel>
 
 				<!--  Stop the trigger's task if it runs longer than (trigger-level ExecutionTimeLimit).  -->
@@ -498,22 +473,12 @@
 						x:Name="StopIfLongerCheckBox"
 						MinWidth="250"
 						Checked="OnStopIfLongerChanged"
-						Content="Stop task if it runs longer than:"
+						Content="{x:Bind LocalizedStrings.TaskSchd_Trigger_StopIfLonger}"
 						Unchecked="OnStopIfLongerChanged" />
 					<ComboBox
 						x:Name="StopIfLongerCombo"
 						MinWidth="170"
-						IsEditable="True"
-						Text="3 days">
-						<ComboBoxItem Content="30 minutes" />
-						<ComboBoxItem Content="1 hour" />
-						<ComboBoxItem Content="2 hours" />
-						<ComboBoxItem Content="4 hours" />
-						<ComboBoxItem Content="8 hours" />
-						<ComboBoxItem Content="12 hours" />
-						<ComboBoxItem Content="1 day" />
-						<ComboBoxItem Content="3 days" />
-					</ComboBox>
+						IsEditable="True" />
 				</StackPanel>
 
 				<!--  Activate = StartBoundary. Collapsed for "On a schedule" (Start is in Settings).  -->
@@ -523,15 +488,15 @@
 							x:Name="ActivateCheckBox"
 							MinWidth="92"
 							Checked="OnActivateChanged"
-							Content="Activate:"
+							Content="{x:Bind LocalizedStrings.TaskSchd_Trigger_Activate}"
 							Unchecked="OnActivateChanged" />
-						<CalendarDatePicker x:Name="ActivateDate" PlaceholderText="Pick a date" />
+						<CalendarDatePicker x:Name="ActivateDate" PlaceholderText="{x:Bind LocalizedStrings.TaskSchd_PickDatePlaceholder}" />
 						<TimePicker x:Name="ActivateTime" ClockIdentifier="24HourClock" />
 					</StackPanel>
 					<CheckBox
 						x:Name="ActivateSyncCheckBox"
 						Margin="28,0,0,0"
-						Content="Synchronize across time zones" />
+						Content="{x:Bind LocalizedStrings.TaskSchd_Trigger_SyncTimeZones}" />
 				</StackPanel>
 
 				<!--  Expire = EndBoundary.  -->
@@ -541,21 +506,21 @@
 							x:Name="ExpireCheckBox"
 							MinWidth="92"
 							Checked="OnExpireChanged"
-							Content="Expire:"
+							Content="{x:Bind LocalizedStrings.TaskSchd_Trigger_Expire}"
 							Unchecked="OnExpireChanged" />
-						<CalendarDatePicker x:Name="ExpireDate" PlaceholderText="Pick a date" />
+						<CalendarDatePicker x:Name="ExpireDate" PlaceholderText="{x:Bind LocalizedStrings.TaskSchd_PickDatePlaceholder}" />
 						<TimePicker x:Name="ExpireTime" ClockIdentifier="24HourClock" />
 					</StackPanel>
 					<CheckBox
 						x:Name="ExpireSyncCheckBox"
 						Margin="28,0,0,0"
-						Content="Synchronize across time zones" />
+						Content="{x:Bind LocalizedStrings.TaskSchd_Trigger_SyncTimeZones}" />
 				</StackPanel>
 
 				<!--  Trigger Enabled. Defaults to checked (every other Advanced checkbox defaults unchecked).  -->
 				<CheckBox
 					x:Name="EnabledCheckBox"
-					Content="Enabled"
+					Content="{x:Bind LocalizedStrings.TaskSchd_Trigger_Enabled}"
 					IsChecked="True" />
 			</StackPanel>
 		</ScrollViewer>

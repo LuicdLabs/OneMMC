@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using OneMMC.Core.Features.PrintManagement.Services.Native;
 using OneMMC.Core.Features.PrintManagement.Services.Helpers;
 using OneMMC.Core.Features.PrintManagement.Models;
+using OneMMC.Core.Localization;
 
 namespace OneMMC.Core.Features.PrintManagement.Services.Providers;
 
@@ -56,7 +57,7 @@ internal class PortProvider
                 var description = Marshal.PtrToStringUni(portInfo.pDescription) ?? string.Empty;
 
                 var portType = monitorName.Contains("TCP/IP", StringComparison.OrdinalIgnoreCase)
-                    ? "Standard TCP/IP Port"
+                    ? LocalizationProvider.Current.GetString(ResourceFileNames.PrintManagement, PrintMgmtKeys.PortTypeStandardTcpIp)
                     : monitorName;
 
                 if (string.IsNullOrEmpty(portType))

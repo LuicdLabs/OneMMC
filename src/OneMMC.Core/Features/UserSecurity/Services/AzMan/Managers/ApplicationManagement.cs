@@ -82,7 +82,7 @@ internal sealed class ApplicationManagement
                 }
                 catch (COMException ex)
                 {
-                    throw new AzManException($"Failed to create application: {GetComErrorMessage(ex)}", ex);
+                    throw new AzManException(OneMMC.Core.Localization.LocalizationProvider.Current.GetFormattedString(OneMMC.Core.Localization.ResourceFileNames.AzMan, OneMMC.Core.Localization.AzManKeys.ErrCreateApplicationFormat, GetComErrorMessage(ex)), ex);
                 }
             }
         });

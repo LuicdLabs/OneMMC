@@ -55,6 +55,7 @@ public sealed partial class TaskPropertiesPage : Page, IUnsavedChangesGuard
     {
         _history = _serviceScope.GetRequiredService<TaskHistoryService>();
         InitializeComponent();
+        PopulateDurationChoices();
         this.RequestedTheme = App.CurrentTheme;
         App.ThemeChanged += OnThemeChanged;
         Unloaded += OnUnloaded;
@@ -72,6 +73,48 @@ public sealed partial class TaskPropertiesPage : Page, IUnsavedChangesGuard
     private static nint OwnerHwnd => App.MainWindowInstance is null ? 0 : WindowNative.GetWindowHandle(App.MainWindowInstance);
 
     private static string L(string key) => LocalizationProvider.Current.GetString(ResourceFileNames.TaskSchd, key);
+
+    // Fills the editable Conditions/Settings duration combos with localized choices and their defaults.
+    private void PopulateDurationChoices()
+    {
+        TaskDurationText.Fill(IdleStartComboBox,
+        [
+            TaskDurationText.Minutes(1), TaskDurationText.Minutes(5), TaskDurationText.Minutes(10),
+            TaskDurationText.Minutes(15), TaskDurationText.Minutes(30), TaskDurationText.Hours(1),
+        ]);
+        IdleStartComboBox.Text = TaskDurationText.Minutes(10);
+
+        TaskDurationText.Fill(IdleWaitComboBox,
+        [
+            TaskDurationText.DoNotWait, TaskDurationText.Minutes(1), TaskDurationText.Minutes(5),
+            TaskDurationText.Minutes(10), TaskDurationText.Minutes(15), TaskDurationText.Minutes(30),
+            TaskDurationText.Hours(1), TaskDurationText.Hours(2),
+        ]);
+        IdleWaitComboBox.Text = TaskDurationText.Hours(1);
+
+        TaskDurationText.Fill(RestartIntervalComboBox,
+        [
+            TaskDurationText.Minutes(1), TaskDurationText.Minutes(5), TaskDurationText.Minutes(10),
+            TaskDurationText.Minutes(15), TaskDurationText.Minutes(30), TaskDurationText.Hours(1),
+            TaskDurationText.Hours(2),
+        ]);
+        RestartIntervalComboBox.Text = TaskDurationText.Minutes(1);
+
+        TaskDurationText.Fill(StopIfRunsLongerComboBox,
+        [
+            TaskDurationText.Hours(1), TaskDurationText.Hours(2), TaskDurationText.Hours(4),
+            TaskDurationText.Hours(8), TaskDurationText.Hours(12), TaskDurationText.Days(1),
+            TaskDurationText.Days(3),
+        ]);
+        StopIfRunsLongerComboBox.Text = TaskDurationText.Days(3);
+
+        TaskDurationText.Fill(DeleteAfterComboBox,
+        [
+            TaskDurationText.Immediately, TaskDurationText.Days(30), TaskDurationText.Days(90),
+            TaskDurationText.Days(180), TaskDurationText.Days(365),
+        ]);
+        DeleteAfterComboBox.Text = TaskDurationText.Days(30);
+    }
 
     protected override async void OnNavigatedTo(NavigationEventArgs e)
     {
@@ -144,8 +187,8 @@ public sealed partial class TaskPropertiesPage : Page, IUnsavedChangesGuard
         // Conditions
         var s = def.Settings;
         IdleToggle.IsOn = s.RunOnlyIfIdle;
-        IdleStartComboBox.Text = FormatDuration(s.IdleSettings.IdleDuration) ?? "10 minutes";
-        IdleWaitComboBox.Text = FormatDuration(s.IdleSettings.WaitTimeout) ?? "1 hour";
+        IdleStartComboBox.Text = FormatDuration(s.IdleSettings.IdleDuration) ?? TaskDurationText.Minutes(10);
+        IdleWaitComboBox.Text = FormatDuration(s.IdleSettings.WaitTimeout) ?? TaskDurationText.Hours(1);
         IdleStopCeasesCheckBox.IsChecked = s.IdleSettings.StopOnIdleEnd;
         IdleRestartResumesCheckBox.IsChecked = s.IdleSettings.RestartOnIdle;
         PowerToggle.IsOn = s.DisallowStartIfOnBatteries;
@@ -159,13 +202,13 @@ public sealed partial class TaskPropertiesPage : Page, IUnsavedChangesGuard
         AllowDemandStartCheckBox.IsChecked = s.AllowDemandStart;
         StartWhenAvailableCheckBox.IsChecked = s.StartWhenAvailable;
         RestartOnFailureCheckBox.IsChecked = s.RestartCount > 0;
-        RestartIntervalComboBox.Text = FormatDuration(s.RestartInterval) ?? "1 minute";
+        RestartIntervalComboBox.Text = FormatDuration(s.RestartInterval) ?? TaskDurationText.Minutes(1);
         RestartCountNumberBox.Value = s.RestartCount > 0 ? s.RestartCount : 3;
         StopIfRunsLongerCheckBox.IsChecked = s.ExecutionTimeLimit is not null;
-        StopIfRunsLongerComboBox.Text = FormatDuration(s.ExecutionTimeLimit) ?? "3 days";
+        StopIfRunsLongerComboBox.Text = FormatDuration(s.ExecutionTimeLimit) ?? TaskDurationText.Days(3);
         ForceStopCheckBox.IsChecked = s.AllowHardTerminate;
         DeleteAfterCheckBox.IsChecked = s.DeleteExpiredTaskAfter is not null;
-        DeleteAfterComboBox.Text = FormatDuration(s.DeleteExpiredTaskAfter) ?? "30 days";
+        DeleteAfterComboBox.Text = FormatDuration(s.DeleteExpiredTaskAfter) ?? TaskDurationText.Days(30);
         InstancesCombo.SelectedIndex = (int)s.MultipleInstances;
 
         _initialized = true;
@@ -402,7 +445,7 @@ public sealed partial class TaskPropertiesPage : Page, IUnsavedChangesGuard
         {
             var xml = await _service.ExportTaskAsync(_taskPath);
             var fileDialog = App.GetRequiredService<IFileDialogService>();
-            var path = await fileDialog.SaveFileAsync(OwnerHwnd, "XML Files\0*.xml\0All Files\0*.*\0", title: L(TaskSchdKeys.CommandExportTask), defaultExtension: ".xml", suggestedFileName: GeneralNameText.Text + ".xml");
+            var path = await fileDialog.SaveFileAsync(OwnerHwnd, $"{LocalizedStrings.Common_FileFilter_XmlFiles}\0*.xml\0{LocalizedStrings.Common_FileFilter_AllFiles}\0*.*\0", title: L(TaskSchdKeys.CommandExportTask), defaultExtension: ".xml", suggestedFileName: GeneralNameText.Text + ".xml");
             if (!string.IsNullOrEmpty(path))
             {
                 await File.WriteAllTextAsync(path, xml);
@@ -983,43 +1026,9 @@ public sealed partial class TaskPropertiesPage : Page, IUnsavedChangesGuard
         _ => TaskCompatibility.V2_3,
     };
 
-    private static TimeSpan? ParseDuration(string? text)
-    {
-        if (string.IsNullOrWhiteSpace(text) || text is "Do not wait" or "Immediately")
-        {
-            return null;
-        }
+    private static TimeSpan? ParseDuration(string? text) => TaskDurationText.Parse(text);
 
-        var parts = text.Trim().Split(' ', 2);
-        if (parts.Length == 2 && double.TryParse(parts[0], out var n))
-        {
-            return parts[1].TrimEnd('s') switch
-            {
-                "minute" => TimeSpan.FromMinutes(n),
-                "hour" => TimeSpan.FromHours(n),
-                "day" => TimeSpan.FromDays(n),
-                _ => null,
-            };
-        }
-        return null;
-    }
-
-    private static string? FormatDuration(TimeSpan? span)
-    {
-        if (span is not { } v || v <= TimeSpan.Zero)
-        {
-            return null;
-        }
-        if (v.TotalDays >= 1 && v.TotalDays == Math.Floor(v.TotalDays))
-        {
-            return $"{(int)v.TotalDays} day{(v.TotalDays > 1 ? "s" : string.Empty)}";
-        }
-        if (v.TotalHours >= 1 && v.TotalHours == Math.Floor(v.TotalHours))
-        {
-            return $"{(int)v.TotalHours} hour{(v.TotalHours > 1 ? "s" : string.Empty)}";
-        }
-        return $"{(int)v.TotalMinutes} minute{(v.TotalMinutes > 1 ? "s" : string.Empty)}";
-    }
+    private static string? FormatDuration(TimeSpan? span) => TaskDurationText.Format(span);
 }
 
 /// <summary>A bindable trigger row in the TaskTriggers list.</summary>

@@ -6,6 +6,7 @@ using OneMMC.Core.Infrastructure.Interop.Adsi;
 using Microsoft.Extensions.Logging;
 using OneMMC.Core.Features.PrintManagement.Services.Native;
 using OneMMC.Core.Features.PrintManagement.Models;
+using OneMMC.Core.Localization;
 
 namespace OneMMC.Core.Features.PrintManagement.Services.Providers;
 
@@ -14,6 +15,9 @@ namespace OneMMC.Core.Features.PrintManagement.Services.Providers;
 /// </summary>
 internal class DeployedPrinterProvider
 {
+    private static string LocalRegistryDeploymentText =>
+        LocalizationProvider.Current.GetString(ResourceFileNames.PrintManagement, PrintMgmtKeys.LocalRegistryDeployment);
+
     private readonly ILogger _logger;
     private readonly PrinterEnumerator _printerEnumerator;
 
@@ -149,16 +153,16 @@ internal class DeployedPrinterProvider
                 if (!printers.TryGetValue(key, out var existingInfo))
                 {
                     p.IsDeployedViaGPO = true;
-                    if (p.IsPushedUser) p.PerUserGPO = "Local/Registry Deployment";
-                    if (p.IsPushedMachine) p.PerComputerGPO = "Local/Registry Deployment";
+                    if (p.IsPushedUser) p.PerUserGPO = LocalRegistryDeploymentText;
+                    if (p.IsPushedMachine) p.PerComputerGPO = LocalRegistryDeploymentText;
                     printers[key] = p;
                 }
                 else
                 {
                     if (p.IsPushedUser && string.IsNullOrEmpty(existingInfo.PerUserGPO))
-                        existingInfo.PerUserGPO = "Local/Registry Deployment";
+                        existingInfo.PerUserGPO = LocalRegistryDeploymentText;
                     if (p.IsPushedMachine && string.IsNullOrEmpty(existingInfo.PerComputerGPO))
-                        existingInfo.PerComputerGPO = "Local/Registry Deployment";
+                        existingInfo.PerComputerGPO = LocalRegistryDeploymentText;
                 }
             }
         }

@@ -63,7 +63,7 @@ namespace OneMMC.Core.Features.PolicyManagement.Services.GpEdit.Manager
         {
             if (_disposed)
             {
-                LastError = "Service has been disposed";
+                LastError = LocalizationProvider.Current.GetString(ResourceFileNames.Policy, PolicyKeys.ErrorServiceDisposed);
                 return false;
             }
 
@@ -76,7 +76,7 @@ namespace OneMMC.Core.Features.PolicyManagement.Services.GpEdit.Manager
             }
             catch (Exception ex)
             {
-                LastError = $"Failed to initialize POL file policy service: {ex.Message}";
+                LastError = LocalizationProvider.Current.GetFormattedString(ResourceFileNames.Policy, PolicyKeys.ErrorInitPolServiceFormat, ex.Message);
                 LogDebug($"[ERROR] {LastError}");
                 return false;
             }
@@ -115,7 +115,7 @@ namespace OneMMC.Core.Features.PolicyManagement.Services.GpEdit.Manager
             }
             catch (Exception ex)
             {
-                LastError = $"Failed to set policy state: {ex.Message}";
+                LastError = LocalizationProvider.Current.GetFormattedString(ResourceFileNames.Policy, PolicyKeys.ErrorSetStateFormat, ex.Message);
                 LogDebug($"[ERROR] SetPolicyState failed: {ex.Message}");
                 return false;
             }
@@ -154,7 +154,7 @@ namespace OneMMC.Core.Features.PolicyManagement.Services.GpEdit.Manager
             }
             catch (Exception ex)
             {
-                LastError = $"Failed to save: {ex.Message}";
+                LastError = LocalizationProvider.Current.GetFormattedString(ResourceFileNames.Policy, PolicyKeys.ErrorSaveFailedFormat, ex.Message);
                 LogDebug($"[ERROR] Save failed: {ex.Message}");
                 return $"save failed: {ex.Message}";
             }
@@ -171,7 +171,7 @@ namespace OneMMC.Core.Features.PolicyManagement.Services.GpEdit.Manager
             }
             catch (Exception ex)
             {
-                LastError = $"Failed to reload: {ex.Message}";
+                LastError = LocalizationProvider.Current.GetFormattedString(ResourceFileNames.Policy, PolicyKeys.ErrorReloadFailedFormat, ex.Message);
                 LogDebug($"[ERROR] Reload failed: {ex.Message}");
             }
         }

@@ -75,7 +75,7 @@ public sealed partial class DiskManagementPage : Page
             );
             
             await ShowResultDialogAsync(
-                createResult.Success ? "Success" : "VHD Creation Failed",
+                createResult.Success ? LocalizedStrings.Common_SuccessTitle : LocalizedStrings.DiskMgmt_Result_VhdCreateFailed,
                 createResult.Message
             );
         }
@@ -97,7 +97,7 @@ public sealed partial class DiskManagementPage : Page
             );
             
             await ShowResultDialogAsync(
-                attachResult.Success ? "Success" : "VHD Attach Failed",
+                attachResult.Success ? LocalizedStrings.Common_SuccessTitle : LocalizedStrings.DiskMgmt_Result_VhdAttachFailed,
                 attachResult.Message
             );
         }
@@ -112,19 +112,19 @@ public sealed partial class DiskManagementPage : Page
 
         selectedPath = await App.GetRequiredService<OneMMC.Core.Abstractions.Services.IFileDialogService>().OpenFileAsync(
             hwnd,
-            "Virtual Hard Disk\0*.vhdx;*.vhd\0All Files\0*.*\0",
-            "Select Virtual Hard Disk to Detach");
+            $"{LocalizedStrings.DiskMgmt_FileFilter_Vhd}\0*.vhdx;*.vhd\0{LocalizedStrings.Common_FileFilter_AllFiles}\0*.*\0",
+            LocalizedStrings.DiskMgmt_SelectVhdToDetach);
 
         if (!string.IsNullOrEmpty(selectedPath))
         {
             var result = await ViewModel.DetachVHDAsync(selectedPath);
             if (!result.Success)
             {
-                await ShowResultDialogAsync("Detach VHD Failed", result.Message);
+                await ShowResultDialogAsync(LocalizedStrings.DiskMgmt_Result_VhdDetachFailed, result.Message);
             }
             else
             {
-                await ShowResultDialogAsync("Success", result.Message);
+                await ShowResultDialogAsync(LocalizedStrings.Common_SuccessTitle, result.Message);
             }
         }
     }
@@ -151,7 +151,7 @@ public sealed partial class DiskManagementPage : Page
             var result = await ViewModel.EjectCDROMAsync(cdrom.Drive);
             if (!result.Success)
             {
-                await ShowResultDialogAsync("Eject Failed", result.Message);
+                await ShowResultDialogAsync(LocalizedStrings.DiskMgmt_Result_EjectFailed, result.Message);
             }
         }
     }
@@ -247,9 +247,11 @@ public sealed partial class DiskManagementPage : Page
             if (!string.IsNullOrEmpty(newLetter))
             {
                 var manageResult = await ViewModel.ManageDriveLetterAsync(partition, newLetter);
-                string operationType = string.IsNullOrEmpty(partition.DriveLetter) ? "Assign" : "Change";
+                string failTitle = string.IsNullOrEmpty(partition.DriveLetter)
+                    ? LocalizedStrings.DiskMgmt_Result_AssignDriveLetterFailed
+                    : LocalizedStrings.DiskMgmt_Result_ChangeDriveLetterFailed;
                 await ShowResultDialogAsync(
-                    manageResult.Success ? "Success" : $"{operationType} Drive Letter Failed",
+                    manageResult.Success ? LocalizedStrings.Common_SuccessTitle : failTitle,
                     manageResult.Message
                 );
             }
@@ -271,7 +273,7 @@ public sealed partial class DiskManagementPage : Page
         {
             if (string.IsNullOrEmpty(partition.DriveLetter))
             {
-                await ShowResultDialogAsync("Error", "Cannot format a partition without a drive letter.");
+                await ShowResultDialogAsync(LocalizedStrings.DiskMgmt_ErrorTitle, LocalizedStrings.DiskMgmt_Msg_CannotFormatWithoutLetter);
                 return;
             }
 
@@ -283,7 +285,7 @@ public sealed partial class DiskManagementPage : Page
             );
             
             await ShowResultDialogAsync(
-                formatResult.Success ? "Success" : "Format Volume Failed",
+                formatResult.Success ? LocalizedStrings.Common_SuccessTitle : LocalizedStrings.DiskMgmt_Result_FormatFailed,
                 formatResult.Message
             );
         }
@@ -325,7 +327,7 @@ public sealed partial class DiskManagementPage : Page
 
         if (cdrom == null || string.IsNullOrEmpty(cdrom.Drive))
         {
-            await ShowResultDialogAsync("Error", "Invalid CD-ROM drive.");
+            await ShowResultDialogAsync(LocalizedStrings.DiskMgmt_ErrorTitle, LocalizedStrings.DiskMgmt_Msg_InvalidCdrom);
             return;
         }
 
@@ -340,7 +342,7 @@ public sealed partial class DiskManagementPage : Page
             {
                 var result = await ViewModel.ChangeCDROMDriveLetterAsync(cdrom.Drive, newLetter);
                 await ShowResultDialogAsync(
-                    result.Success ? "Success" : "Change Drive Letter Failed",
+                    result.Success ? LocalizedStrings.Common_SuccessTitle : LocalizedStrings.DiskMgmt_Result_ChangeDriveLetterFailed,
                     result.Message);
             }
         }
@@ -388,7 +390,7 @@ public sealed partial class DiskManagementPage : Page
                 Text = message,
                 TextWrapping = TextWrapping.Wrap
             },
-            CloseButtonText = "OK"
+            CloseButtonText = LocalizedStrings.Common_OKButton
         };
         ApplyContentDialogDefaults(dialog);
         await dialog.ShowAsync();
@@ -406,7 +408,7 @@ public sealed partial class DiskManagementPage : Page
         }
 
         await ShowResultDialogAsync(
-            result.Success ? "Success" : failTitle,
+            result.Success ? LocalizedStrings.Common_SuccessTitle : failTitle,
             result.Message);
     }
 
@@ -454,7 +456,7 @@ public sealed partial class DiskManagementPage : Page
         {
             var initResult = await ViewModel.InitializeDiskAsync(disk.Index, dialog.UseGPT);
             await ShowResultDialogAsync(
-                initResult.Success ? "Success" : "Initialize Disk Failed",
+                initResult.Success ? LocalizedStrings.Common_SuccessTitle : LocalizedStrings.DiskMgmt_Result_InitializeFailed,
                 initResult.Message
             );
         }
@@ -487,7 +489,7 @@ public sealed partial class DiskManagementPage : Page
             );
             
             await ShowResultDialogAsync(
-                createResult.Success ? "Success" : "Create Volume Failed",
+                createResult.Success ? LocalizedStrings.Common_SuccessTitle : LocalizedStrings.DiskMgmt_Result_CreateVolumeFailed,
                 createResult.Message
             );
         }
@@ -523,7 +525,7 @@ public sealed partial class DiskManagementPage : Page
             );
             
             await ShowResultDialogAsync(
-                createResult.Success ? "Success" : "Create Volume Failed",
+                createResult.Success ? LocalizedStrings.Common_SuccessTitle : LocalizedStrings.DiskMgmt_Result_CreateVolumeFailed,
                 createResult.Message
             );
         }
@@ -549,7 +551,7 @@ public sealed partial class DiskManagementPage : Page
             var result = await ViewModel.SetDiskOnlineOfflineAsync(disk.Index, true);
             if (!result.Success)
             {
-                await ShowResultDialogAsync("Set Online Failed", result.Message);
+                await ShowResultDialogAsync(LocalizedStrings.DiskMgmt_Result_SetOnlineFailed, result.Message);
             }
         }
     }
@@ -574,7 +576,7 @@ public sealed partial class DiskManagementPage : Page
             var result = await ViewModel.SetDiskOnlineOfflineAsync(disk.Index, false);
             if (!result.Success)
             {
-                await ShowResultDialogAsync("Set Offline Failed", result.Message);
+                await ShowResultDialogAsync(LocalizedStrings.DiskMgmt_Result_SetOfflineFailed, result.Message);
             }
         }
     }
@@ -599,11 +601,11 @@ public sealed partial class DiskManagementPage : Page
             var result = await ViewModel.SetDiskReadOnlyAsync(disk.Index, true);
             if (!result.Success)
             {
-                await ShowResultDialogAsync("Set Read-Only Failed", result.Message);
+                await ShowResultDialogAsync(LocalizedStrings.DiskMgmt_Result_SetReadOnlyFailed, result.Message);
             }
             else
             {
-                await ShowResultDialogAsync("Success", result.Message);
+                await ShowResultDialogAsync(LocalizedStrings.Common_SuccessTitle, result.Message);
             }
         }
     }
@@ -628,11 +630,11 @@ public sealed partial class DiskManagementPage : Page
             var result = await ViewModel.SetDiskReadOnlyAsync(disk.Index, false);
             if (!result.Success)
             {
-                await ShowResultDialogAsync("Clear Read-Only Failed", result.Message);
+                await ShowResultDialogAsync(LocalizedStrings.DiskMgmt_Result_ClearReadOnlyFailed, result.Message);
             }
             else
             {
-                await ShowResultDialogAsync("Success", result.Message);
+                await ShowResultDialogAsync(LocalizedStrings.Common_SuccessTitle, result.Message);
             }
         }
     }
@@ -652,7 +654,7 @@ public sealed partial class DiskManagementPage : Page
         {
             var cleanResult = await ViewModel.CleanDiskAsync(disk.Index);
             await ShowResultDialogAsync(
-                cleanResult.Success ? "Success" : "Clean Disk Failed",
+                cleanResult.Success ? LocalizedStrings.Common_SuccessTitle : LocalizedStrings.DiskMgmt_Result_CleanFailed,
                 cleanResult.Message
             );
         }
@@ -679,7 +681,7 @@ public sealed partial class DiskManagementPage : Page
                 partition.DiskIndex, partition.Index);
             
             await ShowResultDialogAsync(
-                deleteResult.Success ? "Success" : "Delete Volume Failed",
+                deleteResult.Success ? LocalizedStrings.Common_SuccessTitle : LocalizedStrings.DiskMgmt_Result_DeleteVolumeFailed,
                 deleteResult.Message
             );
         }
@@ -698,8 +700,8 @@ public sealed partial class DiskManagementPage : Page
         if (partition.IsMsrPartition || partition.IsEfiSystemPartition ||
             partition.IsRecoveryPartition || partition.IsOemRecoveryPartition)
         {
-            await ShowResultDialogAsync("Operation Not Supported", 
-                "This partition type (System/Reserved/Recovery) does not support resizing operations.");
+            await ShowResultDialogAsync(LocalizedStrings.DiskMgmt_Result_OperationNotSupported, 
+                LocalizedStrings.DiskMgmt_Msg_ResizeNotSupported);
             return;
         }
 
@@ -718,14 +720,14 @@ public sealed partial class DiskManagementPage : Page
 
         if (!queryResult.Success)
         {
-            await ShowResultDialogAsync("Query Failed", queryResult.Message);
+            await ShowResultDialogAsync(LocalizedStrings.DiskMgmt_Result_QueryFailed, queryResult.Message);
             return;
         }
 
         if (queryResult.ExtendableSpaceMB == 0)
         {
-            await ShowResultDialogAsync("No Space Available", 
-                "No unallocated space available for extension.");
+            await ShowResultDialogAsync(LocalizedStrings.DiskMgmt_Result_NoSpaceAvailable, 
+                LocalizedStrings.DiskMgmt_Msg_NoExtendSpace);
             return;
         }
 
@@ -737,8 +739,8 @@ public sealed partial class DiskManagementPage : Page
         {
             if (string.IsNullOrEmpty(partition.DriveLetter))
             {
-                await ShowResultDialogAsync("Operation Not Supported", 
-                    "Extending partitions without drive letters is not yet supported. Please assign a drive letter first.");
+                await ShowResultDialogAsync(LocalizedStrings.DiskMgmt_Result_OperationNotSupported, 
+                    LocalizedStrings.DiskMgmt_Msg_ExtendNeedsLetter);
                 return;
             }
 
@@ -746,7 +748,7 @@ public sealed partial class DiskManagementPage : Page
                 partition.DriveLetter, dialog.ExtendSizeInMB);
             
             await ShowResultDialogAsync(
-                extendResult.Success ? "Success" : "Extend Volume Failed",
+                extendResult.Success ? LocalizedStrings.Common_SuccessTitle : LocalizedStrings.DiskMgmt_Result_ExtendFailed,
                 extendResult.Message
             );
         }
@@ -765,8 +767,8 @@ public sealed partial class DiskManagementPage : Page
         if (partition.IsMsrPartition || partition.IsEfiSystemPartition ||
             partition.IsRecoveryPartition || partition.IsOemRecoveryPartition)
         {
-            await ShowResultDialogAsync("Operation Not Supported", 
-                "This partition type (System/Reserved/Recovery) does not support resizing operations.");
+            await ShowResultDialogAsync(LocalizedStrings.DiskMgmt_Result_OperationNotSupported, 
+                LocalizedStrings.DiskMgmt_Msg_ResizeNotSupported);
             return;
         }
 
@@ -785,14 +787,14 @@ public sealed partial class DiskManagementPage : Page
 
         if (!queryResult.Success)
         {
-            await ShowResultDialogAsync("Query Failed", queryResult.Message);
+            await ShowResultDialogAsync(LocalizedStrings.DiskMgmt_Result_QueryFailed, queryResult.Message);
             return;
         }
 
         if (queryResult.ShrinkableSpaceMB == 0)
         {
-            await ShowResultDialogAsync("No Space Available", 
-                "No shrinkable space available. This may be due to unmovable files.");
+            await ShowResultDialogAsync(LocalizedStrings.DiskMgmt_Result_NoSpaceAvailable, 
+                LocalizedStrings.DiskMgmt_Msg_NoShrinkSpace);
             return;
         }
 
@@ -804,15 +806,15 @@ public sealed partial class DiskManagementPage : Page
         {
             if (dialog.ShrinkSizeInMB == 0)
             {
-                await ShowResultDialogAsync("Error", 
-                    "Shrink size must be greater than 0.");
+                await ShowResultDialogAsync(LocalizedStrings.DiskMgmt_ErrorTitle, 
+                    LocalizedStrings.DiskMgmt_Msg_ShrinkSizeZero);
                 return;
             }
 
             if (string.IsNullOrEmpty(partition.DriveLetter))
             {
-                await ShowResultDialogAsync("Operation Not Supported", 
-                    "Shrinking partitions without drive letters is not yet supported. Please assign a drive letter first.");
+                await ShowResultDialogAsync(LocalizedStrings.DiskMgmt_Result_OperationNotSupported, 
+                    LocalizedStrings.DiskMgmt_Msg_ShrinkNeedsLetter);
                 return;
             }
 
@@ -820,7 +822,7 @@ public sealed partial class DiskManagementPage : Page
                 partition.DriveLetter, dialog.ShrinkSizeInMB);
             
             await ShowResultDialogAsync(
-                shrinkResult.Success ? "Success" : "Shrink Volume Failed",
+                shrinkResult.Success ? LocalizedStrings.Common_SuccessTitle : LocalizedStrings.DiskMgmt_Result_ShrinkFailed,
                 shrinkResult.Message
             );
         }
@@ -848,7 +850,7 @@ public sealed partial class DiskManagementPage : Page
 
         if (string.IsNullOrEmpty(partition.DriveLetter))
         {
-            await ShowResultDialogAsync("Error", "This partition does not have a drive letter.");
+            await ShowResultDialogAsync(LocalizedStrings.DiskMgmt_ErrorTitle, LocalizedStrings.DiskMgmt_Msg_NoDriveLetter);
             return;
         }
 
@@ -860,7 +862,7 @@ public sealed partial class DiskManagementPage : Page
         {
             var result = await ViewModel.RemoveDriveLetterAsync(partition.DriveLetter);
             await ShowResultDialogAsync(
-                result.Success ? "Success" : "Remove Drive Letter Failed",
+                result.Success ? LocalizedStrings.Common_SuccessTitle : LocalizedStrings.DiskMgmt_Result_RemoveDriveLetterFailed,
                 result.Message
             );
         }
@@ -875,7 +877,7 @@ public sealed partial class DiskManagementPage : Page
 
         if (string.IsNullOrEmpty(partition.DriveLetter))
         {
-            await ShowResultDialogAsync("Error", "Cannot mount a partition without a drive letter.");
+            await ShowResultDialogAsync(LocalizedStrings.DiskMgmt_ErrorTitle, LocalizedStrings.DiskMgmt_Msg_CannotMountWithoutLetter);
             return;
         }
 
@@ -889,7 +891,7 @@ public sealed partial class DiskManagementPage : Page
                 partition.DriveLetter, dialog.MountPath);
             
             await ShowResultDialogAsync(
-                mountResult.Success ? "Success" : "Mount to Folder Failed",
+                mountResult.Success ? LocalizedStrings.Common_SuccessTitle : LocalizedStrings.DiskMgmt_Result_MountFailed,
                 mountResult.Message
             );
         }
@@ -922,7 +924,7 @@ public sealed partial class DiskManagementPage : Page
         {
             var result = await ViewModel.MarkPartitionActiveAsync(partition.DiskIndex, partition.Index);
             await ShowResultDialogAsync(
-                result.Success ? "Success" : "Mark Active Failed",
+                result.Success ? LocalizedStrings.Common_SuccessTitle : LocalizedStrings.DiskMgmt_Result_MarkActiveFailed,
                 result.Message
             );
         }

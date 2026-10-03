@@ -652,7 +652,7 @@
     <value>新增 &gt;</value>
   </data>
   <data name="WF_AdvancedCertCriteria_CertificateName" xml:space="preserve">
-    <value>憑證名稱:</value>
+    <value>憑證名稱</value>
   </data>
   <data name="WF_AdvancedCertCriteria_CertificateNameRestriction" xml:space="preserve">
     <value>憑證名稱限制</value>
@@ -868,7 +868,7 @@
     <value>MD5</value>
   </data>
   <data name="WF_Common_Method" xml:space="preserve">
-    <value>Method</value>
+    <value>方法</value>
   </data>
   <data name="WF_Common_Minutes" xml:space="preserve">
     <value>分鐘:</value>
@@ -994,7 +994,7 @@
     <value>套用 IPsec 通道授權，如 IPsec 設定索引標籤上所指定。</value>
   </data>
   <data name="WF_ConfigureTunnelEndpoints_Client" xml:space="preserve">
-    <value>Client</value>
+    <value>用戶端</value>
   </data>
   <data name="WF_ConfigureTunnelEndpoints_MyIPAddress" xml:space="preserve">
     <value>我的 IP 位址</value>
@@ -2284,5 +2284,53 @@
   </data>
   <data name="WF_WindowsFirewall_PropertiesDescription" xml:space="preserve">
     <value>自訂設定檔與 IPsec 設定</value>
+  </data>
+  <data name="WF_Principals_SecureConnectionRequired" xml:space="preserve">
+    <value>只有在動作設定為 [只允許安全連線] 時，才能指定使用者和電腦驗證。</value>
+  </data>
+  <data name="WF_Err_RuleNameRequired" xml:space="preserve">
+    <value>必須提供防火牆規則名稱。</value>
+  </data>
+  <data name="WF_Err_CsrNameRequired" xml:space="preserve">
+    <value>必須提供連線安全性規則名稱。</value>
+  </data>
+  <data name="WF_Err_InvalidRequestNone" xml:space="preserve">
+    <value>OutboundSecurity=None 搭配 InboundSecurity=Request 不是有效的 Windows 防火牆連線安全性規則組合。</value>
+  </data>
+  <data name="WF_Err_InboundNoneWithOutboundAuth" xml:space="preserve">
+    <value>InboundSecurity=None 無法與輸出驗證要求合併使用。</value>
+  </data>
+  <data name="WF_Err_RequireInClearOutNeedsTunnel" xml:space="preserve">
+    <value>「要求輸入驗證並清除輸出驗證」模式需要通道模式。</value>
+  </data>
+  <data name="WF_Err_Ikev2ClientToGatewayOnly" xml:space="preserve">
+    <value>IKEv2 金鑰交換僅適用於用戶端對閘道的通道規則。</value>
+  </data>
+  <data name="WF_Err_Ikev2FirstAuthOnly" xml:space="preserve">
+    <value>IKEv2 通道規則僅支援第一個驗證。</value>
+  </data>
+  <data name="WF_Err_Ikev2UnsupportedAuth" xml:space="preserve">
+    <value>IKEv2 通道規則不支援 Kerberos、NTLM 或預先共用金鑰驗證。</value>
+  </data>
+  <data name="WF_Err_CsrNotFoundFormat" xml:space="preserve">
+    <value>找不到連線安全性規則 '{0}'。</value>
+  </data>
+  <data name="WF_Err_CsrCreatedNotQueryableFormat" xml:space="preserve">
+    <value>已建立連線安全性規則 '{0}'，但無法查詢。</value>
+  </data>
+  <data name="WF_Err_ProposalRequired" xml:space="preserve">
+    <value>至少需要一個提案。</value>
+  </data>
+  <data name="WF_Err_IpsecSettingsNotFound" xml:space="preserve">
+    <value>找不到防火牆 IPsec 設定執行個體。</value>
+  </data>
+  <data name="WF_Err_ProfileNotFoundFormat" xml:space="preserve">
+    <value>找不到防火牆設定檔 '{0}'。</value>
+  </data>
+  <data name="WF_Err_RuleNotFoundFormat" xml:space="preserve">
+    <value>找不到 Windows 防火牆規則 '{0}'。</value>
+  </data>
+  <data name="WF_Err_CompartmentRange" xml:space="preserve">
+    <value>防火牆規則區間必須是 0 到 65535 之間的數字。</value>
   </data>
 </root>

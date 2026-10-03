@@ -215,14 +215,14 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
             {
                 if (allowSystemDiskWithWarning)
                     return null;
-                return "Cannot perform this operation on system disk. This disk contains the Windows operating system.";
+                return DiskMgmtText.Get(DiskMgmtKeys.ErrSystemDiskOperation);
             }
 
             if (DiskContainsCriticalPartitions(diskIndex))
             {
                 if (allowSystemDiskWithWarning)
                     return null;
-                return "This disk contains critical system partitions (EFI, Recovery partition). Operation may cause system boot failure.";
+                return DiskMgmtText.Get(DiskMgmtKeys.ErrCriticalPartitionsWarning);
             }
 
             return null;
@@ -240,13 +240,13 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
                 if (partition is not null)
                 {
                     if (partition.IsSystemDrive)
-                        return $"Cannot perform this operation on system partition. Drive \"{GetSystemDriveLetter()}\" contains the Windows operating system.";
+                        return DiskMgmtText.Format(DiskMgmtKeys.ErrSystemPartitionOperationFormat, GetSystemDriveLetter());
 
                     if (partition.IsEfiSystemPartition)
-                        return "Cannot delete EFI System Partition. This partition is required for boot.";
+                        return ErrorMessages.CannotDeleteEfiPartition;
 
                     if (partition.IsRecoveryPartition)
-                        return "Cannot delete Recovery Partition. This partition is used for system recovery.";
+                        return ErrorMessages.CannotDeleteRecoveryPartition;
 
                     if (partition.IsOemRecoveryPartition)
                         return LocalizationProvider.Current.GetString(
@@ -254,10 +254,10 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
                             DiskMgmtKeys.CannotDeleteOemRecoveryPartition);
 
                     if (partition.IsMsrPartition)
-                        return "Cannot delete Microsoft Reserved Partition. This partition is required for system operation.";
+                        return ErrorMessages.CannotDeleteMsrPartition;
 
                     if (partition.IsCriticalSystemPartition)
-                        return "Cannot perform this operation on this critical system partition.";
+                        return ErrorMessages.CriticalSystemPartition;
                 }
             }
             catch { }

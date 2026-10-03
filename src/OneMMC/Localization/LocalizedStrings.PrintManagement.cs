@@ -133,5 +133,10 @@ namespace OneMMC.Localization
         public string PrintMgmt_NoDriversFound => GetResource(ResourceFileNames.PrintManagement, "PrintMgmt_NoDriversFound");
         public string PrintMgmt_NoPortsFound => GetResource(ResourceFileNames.PrintManagement, "PrintMgmt_NoPortsFound");
         public string PrintMgmt_NoFormsFound => GetResource(ResourceFileNames.PrintManagement, "PrintMgmt_NoFormsFound");
+
+        // Deployed printer labels
+        public string PrintMgmt_ServerLabel => GetResource(ResourceFileNames.PrintManagement, "PrintMgmt_ServerLabel");
+        public string PrintMgmt_PerUserGpoLabel => GetResource(ResourceFileNames.PrintManagement, "PrintMgmt_PerUserGpoLabel");
+        public string PrintMgmt_PerComputerGpoLabel => GetResource(ResourceFileNames.PrintManagement, "PrintMgmt_PerComputerGpoLabel");
     }
 }

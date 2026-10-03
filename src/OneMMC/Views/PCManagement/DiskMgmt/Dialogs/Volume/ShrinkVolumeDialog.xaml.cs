@@ -32,7 +32,7 @@ public sealed partial class ShrinkVolumeDialog : ContentDialog
         if (shrinkableSpaceMB == 0)
         {
             this.IsPrimaryButtonEnabled = false;
-            AvailableShrinkTextBlock.Text = "0 MB (No shrinkable space available)";
+            AvailableShrinkTextBlock.Text = LocalizedStrings.DiskMgmt_NoShrinkSpaceShort;
         }
     }
 

@@ -1,4 +1,6 @@
-﻿namespace OneMMC.Core.Features.PrintManagement.Models;
+﻿using OneMMC.Core.Localization;
+
+namespace OneMMC.Core.Features.PrintManagement.Models;
 
 /// <summary>
 /// Represents information about a print driver installed on the system.
@@ -20,6 +22,16 @@ public class PrintDriverInfo
     /// <summary>Driver isolation mode (None, Shared, Isolated)</summary>
     public string IsolationMode { get; set; } = string.Empty;
 
+    /// <summary>Localized display text for <see cref="IsolationMode"/>.</summary>
+    public string IsolationModeDisplay => IsolationMode switch
+    {
+        "None" => L(PrintMgmtKeys.IsolationNone),
+        "Shared" => L(PrintMgmtKeys.IsolationShared),
+        "Isolated" => L(PrintMgmtKeys.IsolationIsolated),
+        "" => L(PrintMgmtKeys.IsolationSystemDefault),
+        _ => IsolationMode,
+    };
+
     /// <summary>Configuration file for the driver</summary>
     public string ConfigFile { get; set; } = string.Empty;
 
@@ -34,6 +46,8 @@ public class PrintDriverInfo
 
     /// <summary>Whether the driver advertises isolation support.</summary>
     public bool SupportsIsolation { get; set; }
+
+    private static string L(string key) => LocalizationProvider.Current.GetString(ResourceFileNames.PrintManagement, key);
 }
 
 

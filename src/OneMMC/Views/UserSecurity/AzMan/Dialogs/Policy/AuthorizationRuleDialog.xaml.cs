@@ -101,7 +101,7 @@ public sealed partial class AuthorizationRuleDialog : UserControl
     private async void OnBrowseScriptPathClick(object sender, RoutedEventArgs e)
     {
         var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindowInstance);
-        string filter = $"{_localizedStrings.AuthorizationRuleDialog_ScriptFiles_Filter}\0*.vbs;*.js;*.txt\0VBScript Files\0*.vbs\0JScript Files\0*.js\0All Files\0*.*\0";
+        string filter = $"{_localizedStrings.AuthorizationRuleDialog_ScriptFiles_Filter}\0*.vbs;*.js;*.txt\0{_localizedStrings.Common_FileFilter_VbScript}\0*.vbs\0{_localizedStrings.Common_FileFilter_JScript}\0*.js\0{_localizedStrings.Common_FileFilter_AllFiles}\0*.*\0";
         var path = await App.GetRequiredService<OneMMC.Core.Abstractions.Services.IFileDialogService>().OpenFileAsync(hwnd, filter, _localizedStrings.AuthorizationRuleDialog_SelectScriptFile_Title);
         if (string.IsNullOrWhiteSpace(path))
             return;

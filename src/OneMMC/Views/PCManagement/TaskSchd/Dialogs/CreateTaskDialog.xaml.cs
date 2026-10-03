@@ -5,6 +5,7 @@ using OneMMC.Core.Features.PCManagement.Services.EventViewer;
 using OneMMC.Core.Features.PCManagement.ViewModels.TaskSchd;
 using OneMMC.Core.Localization;
 using OneMMC.Helpers;
+using OneMMC.Localization;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using WinRT.Interop;
@@ -35,6 +36,8 @@ public sealed partial class CreateTaskDialog : ContentDialog
     // (e.g. "Hardware Events") that taskschd.msc shows and maps them back to the raw channel for the query.
     private EventLogPickerController? _eventPicker;
     private bool _eventListsPopulated;
+
+    public LocalizedStrings LocalizedStrings { get; } = LocalizedStrings.Instance;
 
     /// <summary>Month names for the Monthly schedule's multi-select "Months" flyout, January first.</summary>
     /// <remarks>
@@ -76,8 +79,10 @@ public sealed partial class CreateTaskDialog : ContentDialog
 
     private static string[] BuildMonths() =>
         [
-            "January", "February", "March", "April", "May", "June",
-            "July", "August", "September", "October", "November", "December"
+            L(TaskSchdKeys.MonthJanuary), L(TaskSchdKeys.MonthFebruary), L(TaskSchdKeys.MonthMarch),
+            L(TaskSchdKeys.MonthApril), L(TaskSchdKeys.MonthMay), L(TaskSchdKeys.MonthJune),
+            L(TaskSchdKeys.MonthJuly), L(TaskSchdKeys.MonthAugust), L(TaskSchdKeys.MonthSeptember),
+            L(TaskSchdKeys.MonthOctober), L(TaskSchdKeys.MonthNovember), L(TaskSchdKeys.MonthDecember)
         ];
 
     private static string[] BuildMonthDays()
@@ -87,7 +92,7 @@ public sealed partial class CreateTaskDialog : ContentDialog
         {
             days[day - 1] = day.ToString(CultureInfo.InvariantCulture);
         }
-        days[31] = "Last";
+        days[31] = L(TaskSchdKeys.MonthDayLast);
         return days;
     }
 
@@ -266,7 +271,7 @@ public sealed partial class CreateTaskDialog : ContentDialog
     private async void BrowseProgram_Click(object sender, RoutedEventArgs e)
     {
         var path = await App.GetRequiredService<IFileDialogService>()
-            .OpenFileAsync(OwnerHwnd, "Programs\0*.exe;*.bat;*.cmd;*.ps1\0All Files\0*.*\0", title: L(TaskSchdKeys.ActionProgramScript));
+            .OpenFileAsync(OwnerHwnd, $"{LocalizedStrings.Common_FileFilter_Programs}\0*.exe;*.bat;*.cmd;*.ps1\0{LocalizedStrings.Common_FileFilter_AllFiles}\0*.*\0", title: L(TaskSchdKeys.ActionProgramScript));
         if (!string.IsNullOrEmpty(path))
         {
             ProgramScriptBox.Text = path;
@@ -276,7 +281,7 @@ public sealed partial class CreateTaskDialog : ContentDialog
     private async void BrowseAttachment_Click(object sender, RoutedEventArgs e)
     {
         var path = await App.GetRequiredService<IFileDialogService>()
-            .OpenFileAsync(OwnerHwnd, "All Files\0*.*\0", title: L(TaskSchdKeys.ActionEmailAttachment));
+            .OpenFileAsync(OwnerHwnd, $"{LocalizedStrings.Common_FileFilter_AllFiles}\0*.*\0", title: L(TaskSchdKeys.ActionEmailAttachment));
         if (!string.IsNullOrEmpty(path))
         {
             EmailAttachmentBox.Text = path;

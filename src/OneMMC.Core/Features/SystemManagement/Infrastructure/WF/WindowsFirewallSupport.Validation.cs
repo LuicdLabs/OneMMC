@@ -20,7 +20,7 @@ public static partial class WindowsFirewallSupport
     {
         if (string.IsNullOrWhiteSpace(rule.Name))
         {
-            throw new ArgumentException("Firewall rule name is required.", nameof(rule));
+            throw new ArgumentException(OneMMC.Core.Localization.LocalizationProvider.Current.GetString(OneMMC.Core.Localization.ResourceFileNames.WF, OneMMC.Core.Localization.WFKeys.ErrRuleNameRequired), nameof(rule));
         }
 
         if (rule.Direction == FirewallRuleDirection.ConnectionSecurity)
@@ -66,26 +66,26 @@ public static partial class WindowsFirewallSupport
     {
         if (string.IsNullOrWhiteSpace(rule.Name))
         {
-            throw new ArgumentException("Connection security rule name is required.", nameof(rule));
+            throw new ArgumentException(OneMMC.Core.Localization.LocalizationProvider.Current.GetString(OneMMC.Core.Localization.ResourceFileNames.WF, OneMMC.Core.Localization.WFKeys.ErrCsrNameRequired), nameof(rule));
         }
 
         if (rule.OutboundSecurity == ConnectionSecurityRequirement.None &&
             rule.InboundSecurity == ConnectionSecurityRequirement.Request)
         {
-            throw new ArgumentException("OutboundSecurity=None with InboundSecurity=Request is not a valid Windows Firewall connection security rule combination.", nameof(rule));
+            throw new ArgumentException(OneMMC.Core.Localization.LocalizationProvider.Current.GetString(OneMMC.Core.Localization.ResourceFileNames.WF, OneMMC.Core.Localization.WFKeys.ErrInvalidRequestNone), nameof(rule));
         }
 
         if (rule.InboundSecurity == ConnectionSecurityRequirement.None &&
             rule.OutboundSecurity != ConnectionSecurityRequirement.None)
         {
-            throw new ArgumentException("InboundSecurity=None cannot be combined with outbound authentication requirements.", nameof(rule));
+            throw new ArgumentException(OneMMC.Core.Localization.LocalizationProvider.Current.GetString(OneMMC.Core.Localization.ResourceFileNames.WF, OneMMC.Core.Localization.WFKeys.ErrInboundNoneWithOutboundAuth), nameof(rule));
         }
 
         if (rule.Mode != ConnectionSecurityMode.Tunnel &&
             rule.OutboundSecurity == ConnectionSecurityRequirement.None &&
             rule.InboundSecurity == ConnectionSecurityRequirement.Require)
         {
-            throw new ArgumentException("Require inbound and clear outbound authentication mode requires tunnel mode.", nameof(rule));
+            throw new ArgumentException(OneMMC.Core.Localization.LocalizationProvider.Current.GetString(OneMMC.Core.Localization.ResourceFileNames.WF, OneMMC.Core.Localization.WFKeys.ErrRequireInClearOutNeedsTunnel), nameof(rule));
         }
 
         int mask = rule.ProfilesMask == 0 ? BuildProfileMask(rule) : rule.ProfilesMask;
@@ -200,17 +200,17 @@ public static partial class WindowsFirewallSupport
         if (!string.Equals(rule.TunnelType, "ClientToGateway", StringComparison.OrdinalIgnoreCase) &&
             !string.Equals(rule.TunnelType, "PointToSite", StringComparison.OrdinalIgnoreCase))
         {
-            throw new ArgumentException("IKEv2 keying is only valid for client-to-gateway tunnel rules.", nameof(rule));
+            throw new ArgumentException(OneMMC.Core.Localization.LocalizationProvider.Current.GetString(OneMMC.Core.Localization.ResourceFileNames.WF, OneMMC.Core.Localization.WFKeys.ErrIkev2ClientToGatewayOnly), nameof(rule));
         }
 
         if (rule.SecondAuthMethods.Count > 0)
         {
-            throw new ArgumentException("IKEv2 tunnel rules support first authentication only.", nameof(rule));
+            throw new ArgumentException(OneMMC.Core.Localization.LocalizationProvider.Current.GetString(OneMMC.Core.Localization.ResourceFileNames.WF, OneMMC.Core.Localization.WFKeys.ErrIkev2FirstAuthOnly), nameof(rule));
         }
 
         if (rule.FirstAuthMethods.Any(method => IsIkeV2UnsupportedAuthKind(method.Result.Kind)))
         {
-            throw new ArgumentException("IKEv2 tunnel rules do not support Kerberos, NTLM, or preshared key authentication.", nameof(rule));
+            throw new ArgumentException(OneMMC.Core.Localization.LocalizationProvider.Current.GetString(OneMMC.Core.Localization.ResourceFileNames.WF, OneMMC.Core.Localization.WFKeys.ErrIkev2UnsupportedAuth), nameof(rule));
         }
     }
 

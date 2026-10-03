@@ -14,6 +14,8 @@
 // ============================================================================
 
 using System;
+using System.Globalization;
+using OneMMC.Core.Localization;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
@@ -235,7 +237,11 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.PerfMon
         #region Computed Properties
 
         /// <summary>Monitoring status text (Running or Paused)</summary>
-        public string MonitoringStatus => IsMonitoring ? "Running" : "Paused";
+        public string MonitoringStatus => L(IsMonitoring ? PerfMonKeys.StatusRunning : PerfMonKeys.StatusPaused);
+
+        private static string L(string key) => LocalizationProvider.Current.GetString(ResourceFileNames.PerfMon, key);
+
+        private static string LF(string key, params object?[] args) => string.Format(CultureInfo.CurrentCulture, L(key), args);
         
         /// <summary>Total counter count</summary>
         public int CounterCount => Counters.Count;
@@ -314,7 +320,7 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.PerfMon
         public async Task InitializeAsync()
         {
             IsLoading = true;
-            StatusMessage = "Initializing Performance Monitor...";
+            StatusMessage = L(PerfMonKeys.StatusInitializing);
             try
             {
                 // Add default counters (CPU and Memory)
@@ -323,33 +329,33 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.PerfMon
                 _monitoringStartTime = DateTime.Now;
                 // Start monitoring
                 IsMonitoring = true;
-                StatusMessage = $"Monitoring {CounterCount} counters";
+                StatusMessage = LF(PerfMonKeys.StatusMonitoringFormat, CounterCount);
             }
             catch (Exception ex)
             {
-                StatusMessage = $"Error initializing: {ex.Message}";
+                StatusMessage = LF(PerfMonKeys.StatusInitErrorFormat, ex.Message);
                 _logger.LogError(ex, "Failed to initialize performance monitor view model.");
             }
             finally { IsLoading = false; }
         }
 
         /// <summary>Toggle monitoring state (pause/resume)</summary>
-        [RelayCommand] public void ToggleMonitoring() { IsMonitoring = !IsMonitoring; StatusMessage = IsMonitoring ? "Monitoring resumed" : "Monitoring paused"; }
+        [RelayCommand] public void ToggleMonitoring() { IsMonitoring = !IsMonitoring; StatusMessage = L(IsMonitoring ? PerfMonKeys.StatusResumed : PerfMonKeys.StatusMonitoringPaused); }
         
         /// <summary>Manually refresh counter values</summary>
-        [RelayCommand] public void Refresh() { _ = Task.Run(UpdateCounterValues); StatusMessage = "Data refreshed"; }
+        [RelayCommand] public void Refresh() { _ = Task.Run(UpdateCounterValues); StatusMessage = L(PerfMonKeys.StatusRefreshed); }
         
         /// <summary>Clear all counter history data</summary>
-        [RelayCommand] public void ClearData() { foreach (var c in Counters) c.ResetStatistics(); _monitoringStartTime = DateTime.Now; UpdateStatistics(); StatusMessage = "Data cleared"; }
+        [RelayCommand] public void ClearData() { foreach (var c in Counters) c.ResetStatistics(); _monitoringStartTime = DateTime.Now; UpdateStatistics(); StatusMessage = L(PerfMonKeys.StatusCleared); }
         
         /// <summary>Switch to graph view mode</summary>
-        [RelayCommand] public void SwitchToGraphView() { CurrentViewMode = PerformanceViewMode.Graph; StatusMessage = "Switched to graph view"; }
+        [RelayCommand] public void SwitchToGraphView() { CurrentViewMode = PerformanceViewMode.Graph; StatusMessage = L(PerfMonKeys.StatusGraphView); }
         
         /// <summary>Switch to histogram view mode</summary>
-        [RelayCommand] public void SwitchToHistogramView() { CurrentViewMode = PerformanceViewMode.Histogram; StatusMessage = "Switched to histogram view"; }
+        [RelayCommand] public void SwitchToHistogramView() { CurrentViewMode = PerformanceViewMode.Histogram; StatusMessage = L(PerfMonKeys.StatusHistogramView); }
         
         /// <summary>Switch to report view mode</summary>
-        [RelayCommand] public void SwitchToReportView() { CurrentViewMode = PerformanceViewMode.Report; StatusMessage = "Switched to report view"; }
+        [RelayCommand] public void SwitchToReportView() { CurrentViewMode = PerformanceViewMode.Report; StatusMessage = L(PerfMonKeys.StatusReportView); }
 
         // ====================================================================
         // Commands - Category & Counter Loading
@@ -363,7 +369,7 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.PerfMon
         {
             IsLoading = true;
             try { Categories.ReplaceAll(await _performanceService.GetCategoriesAsync()); }
-            catch (Exception ex) { StatusMessage = $"Error loading categories: {ex.Message}"; }
+            catch (Exception ex) { StatusMessage = LF(PerfMonKeys.StatusLoadCategoriesErrorFormat, ex.Message); }
             finally { IsLoading = false; }
         }
 
@@ -384,7 +390,7 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.PerfMon
                 Instances.ReplaceAll(await _performanceService.GetInstancesAsync(SelectedCategory.Name));
                 OnPropertyChanged(nameof(Instances));
             }
-            catch (Exception ex) { StatusMessage = $"Error loading counters: {ex.Message}"; }
+            catch (Exception ex) { StatusMessage = LF(PerfMonKeys.StatusLoadCountersErrorFormat, ex.Message); }
             finally { IsLoading = false; }
         }
 
@@ -434,13 +440,13 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.PerfMon
         {
             // Check if already exists
             if (Counters.Any(c => c.CategoryName == counter.CategoryName && c.CounterName == counter.CounterName && c.InstanceName == counter.InstanceName))
-            { StatusMessage = "Counter already exists"; return true; }
+            { StatusMessage = L(PerfMonKeys.StatusCounterExists); return true; }
 
             // Create counter instance
             if (!_performanceService.CreateCounter(counter))
-            { StatusMessage = $"Failed to create counter: {counter.DisplayName}"; return false; }
+            { StatusMessage = LF(PerfMonKeys.StatusCreateCounterFailedFormat, counter.DisplayName); return false; }
 
-            AddCounterToCollection(counter, $"Added counter: {counter.DisplayName}");
+            AddCounterToCollection(counter, LF(PerfMonKeys.StatusCounterAddedFormat, counter.DisplayName));
             return true;
         }
 
@@ -455,7 +461,7 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.PerfMon
             Counters.Remove(counter);
             OnPropertyChanged(nameof(CounterCount));
             OnPropertyChanged(nameof(VisibleCounterCount));
-            StatusMessage = $"Removed counter: {counter.DisplayName}";
+            StatusMessage = LF(PerfMonKeys.StatusCounterRemovedFormat, counter.DisplayName);
         }
 
         /// <summary>
@@ -483,9 +489,9 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.PerfMon
                 var results = await _performanceService.SearchCountersAsync(searchTerm);
                 SearchResults.ReplaceAll(results);
                 OnPropertyChanged(nameof(SearchResults));
-                StatusMessage = $"Found {results.Count} counters";
+                StatusMessage = LF(PerfMonKeys.StatusFoundFormat, results.Count);
             }
-            catch (Exception ex) { StatusMessage = $"Error searching: {ex.Message}"; }
+            catch (Exception ex) { StatusMessage = LF(PerfMonKeys.StatusSearchErrorFormat, ex.Message); }
             finally { IsLoading = false; }
         }
 
@@ -501,13 +507,13 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.PerfMon
         public async Task SaveConfigurationAsync(string filePath)
         {
             IsLoading = true;
-            StatusMessage = "Saving configuration...";
+            StatusMessage = L(PerfMonKeys.StatusSaving);
             try
             {
                 var success = await _performanceService.SaveConfigurationAsync(filePath, Counters.ToList());
-                StatusMessage = success ? $"Configuration saved to {filePath}" : "Failed to save configuration";
+                StatusMessage = success ? LF(PerfMonKeys.StatusSavedFormat, filePath) : L(PerfMonKeys.StatusSaveFailed);
             }
-            catch (Exception ex) { StatusMessage = $"Error saving configuration: {ex.Message}"; }
+            catch (Exception ex) { StatusMessage = LF(PerfMonKeys.StatusSaveErrorFormat, ex.Message); }
             finally { IsLoading = false; }
         }
 
@@ -519,7 +525,7 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.PerfMon
         public async Task LoadConfigurationAsync(string filePath)
         {
             IsLoading = true;
-            StatusMessage = "Loading configuration...";
+            StatusMessage = L(PerfMonKeys.StatusLoading);
             try
             {
                 var loaded = await _performanceService.LoadConfigurationAsync(filePath);
@@ -530,11 +536,11 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.PerfMon
                     Counters.Clear();
                     // Add loaded counters
                     foreach (var c in loaded) AddCounter(c);
-                    StatusMessage = $"Loaded {loaded.Count} counters from configuration";
+                    StatusMessage = LF(PerfMonKeys.StatusLoadedFormat, loaded.Count);
                 }
-                else StatusMessage = "Failed to load configuration or no counters found";
+                else StatusMessage = L(PerfMonKeys.StatusLoadFailed);
             }
-            catch (Exception ex) { StatusMessage = $"Error loading configuration: {ex.Message}"; }
+            catch (Exception ex) { StatusMessage = LF(PerfMonKeys.StatusLoadErrorFormat, ex.Message); }
             finally { IsLoading = false; }
         }
 
@@ -559,11 +565,11 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.PerfMon
             var created = await Task.Run(() => _performanceService.CreateCounter(counter));
             if (!created)
             {
-                StatusMessage = $"Failed to create counter: {counter.DisplayName}";
+                StatusMessage = LF(PerfMonKeys.StatusCreateCounterFailedFormat, counter.DisplayName);
                 return;
             }
 
-            AddCounterToCollection(counter, $"Added counter: {counter.DisplayName}");
+            AddCounterToCollection(counter, LF(PerfMonKeys.StatusCounterAddedFormat, counter.DisplayName));
         }
 
         private void AddCounterToCollection(PerformanceCounterInfo counter, string statusMessage)

@@ -53,11 +53,11 @@
                 <TextBlock Text="{x:Bind LocalizedStrings.DiskMgmt_AllocationUnitSize}" FontWeight="SemiBold" />
                 <ComboBox x:Name="AllocationUnitComboBox" SelectedIndex="0">
                     <ComboBoxItem Content="{x:Bind LocalizedStrings.DiskMgmt_Default}" />
-                    <ComboBoxItem Content="512 bytes" />
-                    <ComboBoxItem Content="1024 bytes" />
-                    <ComboBoxItem Content="2048 bytes" />
-                    <ComboBoxItem Content="4096 bytes" />
-                    <ComboBoxItem Content="8192 bytes" />
+                    <ComboBoxItem Content="{x:Bind LocalizedStrings.DiskMgmt_Alloc512}" />
+                    <ComboBoxItem Content="{x:Bind LocalizedStrings.DiskMgmt_Alloc1024}" />
+                    <ComboBoxItem Content="{x:Bind LocalizedStrings.DiskMgmt_Alloc2048}" />
+                    <ComboBoxItem Content="{x:Bind LocalizedStrings.DiskMgmt_Alloc4096}" />
+                    <ComboBoxItem Content="{x:Bind LocalizedStrings.DiskMgmt_Alloc8192}" />
                     <ComboBoxItem Content="16 KB" />
                     <ComboBoxItem Content="32 KB" />
                     <ComboBoxItem Content="64 KB" />

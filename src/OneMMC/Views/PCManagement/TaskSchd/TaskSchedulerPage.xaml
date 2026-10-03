@@ -195,7 +195,7 @@
 					x:Name="SearchBox"
 					Grid.Row="0"
 					Margin="12,12,12,8"
-					PlaceholderText="Search"
+					PlaceholderText="{x:Bind LocalizedStrings.Common_SearchPlaceholder}"
 					QueryIcon="Find"
 					TextChanged="SearchBox_TextChanged" />
 
