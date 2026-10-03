@@ -562,7 +562,7 @@
     <value>OEM Recovery Partition</value>
   </data>
   <data name="DiskMgmt_OemRecoveryWarning" xml:space="preserve">
-    <value>⚠️ OEM Recovery Partition - This partition contains manufacturer recovery resources; do not modify it.</value>
+    <value>OEM Recovery Partition - This partition contains manufacturer recovery resources; do not modify it.</value>
   </data>
   <data name="DiskMgmt_CannotDeleteOemRecoveryPartition" xml:space="preserve">
     <value>Cannot delete OEM Recovery Partition. This partition is used by the manufacturer for system recovery.</value>
@@ -898,31 +898,31 @@
     <value>This partition does not have a drive letter assigned.</value>
   </data>
   <data name="DiskMgmt_Err_SystemDriveFormat" xml:space="preserve">
-    <value>⚠️ Formatting system drive is strictly prohibited! Drive '{0}' contains the Windows operating system. Formatting it will make the system unbootable.</value>
+    <value>Formatting system drive is strictly prohibited! Drive '{0}' contains the Windows operating system. Formatting it will make the system unbootable.</value>
   </data>
   <data name="DiskMgmt_Err_SystemDriveLetterRemoval" xml:space="preserve">
-    <value>⚠️ Removing system drive letter is strictly prohibited! Drive '{0}' contains the Windows operating system. Removing it will cause system malfunction.</value>
+    <value>Removing system drive letter is strictly prohibited! Drive '{0}' contains the Windows operating system. Removing it will cause system malfunction.</value>
   </data>
   <data name="DiskMgmt_Err_SystemDiskClean" xml:space="preserve">
-    <value>⚠️ Strictly forbidden to clean system disk! This disk contains the Windows operating system, cleaning will make the system unbootable.</value>
+    <value>Strictly forbidden to clean system disk! This disk contains the Windows operating system, cleaning will make the system unbootable.</value>
   </data>
   <data name="DiskMgmt_Err_CriticalPartitionsOnDisk" xml:space="preserve">
-    <value>⚠️ This disk contains critical system partitions (EFI, Recovery partition), cleaning may cause system boot failure.</value>
+    <value>This disk contains critical system partitions (EFI, Recovery partition), cleaning may cause system boot failure.</value>
   </data>
   <data name="DiskMgmt_Err_CannotDeleteSystemPartition" xml:space="preserve">
-    <value>⚠️ Cannot perform this operation on system partition. Drive "{0}" contains the Windows operating system.</value>
+    <value>Cannot perform this operation on system partition. Drive "{0}" contains the Windows operating system.</value>
   </data>
   <data name="DiskMgmt_Err_CannotDeleteEfiPartition" xml:space="preserve">
-    <value>⚠️ Cannot delete EFI System Partition. This partition is required for boot.</value>
+    <value>Cannot delete EFI System Partition. This partition is required for boot.</value>
   </data>
   <data name="DiskMgmt_Err_CannotDeleteRecoveryPartition" xml:space="preserve">
-    <value>⚠️ Cannot delete Recovery Partition. This partition is used for system recovery.</value>
+    <value>Cannot delete Recovery Partition. This partition is used for system recovery.</value>
   </data>
   <data name="DiskMgmt_Err_CannotDeleteMsrPartition" xml:space="preserve">
-    <value>⚠️ Cannot delete Microsoft Reserved Partition. This partition is required for system operation.</value>
+    <value>Cannot delete Microsoft Reserved Partition. This partition is required for system operation.</value>
   </data>
   <data name="DiskMgmt_Err_CriticalSystemPartition" xml:space="preserve">
-    <value>⚠️ Cannot perform this operation on this critical system partition.</value>
+    <value>Cannot perform this operation on this critical system partition.</value>
   </data>
   <data name="DiskMgmt_Err_SpecialPartitionOperation" xml:space="preserve">
     <value>This partition type (System/Reserved/Recovery) does not support this operation.</value>
@@ -969,7 +969,7 @@ Tips:
 • Consider using Storage Spaces as an alternative solution</value>
   </data>
   <data name="DiskMgmt_Err_DynamicDiskSystemWarning" xml:space="preserve">
-    <value>⚠️ Not recommended to convert system disk to dynamic disk. This operation may cause system boot failure or prevent system upgrades.</value>
+    <value>Not recommended to convert system disk to dynamic disk. This operation may cause system boot failure or prevent system upgrades.</value>
   </data>
   <data name="DiskMgmt_Err_InvalidDriveLetter" xml:space="preserve">
     <value>Invalid drive letter</value>
@@ -1335,22 +1335,22 @@ Tips:
     <value>Microsoft Reserved Partition</value>
   </data>
   <data name="DiskMgmt_Warn_Efi" xml:space="preserve">
-    <value>⚠️ EFI System Partition - This partition is required for boot, do not modify</value>
+    <value>EFI System Partition - This partition is required for boot, do not modify</value>
   </data>
   <data name="DiskMgmt_Warn_Msr" xml:space="preserve">
-    <value>⚠️ Microsoft Reserved Partition - This partition is required for system operation</value>
+    <value>Microsoft Reserved Partition - This partition is required for system operation</value>
   </data>
   <data name="DiskMgmt_Warn_BiosBoot" xml:space="preserve">
-    <value>⚠️ BIOS Boot Partition - This partition is required for boot</value>
+    <value>BIOS Boot Partition - This partition is required for boot</value>
   </data>
   <data name="DiskMgmt_Warn_Recovery" xml:space="preserve">
-    <value>⚠️ Recovery Partition - This partition is used for system recovery, do not modify</value>
+    <value>Recovery Partition - This partition is used for system recovery, do not modify</value>
   </data>
   <data name="DiskMgmt_Warn_SystemDriveFormat" xml:space="preserve">
-    <value>⚠️ System Drive ({0}) - Contains Windows operating system</value>
+    <value>System Drive ({0}) - Contains Windows operating system</value>
   </data>
   <data name="DiskMgmt_Warn_BootSystem" xml:space="preserve">
-    <value>⚠️ Boot/System Partition - Contains boot files</value>
+    <value>Boot/System Partition - Contains boot files</value>
   </data>
   <data name="DiskMgmt_PartType_System" xml:space="preserve">
     <value>System</value>

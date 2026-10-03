@@ -562,7 +562,7 @@
     <value>OEM 復原分割區</value>
   </data>
   <data name="DiskMgmt_OemRecoveryWarning" xml:space="preserve">
-    <value>⚠️ OEM 復原分割區 - 此分割區包含製造商的系統復原資源，請勿修改。</value>
+    <value>OEM 復原分割區 - 此分割區包含製造商的系統復原資源，請勿修改。</value>
   </data>
   <data name="DiskMgmt_CannotDeleteOemRecoveryPartition" xml:space="preserve">
     <value>無法刪除 OEM 復原分割區。製造商使用此分割區進行系統復原。</value>
@@ -898,31 +898,31 @@
     <value>此分割區未指派磁碟機代號。</value>
   </data>
   <data name="DiskMgmt_Err_SystemDriveFormat" xml:space="preserve">
-    <value>⚠️ 嚴禁格式化系統磁碟機！磁碟機 '{0}' 包含 Windows 作業系統，格式化後系統將無法開機。</value>
+    <value>嚴禁格式化系統磁碟機！磁碟機 '{0}' 包含 Windows 作業系統，格式化後系統將無法開機。</value>
   </data>
   <data name="DiskMgmt_Err_SystemDriveLetterRemoval" xml:space="preserve">
-    <value>⚠️ 嚴禁移除系統磁碟機代號！磁碟機 '{0}' 包含 Windows 作業系統，移除後將導致系統運作異常。</value>
+    <value>嚴禁移除系統磁碟機代號！磁碟機 '{0}' 包含 Windows 作業系統，移除後將導致系統運作異常。</value>
   </data>
   <data name="DiskMgmt_Err_SystemDiskClean" xml:space="preserve">
-    <value>⚠️ 嚴禁清理系統磁碟！此磁碟包含 Windows 作業系統，清理後系統將無法開機。</value>
+    <value>嚴禁清理系統磁碟！此磁碟包含 Windows 作業系統，清理後系統將無法開機。</value>
   </data>
   <data name="DiskMgmt_Err_CriticalPartitionsOnDisk" xml:space="preserve">
-    <value>⚠️ 此磁碟包含重要的系統分割區 (EFI、復原分割區)，清理後可能導致系統無法開機。</value>
+    <value>此磁碟包含重要的系統分割區 (EFI、復原分割區)，清理後可能導致系統無法開機。</value>
   </data>
   <data name="DiskMgmt_Err_CannotDeleteSystemPartition" xml:space="preserve">
-    <value>⚠️ 無法對系統分割區執行此作業。磁碟機 "{0}" 包含 Windows 作業系統。</value>
+    <value>無法對系統分割區執行此作業。磁碟機 "{0}" 包含 Windows 作業系統。</value>
   </data>
   <data name="DiskMgmt_Err_CannotDeleteEfiPartition" xml:space="preserve">
-    <value>⚠️ 無法刪除 EFI 系統分割區。開機時需要此分割區。</value>
+    <value>無法刪除 EFI 系統分割區。開機時需要此分割區。</value>
   </data>
   <data name="DiskMgmt_Err_CannotDeleteRecoveryPartition" xml:space="preserve">
-    <value>⚠️ 無法刪除復原分割區。此分割區用於系統復原。</value>
+    <value>無法刪除復原分割區。此分割區用於系統復原。</value>
   </data>
   <data name="DiskMgmt_Err_CannotDeleteMsrPartition" xml:space="preserve">
-    <value>⚠️ 無法刪除 Microsoft 保留分割區。系統運作需要此分割區。</value>
+    <value>無法刪除 Microsoft 保留分割區。系統運作需要此分割區。</value>
   </data>
   <data name="DiskMgmt_Err_CriticalSystemPartition" xml:space="preserve">
-    <value>⚠️ 無法對此重要的系統分割區執行此作業。</value>
+    <value>無法對此重要的系統分割區執行此作業。</value>
   </data>
   <data name="DiskMgmt_Err_SpecialPartitionOperation" xml:space="preserve">
     <value>此分割區類型 (系統/保留/復原) 不支援此作業。</value>
@@ -969,7 +969,7 @@
 • 可考慮改用儲存空間作為替代方案</value>
   </data>
   <data name="DiskMgmt_Err_DynamicDiskSystemWarning" xml:space="preserve">
-    <value>⚠️ 不建議將系統磁碟轉換為動態磁碟。此作業可能導致系統無法開機或無法升級。</value>
+    <value>不建議將系統磁碟轉換為動態磁碟。此作業可能導致系統無法開機或無法升級。</value>
   </data>
   <data name="DiskMgmt_Err_InvalidDriveLetter" xml:space="preserve">
     <value>無效的磁碟機代號</value>
@@ -1335,22 +1335,22 @@
     <value>Microsoft 保留分割區</value>
   </data>
   <data name="DiskMgmt_Warn_Efi" xml:space="preserve">
-    <value>⚠️ EFI 系統分割區 - 開機時需要此分割區，請勿修改</value>
+    <value>EFI 系統分割區 - 開機時需要此分割區，請勿修改</value>
   </data>
   <data name="DiskMgmt_Warn_Msr" xml:space="preserve">
-    <value>⚠️ Microsoft 保留分割區 - 系統運作需要此分割區</value>
+    <value>Microsoft 保留分割區 - 系統運作需要此分割區</value>
   </data>
   <data name="DiskMgmt_Warn_BiosBoot" xml:space="preserve">
-    <value>⚠️ BIOS 開機分割區 - 開機時需要此分割區</value>
+    <value>BIOS 開機分割區 - 開機時需要此分割區</value>
   </data>
   <data name="DiskMgmt_Warn_Recovery" xml:space="preserve">
-    <value>⚠️ 復原分割區 - 此分割區用於系統復原，請勿修改</value>
+    <value>復原分割區 - 此分割區用於系統復原，請勿修改</value>
   </data>
   <data name="DiskMgmt_Warn_SystemDriveFormat" xml:space="preserve">
-    <value>⚠️ 系統磁碟機 ({0}) - 包含 Windows 作業系統</value>
+    <value>系統磁碟機 ({0}) - 包含 Windows 作業系統</value>
   </data>
   <data name="DiskMgmt_Warn_BootSystem" xml:space="preserve">
-    <value>⚠️ 開機/系統分割區 - 包含開機檔案</value>
+    <value>開機/系統分割區 - 包含開機檔案</value>
   </data>
   <data name="DiskMgmt_PartType_System" xml:space="preserve">
     <value>系統</value>
