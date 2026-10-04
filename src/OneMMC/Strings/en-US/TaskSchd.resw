@@ -319,10 +319,10 @@
     <value>Status</value>
   </data>
   <data name="TaskSchd_Trigger_New" xml:space="preserve">
-    <value>New...</value>
+    <value>New</value>
   </data>
   <data name="TaskSchd_Trigger_Edit" xml:space="preserve">
-    <value>Edit...</value>
+    <value>Edit</value>
   </data>
   <data name="TaskSchd_Trigger_Delete" xml:space="preserve">
     <value>Delete</value>

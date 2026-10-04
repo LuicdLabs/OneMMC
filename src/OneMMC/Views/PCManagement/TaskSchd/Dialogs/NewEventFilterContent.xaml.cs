@@ -445,9 +445,20 @@ public sealed partial class NewEventFilterContent : UserControl
         EventLogsTree.RootNodes.Add(appsNode);
     }
 
+    // The classic Windows logs have localized names; every other channel shows its raw name.
+    private static string ClassicLogDisplayName(string channel) => channel.ToLowerInvariant() switch
+    {
+        "application" => EventViewerText(EventViewerKeys.TreeApplication),
+        "security" => EventViewerText(EventViewerKeys.TreeSecurity),
+        "setup" => EventViewerText(EventViewerKeys.TreeSetup),
+        "system" => EventViewerText(EventViewerKeys.TreeSystem),
+        "forwardedevents" => EventViewerText(EventViewerKeys.TreeForwardedEvents),
+        _ => channel,
+    };
+
     private void AddLogLeaf(TreeViewNode parent, string channel)
     {
-        var leaf = new TreeViewNode { Content = channel };
+        var leaf = new TreeViewNode { Content = ClassicLogDisplayName(channel) };
         _logChannelByNode[leaf] = channel;
         parent.Children.Add(leaf);
     }

@@ -319,10 +319,10 @@
     <value>狀態</value>
   </data>
   <data name="TaskSchd_Trigger_New" xml:space="preserve">
-    <value>新增...</value>
+    <value>新增</value>
   </data>
   <data name="TaskSchd_Trigger_Edit" xml:space="preserve">
-    <value>編輯...</value>
+    <value>編輯</value>
   </data>
   <data name="TaskSchd_Trigger_Delete" xml:space="preserve">
     <value>刪除</value>
