@@ -32,8 +32,7 @@ public sealed partial class WelcomeDialog : ContentDialog
             localized.WelcomeDialog_Feature1 ?? "Built with WinUI 3, featuring native Dark Mode support, high-DPI awareness, smooth motions, and modern Fluent Design UI/UX behaviors",
             localized.WelcomeDialog_Feature2 ?? "Designed following the Windows 11 design principles, with improved visual hierarchy, simplified workflows, and optimized touch/tablet experience",
             localized.WelcomeDialog_Feature3 ?? "Consolidates commonly used administrative tools (Services, Device Manager, Event Viewer, Disk Management, Local Users and Groups, and more) into a unified experience",
-            localized.WelcomeDialog_Feature4 ?? "Built with 100% native Win32 APIs, COM, WMI, and CIM for maximum performance and direct windows integration",
-            localized.WelcomeDialog_Feature5 ?? "Avoids unnecessary abstraction layers to preserve compatibility with existing Windows management infrastructure"
+            localized.WelcomeDialog_Feature4 ?? "Built with 100% native Win32 APIs, COM, WMI, and CIM for maximum performance and direct windows integration"
         ];
 
         FeatureList.ItemsSource = _featureStrings;

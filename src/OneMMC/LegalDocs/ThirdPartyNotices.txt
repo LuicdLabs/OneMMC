@@ -1,16 +1,16 @@
 ﻿THIRD-PARTY SOFTWARE ACKNOWLEDGEMENTS
-OneMMC — Windows OneMMC
+OneMMC
 LuicdLabs
 Version 1.0
 
-========================================================================
+=================================================
 
 OneMMC incorporates third-party open-source software components.
 The following is a list of these components, their copyright holders, and
 their applicable license terms. Each component is used in accordance with
 the terms of its respective license.
 
-========================================================================
+=================================================
 
 MIT LICENSE COMPONENTS
 
@@ -74,7 +74,7 @@ The following components are licensed under the MIT License:
    MIT License text:
    https://opensource.org/licenses/MIT
 
-========================================================================
+=================================================
 
 APACHE 2.0 LICENSE COMPONENTS
 
@@ -104,7 +104,7 @@ The following components are licensed under the Apache License, Version 2.0:
    See the License for the specific language governing permissions and
    limitations under the License.
 
-========================================================================
+=================================================
 
 CREATIVE COMMONS ATTRIBUTION 4.0 INTERNATIONAL
 
@@ -120,7 +120,7 @@ CREATIVE COMMONS ATTRIBUTION 4.0 INTERNATIONAL
    and OneMMC feature organization. Policy Plus is not affiliated
    with, sponsored by, or endorsed by LuicdLabs.
 
-========================================================================
+=================================================
 
 ADDITIONAL NOTES
 
@@ -134,4 +134,4 @@ ADDITIONAL NOTES
   listed above or open an issue at:
   https://github.com/LuicdLabs/OneMMC/issues
 
-========================================================================
+=================================================
