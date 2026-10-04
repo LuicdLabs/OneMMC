@@ -107,6 +107,8 @@ there rather than restating rules elsewhere.
 | Logging pipeline | [`doc/Logging.md`](doc/Logging.md) |
 | Localization (`.resw`, `LocalizedStrings`, `ResourceKeys`) | [`doc/Localization.md`](doc/Localization.md) |
 | Breadcrumb navigation | [`doc/Breadcrumb.md`](doc/Breadcrumb.md) |
+| Multi-window support (current one-window limit, roadmap) | [`doc/plan/MultiInstance.md`](doc/plan/MultiInstance.md) |
+| ACL editor & object picker (why native dialogs, planned WinUI security editor) | [`doc/plan/SecurityEditor.md`](doc/plan/SecurityEditor.md) |
 | File/folder pickers | [`doc/AppSdkFileDialogService.md`](doc/AppSdkFileDialogService.md) |
 | Directory object picker | [`doc/ObjectPickerService.md`](doc/ObjectPickerService.md) |
 | Contribution workflow & PR checklist | [`.github/CONTRIBUTING.md`](.github/CONTRIBUTING.md) |

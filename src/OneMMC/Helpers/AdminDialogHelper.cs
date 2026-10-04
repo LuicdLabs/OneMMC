@@ -62,7 +62,26 @@ namespace OneMMC.Helpers
             try
             {
                 var adminService = App.GetRequiredService<IAdminService>();
-                adminService.RestartAsAdmin();
+
+                // Release the single-window key first; otherwise the elevated process would redirect back to
+                // this exiting process and no window would remain. Re-claim it if the restart did not happen.
+                bool restarted = false;
+                void OnRestartRequested() => restarted = true;
+                adminService.RestartRequested += OnRestartRequested;
+                Program.ReleaseInstanceKey();
+                try
+                {
+                    adminService.RestartAsAdmin();
+                }
+                finally
+                {
+                    adminService.RestartRequested -= OnRestartRequested;
+                    if (!restarted)
+                    {
+                        Program.ReclaimInstanceKey();
+                    }
+                }
+
                 return true;
             }
             catch (System.Runtime.InteropServices.COMException ex) when (ex.HResult == unchecked((int)0x80000019))

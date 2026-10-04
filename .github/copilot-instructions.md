@@ -15,6 +15,8 @@ area, and when a rule changes, edit the canonical document instead of restating 
 | Logging pipeline | `doc/Logging.md` |
 | Localization | `doc/Localization.md` |
 | Breadcrumb navigation | `doc/Breadcrumb.md` |
+| Multi-window support (current one-window limit, roadmap) | `doc/plan/MultiInstance.md` |
+| ACL editor & object picker (why native dialogs, planned WinUI security editor) | `doc/plan/SecurityEditor.md` |
 | Project layout & build commands | `AGENTS.md` |
 
 ## General Guidelines

@@ -4,3 +4,5 @@ GetAsyncKeyState
 GetCurrentProcess
 EmptyWorkingSet
 OutputDebugString
+AllowSetForegroundWindow
+CoWaitForMultipleObjects

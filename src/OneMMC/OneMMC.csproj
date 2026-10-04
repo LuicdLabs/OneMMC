@@ -17,6 +17,10 @@
 		<!-- <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained> -->
 
 		<EnableMsixTooling>true</EnableMsixTooling>
+
+        <!-- Program.cs supplies Main so the single-window check runs before any XAML or DI work.
+             See doc/plan/MultiInstance.md. -->
+        <DefineConstants>$(DefineConstants);DISABLE_XAML_GENERATED_MAIN</DefineConstants>
     </PropertyGroup>
     <ItemGroup>
       <Compile Remove="Views\PolicyPolicies\**" />
