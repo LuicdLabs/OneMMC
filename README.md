@@ -28,7 +28,7 @@ A modern Windows system management suite built with WinUI 3, designed as a strea
 > Use this software **at your own risk**. The author accepts **no liability** for any damage or data loss resulting from its use
 
 <picture>
-  <img src="./doc/images/AppScreenShot.png" />
+  <img src="./doc/images/Intro.png" />
 </picture>
 
 ## ✨ Features
@@ -37,6 +37,8 @@ A modern Windows system management suite built with WinUI 3, designed as a strea
 - Designed following the [Windows 11 design principles](https://learn.microsoft.com/en-us/windows/apps/design/design-principles), with improved visual hierarchy, simplified workflows, and optimized touch/tablet experience
 - Consolidates commonly used administrative tools (Services, Device Manager, Event Viewer, Disk Management, Local Users and Groups, and more) into a unified experience
 - Built with **100% native Win32 APIs, COM, WMI, and CIM** for maximum performance and direct windows integration
+
+![AppScreenShot](./doc/images/AppScreenShot.png)
 
 ## 🚀 Native AOT
 
