@@ -8,7 +8,7 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol.IPSecurity;
 /// Executes read and write operations against the legacy static IPsec policy store through
 /// <c>polstore.dll</c>.
 /// </summary>
-public sealed class IPSecurityStaticPolicyNativeClient
+public sealed class IPSecurityNativeClient
 {
     /// <summary>
     /// Exports the local legacy IPsec policy store as a netsh-compatible policy script.

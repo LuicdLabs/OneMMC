@@ -56,6 +56,22 @@ public static class CertificateKeys
     public const string NotAvailable = "Certificates_NotAvailable";
     public const string DeleteConfirmTitle = "Certificates_DeleteConfirmTitle";
     public const string DeleteConfirmMessage = "Certificates_DeleteConfirmMessage";
+    public const string StorePersonal = "Certificates_Store_Personal";
+    public const string StoreCA = "Certificates_Store_CA";
+    public const string StoreRoot = "Certificates_Store_Root";
+    public const string StoreTrust = "Certificates_Store_Trust";
+    public const string StoreAuthRoot = "Certificates_Store_AuthRoot";
+    public const string StoreTrustedPublisher = "Certificates_Store_TrustedPublisher";
+    public const string StoreDisallowed = "Certificates_Store_Disallowed";
+    public const string StoreTrustedPeople = "Certificates_Store_TrustedPeople";
+    public const string StoreUserDS = "Certificates_Store_UserDS";
+    public const string StoreClientAuthIssuer = "Certificates_Store_ClientAuthIssuer";
+    public const string StoreSmartCardRoot = "Certificates_Store_SmartCardRoot";
+    public const string StoreFlightRoot = "Certificates_Store_FlightRoot";
+    public const string StoreTestSignRoot = "Certificates_Store_TestSignRoot";
+    public const string StoreTrustedAppRoot = "Certificates_Store_TrustedAppRoot";
+    public const string StoreOemEsim = "Certificates_Store_OemEsim";
+    public const string StorePasspointTrustedRoots = "Certificates_Store_PasspointTrustedRoots";
 }
 
 /// <summary>
@@ -645,7 +661,23 @@ public static class IPSecurityPolicyKeys
     public const string EditorMainModeLifetime = "IPSec_Editor_MainModeLifetime";
     public const string EditorPollingInterval = "IPSec_Editor_PollingInterval";
     public const string EditorMainModeMethods = "IPSec_Editor_MainModeMethods";
-    public const string EditorMethodsHelp = "IPSec_Editor_MethodsHelp";
+
+    /// <summary>Resource key for <c>IPSec_Page_PoliciesDescription</c>.</summary>
+    public const string PagePoliciesDescription = "IPSec_Page_PoliciesDescription";
+
+    /// <summary>Resource key for <c>IPSec_Editor_NoSecurityMethods</c>.</summary>
+    public const string EditorNoSecurityMethods = "IPSec_Editor_NoSecurityMethods";
+
+    /// <summary>Resource key for <c>IPSec_Editor_NoFilters</c>.</summary>
+    public const string EditorNoFilters = "IPSec_Editor_NoFilters";
+
+    /// <summary>Resource key for <c>IPSec_Editor_NoAuthenticationMethods</c>.</summary>
+    public const string EditorNoAuthenticationMethods = "IPSec_Editor_NoAuthenticationMethods";
+
+    /// <summary>Resource key for <c>IPSec_Editor_NoRules</c>.</summary>
+    public const string EditorNoRules = "IPSec_Editor_NoRules";
+    public const string RuleDynamic = "IPSec_Rule_Dynamic";
+    public const string RuleDefaultResponse = "IPSec_Rule_DefaultResponse";
     public const string EditorFilters = "IPSec_Editor_Filters";
     public const string EditorAddFilterTitle = "IPSec_Editor_AddFilterTitle";
     public const string EditorEditFilterTitle = "IPSec_Editor_EditFilterTitle";
@@ -784,6 +816,11 @@ public static class DeviceManagerKeys
     public const string HiddenDevices = "DeviceManager_HiddenDevices";
     public const string DeviceCountPrefix = "DeviceManager_DeviceCountPrefix";
     public const string DeviceCountSuffix = "DeviceManager_DeviceCountSuffix";
+
+    /// <summary>
+    /// Prefix for per-PNPClass display names (<c>DeviceManager_Category_{Class}</c>).
+    /// </summary>
+    public const string CategoryKeyPrefix = "DeviceManager_Category_";
     
     // Device Status Descriptions
     public const string StatusWorking = "DeviceManager_StatusWorking";
@@ -848,9 +885,19 @@ public static class TPMKeys
     public const string ClearTPMError = "TPM_ClearTPMError";
     public const string VersionFormat = "TPM_VersionFormat";
     public const string NotAvailable = "TPM_NotAvailable";
+    public const string NotAvailableTitle = "TPM_NotAvailableTitle";
+    public const string NotAvailableMessage = "TPM_NotAvailableMessage";
+    public const string UnavailableValue = "TPM_UnavailableValue";
     public const string AccessDenied = "TPM_AccessDenied";
+    public const string AccessDeniedTitle = "TPM_AccessDeniedTitle";
+    public const string ClearTPMDescription = "TPM_ClearTPMDescription";
+    public const string ClearTPMDisabledDescription = "TPM_ClearTPMDisabledDescription";
     public const string ClearAllMethodsFailed = "TPM_ClearAllMethodsFailed";
     public const string WmiAccessDenied = "TPM_WmiAccessDenied";
+    public const string Unknown = "TPM_Unknown";
+    public const string ClearRequestSet = "TPM_ClearRequestSet";
+    public const string PprErrorFormat = "TPM_PprErrorFormat";
+    public const string ExecutionErrorFormat = "TPM_ExecutionErrorFormat";
 }
 
 /// <summary>
@@ -885,6 +932,27 @@ public static class AzManKeys
 
     // Access Denied
     public const string AccessDenied = "AzMan_AccessDenied";
+    public const string ErrStoreNotOpenFormat = "AzMan_Err_StoreNotOpenFormat";
+    public const string ErrStoreFileNotFoundFormat = "AzMan_Err_StoreFileNotFoundFormat";
+    public const string ErrCreateApplicationFormat = "AzMan_Err_CreateApplicationFormat";
+    public const string ErrExportStoreFormat = "AzMan_Err_ExportStoreFormat";
+    public const string ErrExportApplicationFormat = "AzMan_Err_ExportApplicationFormat";
+    public const string ErrImportFileNotFoundFormat = "AzMan_Err_ImportFileNotFoundFormat";
+    public const string ErrNoApplicationsInImport = "AzMan_Err_NoApplicationsInImport";
+    public const string ErrApplicationExistsFormat = "AzMan_Err_ApplicationExistsFormat";
+    public const string ErrImportApplicationFormat = "AzMan_Err_ImportApplicationFormat";
+    public const string ErrNotBasicGroupFormat = "AzMan_Err_NotBasicGroupFormat";
+    public const string ErrEmptySid = "AzMan_Err_EmptySid";
+    public const string ErrAddMemberEmptySid = "AzMan_Err_AddMemberEmptySid";
+    public const string ErrAddMemberInvalidSidFormat = "AzMan_Err_AddMemberInvalidSidFormat";
+    public const string ErrCreateStoreFormat = "AzMan_Err_CreateStoreFormat";
+    public const string ErrFileNotFoundFormat = "AzMan_Err_FileNotFoundFormat";
+    public const string ErrOpenStoreFormat = "AzMan_Err_OpenStoreFormat";
+    public const string ErrOpenStoreInaccessibleFormat = "AzMan_Err_OpenStoreInaccessibleFormat";
+    public const string ErrDeleteStoreFormat = "AzMan_Err_DeleteStoreFormat";
+    public const string ErrRefreshStoreFormat = "AzMan_Err_RefreshStoreFormat";
+    public const string ErrSchemaUpgradeUnsupported = "AzMan_Err_SchemaUpgradeUnsupported";
+    public const string ErrBizRuleFileNotFoundFormat = "AzMan_Err_BizRuleFileNotFoundFormat";
 }
 
 /// <summary>
@@ -895,6 +963,291 @@ public static class DiskMgmtKeys
     // Access Denied messages
     public const string AccessDenied_Operation = "DiskMgmt_AccessDenied_Operation";
     public const string AccessDenied_AdminRequired = "DiskMgmt_AccessDenied_AdminRequired";
+
+    // Protected partition names and messages
+    public const string OemRecoveryPartition = "DiskMgmt_OemRecoveryPartition";
+    public const string OemRecoveryWarning = "DiskMgmt_OemRecoveryWarning";
+    public const string CannotDeleteOemRecoveryPartition = "DiskMgmt_CannotDeleteOemRecoveryPartition";
+    public const string ErrorTitle = "DiskMgmt_ErrorTitle";
+    public const string ResultVhdCreateFailed = "DiskMgmt_Result_VhdCreateFailed";
+    public const string ResultVhdAttachFailed = "DiskMgmt_Result_VhdAttachFailed";
+    public const string ResultVhdDetachFailed = "DiskMgmt_Result_VhdDetachFailed";
+    public const string ResultEjectFailed = "DiskMgmt_Result_EjectFailed";
+    public const string ResultAssignDriveLetterFailed = "DiskMgmt_Result_AssignDriveLetterFailed";
+    public const string ResultChangeDriveLetterFailed = "DiskMgmt_Result_ChangeDriveLetterFailed";
+    public const string ResultFormatFailed = "DiskMgmt_Result_FormatFailed";
+    public const string ResultInitializeFailed = "DiskMgmt_Result_InitializeFailed";
+    public const string ResultCreateVolumeFailed = "DiskMgmt_Result_CreateVolumeFailed";
+    public const string ResultSetOnlineFailed = "DiskMgmt_Result_SetOnlineFailed";
+    public const string ResultSetOfflineFailed = "DiskMgmt_Result_SetOfflineFailed";
+    public const string ResultSetReadOnlyFailed = "DiskMgmt_Result_SetReadOnlyFailed";
+    public const string ResultClearReadOnlyFailed = "DiskMgmt_Result_ClearReadOnlyFailed";
+    public const string ResultCleanFailed = "DiskMgmt_Result_CleanFailed";
+    public const string ResultDeleteVolumeFailed = "DiskMgmt_Result_DeleteVolumeFailed";
+    public const string ResultExtendFailed = "DiskMgmt_Result_ExtendFailed";
+    public const string ResultShrinkFailed = "DiskMgmt_Result_ShrinkFailed";
+    public const string ResultRemoveDriveLetterFailed = "DiskMgmt_Result_RemoveDriveLetterFailed";
+    public const string ResultMountFailed = "DiskMgmt_Result_MountFailed";
+    public const string ResultMarkActiveFailed = "DiskMgmt_Result_MarkActiveFailed";
+    public const string ResultQueryFailed = "DiskMgmt_Result_QueryFailed";
+    public const string ResultNoSpaceAvailable = "DiskMgmt_Result_NoSpaceAvailable";
+    public const string ResultOperationNotSupported = "DiskMgmt_Result_OperationNotSupported";
+    public const string MsgCannotFormatWithoutLetter = "DiskMgmt_Msg_CannotFormatWithoutLetter";
+    public const string MsgInvalidCdrom = "DiskMgmt_Msg_InvalidCdrom";
+    public const string MsgResizeNotSupported = "DiskMgmt_Msg_ResizeNotSupported";
+    public const string MsgNoExtendSpace = "DiskMgmt_Msg_NoExtendSpace";
+    public const string MsgExtendNeedsLetter = "DiskMgmt_Msg_ExtendNeedsLetter";
+    public const string MsgNoShrinkSpace = "DiskMgmt_Msg_NoShrinkSpace";
+    public const string MsgShrinkSizeZero = "DiskMgmt_Msg_ShrinkSizeZero";
+    public const string MsgShrinkNeedsLetter = "DiskMgmt_Msg_ShrinkNeedsLetter";
+    public const string MsgNoDriveLetter = "DiskMgmt_Msg_NoDriveLetter";
+    public const string MsgCannotMountWithoutLetter = "DiskMgmt_Msg_CannotMountWithoutLetter";
+    public const string FileFilterVhd = "DiskMgmt_FileFilter_Vhd";
+    public const string FileFilterVhdx = "DiskMgmt_FileFilter_Vhdx";
+    public const string FileFilterVhdLegacy = "DiskMgmt_FileFilter_VhdLegacy";
+    public const string SelectVhdToDetach = "DiskMgmt_SelectVhdToDetach";
+    public const string SelectVhd = "DiskMgmt_SelectVhd";
+    public const string SelectPlaceholder = "DiskMgmt_SelectPlaceholder";
+    public const string Alloc512 = "DiskMgmt_Alloc512";
+    public const string Alloc1024 = "DiskMgmt_Alloc1024";
+    public const string Alloc2048 = "DiskMgmt_Alloc2048";
+    public const string Alloc4096 = "DiskMgmt_Alloc4096";
+    public const string Alloc8192 = "DiskMgmt_Alloc8192";
+    public const string DiskInfoFormat = "DiskMgmt_DiskInfoFormat";
+    public const string MaxSizeFormat = "DiskMgmt_MaxSizeFormat";
+    public const string NoShrinkSpaceShort = "DiskMgmt_NoShrinkSpaceShort";
+    public const string DriveCountSingular = "DiskMgmt_DriveCountSingular";
+    public const string DriveCountPlural = "DiskMgmt_DriveCountPlural";
+    public const string StatusLoading = "DiskMgmt_Status_Loading";
+    public const string StatusLoadedFormat = "DiskMgmt_Status_LoadedFormat";
+    public const string StatusStoragePoolsSuffixFormat = "DiskMgmt_Status_StoragePoolsSuffixFormat";
+    public const string StatusLoadErrorFormat = "DiskMgmt_Status_LoadErrorFormat";
+    public const string StatusRefreshing = "DiskMgmt_Status_Refreshing";
+    public const string StatusRefreshErrorFormat = "DiskMgmt_Status_RefreshErrorFormat";
+    public const string StatusFailedFormat = "DiskMgmt_Status_FailedFormat";
+    public const string StatusErrorFormat = "DiskMgmt_Status_ErrorFormat";
+    public const string StatusCreatingVhd = "DiskMgmt_Status_CreatingVhd";
+    public const string StatusCreateVhdErrorFormat = "DiskMgmt_Status_CreateVhdErrorFormat";
+    public const string StatusAttachingVhd = "DiskMgmt_Status_AttachingVhd";
+    public const string StatusAttachVhdErrorFormat = "DiskMgmt_Status_AttachVhdErrorFormat";
+    public const string StatusDetachingVhd = "DiskMgmt_Status_DetachingVhd";
+    public const string StatusDetachVhdErrorFormat = "DiskMgmt_Status_DetachVhdErrorFormat";
+    public const string StatusEjectingMedia = "DiskMgmt_Status_EjectingMedia";
+    public const string StatusEjectErrorFormat = "DiskMgmt_Status_EjectErrorFormat";
+    public const string StatusLoadingMedia = "DiskMgmt_Status_LoadingMedia";
+    public const string StatusLoadMediaErrorFormat = "DiskMgmt_Status_LoadMediaErrorFormat";
+    public const string StatusChangingDriveLetter = "DiskMgmt_Status_ChangingDriveLetter";
+    public const string StatusChangeDriveLetterErrorFormat = "DiskMgmt_Status_ChangeDriveLetterErrorFormat";
+    public const string StatusRemovingDriveLetter = "DiskMgmt_Status_RemovingDriveLetter";
+    public const string StatusRemoveDriveLetterErrorFormat = "DiskMgmt_Status_RemoveDriveLetterErrorFormat";
+    public const string StatusAssigningDriveLetter = "DiskMgmt_Status_AssigningDriveLetter";
+    public const string StatusAssignDriveLetterErrorFormat = "DiskMgmt_Status_AssignDriveLetterErrorFormat";
+    public const string StatusManageDriveLetterErrorFormat = "DiskMgmt_Status_ManageDriveLetterErrorFormat";
+    public const string StatusConsoleOpened = "DiskMgmt_Status_ConsoleOpened";
+    public const string StatusOpenConsoleErrorFormat = "DiskMgmt_Status_OpenConsoleErrorFormat";
+    public const string StatusBringingOnline = "DiskMgmt_Status_BringingOnline";
+    public const string StatusTakingOffline = "DiskMgmt_Status_TakingOffline";
+    public const string StatusFormatting = "DiskMgmt_Status_Formatting";
+    public const string StatusFormatErrorFormat = "DiskMgmt_Status_FormatErrorFormat";
+    public const string StatusInitializingFormat = "DiskMgmt_Status_InitializingFormat";
+    public const string StatusInitializeErrorFormat = "DiskMgmt_Status_InitializeErrorFormat";
+    public const string StatusCreatingVolume = "DiskMgmt_Status_CreatingVolume";
+    public const string StatusCreateVolumeErrorFormat = "DiskMgmt_Status_CreateVolumeErrorFormat";
+    public const string StatusDeletingVolume = "DiskMgmt_Status_DeletingVolume";
+    public const string StatusDeleteVolumeErrorFormat = "DiskMgmt_Status_DeleteVolumeErrorFormat";
+    public const string StatusExtending = "DiskMgmt_Status_Extending";
+    public const string StatusExtendErrorFormat = "DiskMgmt_Status_ExtendErrorFormat";
+    public const string StatusShrinking = "DiskMgmt_Status_Shrinking";
+    public const string StatusShrinkErrorFormat = "DiskMgmt_Status_ShrinkErrorFormat";
+    public const string StatusMarkingActive = "DiskMgmt_Status_MarkingActive";
+    public const string StatusMarkActiveErrorFormat = "DiskMgmt_Status_MarkActiveErrorFormat";
+    public const string StatusMounting = "DiskMgmt_Status_Mounting";
+    public const string StatusMountErrorFormat = "DiskMgmt_Status_MountErrorFormat";
+    public const string StatusCleaning = "DiskMgmt_Status_Cleaning";
+    public const string StatusCleanErrorFormat = "DiskMgmt_Status_CleanErrorFormat";
+    public const string StatusSettingReadOnly = "DiskMgmt_Status_SettingReadOnly";
+    public const string StatusClearingReadOnly = "DiskMgmt_Status_ClearingReadOnly";
+    public const string ErrDriveLetterEmpty = "DiskMgmt_Err_DriveLetterEmpty";
+    public const string ErrSizeRequired = "DiskMgmt_Err_SizeRequired";
+    public const string ErrDiskNotFound = "DiskMgmt_Err_DiskNotFound";
+    public const string ErrPartitionNotFound = "DiskMgmt_Err_PartitionNotFound";
+    public const string ErrVolumeNotFound = "DiskMgmt_Err_VolumeNotFound";
+    public const string ErrDriveLetterInUse = "DiskMgmt_Err_DriveLetterInUse";
+    public const string ErrDriveLetterSame = "DiskMgmt_Err_DriveLetterSame";
+    public const string ErrFolderNotExist = "DiskMgmt_Err_FolderNotExist";
+    public const string ErrDriveNotReady = "DiskMgmt_Err_DriveNotReady";
+    public const string ErrNoExtensionSpace = "DiskMgmt_Err_NoExtensionSpace";
+    public const string ErrNoAccessPath = "DiskMgmt_Err_NoAccessPath";
+    public const string ErrSystemDriveFormat = "DiskMgmt_Err_SystemDriveFormat";
+    public const string ErrSystemDriveLetterRemoval = "DiskMgmt_Err_SystemDriveLetterRemoval";
+    public const string ErrSystemDiskClean = "DiskMgmt_Err_SystemDiskClean";
+    public const string ErrCriticalPartitionsOnDisk = "DiskMgmt_Err_CriticalPartitionsOnDisk";
+    public const string ErrCannotDeleteSystemPartition = "DiskMgmt_Err_CannotDeleteSystemPartition";
+    public const string ErrCannotDeleteEfiPartition = "DiskMgmt_Err_CannotDeleteEfiPartition";
+    public const string ErrCannotDeleteRecoveryPartition = "DiskMgmt_Err_CannotDeleteRecoveryPartition";
+    public const string ErrCannotDeleteMsrPartition = "DiskMgmt_Err_CannotDeleteMsrPartition";
+    public const string ErrCriticalSystemPartition = "DiskMgmt_Err_CriticalSystemPartition";
+    public const string ErrSpecialPartitionOperation = "DiskMgmt_Err_SpecialPartitionOperation";
+    public const string ErrPartitionNotSupportResize = "DiskMgmt_Err_PartitionNotSupportResize";
+    public const string ErrMbrOnly = "DiskMgmt_Err_MbrOnly";
+    public const string ErrDiskMustBeCleanedBeforeConversion = "DiskMgmt_Err_DiskMustBeCleanedBeforeConversion";
+    public const string ErrDiskAlreadyGpt = "DiskMgmt_Err_DiskAlreadyGpt";
+    public const string ErrDiskAlreadyMbr = "DiskMgmt_Err_DiskAlreadyMbr";
+    public const string ErrDiskAlreadyDynamic = "DiskMgmt_Err_DiskAlreadyDynamic";
+    public const string ErrDiskAlreadyBasic = "DiskMgmt_Err_DiskAlreadyBasic";
+    public const string ErrVhdPathEmpty = "DiskMgmt_Err_VhdPathEmpty";
+    public const string ErrVhdFileNotFound = "DiskMgmt_Err_VhdFileNotFound";
+    public const string ErrVhdFileAlreadyExists = "DiskMgmt_Err_VhdFileAlreadyExists";
+    public const string ErrVhdFileInUse = "DiskMgmt_Err_VhdFileInUse";
+    public const string ErrDynamicDiskDeprecated = "DiskMgmt_Err_DynamicDiskDeprecated";
+    public const string ErrDynamicDiskSystemWarning = "DiskMgmt_Err_DynamicDiskSystemWarning";
+    public const string ErrInvalidDriveLetter = "DiskMgmt_Err_InvalidDriveLetter";
+    public const string ErrInvalidCurrentDriveLetter = "DiskMgmt_Err_InvalidCurrentDriveLetter";
+    public const string ErrInvalidNewDriveLetter = "DiskMgmt_Err_InvalidNewDriveLetter";
+    public const string ErrDriveLetterRange = "DiskMgmt_Err_DriveLetterRange";
+    public const string ErrDriveLetterSameAsCurrent = "DiskMgmt_Err_DriveLetterSameAsCurrent";
+    public const string ErrDriveLetterInUseFormat = "DiskMgmt_Err_DriveLetterInUseFormat";
+    public const string ErrVolumeInfoWin32Format = "DiskMgmt_Err_VolumeInfoWin32Format";
+    public const string ErrVolumeInfoForWin32Format = "DiskMgmt_Err_VolumeInfoForWin32Format";
+    public const string ErrRemoveOldLetterWin32Format = "DiskMgmt_Err_RemoveOldLetterWin32Format";
+    public const string ErrSetNewLetterWin32Format = "DiskMgmt_Err_SetNewLetterWin32Format";
+    public const string ErrSetNewLetterRestoredFormat = "DiskMgmt_Err_SetNewLetterRestoredFormat";
+    public const string ErrSetNewLetterRollbackFailedFormat = "DiskMgmt_Err_SetNewLetterRollbackFailedFormat";
+    public const string ErrAssignLetterWin32Format = "DiskMgmt_Err_AssignLetterWin32Format";
+    public const string ErrRemovalWin32Format = "DiskMgmt_Err_RemovalWin32Format";
+    public const string ErrRemovalFailedFormat = "DiskMgmt_Err_RemovalFailedFormat";
+    public const string ErrOpenDeviceWin32Format = "DiskMgmt_Err_OpenDeviceWin32Format";
+    public const string ErrActionWin32Format = "DiskMgmt_Err_ActionWin32Format";
+    public const string ErrOperationFailedFormat = "DiskMgmt_Err_OperationFailedFormat";
+    public const string ErrOperationComFailedFormat = "DiskMgmt_Err_OperationComFailedFormat";
+    public const string ErrErrorDuringFormat = "DiskMgmt_Err_ErrorDuringFormat";
+    public const string ErrFailedFormat = "DiskMgmt_Err_FailedFormat";
+    public const string ErrErrorCodeFormat = "DiskMgmt_Err_ErrorCodeFormat";
+    public const string ErrErrorCodeOnlyFormat = "DiskMgmt_Err_ErrorCodeOnlyFormat";
+    public const string ErrInitializeCodeFormat = "DiskMgmt_Err_InitializeCodeFormat";
+    public const string ErrCleanCodeFormat = "DiskMgmt_Err_CleanCodeFormat";
+    public const string ErrDeletionCodeFormat = "DiskMgmt_Err_DeletionCodeFormat";
+    public const string ErrAssignmentCodeFormat = "DiskMgmt_Err_AssignmentCodeFormat";
+    public const string ErrFormattingCodeFormat = "DiskMgmt_Err_FormattingCodeFormat";
+    public const string ErrResizeCodeFormat = "DiskMgmt_Err_ResizeCodeFormat";
+    public const string ErrCreatePartitionCodeFormat = "DiskMgmt_Err_CreatePartitionCodeFormat";
+    public const string ErrSizeLimitsCodeFormat = "DiskMgmt_Err_SizeLimitsCodeFormat";
+    public const string ErrSizeLimitsFormat = "DiskMgmt_Err_SizeLimitsFormat";
+    public const string ErrPathEmpty = "DiskMgmt_Err_PathEmpty";
+    public const string ErrSizeAtLeast1Mb = "DiskMgmt_Err_SizeAtLeast1Mb";
+    public const string ErrFileAlreadyExists = "DiskMgmt_Err_FileAlreadyExists";
+    public const string ErrFileNotFoundFormat = "DiskMgmt_Err_FileNotFoundFormat";
+    public const string ErrVolumeNotFoundFormat = "DiskMgmt_Err_VolumeNotFoundFormat";
+    public const string ErrValueWithDetailFormat = "DiskMgmt_Err_ValueWithDetailFormat";
+    public const string ErrSystemLetterRemovalProhibited = "DiskMgmt_Err_SystemLetterRemovalProhibited";
+    public const string ErrFolderPathEmpty = "DiskMgmt_Err_FolderPathEmpty";
+    public const string ErrFolderNotEmptyFormat = "DiskMgmt_Err_FolderNotEmptyFormat";
+    public const string ErrMountWin32Format = "DiskMgmt_Err_MountWin32Format";
+    public const string ErrFormatAfterCreateFailedFormat = "DiskMgmt_Err_FormatAfterCreateFailedFormat";
+    public const string ErrCreatePartitionFailedFormat = "DiskMgmt_Err_CreatePartitionFailedFormat";
+    public const string ErrPartitionNoReference = "DiskMgmt_Err_PartitionNoReference";
+    public const string ErrLocatePartitionForFormat = "DiskMgmt_Err_LocatePartitionForFormat";
+    public const string ErrFormattingErrorFormat = "DiskMgmt_Err_FormattingErrorFormat";
+    public const string ErrFindPartitionForFormat = "DiskMgmt_Err_FindPartitionForFormat";
+    public const string ErrFindVolumeForFormat = "DiskMgmt_Err_FindVolumeForFormat";
+    public const string ErrFallbackFormatFailedFormat = "DiskMgmt_Err_FallbackFormatFailedFormat";
+    public const string ErrFormattingFailedFormat = "DiskMgmt_Err_FormattingFailedFormat";
+    public const string ErrExtendExceedsFormat = "DiskMgmt_Err_ExtendExceedsFormat";
+    public const string ErrExtendMaxUnknown = "DiskMgmt_Err_ExtendMaxUnknown";
+    public const string ErrExtensionFailedFormat = "DiskMgmt_Err_ExtensionFailedFormat";
+    public const string ErrShrinkExceedsPartitionFormat = "DiskMgmt_Err_ShrinkExceedsPartitionFormat";
+    public const string ErrShrinkExceedsShrinkableFormat = "DiskMgmt_Err_ShrinkExceedsShrinkableFormat";
+    public const string ErrShrinkUnsafeFormat = "DiskMgmt_Err_ShrinkUnsafeFormat";
+    public const string ErrShrinkFailedFormat = "DiskMgmt_Err_ShrinkFailedFormat";
+    public const string ErrEstimateShrink = "DiskMgmt_Err_EstimateShrink";
+    public const string ErrQueryExtendable = "DiskMgmt_Err_QueryExtendable";
+    public const string ErrSystemDiskOperation = "DiskMgmt_Err_SystemDiskOperation";
+    public const string ErrCriticalPartitionsWarning = "DiskMgmt_Err_CriticalPartitionsWarning";
+    public const string ErrSystemPartitionOperationFormat = "DiskMgmt_Err_SystemPartitionOperationFormat";
+    public const string OkLetterChangedFormat = "DiskMgmt_Ok_LetterChangedFormat";
+    public const string OkLetterRemovedFormat = "DiskMgmt_Ok_LetterRemovedFormat";
+    public const string OkLetterAssignedFormat = "DiskMgmt_Ok_LetterAssignedFormat";
+    public const string OkInitializedFormat = "DiskMgmt_Ok_InitializedFormat";
+    public const string OkOnline = "DiskMgmt_Ok_Online";
+    public const string OkOffline = "DiskMgmt_Ok_Offline";
+    public const string OkReadOnly = "DiskMgmt_Ok_ReadOnly";
+    public const string OkReadWrite = "DiskMgmt_Ok_ReadWrite";
+    public const string OkCleaned = "DiskMgmt_Ok_Cleaned";
+    public const string OkVhdCreated = "DiskMgmt_Ok_VhdCreated";
+    public const string OkVhdAttached = "DiskMgmt_Ok_VhdAttached";
+    public const string OkVhdDetached = "DiskMgmt_Ok_VhdDetached";
+    public const string OkVolumeCreatedFormat = "DiskMgmt_Ok_VolumeCreatedFormat";
+    public const string OkPartitionDeleted = "DiskMgmt_Ok_PartitionDeleted";
+    public const string OkPartitionCreated = "DiskMgmt_Ok_PartitionCreated";
+    public const string OkMarkedActive = "DiskMgmt_Ok_MarkedActive";
+    public const string OkMountedFormat = "DiskMgmt_Ok_MountedFormat";
+    public const string OkFormatted = "DiskMgmt_Ok_Formatted";
+    public const string OkExtendedFormat = "DiskMgmt_Ok_ExtendedFormat";
+    public const string OkShrunkFormat = "DiskMgmt_Ok_ShrunkFormat";
+    public const string QueryNoShrinkable = "DiskMgmt_Query_NoShrinkable";
+    public const string QueryShrinkableFormat = "DiskMgmt_Query_ShrinkableFormat";
+    public const string QueryExtendableFormat = "DiskMgmt_Query_ExtendableFormat";
+    public const string QueryEstimatedShrinkableFormat = "DiskMgmt_Query_EstimatedShrinkableFormat";
+    public const string QuerySuccess = "DiskMgmt_Query_Success";
+    public const string Msft1 = "DiskMgmt_Msft_1";
+    public const string Msft2 = "DiskMgmt_Msft_2";
+    public const string Msft3 = "DiskMgmt_Msft_3";
+    public const string Msft4 = "DiskMgmt_Msft_4";
+    public const string Msft5 = "DiskMgmt_Msft_5";
+    public const string Msft40002 = "DiskMgmt_Msft_40002";
+    public const string Msft40003 = "DiskMgmt_Msft_40003";
+    public const string Msft40004 = "DiskMgmt_Msft_40004";
+    public const string Msft41000 = "DiskMgmt_Msft_41000";
+    public const string Msft41001 = "DiskMgmt_Msft_41001";
+    public const string Msft41002 = "DiskMgmt_Msft_41002";
+    public const string Msft41003 = "DiskMgmt_Msft_41003";
+    public const string Msft41010 = "DiskMgmt_Msft_41010";
+    public const string Msft41011 = "DiskMgmt_Msft_41011";
+    public const string Msft41012 = "DiskMgmt_Msft_41012";
+    public const string Msft41013 = "DiskMgmt_Msft_41013";
+    public const string Msft41014 = "DiskMgmt_Msft_41014";
+    public const string Msft41015 = "DiskMgmt_Msft_41015";
+    public const string Msft41017 = "DiskMgmt_Msft_41017";
+    public const string Msft42002 = "DiskMgmt_Msft_42002";
+    public const string Msft42004 = "DiskMgmt_Msft_42004";
+    public const string Msft42007 = "DiskMgmt_Msft_42007";
+    public const string Msft42008 = "DiskMgmt_Msft_42008";
+    public const string MsftUnknownFormat = "DiskMgmt_Msft_UnknownFormat";
+    public const string Vhd2 = "DiskMgmt_Vhd_2";
+    public const string Vhd3 = "DiskMgmt_Vhd_3";
+    public const string Vhd32 = "DiskMgmt_Vhd_32";
+    public const string Vhd87 = "DiskMgmt_Vhd_87";
+    public const string Vhd183 = "DiskMgmt_Vhd_183";
+    public const string VhdUnknownFormat = "DiskMgmt_Vhd_UnknownFormat";
+    public const string PartNameEfi = "DiskMgmt_PartName_Efi";
+    public const string PartNameRecovery = "DiskMgmt_PartName_Recovery";
+    public const string PartNameMsr = "DiskMgmt_PartName_Msr";
+    public const string WarnEfi = "DiskMgmt_Warn_Efi";
+    public const string WarnMsr = "DiskMgmt_Warn_Msr";
+    public const string WarnBiosBoot = "DiskMgmt_Warn_BiosBoot";
+    public const string WarnRecovery = "DiskMgmt_Warn_Recovery";
+    public const string WarnSystemDriveFormat = "DiskMgmt_Warn_SystemDriveFormat";
+    public const string WarnBootSystem = "DiskMgmt_Warn_BootSystem";
+    public const string PartTypeSystem = "DiskMgmt_PartType_System";
+    public const string PartTypeReserved = "DiskMgmt_PartType_Reserved";
+    public const string PartTypeBasic = "DiskMgmt_PartType_Basic";
+    public const string PartTypeRecovery = "DiskMgmt_PartType_Recovery";
+    public const string PartTypeLdmMetadata = "DiskMgmt_PartType_LdmMetadata";
+    public const string PartTypeLdmData = "DiskMgmt_PartType_LdmData";
+    public const string PartTypeBiosBoot = "DiskMgmt_PartType_BiosBoot";
+    public const string PartTypeLinuxReserved = "DiskMgmt_PartType_LinuxReserved";
+    public const string DiskTypeUsbDrive = "DiskMgmt_DiskType_UsbDrive";
+    public const string CdromDriveFormat = "DiskMgmt_CdromDriveFormat";
+    public const string OkCdromEjected = "DiskMgmt_Ok_CdromEjected";
+    public const string OkCdromLoaded = "DiskMgmt_Ok_CdromLoaded";
+    public const string ActionLoad = "DiskMgmt_Action_Load";
+    public const string Eject = "DiskMgmt_Eject";
+    public const string UnallocatedSpace = "DiskMgmt_UnallocatedSpace";
+    public const string VirtualDisk = "DiskMgmt_VirtualDisk";
+    public const string Healthy = "DiskMgmt_Healthy";
+    public const string HealthWarning = "DiskMgmt_HealthWarning";
+    public const string HealthUnhealthy = "DiskMgmt_HealthUnhealthy";
+    public const string HealthUnknown = "DiskMgmt_HealthUnknown";
 }
 
 /// <summary>
@@ -935,6 +1288,11 @@ public static class CommonKeys
     public const string CountOperation_Plural = "Common_CountOperation_Plural";
     public const string CountScope_Singular = "Common_CountScope_Singular";
     public const string CountScope_Plural = "Common_CountScope_Plural";
+
+    // File dialog filter labels
+    public const string FileFilterAllFiles = "Common_FileFilter_AllFiles";
+    public const string FileFilterXmlFiles = "Common_FileFilter_XmlFiles";
+    public const string FileFilterPrograms = "Common_FileFilter_Programs";
 }
 
 /// <summary>
@@ -1002,7 +1360,6 @@ public static class FsMgmtKeys
     public const string PermissionFilesOnly = "FsMgmt_Permissions_FilesOnly";
     public const string DurationDaysFormat = "FsMgmt_Duration_DaysFormat";
     public const string DurationHoursFormat = "FsMgmt_Duration_HoursFormat";
-    public const string AutoRefreshLabel = "FsMgmt_AutoRefresh_Label";
     public const string AutoRefreshActive = "FsMgmt_AutoRefresh_Active";
 }
 
@@ -1073,6 +1430,21 @@ public static class WFKeys
     public const string RemoteComputersDialogException = "WF_RemoteComputersDialog_Exception";
     public const string RemoteComputersDialogExceptionDescription = "WF_RemoteComputersDialog_ExceptionDescription";
     public const string RemoteComputersDialogSelectionRequired = "WF_RemoteComputersDialog_SelectionRequired";
+    public const string ErrRuleNameRequired = "WF_Err_RuleNameRequired";
+    public const string ErrCsrNameRequired = "WF_Err_CsrNameRequired";
+    public const string ErrInvalidRequestNone = "WF_Err_InvalidRequestNone";
+    public const string ErrInboundNoneWithOutboundAuth = "WF_Err_InboundNoneWithOutboundAuth";
+    public const string ErrRequireInClearOutNeedsTunnel = "WF_Err_RequireInClearOutNeedsTunnel";
+    public const string ErrIkev2ClientToGatewayOnly = "WF_Err_Ikev2ClientToGatewayOnly";
+    public const string ErrIkev2FirstAuthOnly = "WF_Err_Ikev2FirstAuthOnly";
+    public const string ErrIkev2UnsupportedAuth = "WF_Err_Ikev2UnsupportedAuth";
+    public const string ErrCsrNotFoundFormat = "WF_Err_CsrNotFoundFormat";
+    public const string ErrCsrCreatedNotQueryableFormat = "WF_Err_CsrCreatedNotQueryableFormat";
+    public const string ErrProposalRequired = "WF_Err_ProposalRequired";
+    public const string ErrIpsecSettingsNotFound = "WF_Err_IpsecSettingsNotFound";
+    public const string ErrProfileNotFoundFormat = "WF_Err_ProfileNotFoundFormat";
+    public const string ErrRuleNotFoundFormat = "WF_Err_RuleNotFoundFormat";
+    public const string ErrCompartmentRange = "WF_Err_CompartmentRange";
 }
 
 /// <summary>
@@ -1096,6 +1468,22 @@ public static class PolicyKeys
     // State labels
     public const string StateNotConfigured = "Policy_State_NotConfigured";
     public const string StateUnknown = "Policy_State_Unknown";
+    public const string ErrorServiceNotInitialized = "Policy_Error_ServiceNotInitialized";
+    public const string ErrorInitServicesFailed = "Policy_Error_InitServicesFailed";
+    public const string ErrorLoadPoliciesFormat = "Policy_Error_LoadPoliciesFormat";
+    public const string ErrorSavePolicyFormat = "Policy_Error_SavePolicyFormat";
+    public const string StatusLoadingAdmx = "Policy_Status_LoadingAdmx";
+    public const string StatusError = "Policy_Status_Error";
+    public const string StatusReady = "Policy_Status_Ready";
+    public const string ErrorServiceDisposed = "Policy_Error_ServiceDisposed";
+    public const string ErrorInitializeFormat = "Policy_Error_InitializeFormat";
+    public const string ErrorSetStateFormat = "Policy_Error_SetStateFormat";
+    public const string ErrorSavePolFileFormat = "Policy_Error_SavePolFileFormat";
+    public const string ErrorSaveFailedFormat = "Policy_Error_SaveFailedFormat";
+    public const string ErrorReloadFailedFormat = "Policy_Error_ReloadFailedFormat";
+    public const string ErrorInitPolServiceFormat = "Policy_Error_InitPolServiceFormat";
+    public const string ErrorOpenRegistryKeyFormat = "Policy_Error_OpenRegistryKeyFormat";
+    public const string ErrorInitRegistryServiceFormat = "Policy_Error_InitRegistryServiceFormat";
 }
 
 /// <summary>
@@ -1207,6 +1595,34 @@ public static class EventViewerKeys
 
     // Load more
     public const string LoadMore = "EventViewer_LoadMore";
+
+    // Reserved Microsoft keyword display names
+    public const string KeywordAuditFailure = "EventViewer_Keyword_AuditFailure";
+    public const string KeywordAuditSuccess = "EventViewer_Keyword_AuditSuccess";
+    public const string KeywordClassic = "EventViewer_Keyword_Classic";
+    public const string KeywordCorrelationHint = "EventViewer_Keyword_CorrelationHint";
+    public const string KeywordResponseTime = "EventViewer_Keyword_ResponseTime";
+    public const string KeywordSqm = "EventViewer_Keyword_Sqm";
+    public const string KeywordWdiDiag = "EventViewer_Keyword_WdiDiag";
+    public const string OpcodeInfo = "EventViewer_Opcode_Info";
+    public const string OpcodeStart = "EventViewer_Opcode_Start";
+    public const string OpcodeStop = "EventViewer_Opcode_Stop";
+    public const string OpcodeDataCollectionStart = "EventViewer_Opcode_DataCollectionStart";
+    public const string OpcodeDataCollectionStop = "EventViewer_Opcode_DataCollectionStop";
+    public const string OpcodeExtension = "EventViewer_Opcode_Extension";
+    public const string OpcodeReply = "EventViewer_Opcode_Reply";
+    public const string OpcodeResume = "EventViewer_Opcode_Resume";
+    public const string OpcodeSuspend = "EventViewer_Opcode_Suspend";
+    public const string OpcodeSend = "EventViewer_Opcode_Send";
+    public const string TaskCategoryNone = "EventViewer_TaskCategory_None";
+    public const string SummaryFormat = "EventViewer_SummaryFormat";
+    public const string SummaryWithCategoryFormat = "EventViewer_SummaryWithCategoryFormat";
+    public const string StatusErrorFormat = "EventViewer_Status_ErrorFormat";
+    public const string StatusClearErrorFormat = "EventViewer_Status_ClearErrorFormat";
+    public const string StatusExporting = "EventViewer_Status_Exporting";
+    public const string StatusExportCompleted = "EventViewer_Status_ExportCompleted";
+    public const string StatusExportFailedFormat = "EventViewer_Status_ExportFailedFormat";
+    public const string FileFilterEvtx = "EventViewer_FileFilter_Evtx";
 }
 
 /// <summary>
@@ -1420,5 +1836,352 @@ public static class TaskSchdKeys
 
     // Security (SDDL/ACL)
     public const string CommandSecurity = "TaskSchd_Command_Security";
+
+    // Dialog field labels, pickers, durations and event-filter strings
+    public const string CreateTaskInformation = "TaskSchd_Create_TaskInformation";
+    public const string CreateNamePlaceholder = "TaskSchd_Create_NamePlaceholder";
+    public const string CreateTrigger = "TaskSchd_Create_Trigger";
+    public const string CreateTriggerPrompt = "TaskSchd_Create_TriggerPrompt";
+    public const string CreateWhenComputerStarts = "TaskSchd_Create_WhenComputerStarts";
+    public const string CreateWhenILogOn = "TaskSchd_Create_WhenILogOn";
+    public const string CreateWhenEventLogged = "TaskSchd_Create_WhenEventLogged";
+    public const string CreateAction = "TaskSchd_Create_Action";
+    public const string CreateActionPrompt = "TaskSchd_Create_ActionPrompt";
+    public const string CreateNoTriggerSettings = "TaskSchd_Create_NoTriggerSettings";
+    public const string TriggerStartLabel = "TaskSchd_Trigger_StartLabel";
+    public const string PickDatePlaceholder = "TaskSchd_PickDatePlaceholder";
+    public const string TriggerRecurEvery = "TaskSchd_Trigger_RecurEvery";
+    public const string TriggerDaysSuffix = "TaskSchd_Trigger_DaysSuffix";
+    public const string TriggerWeeksOnSuffix = "TaskSchd_Trigger_WeeksOnSuffix";
+    public const string TriggerMonthsLabel = "TaskSchd_Trigger_MonthsLabel";
+    public const string TriggerSelectMonths = "TaskSchd_Trigger_SelectMonths";
+    public const string TriggerMonthlyDays = "TaskSchd_Trigger_MonthlyDays";
+    public const string TriggerMonthlyOn = "TaskSchd_Trigger_MonthlyOn";
+    public const string TriggerDaysLabel = "TaskSchd_Trigger_DaysLabel";
+    public const string TriggerSelectDays = "TaskSchd_Trigger_SelectDays";
+    public const string TriggerOnLabel = "TaskSchd_Trigger_OnLabel";
+    public const string TriggerOccurrencePlaceholder = "TaskSchd_Trigger_OccurrencePlaceholder";
+    public const string TriggerDayOfWeekPlaceholder = "TaskSchd_Trigger_DayOfWeekPlaceholder";
+    public const string TriggerAnyUser = "TaskSchd_Trigger_AnyUser";
+    public const string TriggerSpecificUser = "TaskSchd_Trigger_SpecificUser";
+    public const string TriggerChangeUser = "TaskSchd_Trigger_ChangeUser";
+    public const string TriggerNoSettingsRequired = "TaskSchd_Trigger_NoSettingsRequired";
+    public const string TriggerIdleHint = "TaskSchd_Trigger_IdleHint";
+    public const string TriggerEventBasic = "TaskSchd_Trigger_EventBasic";
+    public const string TriggerEventCustom = "TaskSchd_Trigger_EventCustom";
+    public const string TriggerConnectionRemote = "TaskSchd_Trigger_ConnectionRemote";
+    public const string TriggerConnectionLocal = "TaskSchd_Trigger_ConnectionLocal";
+    public const string TriggerAdvancedSettings = "TaskSchd_Trigger_AdvancedSettings";
+    public const string TriggerSummaryAnyUser = "TaskSchd_TriggerSummary_AnyUser";
+    public const string EventLogLabel = "TaskSchd_Event_LogLabel";
+    public const string EventSelectLog = "TaskSchd_Event_SelectLog";
+    public const string EventSourceLabel = "TaskSchd_Event_SourceLabel";
+    public const string EventSelectSource = "TaskSchd_Event_SelectSource";
+    public const string EventEventIdLabel = "TaskSchd_Event_EventIdLabel";
+    public const string EventEventIdPlaceholder = "TaskSchd_Event_EventIdPlaceholder";
+    public const string ActionProgramPlaceholder = "TaskSchd_Action_ProgramPlaceholder";
+    public const string ActionInstruction = "TaskSchd_Action_Instruction";
+    public const string ActionActionLabel = "TaskSchd_Action_ActionLabel";
+    public const string ActionMessageHint = "TaskSchd_Action_MessageHint";
+    public const string DaySunday = "TaskSchd_Day_Sunday";
+    public const string DayMonday = "TaskSchd_Day_Monday";
+    public const string DayTuesday = "TaskSchd_Day_Tuesday";
+    public const string DayWednesday = "TaskSchd_Day_Wednesday";
+    public const string DayThursday = "TaskSchd_Day_Thursday";
+    public const string DayFriday = "TaskSchd_Day_Friday";
+    public const string DaySaturday = "TaskSchd_Day_Saturday";
+    public const string MonthJanuary = "TaskSchd_Month_January";
+    public const string MonthFebruary = "TaskSchd_Month_February";
+    public const string MonthMarch = "TaskSchd_Month_March";
+    public const string MonthApril = "TaskSchd_Month_April";
+    public const string MonthMay = "TaskSchd_Month_May";
+    public const string MonthJune = "TaskSchd_Month_June";
+    public const string MonthJuly = "TaskSchd_Month_July";
+    public const string MonthAugust = "TaskSchd_Month_August";
+    public const string MonthSeptember = "TaskSchd_Month_September";
+    public const string MonthOctober = "TaskSchd_Month_October";
+    public const string MonthNovember = "TaskSchd_Month_November";
+    public const string MonthDecember = "TaskSchd_Month_December";
+    public const string MonthDayLast = "TaskSchd_MonthDay_Last";
+    public const string WeekFirst = "TaskSchd_Week_First";
+    public const string WeekSecond = "TaskSchd_Week_Second";
+    public const string WeekThird = "TaskSchd_Week_Third";
+    public const string WeekFourth = "TaskSchd_Week_Fourth";
+    public const string WeekLast = "TaskSchd_Week_Last";
+    public const string DurationMinute = "TaskSchd_Duration_Minute";
+    public const string DurationMinutes = "TaskSchd_Duration_Minutes";
+    public const string DurationHour = "TaskSchd_Duration_Hour";
+    public const string DurationHours = "TaskSchd_Duration_Hours";
+    public const string DurationDay = "TaskSchd_Duration_Day";
+    public const string DurationDays = "TaskSchd_Duration_Days";
+    public const string DurationIndefinitely = "TaskSchd_Duration_Indefinitely";
+    public const string DurationDoNotWait = "TaskSchd_Duration_DoNotWait";
+    public const string DurationImmediately = "TaskSchd_Duration_Immediately";
+    public const string Copy = "TaskSchd_Copy";
+    public const string ToggleOn = "TaskSchd_Toggle_On";
+    public const string ToggleOff = "TaskSchd_Toggle_Off";
+    public const string FilterFilterTab = "TaskSchd_Filter_FilterTab";
+    public const string FilterXmlTab = "TaskSchd_Filter_XmlTab";
+    public const string FilterLogged = "TaskSchd_Filter_Logged";
+    public const string FilterAnyTime = "TaskSchd_Filter_AnyTime";
+    public const string FilterLastHour = "TaskSchd_Filter_LastHour";
+    public const string FilterLast12Hours = "TaskSchd_Filter_Last12Hours";
+    public const string FilterLast24Hours = "TaskSchd_Filter_Last24Hours";
+    public const string FilterLast7Days = "TaskSchd_Filter_Last7Days";
+    public const string FilterLast30Days = "TaskSchd_Filter_Last30Days";
+    public const string FilterCustomRange = "TaskSchd_Filter_CustomRange";
+    public const string FilterEventLevel = "TaskSchd_Filter_EventLevel";
+    public const string FilterByLog = "TaskSchd_Filter_ByLog";
+    public const string FilterEventLogs = "TaskSchd_Filter_EventLogs";
+    public const string FilterSelectEventLogs = "TaskSchd_Filter_SelectEventLogs";
+    public const string FilterBySource = "TaskSchd_Filter_BySource";
+    public const string FilterEventSources = "TaskSchd_Filter_EventSources";
+    public const string FilterAllEventSources = "TaskSchd_Filter_AllEventSources";
+    public const string FilterEventIdsHint = "TaskSchd_Filter_EventIdsHint";
+    public const string FilterAllEventIds = "TaskSchd_Filter_AllEventIds";
+    public const string FilterTaskCategory = "TaskSchd_Filter_TaskCategory";
+    public const string FilterKeywords = "TaskSchd_Filter_Keywords";
+    public const string FilterAllKeywords = "TaskSchd_Filter_AllKeywords";
+    public const string FilterUser = "TaskSchd_Filter_User";
+    public const string FilterAllUsers = "TaskSchd_Filter_AllUsers";
+    public const string FilterComputers = "TaskSchd_Filter_Computers";
+    public const string FilterAllComputers = "TaskSchd_Filter_AllComputers";
+    public const string FilterXmlHint = "TaskSchd_Filter_XmlHint";
+    public const string FilterEditQueryManually = "TaskSchd_Filter_EditQueryManually";
+    public const string FilterRangeUpToFormat = "TaskSchd_Filter_RangeUpToFormat";
+    public const string FilterRangeFromFormat = "TaskSchd_Filter_RangeFromFormat";
+    public const string FilterRangeFromToFormat = "TaskSchd_Filter_RangeFromToFormat";
+    public const string CustomRangeTitle = "TaskSchd_CustomRange_Title";
+    public const string CustomRangeInstruction = "TaskSchd_CustomRange_Instruction";
+    public const string CustomRangeFrom = "TaskSchd_CustomRange_From";
+    public const string CustomRangeTo = "TaskSchd_CustomRange_To";
+    public const string CustomRangeFirstEvent = "TaskSchd_CustomRange_FirstEvent";
+    public const string CustomRangeLastEvent = "TaskSchd_CustomRange_LastEvent";
+    public const string CustomRangeEventsOn = "TaskSchd_CustomRange_EventsOn";
+    public const string CustomRangeInvalid = "TaskSchd_CustomRange_Invalid";
 }
 
+/// <summary>
+/// Resource key constants for Component Services DCOM Config.
+/// </summary>
+public static class ComExpKeys
+{
+    public const string DcomConfig = "ComExp_DcomConfig";
+    public const string DcomConfigDescription = "ComExp_DcomConfig_Description";
+    public const string ApplicationName = "ComExp_Application_Name";
+    public const string ApplicationId = "ComExp_Application_Id";
+    public const string DcomAppId = "ComExp_Dcom_AppId";
+    public const string ApplicationAuthenticationLevel = "ComExp_Application_AuthenticationLevel";
+    public const string LoadingDcomApps = "ComExp_LoadingDcomApps";
+    public const string LoadedCount = "ComExp_LoadedCount";
+    public const string LoadFailed = "ComExp_LoadFailed";
+    public const string NoDataAvailable = "ComExp_NoDataAvailable";
+    public const string AuthNone = "ComExp_Auth_None";
+    public const string AuthConnect = "ComExp_Auth_Connect";
+    public const string AuthCall = "ComExp_Auth_Call";
+    public const string AuthPacket = "ComExp_Auth_Packet";
+    public const string AuthPacketIntegrity = "ComExp_Auth_PacketIntegrity";
+    public const string AuthPacketPrivacy = "ComExp_Auth_PacketPrivacy";
+    public const string FormatDefault = "ComExp_Format_Default";
+
+    // DCOM Config list + detail
+    public const string DcomSearchPlaceholder = "ComExp_Dcom_SearchPlaceholder";
+    public const string DcomTabGeneral = "ComExp_Dcom_Tab_General";
+    public const string DcomTabLocation = "ComExp_Dcom_Tab_Location";
+    public const string DcomTabSecurity = "ComExp_Dcom_Tab_Security";
+    public const string DcomTabEndpoints = "ComExp_Dcom_Tab_Endpoints";
+    public const string DcomTabIdentity = "ComExp_Dcom_Tab_Identity";
+    public const string DcomApplicationName = "ComExp_Dcom_ApplicationName";
+    public const string DcomApplicationType = "ComExp_Dcom_ApplicationType";
+    public const string DcomAuthenticationLevel = "ComExp_Dcom_AuthenticationLevel";
+    public const string DcomLocalPath = "ComExp_Dcom_LocalPath";
+    public const string DcomTypeLocalServer = "ComExp_Dcom_Type_LocalServer";
+    public const string DcomTypeLocalService = "ComExp_Dcom_Type_LocalService";
+    public const string DcomTypeSurrogate = "ComExp_Dcom_Type_Surrogate";
+    public const string DcomLocalService = "ComExp_Dcom_LocalService";
+    public const string DcomRunAs = "ComExp_Dcom_RunAs";
+    public const string DcomDllSurrogate = "ComExp_Dcom_DllSurrogate";
+    public const string DcomServiceParameters = "ComExp_Dcom_ServiceParameters";
+    public const string DcomIdentity = "ComExp_Dcom_Identity";
+    public const string DcomIdentityInteractive = "ComExp_Dcom_Identity_Interactive";
+    public const string DcomIdentityLaunching = "ComExp_Dcom_Identity_Launching";
+    public const string DcomIdentityThisUser = "ComExp_Dcom_Identity_ThisUser";
+    public const string DcomIdentityServiceFormat = "ComExp_Dcom_Identity_ServiceFormat";
+    public const string DcomRunOnThisComputer = "ComExp_Dcom_RunOnThisComputer";
+    public const string DcomRunOnFollowingComputer = "ComExp_Dcom_RunOnFollowingComputer";
+    public const string DcomRemoteComputerName = "ComExp_Dcom_RemoteComputerName";
+    public const string DcomLaunchPermissions = "ComExp_Dcom_LaunchPermissions";
+    public const string DcomAccessPermissions = "ComExp_Dcom_AccessPermissions";
+    public const string DcomUseDefault = "ComExp_Dcom_UseDefault";
+    public const string DcomUseCustom = "ComExp_Dcom_UseCustom";
+    public const string DcomEndpointsEmpty = "ComExp_Dcom_EndpointsEmpty";
+    public const string DcomNoSelection = "ComExp_Dcom_NoSelection";
+    public const string DcomNoResults = "ComExp_Dcom_NoResults";
+    public const string DcomReadOnlyNote = "ComExp_Dcom_ReadOnlyNote";
+    public const string DcomNotSet = "ComExp_Dcom_NotSet";
+
+    // Running Processes
+    public const string LoadingProcesses = "ComExp_LoadingProcesses";
+    public const string RunSummaryFormat = "ComExp_Run_SummaryFormat";
+    public const string RunNoProcesses = "ComExp_Run_NoProcesses";
+    public const string RunSelectPrompt = "ComExp_Run_SelectPrompt";
+    public const string RunPartitionId = "ComExp_Run_PartitionId";
+    public const string RunApplicationId = "ComExp_Run_ApplicationId";
+    public const string RunInstanceId = "ComExp_Run_InstanceId";
+    public const string RunType = "ComExp_Run_Type";
+    public const string RunClsid = "ComExp_Run_Clsid";
+    public const string RunProgId = "ComExp_Run_ProgId";
+    public const string RunDll = "ComExp_Run_Dll";
+
+    // Distributed Transaction Coordinator (status messages)
+    public const string LoadingStatistics = "ComExp_LoadingStatistics";
+    public const string LoadedSuccess = "ComExp_LoadedSuccess";
+    public const string DtcLoadingTransactions = "ComExp_Dtc_LoadingTransactions";
+    public const string DtcActiveTransactionsCount = "ComExp_Dtc_ActiveTransactionsCount";
+    public const string DtcStatisticsUnavailable = "ComExp_Dtc_StatisticsUnavailable";
+
+    // Live updates
+    public const string AutoRefreshActive = "ComExp_AutoRefresh_Active";
+}
+
+/// <summary>
+/// Resource key constants for Print Management (PrintManagement.resw).
+/// </summary>
+public static class PrintMgmtKeys
+{
+    public const string PrinterStatusReady = "PrintMgmt_PrinterStatus_Ready";
+    public const string PrinterStatusPaused = "PrintMgmt_PrinterStatus_Paused";
+    public const string PrinterStatusError = "PrintMgmt_PrinterStatus_Error";
+    public const string PrinterStatusPendingDeletion = "PrintMgmt_PrinterStatus_PendingDeletion";
+    public const string PrinterStatusPaperJam = "PrintMgmt_PrinterStatus_PaperJam";
+    public const string PrinterStatusPaperOut = "PrintMgmt_PrinterStatus_PaperOut";
+    public const string PrinterStatusManualFeed = "PrintMgmt_PrinterStatus_ManualFeed";
+    public const string PrinterStatusPaperProblem = "PrintMgmt_PrinterStatus_PaperProblem";
+    public const string PrinterStatusOffline = "PrintMgmt_PrinterStatus_Offline";
+    public const string PrinterStatusIoActive = "PrintMgmt_PrinterStatus_IoActive";
+    public const string PrinterStatusBusy = "PrintMgmt_PrinterStatus_Busy";
+    public const string PrinterStatusPrinting = "PrintMgmt_PrinterStatus_Printing";
+    public const string PrinterStatusOutputBinFull = "PrintMgmt_PrinterStatus_OutputBinFull";
+    public const string PrinterStatusNotAvailable = "PrintMgmt_PrinterStatus_NotAvailable";
+    public const string PrinterStatusWaiting = "PrintMgmt_PrinterStatus_Waiting";
+    public const string PrinterStatusProcessing = "PrintMgmt_PrinterStatus_Processing";
+    public const string PrinterStatusInitializing = "PrintMgmt_PrinterStatus_Initializing";
+    public const string PrinterStatusWarmingUp = "PrintMgmt_PrinterStatus_WarmingUp";
+    public const string PrinterStatusTonerLow = "PrintMgmt_PrinterStatus_TonerLow";
+    public const string PrinterStatusNoToner = "PrintMgmt_PrinterStatus_NoToner";
+    public const string PrinterStatusUserIntervention = "PrintMgmt_PrinterStatus_UserIntervention";
+    public const string PrinterStatusOutOfMemory = "PrintMgmt_PrinterStatus_OutOfMemory";
+    public const string PrinterStatusDoorOpen = "PrintMgmt_PrinterStatus_DoorOpen";
+    public const string PrinterStatusPowerSave = "PrintMgmt_PrinterStatus_PowerSave";
+    public const string FormTypeBuiltIn = "PrintMgmt_FormType_BuiltIn";
+    public const string FormTypePrinter = "PrintMgmt_FormType_Printer";
+    public const string FormTypeUserDefined = "PrintMgmt_FormType_UserDefined";
+    public const string FormTypeUnknown = "PrintMgmt_FormType_Unknown";
+    public const string PortTypeLocal = "PrintMgmt_PortType_Local";
+    public const string PortTypeStandardTcpIp = "PrintMgmt_PortType_StandardTcpIp";
+    public const string PortDescUsbVirtual = "PrintMgmt_PortDesc_UsbVirtual";
+    public const string PortDescPrintToFile = "PrintMgmt_PortDesc_PrintToFile";
+    public const string PortDescPrinterPort = "PrintMgmt_PortDesc_PrinterPort";
+    public const string PortDescSerial = "PrintMgmt_PortDesc_Serial";
+    public const string PortDescNull = "PrintMgmt_PortDesc_Null";
+    public const string PortDescWsDiscovery = "PrintMgmt_PortDesc_WsDiscovery";
+    public const string LocalRegistryDeployment = "PrintMgmt_LocalRegistryDeployment";
+    public const string ServerLabel = "PrintMgmt_ServerLabel";
+    public const string PerUserGpoLabel = "PrintMgmt_PerUserGpoLabel";
+    public const string PerComputerGpoLabel = "PrintMgmt_PerComputerGpoLabel";
+    public const string ErrorQueryDefaults = "PrintMgmt_Error_QueryDefaults";
+    public const string ErrorLoadDefaults = "PrintMgmt_Error_LoadDefaults";
+    public const string ErrorSaveDefaults = "PrintMgmt_Error_SaveDefaults";
+    public const string ErrorDeletePrinter = "PrintMgmt_Error_DeletePrinter";
+    public const string ErrorRenamePrinter = "PrintMgmt_Error_RenamePrinter";
+    public const string ErrorAddUserConnection = "PrintMgmt_Error_AddUserConnection";
+    public const string ErrorRemoveUserConnection = "PrintMgmt_Error_RemoveUserConnection";
+    public const string ErrorDeleteDriver = "PrintMgmt_Error_DeleteDriver";
+    public const string ErrorPausePrinter = "PrintMgmt_Error_PausePrinter";
+    public const string ErrorResumePrinter = "PrintMgmt_Error_ResumePrinter";
+    public const string ErrorOpenPrintServer = "PrintMgmt_Error_OpenPrintServer";
+    public const string ErrorOpenPrinterFormat = "PrintMgmt_Error_OpenPrinterFormat";
+    public const string ErrorInvalidInfoBuffer = "PrintMgmt_Error_InvalidInfoBuffer";
+    public const string ErrorQueryInfoSize = "PrintMgmt_Error_QueryInfoSize";
+    public const string ErrorQueryInfo = "PrintMgmt_Error_QueryInfo";
+    public const string ErrorUpdateIsolationGroups = "PrintMgmt_Error_UpdateIsolationGroups";
+    public const string ErrorInvalidConnectionPath = "PrintMgmt_Error_InvalidConnectionPath";
+    public const string ErrorResolveDomain = "PrintMgmt_Error_ResolveDomain";
+    public const string ErrorConnectDirectory = "PrintMgmt_Error_ConnectDirectory";
+    public const string ErrorDomainNotFound = "PrintMgmt_Error_DomainNotFound";
+    public const string IsolationNone = "PrintMgmt_IsolationNone";
+    public const string IsolationShared = "PrintMgmt_IsolationShared";
+    public const string IsolationIsolated = "PrintMgmt_IsolationIsolated";
+    public const string IsolationSystemDefault = "PrintMgmt_IsolationSystemDefault";
+    public const string Loading = "PrintMgmt_Loading";
+    public const string LoadedFormat = "PrintMgmt_LoadedFormat";
+    public const string ErrorLoadingFormat = "PrintMgmt_ErrorLoadingFormat";
+    public const string ErrorDriverInBox = "PrintMgmt_ErrorDriverInBox";
+    public const string ErrorDriverInUse = "PrintMgmt_ErrorDriverInUse";
+}
+
+/// <summary>
+/// Resource key constants for Performance Monitor (PerfMon.resw).
+/// </summary>
+public static class PerfMonKeys
+{
+    public const string StatusRunning = "PerfMon_Status_Running";
+    public const string StatusPaused = "PerfMon_Status_Paused";
+    public const string StatusInitializing = "PerfMon_Status_Initializing";
+    public const string StatusMonitoringFormat = "PerfMon_Status_MonitoringFormat";
+    public const string StatusInitErrorFormat = "PerfMon_Status_InitErrorFormat";
+    public const string StatusResumed = "PerfMon_Status_Resumed";
+    public const string StatusMonitoringPaused = "PerfMon_Status_MonitoringPaused";
+    public const string StatusRefreshed = "PerfMon_Status_Refreshed";
+    public const string StatusCleared = "PerfMon_Status_Cleared";
+    public const string StatusGraphView = "PerfMon_Status_GraphView";
+    public const string StatusHistogramView = "PerfMon_Status_HistogramView";
+    public const string StatusReportView = "PerfMon_Status_ReportView";
+    public const string StatusLoadCategoriesErrorFormat = "PerfMon_Status_LoadCategoriesErrorFormat";
+    public const string StatusLoadCountersErrorFormat = "PerfMon_Status_LoadCountersErrorFormat";
+    public const string StatusCounterExists = "PerfMon_Status_CounterExists";
+    public const string StatusCreateCounterFailedFormat = "PerfMon_Status_CreateCounterFailedFormat";
+    public const string StatusCounterAddedFormat = "PerfMon_Status_CounterAddedFormat";
+    public const string StatusCounterRemovedFormat = "PerfMon_Status_CounterRemovedFormat";
+    public const string StatusFoundFormat = "PerfMon_Status_FoundFormat";
+    public const string StatusSearchErrorFormat = "PerfMon_Status_SearchErrorFormat";
+    public const string StatusSaving = "PerfMon_Status_Saving";
+    public const string StatusSavedFormat = "PerfMon_Status_SavedFormat";
+    public const string StatusSaveFailed = "PerfMon_Status_SaveFailed";
+    public const string StatusSaveErrorFormat = "PerfMon_Status_SaveErrorFormat";
+    public const string StatusLoading = "PerfMon_Status_Loading";
+    public const string StatusLoadedFormat = "PerfMon_Status_LoadedFormat";
+    public const string StatusLoadFailed = "PerfMon_Status_LoadFailed";
+    public const string StatusLoadErrorFormat = "PerfMon_Status_LoadErrorFormat";
+    public const string CounterDescriptionFormat = "PerfMon_CounterDescriptionFormat";
+}
+
+/// <summary>
+/// Resource key constants for Services (Services.resw).
+/// </summary>
+public static class ServicesKeys
+{
+    public const string StatusLoading = "Services_Status_Loading";
+    public const string StatusLoadedFormat = "Services_Status_LoadedFormat";
+    public const string StatusLoadErrorFormat = "Services_Status_LoadErrorFormat";
+    public const string StatusStartErrorFormat = "Services_Status_StartErrorFormat";
+    public const string StatusStopErrorFormat = "Services_Status_StopErrorFormat";
+    public const string StatusRestartErrorFormat = "Services_Status_RestartErrorFormat";
+    public const string StatusStartupTypeUpdatedFormat = "Services_Status_StartupTypeUpdatedFormat";
+    public const string StatusStartupTypeErrorFormat = "Services_Status_StartupTypeErrorFormat";
+    public const string StatusLogOnUpdatedFormat = "Services_Status_LogOnUpdatedFormat";
+    public const string StatusLogOnErrorFormat = "Services_Status_LogOnErrorFormat";
+    public const string StatusDetailsErrorFormat = "Services_Status_DetailsErrorFormat";
+    public const string StatusRecoveryUpdated = "Services_Status_RecoveryUpdated";
+    public const string StatusRecoveryUpdatedFormat = "Services_Status_RecoveryUpdatedFormat";
+    public const string StatusRecoveryErrorFormat = "Services_Status_RecoveryErrorFormat";
+    public const string ErrOpenScManager = "Services_Err_OpenScManager";
+    public const string ErrOpenService = "Services_Err_OpenService";
+    public const string ErrSetStartupTypeFormat = "Services_Err_SetStartupTypeFormat";
+    public const string ErrSetDelayedAutoStartFormat = "Services_Err_SetDelayedAutoStartFormat";
+    public const string ErrSetRecoveryFormat = "Services_Err_SetRecoveryFormat";
+    public const string ErrOpenProcessTokenFormat = "Services_Err_OpenProcessTokenFormat";
+    public const string ErrLookupPrivilegeFormat = "Services_Err_LookupPrivilegeFormat";
+    public const string ErrEnablePrivilegeFormat = "Services_Err_EnablePrivilegeFormat";
+    public const string ErrQueryConfigFormat = "Services_Err_QueryConfigFormat";
+}

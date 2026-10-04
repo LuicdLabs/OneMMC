@@ -1,5 +1,22 @@
 ﻿# Copilot Instructions
 
+This is the **normative rule set** for AI coding agents working in this repository. `AGENTS.md`
+(project orientation) and `CLAUDE.md` point here; if any other document conflicts with this file,
+this file wins.
+
+Each subsystem has exactly one authoritative reference. Read the relevant one before changing that
+area, and when a rule changes, edit the canonical document instead of restating it elsewhere:
+
+| Area | Reference |
+|---|---|
+| Native AOT constraints | `doc/NativeAot.md` |
+| Administrator detection & elevation UX | `doc/AdminDetectionSystem.md` |
+| Memory management & page teardown | `doc/MemoryManagement.md` |
+| Logging pipeline | `doc/Logging.md` |
+| Localization | `doc/Localization.md` |
+| Breadcrumb navigation | `doc/Breadcrumb.md` |
+| Project layout & build commands | `AGENTS.md` |
+
 ## General Guidelines
 - **Naming Conventions**: Strictly follow the official [C# Coding Conventions](https://learn.microsoft.com/en-us/dotnet/csharp/fundamentals/coding-style/coding-conventions) and [.NET Runtime Coding Guidelines](https://github.com/dotnet/runtime/blob/main/docs/coding-guidelines/coding-style.md).
     - Use **PascalCase** for public members, types, and namespaces.
@@ -11,6 +28,14 @@
     - Services/ViewModels: Constructor injection with `ILogger<T>`.
     - Page classes: Use `App.GetRequiredService<T>()` to obtain instances (never `new`).
     - Static/Factory: Provide `ConfigureLogger(...)` or `SetLogger(...)` methods.
+- **Localization**: Follow the localization architecture documented in `doc/Localization.md`. Key points:
+    - No hardcoded user-facing strings anywhere.
+    - XAML binds `{x:Bind LocalizedStrings.<Key>}` against the code-behind `LocalizedStrings` property (`LocalizedStrings.Instance`).
+    - Core code uses `LocalizationProvider.Current.GetString()` with `ResourceKeys` constants.
+    - Add strings to **both** supported locales: `en-US` and `zh-TW`.
+- **MVVM**: Use `CommunityToolkit.Mvvm` — `ObservableObject`, `[ObservableProperty]` on partial properties, `[RelayCommand]`. Keep code-behind minimal; prefer `DataTemplate` and data binding.
+- **Dependency Injection**: All registrations are **explicit** — no assembly scanning or convention-based auto-registration (a hard AOT requirement). Features register through their `<FeatureName>Module.cs`. Never add parameterless fallback constructors to bypass DI.
+- **Versions**: Package and SDK versions are pinned in `Directory.Packages.props`. Verify against that file rather than trusting a version quoted in prose.
 - **Microsoft Guidance**: Adhere to the latest implementation guidance provided by Microsoft Learn for WinUI 3 and Windows App SDK.
 - **Native Implementation**: 
     - Use native WinUI 3 / Windows App SDK APIs (e.g., `Windows.Storage`, `WinRT interop`) whenever possible.
@@ -26,7 +51,7 @@
 
 ## Native AOT Compatibility
 
-**Native AOT is the project's shipped deployment model** (the single reference — verified state, measured baseline, migration record — is `doc/NativeAot.md`). `PublishAot` is enabled unconditionally for every configuration (Debug and Release) and the AOT/trim analyzers are on for every build. Never recommend abandoning or scaling back AOT support because of a current limitation — propose the AOT-compatible alternative instead. All new and modified code must be AOT-compatible:
+**Native AOT is the project's shipped deployment model** (the single technical reference is `doc/NativeAot.md`). `PublishAot` is enabled unconditionally for every configuration (Debug and Release) and the AOT/trim analyzers are on for every build. Never recommend abandoning or scaling back AOT support because of a current limitation — propose the AOT-compatible alternative instead. All new and modified code must be AOT-compatible:
 
 - **No `dynamic`**: call COM through typed `[GeneratedComInterface]`/`ComWrappers` source-generated interfaces. Use `ComVariant` (`System.Runtime.InteropServices.Marshalling`) for VARIANT parameters.
 - **No `Type.GetTypeFromProgID`/`GetTypeFromCLSID` + `Activator.CreateInstance`**: activate COM via `CLSIDFromProgID` + `CoCreateInstance` (CsWin32) and wrap the pointer with `ComWrappers`.
@@ -72,7 +97,7 @@
 - **Asynchronous Programming**: Use `async`/`await` consistently. Avoid legacy patterns like `IAsyncResult`.
 - **Resource Management**: Use `x:Uid` for localization and define styles in `ResourceDictionary` files rather than inline styles.
 - **ThemeResource in Code-Behind**: When dynamically creating UI elements in code-behind that need theme-aware brushes, define a named `Style` with `{ThemeResource ...}` in the page's XAML `ResourceDictionary` and apply it via `Style = (Style)Resources["StyleKey"]` in code-behind. Never use `Application.Current.Resources["ResourceKey"]` directly — it is a one-time static fetch that will not update when the user switches between Light and Dark mode. Note: `SetResourceReference` is a WPF API and does **not** exist in WinUI 3.
-- **Navigation**: Use `SelectorBar` instead of `Pivot` in the UI wherever tab-like navigation is needed.
+- **Navigation**: Use `SelectorBar` instead of `Pivot` in the UI wherever tab-like navigation is needed. Top-level navigation uses `NavigationView`; breadcrumb behavior is documented in `doc/Breadcrumb.md`.
 
 ## Memory Management
 

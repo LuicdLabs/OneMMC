@@ -41,24 +41,52 @@ internal static class TaskXmlMapper
 
         task.Add(SerializeRegistrationInfo(def.RegistrationInfo));
 
-        if (def.Triggers.Count > 0)
+        if (def.Triggers.Count > 0 || def.UnsupportedTriggerXml.Count > 0)
         {
-            task.Add(new XElement(Ns + "Triggers", def.Triggers.Select(SerializeTrigger)));
+            var triggers = new XElement(Ns + "Triggers", def.Triggers.Select(SerializeTrigger));
+            // Preserve triggers the editor does not model (e.g. WnfStateChangeTrigger, custom triggers)
+            // verbatim so editing a known field does not silently delete them.
+            foreach (var raw in def.UnsupportedTriggerXml)
+            {
+                if (TryParseFragment(raw) is { } preserved)
+                {
+                    triggers.Add(preserved);
+                }
+            }
+            task.Add(triggers);
         }
 
         var principalId = string.IsNullOrEmpty(def.Principal.Id) ? "Author" : def.Principal.Id;
         task.Add(new XElement(Ns + "Principals", SerializePrincipal(def.Principal, principalId, def.Settings.Compatibility)));
         task.Add(SerializeSettings(def.Settings));
-        task.Add(SerializeActions(def.Actions, principalId));
+        task.Add(SerializeActions(def.Actions, principalId, def.UnsupportedActionXml));
 
         var doc = new XDocument(new XDeclaration("1.0", "UTF-16", null), task);
         return doc.Declaration + Environment.NewLine + task;
     }
 
+    /// <summary>
+    /// Validates a definition before it is written via RegisterTask. Currently enforces that every
+    /// "On an event" trigger carries a non-empty subscription: an empty <c>&lt;Subscription/&gt;</c> is
+    /// rejected by the service (or yields a trigger that never fires), so callers surface the thrown message.
+    /// </summary>
+    public static void ValidateForRegistration(TaskDefinitionModel def)
+    {
+        ArgumentNullException.ThrowIfNull(def);
+        foreach (var trigger in def.Triggers)
+        {
+            if (trigger is EventTriggerModel ev && string.IsNullOrWhiteSpace(ev.Subscription))
+            {
+                throw new InvalidOperationException(
+                    "An event trigger requires a non-empty event subscription (QueryList).");
+            }
+        }
+    }
+
     private static XElement SerializeRegistrationInfo(RegistrationInfoModel r)
     {
         var registrationInfo = new XElement(Ns + "RegistrationInfo");
-        AddIf(registrationInfo, "Date", r.Date is { } d ? d.ToString("yyyy-MM-ddTHH:mm:ss", CultureInfo.InvariantCulture) : null);
+        AddIf(registrationInfo, "Date", r.Date is { } d ? FormatDateTime(d) : null);
         AddIf(registrationInfo, "Author", r.Author);
         AddIf(registrationInfo, "Version", r.Version);
         AddIf(registrationInfo, "Description", r.Description);
@@ -181,7 +209,7 @@ internal static class TaskXmlMapper
         return settings;
     }
 
-    private static XElement SerializeActions(IEnumerable<ActionModel> actions, string context)
+    private static XElement SerializeActions(IEnumerable<ActionModel> actions, string context, IEnumerable<string> preservedRaw)
     {
         var actionsElement = new XElement(Ns + "Actions", new XAttribute("Context", context));
         foreach (var a in actions)
@@ -194,6 +222,15 @@ internal static class TaskXmlMapper
                 ShowMessageActionModel s => ShowMessageXml(s),
                 _ => throw new NotSupportedException($"Unknown action type {a.Type}."),
             });
+        }
+        // Re-emit actions the editor does not model (preserved verbatim from the source XML) so a save that
+        // only touched known fields does not silently drop them. They are appended after the known actions.
+        foreach (var raw in preservedRaw)
+        {
+            if (TryParseFragment(raw) is { } preserved)
+            {
+                actionsElement.Add(preserved);
+            }
         }
         return actionsElement;
     }
@@ -267,8 +304,6 @@ internal static class TaskXmlMapper
             _ => throw new NotSupportedException($"Unknown trigger type {t.Type}."),
         };
 
-        // Common ITrigger elements (order per schema: id attr, Enabled, StartBoundary, EndBoundary,
-        // ExecutionTimeLimit, Repetition). Prepend those that belong before the type-specific content.
         if (!string.IsNullOrEmpty(t.Id))
         {
             triggerElement.SetAttributeValue("id", t.Id);
@@ -277,10 +312,30 @@ internal static class TaskXmlMapper
         return triggerElement;
     }
 
+    // The Task Scheduler schema (triggerBaseType) fixes the order of the common ITrigger children as
+    // Enabled, StartBoundary, EndBoundary, ExecutionTimeLimit, Repetition — and they must all appear
+    // BEFORE the type-specific content (Subscription/ScheduleByDay/Delay/…). Emitting them out of order
+    // makes RegisterTask reject the whole task as malformed (SCHED_E_MALFORMEDXML), so build them in the
+    // exact schema order and insert them at the front (the type-specific children were already added when
+    // triggerElement was constructed).
     private static void PrependCommon(XElement triggerElement, TriggerModel t)
     {
-        // Build the common children then insert them in schema order at the front (after any attributes).
-        var common = new List<XElement>();
+        var common = new List<XElement>
+        {
+            new(Ns + "Enabled", XmlBool(t.Enabled)),
+        };
+        if (t.StartBoundary is { } sb)
+        {
+            common.Add(new XElement(Ns + "StartBoundary", FormatDateTime(sb)));
+        }
+        if (t.EndBoundary is { } eb)
+        {
+            common.Add(new XElement(Ns + "EndBoundary", FormatDateTime(eb)));
+        }
+        if (t.ExecutionTimeLimit is { } etl)
+        {
+            common.Add(new XElement(Ns + "ExecutionTimeLimit", DurationString(etl)));
+        }
         if (t.Repetition.IsEnabled)
         {
             var repetition = new XElement(Ns + "Repetition",
@@ -292,21 +347,8 @@ internal static class TaskXmlMapper
             repetition.Add(new XElement(Ns + "StopAtDurationEnd", XmlBool(t.Repetition.StopAtDurationEnd)));
             common.Add(repetition);
         }
-        if (t.ExecutionTimeLimit is { } etl)
-        {
-            common.Add(new XElement(Ns + "ExecutionTimeLimit", DurationString(etl)));
-        }
-        if (t.StartBoundary is { } sb)
-        {
-            common.Add(new XElement(Ns + "StartBoundary", sb.ToString("yyyy-MM-ddTHH:mm:ss", CultureInfo.InvariantCulture)));
-        }
-        if (t.EndBoundary is { } eb)
-        {
-            common.Add(new XElement(Ns + "EndBoundary", eb.ToString("yyyy-MM-ddTHH:mm:ss", CultureInfo.InvariantCulture)));
-        }
-        common.Add(new XElement(Ns + "Enabled", XmlBool(t.Enabled)));
-        // Insert in schema order: Enabled/StartBoundary/EndBoundary/ExecutionTimeLimit/Repetition come
-        // BEFORE the type-specific schedule content, so add them at the front in reverse build order.
+
+        // common is already in schema order; AddFirst in reverse so the final front-to-back order matches.
         for (int i = common.Count - 1; i >= 0; i--)
         {
             triggerElement.AddFirst(common[i]);
@@ -481,6 +523,11 @@ internal static class TaskXmlMapper
                 {
                     def.Triggers.Add(model);
                 }
+                else
+                {
+                    // Keep unknown trigger elements verbatim so a later re-serialize can round-trip them.
+                    def.UnsupportedTriggerXml.Add(te.ToString(SaveOptions.DisableFormatting));
+                }
             }
         }
 
@@ -493,6 +540,11 @@ internal static class TaskXmlMapper
                 if (model is not null)
                 {
                     def.Actions.Add(model);
+                }
+                else
+                {
+                    // Keep unknown action elements verbatim so a later re-serialize can round-trip them.
+                    def.UnsupportedActionXml.Add(ae.ToString(SaveOptions.DisableFormatting));
                 }
             }
         }
@@ -832,12 +884,32 @@ internal static class TaskXmlMapper
         }
     }
 
+    // Re-parses a preserved trigger/action fragment (captured verbatim during Parse) back into an element.
+    // A fragment that no longer parses is dropped rather than corrupting the whole task document.
+    private static XElement? TryParseFragment(string xml)
+    {
+        try
+        {
+            return XElement.Parse(xml, LoadOptions.PreserveWhitespace);
+        }
+        catch (System.Xml.XmlException)
+        {
+            return null;
+        }
+    }
+
     private static string XmlBool(bool value) => value ? "true" : "false";
 
     private static bool ParseBool(string? value, bool fallback) =>
         string.IsNullOrEmpty(value) ? fallback : value is "true" or "1";
 
     private static string DurationString(TimeSpan value) => XmlConvert.ToString(value);
+
+    // Round-trips a boundary/date preserving Kind and any fractional seconds (Utc -> ...Z, Local -> ...±hh:mm,
+    // Unspecified -> no offset). The old "yyyy-MM-ddTHH:mm:ss" format silently dropped the offset and the
+    // fractional part, which could shift an existing task's trigger time when it was edited and re-saved.
+    private static string FormatDateTime(DateTime value) =>
+        XmlConvert.ToString(value, XmlDateTimeSerializationMode.RoundtripKind);
 
     private static string? DurationOrNull(TimeSpan? value) => value is { } v ? XmlConvert.ToString(v) : null;
 
@@ -867,7 +939,9 @@ internal static class TaskXmlMapper
         {
             return null;
         }
-        return DateTime.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.None, out var dt) ? dt : null;
+        // RoundtripKind keeps a trailing 'Z' as Utc and an explicit offset as Local (instead of silently
+        // normalizing everything to the machine's local time), so an edited task keeps its original instant.
+        return DateTime.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var dt) ? dt : null;
     }
 
     private static string LogonTypeToXml(TaskLogonType type) => type switch

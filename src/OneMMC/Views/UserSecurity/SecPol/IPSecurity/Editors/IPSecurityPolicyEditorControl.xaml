@@ -5,6 +5,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:editors="using:OneMMC.Views.UserSecurity.SecPol.IPSecurity.Editors">
 
+    <!--  Simple form: label/header controls in a two-column grid, no settings cards.  -->
     <ScrollViewer
         HorizontalScrollBarVisibility="Disabled"
         VerticalScrollBarVisibility="Auto">
@@ -35,16 +36,25 @@
                 </Grid.ColumnDefinitions>
 
                 <StackPanel Spacing="8">
-                    <CheckBox
-                        x:Name="AssignedCheckBox"
-                        Content="{x:Bind LocalizedStrings.IPSec_Editor_Assigned}" />
-                    <CheckBox
-                        x:Name="DefaultResponseRuleCheckBox"
-                        Content="{x:Bind LocalizedStrings.IPSec_Editor_DefaultResponseRule}" />
-                    <CheckBox
-                        x:Name="MasterPfsCheckBox"
-                        Click="MasterPfsCheckBox_Click"
-                        Content="{x:Bind LocalizedStrings.IPSec_Editor_MasterPfs}" />
+                    <ToggleSwitch
+                        x:Name="AssignedToggleSwitch"
+                        AutomationProperties.Name="{x:Bind LocalizedStrings.IPSec_Editor_Assigned}"
+                        Header="{x:Bind LocalizedStrings.IPSec_Editor_Assigned}"
+                        OffContent="{x:Bind LocalizedStrings.IPSec_Value_No}"
+                        OnContent="{x:Bind LocalizedStrings.IPSec_Value_Yes}" />
+                    <ToggleSwitch
+                        x:Name="DefaultResponseRuleToggleSwitch"
+                        AutomationProperties.Name="{x:Bind LocalizedStrings.IPSec_Editor_DefaultResponseRule}"
+                        Header="{x:Bind LocalizedStrings.IPSec_Editor_DefaultResponseRule}"
+                        OffContent="{x:Bind LocalizedStrings.IPSec_Value_No}"
+                        OnContent="{x:Bind LocalizedStrings.IPSec_Value_Yes}" />
+                    <ToggleSwitch
+                        x:Name="MasterPfsToggleSwitch"
+                        AutomationProperties.Name="{x:Bind LocalizedStrings.IPSec_Editor_MasterPfs}"
+                        Header="{x:Bind LocalizedStrings.IPSec_Editor_MasterPfs}"
+                        OffContent="{x:Bind LocalizedStrings.IPSec_Value_No}"
+                        OnContent="{x:Bind LocalizedStrings.IPSec_Value_Yes}"
+                        Toggled="MasterPfsToggleSwitch_Toggled" />
                 </StackPanel>
 
                 <StackPanel

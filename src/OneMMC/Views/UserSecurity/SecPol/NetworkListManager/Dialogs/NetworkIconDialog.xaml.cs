@@ -1,4 +1,4 @@
-﻿using OneMMC.Core.Features.UserSecurity.Models.NetworkListManager;
+﻿using OneMMC.Core.Features.UserSecurity.Models.SecPol.NetworkListManager;
 using OneMMC.Core.Infrastructure.WindowsCapabilities;
 using OneMMC.Localization;
 using OneMMC.Services;

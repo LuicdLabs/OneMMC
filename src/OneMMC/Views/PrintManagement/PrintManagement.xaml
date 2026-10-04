@@ -7,6 +7,7 @@
     xmlns:cwuc="using:CommunityToolkit.WinUI.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="using:OneMMC.Views"
+    xmlns:localization="using:OneMMC.Localization"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:models="using:OneMMC.Core.Features.PrintManagement.Models"
     mc:Ignorable="d">
@@ -29,43 +30,43 @@
                     Tag="{x:Bind}">
                     <Button.Flyout>
                         <MenuFlyout Opening="PrinterMenuFlyout_Opening">
-                            <MenuFlyoutItem Click="OpenPrinterQueue_Click" Tag="{x:Bind}" Text="Open Printer Queue">
+                            <MenuFlyoutItem Click="OpenPrinterQueue_Click" Tag="{x:Bind}" Text="{x:Bind localization:LocalizedStrings.Instance.PrintMgmt_MenuOpenPrinterQueue}">
                                 <MenuFlyoutItem.Icon>
                                     <FontIcon Glyph="&#xE7C3;" />
                                 </MenuFlyoutItem.Icon>
                             </MenuFlyoutItem>
-                            <MenuFlyoutItem Click="PauseResumePrinter_Click" Tag="{x:Bind}" Text="Pause Printing">
+                            <MenuFlyoutItem Click="PauseResumePrinter_Click" Tag="{x:Bind}" Text="{x:Bind localization:LocalizedStrings.Instance.PrintMgmt_MenuPausePrinting}">
                                 <MenuFlyoutItem.Icon>
                                     <FontIcon Glyph="&#xE769;" />
                                 </MenuFlyoutItem.Icon>
                             </MenuFlyoutItem>
-                            <MenuFlyoutItem Click="DeployPrinter_Click" Tag="{x:Bind}" Text="Deploy with Group Policy">
+                            <MenuFlyoutItem Click="DeployPrinter_Click" Tag="{x:Bind}" Text="{x:Bind localization:LocalizedStrings.Instance.PrintMgmt_MenuDeployWithGroupPolicy}">
                                 <MenuFlyoutItem.Icon>
                                     <FontIcon Glyph="&#xE902;" />
                                 </MenuFlyoutItem.Icon>
                             </MenuFlyoutItem>
-                            <MenuFlyoutItem Click="SetPrintingDefaults_Click" Tag="{x:Bind}" Text="Set Printing Defaults">
+                            <MenuFlyoutItem Click="SetPrintingDefaults_Click" Tag="{x:Bind}" Text="{x:Bind localization:LocalizedStrings.Instance.PrintMgmt_MenuSetPrintingDefaults}">
                                 <MenuFlyoutItem.Icon>
                                     <FontIcon Glyph="&#xE713;" />
                                 </MenuFlyoutItem.Icon>
                             </MenuFlyoutItem>
-                            <MenuFlyoutItem Click="PrintTestPage_Click" Tag="{x:Bind}" Text="Print Test Page">
+                            <MenuFlyoutItem Click="PrintTestPage_Click" Tag="{x:Bind}" Text="{x:Bind localization:LocalizedStrings.Instance.PrintMgmt_MenuPrintTestPage}">
                                 <MenuFlyoutItem.Icon>
                                     <FontIcon Glyph="&#xE749;" />
                                 </MenuFlyoutItem.Icon>
                             </MenuFlyoutItem>
-                            <MenuFlyoutItem Click="PrinterProperties_Click" Tag="{x:Bind}" Text="Properties">
+                            <MenuFlyoutItem Click="PrinterProperties_Click" Tag="{x:Bind}" Text="{x:Bind localization:LocalizedStrings.Instance.PrintMgmt_MenuProperties}">
                                 <MenuFlyoutItem.Icon>
                                     <FontIcon Glyph="&#xE946;" />
                                 </MenuFlyoutItem.Icon>
                             </MenuFlyoutItem>
                             <MenuFlyoutSeparator />
-                            <MenuFlyoutItem Click="DeletePrinter_Click" Tag="{x:Bind}" Text="Delete">
+                            <MenuFlyoutItem Click="DeletePrinter_Click" Tag="{x:Bind}" Text="{x:Bind localization:LocalizedStrings.Instance.Common_DeleteButton}">
                                 <MenuFlyoutItem.Icon>
                                     <FontIcon Glyph="&#xE74D;" />
                                 </MenuFlyoutItem.Icon>
                             </MenuFlyoutItem>
-                            <MenuFlyoutItem Click="RenamePrinter_Click" Tag="{x:Bind}" Text="Rename">
+                            <MenuFlyoutItem Click="RenamePrinter_Click" Tag="{x:Bind}" Text="{x:Bind localization:LocalizedStrings.Instance.PrintMgmt_MenuRename}">
                                 <MenuFlyoutItem.Icon>
                                     <FontIcon Glyph="&#xE8AC;" />
                                 </MenuFlyoutItem.Icon>
@@ -89,7 +90,7 @@
                             <Run Text=" | " />
                             <Run Text="{x:Bind DriverVersion}" />
                             <Run Text=" | " />
-                            <Run Text="{x:Bind IsolationMode}" />
+                            <Run Text="{x:Bind IsolationModeDisplay}" />
                         </TextBlock>
                     </StackPanel>
                 </cwuc:SettingsCard.Header>
@@ -99,24 +100,24 @@
                     Tag="{x:Bind}">
                     <Button.Flyout>
                         <MenuFlyout Opening="DriverMenuFlyout_Opening">
-                            <MenuFlyoutItem Click="RemoveDriverPackage_Click" Tag="{x:Bind}" Text="Remove Driver Package">
+                            <MenuFlyoutItem Click="RemoveDriverPackage_Click" Tag="{x:Bind}" Text="{x:Bind localization:LocalizedStrings.Instance.PrintMgmt_MenuRemoveDriverPackage}">
                                 <MenuFlyoutItem.Icon>
                                     <FontIcon Glyph="&#xE74D;" />
                                 </MenuFlyoutItem.Icon>
                             </MenuFlyoutItem>
-                            <MenuFlyoutSubItem Text="Set Driver Isolation">
-                                <MenuFlyoutItem Click="SetDriverIsolationNone_Click" Tag="{x:Bind}" Text="None" />
-                                <MenuFlyoutItem Click="SetDriverIsolationShared_Click" Tag="{x:Bind}" Text="Shared" />
-                                <MenuFlyoutItem Click="SetDriverIsolationIsolated_Click" Tag="{x:Bind}" Text="Isolated" />
-                                <MenuFlyoutItem Click="SetDriverIsolationDefault_Click" Tag="{x:Bind}" Text="System Default" />
+                            <MenuFlyoutSubItem Text="{x:Bind localization:LocalizedStrings.Instance.PrintMgmt_MenuSetDriverIsolation}">
+                                <MenuFlyoutItem Click="SetDriverIsolationNone_Click" Tag="{x:Bind}" Text="{x:Bind localization:LocalizedStrings.Instance.PrintMgmt_IsolationNone}" />
+                                <MenuFlyoutItem Click="SetDriverIsolationShared_Click" Tag="{x:Bind}" Text="{x:Bind localization:LocalizedStrings.Instance.PrintMgmt_IsolationShared}" />
+                                <MenuFlyoutItem Click="SetDriverIsolationIsolated_Click" Tag="{x:Bind}" Text="{x:Bind localization:LocalizedStrings.Instance.PrintMgmt_IsolationIsolated}" />
+                                <MenuFlyoutItem Click="SetDriverIsolationDefault_Click" Tag="{x:Bind}" Text="{x:Bind localization:LocalizedStrings.Instance.PrintMgmt_IsolationSystemDefault}" />
                             </MenuFlyoutSubItem>
-                            <MenuFlyoutItem Click="DriverProperties_Click" Tag="{x:Bind}" Text="Properties">
+                            <MenuFlyoutItem Click="DriverProperties_Click" Tag="{x:Bind}" Text="{x:Bind localization:LocalizedStrings.Instance.PrintMgmt_MenuProperties}">
                                 <MenuFlyoutItem.Icon>
                                     <FontIcon Glyph="&#xE946;" />
                                 </MenuFlyoutItem.Icon>
                             </MenuFlyoutItem>
                             <MenuFlyoutSeparator />
-                            <MenuFlyoutItem Click="DeleteDriver_Click" Tag="{x:Bind}" Text="Delete">
+                            <MenuFlyoutItem Click="DeleteDriver_Click" Tag="{x:Bind}" Text="{x:Bind localization:LocalizedStrings.Instance.Common_DeleteButton}">
                                 <MenuFlyoutItem.Icon>
                                     <FontIcon Glyph="&#xE74D;" />
                                 </MenuFlyoutItem.Icon>
@@ -136,13 +137,13 @@
                             <Run Text="{x:Bind Name}" />
                         </TextBlock>
                         <TextBlock FontSize="12" Foreground="{ThemeResource TextFillColorSecondaryBrush}">
-                            <Run Text="Server:" />
+                            <Run Text="{x:Bind localization:LocalizedStrings.Instance.PrintMgmt_ServerLabel}" />
                             <Run Text="{x:Bind ServerName}" />
                             <LineBreak />
-                            <Run Text="Per User GPO:" />
+                            <Run Text="{x:Bind localization:LocalizedStrings.Instance.PrintMgmt_PerUserGpoLabel}" />
                             <Run Text="{x:Bind PerUserGPO}" />
                             <Run Text=" | " />
-                            <Run Text="Per Computer GPO:" />
+                            <Run Text="{x:Bind localization:LocalizedStrings.Instance.PrintMgmt_PerComputerGpoLabel}" />
                             <Run Text="{x:Bind PerComputerGPO}" />
                         </TextBlock>
                     </StackPanel>
@@ -153,7 +154,7 @@
                     Tag="{x:Bind}">
                     <Button.Flyout>
                         <MenuFlyout Opening="DeployedPrinterMenuFlyout_Opening">
-                            <MenuFlyoutItem Click="DeployPrinter_Click" Tag="{x:Bind}" Text="Deploy with Group Policy">
+                            <MenuFlyoutItem Click="DeployPrinter_Click" Tag="{x:Bind}" Text="{x:Bind localization:LocalizedStrings.Instance.PrintMgmt_MenuDeployWithGroupPolicy}">
                                 <MenuFlyoutItem.Icon>
                                     <FontIcon Glyph="&#xE902;" />
                                 </MenuFlyoutItem.Icon>
@@ -189,7 +190,7 @@
                         x:Name="RefreshButton"
                         Click="RefreshButton_Click"
                         Icon="Refresh"
-                        Label="Refresh" />
+                        Label="{x:Bind LocalizedStrings.Common_Refresh}" />
                     <AppBarSeparator />
                     <AppBarButton Icon="More">
                         <AppBarButton.Flyout>

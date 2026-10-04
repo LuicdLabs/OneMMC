@@ -4,7 +4,6 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:localization="using:OneMMC.Localization"
     xmlns:converters="using:OneMMC.Converters"
     xmlns:core="using:OneMMC.Core.Features.SystemManagement.Models.ComExp"
     mc:Ignorable="d">
@@ -12,90 +11,104 @@
     <Page.Resources>
         <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
 
-        <Style x:Key="PropertyHeaderStyle" TargetType="TextBlock">
+        <Style x:Key="ColumnHeaderStyle" TargetType="TextBlock">
             <Setter Property="FontWeight" Value="SemiBold" />
-            <Setter Property="FontSize" Value="16" />
-            <Setter Property="Margin" Value="0,0,0,8" />
-        </Style>
-
-        <Style x:Key="PropertyLabelStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="12" />
             <Setter Property="Foreground" Value="{ThemeResource TextFillColorSecondaryBrush}" />
-            <Setter Property="Margin" Value="0,0,8,4" />
-            <Setter Property="VerticalAlignment" Value="Top" />
-        </Style>
-
-        <Style x:Key="PropertyValueStyle" TargetType="TextBlock">
-            <Setter Property="TextWrapping" Value="Wrap" />
-            <Setter Property="IsTextSelectionEnabled" Value="True" />
-            <Setter Property="Margin" Value="0,0,0,4" />
-            <Setter Property="VerticalAlignment" Value="Top" />
+            <Setter Property="Padding" Value="8,4" />
         </Style>
     </Page.Resources>
 
-    <Grid RowDefinitions="Auto,*">
+    <Grid RowDefinitions="Auto,Auto,*,Auto">
         <CommandBar DefaultLabelPosition="Right">
+            <AppBarButton
+                Click="PropertiesButton_Click"
+                IsEnabled="{x:Bind ViewModel.HasSelection, Mode=OneWay}"
+                Label="{x:Bind LocalizedStrings.ComExp_PropertiesButton}">
+                <AppBarButton.Icon>
+                    <FontIcon Glyph="&#xE946;" />
+                </AppBarButton.Icon>
+            </AppBarButton>
             <AppBarButton Icon="Refresh" Label="{x:Bind LocalizedStrings.ComExp_RefreshButton}" Click="RefreshButton_Click" />
         </CommandBar>
 
-        <Grid Grid.Row="1" ColumnDefinitions="2*,3*" RowDefinitions="*,Auto" Padding="24,8,24,24">
-            <ListView
-                ItemsSource="{x:Bind ViewModel.Applications, Mode=OneWay}"
-                SelectedItem="{x:Bind ViewModel.SelectedApplication, Mode=TwoWay}">
-                <ListView.ItemTemplate>
-                    <DataTemplate x:DataType="core:DcomApplicationInfo">
-                        <StackPanel Padding="8">
-                            <TextBlock FontWeight="SemiBold" Text="{x:Bind Name}" />
-                            <TextBlock FontSize="12" Opacity="0.7" Text="{x:Bind AppId}" />
-                        </StackPanel>
-                    </DataTemplate>
-                </ListView.ItemTemplate>
-            </ListView>
+        <AutoSuggestBox
+            Grid.Row="1"
+            MinWidth="280"
+            MaxWidth="420"
+            Margin="24,8,24,0"
+            HorizontalAlignment="Left"
+            PlaceholderText="{x:Bind LocalizedStrings.ComExp_Dcom_SearchPlaceholder}"
+            QueryIcon="Find"
+            Text="{x:Bind ViewModel.SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
-            <ScrollViewer Grid.Column="1" Padding="16,0,0,0">
-                <StackPanel Spacing="8">
-                    <TextBlock Text="{x:Bind LocalizedStrings.ComExp_Application_Description}" Style="{StaticResource PropertyHeaderStyle}" />
+        <!-- Application list (Name | Application ID) -->
+        <Border
+            Grid.Row="2"
+            Margin="24,12,24,0"
+            Background="{ThemeResource CardBackgroundFillColorDefaultBrush}"
+            BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+            BorderThickness="1"
+            CornerRadius="8">
+            <Grid RowDefinitions="Auto,*,Auto">
+                <Grid ColumnDefinitions="3*,4*" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}" BorderThickness="0,0,0,1">
+                    <TextBlock Text="{x:Bind LocalizedStrings.ComExp_Application_Name}" Style="{StaticResource ColumnHeaderStyle}" />
+                    <TextBlock Grid.Column="1" Text="{x:Bind LocalizedStrings.ComExp_Dcom_AppId}" Style="{StaticResource ColumnHeaderStyle}" />
+                </Grid>
 
-                    <Grid ColumnDefinitions="140,*">
-                        <TextBlock Text="{x:Bind LocalizedStrings.ComExp_Application_Name}" Style="{StaticResource PropertyLabelStyle}" />
-                        <TextBlock Grid.Column="1" Style="{StaticResource PropertyValueStyle}" Text="{x:Bind ViewModel.SelectedApplicationName, Mode=OneWay}" />
-                    </Grid>
+                <ListView
+                    Grid.Row="1"
+                    DoubleTapped="ApplicationsList_DoubleTapped"
+                    ItemsSource="{x:Bind ViewModel.FilteredApplications, Mode=OneWay}"
+                    SelectedItem="{x:Bind ViewModel.SelectedApplication, Mode=TwoWay}"
+                    SelectionMode="Single">
+                    <ListView.ItemTemplate>
+                        <DataTemplate x:DataType="core:DcomApplicationInfo">
+                            <Grid ColumnDefinitions="3*,4*" Padding="0,6">
+                                <TextBlock
+                                    Padding="8,0"
+                                    VerticalAlignment="Center"
+                                    Text="{x:Bind Name}"
+                                    TextTrimming="CharacterEllipsis"
+                                    ToolTipService.ToolTip="{x:Bind Name}" />
+                                <TextBlock
+                                    Grid.Column="1"
+                                    Padding="8,0"
+                                    VerticalAlignment="Center"
+                                    FontFamily="Consolas"
+                                    FontSize="12"
+                                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                                    Text="{x:Bind AppId}"
+                                    TextTrimming="CharacterEllipsis"
+                                    ToolTipService.ToolTip="{x:Bind AppId}" />
+                            </Grid>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
 
-                    <Grid ColumnDefinitions="140,*">
-                        <TextBlock Text="{x:Bind LocalizedStrings.ComExp_Dcom_AppId}" Style="{StaticResource PropertyLabelStyle}" />
-                        <TextBlock Grid.Column="1" Style="{StaticResource PropertyValueStyle}" Text="{x:Bind ViewModel.SelectedApplicationAppId, Mode=OneWay}" />
-                    </Grid>
-
-                    <Grid ColumnDefinitions="140,*">
-                        <TextBlock Text="{x:Bind LocalizedStrings.ComExp_Dcom_LocalService}" Style="{StaticResource PropertyLabelStyle}" />
-                        <TextBlock Grid.Column="1" Style="{StaticResource PropertyValueStyle}" Text="{x:Bind ViewModel.SelectedApplicationLocalService, Mode=OneWay}" />
-                    </Grid>
-
-                    <Grid ColumnDefinitions="140,*">
-                        <TextBlock Text="{x:Bind LocalizedStrings.ComExp_Dcom_RunAs}" Style="{StaticResource PropertyLabelStyle}" />
-                        <TextBlock Grid.Column="1" Style="{StaticResource PropertyValueStyle}" Text="{x:Bind ViewModel.SelectedApplicationRunAs, Mode=OneWay}" />
-                    </Grid>
-
-                    <Grid ColumnDefinitions="140,*">
-                        <TextBlock Text="{x:Bind LocalizedStrings.ComExp_Dcom_DllSurrogate}" Style="{StaticResource PropertyLabelStyle}" />
-                        <TextBlock Grid.Column="1" Style="{StaticResource PropertyValueStyle}" Text="{x:Bind ViewModel.SelectedApplicationDllSurrogate, Mode=OneWay}" />
-                    </Grid>
-
-                    <Grid ColumnDefinitions="140,*">
-                        <TextBlock Text="{x:Bind LocalizedStrings.ComExp_Dcom_ServiceParameters}" Style="{StaticResource PropertyLabelStyle}" />
-                        <TextBlock Grid.Column="1" Style="{StaticResource PropertyValueStyle}" Text="{x:Bind ViewModel.SelectedApplicationServiceParameters, Mode=OneWay}" />
-                    </Grid>
-                </StackPanel>
-            </ScrollViewer>
-
-            <Grid Grid.Row="1" Grid.ColumnSpan="2" ColumnDefinitions="*,Auto" Padding="8,12,8,0">
-                <TextBlock Text="{x:Bind ViewModel.StatusMessage, Mode=OneWay}" />
-                <ProgressRing
-                    Grid.Column="1"
-                    Width="20"
-                    Height="20"
-                    IsActive="{x:Bind ViewModel.IsLoading, Mode=OneWay}"
-                    Visibility="{x:Bind ViewModel.IsLoading, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}" />
+                <TextBlock
+                    Grid.Row="2"
+                    Padding="12"
+                    Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                    Text="{x:Bind LocalizedStrings.ComExp_Dcom_NoResults}"
+                    TextWrapping="Wrap"
+                    Visibility="{x:Bind ViewModel.HasNoResults, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}" />
             </Grid>
+        </Border>
+
+        <!-- Status bar -->
+        <Grid Grid.Row="3" ColumnDefinitions="*,Auto" Padding="24,12,24,24">
+            <TextBlock
+                VerticalAlignment="Center"
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                Text="{x:Bind ViewModel.StatusMessage, Mode=OneWay}"
+                TextWrapping="Wrap" />
+            <ProgressRing
+                Grid.Column="1"
+                Width="20"
+                Height="20"
+                IsActive="{x:Bind ViewModel.IsLoading, Mode=OneWay}"
+                Visibility="{x:Bind ViewModel.IsLoading, Converter={StaticResource BoolToVisibilityConverter}, Mode=OneWay}" />
         </Grid>
     </Grid>
 </Page>

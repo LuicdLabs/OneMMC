@@ -53,7 +53,7 @@ Everything in Core is **UI-neutral**: it exposes state through observable proper
 and lets the View decide how to present it. This is what allows the same service/ViewModel to be
 driven from a page, a dialog, or a smoke test without dragging in the visual tree.
 
-> **~264 C# files**, organized into 6 feature areas and a shared infrastructure spine.
+> **~273 C# files**, organized into 6 feature areas and a shared infrastructure spine.
 
 ---
 
@@ -64,7 +64,7 @@ driven from a page, a dialog, or a smoke test without dragging in the visual tre
 | Target framework | `net10.0-windows10.0.19041.0` (min OS `10.0.19041.0`) |
 | Language | C# `preview` (`LangVersion=preview`), nullable enabled, implicit usings |
 | Deployment model | **Native AOT** (`PublishAot` unconditional — see [`doc/NativeAot.md`](../../doc/NativeAot.md)) |
-| MVVM | `CommunityToolkit.Mvvm` 8.4.2 (`ObservableObject`, `[ObservableProperty]`, `[RelayCommand]`) |
+| MVVM | `CommunityToolkit.Mvvm` (`ObservableObject`, `[ObservableProperty]`, `[RelayCommand]`) |
 | DI | `Microsoft.Extensions.DependencyInjection` |
 | Logging | `Microsoft.Extensions.Logging` + Serilog |
 | Win32 interop | **CsWin32** source generator (`Windows.Win32.PInvoke`, driven by `NativeMethods.txt`) |
@@ -120,7 +120,7 @@ feature must **never** reference types from another feature — share only throu
 
 The `Native/` interop lives *inside* each feature's `Interop` bucket (e.g.
 `TaskSchd/Native/TaskSchedulerNative.cs`), keeping the ABI contract next to its only consumer.
-There are **~17 native interop files** across the codebase.
+There are **~18 native interop files** across the codebase.
 
 ---
 
@@ -282,8 +282,8 @@ build (`Directory.Build.props`), so violations surface as warnings, not runtime 
 | Reflection activation / `MakeGenericType` / `Reflection.Emit` | Explicit DI registration, compile-time-known types |
 
 > **Never propose abandoning or scaling back AOT** because of a limitation — propose the
-> AOT-compatible alternative instead. The single reference for verified state, measured baseline,
-> and migration history is [`doc/NativeAot.md`](../../doc/NativeAot.md).
+> AOT-compatible alternative instead. The single technical reference is
+> [`doc/NativeAot.md`](../../doc/NativeAot.md).
 
 ---
 
@@ -314,6 +314,8 @@ Keep Windows-native capability code here instead of scattering it across feature
   point at the architecture level) and the `ResourceKeys` constants in `Localization/`.
 - **No hardcoded user-facing strings** in ViewModels — every visible string comes from a
   `ResourceKeys` constant resolved through `ILocalizationProvider`.
+
+Full guide: [`doc/Localization.md`](../../doc/Localization.md).
 
 ---
 

@@ -65,7 +65,7 @@ public class ConnectionSecurityService
             : rule.OriginalName;
 
         using WbemObject existing = GetRuleInstance(session, lookupName)
-            ?? throw new InvalidOperationException($"Connection security rule '{lookupName}' was not found.");
+            ?? throw new InvalidOperationException(OneMMC.Core.Localization.LocalizationProvider.Current.GetFormattedString(OneMMC.Core.Localization.ResourceFileNames.WF, OneMMC.Core.Localization.WFKeys.ErrCsrNotFoundFormat, lookupName));
 
         if (!string.Equals(lookupName, rule.Name, StringComparison.OrdinalIgnoreCase))
         {
@@ -91,7 +91,7 @@ public class ConnectionSecurityService
     {
         using WbemServices session = WbemServices.Connect(WindowsFirewallSupport.StandardCimNamespace);
         using WbemObject existing = GetRuleInstance(session, name)
-            ?? throw new InvalidOperationException($"Connection security rule '{name}' was not found.");
+            ?? throw new InvalidOperationException(OneMMC.Core.Localization.LocalizationProvider.Current.GetFormattedString(OneMMC.Core.Localization.ResourceFileNames.WF, OneMMC.Core.Localization.WFKeys.ErrCsrNotFoundFormat, name));
 
         string policyRuleName = existing.GetValue("PolicyRuleName")?.ToString() ?? string.Empty;
         DeleteRuleInternal(session, existing);
@@ -107,7 +107,7 @@ public class ConnectionSecurityService
     {
         using WbemServices session = WbemServices.Connect(WindowsFirewallSupport.StandardCimNamespace);
         using WbemObject existing = GetRuleInstance(session, name)
-            ?? throw new InvalidOperationException($"Connection security rule '{name}' was not found.");
+            ?? throw new InvalidOperationException(OneMMC.Core.Localization.LocalizationProvider.Current.GetFormattedString(OneMMC.Core.Localization.ResourceFileNames.WF, OneMMC.Core.Localization.WFKeys.ErrCsrNotFoundFormat, name));
 
         SetRuleEnabledInternal(session, existing, enabled);
         _logger.LogInformation("Set connection security rule {RuleName} enabled={Enabled}.", name, enabled);
@@ -119,7 +119,7 @@ public class ConnectionSecurityService
         session.CreateInstance(skeleton);
 
         using WbemObject created = GetRuleInstance(session, rule.Name)
-            ?? throw new InvalidOperationException($"Connection security rule '{rule.Name}' was created but could not be queried.");
+            ?? throw new InvalidOperationException(OneMMC.Core.Localization.LocalizationProvider.Current.GetFormattedString(OneMMC.Core.Localization.ResourceFileNames.WF, OneMMC.Core.Localization.WFKeys.ErrCsrCreatedNotQueryableFormat, rule.Name));
         string ruleIdentity = AuthManager.ResolveRuleIdentity(created, rule);
 
         try

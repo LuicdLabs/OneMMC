@@ -118,7 +118,7 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="AppTitle" xml:space="preserve">
-    <value>系統管理工具 (Dogfood)</value>
+    <value>OneMMC (Dogfood)</value>
   </data>
   <data name="TextBlock_WelcomeMessage" xml:space="preserve">
     <value>歡迎使用應用程式！</value>
@@ -150,17 +150,14 @@
   <data name="WelcomeDialog_Feature4" xml:space="preserve">
     <value>100% 採用純原生 Win32 API、COM、WMI 與 CIM 架構，以實現最佳效能並與 Windows 深度整合</value>
   </data>
-  <data name="WelcomeDialog_Feature5" xml:space="preserve">
-    <value>避免不必要的抽象層，以保留與現有 Windows 管理基礎設施的相容性</value>
-  </data>
   <data name="WelcomeDialog_WarningTitle" xml:space="preserve">
     <value>注意</value>
   </data>
   <data name="WelcomeDialog_WarningMessage" xml:space="preserve">
     <value>該軟體正在開發中。可能會修改您的系統元件。請在隔離環境或虛擬機器中使用</value>
   </data>
-  <data name="WelcomeDialog_RemindAfter30Days" xml:space="preserve">
-    <value>30 天後再提醒我</value>
+  <data name="WelcomeDialog_DoNotShowAgain" xml:space="preserve">
+    <value>永遠不再提醒</value>
   </data>
   <data name="WelcomeDialog_LetsExplore" xml:space="preserve">
     <value>開始探索</value>

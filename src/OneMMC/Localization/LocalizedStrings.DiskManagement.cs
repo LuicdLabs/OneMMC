@@ -178,5 +178,55 @@ namespace OneMMC.Localization
         public string DiskMgmt_VirtualDisk => GetResource(ResourceFileNames.DiskManagement, "DiskMgmt_VirtualDisk");
         public string DiskMgmt_IsVirtual => GetResource(ResourceFileNames.DiskManagement, "DiskMgmt_IsVirtual");
         public string DiskMgmt_Yes => GetResource(ResourceFileNames.DiskManagement, "DiskMgmt_Yes");
+
+        // Operation results, messages and dialog text
+        public string DiskMgmt_ErrorTitle => GetResource(ResourceFileNames.DiskManagement, "DiskMgmt_ErrorTitle");
+        public string DiskMgmt_Result_VhdCreateFailed => GetResource(ResourceFileNames.DiskManagement, "DiskMgmt_Result_VhdCreateFailed");
+        public string DiskMgmt_Result_VhdAttachFailed => GetResource(ResourceFileNames.DiskManagement, "DiskMgmt_Result_VhdAttachFailed");
+        public string DiskMgmt_Result_VhdDetachFailed => GetResource(ResourceFileNames.DiskManagement, "DiskMgmt_Result_VhdDetachFailed");
+        public string DiskMgmt_Result_EjectFailed => GetResource(ResourceFileNames.DiskManagement, "DiskMgmt_Result_EjectFailed");
+        public string DiskMgmt_Result_AssignDriveLetterFailed => GetResource(ResourceFileNames.DiskManagement, "DiskMgmt_Result_AssignDriveLetterFailed");
+        public string DiskMgmt_Result_ChangeDriveLetterFailed => GetResource(ResourceFileNames.DiskManagement, "DiskMgmt_Result_ChangeDriveLetterFailed");
+        public string DiskMgmt_Result_FormatFailed => GetResource(ResourceFileNames.DiskManagement, "DiskMgmt_Result_FormatFailed");
+        public string DiskMgmt_Result_InitializeFailed => GetResource(ResourceFileNames.DiskManagement, "DiskMgmt_Result_InitializeFailed");
+        public string DiskMgmt_Result_CreateVolumeFailed => GetResource(ResourceFileNames.DiskManagement, "DiskMgmt_Result_CreateVolumeFailed");
+        public string DiskMgmt_Result_SetOnlineFailed => GetResource(ResourceFileNames.DiskManagement, "DiskMgmt_Result_SetOnlineFailed");
+        public string DiskMgmt_Result_SetOfflineFailed => GetResource(ResourceFileNames.DiskManagement, "DiskMgmt_Result_SetOfflineFailed");
+        public string DiskMgmt_Result_SetReadOnlyFailed => GetResource(ResourceFileNames.DiskManagement, "DiskMgmt_Result_SetReadOnlyFailed");
+        public string DiskMgmt_Result_ClearReadOnlyFailed => GetResource(ResourceFileNames.DiskManagement, "DiskMgmt_Result_ClearReadOnlyFailed");
+        public string DiskMgmt_Result_CleanFailed => GetResource(ResourceFileNames.DiskManagement, "DiskMgmt_Result_CleanFailed");
+        public string DiskMgmt_Result_DeleteVolumeFailed => GetResource(ResourceFileNames.DiskManagement, "DiskMgmt_Result_DeleteVolumeFailed");
+        public string DiskMgmt_Result_ExtendFailed => GetResource(ResourceFileNames.DiskManagement, "DiskMgmt_Result_ExtendFailed");
+        public string DiskMgmt_Result_ShrinkFailed => GetResource(ResourceFileNames.DiskManagement, "DiskMgmt_Result_ShrinkFailed");
+        public string DiskMgmt_Result_RemoveDriveLetterFailed => GetResource(ResourceFileNames.DiskManagement, "DiskMgmt_Result_RemoveDriveLetterFailed");
+        public string DiskMgmt_Result_MountFailed => GetResource(ResourceFileNames.DiskManagement, "DiskMgmt_Result_MountFailed");
+        public string DiskMgmt_Result_MarkActiveFailed => GetResource(ResourceFileNames.DiskManagement, "DiskMgmt_Result_MarkActiveFailed");
+        public string DiskMgmt_Result_QueryFailed => GetResource(ResourceFileNames.DiskManagement, "DiskMgmt_Result_QueryFailed");
+        public string DiskMgmt_Result_NoSpaceAvailable => GetResource(ResourceFileNames.DiskManagement, "DiskMgmt_Result_NoSpaceAvailable");
+        public string DiskMgmt_Result_OperationNotSupported => GetResource(ResourceFileNames.DiskManagement, "DiskMgmt_Result_OperationNotSupported");
+        public string DiskMgmt_Msg_CannotFormatWithoutLetter => GetResource(ResourceFileNames.DiskManagement, "DiskMgmt_Msg_CannotFormatWithoutLetter");
+        public string DiskMgmt_Msg_InvalidCdrom => GetResource(ResourceFileNames.DiskManagement, "DiskMgmt_Msg_InvalidCdrom");
+        public string DiskMgmt_Msg_ResizeNotSupported => GetResource(ResourceFileNames.DiskManagement, "DiskMgmt_Msg_ResizeNotSupported");
+        public string DiskMgmt_Msg_NoExtendSpace => GetResource(ResourceFileNames.DiskManagement, "DiskMgmt_Msg_NoExtendSpace");
+        public string DiskMgmt_Msg_ExtendNeedsLetter => GetResource(ResourceFileNames.DiskManagement, "DiskMgmt_Msg_ExtendNeedsLetter");
+        public string DiskMgmt_Msg_NoShrinkSpace => GetResource(ResourceFileNames.DiskManagement, "DiskMgmt_Msg_NoShrinkSpace");
+        public string DiskMgmt_Msg_ShrinkSizeZero => GetResource(ResourceFileNames.DiskManagement, "DiskMgmt_Msg_ShrinkSizeZero");
+        public string DiskMgmt_Msg_ShrinkNeedsLetter => GetResource(ResourceFileNames.DiskManagement, "DiskMgmt_Msg_ShrinkNeedsLetter");
+        public string DiskMgmt_Msg_NoDriveLetter => GetResource(ResourceFileNames.DiskManagement, "DiskMgmt_Msg_NoDriveLetter");
+        public string DiskMgmt_Msg_CannotMountWithoutLetter => GetResource(ResourceFileNames.DiskManagement, "DiskMgmt_Msg_CannotMountWithoutLetter");
+        public string DiskMgmt_FileFilter_Vhd => GetResource(ResourceFileNames.DiskManagement, "DiskMgmt_FileFilter_Vhd");
+        public string DiskMgmt_FileFilter_Vhdx => GetResource(ResourceFileNames.DiskManagement, "DiskMgmt_FileFilter_Vhdx");
+        public string DiskMgmt_FileFilter_VhdLegacy => GetResource(ResourceFileNames.DiskManagement, "DiskMgmt_FileFilter_VhdLegacy");
+        public string DiskMgmt_SelectVhdToDetach => GetResource(ResourceFileNames.DiskManagement, "DiskMgmt_SelectVhdToDetach");
+        public string DiskMgmt_SelectVhd => GetResource(ResourceFileNames.DiskManagement, "DiskMgmt_SelectVhd");
+        public string DiskMgmt_SelectPlaceholder => GetResource(ResourceFileNames.DiskManagement, "DiskMgmt_SelectPlaceholder");
+        public string DiskMgmt_Alloc512 => GetResource(ResourceFileNames.DiskManagement, "DiskMgmt_Alloc512");
+        public string DiskMgmt_Alloc1024 => GetResource(ResourceFileNames.DiskManagement, "DiskMgmt_Alloc1024");
+        public string DiskMgmt_Alloc2048 => GetResource(ResourceFileNames.DiskManagement, "DiskMgmt_Alloc2048");
+        public string DiskMgmt_Alloc4096 => GetResource(ResourceFileNames.DiskManagement, "DiskMgmt_Alloc4096");
+        public string DiskMgmt_Alloc8192 => GetResource(ResourceFileNames.DiskManagement, "DiskMgmt_Alloc8192");
+        public string DiskMgmt_DiskInfoFormat => GetResource(ResourceFileNames.DiskManagement, "DiskMgmt_DiskInfoFormat");
+        public string DiskMgmt_MaxSizeFormat => GetResource(ResourceFileNames.DiskManagement, "DiskMgmt_MaxSizeFormat");
+        public string DiskMgmt_NoShrinkSpaceShort => GetResource(ResourceFileNames.DiskManagement, "DiskMgmt_NoShrinkSpaceShort");
     }
 }

@@ -1,11 +1,11 @@
 ﻿using System.IO;
 using OneMMC.Core.Infrastructure.PolicyStorage;
-using OneMMC.Core.Features.UserSecurity.Models.NetworkListManager;
+using OneMMC.Core.Features.UserSecurity.Models.SecPol.NetworkListManager;
 using OneMMC.Core.Localization;
 using Microsoft.Extensions.Logging;
 using Microsoft.Win32;
 
-namespace OneMMC.Core.Features.UserSecurity.Services.NetworkListManager;
+namespace OneMMC.Core.Features.UserSecurity.Services.SecPol.NetworkListManager;
 
 /// <summary>
 /// Reads and writes machine-scoped Network List Manager policies.

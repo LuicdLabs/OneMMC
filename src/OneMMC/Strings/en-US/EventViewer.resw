@@ -267,4 +267,82 @@
   <data name="EventViewer_Status_LoadLimitReached" xml:space="preserve">
     <value>Load limit reached. narrow the filter or export the log</value>
   </data>
+  <data name="EventViewer_Keyword_AuditFailure" xml:space="preserve">
+    <value>Audit Failure</value>
+  </data>
+  <data name="EventViewer_Keyword_AuditSuccess" xml:space="preserve">
+    <value>Audit Success</value>
+  </data>
+  <data name="EventViewer_Keyword_Classic" xml:space="preserve">
+    <value>Classic</value>
+  </data>
+  <data name="EventViewer_Keyword_CorrelationHint" xml:space="preserve">
+    <value>Correlation Hint</value>
+  </data>
+  <data name="EventViewer_Keyword_ResponseTime" xml:space="preserve">
+    <value>Response Time</value>
+  </data>
+  <data name="EventViewer_Keyword_Sqm" xml:space="preserve">
+    <value>SQM</value>
+  </data>
+  <data name="EventViewer_Keyword_WdiDiag" xml:space="preserve">
+    <value>WDI Diag</value>
+  </data>
+  <data name="EventViewer_Opcode_Info" xml:space="preserve">
+    <value>Info</value>
+  </data>
+  <data name="EventViewer_Opcode_Start" xml:space="preserve">
+    <value>Start</value>
+  </data>
+  <data name="EventViewer_Opcode_Stop" xml:space="preserve">
+    <value>Stop</value>
+  </data>
+  <data name="EventViewer_Opcode_DataCollectionStart" xml:space="preserve">
+    <value>DataCollectionStart</value>
+  </data>
+  <data name="EventViewer_Opcode_DataCollectionStop" xml:space="preserve">
+    <value>DataCollectionStop</value>
+  </data>
+  <data name="EventViewer_Opcode_Extension" xml:space="preserve">
+    <value>Extension</value>
+  </data>
+  <data name="EventViewer_Opcode_Reply" xml:space="preserve">
+    <value>Reply</value>
+  </data>
+  <data name="EventViewer_Opcode_Resume" xml:space="preserve">
+    <value>Resume</value>
+  </data>
+  <data name="EventViewer_Opcode_Suspend" xml:space="preserve">
+    <value>Suspend</value>
+  </data>
+  <data name="EventViewer_Opcode_Send" xml:space="preserve">
+    <value>Send</value>
+  </data>
+  <data name="EventViewer_TaskCategory_None" xml:space="preserve">
+    <value>None</value>
+  </data>
+  <data name="EventViewer_SummaryFormat" xml:space="preserve">
+    <value>{0} | Event ID: {1}</value>
+  </data>
+  <data name="EventViewer_SummaryWithCategoryFormat" xml:space="preserve">
+    <value>{0} | Event ID: {1} | {2}</value>
+  </data>
+  <data name="EventViewer_Status_ErrorFormat" xml:space="preserve">
+    <value>Error: {0}</value>
+  </data>
+  <data name="EventViewer_Status_ClearErrorFormat" xml:space="preserve">
+    <value>Error clearing log: {0}</value>
+  </data>
+  <data name="EventViewer_Status_Exporting" xml:space="preserve">
+    <value>Exporting...</value>
+  </data>
+  <data name="EventViewer_Status_ExportCompleted" xml:space="preserve">
+    <value>Export completed</value>
+  </data>
+  <data name="EventViewer_Status_ExportFailedFormat" xml:space="preserve">
+    <value>Export failed: {0}</value>
+  </data>
+  <data name="EventViewer_FileFilter_Evtx" xml:space="preserve">
+    <value>Event Log Files (*.evtx)</value>
+  </data>
 </root>

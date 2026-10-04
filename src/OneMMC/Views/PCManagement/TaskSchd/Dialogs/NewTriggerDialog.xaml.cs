@@ -4,6 +4,7 @@ using OneMMC.Core.Features.PCManagement.Models.TaskSchd;
 using OneMMC.Core.Features.PCManagement.Services.EventViewer;
 using OneMMC.Core.Localization;
 using OneMMC.Helpers;
+using OneMMC.Localization;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using WinRT.Interop;
@@ -43,6 +44,8 @@ public sealed partial class NewTriggerDialog : ContentDialog
     // first time the event panel is shown).
     private BasicEventQuery? _pendingBasicEvent;
 
+    public LocalizedStrings LocalizedStrings { get; } = LocalizedStrings.Instance;
+
     /// <summary>The trigger built when the dialog is committed; <see langword="null"/> if cancelled.</summary>
     public TriggerModel? ResultTrigger { get; private set; }
 
@@ -65,6 +68,7 @@ public sealed partial class NewTriggerDialog : ContentDialog
         PrimaryButtonText = L(TaskSchdKeys.ButtonOk);
         CloseButtonText = L(TaskSchdKeys.ButtonCancel);
         Closing += OnClosing;
+        PopulateDurationChoices();
 
         MonthlyScheduleMode.SelectedIndex = 0;
         ConnectionSourceRadios.SelectedIndex = 0;
@@ -103,8 +107,10 @@ public sealed partial class NewTriggerDialog : ContentDialog
 
     private static string[] BuildMonths() =>
         [
-            "January", "February", "March", "April", "May", "June",
-            "July", "August", "September", "October", "November", "December"
+            L(TaskSchdKeys.MonthJanuary), L(TaskSchdKeys.MonthFebruary), L(TaskSchdKeys.MonthMarch),
+            L(TaskSchdKeys.MonthApril), L(TaskSchdKeys.MonthMay), L(TaskSchdKeys.MonthJune),
+            L(TaskSchdKeys.MonthJuly), L(TaskSchdKeys.MonthAugust), L(TaskSchdKeys.MonthSeptember),
+            L(TaskSchdKeys.MonthOctober), L(TaskSchdKeys.MonthNovember), L(TaskSchdKeys.MonthDecember)
         ];
 
     private static string[] BuildMonthDays()
@@ -114,8 +120,40 @@ public sealed partial class NewTriggerDialog : ContentDialog
         {
             days[day - 1] = day.ToString(CultureInfo.InvariantCulture);
         }
-        days[31] = "Last";
+        days[31] = L(TaskSchdKeys.MonthDayLast);
         return days;
+    }
+
+    // Fills the editable Advanced-settings duration combos with localized choices and their defaults.
+    private void PopulateDurationChoices()
+    {
+        TaskDurationText.Fill(DelayCombo,
+        [
+            TaskDurationText.Minutes(15), TaskDurationText.Minutes(30), TaskDurationText.Hours(1),
+            TaskDurationText.Hours(12), TaskDurationText.Days(1),
+        ]);
+        TaskDurationText.Fill(RepeatEveryCombo,
+        [
+            TaskDurationText.Minutes(5), TaskDurationText.Minutes(10), TaskDurationText.Minutes(15),
+            TaskDurationText.Minutes(30), TaskDurationText.Hours(1),
+        ]);
+        RepeatEveryCombo.Text = TaskDurationText.Hours(1);
+
+        // Indefinitely maps to an empty Repetition.Duration.
+        TaskDurationText.Fill(DurationCombo,
+        [
+            TaskDurationText.Minutes(15), TaskDurationText.Minutes(30), TaskDurationText.Hours(1),
+            TaskDurationText.Hours(12), TaskDurationText.Days(1), TaskDurationText.Indefinitely,
+        ]);
+        DurationCombo.Text = TaskDurationText.Days(1);
+
+        TaskDurationText.Fill(StopIfLongerCombo,
+        [
+            TaskDurationText.Minutes(30), TaskDurationText.Hours(1), TaskDurationText.Hours(2),
+            TaskDurationText.Hours(4), TaskDurationText.Hours(8), TaskDurationText.Hours(12),
+            TaskDurationText.Days(1), TaskDurationText.Days(3),
+        ]);
+        StopIfLongerCombo.Text = TaskDurationText.Days(3);
     }
 
     // ====================  BUILD (controls -> model)  ====================
@@ -217,7 +255,7 @@ public sealed partial class NewTriggerDialog : ContentDialog
         var model = new MonthlyTriggerModel { StartBoundary = start, MonthsOfYear = SelectedMonths(), RandomDelay = random };
         foreach (var item in MonthDaysGridView.SelectedItems.OfType<string>())
         {
-            if (string.Equals(item, "Last", StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(item, L(TaskSchdKeys.MonthDayLast), StringComparison.OrdinalIgnoreCase))
             {
                 model.RunOnLastDayOfMonth = true;
             }
@@ -254,7 +292,8 @@ public sealed partial class NewTriggerDialog : ContentDialog
         if (RepeatCheckBox.IsChecked == true)
         {
             trigger.Repetition.Interval = ParseDuration(RepeatEveryCombo.Text) ?? TimeSpan.FromHours(1);
-            trigger.Repetition.Duration = string.Equals(DurationCombo.Text, "Indefinitely", StringComparison.OrdinalIgnoreCase) ? null : ParseDuration(DurationCombo.Text);
+            // Indefinitely (or any unparsable text) leaves the duration unbounded.
+            trigger.Repetition.Duration = ParseDuration(DurationCombo.Text);
             trigger.Repetition.StopAtDurationEnd = StopAllCheckBox.IsChecked == true;
         }
 
@@ -345,25 +384,7 @@ public sealed partial class NewTriggerDialog : ContentDialog
     private static DateTime? CombineDateTime(CalendarDatePicker date, TimePicker time) =>
         date.Date is { } d ? d.Date + time.Time : null;
 
-    private static TimeSpan? ParseDuration(string? text)
-    {
-        if (string.IsNullOrWhiteSpace(text) || text is "Indefinitely" or "Do not wait")
-        {
-            return null;
-        }
-        var parts = text.Trim().Split(' ', 2);
-        if (parts.Length == 2 && double.TryParse(parts[0], out var n))
-        {
-            return parts[1].TrimEnd('s') switch
-            {
-                "minute" => TimeSpan.FromMinutes(n),
-                "hour" => TimeSpan.FromHours(n),
-                "day" => TimeSpan.FromDays(n),
-                _ => null,
-            };
-        }
-        return null;
-    }
+    private static TimeSpan? ParseDuration(string? text) => TaskDurationText.Parse(text);
 
     // ====================  POPULATE (model -> controls, edit mode)  ====================
 
@@ -373,14 +394,14 @@ public sealed partial class NewTriggerDialog : ContentDialog
         if (trigger.Repetition.IsEnabled)
         {
             RepeatCheckBox.IsChecked = true;
-            RepeatEveryCombo.Text = FormatDuration(trigger.Repetition.Interval) ?? "1 hour";
-            DurationCombo.Text = trigger.Repetition.Duration is { } d ? FormatDuration(d)! : "Indefinitely";
+            RepeatEveryCombo.Text = FormatDuration(trigger.Repetition.Interval) ?? TaskDurationText.Hours(1);
+            DurationCombo.Text = trigger.Repetition.Duration is { } d ? FormatDuration(d)! : TaskDurationText.Indefinitely;
             StopAllCheckBox.IsChecked = trigger.Repetition.StopAtDurationEnd;
         }
         if (trigger.ExecutionTimeLimit is { } etl)
         {
             StopIfLongerCheckBox.IsChecked = true;
-            StopIfLongerCombo.Text = FormatDuration(etl) ?? "3 days";
+            StopIfLongerCombo.Text = FormatDuration(etl) ?? TaskDurationText.Days(3);
         }
         if (trigger.EndBoundary is { } eb)
         {
@@ -496,16 +517,7 @@ public sealed partial class NewTriggerDialog : ContentDialog
         SaturdayCheck.IsChecked = days.HasFlag(TaskDaysOfWeek.Saturday);
     }
 
-    private static string? FormatDuration(TimeSpan? span)
-    {
-        if (span is not { } v || v <= TimeSpan.Zero)
-        {
-            return null;
-        }
-        if (v.TotalDays >= 1 && v.TotalDays == Math.Floor(v.TotalDays)) return $"{(int)v.TotalDays} day{(v.TotalDays > 1 ? "s" : "")}";
-        if (v.TotalHours >= 1 && v.TotalHours == Math.Floor(v.TotalHours)) return $"{(int)v.TotalHours} hour{(v.TotalHours > 1 ? "s" : "")}";
-        return $"{(int)v.TotalMinutes} minute{(v.TotalMinutes > 1 ? "s" : "")}";
-    }
+    private static string? FormatDuration(TimeSpan? span) => TaskDurationText.Format(span);
 
     // ====================  PANEL SWITCHING  ====================
 

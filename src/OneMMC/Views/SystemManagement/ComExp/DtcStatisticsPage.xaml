@@ -10,7 +10,6 @@
 
     <Page.Resources>
         <converters:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
-        <converters:NullToVisibilityConverter x:Key="NullToVisibilityConverter" />
 
         <Style x:Key="PropertyHeaderStyle" TargetType="TextBlock">
             <Setter Property="FontWeight" Value="SemiBold" />
@@ -33,9 +32,23 @@
     </Page.Resources>
 
     <Grid RowDefinitions="Auto,*">
-        <CommandBar DefaultLabelPosition="Right">
-            <AppBarButton Icon="Refresh" Label="{x:Bind LocalizedStrings.ComExp_RefreshButton}" Click="RefreshButton_Click" />
-        </CommandBar>
+        <Grid Margin="24,18,24,12" ColumnDefinitions="*,Auto">
+            <TextBlock
+                Margin="0,0,16,0"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Center"
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                Style="{StaticResource CaptionTextBlockStyle}"
+                Text="{x:Bind LocalizedStrings.ComExp_AutoRefresh_Active}"
+                TextTrimming="CharacterEllipsis" />
+
+            <CommandBar
+                Grid.Column="1"
+                Background="Transparent"
+                DefaultLabelPosition="Right">
+                <AppBarButton Icon="Refresh" Label="{x:Bind LocalizedStrings.ComExp_RefreshButton}" Click="RefreshButton_Click" />
+            </CommandBar>
+        </Grid>
 
         <Grid Grid.Row="1" RowDefinitions="*,Auto" Padding="24,8,24,24">
             <ScrollViewer VerticalScrollBarVisibility="Auto">
@@ -47,17 +60,17 @@
                         <Grid ColumnDefinitions="200,*" RowDefinitions="Auto,Auto,Auto" RowSpacing="4">
                             <TextBlock Text="{x:Bind LocalizedStrings.ComExp_Stats_Open}" Style="{StaticResource PropertyLabelStyle}" />
                             <TextBlock Grid.Column="1" Style="{StaticResource PropertyValueStyle}">
-                                <Run Text="{x:Bind ViewModel.Statistics.Open, Mode=OneWay, FallbackValue=0}" />
+                                <Run Text="{x:Bind ViewModel.Open, Mode=OneWay}" />
                             </TextBlock>
                             
                             <TextBlock Grid.Row="1" Text="{x:Bind LocalizedStrings.ComExp_Stats_OpenMax}" Style="{StaticResource PropertyLabelStyle}" />
                             <TextBlock Grid.Row="1" Grid.Column="1" Style="{StaticResource PropertyValueStyle}">
-                                <Run Text="{x:Bind ViewModel.Statistics.OpenMax, Mode=OneWay, FallbackValue=0}" />
+                                <Run Text="{x:Bind ViewModel.OpenMax, Mode=OneWay}" />
                             </TextBlock>
                             
                             <TextBlock Grid.Row="2" Text="{x:Bind LocalizedStrings.ComExp_Stats_InDoubt}" Style="{StaticResource PropertyLabelStyle}" />
                             <TextBlock Grid.Row="2" Grid.Column="1" Style="{StaticResource PropertyValueStyle}">
-                                <Run Text="{x:Bind ViewModel.Statistics.InDoubt, Mode=OneWay, FallbackValue=0}" />
+                                <Run Text="{x:Bind ViewModel.InDoubt, Mode=OneWay}" />
                             </TextBlock>
                         </Grid>
                     </StackPanel>
@@ -69,32 +82,32 @@
                         <Grid ColumnDefinitions="200,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="4">
                             <TextBlock Text="{x:Bind LocalizedStrings.ComExp_Stats_Committed}" Style="{StaticResource PropertyLabelStyle}" />
                             <TextBlock Grid.Column="1" Style="{StaticResource PropertyValueStyle}">
-                                <Run Text="{x:Bind ViewModel.Statistics.Committed, Mode=OneWay, FallbackValue=0}" />
+                                <Run Text="{x:Bind ViewModel.Committed, Mode=OneWay}" />
                             </TextBlock>
                             
                             <TextBlock Grid.Row="1" Text="{x:Bind LocalizedStrings.ComExp_Stats_Aborted}" Style="{StaticResource PropertyLabelStyle}" />
                             <TextBlock Grid.Row="1" Grid.Column="1" Style="{StaticResource PropertyValueStyle}">
-                                <Run Text="{x:Bind ViewModel.Statistics.Aborted, Mode=OneWay, FallbackValue=0}" />
+                                <Run Text="{x:Bind ViewModel.Aborted, Mode=OneWay}" />
                             </TextBlock>
                             
                             <TextBlock Grid.Row="2" Text="{x:Bind LocalizedStrings.ComExp_Stats_ForcedCommit}" Style="{StaticResource PropertyLabelStyle}" />
                             <TextBlock Grid.Row="2" Grid.Column="1" Style="{StaticResource PropertyValueStyle}">
-                                <Run Text="{x:Bind ViewModel.Statistics.ForcedCommit, Mode=OneWay, FallbackValue=0}" />
+                                <Run Text="{x:Bind ViewModel.ForcedCommit, Mode=OneWay}" />
                             </TextBlock>
                             
                             <TextBlock Grid.Row="3" Text="{x:Bind LocalizedStrings.ComExp_Stats_ForcedAbort}" Style="{StaticResource PropertyLabelStyle}" />
                             <TextBlock Grid.Row="3" Grid.Column="1" Style="{StaticResource PropertyValueStyle}">
-                                <Run Text="{x:Bind ViewModel.Statistics.ForcedAbort, Mode=OneWay, FallbackValue=0}" />
+                                <Run Text="{x:Bind ViewModel.ForcedAbort, Mode=OneWay}" />
                             </TextBlock>
                             
                             <TextBlock Grid.Row="4" Text="{x:Bind LocalizedStrings.ComExp_Stats_Heuristic}" Style="{StaticResource PropertyLabelStyle}" />
                             <TextBlock Grid.Row="4" Grid.Column="1" Style="{StaticResource PropertyValueStyle}">
-                                <Run Text="{x:Bind ViewModel.Statistics.Heuristic, Mode=OneWay, FallbackValue=0}" />
+                                <Run Text="{x:Bind ViewModel.Heuristic, Mode=OneWay}" />
                             </TextBlock>
                             
                             <TextBlock Grid.Row="5" Text="{x:Bind LocalizedStrings.ComExp_Stats_Total}" Style="{StaticResource PropertyLabelStyle}" />
                             <TextBlock Grid.Row="5" Grid.Column="1" Style="{StaticResource PropertyValueStyle}">
-                                <Run Text="{x:Bind ViewModel.Statistics.Total, Mode=OneWay, FallbackValue=0}" />
+                                <Run Text="{x:Bind ViewModel.Total, Mode=OneWay}" />
                             </TextBlock>
                         </Grid>
                     </StackPanel>
@@ -106,17 +119,17 @@
                         <Grid ColumnDefinitions="200,*" RowDefinitions="Auto,Auto,Auto" RowSpacing="4">
                             <TextBlock Text="{x:Bind LocalizedStrings.ComExp_Stats_ResponseTimeMin}" Style="{StaticResource PropertyLabelStyle}" />
                             <TextBlock Grid.Column="1" Style="{StaticResource PropertyValueStyle}">
-                                <Run Text="{x:Bind ViewModel.Statistics.ResponseTimeMin, Mode=OneWay, FallbackValue=0}" />
+                                <Run Text="{x:Bind ViewModel.ResponseTimeMin, Mode=OneWay}" />
                             </TextBlock>
                             
                             <TextBlock Grid.Row="1" Text="{x:Bind LocalizedStrings.ComExp_Stats_ResponseTimeAvg}" Style="{StaticResource PropertyLabelStyle}" />
                             <TextBlock Grid.Row="1" Grid.Column="1" Style="{StaticResource PropertyValueStyle}">
-                                <Run Text="{x:Bind ViewModel.Statistics.ResponseTimeAverage, Mode=OneWay, FallbackValue=0}" />
+                                <Run Text="{x:Bind ViewModel.ResponseTimeAverage, Mode=OneWay}" />
                             </TextBlock>
                             
                             <TextBlock Grid.Row="2" Text="{x:Bind LocalizedStrings.ComExp_Stats_ResponseTimeMax}" Style="{StaticResource PropertyLabelStyle}" />
                             <TextBlock Grid.Row="2" Grid.Column="1" Style="{StaticResource PropertyValueStyle}">
-                                <Run Text="{x:Bind ViewModel.Statistics.ResponseTimeMax, Mode=OneWay, FallbackValue=0}" />
+                                <Run Text="{x:Bind ViewModel.ResponseTimeMax, Mode=OneWay}" />
                             </TextBlock>
                         </Grid>
                     </StackPanel>

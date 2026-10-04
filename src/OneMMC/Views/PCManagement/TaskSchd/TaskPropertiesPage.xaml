@@ -126,7 +126,7 @@
 					</cwuc:SettingsCard.HeaderIcon>
 					<Button x:Name="AuthorCopyButton" Click="AuthorCopy_Click" MinWidth="120">
 						<Grid>
-							<TextBlock x:Name="AuthorCopyText" Text="Copy" HorizontalAlignment="Center" VerticalAlignment="Center" />
+							<TextBlock x:Name="AuthorCopyText" Text="{x:Bind LocalizedStrings.TaskSchd_Copy}" HorizontalAlignment="Center" VerticalAlignment="Center" />
 							<FontIcon
 								x:Name="AuthorCheckIcon"
 								FontSize="20"
@@ -145,7 +145,7 @@
 					</cwuc:SettingsCard.HeaderIcon>
 					<Button x:Name="LocationCopyButton" Click="LocationCopy_Click" MinWidth="120">
 						<Grid>
-							<TextBlock x:Name="LocationCopyText" Text="Copy" HorizontalAlignment="Center" VerticalAlignment="Center" />
+							<TextBlock x:Name="LocationCopyText" Text="{x:Bind LocalizedStrings.TaskSchd_Copy}" HorizontalAlignment="Center" VerticalAlignment="Center" />
 							<FontIcon
 								x:Name="LocationCheckIcon"
 								FontSize="20"
@@ -208,7 +208,7 @@
 						</cwuc:SettingsCard>
 
 						<cwuc:SettingsCard Header="{x:Bind LocalizedStrings.TaskSchd_General_RunHighestPrivileges}">
-							<ToggleSwitch x:Name="HighestPrivilegesToggle" OffContent="Off" OnContent="On" />
+							<ToggleSwitch x:Name="HighestPrivilegesToggle" OffContent="{x:Bind LocalizedStrings.TaskSchd_Toggle_Off}" OnContent="{x:Bind LocalizedStrings.TaskSchd_Toggle_On}" />
 						</cwuc:SettingsCard>
 					</oneMmcControls:StableSettingsExpander.Items>
 				</oneMmcControls:StableSettingsExpander>
@@ -247,14 +247,14 @@
 										Click="TriggerEdit_Click"
 										Style="{StaticResource RowIconButtonStyle}"
 										Tag="{x:Bind}"
-										ToolTipService.ToolTip="Edit">
+										ToolTipService.ToolTip="{x:Bind localization:LocalizedStrings.Instance.Common_EditTooltip}">
 										<FontIcon FontSize="16" Glyph="&#xE70F;" />
 									</Button>
 									<Button
 										Click="TriggerDelete_Click"
 										Style="{StaticResource RowIconButtonStyle}"
 										Tag="{x:Bind}"
-										ToolTipService.ToolTip="Delete">
+										ToolTipService.ToolTip="{x:Bind localization:LocalizedStrings.Instance.Common_DeleteTooltip}">
 										<FontIcon FontSize="16" Glyph="&#xE74D;" />
 									</Button>
 								</StackPanel>
@@ -287,7 +287,7 @@
 										IsEnabled="{x:Bind CanMoveUp, Mode=OneWay}"
 										Style="{StaticResource RowIconButtonStyle}"
 										Tag="{x:Bind}"
-										ToolTipService.ToolTip="Move up">
+										ToolTipService.ToolTip="{x:Bind localization:LocalizedStrings.Instance.TaskSchd_Action_MoveUp}">
 										<FontIcon FontSize="16" Glyph="&#xE70E;" />
 									</Button>
 									<Button
@@ -295,21 +295,21 @@
 										IsEnabled="{x:Bind CanMoveDown, Mode=OneWay}"
 										Style="{StaticResource RowIconButtonStyle}"
 										Tag="{x:Bind}"
-										ToolTipService.ToolTip="Move down">
+										ToolTipService.ToolTip="{x:Bind localization:LocalizedStrings.Instance.TaskSchd_Action_MoveDown}">
 										<FontIcon FontSize="16" Glyph="&#xE70D;" />
 									</Button>
 									<Button
 										Click="ActionEdit_Click"
 										Style="{StaticResource RowIconButtonStyle}"
 										Tag="{x:Bind}"
-										ToolTipService.ToolTip="Edit">
+										ToolTipService.ToolTip="{x:Bind localization:LocalizedStrings.Instance.Common_EditTooltip}">
 										<FontIcon FontSize="16" Glyph="&#xE70F;" />
 									</Button>
 									<Button
 										Click="ActionDelete_Click"
 										Style="{StaticResource RowIconButtonStyle}"
 										Tag="{x:Bind}"
-										ToolTipService.ToolTip="Delete">
+										ToolTipService.ToolTip="{x:Bind localization:LocalizedStrings.Instance.Common_DeleteTooltip}">
 										<FontIcon FontSize="16" Glyph="&#xE74D;" />
 									</Button>
 								</StackPanel>
@@ -327,39 +327,21 @@
 					</oneMmcControls:StableSettingsExpander.HeaderIcon>
 					<ToggleSwitch
 						x:Name="IdleToggle"
-						OffContent="Off"
-						OnContent="On"
+						OffContent="{x:Bind LocalizedStrings.TaskSchd_Toggle_Off}"
+						OnContent="{x:Bind LocalizedStrings.TaskSchd_Toggle_On}"
 						Toggled="OnIdleToggled" />
 					<oneMmcControls:StableSettingsExpander.Items>
 						<cwuc:SettingsCard Header="{x:Bind LocalizedStrings.TaskSchd_Conditions_StartIfIdle}">
 							<ComboBox
 								x:Name="IdleStartComboBox"
 								MinWidth="170"
-								IsEditable="True"
-								Text="10 minutes">
-								<ComboBoxItem Content="1 minute" />
-								<ComboBoxItem Content="5 minutes" />
-								<ComboBoxItem Content="10 minutes" />
-								<ComboBoxItem Content="15 minutes" />
-								<ComboBoxItem Content="30 minutes" />
-								<ComboBoxItem Content="1 hour" />
-							</ComboBox>
+								IsEditable="True" />
 						</cwuc:SettingsCard>
 						<cwuc:SettingsCard Header="{x:Bind LocalizedStrings.TaskSchd_Conditions_WaitForIdle}">
 							<ComboBox
 								x:Name="IdleWaitComboBox"
 								MinWidth="170"
-								IsEditable="True"
-								Text="1 hour">
-								<ComboBoxItem Content="Do not wait" />
-								<ComboBoxItem Content="1 minute" />
-								<ComboBoxItem Content="5 minutes" />
-								<ComboBoxItem Content="10 minutes" />
-								<ComboBoxItem Content="15 minutes" />
-								<ComboBoxItem Content="30 minutes" />
-								<ComboBoxItem Content="1 hour" />
-								<ComboBoxItem Content="2 hours" />
-							</ComboBox>
+								IsEditable="True" />
 						</cwuc:SettingsCard>
 						<cwuc:SettingsCard ContentAlignment="Left">
 							<StackPanel Spacing="6">
@@ -387,8 +369,8 @@
 					</oneMmcControls:StableSettingsExpander.HeaderIcon>
 					<ToggleSwitch
 						x:Name="PowerToggle"
-						OffContent="Off"
-						OnContent="On"
+						OffContent="{x:Bind LocalizedStrings.TaskSchd_Toggle_Off}"
+						OnContent="{x:Bind LocalizedStrings.TaskSchd_Toggle_On}"
 						Toggled="OnPowerToggled" />
 					<oneMmcControls:StableSettingsExpander.Items>
 						<cwuc:SettingsCard ContentAlignment="Left">
@@ -409,8 +391,8 @@
 					</oneMmcControls:StableSettingsExpander.HeaderIcon>
 					<ToggleSwitch
 						x:Name="NetworkToggle"
-						OffContent="Off"
-						OnContent="On"
+						OffContent="{x:Bind LocalizedStrings.TaskSchd_Toggle_Off}"
+						OnContent="{x:Bind LocalizedStrings.TaskSchd_Toggle_On}"
 						Toggled="OnNetworkToggled" />
 					<oneMmcControls:StableSettingsExpander.Items>
 						<cwuc:SettingsCard Header="{x:Bind LocalizedStrings.TaskSchd_Conditions_StartIfNetwork}">
@@ -446,16 +428,7 @@
 							<ComboBox
 								x:Name="RestartIntervalComboBox"
 								MinWidth="170"
-								IsEditable="True"
-								Text="1 minute">
-								<ComboBoxItem Content="1 minute" />
-								<ComboBoxItem Content="5 minutes" />
-								<ComboBoxItem Content="10 minutes" />
-								<ComboBoxItem Content="15 minutes" />
-								<ComboBoxItem Content="30 minutes" />
-								<ComboBoxItem Content="1 hour" />
-								<ComboBoxItem Content="2 hours" />
-							</ComboBox>
+								IsEditable="True" />
 						</cwuc:SettingsCard>
 						<cwuc:SettingsCard Header="{x:Bind LocalizedStrings.TaskSchd_Settings_RestartCount}">
 							<NumberBox
@@ -479,16 +452,7 @@
 							<ComboBox
 								x:Name="StopIfRunsLongerComboBox"
 								MinWidth="170"
-								IsEditable="True"
-								Text="3 days">
-								<ComboBoxItem Content="1 hour" />
-								<ComboBoxItem Content="2 hours" />
-								<ComboBoxItem Content="4 hours" />
-								<ComboBoxItem Content="8 hours" />
-								<ComboBoxItem Content="12 hours" />
-								<ComboBoxItem Content="1 day" />
-								<ComboBoxItem Content="3 days" />
-							</ComboBox>
+								IsEditable="True" />
 						</cwuc:SettingsCard>
 
 						<cwuc:SettingsCard ContentAlignment="Left">
@@ -506,14 +470,7 @@
 							<ComboBox
 								x:Name="DeleteAfterComboBox"
 								MinWidth="170"
-								IsEditable="True"
-								Text="30 days">
-								<ComboBoxItem Content="Immediately" />
-								<ComboBoxItem Content="30 days" />
-								<ComboBoxItem Content="90 days" />
-								<ComboBoxItem Content="180 days" />
-								<ComboBoxItem Content="365 days" />
-							</ComboBox>
+								IsEditable="True" />
 						</cwuc:SettingsCard>
 
 						<cwuc:SettingsCard Header="{x:Bind LocalizedStrings.TaskSchd_Settings_InstanceRule}">

@@ -71,7 +71,7 @@ public sealed partial class OpenStoreDialog : ContentDialog
         var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindowInstance);
         var result = await App.GetRequiredService<OneMMC.Core.Abstractions.Services.IFileDialogService>().OpenFileAsync(
             hwnd,
-            "XML Files\0*.xml\0All Files\0*.*\0",
+            $"{LocalizedStrings.Common_FileFilter_XmlFiles}\0*.xml\0{LocalizedStrings.Common_FileFilter_AllFiles}\0*.*\0",
             LocalizedStrings.OpenStoreDialog_FileDialog_Title,
             Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments));
 

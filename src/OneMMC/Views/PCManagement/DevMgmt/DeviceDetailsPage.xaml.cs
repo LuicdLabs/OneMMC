@@ -70,7 +70,9 @@ namespace OneMMC.Views
         {
             // Update general info
             DeviceNameDetail.Text = device.Name ?? LocalizedStrings.DeviceManager_Unknown;
-            DeviceClassDetail.Text = device.ClassName ?? LocalizedStrings.DeviceManager_Unknown;
+            DeviceClassDetail.Text = !string.IsNullOrEmpty(device.ClassDisplayName)
+                ? device.ClassDisplayName
+                : device.ClassName ?? LocalizedStrings.DeviceManager_Unknown;
             ManufacturerDetail.Text = device.Manufacturer ?? LocalizedStrings.DeviceManager_Unknown;
             StatusDetail.Text = device.StatusDescription ?? LocalizedStrings.DeviceManager_Unknown;
             DeviceIdDetail.Text = device.DeviceId ?? LocalizedStrings.DeviceManager_Unknown;

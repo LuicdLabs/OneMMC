@@ -3,3 +3,4 @@ SetForegroundWindow
 GetAsyncKeyState
 GetCurrentProcess
 EmptyWorkingSet
+OutputDebugString

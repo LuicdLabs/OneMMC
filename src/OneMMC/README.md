@@ -51,7 +51,7 @@ The UI project keeps code-behind minimal and pushes all state and commands into 
 Its job is to *present* — turn observable state into Fluent UI, and route user intent back to
 commands.
 
-> **~207 C# files**, **~145 XAML files**, across 6 feature view areas plus settings and commons.
+> **~213 C# files**, **~148 XAML files**, across 6 feature view areas plus settings and commons.
 
 ---
 
@@ -59,10 +59,10 @@ commands.
 
 | Concern | Technology |
 |---|---|
-| UI framework | **WinUI 3** via Windows App SDK `2.2.0` (`Microsoft.UI.Xaml`) |
+| UI framework | **WinUI 3** via Windows App SDK (version pinned in `Directory.Packages.props`) (`Microsoft.UI.Xaml`) |
 | Output | `WinExe`, target `net10.0-windows10.0.19041.0`, platforms `x64` / `ARM64` |
 | Deployment | **Unpackaged** (`WindowsPackageType=None`), self-contained in Release, **Native AOT** |
-| MVVM | `CommunityToolkit.Mvvm` 8.4.2 |
+| MVVM | `CommunityToolkit.Mvvm` |
 | Fluent controls | `CommunityToolkit.WinUI.Controls.SettingsControls`, `.Controls.Sizers` |
 | Windowing | `Microsoft.UI.Windowing.AppWindow` (tall title bar, custom chrome) |
 | Navigation | `NavigationView` (top-level) + `SelectorBar` (sub-page tabs) + `Frame` routing |
@@ -99,7 +99,7 @@ OneMMC/
 ├── Converters/                    IValueConverters for XAML bindings
 ├── Helpers/                       AdminDialogHelper, ModalDialogWindow, DPI, unsaved-changes guards
 ├── Localization/                  LocalizedStrings.*.cs (partial, per feature) + UILocalizationProvider
-├── Strings/                       en-US / zh-TW .resw resource files (40 files)
+├── Strings/                       en-US / zh-TW .resw resource files (20 per locale)
 ├── Interop/                       WindowLongNativeMethods (window subclassing)
 ├── Models/                        AppSettings (source-gen JSON) and UI-local models
 ├── Assets/                        App icons, logos, splash
@@ -214,13 +214,17 @@ through `NavigationService`; `GoBack()` honors the `Frame` back stack.
 
 ## Localization
 
-- Two locales: **en-US** and **zh-TW**, backed by `Strings/{locale}/*.resw` (40 resource files).
-- XAML uses `x:Uid`; code uses `LocalizationProvider.Current.GetString()` with `ResourceKeys`
-  constants.
+- Two locales: **en-US** and **zh-TW**, backed by `Strings/{locale}/*.resw` (20 resource files per
+  locale).
+- XAML binds `{x:Bind LocalizedStrings.<Key>}` against the page's `LocalizedStrings` property
+  (`LocalizedStrings.Instance`); Core code uses `LocalizationProvider.Current.GetString()` with
+  `ResourceKeys` constants.
 - `LocalizedStrings` is a `partial` class split per feature
   (`LocalizedStrings.PerfMon.cs`, `LocalizedStrings.WF.cs`, …). `UILocalizationProvider` bridges
   the UI resource system into Core's `ILocalizationProvider`.
 - **No hardcoded user-facing strings** — everything visible comes from a resource key.
+
+Full guide: [`doc/Localization.md`](../../doc/Localization.md).
 
 ---
 
@@ -273,8 +277,9 @@ Full rationale and the verified baseline: [`doc/NativeAot.md`](../../doc/NativeA
 
 ## Build, Run & Debug
 
-**Prerequisites:** .NET 10 SDK, Windows App SDK 2.2.0+, Windows 10 SDK (19041)+, and — for the
-`publish` ILC link step — the MSVC toolchain (Desktop C++ workload).
+**Prerequisites:** .NET 10 SDK, Windows App SDK (version pinned in `Directory.Packages.props`),
+Windows 10 SDK (19041)+, and — for the `publish` ILC link step — the MSVC toolchain (Desktop C++
+workload).
 
 ```bash
 # Build (normal CoreCLR inner loop; F5 in Visual Studio uses the same)

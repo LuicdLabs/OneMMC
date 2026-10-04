@@ -1425,7 +1425,6 @@
   <data name="Common_FailedToRemoveUser_Format" xml:space="preserve">
     <value>移除使用者失敗：{0}</value>
   </data>
-  <!-- Authorization Rule Dialog -->
   <data name="AuthorizationRuleDialog_ScriptSourceCode_Label" xml:space="preserve">
     <value>腳本原始碼：</value>
   </data>
@@ -1450,7 +1449,6 @@
   <data name="AuthorizationRuleDialog_ClearRule_Button" xml:space="preserve">
     <value>從儲存體清除規則</value>
   </data>
-  <!-- Definition Assign Items Dialog -->
   <data name="DefinitionAssignItemsDialog_Tab_Roles" xml:space="preserve">
     <value>角色</value>
   </data>
@@ -1460,7 +1458,6 @@
   <data name="DefinitionAssignItemsDialog_Tab_Operations" xml:space="preserve">
     <value>操作</value>
   </data>
-  <!-- Definition Properties Dialog -->
   <data name="DefinitionPropertiesDialog_Tab_General" xml:space="preserve">
     <value>一般</value>
   </data>
@@ -1479,11 +1476,9 @@
   <data name="DefinitionPropertiesDialog_AuthorizationRule_Button" xml:space="preserve">
     <value>授權規則...</value>
   </data>
-  <!-- Edit Item Dialog -->
   <data name="EditItemDialog_GroupType_Bizrule" xml:space="preserve">
     <value>商業規則</value>
   </data>
-  <!-- Group Members Dialog -->
   <data name="GroupMembersDialog_Tab_General" xml:space="preserve">
     <value>一般</value>
   </data>
@@ -1517,7 +1512,6 @@
   <data name="GroupMembersDialog_AppGroupExclusions_Header" xml:space="preserve">
     <value>排除項目 (授權管理員應用程式群組)</value>
   </data>
-  <!-- Store Properties Dialog -->
   <data name="StorePropertiesDialog_Tab_Limits" xml:space="preserve">
     <value>限制</value>
   </data>
@@ -1560,7 +1554,6 @@
   <data name="StorePropertiesDialog_StoreChangeAuditing" xml:space="preserve">
     <value>授權儲存體變更稽核</value>
   </data>
-  <!-- Group Type Display Text -->
   <data name="GroupType_BusinessRuleAppGroup" xml:space="preserve">
     <value>商業規則應用程式群組</value>
   </data>
@@ -1573,7 +1566,6 @@
   <data name="GroupType_Unknown" xml:space="preserve">
     <value>未知</value>
   </data>
-  <!-- Error Messages -->
   <data name="Error_FailedToCloseStore" xml:space="preserve">
     <value>關閉儲存體失敗：{0}</value>
   </data>
@@ -1604,7 +1596,6 @@
   <data name="Error_ClassNotRegistered" xml:space="preserve">
     <value>類別未註冊。請確認已安裝 AzMan 元件。</value>
   </data>
-  <!-- BizRule Validator Messages -->
   <data name="BizRuleValidator_Error_EmptyScript" xml:space="preserve">
     <value>腳本不能為空白。</value>
   </data>
@@ -1638,7 +1629,6 @@
   <data name="BizRuleValidator_SampleDescription" xml:space="preserve">
     <value>範例商業規則</value>
   </data>
-  <!-- Common UI Strings -->
   <data name="Common_OK" xml:space="preserve">
     <value>確定</value>
   </data>
@@ -1648,8 +1638,70 @@
   <data name="Common_Save" xml:space="preserve">
     <value>儲存</value>
   </data>
-  <!-- Additional Error Messages -->
   <data name="Error_StoreNotOpen" xml:space="preserve">
     <value>儲存體 '{0}' 未開啟。請先開啟儲存體。</value>
+  </data>
+  <data name="AzMan_Err_StoreNotOpenFormat" xml:space="preserve">
+    <value>存放區 '{0}' 尚未開啟。請先開啟存放區。</value>
+  </data>
+  <data name="AzMan_Err_StoreFileNotFoundFormat" xml:space="preserve">
+    <value>找不到存放區檔案: {0}。存放區已關閉。</value>
+  </data>
+  <data name="AzMan_Err_CreateApplicationFormat" xml:space="preserve">
+    <value>無法建立應用程式: {0}</value>
+  </data>
+  <data name="AzMan_Err_ExportStoreFormat" xml:space="preserve">
+    <value>無法匯出存放區: {0}</value>
+  </data>
+  <data name="AzMan_Err_ExportApplicationFormat" xml:space="preserve">
+    <value>無法匯出應用程式: {0}</value>
+  </data>
+  <data name="AzMan_Err_ImportFileNotFoundFormat" xml:space="preserve">
+    <value>找不到匯入檔案: {0}</value>
+  </data>
+  <data name="AzMan_Err_NoApplicationsInImport" xml:space="preserve">
+    <value>匯入檔案中找不到任何應用程式。</value>
+  </data>
+  <data name="AzMan_Err_ApplicationExistsFormat" xml:space="preserve">
+    <value>目標存放區中已存在應用程式 '{0}'。</value>
+  </data>
+  <data name="AzMan_Err_ImportApplicationFormat" xml:space="preserve">
+    <value>無法匯入應用程式: {0}</value>
+  </data>
+  <data name="AzMan_Err_NotBasicGroupFormat" xml:space="preserve">
+    <value>無法修改群組 '{0}' 的成員，因為它不是基本群組。</value>
+  </data>
+  <data name="AzMan_Err_EmptySid" xml:space="preserve">
+    <value>安全性識別碼 (SID) 是空的。可能未正確解析帳戶。</value>
+  </data>
+  <data name="AzMan_Err_AddMemberEmptySid" xml:space="preserve">
+    <value>無法新增成員: 安全性識別碼 (SID) 是空的。可能未正確解析帳戶。</value>
+  </data>
+  <data name="AzMan_Err_AddMemberInvalidSidFormat" xml:space="preserve">
+    <value>無法新增成員: '{0}' 不是有效的安全性識別碼 (SID)。</value>
+  </data>
+  <data name="AzMan_Err_CreateStoreFormat" xml:space="preserve">
+    <value>無法建立授權存放區: {0}</value>
+  </data>
+  <data name="AzMan_Err_FileNotFoundFormat" xml:space="preserve">
+    <value>找不到檔案: {0}</value>
+  </data>
+  <data name="AzMan_Err_OpenStoreFormat" xml:space="preserve">
+    <value>無法開啟授權存放區: {0}</value>
+  </data>
+  <data name="AzMan_Err_OpenStoreInaccessibleFormat" xml:space="preserve">
+    <value>無法開啟授權存放區: 無法存取檔案或路徑 ({0})。</value>
+  </data>
+  <data name="AzMan_Err_DeleteStoreFormat" xml:space="preserve">
+    <value>無法刪除授權存放區: {0}</value>
+  </data>
+  <data name="AzMan_Err_RefreshStoreFormat" xml:space="preserve">
+    <value>無法重新整理存放區: {0}</value>
+  </data>
+  <data name="AzMan_Err_SchemaUpgradeUnsupported" xml:space="preserve">
+    <value>只有 XML 與 Active Directory 授權存放區支援將結構描述升級至 2.0 版。</value>
+  </data>
+  <data name="AzMan_Err_BizRuleFileNotFoundFormat" xml:space="preserve">
+    <value>找不到商務規則檔案: {0}</value>
   </data>
 </root>

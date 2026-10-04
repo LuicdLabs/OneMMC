@@ -311,7 +311,29 @@ namespace OneMMC.Localization
         public string IPSec_Editor_MainModeLifetime => GetResource(ResourceFileNames.SecPol, IPSecurityPolicyKeys.EditorMainModeLifetime);
         public string IPSec_Editor_PollingInterval => GetResource(ResourceFileNames.SecPol, IPSecurityPolicyKeys.EditorPollingInterval);
         public string IPSec_Editor_MainModeMethods => GetResource(ResourceFileNames.SecPol, IPSecurityPolicyKeys.EditorMainModeMethods);
-        public string IPSec_Editor_MethodsHelp => GetResource(ResourceFileNames.SecPol, IPSecurityPolicyKeys.EditorMethodsHelp);
+
+        /// <summary>Gets the localized <c>IPSec_Page_PoliciesDescription</c> string.</summary>
+        public string IPSec_Page_PoliciesDescription => GetResource(ResourceFileNames.SecPol, IPSecurityPolicyKeys.PagePoliciesDescription);
+
+        /// <summary>Gets the localized <c>IPSec_Editor_NoSecurityMethods</c> string.</summary>
+        public string IPSec_Editor_NoSecurityMethods => GetResource(ResourceFileNames.SecPol, IPSecurityPolicyKeys.EditorNoSecurityMethods);
+
+        /// <summary>Gets the localized <c>IPSec_Editor_NoFilters</c> string.</summary>
+        public string IPSec_Editor_NoFilters => GetResource(ResourceFileNames.SecPol, IPSecurityPolicyKeys.EditorNoFilters);
+
+        /// <summary>Gets the localized <c>IPSec_Editor_NoAuthenticationMethods</c> string.</summary>
+        public string IPSec_Editor_NoAuthenticationMethods => GetResource(ResourceFileNames.SecPol, IPSecurityPolicyKeys.EditorNoAuthenticationMethods);
+
+        /// <summary>Gets the localized <c>IPSec_Editor_NoRules</c> string.</summary>
+        public string IPSec_Editor_NoRules => GetResource(ResourceFileNames.SecPol, IPSecurityPolicyKeys.EditorNoRules);
+        public string IPSec_Rule_Dynamic => GetResource(ResourceFileNames.SecPol, IPSecurityPolicyKeys.RuleDynamic);
+        public string IPSec_Rule_DefaultResponse => GetResource(ResourceFileNames.SecPol, IPSecurityPolicyKeys.RuleDefaultResponse);
+
+        /// <summary>Gets the localized <c>IPSec_Empty_FilterLists</c> string.</summary>
+        public string IPSec_Empty_FilterLists => GetResource(ResourceFileNames.SecPol, IPSecurityPolicyKeys.EmptyFilterLists);
+
+        /// <summary>Gets the localized <c>IPSec_Empty_FilterActions</c> string.</summary>
+        public string IPSec_Empty_FilterActions => GetResource(ResourceFileNames.SecPol, IPSecurityPolicyKeys.EmptyFilterActions);
         public string IPSec_Editor_Filters => GetResource(ResourceFileNames.SecPol, IPSecurityPolicyKeys.EditorFilters);
         public string IPSec_Editor_AddFilterTitle => GetResource(ResourceFileNames.SecPol, IPSecurityPolicyKeys.EditorAddFilterTitle);
         public string IPSec_Editor_EditFilterTitle => GetResource(ResourceFileNames.SecPol, IPSecurityPolicyKeys.EditorEditFilterTitle);

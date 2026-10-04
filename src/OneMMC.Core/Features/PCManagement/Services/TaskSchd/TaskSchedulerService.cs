@@ -104,7 +104,10 @@ public sealed partial class TaskSchedulerService : ITaskSchedulerService, IDispo
     public Task RegisterTaskAsync(string folderPath, string taskName, TaskDefinitionModel definition, string? password = null, CancellationToken cancellationToken = default) =>
         _executor.RunAsync(() =>
         {
+            cancellationToken.ThrowIfCancellationRequested();
+            TaskXmlMapper.ValidateForRegistration(definition);
             var xml = TaskXmlMapper.Serialize(definition);
+            cancellationToken.ThrowIfCancellationRequested();
             RegisterXml(folderPath, taskName, xml, definition.Principal, password);
         });
 
@@ -112,7 +115,12 @@ public sealed partial class TaskSchedulerService : ITaskSchedulerService, IDispo
     public Task<TaskDefinitionModel> ImportTaskAsync(string folderPath, string taskName, string xml, CancellationToken cancellationToken = default) =>
         _executor.RunAsync(() =>
         {
-            var definition = TaskXmlMapper.Parse(xml); // validates the XML and surfaces the principal
+            cancellationToken.ThrowIfCancellationRequested();
+            var definition = TaskXmlMapper.Parse(xml); // parses the XML and surfaces the principal
+            // Have the Task Scheduler service validate the raw XML first (TASK_VALIDATE_ONLY): malformed
+            // XML or an unsupported feature then fails without creating or overwriting the task.
+            RegisterXml(folderPath, taskName, xml, definition.Principal, password: null, TaskSchedulerCom.TaskValidateOnly);
+            cancellationToken.ThrowIfCancellationRequested();
             RegisterXml(folderPath, taskName, xml, definition.Principal, password: null);
             return definition;
         });
@@ -125,6 +133,7 @@ public sealed partial class TaskSchedulerService : ITaskSchedulerService, IDispo
     public Task DeleteTaskAsync(string taskPath, CancellationToken cancellationToken = default) =>
         _executor.RunAsync(() =>
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var (folderPath, name) = SplitPath(taskPath);
             var service = GetService();
             service.GetFolder(NormalizeFolder(folderPath), out var folder);
@@ -140,28 +149,40 @@ public sealed partial class TaskSchedulerService : ITaskSchedulerService, IDispo
 
     /// <inheritdoc />
     public Task SetTaskEnabledAsync(string taskPath, bool enabled, CancellationToken cancellationToken = default) =>
-        _executor.RunAsync(() => WithTask(taskPath, (task, _) =>
+        _executor.RunAsync(() =>
         {
-            task.put_Enabled(TaskSchedulerCom.ToVariantBool(enabled));
-            return (object?)null;
-        }));
+            cancellationToken.ThrowIfCancellationRequested();
+            return WithTask(taskPath, (task, _) =>
+            {
+                task.put_Enabled(TaskSchedulerCom.ToVariantBool(enabled));
+                return (object?)null;
+            });
+        });
 
     /// <inheritdoc />
     public Task RunTaskAsync(string taskPath, CancellationToken cancellationToken = default) =>
-        _executor.RunAsync(() => WithTask(taskPath, (task, _) =>
+        _executor.RunAsync(() =>
         {
-            task.Run(TaskSchedulerCom.EmptyVariant, out var running);
-            TaskSchedulerCom.Release(running);
-            return (object?)null;
-        }));
+            cancellationToken.ThrowIfCancellationRequested();
+            return WithTask(taskPath, (task, _) =>
+            {
+                task.Run(TaskSchedulerCom.EmptyVariant, out var running);
+                TaskSchedulerCom.Release(running);
+                return (object?)null;
+            });
+        });
 
     /// <inheritdoc />
     public Task StopTaskAsync(string taskPath, CancellationToken cancellationToken = default) =>
-        _executor.RunAsync(() => WithTask(taskPath, (task, _) =>
+        _executor.RunAsync(() =>
         {
-            task.Stop(TaskSchedulerCom.NoFlags);
-            return (object?)null;
-        }));
+            cancellationToken.ThrowIfCancellationRequested();
+            return WithTask(taskPath, (task, _) =>
+            {
+                task.Stop(TaskSchedulerCom.NoFlags);
+                return (object?)null;
+            });
+        });
 
     /// <inheritdoc />
     public Task<int> GetRunningInstanceCountAsync(string taskPath, CancellationToken cancellationToken = default) =>
@@ -182,6 +203,7 @@ public sealed partial class TaskSchedulerService : ITaskSchedulerService, IDispo
     public Task CreateFolderAsync(string parentFolderPath, string folderName, CancellationToken cancellationToken = default) =>
         _executor.RunAsync(() =>
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var service = GetService();
             service.GetFolder(NormalizeFolder(parentFolderPath), out var parent);
             ITaskFolder? created = null;
@@ -200,6 +222,7 @@ public sealed partial class TaskSchedulerService : ITaskSchedulerService, IDispo
     public Task DeleteFolderAsync(string folderPath, CancellationToken cancellationToken = default) =>
         _executor.RunAsync(() =>
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var (parentPath, name) = SplitPath(folderPath);
             var service = GetService();
             service.GetFolder(NormalizeFolder(parentPath), out var parent);
@@ -234,11 +257,15 @@ public sealed partial class TaskSchedulerService : ITaskSchedulerService, IDispo
 
     /// <inheritdoc />
     public Task SetTaskSecurityDescriptorAsync(string taskPath, string sddl, CancellationToken cancellationToken = default) =>
-        _executor.RunAsync(() => WithTask(taskPath, (task, _) =>
+        _executor.RunAsync(() =>
         {
-            task.SetSecurityDescriptor(sddl, TaskSchedulerCom.NoFlags);
-            return (object?)null;
-        }));
+            cancellationToken.ThrowIfCancellationRequested();
+            return WithTask(taskPath, (task, _) =>
+            {
+                task.SetSecurityDescriptor(sddl, TaskSchedulerCom.NoFlags);
+                return (object?)null;
+            });
+        });
 
     /// <inheritdoc />
     public string SerializeToXml(TaskDefinitionModel definition) => TaskXmlMapper.Serialize(definition);
@@ -303,7 +330,7 @@ public sealed partial class TaskSchedulerService : ITaskSchedulerService, IDispo
         }
     }
 
-    private void RegisterXml(string folderPath, string taskName, string xml, PrincipalModel principal, string? password)
+    private void RegisterXml(string folderPath, string taskName, string xml, PrincipalModel principal, string? password, int creationFlags = TaskSchedulerCom.TaskCreateOrUpdate)
     {
         var service = GetService();
         service.GetFolder(NormalizeFolder(folderPath), out var folder);
@@ -337,7 +364,7 @@ public sealed partial class TaskSchedulerService : ITaskSchedulerService, IDispo
             folder.RegisterTask(
                 taskName,
                 xml,
-                TaskSchedulerCom.TaskCreateOrUpdate,
+                creationFlags,
                 userId,
                 pwd,
                 (int)principal.LogonType,

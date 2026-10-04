@@ -37,4 +37,17 @@ public sealed class TaskDefinitionModel
     /// for brand-new tasks, which get a modern default.
     /// </summary>
     public string? SchemaVersion { get; set; }
+
+    /// <summary>
+    /// Trigger elements found in the source XML that the editor does not model (for example custom or
+    /// WNF-state-change triggers). Preserved verbatim so re-serializing an edited task round-trips them
+    /// instead of silently dropping them. Empty for definitions the editor authored from scratch.
+    /// </summary>
+    public IList<string> UnsupportedTriggerXml { get; } = new List<string>();
+
+    /// <summary>
+    /// Action elements found in the source XML that the editor does not model. Preserved verbatim (and
+    /// re-emitted after the known actions) so editing a known field does not delete them.
+    /// </summary>
+    public IList<string> UnsupportedActionXml { get; } = new List<string>();
 }

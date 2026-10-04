@@ -210,7 +210,7 @@ internal sealed class TaskManagement
         // Read script from file before COM operations
         if (!System.IO.File.Exists(filePath))
         {
-            throw new System.IO.FileNotFoundException($"Business rule file not found: {filePath}");
+            throw new System.IO.FileNotFoundException(OneMMC.Core.Localization.LocalizationProvider.Current.GetFormattedString(OneMMC.Core.Localization.ResourceFileNames.AzMan, OneMMC.Core.Localization.AzManKeys.ErrBizRuleFileNotFoundFormat, filePath));
         }
 
         string bizRule = System.IO.File.ReadAllText(filePath);

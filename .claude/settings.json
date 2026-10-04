@@ -1,9 +1,0 @@
-{
-  "enabledPlugins": {
-    "microsoft-docs@claude-plugins-official": true,
-    "winui@win-dev-skills": true,
-    "dotnet@dotnet-agent-skills": true,
-    "dotnet-upgrade@dotnet-agent-skills": true,
-    "dotnet-skills@dotnet-skills": true
-  }
-}

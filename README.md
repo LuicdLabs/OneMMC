@@ -37,11 +37,10 @@ A modern Windows system management suite built with WinUI 3, designed as a strea
 - Designed following the [Windows 11 design principles](https://learn.microsoft.com/en-us/windows/apps/design/design-principles), with improved visual hierarchy, simplified workflows, and optimized touch/tablet experience
 - Consolidates commonly used administrative tools (Services, Device Manager, Event Viewer, Disk Management, Local Users and Groups, and more) into a unified experience
 - Built with **100% native Win32 APIs, COM, WMI, and CIM** for maximum performance and direct windows integration
-- Avoids unnecessary abstraction layers to preserve compatibility with existing Windows management infrastructure
 
 ## 🚀 Native AOT
 
-OneMMC ships as Native AOT. a single native executable with faster startup and a \~69% smaller footprint than ReadyToRun publish (224 MB → \~70 MB). The `PublishAot` applies to every configuration (Debug and Release): all COM interop is source-generated, WMI/CIM runs on WmiLight and a marshal-free `IWbemServices` wrapper, directory/account/counter access runs on ADSI/NetAPI32/PDH via CsWin32, and the AOT/trim analyzers guard every build
+OneMMC compiles as a single native executable with instant startup and a smaller size than ReadyToRun. The entire codebase is strictly optimized for Native AOT, eliminating runtime reflection and trimming issues
 
 ---
 

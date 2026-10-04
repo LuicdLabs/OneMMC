@@ -1915,9 +1915,6 @@ Do you want to install this certificate?</value>
   <data name="IPSec_Editor_MainModeMethods" xml:space="preserve">
     <value>Main mode security methods</value>
   </data>
-  <data name="IPSec_Editor_MethodsHelp" xml:space="preserve">
-    <value>Enter security methods in preference order, one per line.</value>
-  </data>
   <data name="IPSec_Editor_Filters" xml:space="preserve">
     <value>IP filters</value>
   </data>
@@ -2172,5 +2169,26 @@ Do you want to install this certificate?</value>
   </data>
   <data name="IPSec_Dialog_EditRule_TitleFormat" xml:space="preserve">
     <value>Edit rule: {0}</value>
+  </data>
+  <data name="IPSec_Page_PoliciesDescription" xml:space="preserve">
+    <value>Policies stored on this computer. Only one policy can be assigned at a time.</value>
+  </data>
+  <data name="IPSec_Editor_NoSecurityMethods" xml:space="preserve">
+    <value>No security methods yet. Add one below.</value>
+  </data>
+  <data name="IPSec_Editor_NoFilters" xml:space="preserve">
+    <value>No filters yet. Add one to describe the traffic this list matches.</value>
+  </data>
+  <data name="IPSec_Editor_NoAuthenticationMethods" xml:space="preserve">
+    <value>No authentication methods yet. Add one below.</value>
+  </data>
+  <data name="IPSec_Editor_NoRules" xml:space="preserve">
+    <value>No rules yet. Add one to describe traffic this policy secures.</value>
+  </data>
+  <data name="IPSec_Rule_Dynamic" xml:space="preserve">
+    <value>&lt;Dynamic&gt;</value>
+  </data>
+  <data name="IPSec_Rule_DefaultResponse" xml:space="preserve">
+    <value>Default response</value>
   </data>
 </root>

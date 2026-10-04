@@ -337,7 +337,7 @@ public class WindowsFirewallRuleService
     {
         if (string.IsNullOrWhiteSpace(ruleName))
         {
-            throw new ArgumentException("Firewall rule name is required.", nameof(ruleName));
+            throw new ArgumentException(OneMMC.Core.Localization.LocalizationProvider.Current.GetString(OneMMC.Core.Localization.ResourceFileNames.WF, OneMMC.Core.Localization.WFKeys.ErrRuleNameRequired), nameof(ruleName));
         }
 
         INetFwPolicy2 policy = WindowsFirewallSupport.CreatePolicy2();
@@ -354,7 +354,7 @@ public class WindowsFirewallRuleService
                 _logger.LogWarning(
                     "Skipped updating Windows Firewall rule enabled state because it could not be found. Name={RuleName}",
                     ruleName);
-                throw new InvalidOperationException($"Windows Firewall rule '{ruleName}' was not found.");
+                throw new InvalidOperationException(OneMMC.Core.Localization.LocalizationProvider.Current.GetFormattedString(OneMMC.Core.Localization.ResourceFileNames.WF, OneMMC.Core.Localization.WFKeys.ErrRuleNotFoundFormat, ruleName));
             }
 
             existingRule.put_Enabled(FirewallCom.ToVariantBool(enabled));
@@ -451,7 +451,7 @@ public class WindowsFirewallRuleService
     {
         if (!FirewallBinaryNativeMethods.TryParseCompartmentId(rule.Compartments, out uint compartmentId))
         {
-            throw new ArgumentException("Firewall rule compartment must be a number from 0 through 65535.", nameof(rule));
+            throw new ArgumentException(OneMMC.Core.Localization.LocalizationProvider.Current.GetString(OneMMC.Core.Localization.ResourceFileNames.WF, OneMMC.Core.Localization.WFKeys.ErrCompartmentRange), nameof(rule));
         }
 
         if (compartmentId == 0 && !FirewallBinaryNativeMethods.IsAvailable)

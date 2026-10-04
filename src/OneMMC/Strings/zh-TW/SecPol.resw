@@ -1889,9 +1889,6 @@
   <data name="IPSec_Editor_MainModeMethods" xml:space="preserve">
     <value>主要模式安全性方法</value>
   </data>
-  <data name="IPSec_Editor_MethodsHelp" xml:space="preserve">
-    <value>請依喜好順序輸入安全性方法，每行一個。</value>
-  </data>
   <data name="IPSec_Editor_Filters" xml:space="preserve">
     <value>IP 篩選器</value>
   </data>
@@ -2146,5 +2143,26 @@
   </data>
   <data name="IPSec_Dialog_EditRule_TitleFormat" xml:space="preserve">
     <value>編輯規則：{0}</value>
+  </data>
+  <data name="IPSec_Page_PoliciesDescription" xml:space="preserve">
+    <value>儲存在此電腦上的原則。一次只能指派一個原則。</value>
+  </data>
+  <data name="IPSec_Editor_NoSecurityMethods" xml:space="preserve">
+    <value>尚無安全性方法。請在下方新增。</value>
+  </data>
+  <data name="IPSec_Editor_NoFilters" xml:space="preserve">
+    <value>尚無篩選器。請新增一個以描述此清單所比對的流量。</value>
+  </data>
+  <data name="IPSec_Editor_NoAuthenticationMethods" xml:space="preserve">
+    <value>尚無驗證方法。請在下方新增。</value>
+  </data>
+  <data name="IPSec_Editor_NoRules" xml:space="preserve">
+    <value>尚無規則。請新增一個以描述此原則所保護的流量。</value>
+  </data>
+  <data name="IPSec_Rule_Dynamic" xml:space="preserve">
+    <value>&lt;動態&gt;</value>
+  </data>
+  <data name="IPSec_Rule_DefaultResponse" xml:space="preserve">
+    <value>預設回應</value>
   </data>
 </root>

@@ -150,17 +150,14 @@
   <data name="WelcomeDialog_Feature4" xml:space="preserve">
     <value>Built with 100% native Win32 APIs, COM, WMI, and CIM for maximum performance and direct windows integration</value>
   </data>
-  <data name="WelcomeDialog_Feature5" xml:space="preserve">
-    <value>Avoids unnecessary abstraction layers to preserve compatibility with existing Windows management infrastructure</value>
-  </data>
   <data name="WelcomeDialog_WarningTitle" xml:space="preserve">
     <value>Notice</value>
   </data>
   <data name="WelcomeDialog_WarningMessage" xml:space="preserve">
     <value>Dogfood build. May modify your system components. Please use only in isolated environments or VMs</value>
   </data>
-  <data name="WelcomeDialog_RemindAfter30Days" xml:space="preserve">
-    <value>Remind me after 30 days</value>
+  <data name="WelcomeDialog_DoNotShowAgain" xml:space="preserve">
+    <value>Do not show again</value>
   </data>
   <data name="WelcomeDialog_LetsExplore" xml:space="preserve">
     <value>Let's explore</value>

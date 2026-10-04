@@ -10,6 +10,10 @@ namespace OneMMC.Core.Features.SystemManagement.Services.TPM
 {
     public class TPMService
     {
+        internal static string UnknownText => TpmText(TPMKeys.Unknown);
+
+        private static string TpmText(string key) => LocalizationProvider.Current.GetString(ResourceFileNames.TPM, key);
+
         private const string TpmNamespace = @"root\CIMV2\Security\MicrosoftTpm";
         private const string TpmQuery = "SELECT * FROM Win32_Tpm";
 
@@ -43,18 +47,23 @@ namespace OneMMC.Core.Features.SystemManagement.Services.TPM
         public TPMInfo GetTPMInformation()
         {
             var info = new TPMInfo();
+            var L = LocalizationProvider.Current;
 
             try
             {
-                // Query TPM using WMI
+                // Query TPM using WMI. A successful connection with zero instances means the
+                // machine has no TPM (or firmware has hidden it), which is distinct from access denied.
                 using (var connection = new WmiConnection(TpmNamespace))
                 {
+                    var found = false;
                     foreach (WmiObject obj in connection.CreateQuery(TpmQuery).DisposeItems())
                     {
+                        found = true;
+
                         // Get TPM version
-                        info.SpecVersion = obj["SpecVersion"]?.ToString() ?? "Unknown";
-                        info.ManufacturerVersion = obj["ManufacturerVersion"]?.ToString() ?? "Unknown";
-                        info.ManufacturerId = obj["ManufacturerId"]?.ToString() ?? "Unknown";
+                        info.SpecVersion = obj["SpecVersion"]?.ToString() ?? TPMService.UnknownText;
+                        info.ManufacturerVersion = obj["ManufacturerVersion"]?.ToString() ?? TPMService.UnknownText;
+                        info.ManufacturerId = obj["ManufacturerId"]?.ToString() ?? TPMService.UnknownText;
                         info.ManufacturerName = GetManufacturerName(obj["ManufacturerId"]);
 
                         // Get TPM status
@@ -67,20 +76,30 @@ namespace OneMMC.Core.Features.SystemManagement.Services.TPM
 
                         info.IsAvailable = true;
                     }
+
+                    if (!found)
+                    {
+                        info.IsAvailable = false;
+                        info.ErrorMessage = L.GetString(ResourceFileNames.TPM, TPMKeys.NotAvailable);
+                    }
                 }
+            }
+            catch (WmiException ex) when (!_adminService.IsRunningAsAdmin || _adminService.IsPermissionError(ex))
+            {
+                info.IsAvailable = false;
+                info.IsAccessDenied = true;
+                info.ErrorMessage = L.GetString(ResourceFileNames.TPM, TPMKeys.AccessDenied);
             }
             catch (WmiException)
             {
-                // TPM might not be available or accessible
                 info.IsAvailable = false;
-                info.ErrorMessage = _adminService.IsRunningAsAdmin
-                    ? LocalizationProvider.Current.GetString(ResourceFileNames.TPM, TPMKeys.NotAvailable)
-                    : LocalizationProvider.Current.GetString(ResourceFileNames.TPM, TPMKeys.AccessDenied);
+                info.ErrorMessage = L.GetString(ResourceFileNames.TPM, TPMKeys.NotAvailable);
             }
             catch (Exception ex)
             {
                 info.IsAvailable = false;
-                info.ErrorMessage = $"Error: {ex.Message}";
+                info.IsQueryFailed = true;
+                info.ErrorMessage = $"{L.GetString(ResourceFileNames.TPM, TPMKeys.CannotGetInfo)}: {ex.Message}";
             }
 
             return info;
@@ -90,13 +109,13 @@ namespace OneMMC.Core.Features.SystemManagement.Services.TPM
         {
             if (manufacturerId is null)
             {
-                return "Unknown";
+                return TPMService.UnknownText;
             }
 
             var id = Convert.ToUInt32(manufacturerId);
             if (id == 0)
             {
-                return "Unknown";
+                return TPMService.UnknownText;
             }
 
             var chars = new[]
@@ -108,7 +127,7 @@ namespace OneMMC.Core.Features.SystemManagement.Services.TPM
             };
 
             var manufacturerName = new string(chars).TrimEnd('\0', ' ');
-            return string.IsNullOrWhiteSpace(manufacturerName) ? "Unknown" : manufacturerName;
+            return string.IsNullOrWhiteSpace(manufacturerName) ? TPMService.UnknownText : manufacturerName;
         }
 
         public bool OpenTPMConsole()
@@ -142,7 +161,7 @@ namespace OneMMC.Core.Features.SystemManagement.Services.TPM
                 {
                     result.Success = false;
                     result.Status = ClearStatus.NotFoundObject;
-                    result.ErrorMessage = "Win32_Tpm object not found (WMI does not provide TPM information).";
+                    result.ErrorMessage = TpmText(TPMKeys.ClearTPM_NoWin32Tpm);
                     return result;
                 }
 
@@ -201,7 +220,7 @@ namespace OneMMC.Core.Features.SystemManagement.Services.TPM
                             {
                                 result.Success = true;
                                 result.Status = ClearStatus.Success;
-                                result.ErrorMessage = "Clear request set. Please restart the computer to complete TPM clearing.";
+                                result.ErrorMessage = TpmText(TPMKeys.ClearRequestSet);
                                 return result;
                             }
                             _logger.LogDebug($"SetPhysicalPresenceRequest(22) returned error code: {returnCode}");
@@ -223,10 +242,10 @@ namespace OneMMC.Core.Features.SystemManagement.Services.TPM
                             {
                                 result.Success = true;
                                 result.Status = ClearStatus.Success;
-                                result.ErrorMessage = "Clear request set. Please restart the computer to complete TPM clearing.";
+                                result.ErrorMessage = TpmText(TPMKeys.ClearRequestSet);
                                 return result;
                             }
-                            result.ErrorMessage = $"SetPhysicalPresenceRequest(5) returned error code: {returnCode}";
+                            result.ErrorMessage = LocalizationProvider.Current.GetFormattedString(ResourceFileNames.TPM, TPMKeys.PprErrorFormat, returnCode);
                         }
                         catch (Exception ex)
                         {
@@ -275,7 +294,7 @@ namespace OneMMC.Core.Features.SystemManagement.Services.TPM
             }
             catch (Exception ex)
             {
-                return new ClearResult { Success = false, Status = ClearStatus.Unknown, ErrorMessage = $"An error occurred during execution: {ex.Message}" };
+                return new ClearResult { Success = false, Status = ClearStatus.Unknown, ErrorMessage = LocalizationProvider.Current.GetFormattedString(ResourceFileNames.TPM, TPMKeys.ExecutionErrorFormat, ex.Message) };
             }
         }
     }
@@ -283,14 +302,16 @@ namespace OneMMC.Core.Features.SystemManagement.Services.TPM
     public class TPMInfo
     {
         public bool IsAvailable { get; set; }
+        public bool IsAccessDenied { get; set; }
+        public bool IsQueryFailed { get; set; }
         public bool IsReady { get; set; }
         public bool IsEnabled { get; set; }
         public bool IsActivated { get; set; }
         public bool IsOwned { get; set; }
-        public string SpecVersion { get; set; } = "Unknown";
-        public string ManufacturerVersion { get; set; } = "Unknown";
-        public string ManufacturerId { get; set; } = "Unknown";
-        public string ManufacturerName { get; set; } = "Unknown";
+        public string SpecVersion { get; set; } = TPMService.UnknownText;
+        public string ManufacturerVersion { get; set; } = TPMService.UnknownText;
+        public string ManufacturerId { get; set; } = TPMService.UnknownText;
+        public string ManufacturerName { get; set; } = TPMService.UnknownText;
         public string ErrorMessage { get; set; } = "";
     }
 }

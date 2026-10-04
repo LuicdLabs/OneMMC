@@ -15,7 +15,7 @@ namespace OneMMC.Core.Features.UserSecurity.ViewModels.SecPol.IPSecurity;
 public sealed partial class IPSecurityPoliciesViewModel : ObservableObject
 {
     private readonly IPSecurityPolicyService _policyService;
-    private readonly IPSecurityStaticPolicyMutationService _mutationService;
+    private readonly IPSecurityMutationService _mutationService;
     private readonly ILogger<IPSecurityPoliciesViewModel> _logger;
     private readonly IAdminService _adminService;
     private IPSecurityPolicySnapshot _snapshot = new();
@@ -29,7 +29,7 @@ public sealed partial class IPSecurityPoliciesViewModel : ObservableObject
     /// <param name="adminService">The administrator service.</param>
     public IPSecurityPoliciesViewModel(
         IPSecurityPolicyService policyService,
-        IPSecurityStaticPolicyMutationService mutationService,
+        IPSecurityMutationService mutationService,
         ILogger<IPSecurityPoliciesViewModel> logger,
         IAdminService adminService)
     {
@@ -84,6 +84,29 @@ public sealed partial class IPSecurityPoliciesViewModel : ObservableObject
     /// Gets a value indicating whether the selected policy can be unassigned.
     /// </summary>
     public bool CanUnassignSelectedPolicy => CanCreateItem && SelectedPolicy?.Policy is { IsAssigned: true };
+
+    /// <summary>
+    /// Gets a value indicating whether the selected policy is currently assigned.
+    /// Backs the single assign/unassign toggle button on the page.
+    /// </summary>
+    public bool IsSelectedPolicyAssigned => SelectedPolicy?.Policy?.IsAssigned == true;
+
+    /// <summary>
+    /// Gets a value indicating whether the assign/unassign toggle button is enabled.
+    /// True when a policy is selected (either assignable or unassignable).
+    /// </summary>
+    public bool CanToggleAssignSelectedPolicy => CanCreateItem && SelectedPolicy?.Policy is not null;
+
+    /// <summary>
+    /// Gets the localized label for the assign/unassign toggle button.
+    /// </summary>
+    public string AssignToggleLabel => GetString(
+        IsSelectedPolicyAssigned ? IPSecurityPolicyKeys.CommandUnassign : IPSecurityPolicyKeys.CommandAssign);
+
+    /// <summary>
+    /// Gets the glyph for the assign/unassign toggle button (unassign/revoke vs. assign/checkmark).
+    /// </summary>
+    public string AssignToggleGlyph => IsSelectedPolicyAssigned ? "\uE711" : "\uE73E";
 
     /// <summary>
     /// Gets a value indicating whether the selected policy's rules can be managed.
@@ -382,6 +405,10 @@ public sealed partial class IPSecurityPoliciesViewModel : ObservableObject
         OnPropertyChanged(nameof(CanDeleteSelectedItem));
         OnPropertyChanged(nameof(CanAssignSelectedPolicy));
         OnPropertyChanged(nameof(CanUnassignSelectedPolicy));
+        OnPropertyChanged(nameof(IsSelectedPolicyAssigned));
+        OnPropertyChanged(nameof(CanToggleAssignSelectedPolicy));
+        OnPropertyChanged(nameof(AssignToggleLabel));
+        OnPropertyChanged(nameof(AssignToggleGlyph));
         OnPropertyChanged(nameof(CanManageSelectedPolicyRules));
     }
 

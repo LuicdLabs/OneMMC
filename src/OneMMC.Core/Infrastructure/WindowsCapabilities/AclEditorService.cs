@@ -145,9 +145,14 @@ public sealed class AclEditorAccessEntry
     public string Name { get; set; } = string.Empty;
 
     /// <summary>
-    /// Gets or sets whether this is a general access entry.
+    /// Gets or sets whether this access right is shown on the basic permissions page.
     /// </summary>
     public bool IsGeneral { get; set; } = true;
+
+    /// <summary>
+    /// Gets or sets whether this access right is shown in the advanced permissions editor.
+    /// </summary>
+    public bool IsSpecific { get; set; } = true;
 
     /// <summary>
     /// Gets or sets the ACE inheritance flags (<see cref="AclEditorAceFlags.ContainerInherit"/> /
@@ -620,6 +625,7 @@ public sealed partial class AclEditorService
         private readonly AclEditorNativeMethods.SiInheritType[] _inheritEntries;
         private readonly IntPtr _inheritEntriesPointer;
         private readonly EditableSecurityInformation? _secondarySecurityInformation;
+        private bool _disposed;
         private readonly IntPtr _secondarySecurityInformationPointer;
         private readonly IntPtr _guidNullPointer;
         private readonly IntPtr _defaultObjectTypeListPointer;
@@ -716,6 +722,13 @@ public sealed partial class AclEditorService
 
         public void Dispose()
         {
+            if (_disposed)
+            {
+                return;
+            }
+
+            _disposed = true;
+
             if (_secondarySecurityInformationPointer != IntPtr.Zero)
             {
                 Marshal.Release(_secondarySecurityInformationPointer);
@@ -730,6 +743,8 @@ public sealed partial class AclEditorService
                     Marshal.FreeHGlobal(pointer);
                 }
             }
+
+            _allocatedStrings.Clear();
 
             if (_accessEntriesPointer != IntPtr.Zero)
             {
@@ -909,35 +924,16 @@ public sealed partial class AclEditorService
             out IntPtr grantedAccessList,
             out uint grantedAccessListLength)
         {
-            _logger.LogDebug("[AclEditorService] GetEffectivePermission requested for {PageTitle}.", _request.PageTitle);
-            objectTypeList = _defaultObjectTypeListPointer;
-            objectTypeListLength = 1;
+            // Accurate effective access requires Windows Authz evaluation with a complete access
+            // token. A SID-only DACL scan would omit groups, claims, callback ACEs, and token state.
+            objectTypeList = IntPtr.Zero;
+            objectTypeListLength = 0;
             grantedAccessList = IntPtr.Zero;
             grantedAccessListLength = 0;
-
-            if (userSid == IntPtr.Zero || securityDescriptor == IntPtr.Zero)
-            {
-                return AclEditorNativeMethods.EInvalidArg;
-            }
-
-            try
-            {
-                uint grantedAccess = CalculateEffectiveAccess(userSid, securityDescriptor);
-                grantedAccessList = AclEditorNativeMethods.LocalAlloc(LmemFixed, (UIntPtr)sizeof(uint));
-                if (grantedAccessList == IntPtr.Zero)
-                {
-                    return Marshal.GetHRForLastWin32Error();
-                }
-
-                Marshal.WriteInt32(grantedAccessList, unchecked((int)grantedAccess));
-                grantedAccessListLength = 1;
-                return S_OK;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "[AclEditorService] Failed to calculate effective access for {PageTitle}.", _request.PageTitle);
-                return Marshal.GetHRForException(ex);
-            }
+            _logger.LogDebug(
+                "[AclEditorService] Effective access is not implemented for {PageTitle}.",
+                _request.PageTitle);
+            return AclEditorNativeMethods.ENotImpl;
         }
 
         public int GetFullResourceName(out IntPtr resourceName)
@@ -958,15 +954,13 @@ public sealed partial class AclEditorService
 
         public int OpenElevatedEditor(IntPtr hwnd, AclEditorPageType pageType)
         {
+            // Reopening aclui in this process does not elevate it. A real implementation requires
+            // an elevated process or broker and cannot reuse this in-process callback unchanged.
             _logger.LogDebug(
-                "[AclEditorService] OpenElevatedEditor requested for {PageTitle} on page {PageType}.",
+                "[AclEditorService] Elevated editor is not implemented for {PageTitle} on page {PageType}.",
                 _request.PageTitle,
                 pageType);
-
-            return AclEditorNativeMethods.EditSecurityAdvanced(
-                hwnd,
-                this,
-                GetNativePageType(pageType));
+            return AclEditorNativeMethods.ENotImpl;
         }
 
         public int GetInheritSource(uint securityInformation, IntPtr acl, out IntPtr inheritArray)
@@ -1053,19 +1047,14 @@ public sealed partial class AclEditorService
 
         private static RawSecurityDescriptor CreateDescriptor(AclEditorRequest request)
         {
-            if (!string.IsNullOrWhiteSpace(request.SecurityDescriptorSddl))
+            if (string.IsNullOrWhiteSpace(request.SecurityDescriptorSddl))
             {
-                try
-                {
-                    return new RawSecurityDescriptor(request.SecurityDescriptorSddl);
-                }
-                catch
-                {
-                    // Malformed persisted text should not prevent the editor from opening.
-                }
+                return request.EmptySecurityDescriptorFactory();
             }
 
-            return request.EmptySecurityDescriptorFactory();
+            // A malformed non-empty descriptor is invalid source data. Do not replace it with an
+            // empty DACL because persisting that fallback could destroy the original security data.
+            return new RawSecurityDescriptor(request.SecurityDescriptorSddl);
         }
 
         private static AclEditorRequest CreateSecondaryRequest(AclEditorSecondarySecurityRequest secondary)
@@ -1251,7 +1240,11 @@ public sealed partial class AclEditorService
 
         private static uint BuildAccessFlags(AclEditorAccessEntry entry)
         {
-            uint flags = entry.IsGeneral ? SiAccessGeneral : 0u;
+            uint flags = entry.IsSpecific ? 0x00010000u : 0u;
+            if (entry.IsGeneral)
+            {
+                flags |= SiAccessGeneral;
+            }
             if (entry.AppliesToContainersOnly)
             {
                 flags |= SiAccessContainer;

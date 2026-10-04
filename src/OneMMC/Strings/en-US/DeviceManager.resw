@@ -355,4 +355,220 @@ Do you understand this might cause the system errors or failure?</value>
   <data name="DeviceManager_DeviceCountZero" xml:space="preserve">
     <value>0 devices</value>
   </data>
+  <data name="DeviceManager_Category_1394" xml:space="preserve">
+    <value>IEEE 1394 Bus host controllers</value>
+  </data>
+  <data name="DeviceManager_Category_1394Debug" xml:space="preserve">
+    <value>IEEE 1394 Debugger</value>
+  </data>
+  <data name="DeviceManager_Category_61883" xml:space="preserve">
+    <value>61883 Device Class</value>
+  </data>
+  <data name="DeviceManager_Category_Adapter" xml:space="preserve">
+    <value>Adapter</value>
+  </data>
+  <data name="DeviceManager_Category_APMSupport" xml:space="preserve">
+    <value>APM</value>
+  </data>
+  <data name="DeviceManager_Category_AudioEndpoint" xml:space="preserve">
+    <value>Audio inputs and outputs</value>
+  </data>
+  <data name="DeviceManager_Category_AudioProcessingObject" xml:space="preserve">
+    <value>Audio Processing Objects (APOs)</value>
+  </data>
+  <data name="DeviceManager_Category_AVC" xml:space="preserve">
+    <value>AVC Device Class</value>
+  </data>
+  <data name="DeviceManager_Category_Battery" xml:space="preserve">
+    <value>Batteries</value>
+  </data>
+  <data name="DeviceManager_Category_Biometric" xml:space="preserve">
+    <value>Biometric devices</value>
+  </data>
+  <data name="DeviceManager_Category_Bluetooth" xml:space="preserve">
+    <value>Bluetooth</value>
+  </data>
+  <data name="DeviceManager_Category_Camera" xml:space="preserve">
+    <value>Cameras</value>
+  </data>
+  <data name="DeviceManager_Category_CDROM" xml:space="preserve">
+    <value>DVD/CD-ROM drives</value>
+  </data>
+  <data name="DeviceManager_Category_Computer" xml:space="preserve">
+    <value>Computer</value>
+  </data>
+  <data name="DeviceManager_Category_ComputeAccelerator" xml:space="preserve">
+    <value>Compute accelerators</value>
+  </data>
+  <data name="DeviceManager_Category_Decoder" xml:space="preserve">
+    <value>Decoders</value>
+  </data>
+  <data name="DeviceManager_Category_DiskDrive" xml:space="preserve">
+    <value>Disk drives</value>
+  </data>
+  <data name="DeviceManager_Category_Display" xml:space="preserve">
+    <value>Display adapters</value>
+  </data>
+  <data name="DeviceManager_Category_Dot4" xml:space="preserve">
+    <value>IEEE 1284.4 devices</value>
+  </data>
+  <data name="DeviceManager_Category_Dot4Print" xml:space="preserve">
+    <value>IEEE 1284.4 print functions</value>
+  </data>
+  <data name="DeviceManager_Category_Enum1394" xml:space="preserve">
+    <value>IEEE 1394 IP Network Enumerator</value>
+  </data>
+  <data name="DeviceManager_Category_Extension" xml:space="preserve">
+    <value>Extension devices</value>
+  </data>
+  <data name="DeviceManager_Category_FDC" xml:space="preserve">
+    <value>Floppy disk controllers</value>
+  </data>
+  <data name="DeviceManager_Category_Firmware" xml:space="preserve">
+    <value>Firmware</value>
+  </data>
+  <data name="DeviceManager_Category_FloppyDisk" xml:space="preserve">
+    <value>Floppy disk drives</value>
+  </data>
+  <data name="DeviceManager_Category_HDC" xml:space="preserve">
+    <value>IDE ATA/ATAPI controllers</value>
+  </data>
+  <data name="DeviceManager_Category_HIDClass" xml:space="preserve">
+    <value>Human Interface Devices</value>
+  </data>
+  <data name="DeviceManager_Category_Image" xml:space="preserve">
+    <value>Imaging devices</value>
+  </data>
+  <data name="DeviceManager_Category_Infrared" xml:space="preserve">
+    <value>Infrared devices</value>
+  </data>
+  <data name="DeviceManager_Category_Keyboard" xml:space="preserve">
+    <value>Keyboards</value>
+  </data>
+  <data name="DeviceManager_Category_LegacyDriver" xml:space="preserve">
+    <value>Non-Plug and Play Drivers</value>
+  </data>
+  <data name="DeviceManager_Category_Media" xml:space="preserve">
+    <value>Sound, video and game controllers</value>
+  </data>
+  <data name="DeviceManager_Category_MediumChanger" xml:space="preserve">
+    <value>Media changers</value>
+  </data>
+  <data name="DeviceManager_Category_Modem" xml:space="preserve">
+    <value>Modems</value>
+  </data>
+  <data name="DeviceManager_Category_Monitor" xml:space="preserve">
+    <value>Monitors</value>
+  </data>
+  <data name="DeviceManager_Category_Mouse" xml:space="preserve">
+    <value>Mice and other pointing devices</value>
+  </data>
+  <data name="DeviceManager_Category_MTD" xml:space="preserve">
+    <value>Memory technology devices</value>
+  </data>
+  <data name="DeviceManager_Category_Multifunction" xml:space="preserve">
+    <value>Multifunction adapters</value>
+  </data>
+  <data name="DeviceManager_Category_MultiportSerial" xml:space="preserve">
+    <value>Multi-port serial adapters</value>
+  </data>
+  <data name="DeviceManager_Category_Net" xml:space="preserve">
+    <value>Network adapters</value>
+  </data>
+  <data name="DeviceManager_Category_NetClient" xml:space="preserve">
+    <value>Network Client</value>
+  </data>
+  <data name="DeviceManager_Category_NetService" xml:space="preserve">
+    <value>Network Service</value>
+  </data>
+  <data name="DeviceManager_Category_NetTrans" xml:space="preserve">
+    <value>Network Protocol</value>
+  </data>
+  <data name="DeviceManager_Category_NoDriver" xml:space="preserve">
+    <value>No driver</value>
+  </data>
+  <data name="DeviceManager_Category_NvmeDisk" xml:space="preserve">
+    <value>Storage disks</value>
+  </data>
+  <data name="DeviceManager_Category_PCMCIA" xml:space="preserve">
+    <value>PCMCIA adapters</value>
+  </data>
+  <data name="DeviceManager_Category_PNPPrinters" xml:space="preserve">
+    <value>IEEE 1394 and SCSI printers</value>
+  </data>
+  <data name="DeviceManager_Category_Ports" xml:space="preserve">
+    <value>Ports (COM &amp; LPT)</value>
+  </data>
+  <data name="DeviceManager_Category_Printer" xml:space="preserve">
+    <value>Printers</value>
+  </data>
+  <data name="DeviceManager_Category_PrinterUpgrade" xml:space="preserve">
+    <value>Printer upgrades</value>
+  </data>
+  <data name="DeviceManager_Category_PrintQueue" xml:space="preserve">
+    <value>Print queues</value>
+  </data>
+  <data name="DeviceManager_Category_Processor" xml:space="preserve">
+    <value>Processors</value>
+  </data>
+  <data name="DeviceManager_Category_SBP2" xml:space="preserve">
+    <value>SBP2 IEEE 1394 Devices</value>
+  </data>
+  <data name="DeviceManager_Category_SCSIAdapter" xml:space="preserve">
+    <value>Storage controllers</value>
+  </data>
+  <data name="DeviceManager_Category_SDHost" xml:space="preserve">
+    <value>SD host adapters</value>
+  </data>
+  <data name="DeviceManager_Category_SecurityAccelerator" xml:space="preserve">
+    <value>Security accelerators</value>
+  </data>
+  <data name="DeviceManager_Category_SecurityDevices" xml:space="preserve">
+    <value>Security devices</value>
+  </data>
+  <data name="DeviceManager_Category_Sensor" xml:space="preserve">
+    <value>Sensors</value>
+  </data>
+  <data name="DeviceManager_Category_SmartCardReader" xml:space="preserve">
+    <value>Smart card readers</value>
+  </data>
+  <data name="DeviceManager_Category_SoftwareComponent" xml:space="preserve">
+    <value>Software components</value>
+  </data>
+  <data name="DeviceManager_Category_SoftwareDevice" xml:space="preserve">
+    <value>Software devices</value>
+  </data>
+  <data name="DeviceManager_Category_Sound" xml:space="preserve">
+    <value>Sound</value>
+  </data>
+  <data name="DeviceManager_Category_System" xml:space="preserve">
+    <value>System devices</value>
+  </data>
+  <data name="DeviceManager_Category_TapeDrive" xml:space="preserve">
+    <value>Tape drives</value>
+  </data>
+  <data name="DeviceManager_Category_UCM" xml:space="preserve">
+    <value>USB connector managers</value>
+  </data>
+  <data name="DeviceManager_Category_Unknown" xml:space="preserve">
+    <value>Other devices</value>
+  </data>
+  <data name="DeviceManager_Category_USB" xml:space="preserve">
+    <value>Universal Serial Bus controllers</value>
+  </data>
+  <data name="DeviceManager_Category_USBDevice" xml:space="preserve">
+    <value>Universal Serial Bus devices</value>
+  </data>
+  <data name="DeviceManager_Category_Volume" xml:space="preserve">
+    <value>Storage volumes</value>
+  </data>
+  <data name="DeviceManager_Category_VolumeSnapshot" xml:space="preserve">
+    <value>Storage volume snapshots</value>
+  </data>
+  <data name="DeviceManager_Category_WCEUSBS" xml:space="preserve">
+    <value>Windows CE USB ActiveSync devices</value>
+  </data>
+  <data name="DeviceManager_Category_WPD" xml:space="preserve">
+    <value>Portable Devices</value>
+  </data>
 </root>

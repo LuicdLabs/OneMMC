@@ -4,6 +4,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
+    <!--  Two halves: the ordered list, then a flat composer grid for adding one more method.  -->
     <StackPanel Spacing="12">
         <TextBlock
             x:Name="HeaderTextBlock"
@@ -11,52 +12,62 @@
             FontWeight="SemiBold"
             TextWrapping="Wrap" />
 
-        <ListView
-            x:Name="MethodsListView"
-            AutomationProperties.Name="{x:Bind Header, Mode=OneTime}"
-            ItemsSource="{x:Bind Methods}"
-            MaxHeight="160"
-            MinHeight="96"
-            SelectionChanged="MethodsListView_SelectionChanged"
-            SelectionMode="Single">
-            <ListView.ItemTemplate>
-                <DataTemplate x:DataType="x:String">
-                    <TextBlock
-                        Text="{x:Bind}"
-                        TextWrapping="WrapWholeWords" />
-                </DataTemplate>
-            </ListView.ItemTemplate>
-        </ListView>
+        <Grid>
+            <ListView
+                x:Name="MethodsListView"
+                MinHeight="96"
+                MaxHeight="160"
+                AutomationProperties.Name="{x:Bind Header, Mode=OneTime}"
+                ItemsSource="{x:Bind Methods}"
+                SelectionChanged="MethodsListView_SelectionChanged"
+                SelectionMode="Single">
+                <ListView.ItemTemplate>
+                    <DataTemplate x:DataType="x:String">
+                        <TextBlock
+                            FontFamily="Consolas"
+                            Style="{StaticResource BodyTextBlockStyle}"
+                            Text="{x:Bind}"
+                            TextWrapping="WrapWholeWords" />
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
 
-        <CommandBar
-            Background="Transparent"
-            DefaultLabelPosition="Right">
-            <AppBarButton
+            <TextBlock
+                x:Name="EmptyMethodsText"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Foreground="{ThemeResource TextFillColorTertiaryBrush}"
+                Style="{StaticResource CaptionTextBlockStyle}"
+                Text="{x:Bind LocalizedStrings.IPSec_Editor_NoSecurityMethods}"
+                TextAlignment="Center"
+                TextWrapping="Wrap" />
+        </Grid>
+
+        <StackPanel Orientation="Horizontal" Spacing="8">
+            <Button
                 x:Name="MoveUpButton"
+                AutomationProperties.Name="{x:Bind LocalizedStrings.IPSec_Editor_MoveUp}"
                 Click="MoveUpButton_Click"
-                Label="{x:Bind LocalizedStrings.IPSec_Editor_MoveUp}">
-                <AppBarButton.Icon>
-                    <FontIcon Glyph="&#xE70E;" />
-                </AppBarButton.Icon>
-            </AppBarButton>
-            <AppBarButton
+                ToolTipService.ToolTip="{x:Bind LocalizedStrings.IPSec_Editor_MoveUp}">
+                <FontIcon FontSize="14" Glyph="&#xE70E;" />
+            </Button>
+            <Button
                 x:Name="MoveDownButton"
+                AutomationProperties.Name="{x:Bind LocalizedStrings.IPSec_Editor_MoveDown}"
                 Click="MoveDownButton_Click"
-                Label="{x:Bind LocalizedStrings.IPSec_Editor_MoveDown}">
-                <AppBarButton.Icon>
-                    <FontIcon Glyph="&#xE70D;" />
-                </AppBarButton.Icon>
-            </AppBarButton>
-            <AppBarButton
+                ToolTipService.ToolTip="{x:Bind LocalizedStrings.IPSec_Editor_MoveDown}">
+                <FontIcon FontSize="14" Glyph="&#xE70D;" />
+            </Button>
+            <Button
                 x:Name="DeleteButton"
+                AutomationProperties.Name="{x:Bind LocalizedStrings.Common_DeleteButton}"
                 Click="DeleteButton_Click"
-                Label="{x:Bind LocalizedStrings.Common_DeleteButton}">
-                <AppBarButton.Icon>
-                    <SymbolIcon Symbol="Delete" />
-                </AppBarButton.Icon>
-            </AppBarButton>
-        </CommandBar>
+                ToolTipService.ToolTip="{x:Bind LocalizedStrings.Common_DeleteButton}">
+                <FontIcon FontSize="14" Glyph="&#xE74D;" />
+            </Button>
+        </StackPanel>
 
+        <!--  Main mode composer: only one of the two panels is ever visible.  -->
         <Grid
             x:Name="MainModePanel"
             ColumnSpacing="16"
@@ -66,7 +77,6 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
-
             <ComboBox
                 x:Name="MainEncryptionComboBox"
                 Header="{x:Bind LocalizedStrings.IPSec_Editor_EncryptionAlgorithm}" />
@@ -80,6 +90,7 @@
                 Header="{x:Bind LocalizedStrings.IPSec_Editor_DiffieHellmanGroup}" />
         </Grid>
 
+        <!--  Quick mode composer.  -->
         <Grid
             x:Name="QuickModePanel"
             ColumnSpacing="16"
@@ -93,7 +104,6 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
-
             <ComboBox
                 x:Name="QuickMethodTypeComboBox"
                 Header="{x:Bind LocalizedStrings.IPSec_Editor_SecurityMethodType}"
@@ -127,8 +137,8 @@
         </Grid>
 
         <Button
+            HorizontalAlignment="Left"
             Click="AddMethodButton_Click"
-            Content="{x:Bind LocalizedStrings.IPSec_Editor_AddSecurityMethod}"
-            HorizontalAlignment="Left" />
+            Content="{x:Bind LocalizedStrings.IPSec_Editor_AddSecurityMethod}" />
     </StackPanel>
 </UserControl>

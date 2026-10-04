@@ -9,13 +9,13 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol.IPSecurity;
 /// </summary>
 public sealed class IPSecurityPolicyService
 {
-    private readonly IPSecurityStaticPolicyStoreService _staticPolicyStore;
+    private readonly IPSecurityStoreService _staticPolicyStore;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="IPSecurityPolicyService"/> class.
     /// </summary>
     /// <param name="staticPolicyStore">The legacy static local IPsec policy store.</param>
-    public IPSecurityPolicyService(IPSecurityStaticPolicyStoreService staticPolicyStore)
+    public IPSecurityPolicyService(IPSecurityStoreService staticPolicyStore)
     {
         _staticPolicyStore = staticPolicyStore;
     }
@@ -26,7 +26,7 @@ public sealed class IPSecurityPolicyService
     /// <returns>The loaded policy snapshot.</returns>
     public IPSecurityPolicySnapshot LoadSnapshot()
     {
-        IPSecurityStaticStoreSnapshot snapshot = _staticPolicyStore.LoadSnapshot();
+        IPSecurityStoreSnapshot snapshot = _staticPolicyStore.LoadSnapshot();
         return new IPSecurityPolicySnapshot
         {
             Policies = snapshot.Policies.Select(CreatePolicyRow).ToList(),
@@ -128,8 +128,11 @@ public sealed class IPSecurityPolicyService
     {
         return string.Join(
             Environment.NewLine,
-            rules.Select(static rule =>
-                $"{rule.Name}: {rule.FilterListName} -> {rule.FilterActionName} ({rule.ConnectionType})"));
+            rules.Select(static rule => rule.IsDefaultResponseRule
+                ? $"{GetString(IPSecurityPolicyKeys.RuleDynamic)}: "
+                    + $"{GetString(IPSecurityPolicyKeys.RuleDynamic)} -> "
+                    + $"{GetString(IPSecurityPolicyKeys.RuleDefaultResponse)} ({rule.ConnectionType})"
+                : $"{rule.Name}: {rule.FilterListName} -> {rule.FilterActionName} ({rule.ConnectionType})"));
     }
 
     private static string FormatFilters(IReadOnlyList<IPSecurityFilterDefinition> filters)

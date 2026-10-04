@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
-  <!-- 
-    Microsoft ResX Schema 
-    
+  <!--
+    Microsoft ResX Schema
+
     Version 2.0
-    
-    The primary goals of this format is to allow a simple XML format 
-    that is mostly human readable. The generation and parsing of the 
-    various data types are done through the TypeConverter classes 
+
+    The primary goals of this format is to allow a simple XML format
+    that is mostly human readable. The generation and parsing of the
+    various data types are done through the TypeConverter classes
     associated with the data types.
-    
+
     Example:
-    
+
     ... ado.net/XML headers & schema ...
     <resheader name="resmimetype">text/microsoft-resx</resheader>
     <resheader name="version">2.0</resheader>
@@ -26,36 +26,36 @@
         <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
         <comment>This is a comment</comment>
     </data>
-                
-    There are any number of "resheader" rows that contain simple 
+
+    There are any number of "resheader" rows that contain simple
     name/value pairs.
-    
-    Each data row contains a name, and value. The row also contains a 
-    type or mimetype. Type corresponds to a .NET class that support 
-    text/value conversion through the TypeConverter architecture. 
-    Classes that don't support this are serialized and stored with the 
+
+    Each data row contains a name, and value. The row also contains a
+    type or mimetype. Type corresponds to a .NET class that support
+    text/value conversion through the TypeConverter architecture.
+    Classes that don't support this are serialized and stored with the
     mimetype set.
-    
-    The mimetype is used for serialized objects, and tells the 
-    ResXResourceReader how to depersist the object. This is currently not 
+
+    The mimetype is used for serialized objects, and tells the
+    ResXResourceReader how to depersist the object. This is currently not
     extensible. For a given mimetype the value must be set accordingly:
-    
-    Note - application/x-microsoft.net.object.binary.base64 is the format 
-    that the ResXResourceWriter will generate, however the reader can 
+
+    Note - application/x-microsoft.net.object.binary.base64 is the format
+    that the ResXResourceWriter will generate, however the reader can
     read any of the formats listed below.
-    
+
     mimetype: application/x-microsoft.net.object.binary.base64
-    value   : The object must be serialized with 
+    value   : The object must be serialized with
             : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
             : and then encoded with base64 encoding.
-    
+
     mimetype: application/x-microsoft.net.object.soap.base64
-    value   : The object must be serialized with 
+    value   : The object must be serialized with
             : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
             : and then encoded with base64 encoding.
 
     mimetype: application/x-microsoft.net.object.bytearray.base64
-    value   : The object must be serialized into a byte array 
+    value   : The object must be serialized into a byte array
             : using a System.ComponentModel.TypeConverter
             : and then encoded with base64 encoding.
     -->
@@ -121,19 +121,19 @@
     <value>Device Manager</value>
   </data>
   <data name="SettingItem_DeviceManager_Subtitle" xml:space="preserve">
-    <value>Printer and other drivers, hardware properties</value>
+    <value>View hardware devices and update drivers</value>
   </data>
   <data name="SettingItem_DiskManagement_Title" xml:space="preserve">
     <value>Disk management</value>
   </data>
   <data name="SettingItem_DiskManagement_Subtitle" xml:space="preserve">
-    <value>Manage disk partitions and drives</value>
+    <value>Format, resize, and organize disks and volumes</value>
   </data>
   <data name="SettingItem_Services_Title" xml:space="preserve">
     <value>Services</value>
   </data>
   <data name="SettingItem_Services_Subtitle" xml:space="preserve">
-    <value>Manage system service startup and stop</value>
+    <value>Start, stop, and configure background services</value>
   </data>
   <data name="SettingItem_EventViewer_Title" xml:space="preserve">
     <value>Event viewer</value>
@@ -151,76 +151,76 @@
     <value>Local users and groups</value>
   </data>
   <data name="SettingItem_LocalUsersGroups_Subtitle" xml:space="preserve">
-    <value>Manage local user accounts and groups</value>
+    <value>Create user accounts and control group membership</value>
   </data>
   <data name="SettingItem_SharedFolders_Title" xml:space="preserve">
     <value>Shared folders</value>
   </data>
   <data name="SettingItem_SharedFolders_Subtitle" xml:space="preserve">
-    <value>Manage shared network folders</value>
+    <value>Share folders and control who can access them</value>
   </data>
   <data name="SettingItem_TaskScheduler_Title" xml:space="preserve">
     <value>Task Scheduler</value>
   </data>
   <data name="SettingItem_TaskScheduler_Subtitle" xml:space="preserve">
-    <value>Schedule automated tasks</value>
+    <value>Automatically run apps and scripts on a schedule</value>
   </data>
   <data name="SettingItem_LocalCertificates_Title" xml:space="preserve">
     <value>Local certificates</value>
   </data>
   <data name="SettingItem_LocalCertificates_Subtitle" xml:space="preserve">
-    <value>Manage local computer certificates</value>
+    <value>Certificates that identify and secure this computer</value>
   </data>
   <data name="SettingItem_CurrentUserCertificates_Title" xml:space="preserve">
     <value>Current user certificates</value>
   </data>
   <data name="SettingItem_CurrentUserCertificates_Subtitle" xml:space="preserve">
-    <value>Manage current user certificates</value>
+    <value>Certificates that identify you for sign-in and signing</value>
   </data>
   <data name="SettingItem_GroupPolicyEditor_Title" xml:space="preserve">
     <value>Group Policy</value>
   </data>
   <data name="SettingItem_GroupPolicyEditor_Subtitle" xml:space="preserve">
-    <value>Manage group policy settings</value>
+    <value>Control Windows and app behavior with policies</value>
   </data>
   <data name="SettingItem_ResultantSetOfPolicy_Title" xml:space="preserve">
     <value>Resultant Set of Policy</value>
   </data>
   <data name="SettingItem_ResultantSetOfPolicy_Subtitle" xml:space="preserve">
-    <value>View resultant set of policy</value>
+    <value>See which policies apply to you and this PC</value>
   </data>
   <data name="SettingItem_HyperVManager_Subtitle" xml:space="preserve">
-    <value>Manage virtual machines</value>
+    <value>Run and manage virtual machines</value>
   </data>
   <data name="SettingItem_ComponentServices_Title" xml:space="preserve">
-    <value>Component services</value>
+    <value>Component Services</value>
   </data>
   <data name="SettingItem_ComponentServices_Subtitle" xml:space="preserve">
-    <value>Manage component services</value>
+    <value>Configure COM apps and distributed services</value>
   </data>
   <data name="SettingItem_WindowsFirewall_Title" xml:space="preserve">
     <value>Firewall Advanced settings</value>
   </data>
   <data name="SettingItem_WindowsFirewall_Subtitle" xml:space="preserve">
-    <value>Manage Firewall with Advanced settings</value>
+    <value>Set firewall rules for apps and network traffic</value>
   </data>
   <data name="SettingItem_TPMManager_Title" xml:space="preserve">
     <value>TPM management</value>
   </data>
   <data name="SettingItem_TPMManager_Subtitle" xml:space="preserve">
-    <value>Manage TPM settings</value>
+    <value>View security chip status and encryption options</value>
   </data>
   <data name="SettingItem_LocalSecurityPolicy_Title" xml:space="preserve">
     <value>Local security policy</value>
   </data>
   <data name="SettingItem_LocalSecurityPolicy_Subtitle" xml:space="preserve">
-    <value>Manage local security policies</value>
+    <value>Set password, lockout, and sign-in rules</value>
   </data>
   <data name="SettingItem_AuthorizationManager_Title" xml:space="preserve">
     <value>Authorization manager</value>
   </data>
   <data name="SettingItem_AuthorizationManager_Subtitle" xml:space="preserve">
-    <value>Manage authorization settings</value>
+    <value>Define app roles and access permissions</value>
   </data>
   <data name="SettingItem_Theme_Title" xml:space="preserve">
     <value>Theme</value>

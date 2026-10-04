@@ -8,10 +8,16 @@ OneMMC is in an early dogfooding stage and can affect critical system components
 
 - Read the [README](../README.md) for the current project overview, prerequisites, and debugging flow.
 - Use the existing GitHub issue templates when reporting bugs or proposing features.
-- Review relevant documentation under [doc](../doc), especially:
+- Review the relevant reference document under [doc](../doc) before changing that area. Each subsystem
+  has exactly one authoritative document — update it there rather than restating rules elsewhere:
+  - [Native AOT](../doc/NativeAot.md) — COM/WMI/ADSI/PDH/XAML/JSON constraints
+  - [Administrator detection](../doc/AdminDetectionSystem.md) — elevation checks and UX
+  - [Memory management](../doc/MemoryManagement.md) — page teardown, DI scopes, collections
   - [Logging](../doc/Logging.md)
-  - [AdminDetectionSystem](../doc/AdminDetectionSystem.md)
-- If you are using an AI coding assistant, also follow [.github/copilot-instructions.md](copilot-instructions.md).
+  - [Localization](../doc/Localization.md)
+  - [Breadcrumb navigation](../doc/Breadcrumb.md)
+- If you are using an AI coding assistant, also follow [.github/copilot-instructions.md](copilot-instructions.md),
+  which is the normative rule set for coding conventions, architecture boundaries, and AOT compatibility.
 
 ## Development Environment
 
@@ -19,7 +25,7 @@ Recommended environment:
 
 - Windows Pro edition, Windows Server series.  Home edition may lacks some MMC snap-ins features
 - .NET 10 SDK
-- Latest Windows App SDK version
+- Windows App SDK (the version pinned in [Directory.Packages.props](../Directory.Packages.props))
 - Windows 10 SDK 10.0.19041.0 or newer
 - Visual Studio 2026 (or newer) with WinUI, .NET desktop, and C++ desktop workloads
 
@@ -39,7 +45,7 @@ Release publish is Native AOT (requires the MSVC toolchain for the ILC link step
 dotnet publish src/OneMMC/OneMMC.csproj -c Release -r win-x64
 ```
 
-**Native AOT is the project's shipped deployment model.** `PublishAot` applies to every configuration (Debug and Release); the verified state, sanctioned replacements, and migration record live in [doc/NativeAot.md](../doc/NativeAot.md). New and modified code must follow the mandatory AOT compatibility rules in [.github/copilot-instructions.md](copilot-instructions.md) (§Native AOT Compatibility). The AOT/trim analyzers run on every build — first-party code builds warning-clean, and changes must introduce no new AOT/trim warnings.
+**Native AOT is the project's shipped deployment model.** `PublishAot` applies to every configuration (Debug and Release). New and modified code must follow the AOT compatibility rules in [.github/copilot-instructions.md](copilot-instructions.md) (§Native AOT Compatibility); the full technical reference is [doc/NativeAot.md](../doc/NativeAot.md). The AOT/trim analyzers run on every build — first-party code builds warning-clean, and changes must introduce no new AOT/trim warnings.
 
 There are currently no test projects in this repository. For now, every change should include:
 
@@ -48,7 +54,7 @@ There are currently no test projects in this repository. For now, every change s
 - Any administrator/elevation scenario tested, if applicable.
 - Any VM or OS version constraints that affected validation.
 
-When documentation mentions SDK, package, target framework, runtime, supported platform, package identity, or app version information, verify it against these files first. If one of these files changes, update related documentation in the same pull request.
+SDK, package, target framework, runtime, supported platform, package identity, and app version information are pinned in [Directory.Packages.props](../Directory.Packages.props), [Directory.Build.props](../Directory.Build.props), and the project files. Verify documentation against those files first, and if one of them changes, update related documentation in the same pull request.
 
 ## Contribution Workflow
 
@@ -65,97 +71,45 @@ OneMMC has two main projects:
 - `src/OneMMC.Core`: ViewModels, services, models, domain logic, COM/WMI interop, and reusable Windows-native services.
 - `src/OneMMC`: WinUI 3 app shell, XAML views, converters, helpers, localization resources, and UI composition.
 
-Core dependencies must not flow back into the UI project. Keep presentation concerns in the UI project.
+Dependency direction is one-way: **UI → Core**. Keep presentation concerns in the UI project.
 
-Important boundaries:
+The full boundary rules — what Core may reference, ViewModel/UI separation, feature isolation,
+DI-only infrastructure access, and where new code belongs — are in
+[.github/copilot-instructions.md](copilot-instructions.md) (§Architecture Boundaries). Each project's
+README covers its own internals: [Core](../src/OneMMC.Core/README.md), [UI](../src/OneMMC/README.md).
 
-- ViewModels must not create or manipulate XAML UI types such as `ContentDialog`, `FrameworkElement`, `XamlRoot`, `DispatcherQueue`, pages, windows, controls, or presentation state.
-- Features must not directly reference types from other features. Share contracts through abstractions.
-- Feature code should depend on abstraction interfaces and DI registration, not direct construction of infrastructure classes.
-- UI-specific ownership such as windows, dialogs, XAML pages, and theme mapping belongs in the UI project.
-- New feature code should follow the established feature/category layout. Place reusable domain code in Core and corresponding views under the appropriate `Views` category.
+## Coding Rules
 
-## WinUI 3 Rules
+The normative conventions live in [.github/copilot-instructions.md](copilot-instructions.md) and apply
+to human contributors too. The highlights most often missed in review:
 
-- Use `DispatcherQueue.TryEnqueue` for UI thread marshaling.
-- Use `SelectorBar` for tab-like navigation.
-- Do not assume UWP APIs or app-container behavior unless verified for WinUI 3 desktop.
-- When dynamically creating controls that need theme-aware brushes, define a named XAML style using `{ThemeResource}` and apply that style in code-behind.
+- **WinUI 3, not WPF or UWP.** Use `DispatcherQueue.TryEnqueue` for UI marshaling and `SelectorBar`
+  for tab-like navigation. Do not assume UWP APIs or app-container behavior without verifying.
+- **MVVM.** `CommunityToolkit.Mvvm` with `ObservableObject`, `[ObservableProperty]` on partial
+  properties, and `[RelayCommand]`. Async relay commands return `Task`, never `async void`.
+  Keep code-behind minimal.
+- **Dependency injection.** Resolve services in page code-behind with `App.GetRequiredService<T>()`;
+  inject through constructors elsewhere. No parameterless fallback constructors, and never `new` a
+  Core service or ViewModel from a page.
+- **Localization.** No hardcoded user-facing strings. Bind XAML through
+  `{x:Bind LocalizedStrings.<Key>}` and resolve Core strings via `ResourceKeys` +
+  `ILocalizationProvider`. Update both `en-US` and `zh-TW`. See [doc/Localization.md](../doc/Localization.md).
+- **Logging.** Inject `ILogger<T>`, use structured properties, and never call `Debug.WriteLine`,
+  `Console.WriteLine`, or `Trace.WriteLine`. See [doc/Logging.md](../doc/Logging.md).
+- **Administrator permissions.** Use `IAdminService` for checks/detection and `AdminDialogHelper` for
+  all admin dialogs and InfoBars — never a custom admin dialog. See
+  [doc/AdminDetectionSystem.md](../doc/AdminDetectionSystem.md).
+- **Native interop.** CsWin32 is the default: add APIs to the project-level `NativeMethods.txt` and
+  call the generated `Windows.Win32.PInvoke` members. Handwritten `[LibraryImport]` requires a
+  documented exception in a dedicated native wrapper file.
+- **Code style.** Official C#/.NET conventions, PascalCase public members, `_camelCase` private
+  fields, pattern matching for null checks, string interpolation, and XML docs on public APIs.
 
-Keep code-behind minimal. Prefer binding, `DataTemplate`, ViewModels, and existing helpers.
-
-## MVVM and Commands
-
-The project uses `CommunityToolkit.Mvvm`.
-
-- Use `ObservableObject`, `[ObservableProperty]`, and `[RelayCommand]` consistently with existing code.
-- Async methods decorated with `[RelayCommand]` must return `Task`, not `async void`.
-- Expose state and events from ViewModels; let Views decide how to present dialogs, InfoBars, and visual state.
-
-## Dependency Injection
-
-Use the existing DI registration pattern for the area you are modifying.
-
-- Resolve services in page code-behind with `App.GetRequiredService<T>()`.
-- Services and ViewModels should receive dependencies through constructors.
-- Do not add parameterless fallback constructors just to bypass DI.
-- Do not instantiate Core services or ViewModels directly from pages.
-
-## Localization
-
-Do not hardcode user-facing strings in ViewModels or Views.
-
-- Define resource keys in `src/OneMMC.Core/Localization/ResourceKeys.cs`.
-- Load strings through `ILocalizationProvider` or `LocalizationProvider.Current.GetString()` where appropriate.
-- Use `x:Uid` in XAML.
-- Add or update resources for both supported locales: `en-US` and `zh-TW`.
-
-## Logging
-
-OneMMC uses `Microsoft.Extensions.Logging` with Serilog. Follow [doc/Logging.md](../doc/Logging.md).
-
-- Inject `ILogger<T>` into services and ViewModels.
-- Use structured logging with named properties.
-- Do not use `Debug.WriteLine`, `Console.WriteLine`, or `Trace.WriteLine`.
-- Static or low-level native helpers should expose `ConfigureLogger(...)` or `SetLogger(...)` only when constructor injection is not practical.
-
-Useful check:
+Useful check for the logging ban:
 
 ```powershell
 rg "Debug.WriteLine|Console.WriteLine|Trace.WriteLine" src/OneMMC src/OneMMC.Core
 ```
-
-## Administrator Permissions
-
-Features that require elevation must follow [doc/AdminDetectionSystem.md](../doc/AdminDetectionSystem.md).
-
-- Use `IAdminService.IsRunningAsAdmin` for pre-flight checks.
-- Use `IAdminService.IsPermissionError(ex)` to detect permission failures.
-- Use `AdminDialogHelper` for administrator-related dialogs and InfoBars.
-- Do not create custom administrator permission dialogs.
-- Use localized resource keys for administrator messages.
-- Disk management operations should use the existing `OperationResult.AccessDenied(...)` pattern where applicable.
-
-## Native Interop
-
-Use CsWin32 by default for Win32 APIs.
-
-- Add supported APIs to the project-level `NativeMethods.txt`.
-- Call generated `Windows.Win32.PInvoke` members where possible.
-- Handwritten `[LibraryImport]` requires a documented exception.
-- Prefer `NativeLibrary` plus delegate binding for isolated metadata gaps.
-- Keep handwritten interop centralized in native helper/wrapper files.
-
-## Code Style
-
-- Follow official C# coding conventions and .NET runtime style guidance.
-- Use PascalCase for public members, types, and namespaces.
-- Use `_camelCase` for private fields.
-- Use pattern matching for null checks, such as `is null` and `is not null`.
-- Prefer string interpolation over concatenation or `String.Format`.
-- Avoid redundant common namespace imports because implicit usings are enabled.
-- Add XML documentation comments for public APIs, classes, methods, and properties.
-- Keep comments concise and focused on non-obvious behavior.
 
 ## Pull Request Checklist
 

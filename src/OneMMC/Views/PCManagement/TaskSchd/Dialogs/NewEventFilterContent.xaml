@@ -54,8 +54,8 @@
 			x:Name="FilterXmlSelector"
 			Grid.Row="0"
 			SelectionChanged="FilterXmlSelector_SelectionChanged">
-			<SelectorBarItem x:Name="FilterTabItem" Text="Filter" />
-			<SelectorBarItem x:Name="XmlTabItem" Text="XML" />
+			<SelectorBarItem x:Name="FilterTabItem" Text="{x:Bind LocalizedStrings.TaskSchd_Filter_FilterTab}" />
+			<SelectorBarItem x:Name="XmlTabItem" Text="{x:Bind LocalizedStrings.TaskSchd_Filter_XmlTab}" />
 		</SelectorBar>
 
 		<ScrollViewer
@@ -66,37 +66,37 @@
 				<!--  ================================ Filter tab ================================  -->
 				<StackPanel x:Name="FilterTabPanel" Spacing="14">
 					<StackPanel Orientation="Horizontal" Spacing="8">
-						<TextBlock Style="{StaticResource InlineLabelStyle}" Text="Logged:" />
+						<TextBlock Style="{StaticResource InlineLabelStyle}" Text="{x:Bind LocalizedStrings.TaskSchd_Filter_Logged}" />
 						<ComboBox
 							x:Name="LoggedCombo"
 							Width="316"
 							SelectedIndex="0"
 							SelectionChanged="LoggedCombo_SelectionChanged">
-							<ComboBoxItem Content="Any time" />
-							<ComboBoxItem Content="Last hour" />
-							<ComboBoxItem Content="Last 12 hours" />
-							<ComboBoxItem Content="Last 24 hours" />
-							<ComboBoxItem Content="Last 7 days" />
-							<ComboBoxItem Content="Last 30 days" />
-							<ComboBoxItem x:Name="CustomRangeActionItem" Content="Custom range..." />
+							<ComboBoxItem Content="{x:Bind LocalizedStrings.TaskSchd_Filter_AnyTime}" />
+							<ComboBoxItem Content="{x:Bind LocalizedStrings.TaskSchd_Filter_LastHour}" />
+							<ComboBoxItem Content="{x:Bind LocalizedStrings.TaskSchd_Filter_Last12Hours}" />
+							<ComboBoxItem Content="{x:Bind LocalizedStrings.TaskSchd_Filter_Last24Hours}" />
+							<ComboBoxItem Content="{x:Bind LocalizedStrings.TaskSchd_Filter_Last7Days}" />
+							<ComboBoxItem Content="{x:Bind LocalizedStrings.TaskSchd_Filter_Last30Days}" />
+							<ComboBoxItem x:Name="CustomRangeActionItem" Content="{x:Bind LocalizedStrings.TaskSchd_Filter_CustomRange}" />
 						</ComboBox>
 					</StackPanel>
 
 					<!--  Event level is multi-select, so checkboxes (none checked = all levels).  -->
 					<StackPanel Orientation="Horizontal" Spacing="8">
-						<TextBlock Style="{StaticResource InlineLabelStyle}" Text="Event level:" />
+						<TextBlock Style="{StaticResource InlineLabelStyle}" Text="{x:Bind LocalizedStrings.TaskSchd_Filter_EventLevel}" />
 						<StackPanel Orientation="Horizontal" Spacing="16">
-							<CheckBox x:Name="CriticalCheck" Content="Critical" />
-							<CheckBox x:Name="WarningCheck" Content="Warning" />
-							<CheckBox x:Name="VerboseCheck" Content="Verbose" />
+							<CheckBox x:Name="CriticalCheck" Content="{x:Bind LocalizedStrings.EventViewer_Level_Critical}" />
+							<CheckBox x:Name="WarningCheck" Content="{x:Bind LocalizedStrings.EventViewer_Level_Warning}" />
+							<CheckBox x:Name="VerboseCheck" Content="{x:Bind LocalizedStrings.EventViewer_Level_Verbose}" />
 						</StackPanel>
 					</StackPanel>
 					<StackPanel
 						Margin="104,-4,0,0"
 						Orientation="Horizontal"
 						Spacing="16">
-						<CheckBox x:Name="ErrorCheck" Content="Error" />
-						<CheckBox x:Name="InfoCheck" Content="Information" />
+						<CheckBox x:Name="ErrorCheck" Content="{x:Bind LocalizedStrings.EventViewer_Level_Error}" />
+						<CheckBox x:Name="InfoCheck" Content="{x:Bind LocalizedStrings.EventViewer_Level_Information}" />
 					</StackPanel>
 
 					<StackPanel Orientation="Horizontal" Spacing="8">
@@ -104,13 +104,13 @@
 							x:Name="ByLogRadio"
 							GroupName="EventScope"
 							Checked="EventScopeRadio_Checked"
-							Content="By log"
+							Content="{x:Bind LocalizedStrings.TaskSchd_Filter_ByLog}"
 							Width="96" />
-						<TextBlock Style="{StaticResource InlineLabelStyle}" Text="Event logs:" />
+						<TextBlock Style="{StaticResource InlineLabelStyle}" Text="{x:Bind LocalizedStrings.TaskSchd_Filter_EventLogs}" />
 						<DropDownButton x:Name="EventLogsDropDown" Style="{StaticResource PickerDropDownStyle}">
 							<TextBlock
 								x:Name="EventLogsSummary"
-								Text="&lt;Select event logs&gt;"
+								Text="{x:Bind LocalizedStrings.TaskSchd_Filter_SelectEventLogs}"
 								TextTrimming="CharacterEllipsis" />
 							<DropDownButton.Flyout>
 								<Flyout Closed="EventLogsFlyout_Closed" Placement="Bottom">
@@ -132,9 +132,9 @@
 							x:Name="BySourceRadio"
 							GroupName="EventScope"
 							Checked="EventScopeRadio_Checked"
-							Content="By source"
+							Content="{x:Bind LocalizedStrings.TaskSchd_Filter_BySource}"
 							Width="96" />
-						<TextBlock Style="{StaticResource InlineLabelStyle}" Text="Event sources:" />
+						<TextBlock Style="{StaticResource InlineLabelStyle}" Text="{x:Bind LocalizedStrings.TaskSchd_Filter_EventSources}" />
 						<DropDownButton x:Name="EventSourcesDropDown" Style="{StaticResource PickerDropDownStyle}">
 							<TextBlock
 								x:Name="EventSourcesSummary"
@@ -153,14 +153,14 @@
 						</DropDownButton>
 					</StackPanel>
 
-					<TextBlock Style="{StaticResource SecondaryTextStyle}" Text="Includes/Excludes Event IDs: Enter ID numbers and/or ID ranges separated by commas. To exclude criteria, type a minus sign first. For example 1,3,5-99,-76" />
+					<TextBlock Style="{StaticResource SecondaryTextStyle}" Text="{x:Bind LocalizedStrings.TaskSchd_Filter_EventIdsHint}" />
 					<TextBox
 						x:Name="EventIdsBox"
 						IsEnabled="False"
-						PlaceholderText="&lt;All Event IDs&gt;" />
+						PlaceholderText="{x:Bind LocalizedStrings.TaskSchd_Filter_AllEventIds}" />
 
 					<StackPanel Orientation="Horizontal" Spacing="8">
-						<TextBlock Style="{StaticResource InlineLabelStyle}" Text="Task category:" />
+						<TextBlock Style="{StaticResource InlineLabelStyle}" Text="{x:Bind LocalizedStrings.TaskSchd_Filter_TaskCategory}" />
 						<ComboBox
 							x:Name="TaskCategoryCombo"
 							Width="316"
@@ -169,7 +169,7 @@
 					</StackPanel>
 
 					<StackPanel Orientation="Horizontal" Spacing="8">
-						<TextBlock Style="{StaticResource InlineLabelStyle}" Text="Keywords:" />
+						<TextBlock Style="{StaticResource InlineLabelStyle}" Text="{x:Bind LocalizedStrings.TaskSchd_Filter_Keywords}" />
 						<DropDownButton
 							x:Name="KeywordsDropDown"
 							IsEnabled="False"
@@ -192,27 +192,27 @@
 					</StackPanel>
 
 					<StackPanel Orientation="Horizontal" Spacing="8">
-						<TextBlock Style="{StaticResource InlineLabelStyle}" Text="User:" />
+						<TextBlock Style="{StaticResource InlineLabelStyle}" Text="{x:Bind LocalizedStrings.TaskSchd_Filter_User}" />
 						<TextBox
 							x:Name="FilterUserBox"
 							Width="316"
 							IsEnabled="False"
-							PlaceholderText="&lt;All Users&gt;" />
+							PlaceholderText="{x:Bind LocalizedStrings.TaskSchd_Filter_AllUsers}" />
 					</StackPanel>
 					<StackPanel Orientation="Horizontal" Spacing="8">
-						<TextBlock Style="{StaticResource InlineLabelStyle}" Text="Computer(s):" />
+						<TextBlock Style="{StaticResource InlineLabelStyle}" Text="{x:Bind LocalizedStrings.TaskSchd_Filter_Computers}" />
 						<TextBox
 							x:Name="FilterComputerBox"
 							Width="316"
 							IsEnabled="False"
-							PlaceholderText="&lt;All Computers&gt;" />
+							PlaceholderText="{x:Bind LocalizedStrings.TaskSchd_Filter_AllComputers}" />
 					</StackPanel>
 
 					<Button
 						x:Name="ClearFilterButton"
 						HorizontalAlignment="Right"
 						Click="ClearFilter_Click"
-						Content="Clear" />
+						Content="{x:Bind LocalizedStrings.Common_ClearButton}" />
 				</StackPanel>
 
 				<!--  ================================= XML tab =================================  -->
@@ -220,7 +220,7 @@
 					x:Name="XmlTabPanel"
 					Spacing="12"
 					Visibility="Collapsed">
-					<TextBlock Style="{StaticResource SecondaryTextStyle}" Text="To provide an event filter in XPath form, click the &quot;Edit query manually&quot; checkbox below." />
+					<TextBlock Style="{StaticResource SecondaryTextStyle}" Text="{x:Bind LocalizedStrings.TaskSchd_Filter_XmlHint}" />
 					<!--  Read-only until "Edit query manually" is checked; then it holds a hand-written XPath query.  -->
 					<TextBox
 						x:Name="XmlQueryBox"
@@ -234,7 +234,7 @@
 					<CheckBox
 						x:Name="EditQueryManuallyCheckBox"
 						Checked="OnEditQueryManuallyChanged"
-						Content="Edit query manually"
+						Content="{x:Bind LocalizedStrings.TaskSchd_Filter_EditQueryManually}"
 						Unchecked="OnEditQueryManuallyChanged" />
 				</StackPanel>
 			</Grid>

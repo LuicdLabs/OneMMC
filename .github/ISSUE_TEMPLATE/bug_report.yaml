@@ -34,8 +34,6 @@ body:
 
   - type: upload
     id: log_file
-    validations:
-      required: true
     attributes:
       label: "Log file"
       description: |

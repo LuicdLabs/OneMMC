@@ -148,11 +148,8 @@
   <data name="FsMgmt_Duration_HoursFormat" xml:space="preserve">
     <value>{0}h {1}m {2}s</value>
   </data>
-  <data name="FsMgmt_AutoRefresh_Label" xml:space="preserve">
-    <value>Live monitoring</value>
-  </data>
   <data name="FsMgmt_AutoRefresh_Active" xml:space="preserve">
-    <value>Live · updates on change</value>
+    <value>Live updates</value>
   </data>
   <data name="FsMgmt_AddShare_Title" xml:space="preserve">
     <value>Add a new Shared Folder</value>

@@ -127,7 +127,7 @@ namespace OneMMC.Core.Features.PolicyManagement.ViewModels.GpEdit
         private async Task LoadPoliciesAsync(CancellationToken cancellationToken = default)
         {
             IsLoading = true;
-            StatusMessage = "Loading ADMX files...";
+            StatusMessage = LocalizationProvider.Current.GetString(ResourceFileNames.Policy, PolicyKeys.StatusLoadingAdmx);
 
             await Task.Run(() =>
             {
@@ -150,9 +150,9 @@ namespace OneMMC.Core.Features.PolicyManagement.ViewModels.GpEdit
                         LogDebug("[ERROR] Failed to initialize policy services");
                         _syncContext?.Post(_ =>
                         {
-                            LastErrorMessage = "Failed to initialize policy services";
+                            LastErrorMessage = LocalizationProvider.Current.GetString(ResourceFileNames.Policy, PolicyKeys.ErrorInitServicesFailed);
                             IsLoading = false;
-                            StatusMessage = "Error";
+                            StatusMessage = LocalizationProvider.Current.GetString(ResourceFileNames.Policy, PolicyKeys.StatusError);
                         }, null);
                         return;
                     }
@@ -182,7 +182,7 @@ namespace OneMMC.Core.Features.PolicyManagement.ViewModels.GpEdit
 
                         BuildPolicyTree();
                         IsLoading = false;
-                        StatusMessage = "Ready";
+                        StatusMessage = LocalizationProvider.Current.GetString(ResourceFileNames.Policy, PolicyKeys.StatusReady);
                     }, null);
                 }
                 catch (OperationCanceledException)
@@ -195,9 +195,9 @@ namespace OneMMC.Core.Features.PolicyManagement.ViewModels.GpEdit
                     LogDebug($"[ERROR] LoadPoliciesAsync failed: {ex.Message}");
                     _syncContext?.Post(_ =>
                     {
-                        LastErrorMessage = $"Failed to load policies: {ex.Message}";
+                        LastErrorMessage = LocalizationProvider.Current.GetFormattedString(ResourceFileNames.Policy, PolicyKeys.ErrorLoadPoliciesFormat, ex.Message);
                         IsLoading = false;
-                        StatusMessage = "Error";
+                        StatusMessage = LocalizationProvider.Current.GetString(ResourceFileNames.Policy, PolicyKeys.StatusError);
                     }, null);
                 }
                 finally
@@ -329,7 +329,7 @@ namespace OneMMC.Core.Features.PolicyManagement.ViewModels.GpEdit
 
             if (service is null)
             {
-                LastErrorMessage = "Policy service not initialized";
+                LastErrorMessage = LocalizationProvider.Current.GetString(ResourceFileNames.Policy, PolicyKeys.ErrorServiceNotInitialized);
                 return;
             }
 
@@ -393,7 +393,7 @@ namespace OneMMC.Core.Features.PolicyManagement.ViewModels.GpEdit
                     throw new UnauthorizedAccessException(LastErrorMessage, ex);
                 }
 
-                var msg = $"Failed to save policy: {ex.Message}";
+                var msg = LocalizationProvider.Current.GetFormattedString(ResourceFileNames.Policy, PolicyKeys.ErrorSavePolicyFormat, ex.Message);
                 LogPolicyAction("Save-Fail-Exception", policy, state, ex);
                 LastErrorMessage = msg;
                 throw;

@@ -31,7 +31,7 @@ public sealed partial class ExtendVolumeDialog : ContentDialog
         if (maxExtendSizeMB == 0)
         {
             this.IsPrimaryButtonEnabled = false;
-            MaxExtendTextBlock.Text = "No unallocated space available for extension";
+            MaxExtendTextBlock.Text = LocalizedStrings.DiskMgmt_Msg_NoExtendSpace;
         }
     }
 

@@ -36,6 +36,11 @@ public sealed partial class TPMManagerPage : Page
 	{
 		try
 		{
+			if (!ViewModel.CanClearTpm)
+			{
+				return;
+			}
+
 			// Pre-flight admin check
 			if (!App.GetRequiredService<IAdminService>().IsRunningAsAdmin)
 			{

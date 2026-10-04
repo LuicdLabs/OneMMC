@@ -7,7 +7,6 @@ using OneMMC.Views.UserSecurity.SecPol.IPSecurity.Editors;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
-
 namespace OneMMC.Views.UserSecurity.SecPol.IPSecurity.Rules;
 
 /// <summary>
@@ -75,6 +74,14 @@ public sealed partial class IPSecurityRulesManagerControl : UserControl
         }
 
         UpdateCommandState();
+        RuleItems.CollectionChanged += (_, _) => UpdateEmptyState();
+        UpdateEmptyState();
+    }
+
+    /// <summary>Shows or hides the list's empty state.</summary>
+    private void UpdateEmptyState()
+    {
+        EmptyRulesText.Visibility = RuleItems.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
     }
 
     /// <summary>
@@ -142,22 +149,22 @@ public sealed partial class IPSecurityRulesManagerControl : UserControl
             return;
         }
 
-        var confirmationWindow = new ModalDialogWindow(new ModalDialogOptions
+        var confirmation = new ContentDialog
         {
             Title = LocalizedStrings.IPSec_DeleteConfirm_Title,
             Content = string.Format(
                 CultureInfo.CurrentCulture,
                 LocalizedStrings.IPSec_DeleteRule_MessageFormat,
                 selected.Definition.Name),
-            OwnerXamlRoot = XamlRoot,
+            Style = Application.Current.Resources["DefaultContentDialogStyle"] as Style,
+            XamlRoot = this.XamlRoot,
             RequestedTheme = App.CurrentTheme,
             PrimaryButtonText = LocalizedStrings.Common_DeleteButton,
-            CloseButtonText = LocalizedStrings.Common_CancelButton,
-            DefaultButton = WindowDialogResult.None,
-            Width = ConfirmationDialogWidth,
-            Height = ConfirmationDialogHeight
-        });
-        if (await confirmationWindow.ShowDialogAsync() != WindowDialogResult.Primary
+            CloseButtonText = LocalizedStrings.Common_CancelButton
+        };
+        confirmation.Resources["ContentDialogMaxWidth"] = (double)ConfirmationDialogWidth;
+        confirmation.Resources["ContentDialogMaxHeight"] = (double)ConfirmationDialogHeight;
+        if (await confirmation.ShowAsync() != ContentDialogResult.Primary
             || !await RunMutationAsync(() => _deleteRuleAsync(_policy.Name, selected.Definition.Name)))
         {
             return;
@@ -194,7 +201,7 @@ public sealed partial class IPSecurityRulesManagerControl : UserControl
             string.Format(
                 CultureInfo.CurrentCulture,
                 LocalizedStrings.IPSec_Dialog_EditRule_TitleFormat,
-                selected.Definition.Name),
+                selected.Name),
             LocalizedStrings.Common_SaveButton);
         if (options is null || !await RunMutationAsync(() => _setRuleAsync(options)))
         {
@@ -212,23 +219,25 @@ public sealed partial class IPSecurityRulesManagerControl : UserControl
         string title,
         string primaryButtonText)
     {
+        // The rule editor is a leaf: everything it needs is inline, so a ContentDialog on this
+        // manager's own XAML root is the right host.
         IPSecurityRuleCommandOptions? result = null;
-        var modalWindow = new ModalDialogWindow(new ModalDialogOptions
+        var dialog = new ContentDialog
         {
             Title = title,
             Content = editor,
-            OwnerXamlRoot = XamlRoot,
+            Style = Application.Current.Resources["DefaultContentDialogStyle"] as Style,
+            XamlRoot = this.XamlRoot,
             RequestedTheme = App.CurrentTheme,
             PrimaryButtonText = primaryButtonText,
             CloseButtonText = LocalizedStrings.Common_CancelButton,
-            DefaultButton = WindowDialogResult.Primary,
-            IsPrimaryButtonLeading = true,
-            Width = EditorDialogWidth,
-            Height = EditorDialogHeight,
-            OnPrimaryButtonClick = () => editor.TryBuildResult(out result)
-        });
+            DefaultButton = ContentDialogButton.Primary
+        };
+        dialog.Resources["ContentDialogMaxWidth"] = (double)EditorDialogWidth;
+        dialog.Resources["ContentDialogMaxHeight"] = (double)EditorDialogHeight;
+        dialog.PrimaryButtonClick += (_, args) => args.Cancel = !editor.TryBuildResult(out result);
 
-        return await modalWindow.ShowDialogAsync() == WindowDialogResult.Primary ? result : null;
+        return await dialog.ShowAsync() == ContentDialogResult.Primary ? result : null;
     }
 
     private async Task<bool> RunMutationAsync(Func<Task<bool>> mutation)
@@ -264,11 +273,13 @@ public sealed partial class IPSecurityRulesManagerControl : UserControl
     private void UpdateCommandState()
     {
         bool hasSelection = RulesListView?.SelectedItem is IPSecurityRuleListItem;
+        bool canDelete = RulesListView?.SelectedItem is IPSecurityRuleListItem selected
+            && !selected.Definition.IsDefaultResponseRule;
         if (AddRuleButton is not null)
         {
             AddRuleButton.IsEnabled = !_isBusy;
             EditRuleButton.IsEnabled = !_isBusy && hasSelection;
-            DeleteRuleButton.IsEnabled = !_isBusy && hasSelection;
+            DeleteRuleButton.IsEnabled = !_isBusy && canDelete;
         }
     }
 
@@ -278,11 +289,28 @@ public sealed partial class IPSecurityRulesManagerControl : UserControl
     {
         return new IPSecurityRuleDefinition
         {
+            Identifier = existing?.Identifier ?? Guid.Empty,
+            IsDefaultResponseRule = existing?.IsDefaultResponseRule ?? false,
             Name = options.NewName ?? options.Name,
             PolicyName = options.PolicyName,
             Description = options.Description ?? existing?.Description ?? string.Empty,
             FilterListName = options.FilterListName ?? existing?.FilterListName ?? string.Empty,
             FilterActionName = options.FilterActionName ?? existing?.FilterActionName ?? string.Empty,
+            FilterAction = existing?.FilterAction is { } action
+                ? new IPSecurityFilterActionDefinition
+                {
+                    Name = action.Name,
+                    Description = action.Description,
+                    Action = action.Action,
+                    UseQuickModePerfectForwardSecrecy =
+                        options.UseQuickModePerfectForwardSecrecy
+                        ?? action.UseQuickModePerfectForwardSecrecy,
+                    AcceptUnsecuredInbound = action.AcceptUnsecuredInbound,
+                    AllowUnsecuredFallback = action.AllowUnsecuredFallback,
+                    QuickModeSecurityMethods =
+                        options.QuickModeSecurityMethods ?? action.QuickModeSecurityMethods
+                }
+                : null,
             TunnelEndpoint = ResolveTunnelEndpoint(options.TunnelEndpoint, existing?.TunnelEndpoint),
             ConnectionType = options.ConnectionType?.ToString() ?? existing?.ConnectionType ?? string.Empty,
             IsActive = options.IsActive ?? existing?.IsActive ?? true,
@@ -297,13 +325,16 @@ public sealed partial class IPSecurityRulesManagerControl : UserControl
         return new IPSecurityRuleListItem
         {
             Definition = rule,
-            Name = rule.Name,
+            Name = rule.IsDefaultResponseRule
+                ? LocalizedStrings.IPSec_Rule_Dynamic
+                : rule.Name,
             Description = rule.Description,
-            FilterListName = rule.FilterListName,
-            FilterActionName = rule.FilterActionName,
-            ActiveDisplay = rule.IsActive
-                ? LocalizedStrings.IPSec_Value_Yes
-                : LocalizedStrings.IPSec_Value_No,
+            FilterListName = rule.IsDefaultResponseRule
+                ? LocalizedStrings.IPSec_Rule_Dynamic
+                : rule.FilterListName,
+            FilterActionName = rule.IsDefaultResponseRule
+                ? LocalizedStrings.IPSec_Rule_DefaultResponse
+                : rule.FilterActionName,
             ConnectionTypeDisplay = ConvertConnectionType(rule.ConnectionType)
         };
     }
@@ -382,8 +413,6 @@ internal sealed class IPSecurityRuleListItem
     public string FilterListName { get; set; } = string.Empty;
 
     public string FilterActionName { get; set; } = string.Empty;
-
-    public string ActiveDisplay { get; set; } = string.Empty;
 
     public string ConnectionTypeDisplay { get; set; } = string.Empty;
 }

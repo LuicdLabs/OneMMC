@@ -131,9 +131,11 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.DevMgmt
                         var hiddenDevices = _deviceManagerService.GetHiddenDevices();
                         if (hiddenDevices.Any())
                         {
+                            var hiddenName = L.GetString(ResourceFileNames.DeviceManager, DeviceManagerKeys.HiddenDevices);
                             var hiddenCategory = new DeviceCategory
                             {
-                                Name = L.GetString(ResourceFileNames.DeviceManager, DeviceManagerKeys.HiddenDevices),
+                                Name = hiddenName,
+                                DisplayName = hiddenName,
                                 ClassGuid = "",
                                 Devices = hiddenDevices
                             };
@@ -341,18 +343,25 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.DevMgmt
             var filteredCategories = new List<DeviceCategory>();
             foreach (var category in _allCategories)
             {
-                var filteredDevices = category.Devices
-                    .Where(d => 
-                        d.Name.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ||
-                        d.Description.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ||
-                        d.Manufacturer.Contains(SearchText, StringComparison.OrdinalIgnoreCase))
-                    .ToList();
+                var categoryMatches =
+                    category.DisplayName.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ||
+                    category.Name.Contains(SearchText, StringComparison.OrdinalIgnoreCase);
+
+                var filteredDevices = categoryMatches
+                    ? category.Devices.ToList()
+                    : category.Devices
+                        .Where(d =>
+                            d.Name.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ||
+                            d.Description.Contains(SearchText, StringComparison.OrdinalIgnoreCase) ||
+                            d.Manufacturer.Contains(SearchText, StringComparison.OrdinalIgnoreCase))
+                        .ToList();
 
                 if (filteredDevices.Any())
                 {
                     filteredCategories.Add(new DeviceCategory
                     {
                         Name = category.Name,
+                        DisplayName = category.DisplayName,
                         ClassGuid = category.ClassGuid,
                         Devices = filteredDevices
                     });

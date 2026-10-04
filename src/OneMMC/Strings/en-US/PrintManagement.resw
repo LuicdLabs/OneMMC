@@ -396,10 +396,190 @@
   <data name="PrintMgmt_OpenLegacy" xml:space="preserve">
     <value>Open Legacy Print Management</value>
   </data>
-  <data name="PrintMgmt_ErrorDriverInUse">
+  <data name="PrintMgmt_ErrorDriverInUse" xml:space="preserve">
     <value>The driver package is currently in use and cannot be removed.</value>
   </data>
-  <data name="PrintMgmt_ErrorDriverInBox">
+  <data name="PrintMgmt_ErrorDriverInBox" xml:space="preserve">
     <value>This driver package shipped with Windows and cannot be removed.</value>
+  </data>
+  <data name="PrintMgmt_PrinterStatus_Ready" xml:space="preserve">
+    <value>Ready</value>
+  </data>
+  <data name="PrintMgmt_PrinterStatus_Paused" xml:space="preserve">
+    <value>Paused</value>
+  </data>
+  <data name="PrintMgmt_PrinterStatus_Error" xml:space="preserve">
+    <value>Error</value>
+  </data>
+  <data name="PrintMgmt_PrinterStatus_PendingDeletion" xml:space="preserve">
+    <value>Pending Deletion</value>
+  </data>
+  <data name="PrintMgmt_PrinterStatus_PaperJam" xml:space="preserve">
+    <value>Paper Jam</value>
+  </data>
+  <data name="PrintMgmt_PrinterStatus_PaperOut" xml:space="preserve">
+    <value>Paper Out</value>
+  </data>
+  <data name="PrintMgmt_PrinterStatus_ManualFeed" xml:space="preserve">
+    <value>Manual Feed</value>
+  </data>
+  <data name="PrintMgmt_PrinterStatus_PaperProblem" xml:space="preserve">
+    <value>Paper Problem</value>
+  </data>
+  <data name="PrintMgmt_PrinterStatus_Offline" xml:space="preserve">
+    <value>Offline</value>
+  </data>
+  <data name="PrintMgmt_PrinterStatus_IoActive" xml:space="preserve">
+    <value>IO Active</value>
+  </data>
+  <data name="PrintMgmt_PrinterStatus_Busy" xml:space="preserve">
+    <value>Busy</value>
+  </data>
+  <data name="PrintMgmt_PrinterStatus_Printing" xml:space="preserve">
+    <value>Printing</value>
+  </data>
+  <data name="PrintMgmt_PrinterStatus_OutputBinFull" xml:space="preserve">
+    <value>Output Bin Full</value>
+  </data>
+  <data name="PrintMgmt_PrinterStatus_NotAvailable" xml:space="preserve">
+    <value>Not Available</value>
+  </data>
+  <data name="PrintMgmt_PrinterStatus_Waiting" xml:space="preserve">
+    <value>Waiting</value>
+  </data>
+  <data name="PrintMgmt_PrinterStatus_Processing" xml:space="preserve">
+    <value>Processing</value>
+  </data>
+  <data name="PrintMgmt_PrinterStatus_Initializing" xml:space="preserve">
+    <value>Initializing</value>
+  </data>
+  <data name="PrintMgmt_PrinterStatus_WarmingUp" xml:space="preserve">
+    <value>Warming Up</value>
+  </data>
+  <data name="PrintMgmt_PrinterStatus_TonerLow" xml:space="preserve">
+    <value>Toner Low</value>
+  </data>
+  <data name="PrintMgmt_PrinterStatus_NoToner" xml:space="preserve">
+    <value>No Toner</value>
+  </data>
+  <data name="PrintMgmt_PrinterStatus_UserIntervention" xml:space="preserve">
+    <value>User Intervention Required</value>
+  </data>
+  <data name="PrintMgmt_PrinterStatus_OutOfMemory" xml:space="preserve">
+    <value>Out of Memory</value>
+  </data>
+  <data name="PrintMgmt_PrinterStatus_DoorOpen" xml:space="preserve">
+    <value>Door Open</value>
+  </data>
+  <data name="PrintMgmt_PrinterStatus_PowerSave" xml:space="preserve">
+    <value>Power Save</value>
+  </data>
+  <data name="PrintMgmt_FormType_BuiltIn" xml:space="preserve">
+    <value>Built-in</value>
+  </data>
+  <data name="PrintMgmt_FormType_Printer" xml:space="preserve">
+    <value>Printer</value>
+  </data>
+  <data name="PrintMgmt_FormType_UserDefined" xml:space="preserve">
+    <value>User-defined</value>
+  </data>
+  <data name="PrintMgmt_FormType_Unknown" xml:space="preserve">
+    <value>Unknown</value>
+  </data>
+  <data name="PrintMgmt_PortType_Local" xml:space="preserve">
+    <value>Local Port</value>
+  </data>
+  <data name="PrintMgmt_PortType_StandardTcpIp" xml:space="preserve">
+    <value>Standard TCP/IP Port</value>
+  </data>
+  <data name="PrintMgmt_PortDesc_UsbVirtual" xml:space="preserve">
+    <value>USB Virtual Printer Port</value>
+  </data>
+  <data name="PrintMgmt_PortDesc_PrintToFile" xml:space="preserve">
+    <value>Print to File</value>
+  </data>
+  <data name="PrintMgmt_PortDesc_PrinterPort" xml:space="preserve">
+    <value>Printer Port</value>
+  </data>
+  <data name="PrintMgmt_PortDesc_Serial" xml:space="preserve">
+    <value>Serial Port</value>
+  </data>
+  <data name="PrintMgmt_PortDesc_Null" xml:space="preserve">
+    <value>Null Port</value>
+  </data>
+  <data name="PrintMgmt_PortDesc_WsDiscovery" xml:space="preserve">
+    <value>WS Discovery Port</value>
+  </data>
+  <data name="PrintMgmt_LocalRegistryDeployment" xml:space="preserve">
+    <value>Local/Registry Deployment</value>
+  </data>
+  <data name="PrintMgmt_ServerLabel" xml:space="preserve">
+    <value>Server:</value>
+  </data>
+  <data name="PrintMgmt_PerUserGpoLabel" xml:space="preserve">
+    <value>Per User GPO:</value>
+  </data>
+  <data name="PrintMgmt_PerComputerGpoLabel" xml:space="preserve">
+    <value>Per Computer GPO:</value>
+  </data>
+  <data name="PrintMgmt_Error_QueryDefaults" xml:space="preserve">
+    <value>Unable to query printer default settings.</value>
+  </data>
+  <data name="PrintMgmt_Error_LoadDefaults" xml:space="preserve">
+    <value>Unable to load current printer default settings.</value>
+  </data>
+  <data name="PrintMgmt_Error_SaveDefaults" xml:space="preserve">
+    <value>Unable to save printer default settings.</value>
+  </data>
+  <data name="PrintMgmt_Error_DeletePrinter" xml:space="preserve">
+    <value>Unable to delete printer.</value>
+  </data>
+  <data name="PrintMgmt_Error_RenamePrinter" xml:space="preserve">
+    <value>Unable to rename printer.</value>
+  </data>
+  <data name="PrintMgmt_Error_AddUserConnection" xml:space="preserve">
+    <value>Unable to add the current-user printer connection.</value>
+  </data>
+  <data name="PrintMgmt_Error_RemoveUserConnection" xml:space="preserve">
+    <value>Unable to remove the current-user printer connection.</value>
+  </data>
+  <data name="PrintMgmt_Error_DeleteDriver" xml:space="preserve">
+    <value>Unable to delete printer driver.</value>
+  </data>
+  <data name="PrintMgmt_Error_PausePrinter" xml:space="preserve">
+    <value>Unable to pause printer.</value>
+  </data>
+  <data name="PrintMgmt_Error_ResumePrinter" xml:space="preserve">
+    <value>Unable to resume printer.</value>
+  </data>
+  <data name="PrintMgmt_Error_OpenPrintServer" xml:space="preserve">
+    <value>Unable to open the print server.</value>
+  </data>
+  <data name="PrintMgmt_Error_OpenPrinterFormat" xml:space="preserve">
+    <value>Unable to open printer '{0}'.</value>
+  </data>
+  <data name="PrintMgmt_Error_InvalidInfoBuffer" xml:space="preserve">
+    <value>Invalid printer information buffer size returned by the spooler.</value>
+  </data>
+  <data name="PrintMgmt_Error_QueryInfoSize" xml:space="preserve">
+    <value>Unable to query printer information size.</value>
+  </data>
+  <data name="PrintMgmt_Error_QueryInfo" xml:space="preserve">
+    <value>Unable to query printer information.</value>
+  </data>
+  <data name="PrintMgmt_Error_UpdateIsolationGroups" xml:space="preserve">
+    <value>Unable to update print driver isolation groups.</value>
+  </data>
+  <data name="PrintMgmt_Error_InvalidConnectionPath" xml:space="preserve">
+    <value>Invalid printer connection path.</value>
+  </data>
+  <data name="PrintMgmt_Error_ResolveDomain" xml:space="preserve">
+    <value>Unable to resolve the Active Directory domain.</value>
+  </data>
+  <data name="PrintMgmt_Error_ConnectDirectory" xml:space="preserve">
+    <value>Unable to connect to Active Directory.</value>
+  </data>
+  <data name="PrintMgmt_Error_DomainNotFound" xml:space="preserve">
+    <value>Active Directory domain not found.</value>
   </data>
 </root>

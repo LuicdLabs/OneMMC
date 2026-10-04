@@ -40,26 +40,26 @@ public sealed unsafe class CertificateStoreService
     private readonly string _operationFailedMessage;
     private static readonly Crypt32CertificateNativeMethods.CertEnumSystemStoreCallback _systemStoreCallback = OnSystemStoreEnumerated;
 
-    private static readonly IReadOnlyDictionary<string, string> KnownStoreDisplayNames =
+    // Maps well-known system store names to the resource keys of their localized display names.
+    private static readonly IReadOnlyDictionary<string, string> KnownStoreDisplayNameKeys =
         new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
-            ["MY"] = "Personal",
-            ["CA"] = "Intermediate Certification Authorities",
-            ["Root"] = "Trusted Root Certification Authorities",
-            ["ROOT"] = "Trusted Root Certification Authorities",
-            ["trust"] = "Enterprise Trust",
-            ["AuthRoot"] = "Third-Party Root Certification Authorities",
-            ["TrustedPublisher"] = "Trusted Publishers",
-            ["Disallowed"] = "Untrusted Certificates",
-            ["TrustedPeople"] = "Trusted People",
-            ["UserDS"] = "Active Directory User Object",
-            ["ClientAuthIssuer"] = "Client Authentication Issuers",
-            ["SmartCardRoot"] = "Smart Card Trusted Roots",
-            ["FlightRoot"] = "Preview Build Roots",
-            ["TestSignRoot"] = "Test Roots",
-            ["TrustedAppRoot"] = "Trusted Packaged App Installation Authorities",
-            ["OemEsim"] = "OEM eSIM Certification Authorities",
-            ["PasspointTrustedRoots"] = "Passpoint Trusted Roots"
+            ["MY"] = CertificateKeys.StorePersonal,
+            ["CA"] = CertificateKeys.StoreCA,
+            ["Root"] = CertificateKeys.StoreRoot,
+            ["trust"] = CertificateKeys.StoreTrust,
+            ["AuthRoot"] = CertificateKeys.StoreAuthRoot,
+            ["TrustedPublisher"] = CertificateKeys.StoreTrustedPublisher,
+            ["Disallowed"] = CertificateKeys.StoreDisallowed,
+            ["TrustedPeople"] = CertificateKeys.StoreTrustedPeople,
+            ["UserDS"] = CertificateKeys.StoreUserDS,
+            ["ClientAuthIssuer"] = CertificateKeys.StoreClientAuthIssuer,
+            ["SmartCardRoot"] = CertificateKeys.StoreSmartCardRoot,
+            ["FlightRoot"] = CertificateKeys.StoreFlightRoot,
+            ["TestSignRoot"] = CertificateKeys.StoreTestSignRoot,
+            ["TrustedAppRoot"] = CertificateKeys.StoreTrustedAppRoot,
+            ["OemEsim"] = CertificateKeys.StoreOemEsim,
+            ["PasspointTrustedRoots"] = CertificateKeys.StorePasspointTrustedRoots
         };
 
     /// <summary>
@@ -538,7 +538,9 @@ public sealed unsafe class CertificateStoreService
         storeLocation == StoreLocation.LocalMachine ? CertSystemStoreLocalMachine : CertSystemStoreCurrentUser;
 
     private string GetStoreDisplayName(string storeName) =>
-        KnownStoreDisplayNames.TryGetValue(storeName, out string? displayName) ? displayName : storeName;
+        KnownStoreDisplayNameKeys.TryGetValue(storeName, out string? key)
+            ? LocalizationProvider.Current.GetString(ResourceFileNames.Certificates, key)
+            : storeName;
 
     private static int GetStoreDisplayOrder(StoreLocation storeLocation, string storeName)
     {

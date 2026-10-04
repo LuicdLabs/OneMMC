@@ -47,7 +47,7 @@ internal static class CimSetManager
     {
         if (proposals.Length == 0)
         {
-            throw new ArgumentException("At least one proposal is required.", nameof(proposals));
+            throw new ArgumentException(OneMMC.Core.Localization.LocalizationProvider.Current.GetString(OneMMC.Core.Localization.ResourceFileNames.WF, OneMMC.Core.Localization.WFKeys.ErrProposalRequired), nameof(proposals));
         }
 
         using WbemObject? existing = GetDefaultMainModeSet(session);
@@ -71,7 +71,7 @@ internal static class CimSetManager
     {
         if (proposals.Length == 0)
         {
-            throw new ArgumentException("At least one proposal is required.", nameof(proposals));
+            throw new ArgumentException(OneMMC.Core.Localization.LocalizationProvider.Current.GetString(OneMMC.Core.Localization.ResourceFileNames.WF, OneMMC.Core.Localization.WFKeys.ErrProposalRequired), nameof(proposals));
         }
 
         using WbemObject? existing = FindSetByCreationClass(session, setClassName, creationClassName);
@@ -137,7 +137,7 @@ internal static class CimSetManager
             }
         }
 
-        return fallback ?? throw new InvalidOperationException("The firewall IPsec settings instance could not be found.");
+        return fallback ?? throw new InvalidOperationException(OneMMC.Core.Localization.LocalizationProvider.Current.GetString(OneMMC.Core.Localization.ResourceFileNames.WF, OneMMC.Core.Localization.WFKeys.ErrIpsecSettingsNotFound));
     }
 
     internal static WbemObject GetFirewallProfileInstance(WbemServices session, FirewallProfileType profileType)
@@ -156,7 +156,7 @@ internal static class CimSetManager
             instance.Dispose();
         }
 
-        throw new InvalidOperationException($"The firewall profile '{profileName}' could not be found.");
+        throw new InvalidOperationException(OneMMC.Core.Localization.LocalizationProvider.Current.GetFormattedString(OneMMC.Core.Localization.ResourceFileNames.WF, OneMMC.Core.Localization.WFKeys.ErrProfileNotFoundFormat, profileName));
     }
 
     internal static WbemObject[] BuildMainModeProposals(WbemServices session, System.Collections.Generic.IEnumerable<MainModeProposalDefinition> proposals)

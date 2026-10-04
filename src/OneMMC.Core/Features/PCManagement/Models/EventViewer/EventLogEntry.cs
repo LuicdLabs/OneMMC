@@ -71,8 +71,9 @@ public partial class EventLogEntry : ObservableObject
     /// Summary line for the event list: "Source | Event ID: N | Category: Cat".
     /// </summary>
     public string SummaryLine => string.IsNullOrEmpty(TaskCategory) || TaskCategory is "0" or "None"
-        ? $"{Source} | Event ID: {EventId}"
-        : $"{Source} | Event ID: {EventId} | {TaskCategory}";
+        || TaskCategory == LocalizationProvider.Current.GetString(ResourceFileNames.EventViewer, EventViewerKeys.TaskCategoryNone)
+        ? LocalizationProvider.Current.GetFormattedString(ResourceFileNames.EventViewer, EventViewerKeys.SummaryFormat, Source, EventId)
+        : LocalizationProvider.Current.GetFormattedString(ResourceFileNames.EventViewer, EventViewerKeys.SummaryWithCategoryFormat, Source, EventId, TaskCategory);
 }
 
 

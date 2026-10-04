@@ -1,5 +1,9 @@
 ﻿# Logging Technical Documentation
 
+This document is the authoritative reference for OneMMC logging. Other documents
+(`.github/copilot-instructions.md`, `AGENTS.md`, `.github/CONTRIBUTING.md`, the project READMEs) only
+summarize these rules and link here.
+
 ## Purpose
 
 OneMMC uses one logging pipeline across UI and Core:
@@ -18,8 +22,8 @@ Logging is bootstrapped in `src/OneMMC/Services/Logging/LoggingBootstrapper.cs`.
 Startup flow:
 
 1. Create the Serilog pipeline (file sink + `DebugOutputSink`).
-2. Add `Microsoft.Extensions.Logging` to the service collection via `AddSerilog(...)`, with the
-   minimum level chosen from `AppSettings.VerboseLogging`.
+2. Add `Microsoft.Extensions.Logging` to the service collection via `AddSerilog(...)`, at `Debug`
+   by default (or `Verbose`/Trace when `AppSettings.VerboseLogging` is set).
 3. Register application services through `AddOneMMCApplicationServices()` (UI), which chains to
    `AddOneMMCCore()` (Core) and each feature module.
 4. Build the service provider (`ValidateScopes`/`ValidateOnBuild` in Debug only).
@@ -47,16 +51,21 @@ interop helpers.
 
 ## Levels
 
-The default minimum level is **`Information`**. `Debug` is a local diagnostic mode, not a normal
-operating level: every `LogDebug` call formats a message template and allocates property values even
-when nobody reads the output, which shows up as sustained gen0 pressure (see `doc/MemoryManagement.md`).
+First-party (OneMMC) logging always runs at **`Debug`** on every build, Release included, so any user
+can submit a complete diagnostic log without first turning anything on. Framework categories
+(`Microsoft`/`System`) are held at `Warning` so the file keeps to OneMMC rather than platform noise.
 
-- `LogDebug` is still the right call for detailed tracing — just do not expect it in a default session.
-- To turn it on, set `"VerboseLogging": true` in `%LOCALAPPDATA%/OneMMC/Settings.json`.
-- Anything that must always be visible (lifecycle events and operation outcomes) logs at
+- `LogDebug` is captured by default — use it freely for detailed tracing.
+- Anything that must always be visible (lifecycle events, operation outcomes) still logs at
   `Information` or above.
+- `"VerboseLogging": true` in `%LOCALAPPDATA%/OneMMC/Settings.json` is the deeper opt-in: it raises
+  OneMMC to `Verbose` (Trace) and lets `Microsoft`/`System` log at `Debug` for maximum detail.
 - The `Trace` → Serilog bridge (`EnableDebugBridge`) is installed only when a debugger is attached; it
   forwards all framework `Trace`/`Debug` output and is pure overhead otherwise.
+- `DebugOutputSink` posts formatted events to the debugger — `Debugger.Log` for the Visual Studio
+  Output window, falling back to `OutputDebugString` (CsWin32) for DebugView when no managed debugger is
+  capturing text. It avoids `Debug.WriteLine`, which is compiled out of Release builds and would loop
+  back through the Trace bridge. Gated on an attached debugger; the file sink is the durable record.
 - The file sink uses `shared: true` (not `buffered: true` — Serilog.Sinks.File allows only one of the
   two) because the "Run as administrator" flow briefly runs a second process writing the same file.
 

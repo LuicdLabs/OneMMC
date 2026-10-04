@@ -43,9 +43,9 @@ public sealed partial class IPSecurityFilterActionEditorControl : UserControl
             IPSecurityFilterActionKind.Negotiate => 2,
             _ => 0
         };
-        QuickModePfsCheckBox.IsChecked = filterAction?.UseQuickModePerfectForwardSecrecy ?? false;
-        AcceptUnsecuredInboundCheckBox.IsChecked = filterAction?.AcceptUnsecuredInbound ?? false;
-        AllowUnsecuredFallbackCheckBox.IsChecked = filterAction?.AllowUnsecuredFallback ?? false;
+        QuickModePfsToggleSwitch.IsOn = filterAction?.UseQuickModePerfectForwardSecrecy ?? false;
+        AcceptUnsecuredInboundToggleSwitch.IsOn = filterAction?.AcceptUnsecuredInbound ?? false;
+        AllowUnsecuredFallbackToggleSwitch.IsOn = filterAction?.AllowUnsecuredFallback ?? false;
         QuickModeMethodsEditor.SetMethods(filterAction?.QuickModeSecurityMethods ?? []);
         UpdateNegotiationState();
     }
@@ -66,9 +66,9 @@ public sealed partial class IPSecurityFilterActionEditorControl : UserControl
             NewName = IPSecurityEditorValidation.RenamedValue(_mode, _originalName, currentName),
             Description = DescriptionTextBox.Text,
             Action = action,
-            UseQuickModePerfectForwardSecrecy = isNegotiate && QuickModePfsCheckBox.IsChecked == true,
-            AcceptUnsecuredInbound = isNegotiate && AcceptUnsecuredInboundCheckBox.IsChecked == true,
-            AllowUnsecuredFallback = isNegotiate && AllowUnsecuredFallbackCheckBox.IsChecked == true,
+            UseQuickModePerfectForwardSecrecy = isNegotiate && QuickModePfsToggleSwitch.IsOn,
+            AcceptUnsecuredInbound = isNegotiate && AcceptUnsecuredInboundToggleSwitch.IsOn,
+            AllowUnsecuredFallback = isNegotiate && AllowUnsecuredFallbackToggleSwitch.IsOn,
             QuickModeSecurityMethods = isNegotiate
                 ? QuickModeMethodsEditor.GetMethods()
                 : null
@@ -80,11 +80,11 @@ public sealed partial class IPSecurityFilterActionEditorControl : UserControl
             {
                 if (_mode == IPSecurityEditorMode.Create)
                 {
-                    _ = IPSecurityStaticPolicyCommandBuilder.BuildAddFilterAction(candidate);
+                    _ = IPSecurityCommandBuilder.BuildAddFilterAction(candidate);
                 }
                 else
                 {
-                    _ = IPSecurityStaticPolicyCommandBuilder.BuildSetFilterAction(candidate);
+                    _ = IPSecurityCommandBuilder.BuildSetFilterAction(candidate);
                 }
             },
             ValidationInfoBar,
@@ -105,9 +105,7 @@ public sealed partial class IPSecurityFilterActionEditorControl : UserControl
     private void UpdateNegotiationState()
     {
         bool enabled = GetAction() == IPSecurityFilterActionKind.Negotiate;
-        QuickModePfsCheckBox.IsEnabled = enabled;
-        AcceptUnsecuredInboundCheckBox.IsEnabled = enabled;
-        AllowUnsecuredFallbackCheckBox.IsEnabled = enabled;
+        NegotiationPanel.Visibility = enabled ? Visibility.Visible : Visibility.Collapsed;
         QuickModeMethodsEditor.IsEnabled = enabled;
     }
 

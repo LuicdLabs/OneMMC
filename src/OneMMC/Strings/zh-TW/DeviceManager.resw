@@ -355,4 +355,220 @@
   <data name="DeviceManager_DeviceCountZero" xml:space="preserve">
     <value>0 個裝置</value>
   </data>
+  <data name="DeviceManager_Category_1394" xml:space="preserve">
+    <value>IEEE 1394 主機匯流排控制器</value>
+  </data>
+  <data name="DeviceManager_Category_1394Debug" xml:space="preserve">
+    <value>IEEE 1394 偵錯工具</value>
+  </data>
+  <data name="DeviceManager_Category_61883" xml:space="preserve">
+    <value>61883 裝置類別</value>
+  </data>
+  <data name="DeviceManager_Category_Adapter" xml:space="preserve">
+    <value>轉接器</value>
+  </data>
+  <data name="DeviceManager_Category_APMSupport" xml:space="preserve">
+    <value>APM</value>
+  </data>
+  <data name="DeviceManager_Category_AudioEndpoint" xml:space="preserve">
+    <value>音訊輸入和輸出</value>
+  </data>
+  <data name="DeviceManager_Category_AudioProcessingObject" xml:space="preserve">
+    <value>音訊處理物件 (APO)</value>
+  </data>
+  <data name="DeviceManager_Category_AVC" xml:space="preserve">
+    <value>AVC 裝置類別</value>
+  </data>
+  <data name="DeviceManager_Category_Battery" xml:space="preserve">
+    <value>電池</value>
+  </data>
+  <data name="DeviceManager_Category_Biometric" xml:space="preserve">
+    <value>生物特徵辨識裝置</value>
+  </data>
+  <data name="DeviceManager_Category_Bluetooth" xml:space="preserve">
+    <value>藍牙</value>
+  </data>
+  <data name="DeviceManager_Category_Camera" xml:space="preserve">
+    <value>相機</value>
+  </data>
+  <data name="DeviceManager_Category_CDROM" xml:space="preserve">
+    <value>DVD/CD-ROM 光碟機</value>
+  </data>
+  <data name="DeviceManager_Category_Computer" xml:space="preserve">
+    <value>電腦</value>
+  </data>
+  <data name="DeviceManager_Category_ComputeAccelerator" xml:space="preserve">
+    <value>計算加速器</value>
+  </data>
+  <data name="DeviceManager_Category_Decoder" xml:space="preserve">
+    <value>解碼器</value>
+  </data>
+  <data name="DeviceManager_Category_DiskDrive" xml:space="preserve">
+    <value>磁碟機</value>
+  </data>
+  <data name="DeviceManager_Category_Display" xml:space="preserve">
+    <value>顯示卡</value>
+  </data>
+  <data name="DeviceManager_Category_Dot4" xml:space="preserve">
+    <value>IEEE 1284.4 裝置</value>
+  </data>
+  <data name="DeviceManager_Category_Dot4Print" xml:space="preserve">
+    <value>IEEE 1284.4 列印功能</value>
+  </data>
+  <data name="DeviceManager_Category_Enum1394" xml:space="preserve">
+    <value>IEEE 1394 IP 網路列舉器</value>
+  </data>
+  <data name="DeviceManager_Category_Extension" xml:space="preserve">
+    <value>擴充裝置</value>
+  </data>
+  <data name="DeviceManager_Category_FDC" xml:space="preserve">
+    <value>軟碟控制器</value>
+  </data>
+  <data name="DeviceManager_Category_Firmware" xml:space="preserve">
+    <value>韌體</value>
+  </data>
+  <data name="DeviceManager_Category_FloppyDisk" xml:space="preserve">
+    <value>軟碟機</value>
+  </data>
+  <data name="DeviceManager_Category_HDC" xml:space="preserve">
+    <value>IDE ATA/ATAPI 控制器</value>
+  </data>
+  <data name="DeviceManager_Category_HIDClass" xml:space="preserve">
+    <value>人機介面裝置</value>
+  </data>
+  <data name="DeviceManager_Category_Image" xml:space="preserve">
+    <value>影像裝置</value>
+  </data>
+  <data name="DeviceManager_Category_Infrared" xml:space="preserve">
+    <value>紅外線裝置</value>
+  </data>
+  <data name="DeviceManager_Category_Keyboard" xml:space="preserve">
+    <value>鍵盤</value>
+  </data>
+  <data name="DeviceManager_Category_LegacyDriver" xml:space="preserve">
+    <value>非隨插即用驅動程式</value>
+  </data>
+  <data name="DeviceManager_Category_Media" xml:space="preserve">
+    <value>音效、視訊及遊戲控制器</value>
+  </data>
+  <data name="DeviceManager_Category_MediumChanger" xml:space="preserve">
+    <value>媒體轉換器</value>
+  </data>
+  <data name="DeviceManager_Category_Modem" xml:space="preserve">
+    <value>數據機</value>
+  </data>
+  <data name="DeviceManager_Category_Monitor" xml:space="preserve">
+    <value>監視器</value>
+  </data>
+  <data name="DeviceManager_Category_Mouse" xml:space="preserve">
+    <value>滑鼠和其他指標裝置</value>
+  </data>
+  <data name="DeviceManager_Category_MTD" xml:space="preserve">
+    <value>記憶體技術裝置</value>
+  </data>
+  <data name="DeviceManager_Category_Multifunction" xml:space="preserve">
+    <value>多功能轉接器</value>
+  </data>
+  <data name="DeviceManager_Category_MultiportSerial" xml:space="preserve">
+    <value>多埠序列配接器</value>
+  </data>
+  <data name="DeviceManager_Category_Net" xml:space="preserve">
+    <value>網路介面卡</value>
+  </data>
+  <data name="DeviceManager_Category_NetClient" xml:space="preserve">
+    <value>網路用戶端</value>
+  </data>
+  <data name="DeviceManager_Category_NetService" xml:space="preserve">
+    <value>網路服務</value>
+  </data>
+  <data name="DeviceManager_Category_NetTrans" xml:space="preserve">
+    <value>網路通訊協定</value>
+  </data>
+  <data name="DeviceManager_Category_NoDriver" xml:space="preserve">
+    <value>無驅動程式</value>
+  </data>
+  <data name="DeviceManager_Category_NvmeDisk" xml:space="preserve">
+    <value>儲存磁碟</value>
+  </data>
+  <data name="DeviceManager_Category_PCMCIA" xml:space="preserve">
+    <value>PCMCIA 配接器</value>
+  </data>
+  <data name="DeviceManager_Category_PNPPrinters" xml:space="preserve">
+    <value>IEEE 1394 和 SCSI 印表機</value>
+  </data>
+  <data name="DeviceManager_Category_Ports" xml:space="preserve">
+    <value>連接埠 (COM 及 LPT)</value>
+  </data>
+  <data name="DeviceManager_Category_Printer" xml:space="preserve">
+    <value>印表機</value>
+  </data>
+  <data name="DeviceManager_Category_PrinterUpgrade" xml:space="preserve">
+    <value>印表機升級</value>
+  </data>
+  <data name="DeviceManager_Category_PrintQueue" xml:space="preserve">
+    <value>列印佇列</value>
+  </data>
+  <data name="DeviceManager_Category_Processor" xml:space="preserve">
+    <value>處理器</value>
+  </data>
+  <data name="DeviceManager_Category_SBP2" xml:space="preserve">
+    <value>SBP2 IEEE 1394 裝置</value>
+  </data>
+  <data name="DeviceManager_Category_SCSIAdapter" xml:space="preserve">
+    <value>儲存控制器</value>
+  </data>
+  <data name="DeviceManager_Category_SDHost" xml:space="preserve">
+    <value>SD 主機配接器</value>
+  </data>
+  <data name="DeviceManager_Category_SecurityAccelerator" xml:space="preserve">
+    <value>安全性加速器</value>
+  </data>
+  <data name="DeviceManager_Category_SecurityDevices" xml:space="preserve">
+    <value>安全性裝置</value>
+  </data>
+  <data name="DeviceManager_Category_Sensor" xml:space="preserve">
+    <value>感應器</value>
+  </data>
+  <data name="DeviceManager_Category_SmartCardReader" xml:space="preserve">
+    <value>智慧卡讀卡機</value>
+  </data>
+  <data name="DeviceManager_Category_SoftwareComponent" xml:space="preserve">
+    <value>軟體元件</value>
+  </data>
+  <data name="DeviceManager_Category_SoftwareDevice" xml:space="preserve">
+    <value>軟體裝置</value>
+  </data>
+  <data name="DeviceManager_Category_Sound" xml:space="preserve">
+    <value>音效</value>
+  </data>
+  <data name="DeviceManager_Category_System" xml:space="preserve">
+    <value>系統裝置</value>
+  </data>
+  <data name="DeviceManager_Category_TapeDrive" xml:space="preserve">
+    <value>磁帶機</value>
+  </data>
+  <data name="DeviceManager_Category_UCM" xml:space="preserve">
+    <value>USB 連接器管理員</value>
+  </data>
+  <data name="DeviceManager_Category_Unknown" xml:space="preserve">
+    <value>其他裝置</value>
+  </data>
+  <data name="DeviceManager_Category_USB" xml:space="preserve">
+    <value>通用序列匯流排控制器</value>
+  </data>
+  <data name="DeviceManager_Category_USBDevice" xml:space="preserve">
+    <value>通用序列匯流排裝置</value>
+  </data>
+  <data name="DeviceManager_Category_Volume" xml:space="preserve">
+    <value>儲存磁碟區</value>
+  </data>
+  <data name="DeviceManager_Category_VolumeSnapshot" xml:space="preserve">
+    <value>儲存磁碟區快照</value>
+  </data>
+  <data name="DeviceManager_Category_WCEUSBS" xml:space="preserve">
+    <value>Windows CE USB ActiveSync 裝置</value>
+  </data>
+  <data name="DeviceManager_Category_WPD" xml:space="preserve">
+    <value>可攜式裝置</value>
+  </data>
 </root>

@@ -51,18 +51,16 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt.Common
         public static readonly Guid MICROSOFT_RESERVED_GUID = new("E3C9E316-0B5C-4DB8-817D-F92DF00215AE");
         public static readonly Guid BASIC_DATA_PARTITION_GUID = new("EBD0A0A2-B9E5-4433-87C0-68B6B72699C7");
         public static readonly Guid WINDOWS_RECOVERY_GUID = new("DE94BBA4-06D1-4D40-A16A-BFD50179D6AC");
-        public static readonly Guid WINDOWS_RE_GUID = new("8DA63339-0007-60C0-C436-083AC8230908");
-        public static readonly Guid OEM_RECOVERY_GUID = new("F0FD8DC9-0438-4741-8E12-7E0C412A9930");
         public static readonly Guid LDM_METADATA_GUID = new("5808C8AA-7E8F-42E0-85D2-E1E90434CFB3");
         public static readonly Guid LDM_DATA_GUID = new("AF9B60A0-1431-4F62-BC68-3311714A69AD");
         public static readonly Guid BIOS_BOOT_PARTITION_GUID = new("21686148-6449-6E6F-744E-656564454649");
+        public static readonly Guid LINUX_RESERVED_GUID = new("8DA63339-0007-60C0-C436-083AC8230908");
 
         public static readonly HashSet<Guid> NonResizablePartitionTypes = new()
         {
             MICROSOFT_RESERVED_GUID,
             EFI_SYSTEM_PARTITION_GUID,
-            WINDOWS_RECOVERY_GUID,
-            WINDOWS_RE_GUID
+            WINDOWS_RECOVERY_GUID
         };
 
         public static readonly HashSet<Guid> CriticalSystemPartitionTypes = new()
@@ -70,7 +68,6 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt.Common
             EFI_SYSTEM_PARTITION_GUID,
             MICROSOFT_RESERVED_GUID,
             WINDOWS_RECOVERY_GUID,
-            WINDOWS_RE_GUID,
             BIOS_BOOT_PARTITION_GUID
         };
         #endregion

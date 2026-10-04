@@ -499,20 +499,7 @@ public static partial class DirectoryObjectPickerService
 
         if (scopes.Count == 0)
         {
-            scopes.Add(new DSOP_SCOPE_INIT_INFO
-            {
-                cbSize = (uint)Unsafe.SizeOf<DSOP_SCOPE_INIT_INFO>(),
-                flType = DSOP_SCOPE_TYPE_TARGET_COMPUTER,
-                flScope = BuildScopeFlags(wantWinNt: true, wantLdap: false),
-                FilterFlags = new DSOP_FILTER_FLAGS
-                {
-                    Uplevel = new DSOP_UPLEVEL_FILTER_FLAGS
-                    {
-                        flBothModes = uplevelFilter,
-                    },
-                    flDownlevel = downlevelFilter,
-                },
-            });
+            throw new ArgumentException("At least one picker scope must be enabled.", nameof(options));
         }
 
         count = scopes.Count;
@@ -521,6 +508,11 @@ public static partial class DirectoryObjectPickerService
 
     private static uint BuildUplevelFilter(DirectoryObjectPickerOptions options)
     {
+        if (options.BuiltInPrincipalsOnly)
+        {
+            return DSOP_FILTER_BUILTIN_GROUPS | DSOP_FILTER_WELL_KNOWN_PRINCIPALS;
+        }
+
         ObjectPickerTypes types = options.Types;
         uint filter = options.IncludeWellKnownPrincipals ? DSOP_FILTER_WELL_KNOWN_PRINCIPALS : 0;
 
@@ -737,39 +729,28 @@ public static partial class DirectoryObjectPickerService
 
     private static string ResolveAccountSid(string name, string adsPath)
     {
-        bool hadQualifiedName = false;
-
         if (!string.IsNullOrEmpty(adsPath))
         {
-            string? qualifiedName = ExtractAccountFromAdsPath(adsPath);
-            if (qualifiedName is not null)
-            {
-                hadQualifiedName = qualifiedName.Contains('\\');
-
-                string? sid = TryTranslateToSid(qualifiedName);
-                if (sid is not null)
-                {
-                    return sid;
-                }
-            }
-
             string? sidFromPath = ExtractSidFromAdsPath(adsPath);
             if (sidFromPath is not null)
             {
                 return sidFromPath;
             }
-        }
 
-        if (!hadQualifiedName && !string.IsNullOrEmpty(name))
-        {
-            string? sid = TryTranslateToSid(name);
-            if (sid is not null)
+            // WinNT paths contain an account authority and account name. LDAP distinguished names
+            // do not contain a reliable sAMAccountName or NetBIOS domain and must not be guessed.
+            string? qualifiedName = ExtractAccountFromAdsPath(adsPath);
+            if (qualifiedName is not null)
             {
-                return sid;
+                return TryTranslateToSid(qualifiedName) ?? string.Empty;
             }
+
+            return string.Empty;
         }
 
-        return string.Empty;
+        return !string.IsNullOrEmpty(name)
+            ? TryTranslateToSid(name) ?? string.Empty
+            : string.Empty;
     }
 
     private static string? TryTranslateToSid(string accountName)
@@ -816,44 +797,7 @@ public static partial class DirectoryObjectPickerService
             return null;
         }
 
-        const string ldapPrefix = "LDAP://";
-        if (adsPath.StartsWith(ldapPrefix, StringComparison.OrdinalIgnoreCase))
-        {
-            return ExtractAccountFromLdapPath(adsPath[ldapPrefix.Length..]);
-        }
-
         return null;
-    }
-
-    private static string? ExtractAccountFromLdapPath(string dn)
-    {
-        if (dn.StartsWith('<'))
-        {
-            return null;
-        }
-
-        string? cn = null;
-        string? domain = null;
-
-        foreach (var part in dn.Split(','))
-        {
-            var trimmed = part.Trim();
-            if (cn is null && trimmed.StartsWith("CN=", StringComparison.OrdinalIgnoreCase))
-            {
-                cn = trimmed[3..];
-            }
-            else if (trimmed.StartsWith("DC=", StringComparison.OrdinalIgnoreCase))
-            {
-                domain ??= trimmed[3..];
-            }
-        }
-
-        if (cn is not null && domain is not null)
-        {
-            return $"{domain}\\{cn}";
-        }
-
-        return cn;
     }
 
     private static string? ExtractSidFromAdsPath(string adsPath)
@@ -867,26 +811,22 @@ public static partial class DirectoryObjectPickerService
             return TryParseSidString(candidate);
         }
 
-        const string ldapSidPrefix = "<SID=";
-        int idx = adsPath.IndexOf(ldapSidPrefix, StringComparison.OrdinalIgnoreCase);
-        if (idx >= 0)
+        const string ldapSidPrefix = "LDAP://<SID=";
+        if (!adsPath.StartsWith(ldapSidPrefix, StringComparison.OrdinalIgnoreCase)
+            || !adsPath.EndsWith('>'))
         {
-            int start = idx + ldapSidPrefix.Length;
-            int end = adsPath.IndexOf('>', start);
-            if (end > start)
-            {
-                string sidValue = adsPath[start..end];
-
-                if (sidValue.StartsWith("S-", StringComparison.OrdinalIgnoreCase))
-                {
-                    return TryParseSidString(sidValue);
-                }
-
-                return TryConvertBinarySid(sidValue);
-            }
+            return null;
         }
 
-        return null;
+        string sidValue = adsPath[ldapSidPrefix.Length..^1];
+        if (sidValue.Length == 0 || sidValue.Contains('>'))
+        {
+            return null;
+        }
+
+        return sidValue.StartsWith("S-", StringComparison.OrdinalIgnoreCase)
+            ? TryParseSidString(sidValue)
+            : TryConvertBinarySid(sidValue);
     }
 
     private static string? TryParseSidString(string candidate)

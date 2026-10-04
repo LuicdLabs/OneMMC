@@ -327,7 +327,7 @@ public sealed partial class EventViewerPage : Page
         var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindowInstance);
         return await App.GetRequiredService<OneMMC.Core.Abstractions.Services.IFileDialogService>().SaveFileAsync(
             hwnd,
-            "Event Log Files (*.evtx)\0*.evtx\0All Files\0*.*\0",
+            $"{LocalizedStrings.EventViewer_FileFilter_Evtx}\0*.evtx\0{LocalizedStrings.Common_FileFilter_AllFiles}\0*.*\0",
             initialDirectory: null,
             defaultExtension: "evtx",
             suggestedFileName: ViewModel.SelectedLogName ?? "EventLog");

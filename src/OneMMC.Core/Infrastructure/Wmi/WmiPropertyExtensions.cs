@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using WmiLight;
 
 namespace OneMMC.Core.Infrastructure.Wmi;
@@ -54,6 +55,38 @@ internal static class WmiPropertyExtensions
         catch
         {
             return defaultValue;
+        }
+    }
+
+    /// <summary>
+    /// Reads a WMI string-array property and returns an empty array when the property is
+    /// missing, null, or cannot be converted. WMI providers can expose SAFEARRAY values
+    /// either as <see cref="string"/> arrays or as a general <see cref="Array"/>.
+    /// </summary>
+    public static string[] GetStringArrayPropertySafe(this WmiObject obj, string propertyName)
+    {
+        try
+        {
+            var value = obj.GetPropertyValue(propertyName);
+            if (value is string[] strings)
+                return strings;
+
+            if (value is not Array values)
+                return [];
+
+            var result = new List<string>(values.Length);
+            foreach (var item in values)
+            {
+                var text = item?.ToString()?.Trim();
+                if (!string.IsNullOrEmpty(text))
+                    result.Add(text);
+            }
+
+            return result.ToArray();
+        }
+        catch
+        {
+            return [];
         }
     }
 }

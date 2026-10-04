@@ -24,6 +24,8 @@ public class AppSettings
     /// <summary>
     /// Gets or sets the date when the welcome dialog was last dismissed.
     /// Stored as ISO 8601 string (e.g. "2026-01-15").
+    /// Legacy from the previous 30-day reminder behavior; no longer written or read.
+    /// Kept so existing settings files continue to deserialize.
     /// </summary>
     public string? WelcomeDialogDismissedDate { get; set; }
 
@@ -58,12 +60,13 @@ public class AppSettings
     public string MainWindowState { get; set; } = "Restored";
 
     /// <summary>
-    /// Gets or sets a value indicating whether first-party logging runs at Debug level.
+    /// Gets or sets a value indicating whether logging runs at the deeper <c>Verbose</c> (Trace) level.
     /// </summary>
     /// <remarks>
-    /// Off by default. Debug-level logging formats a message template and allocates property values for
-    /// every call site on the hot path, which shows up as sustained gen0 pressure; it is a local
-    /// diagnostic switch rather than a normal operating mode. See <c>doc/Logging.md</c>.
+    /// First-party <c>Debug</c> logging is always on so a user can submit a complete diagnostic log from
+    /// any build; this switch is the extra step beyond that. When set, OneMMC logs at <c>Verbose</c> and
+    /// the <c>Microsoft</c>/<c>System</c> framework categories drop from <c>Warning</c> to <c>Debug</c>.
+    /// Off by default because that extra volume is rarely needed. See <c>doc/Logging.md</c>.
     /// </remarks>
     public bool VerboseLogging { get; set; }
 

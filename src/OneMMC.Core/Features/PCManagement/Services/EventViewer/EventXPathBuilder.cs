@@ -73,12 +73,12 @@ public static class EventXPathBuilder
 
         var sb = new StringBuilder();
         sb.Append("<QueryList>");
-        sb.Append(CultureInfo.InvariantCulture, $"<Query Id=\"0\" Path=\"{Escape(selections[0].Channel)}\">");
+        sb.Append(CultureInfo.InvariantCulture, $"<Query Id=\"0\" Path=\"{EscapeXmlAttribute(selections[0].Channel)}\">");
 
         foreach (var selection in selections)
         {
             sb.Append(CultureInfo.InvariantCulture,
-                $"<Select Path=\"{Escape(selection.Channel)}\">{BuildSelectBody(selection, sharedTerms)}</Select>");
+                $"<Select Path=\"{EscapeXmlAttribute(selection.Channel)}\">{BuildSelectBody(selection, sharedTerms)}</Select>");
         }
 
         // A Suppress must share a Path with a Select; emit one per selected channel when there are excludes.
@@ -87,7 +87,7 @@ public static class EventXPathBuilder
             foreach (var selection in selections)
             {
                 sb.Append(CultureInfo.InvariantCulture,
-                    $"<Suppress Path=\"{Escape(selection.Channel)}\">*[System[{excludeId}]]</Suppress>");
+                    $"<Suppress Path=\"{EscapeXmlAttribute(selection.Channel)}\">*[System[{excludeId}]]</Suppress>");
             }
         }
 
@@ -100,7 +100,7 @@ public static class EventXPathBuilder
         var terms = new List<string>();
         if (selection.Providers.Count > 0)
         {
-            var providers = string.Join(" or ", selection.Providers.Select(p => $"@Name='{Escape(p)}'"));
+            var providers = string.Join(" or ", selection.Providers.Select(p => $"@Name={XPathLiteralInXmlText(p)}"));
             terms.Add($"Provider[{providers}]");
         }
         terms.AddRange(sharedTerms);
@@ -138,12 +138,12 @@ public static class EventXPathBuilder
 
         if (!string.IsNullOrWhiteSpace(criteria.Computer))
         {
-            terms.Add($"Computer='{Escape(criteria.Computer)}'");
+            terms.Add($"Computer={XPathLiteralInXmlText(criteria.Computer)}");
         }
 
         if (!string.IsNullOrWhiteSpace(criteria.UserSid))
         {
-            terms.Add($"Security[@UserID='{Escape(criteria.UserSid)}']");
+            terms.Add($"Security[@UserID={XPathLiteralInXmlText(criteria.UserSid)}]");
         }
 
         return terms;
@@ -231,6 +231,46 @@ public static class EventXPathBuilder
     private static string? Parenthesize(IReadOnlyCollection<string> terms) =>
         terms.Count == 0 ? null : $"({string.Join(" or ", terms)})";
 
-    private static string Escape(string value) =>
-        value.Replace("&", "&amp;").Replace("'", "&apos;").Replace("<", "&lt;").Replace(">", "&gt;");
+    // XML-text escaping for content placed inside an element's text (the Select/Suppress bodies and the
+    // XPath literals they contain). Note: this is NOT sufficient for XPath string literals on its own —
+    // see XPathLiteralInXmlText.
+    private static string EscapeXmlText(string value) =>
+        value.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;");
+
+    // XML-attribute escaping for values placed inside a double-quoted attribute (the Query/Select/Suppress
+    // Path). Adds the double-quote escape on top of the text escapes.
+    private static string EscapeXmlAttribute(string value) =>
+        EscapeXmlText(value).Replace("\"", "&quot;");
+
+    // Produces a safe Event Log XPath string literal for a value that will sit inside the Select body's XML
+    // text. XML-encoding an apostrophe to &apos; is wrong here: the XML layer decodes it back to ' which
+    // would prematurely close the XPath literal (a query-shape / injection hazard for source, computer and
+    // user values). Instead choose a quote the value does not contain, or fall back to concat(), then
+    // XML-text-encode the structural characters so the literal is valid inside the surrounding XML.
+    private static string XPathLiteralInXmlText(string value) => EscapeXmlText(ToXPathLiteral(value));
+
+    private static string ToXPathLiteral(string value)
+    {
+        if (!value.Contains('\''))
+        {
+            return $"'{value}'";
+        }
+        if (!value.Contains('"'))
+        {
+            return $"\"{value}\"";
+        }
+        // Contains both quote kinds: split on ' and stitch the pieces back together with a literal '.
+        var segments = value.Split('\'');
+        var sb = new StringBuilder("concat(");
+        for (int i = 0; i < segments.Length; i++)
+        {
+            if (i > 0)
+            {
+                sb.Append(", \"'\", ");
+            }
+            sb.Append('\'').Append(segments[i]).Append('\'');
+        }
+        sb.Append(')');
+        return sb.ToString();
+    }
 }

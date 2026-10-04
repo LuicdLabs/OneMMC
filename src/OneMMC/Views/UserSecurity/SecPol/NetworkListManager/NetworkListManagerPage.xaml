@@ -9,7 +9,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:localization="using:OneMMC.Localization"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:vm="using:OneMMC.Core.Features.UserSecurity.ViewModels.NetworkListManager"
+    xmlns:vm="using:OneMMC.Core.Features.UserSecurity.ViewModels.SecPol.NetworkListManager"
     mc:Ignorable="d">
 
     <Page.Resources>

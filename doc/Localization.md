@@ -1,5 +1,9 @@
 ﻿# OneMMC Localization Implementation Guide
 
+This document is the authoritative reference for OneMMC localization. Other documents
+(`AGENTS.md`, `.github/copilot-instructions.md`, `.github/CONTRIBUTING.md`, the project READMEs)
+only summarize the rules and link here.
+
 ## Table of Contents
 1. [Overview](#overview)
 2. [Architecture Design](#architecture-design)
@@ -27,7 +31,7 @@ OneMMC implements localization support by using the **WinUI 3 resource system (.
 The localization system spans two layers:
 
 **UI layer (`OneMMC`, namespace `OneMMC.Localization`)**
-- **LocalizedStrings** - Unified access point for localized strings in XAML/UI (partial class, split per feature)
+- **LocalizedStrings** - Unified access point for localized strings in XAML/UI (partial class, split per feature). Exposes the shared `LocalizedStrings.Instance` singleton; pages surface it as a `LocalizedStrings` property so `{x:Bind}` can reach it
 - **LocalizationService** - Resource loading and management service; reads the WinUI 3 `.resw`/PRI resource map (singleton `LocalizationService.Instance`)
 - **UILocalizationProvider** - Implements the Core `ILocalizationProvider` by delegating to `LocalizationService.Instance`, bridging Core to the UI resource map
 
@@ -89,6 +93,9 @@ bracketed `[resourceFile/key]` placeholders.
 // LocalizedStrings.cs - Base class
 public partial class LocalizedStrings
 {
+    // Resource lookups are static, so one shared instance serves the whole app.
+    public static LocalizedStrings Instance { get; } = new();
+
     protected static string GetResource(string key);                      // uses ResourceFileNames.Resources
     protected static string GetResource(string resourceFile, string key);
 }
@@ -272,62 +279,51 @@ namespace OneMMC.Localization
 <Page
     x:Class="OneMMC.Views.NetworkManagerPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="using:OneMMC.Localization">
-
-    <Page.Resources>
-        <local:LocalizedStrings x:Key="LocalizedStrings" />
-    </Page.Resources>
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <Grid>
         <!-- Use localized strings -->
         <TextBlock 
-            Text="{Binding Source={StaticResource LocalizedStrings}, Path=NetworkManager_PageTitle}" 
+            Text="{x:Bind LocalizedStrings.NetworkManager_PageTitle}" 
             Style="{StaticResource TitleTextBlockStyle}" />
         
         <Button 
-            Content="{Binding Source={StaticResource LocalizedStrings}, Path=NetworkManager_Enable}" 
+            Content="{x:Bind LocalizedStrings.NetworkManager_Enable}" 
             Command="{x:Bind ViewModel.EnableCommand}" />
     </Grid>
 </Page>
+```
+
+```csharp
+// NetworkManagerPage.xaml.cs — expose the shared instance so {x:Bind} can reach it
+public sealed partial class NetworkManagerPage : Page
+{
+    public LocalizedStrings LocalizedStrings { get; } = LocalizedStrings.Instance;
+
+    public NetworkManagerPage()
+    {
+        InitializeComponent();
+    }
+}
 ```
 
 ---
 
 ## Using Localized Strings in XAML
 
-### Method 1: Use StaticResource (Recommended)
+### Method 1: `{x:Bind}` Against a Code-Behind Property (the repository pattern)
 
-```xml
-<Page.Resources>
-    <local:LocalizedStrings x:Key="LocalizedStrings" />
-</Page.Resources>
+This is the **only** pattern used in this codebase, and the only one allowed for new XAML:
+`{x:Bind}` is compile-time bound and therefore Native AOT-safe. Never introduce `{Binding}`
+— see [`doc/NativeAot.md`](NativeAot.md).
 
-<!-- Simple text binding -->
-<TextBlock Text="{Binding Source={StaticResource LocalizedStrings}, Path=Common_OKButton}" />
-
-<!-- Button content -->
-<Button Content="{Binding Source={StaticResource LocalizedStrings}, Path=Services_Start}" />
-
-<!-- CommandBar label -->
-<AppBarButton 
-    Icon="Refresh" 
-    Label="{Binding Source={StaticResource LocalizedStrings}, Path=Common_Refresh}" />
-```
-
-### Method 2: Use x:Bind (Requires a Code-Behind Property)
-
-```xml
-<!-- Code-behind must define a LocalizedStrings property -->
-<TextBlock Text="{x:Bind LocalizedStrings.Common_OKButton}" />
-```
+Expose the shared singleton in code-behind:
 
 ```csharp
-// Code-behind
 public sealed partial class MyPage : Page
 {
-    public LocalizedStrings LocalizedStrings { get; } = new();
-    
+    public LocalizedStrings LocalizedStrings { get; } = LocalizedStrings.Instance;
+
     public MyPage()
     {
         InitializeComponent();
@@ -335,7 +331,28 @@ public sealed partial class MyPage : Page
 }
 ```
 
-### Method 3: Formatted Strings
+Then bind directly to the generated property:
+
+```xml
+<!-- Simple text -->
+<TextBlock Text="{x:Bind LocalizedStrings.Common_OKButton}" />
+
+<!-- Button content -->
+<Button Content="{x:Bind LocalizedStrings.Services_Start}" />
+
+<!-- CommandBar label -->
+<AppBarButton Icon="Refresh" Label="{x:Bind LocalizedStrings.Common_Refresh}" />
+```
+
+Strings are resolved once at load time, so the default one-time `{x:Bind}` mode is correct; no
+`Mode=OneWay` is needed for static labels.
+
+> **Do not** use `{Binding Source={StaticResource LocalizedStrings}, Path=…}`. That pattern relies on
+> runtime property-path resolution, is not AOT-safe, and no longer appears anywhere in this
+> repository. `x:Uid`/`.resw` automatic lookup is likewise unused here — all XAML strings flow
+> through `LocalizedStrings`.
+
+### Method 2: Formatted Strings
 
 For strings that require dynamic values, such as `"Current PC: {0} (local)"`:
 
@@ -359,9 +376,9 @@ public string CurrentPCText =>
 ```csharp
 using OneMMC.Localization;
 
-public class MyViewModel
+public class MyPageHelper
 {
-    private readonly LocalizedStrings _localizedStrings = new();
+    private readonly LocalizedStrings _localizedStrings = LocalizedStrings.Instance;
     
     public void ShowMessage()
     {
@@ -390,38 +407,44 @@ string message = LocalizationService.Instance.GetFormattedString(
 );
 ```
 
-### Usage in a ViewModel
+### Usage in a Core ViewModel
+
+Core ViewModels cannot reference the UI project's `LocalizedStrings`. They go through
+`ILocalizationProvider` (via `LocalizationProvider.Current`) and `ResourceKeys` constants instead:
 
 ```csharp
 using CommunityToolkit.Mvvm.ComponentModel;
-using OneMMC.Localization;
+using OneMMC.Core.Localization;
 
 public partial class NetworkManagerViewModel : ObservableObject
 {
-    private readonly LocalizedStrings _localizedStrings = new();
-    
     [ObservableProperty]
-    private string _statusMessage = string.Empty;
-    
+    public partial string StatusMessage { get; set; } = string.Empty;
+
     public async Task LoadDataAsync()
     {
-        StatusMessage = _localizedStrings.Common_LoadingData;
-        
+        StatusMessage = LocalizationProvider.Current.GetString(
+            ResourceFileNames.Common, CommonKeys.LoadingData);
+
         try
         {
             // Load data...
-            StatusMessage = _localizedStrings.Common_LoadedSuccessfully;
+            StatusMessage = LocalizationProvider.Current.GetString(
+                ResourceFileNames.Common, CommonKeys.LoadedSuccessfully);
         }
         catch (Exception ex)
         {
             StatusMessage = string.Format(
-                _localizedStrings.Common_OperationFailed, 
-                ex.Message
-            );
+                LocalizationProvider.Current.GetString(
+                    ResourceFileNames.Common, CommonKeys.OperationFailed),
+                ex.Message);
         }
     }
 }
 ```
+
+`[ObservableProperty]` goes on a **partial property**, not a field — see
+[`doc/NativeAot.md`](NativeAot.md).
 
 ---
 
@@ -438,7 +461,7 @@ namespace OneMMC.Converters
 {
     public class BoolToYesNoConverter : IValueConverter
     {
-        private static readonly LocalizedStrings _localizedStrings = new();
+        private static readonly LocalizedStrings _localizedStrings = LocalizedStrings.Instance;
 
         public object Convert(object value, Type targetType, object parameter, string language)
         {
@@ -466,7 +489,7 @@ namespace OneMMC.Converters
     <converters:BoolToYesNoConverter x:Key="BoolToYesNoConverter" />
 </Page.Resources>
 
-<TextBlock Text="{Binding IsEnabled, Converter={StaticResource BoolToYesNoConverter}}" />
+<TextBlock Text="{x:Bind ViewModel.IsEnabled, Converter={StaticResource BoolToYesNoConverter}, Mode=OneWay}" />
 ```
 
 ---
@@ -607,12 +630,12 @@ public partial class LocalizedStrings
 
 ### 6. Performance Considerations
 
-#### Use Static Instances (Converters)
+#### Reuse the Shared Instance
 ```csharp
-// Good practice - static instance to avoid repeated allocation
-private static readonly LocalizedStrings _localizedStrings = new();
+// Good practice - reuse the shared singleton, no repeated allocation
+private static readonly LocalizedStrings _localizedStrings = LocalizedStrings.Instance;
 
-// Avoid - creating a new instance every time
+// Avoid - allocating a new instance per call
 public object Convert(...)
 {
     var localizedStrings = new LocalizedStrings(); // ❌ Not recommended
@@ -735,7 +758,7 @@ No, they do not update automatically. If runtime language switching is required,
 
 ```xml
 <!-- Use it in XAML -->
-<Image Source="{Binding Source={StaticResource LocalizedStrings}, Path=Image_Logo}" />
+<Image Source="{x:Bind LocalizedStrings.Image_Logo}" />
 ```
 
 ---
@@ -748,6 +771,7 @@ Before submitting code, make sure that:
 - [ ] Corresponding `.resw` files have been created for all supported languages.
 - [ ] New resource file constants have been added to `OneMMC.Core/Localization/ResourceKeys.cs`.
 - [ ] The corresponding `LocalizedStrings` partial class has been created.
+- [ ] XAML uses `{x:Bind LocalizedStrings.…}` — no new `{Binding}` was introduced.
 - [ ] All resource keys follow the naming convention.
 - [ ] Placeholders in formatted strings are used correctly.
 - [ ] The UI has been tested in different languages.
@@ -758,10 +782,9 @@ Before submitting code, make sure that:
 
 ## References
 
+### Internal
+- [`doc/NativeAot.md`](NativeAot.md) — why `{x:Bind}` is mandatory
+
 ### External Resources
 - [.resw file format](https://learn.microsoft.com/windows/uwp/app-resources/localize-strings-ui-manifest)
 - [ResourceManager API](https://learn.microsoft.com/windows/windows-app-sdk/api/winrt/microsoft.windows.applicationmodel.resources.resourcemanager)
-
----
-
-**Last updated**: 2026-08-13

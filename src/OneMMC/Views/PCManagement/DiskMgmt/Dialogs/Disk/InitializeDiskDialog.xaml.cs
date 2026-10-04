@@ -14,7 +14,7 @@ public sealed partial class InitializeDiskDialog : ContentDialog
     {
         this.InitializeComponent();
 
-        DiskInfoTextBlock.Text = $"Disk {disk.Index} - {FormatSize(disk.Size)}";
+        DiskInfoTextBlock.Text = string.Format(LocalizedStrings.DiskMgmt_DiskInfoFormat, disk.Index, FormatSize(disk.Size));
     }
 
     private static string FormatSize(ulong bytes)

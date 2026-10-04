@@ -87,9 +87,9 @@
         <!-- Fixed footer: checkbox only; PrimaryButton ("Let's explore") is rendered by ContentDialog -->
         <CheckBox
             Grid.Row="1"
-            x:Name="RemindCheckBox"
+            x:Name="DoNotShowCheckBox"
             IsChecked="False"
-            Content="{x:Bind local:LocalizedStrings.Instance.WelcomeDialog_RemindAfter30Days}"
+            Content="{x:Bind local:LocalizedStrings.Instance.WelcomeDialog_DoNotShowAgain}"
             Margin="0,12,0,0"
             VerticalAlignment="Center"/>
     </Grid>

@@ -45,8 +45,8 @@ public sealed partial class CreateVHDDialog : ContentDialog
 
         var selectedPath = await App.GetRequiredService<OneMMC.Core.Abstractions.Services.IFileDialogService>().SaveFileAsync(
             hwnd,
-            "Virtual Hard Disk (*.vhdx)\0*.vhdx\0Virtual Hard Disk (*.vhd)\0*.vhd\0All Files\0*.*\0",
-            "Create Virtual Hard Disk",
+            $"{LocalizedStrings.DiskMgmt_FileFilter_Vhdx}\0*.vhdx\0{LocalizedStrings.DiskMgmt_FileFilter_VhdLegacy}\0*.vhd\0{LocalizedStrings.Common_FileFilter_AllFiles}\0*.*\0",
+            LocalizedStrings.DiskMgmt_CreateVHD,
             null,
             "vhdx",
             "NewVirtualDisk");

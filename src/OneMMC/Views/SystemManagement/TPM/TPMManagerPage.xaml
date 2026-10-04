@@ -28,6 +28,15 @@
 				Message="{x:Bind ViewModel.StatusMessage, Mode=OneWay}"
 				Severity="{x:Bind ViewModel.StatusSeverity, Mode=OneWay, Converter={StaticResource SeverityConverter}}" />
 
+			<!--  Persistent notice when TPM is missing or inaccessible  -->
+			<InfoBar
+				x:Name="UnavailableInfoBar"
+				Title="{x:Bind ViewModel.UnavailableBannerTitle, Mode=OneWay}"
+				IsClosable="{x:Bind ViewModel.IsUnavailableBannerClosable, Mode=OneWay}"
+				IsOpen="{x:Bind ViewModel.ShowUnavailableBanner, Mode=OneWay}"
+				Message="{x:Bind ViewModel.UnavailableBannerMessage, Mode=OneWay}"
+				Severity="{x:Bind ViewModel.UnavailableBannerSeverity, Mode=OneWay, Converter={StaticResource SeverityConverter}}" />
+
 			<!--  TPM Status Card  -->
 			<oneMmcControls:StableSettingsExpander
 				Description="{x:Bind LocalizedStrings.TPM_StatusDescription}"
@@ -97,9 +106,10 @@
 
 				<cwuc:SettingsCard
 					Click="ClearTPM_Click"
-					Description="{x:Bind LocalizedStrings.TPM_ClearTPMDescription}"
+					Description="{x:Bind ViewModel.ClearTpmDescription, Mode=OneWay}"
 					Header="{x:Bind LocalizedStrings.TPM_ClearTPMHeader}"
-					IsClickEnabled="True">
+					IsClickEnabled="{x:Bind ViewModel.CanClearTpm, Mode=OneWay}"
+					IsEnabled="{x:Bind ViewModel.CanClearTpm, Mode=OneWay}">
 					<cwuc:SettingsCard.HeaderIcon>
 						<FontIcon Foreground="{ThemeResource SystemFillColorCriticalBrush}" Glyph="&#xE74D;" />
 					</cwuc:SettingsCard.HeaderIcon>

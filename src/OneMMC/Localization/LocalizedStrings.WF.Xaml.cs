@@ -358,4 +358,5 @@ public partial class LocalizedStrings
     public string WF_WindowsFirewall_MonitoringDescription => GetResource(ResourceFileNames.WF, nameof(WF_WindowsFirewall_MonitoringDescription));
     public string WF_WindowsFirewall_OutboundRulesDescription => GetResource(ResourceFileNames.WF, nameof(WF_WindowsFirewall_OutboundRulesDescription));
     public string WF_WindowsFirewall_PropertiesDescription => GetResource(ResourceFileNames.WF, nameof(WF_WindowsFirewall_PropertiesDescription));
+    public string WF_Principals_SecureConnectionRequired => GetResource(ResourceFileNames.WF, nameof(WF_Principals_SecureConnectionRequired));
 }

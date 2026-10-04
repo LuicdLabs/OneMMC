@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using OneMMC.Core.Abstractions.Services;
+using OneMMC.Core.Localization;
 using Microsoft.Extensions.Logging;
 using Microsoft.UI;
 using Microsoft.Windows.Storage.Pickers;
@@ -20,7 +21,8 @@ namespace OneMMC.Core.Infrastructure.WindowsCapabilities;
 /// </remarks>
 public sealed class AppSdkFileDialogService : IFileDialogService
 {
-    private const string AllFilesLabel = "All Files";
+    private static string AllFilesLabel =>
+        LocalizationProvider.Current.GetString(ResourceFileNames.Common, CommonKeys.FileFilterAllFiles);
     private const string AllFilesWildcard = "*";
 
     private readonly ILogger<AppSdkFileDialogService> _logger;
@@ -558,7 +560,7 @@ public sealed class AppSdkFileDialogService : IFileDialogService
     {
         if (string.IsNullOrEmpty(filter))
         {
-            return "All Files\0*.*";
+            return AllFilesLabel + "\0*.*";
         }
 
         return filter.Replace("\\0", "\0").TrimEnd('\0');

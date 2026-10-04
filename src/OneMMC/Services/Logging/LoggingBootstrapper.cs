@@ -11,6 +11,7 @@ using Serilog.Core;
 using Serilog.Events;
 using Serilog.Formatting;
 using Serilog.Formatting.Display;
+using Windows.Win32;
 
 namespace OneMMC.Services.Logging;
 
@@ -29,16 +30,19 @@ public static class LoggingBootstrapper
         string outputTemplate = "[{Timestamp:HH:mm:ss} {Level:u3}] {SourceContext}: {Message:lj}{NewLine}{Exception}";
         var textFormatter = new MessageTemplateTextFormatter(outputTemplate);
 
-        // Debug level is a local diagnostic mode, not the normal operating level: every LogDebug call
-        // formats a template and allocates property values, which is sustained gen0 pressure for output
-        // nobody reads in production. Opt in per machine via AppSettings.VerboseLogging.
+        // First-party Debug logging is always captured, on every build (Release included), so a user
+        // can hand over a complete diagnostic log without first flipping a switch. Framework categories
+        // (Microsoft/System) stay at Warning so the file keeps to OneMMC rather than platform noise.
+        // VerboseLogging is the deeper opt-in: it lifts OneMMC to Verbose (Trace) and lets the framework
+        // categories log at Debug.
         bool verbose = IsVerboseLoggingEnabled();
+        LogEventLevel appLevel = verbose ? LogEventLevel.Verbose : LogEventLevel.Debug;
+        LogEventLevel frameworkLevel = verbose ? LogEventLevel.Debug : LogEventLevel.Warning;
 
         Log.Logger = new LoggerConfiguration()
-            .MinimumLevel.Is(verbose ? LogEventLevel.Debug : LogEventLevel.Information)
-            // Setting filters as requested: Microsoft/System to Warning
-            .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
-            .MinimumLevel.Override("System", LogEventLevel.Warning)
+            .MinimumLevel.Is(appLevel)
+            .MinimumLevel.Override("Microsoft", frameworkLevel)
+            .MinimumLevel.Override("System", frameworkLevel)
             .Enrich.FromLogContext()
             .Enrich.WithProperty("Application", "OneMMC")
             .WriteTo.File(
@@ -48,10 +52,10 @@ public static class LoggingBootstrapper
                 encoding: Encoding.UTF8,
                 // Kept shared rather than switching to buffered (Serilog.Sinks.File allows only one of
                 // the two): the "Run as administrator" flow starts an elevated second process that
-                // overlaps with this one, and both write this file. Dropping the level to Information
-                // already removes the bulk of the write volume.
+                // overlaps with this one, and both write this file.
                 shared: true)
-            // Add custom Debug Sink that uses OutputDebugString to avoid Trace loop
+            // Custom debug sink → Visual Studio Output window / DebugView, bypassing Trace.Listeners
+            // so it does not loop back through the Trace bridge.
             .WriteTo.Sink(new DebugOutputSink(textFormatter))
             .CreateLogger();
 
@@ -60,8 +64,8 @@ public static class LoggingBootstrapper
         {
             builder.ClearProviders();
             builder.SetMinimumLevel(verbose
-                ? Microsoft.Extensions.Logging.LogLevel.Debug
-                : Microsoft.Extensions.Logging.LogLevel.Information);
+                ? Microsoft.Extensions.Logging.LogLevel.Trace
+                : Microsoft.Extensions.Logging.LogLevel.Debug);
             builder.AddSerilog(Log.Logger, dispose: true);
         });
 
@@ -157,11 +161,25 @@ public static class LoggingBootstrapper
     }
 
     /// <summary>
-    /// A custom Serilog sink that writes directly to the attached debugger.
-    /// This bypasses common .NET Trace listeners to avoid infinite loops when
-    /// we are also capturing Trace output into Serilog.
+    /// A Serilog sink that posts formatted events to the debugger's output stream (the Visual Studio
+    /// Output window, or DebugView) without routing through <c>Trace.Listeners</c>.
     /// </summary>
-    private class DebugOutputSink : ILogEventSink
+    /// <remarks>
+    /// <para>
+    /// This mirrors what <c>DefaultTraceListener</c> does internally, but deliberately does not go
+    /// through the shared <c>Trace.Listeners</c> collection — routing through it would feed every event
+    /// back into Serilog via the Trace bridge and duplicate it. When a debugger is capturing log text
+    /// (Visual Studio) <c>Debugger.Log</c> posts to its Output window; otherwise <c>OutputDebugString</c>
+    /// reaches native listeners such as DebugView. Neither call is compiled out of Release builds,
+    /// unlike <c>Debug.WriteLine</c> (<c>[Conditional("DEBUG")]</c>).
+    /// </para>
+    /// <para>
+    /// Gated on <see cref="Debugger.IsAttached"/>: the durable, submittable record is the file sink,
+    /// which already captures everything at Debug level, so this stream only pays its per-line cost
+    /// while a debugger is actually watching.
+    /// </para>
+    /// </remarks>
+    private sealed class DebugOutputSink : ILogEventSink
     {
         private readonly ITextFormatter _textFormatter;
 
@@ -172,13 +190,25 @@ public static class LoggingBootstrapper
 
         public void Emit(LogEvent logEvent)
         {
-            if (!Debugger.IsAttached) return;
+            if (!Debugger.IsAttached)
+            {
+                return;
+            }
 
             var buffer = new StringWriter();
             _textFormatter.Format(logEvent, buffer);
-            
-            // Use Debug.WriteLine instead of Debugger.Log for better Visual Studio Output window support
-            Debug.WriteLine(buffer.ToString().TrimEnd());
+            string message = buffer.ToString().TrimEnd() + Environment.NewLine;
+
+            if (Debugger.IsLogging())
+            {
+                // Surfaces in the Visual Studio Output window (Debug pane).
+                Debugger.Log(0, null, message);
+            }
+            else
+            {
+                // Reaches native listeners such as DebugView when no managed debugger is capturing text.
+                PInvoke.OutputDebugString(message);
+            }
         }
     }
 }

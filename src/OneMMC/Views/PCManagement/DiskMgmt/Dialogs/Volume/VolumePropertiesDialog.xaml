@@ -69,7 +69,7 @@
 
             <Grid ColumnDefinitions="140,*">
                 <TextBlock Text="{x:Bind LocalizedStrings.DiskMgmt_Type}" Style="{StaticResource PropertyLabelStyle}" Grid.Column="0"/>
-                <TextBlock Text="{x:Bind PartitionInfo.PartitionType, Converter={StaticResource NullToDashStringConverter}}" Style="{StaticResource PropertyValueStyle}" Grid.Column="1"/>
+                <TextBlock Text="{x:Bind PartitionInfo.LocalizedPartitionType, Converter={StaticResource NullToDashStringConverter}}" Style="{StaticResource PropertyValueStyle}" Grid.Column="1"/>
             </Grid>
 
             <!-- Capacity -->

@@ -141,7 +141,7 @@ public partial class EventViewerViewModel : ObservableObject, IDisposable
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to build event log tree.");
-            StatusMessage = $"Error: {ex.Message}";
+            StatusMessage = EvText(EventViewerKeys.StatusErrorFormat, ex.Message);
             if (_adminService.IsPermissionError(ex))
                 AdminPermissionRequired?.Invoke(this, EventArgs.Empty);
         }
@@ -213,7 +213,7 @@ public partial class EventViewerViewModel : ObservableObject, IDisposable
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to load events from {LogName}.", SelectedLogName);
-            StatusMessage = $"Error: {ex.Message}";
+            StatusMessage = EvText(EventViewerKeys.StatusErrorFormat, ex.Message);
             if (_adminService.IsPermissionError(ex))
                 AdminPermissionRequired?.Invoke(this, EventArgs.Empty);
         }
@@ -307,7 +307,7 @@ public partial class EventViewerViewModel : ObservableObject, IDisposable
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to load more events from {LogName}.", SelectedLogName);
-            StatusMessage = $"Error: {ex.Message}";
+            StatusMessage = EvText(EventViewerKeys.StatusErrorFormat, ex.Message);
 
             // Stop further automatic pulls; otherwise the ListView would retry in a loop.
             CanLoadMore = false;
@@ -422,6 +422,9 @@ public partial class EventViewerViewModel : ObservableObject, IDisposable
     /// <summary>
     /// Clears all events from the selected log.
     /// </summary>
+    private static string EvText(string key, params object?[] args) =>
+        LocalizationProvider.Current.GetFormattedString(ResourceFileNames.EventViewer, key, args!);
+
     public async Task ClearLogAsync(string? backupPath = null)
     {
         if (string.IsNullOrEmpty(SelectedLogName)) return;
@@ -436,12 +439,12 @@ public partial class EventViewerViewModel : ObservableObject, IDisposable
             Events.Clear();
             SelectedEvent = null;
             CanLoadMore = false;
-            StatusMessage = "Log cleared";
+            StatusMessage = LocalizationProvider.Current.GetString(ResourceFileNames.EventViewer, EventViewerKeys.ClearLogSuccess);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to clear log {LogName}.", SelectedLogName);
-            StatusMessage = $"Error clearing log: {ex.Message}";
+            StatusMessage = EvText(EventViewerKeys.StatusClearErrorFormat, ex.Message);
             if (_adminService.IsPermissionError(ex))
                 AdminPermissionRequired?.Invoke(this, EventArgs.Empty);
         }
@@ -455,16 +458,16 @@ public partial class EventViewerViewModel : ObservableObject, IDisposable
         if (string.IsNullOrEmpty(SelectedLogName)) return;
 
         IsLoading = true;
-        StatusMessage = "Exporting...";
+        StatusMessage = LocalizationProvider.Current.GetString(ResourceFileNames.EventViewer, EventViewerKeys.StatusExporting);
         try
         {
             await _eventViewerService.ExportLogAsync(SelectedLogName, targetPath);
-            StatusMessage = "Export completed";
+            StatusMessage = LocalizationProvider.Current.GetString(ResourceFileNames.EventViewer, EventViewerKeys.StatusExportCompleted);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to export log {LogName}.", SelectedLogName);
-            StatusMessage = $"Export failed: {ex.Message}";
+            StatusMessage = EvText(EventViewerKeys.StatusExportFailedFormat, ex.Message);
         }
         finally
         {

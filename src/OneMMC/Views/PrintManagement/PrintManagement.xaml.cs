@@ -453,7 +453,7 @@ public sealed partial class PrintManagement : Page
         AddDetailLine(content, LocalizedStrings.PrintMgmt_DriverPropertyInfLabel, driver.InfName);
         AddDetailLine(content, LocalizedStrings.PrintMgmt_DriverPropertyVersionLabel, driver.DriverVersion);
         AddDetailLine(content, LocalizedStrings.PrintMgmt_DriverPropertyEnvironmentLabel, driver.EnvironmentName);
-        AddDetailLine(content, LocalizedStrings.PrintMgmt_DriverPropertyIsolationLabel, driver.IsolationMode);
+        AddDetailLine(content, LocalizedStrings.PrintMgmt_DriverPropertyIsolationLabel, driver.IsolationModeDisplay);
         AddDetailLine(content, LocalizedStrings.PrintMgmt_DriverPropertyPathLabel, driver.DriverPath);
         AddDetailLine(content, LocalizedStrings.PrintMgmt_DriverPropertyDataFileLabel, driver.DataFile);
         AddDetailLine(content, LocalizedStrings.PrintMgmt_DriverPropertyConfigFileLabel, driver.ConfigFile);

@@ -7,6 +7,9 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using OneMMC.Core.Features.PCManagement.Models.DiskMgmt;
 using OneMMC.Core.Features.PCManagement.Services.DiskMgmt;
+using OneMMC.Core.Features.PCManagement.Services.DiskMgmt.Common;
+using OneMMC.Core.Localization;
+using T = OneMMC.Core.Features.PCManagement.Services.DiskMgmt.Common.DiskMgmtText;
 using OneMMC.Core.Infrastructure.Collections;
 
 namespace OneMMC.Core.Features.PCManagement.ViewModels.DiskMgmt
@@ -171,7 +174,7 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.DiskMgmt
             }
         }
 
-        public string DriveCountText => DriveCount == 1 ? "1 drive" : $"{DriveCount} drives";
+        public string DriveCountText => T.Format(DriveCount == 1 ? DiskMgmtKeys.DriveCountSingular : DiskMgmtKeys.DriveCountPlural, DriveCount);
         public string TotalCapacityText => FormatSize(TotalCapacity);
         public string TotalFreeSpaceText => FormatSize(TotalFreeSpace);
 
@@ -181,7 +184,7 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.DiskMgmt
         public async Task LoadDisksAsync()
         {
             IsLoading = true;
-            StatusMessage = "Loading disk information...";
+            StatusMessage = T.Get(DiskMgmtKeys.StatusLoading);
 
             try
             {
@@ -213,12 +216,12 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.DiskMgmt
                 TotalCapacity = disks.Aggregate(0UL, (sum, d) => sum + d.Size);
                 TotalFreeSpace = volumes.Aggregate(0UL, (sum, v) => sum + v.FreeSpace);
 
-                var poolText = pools.Count > 0 ? $", {pools.Count} storage pool(s)" : "";
-                StatusMessage = $"Loaded {disks.Count} disk(s), {TotalPartitions} partition(s), {cdroms.Count} CD/DVD drive(s){poolText}";
+                var poolText = pools.Count > 0 ? T.Format(DiskMgmtKeys.StatusStoragePoolsSuffixFormat, pools.Count) : "";
+                StatusMessage = T.Format(DiskMgmtKeys.StatusLoadedFormat, disks.Count, TotalPartitions, cdroms.Count) + poolText;
             }
             catch (Exception ex)
             {
-                StatusMessage = $"Error loading disks: {ex.Message}";
+                StatusMessage = T.Format(DiskMgmtKeys.StatusLoadErrorFormat, ex.Message);
             }
             finally
             {
@@ -232,7 +235,7 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.DiskMgmt
         public async Task RefreshAsync()
         {
             IsLoading = true;
-            StatusMessage = "Refreshing...";
+            StatusMessage = T.Get(DiskMgmtKeys.StatusRefreshing);
 
             try
             {
@@ -241,7 +244,7 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.DiskMgmt
             }
             catch (Exception ex)
             {
-                StatusMessage = $"Error refreshing: {ex.Message}";
+                StatusMessage = T.Format(DiskMgmtKeys.StatusRefreshErrorFormat, ex.Message);
                 IsLoading = false;
             }
         }
@@ -252,7 +255,7 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.DiskMgmt
         public async Task<(bool Success, string Message)> CreateVHDAsync(string path, ulong sizeInBytes, bool isVhdx = true, bool isDynamic = true)
         {
             IsLoading = true;
-            StatusMessage = "Creating virtual hard disk...";
+            StatusMessage = T.Get(DiskMgmtKeys.StatusCreatingVhd);
 
             try
             {
@@ -265,14 +268,14 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.DiskMgmt
                 }
                 else
                 {
-                    StatusMessage = $"Failed: {result.Message}";
+                    StatusMessage = T.Format(DiskMgmtKeys.StatusFailedFormat, result.Message);
                 }
 
                 return (result.Success, result.Message);
             }
             catch (Exception ex)
             {
-                var message = $"Error creating VHD: {ex.Message}";
+                var message = T.Format(DiskMgmtKeys.StatusCreateVhdErrorFormat, ex.Message);
                 StatusMessage = message;
                 return (false, message);
             }
@@ -288,7 +291,7 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.DiskMgmt
         public async Task<(bool Success, string Message)> AttachVHDAsync(string path, bool readOnly = false)
         {
             IsLoading = true;
-            StatusMessage = "Attaching virtual hard disk...";
+            StatusMessage = T.Get(DiskMgmtKeys.StatusAttachingVhd);
 
             try
             {
@@ -301,14 +304,14 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.DiskMgmt
                 }
                 else
                 {
-                    StatusMessage = $"Failed: {result.Message}";
+                    StatusMessage = T.Format(DiskMgmtKeys.StatusFailedFormat, result.Message);
                 }
 
                 return (result.Success, result.Message);
             }
             catch (Exception ex)
             {
-                var message = $"Error attaching VHD: {ex.Message}";
+                var message = T.Format(DiskMgmtKeys.StatusAttachVhdErrorFormat, ex.Message);
                 StatusMessage = message;
                 return (false, message);
             }
@@ -324,7 +327,7 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.DiskMgmt
         public async Task<(bool Success, string Message)> DetachVHDAsync(string path)
         {
             IsLoading = true;
-            StatusMessage = "Detaching virtual hard disk...";
+            StatusMessage = T.Get(DiskMgmtKeys.StatusDetachingVhd);
 
             try
             {
@@ -337,14 +340,14 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.DiskMgmt
                 }
                 else
                 {
-                    StatusMessage = $"Failed: {result.Message}";
+                    StatusMessage = T.Format(DiskMgmtKeys.StatusFailedFormat, result.Message);
                 }
 
                 return (result.Success, result.Message);
             }
             catch (Exception ex)
             {
-                var message = $"Error detaching VHD: {ex.Message}";
+                var message = T.Format(DiskMgmtKeys.StatusDetachVhdErrorFormat, ex.Message);
                 StatusMessage = message;
                 return (false, message);
             }
@@ -360,7 +363,7 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.DiskMgmt
         public async Task<(bool Success, string Message)> EjectCDROMAsync(string driveLetter)
         {
             IsLoading = true;
-            StatusMessage = "Ejecting media...";
+            StatusMessage = T.Get(DiskMgmtKeys.StatusEjectingMedia);
 
             try
             {
@@ -373,14 +376,14 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.DiskMgmt
                 }
                 else
                 {
-                    StatusMessage = $"Failed: {result.Message}";
+                    StatusMessage = T.Format(DiskMgmtKeys.StatusFailedFormat, result.Message);
                 }
 
                 return (result.Success, result.Message);
             }
             catch (Exception ex)
             {
-                var message = $"Error ejecting media: {ex.Message}";
+                var message = T.Format(DiskMgmtKeys.StatusEjectErrorFormat, ex.Message);
                 StatusMessage = message;
                 return (false, message);
             }
@@ -393,7 +396,7 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.DiskMgmt
         public async Task<(bool Success, string Message)> ChangeCDROMDriveLetterAsync(string currentDriveLetter, string newDriveLetter)
         {
             IsLoading = true;
-            StatusMessage = "Changing drive letter...";
+            StatusMessage = T.Get(DiskMgmtKeys.StatusChangingDriveLetter);
 
             try
             {
@@ -406,14 +409,14 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.DiskMgmt
                 }
                 else
                 {
-                    StatusMessage = $"Failed: {result.Message}";
+                    StatusMessage = T.Format(DiskMgmtKeys.StatusFailedFormat, result.Message);
                 }
 
                 return (result.Success, result.Message);
             }
             catch (Exception ex)
             {
-                var message = $"Error: {ex.Message}";
+                var message = T.Format(DiskMgmtKeys.StatusErrorFormat, ex.Message);
                 StatusMessage = message;
                 return (false, message);
             }
@@ -426,7 +429,7 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.DiskMgmt
         public async Task<(bool Success, string Message)> RemoveCDROMDriveLetterAsync(string driveLetter)
         {
             IsLoading = true;
-            StatusMessage = "Removing drive letter...";
+            StatusMessage = T.Get(DiskMgmtKeys.StatusRemovingDriveLetter);
 
             try
             {
@@ -439,14 +442,14 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.DiskMgmt
                 }
                 else
                 {
-                    StatusMessage = $"Failed: {result.Message}";
+                    StatusMessage = T.Format(DiskMgmtKeys.StatusFailedFormat, result.Message);
                 }
 
                 return (result.Success, result.Message);
             }
             catch (Exception ex)
             {
-                var message = $"Error: {ex.Message}";
+                var message = T.Format(DiskMgmtKeys.StatusErrorFormat, ex.Message);
                 StatusMessage = message;
                 return (false, message);
             }
@@ -459,7 +462,7 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.DiskMgmt
         public async Task<(bool Success, string Message)> AssignCDROMDriveLetterAsync(string currentDriveLetter, string newDriveLetter)
         {
             IsLoading = true;
-            StatusMessage = "Assigning drive letter...";
+            StatusMessage = T.Get(DiskMgmtKeys.StatusAssigningDriveLetter);
 
             try
             {
@@ -472,14 +475,14 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.DiskMgmt
                 }
                 else
                 {
-                    StatusMessage = $"Failed: {result.Message}";
+                    StatusMessage = T.Format(DiskMgmtKeys.StatusFailedFormat, result.Message);
                 }
 
                 return (result.Success, result.Message);
             }
             catch (Exception ex)
             {
-                var message = $"Error: {ex.Message}";
+                var message = T.Format(DiskMgmtKeys.StatusErrorFormat, ex.Message);
                 StatusMessage = message;
                 return (false, message);
             }
@@ -496,7 +499,7 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.DiskMgmt
         public async Task<(bool Success, string Message)> LoadCDROMAsync(string driveLetter)
         {
             IsLoading = true;
-            StatusMessage = "Loading media...";
+            StatusMessage = T.Get(DiskMgmtKeys.StatusLoadingMedia);
 
             try
             {
@@ -509,14 +512,14 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.DiskMgmt
                 }
                 else
                 {
-                    StatusMessage = $"Failed: {result.Message}";
+                    StatusMessage = T.Format(DiskMgmtKeys.StatusFailedFormat, result.Message);
                 }
 
                 return (result.Success, result.Message);
             }
             catch (Exception ex)
             {
-                var message = $"Error loading media: {ex.Message}";
+                var message = T.Format(DiskMgmtKeys.StatusLoadMediaErrorFormat, ex.Message);
                 StatusMessage = message;
                 return (false, message);
             }
@@ -534,11 +537,11 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.DiskMgmt
             try
             {
                 _diskService.OpenDiskManagementConsole();
-                StatusMessage = "Disk Management console opened";
+                StatusMessage = T.Get(DiskMgmtKeys.StatusConsoleOpened);
             }
             catch (Exception ex)
             {
-                StatusMessage = $"Error opening Disk Management: {ex.Message}";
+                StatusMessage = T.Format(DiskMgmtKeys.StatusOpenConsoleErrorFormat, ex.Message);
             }
         }
 
@@ -572,7 +575,7 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.DiskMgmt
         public async Task<(bool Success, string Message)> SetDiskOnlineOfflineAsync(uint diskIndex, bool online)
         {
             IsLoading = true;
-            StatusMessage = online ? "Bringing disk online..." : "Taking disk offline...";
+            StatusMessage = T.Get(online ? DiskMgmtKeys.StatusBringingOnline : DiskMgmtKeys.StatusTakingOffline);
 
             try
             {
@@ -585,14 +588,14 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.DiskMgmt
                 }
                 else
                 {
-                    StatusMessage = $"Failed: {result.Message}";
+                    StatusMessage = T.Format(DiskMgmtKeys.StatusFailedFormat, result.Message);
                 }
 
                 return (result.Success, result.Message);
             }
             catch (Exception ex)
             {
-                var message = $"Error: {ex.Message}";
+                var message = T.Format(DiskMgmtKeys.StatusErrorFormat, ex.Message);
                 StatusMessage = message;
                 return (false, message);
             }
@@ -608,7 +611,7 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.DiskMgmt
         public async Task<(bool Success, string Message)> FormatVolumeAsync(string driveLetter, string fileSystem, string label, bool quickFormat)
         {
             IsLoading = true;
-            StatusMessage = "Formatting volume...";
+            StatusMessage = T.Get(DiskMgmtKeys.StatusFormatting);
 
             try
             {
@@ -621,14 +624,14 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.DiskMgmt
                 }
                 else
                 {
-                    StatusMessage = $"Failed: {result.Message}";
+                    StatusMessage = T.Format(DiskMgmtKeys.StatusFailedFormat, result.Message);
                 }
 
                 return (result.Success, result.Message);
             }
             catch (Exception ex)
             {
-                var message = $"Error formatting volume: {ex.Message}";
+                var message = T.Format(DiskMgmtKeys.StatusFormatErrorFormat, ex.Message);
                 StatusMessage = message;
                 return (false, message);
             }
@@ -644,7 +647,7 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.DiskMgmt
         public async Task<(bool Success, string Message)> ChangeDriveLetterAsync(string currentDriveLetter, string newDriveLetter)
         {
             IsLoading = true;
-            StatusMessage = "Changing drive letter...";
+            StatusMessage = T.Get(DiskMgmtKeys.StatusChangingDriveLetter);
 
             try
             {
@@ -657,14 +660,14 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.DiskMgmt
                 }
                 else
                 {
-                    StatusMessage = $"Failed: {result.Message}";
+                    StatusMessage = T.Format(DiskMgmtKeys.StatusFailedFormat, result.Message);
                 }
 
                 return (result.Success, result.Message);
             }
             catch (Exception ex)
             {
-                var message = $"Error changing drive letter: {ex.Message}";
+                var message = T.Format(DiskMgmtKeys.StatusChangeDriveLetterErrorFormat, ex.Message);
                 StatusMessage = message;
                 return (false, message);
             }
@@ -682,7 +685,7 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.DiskMgmt
         public async Task<(bool Success, string Message)> InitializeDiskAsync(uint diskIndex, bool useGPT = true)
         {
             IsLoading = true;
-            StatusMessage = $"Initializing disk {diskIndex}...";
+            StatusMessage = T.Format(DiskMgmtKeys.StatusInitializingFormat, diskIndex);
 
             try
             {
@@ -695,14 +698,14 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.DiskMgmt
                 }
                 else
                 {
-                    StatusMessage = $"Failed: {result.Message}";
+                    StatusMessage = T.Format(DiskMgmtKeys.StatusFailedFormat, result.Message);
                 }
 
                 return (result.Success, result.Message);
             }
             catch (Exception ex)
             {
-                var message = $"Error initializing disk: {ex.Message}";
+                var message = T.Format(DiskMgmtKeys.StatusInitializeErrorFormat, ex.Message);
                 StatusMessage = message;
                 return (false, message);
             }
@@ -718,7 +721,7 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.DiskMgmt
         public async Task<(bool Success, string Message)> CreateSimpleVolumeAsync(uint diskIndex, ulong sizeInMB = 0, string? driveLetter = null, string fileSystem = "NTFS", string label = "", bool quickFormat = true, ulong? offset = null)
         {
             IsLoading = true;
-            StatusMessage = "Creating volume...";
+            StatusMessage = T.Get(DiskMgmtKeys.StatusCreatingVolume);
 
             try
             {
@@ -731,14 +734,14 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.DiskMgmt
                 }
                 else
                 {
-                    StatusMessage = $"Failed: {result.Message}";
+                    StatusMessage = T.Format(DiskMgmtKeys.StatusFailedFormat, result.Message);
                 }
 
                 return (result.Success, result.Message);
             }
             catch (Exception ex)
             {
-                var message = $"Error creating volume: {ex.Message}";
+                var message = T.Format(DiskMgmtKeys.StatusCreateVolumeErrorFormat, ex.Message);
                 StatusMessage = message;
                 return (false, message);
             }
@@ -754,7 +757,7 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.DiskMgmt
         public async Task<(bool Success, string Message)> DeleteVolumeAsync(uint diskIndex, uint partitionIndex)
         {
             IsLoading = true;
-            StatusMessage = "Deleting volume...";
+            StatusMessage = T.Get(DiskMgmtKeys.StatusDeletingVolume);
 
             try
             {
@@ -767,14 +770,14 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.DiskMgmt
                 }
                 else
                 {
-                    StatusMessage = $"Failed: {result.Message}";
+                    StatusMessage = T.Format(DiskMgmtKeys.StatusFailedFormat, result.Message);
                 }
 
                 return (result.Success, result.Message);
             }
             catch (Exception ex)
             {
-                var message = $"Error deleting volume: {ex.Message}";
+                var message = T.Format(DiskMgmtKeys.StatusDeleteVolumeErrorFormat, ex.Message);
                 StatusMessage = message;
                 return (false, message);
             }
@@ -790,7 +793,7 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.DiskMgmt
         public async Task<(bool Success, string Message)> ExtendVolumeAsync(string driveLetter, ulong sizeInMB = 0)
         {
             IsLoading = true;
-            StatusMessage = "Extending volume...";
+            StatusMessage = T.Get(DiskMgmtKeys.StatusExtending);
 
             try
             {
@@ -803,14 +806,14 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.DiskMgmt
                 }
                 else
                 {
-                    StatusMessage = $"Failed: {result.Message}";
+                    StatusMessage = T.Format(DiskMgmtKeys.StatusFailedFormat, result.Message);
                 }
 
                 return (result.Success, result.Message);
             }
             catch (Exception ex)
             {
-                var message = $"Error extending volume: {ex.Message}";
+                var message = T.Format(DiskMgmtKeys.StatusExtendErrorFormat, ex.Message);
                 StatusMessage = message;
                 return (false, message);
             }
@@ -826,7 +829,7 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.DiskMgmt
         public async Task<(bool Success, string Message)> ShrinkVolumeAsync(string driveLetter, ulong sizeInMB)
         {
             IsLoading = true;
-            StatusMessage = "Shrinking volume...";
+            StatusMessage = T.Get(DiskMgmtKeys.StatusShrinking);
 
             try
             {
@@ -839,14 +842,14 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.DiskMgmt
                 }
                 else
                 {
-                    StatusMessage = $"Failed: {result.Message}";
+                    StatusMessage = T.Format(DiskMgmtKeys.StatusFailedFormat, result.Message);
                 }
 
                 return (result.Success, result.Message);
             }
             catch (Exception ex)
             {
-                var message = $"Error shrinking volume: {ex.Message}";
+                var message = T.Format(DiskMgmtKeys.StatusShrinkErrorFormat, ex.Message);
                 StatusMessage = message;
                 return (false, message);
             }
@@ -926,7 +929,7 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.DiskMgmt
         public async Task<(bool Success, string Message)> RemoveDriveLetterByIndexAsync(uint diskIndex, uint partitionIndex)
         {
             IsLoading = true;
-            StatusMessage = "Removing drive letter...";
+            StatusMessage = T.Get(DiskMgmtKeys.StatusRemovingDriveLetter);
 
             try
             {
@@ -956,7 +959,7 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.DiskMgmt
         public async Task<(bool Success, string Message)> MarkPartitionActiveAsync(uint diskIndex, uint partitionIndex)
         {
             IsLoading = true;
-            StatusMessage = "Marking partition as active...";
+            StatusMessage = T.Get(DiskMgmtKeys.StatusMarkingActive);
 
             try
             {
@@ -969,14 +972,14 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.DiskMgmt
                 }
                 else
                 {
-                    StatusMessage = $"Failed: {result.Message}";
+                    StatusMessage = T.Format(DiskMgmtKeys.StatusFailedFormat, result.Message);
                 }
 
                 return (result.Success, result.Message);
             }
             catch (Exception ex)
             {
-                var message = $"Error marking partition as active: {ex.Message}";
+                var message = T.Format(DiskMgmtKeys.StatusMarkActiveErrorFormat, ex.Message);
                 StatusMessage = message;
                 return (false, message);
             }
@@ -992,7 +995,7 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.DiskMgmt
         public async Task<(bool Success, string Message)> AssignDriveLetterAsync(uint diskIndex, uint partitionIndex, string driveLetter)
         {
             IsLoading = true;
-            StatusMessage = "Assigning drive letter...";
+            StatusMessage = T.Get(DiskMgmtKeys.StatusAssigningDriveLetter);
 
             try
             {
@@ -1005,14 +1008,14 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.DiskMgmt
                 }
                 else
                 {
-                    StatusMessage = $"Failed: {result.Message}";
+                    StatusMessage = T.Format(DiskMgmtKeys.StatusFailedFormat, result.Message);
                 }
 
                 return (result.Success, result.Message);
             }
             catch (Exception ex)
             {
-                var message = $"Error assigning drive letter: {ex.Message}";
+                var message = T.Format(DiskMgmtKeys.StatusAssignDriveLetterErrorFormat, ex.Message);
                 StatusMessage = message;
                 return (false, message);
             }
@@ -1028,7 +1031,7 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.DiskMgmt
         public async Task<(bool Success, string Message)> RemoveDriveLetterAsync(string driveLetter)
         {
             IsLoading = true;
-            StatusMessage = "Removing drive letter...";
+            StatusMessage = T.Get(DiskMgmtKeys.StatusRemovingDriveLetter);
 
             try
             {
@@ -1041,14 +1044,14 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.DiskMgmt
                 }
                 else
                 {
-                    StatusMessage = $"Failed: {result.Message}";
+                    StatusMessage = T.Format(DiskMgmtKeys.StatusFailedFormat, result.Message);
                 }
 
                 return (result.Success, result.Message);
             }
             catch (Exception ex)
             {
-                var message = $"Error removing drive letter: {ex.Message}";
+                var message = T.Format(DiskMgmtKeys.StatusRemoveDriveLetterErrorFormat, ex.Message);
                 StatusMessage = message;
                 return (false, message);
             }
@@ -1071,14 +1074,14 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.DiskMgmt
             {
                 if (string.IsNullOrEmpty(newDriveLetter))
                 {
-                    return (false, "Drive letter cannot be empty.");
+                    return (false, ErrorMessages.DriveLetterEmpty);
                 }
 
                 // Assign or change drive letter
                 if (string.IsNullOrEmpty(partition.DriveLetter))
                 {
                     // Assign new drive letter
-                    StatusMessage = "Assigning drive letter...";
+                    StatusMessage = T.Get(DiskMgmtKeys.StatusAssigningDriveLetter);
                     var result = await Task.Run(() => _diskService.AssignDriveLetter(partition.DiskIndex, partition.Index, newDriveLetter));
                     
                     if (result.Success)
@@ -1088,7 +1091,7 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.DiskMgmt
                     }
                     else
                     {
-                        StatusMessage = $"Failed: {result.Message}";
+                        StatusMessage = T.Format(DiskMgmtKeys.StatusFailedFormat, result.Message);
                     }
                     
                     return (result.Success, result.Message);
@@ -1096,7 +1099,7 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.DiskMgmt
                 else
                 {
                     // Change existing drive letter
-                    StatusMessage = "Changing drive letter...";
+                    StatusMessage = T.Get(DiskMgmtKeys.StatusChangingDriveLetter);
                     var result = await Task.Run(() => _diskService.ChangeDriveLetter(partition.DriveLetter, newDriveLetter));
                     
                     if (result.Success)
@@ -1106,7 +1109,7 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.DiskMgmt
                     }
                     else
                     {
-                        StatusMessage = $"Failed: {result.Message}";
+                        StatusMessage = T.Format(DiskMgmtKeys.StatusFailedFormat, result.Message);
                     }
                     
                     return (result.Success, result.Message);
@@ -1114,7 +1117,7 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.DiskMgmt
             }
             catch (Exception ex)
             {
-                var message = $"Error managing drive letter: {ex.Message}";
+                var message = T.Format(DiskMgmtKeys.StatusManageDriveLetterErrorFormat, ex.Message);
                 StatusMessage = message;
                 return (false, message);
             }
@@ -1130,7 +1133,7 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.DiskMgmt
         public async Task<(bool Success, string Message)> MountVolumeToFolderAsync(string driveLetter, string folderPath)
         {
             IsLoading = true;
-            StatusMessage = "Mounting volume to folder...";
+            StatusMessage = T.Get(DiskMgmtKeys.StatusMounting);
 
             try
             {
@@ -1143,14 +1146,14 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.DiskMgmt
                 }
                 else
                 {
-                    StatusMessage = $"Failed: {result.Message}";
+                    StatusMessage = T.Format(DiskMgmtKeys.StatusFailedFormat, result.Message);
                 }
 
                 return (result.Success, result.Message);
             }
             catch (Exception ex)
             {
-                var message = $"Error mounting volume: {ex.Message}";
+                var message = T.Format(DiskMgmtKeys.StatusMountErrorFormat, ex.Message);
                 StatusMessage = message;
                 return (false, message);
             }
@@ -1166,7 +1169,7 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.DiskMgmt
         public async Task<(bool Success, string Message)> CleanDiskAsync(uint diskIndex)
         {
             IsLoading = true;
-            StatusMessage = "Cleaning disk...";
+            StatusMessage = T.Get(DiskMgmtKeys.StatusCleaning);
 
             try
             {
@@ -1179,14 +1182,14 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.DiskMgmt
                 }
                 else
                 {
-                    StatusMessage = $"Failed: {result.Message}";
+                    StatusMessage = T.Format(DiskMgmtKeys.StatusFailedFormat, result.Message);
                 }
 
                 return (result.Success, result.Message);
             }
             catch (Exception ex)
             {
-                var message = $"Error cleaning disk: {ex.Message}";
+                var message = T.Format(DiskMgmtKeys.StatusCleanErrorFormat, ex.Message);
                 StatusMessage = message;
                 return (false, message);
             }
@@ -1202,7 +1205,7 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.DiskMgmt
         public async Task<(bool Success, string Message)> SetDiskReadOnlyAsync(uint diskIndex, bool readOnly)
         {
             IsLoading = true;
-            StatusMessage = readOnly ? "Setting disk as read-only..." : "Clearing read-only attribute...";
+            StatusMessage = T.Get(readOnly ? DiskMgmtKeys.StatusSettingReadOnly : DiskMgmtKeys.StatusClearingReadOnly);
 
             try
             {
@@ -1215,14 +1218,14 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.DiskMgmt
                 }
                 else
                 {
-                    StatusMessage = $"Failed: {result.Message}";
+                    StatusMessage = T.Format(DiskMgmtKeys.StatusFailedFormat, result.Message);
                 }
 
                 return (result.Success, result.Message);
             }
             catch (Exception ex)
             {
-                var message = $"Error: {ex.Message}";
+                var message = T.Format(DiskMgmtKeys.StatusErrorFormat, ex.Message);
                 StatusMessage = message;
                 return (false, message);
             }

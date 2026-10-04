@@ -32,6 +32,9 @@ This document is the repository's single Native AOT reference. It is meant to wo
 - a developer guide for day-to-day implementation choices
 - an engineering note that explains why those choices exist
 
+Other documents (`.github/copilot-instructions.md`, `AGENTS.md`, `.github/CONTRIBUTING.md`, the
+project READMEs) only summarize these rules and link here. When a rule changes, change it here.
+
 ## Document Scope
 
 Read this document when you are:
@@ -320,9 +323,10 @@ Notes:
 
 ## References
 
-- `AGENTS.md`
-- `.github/copilot-instructions.md`
-- `Directory.Build.props`
+- `.github/copilot-instructions.md` — normative agent rule set (§Native AOT Compatibility)
+- `AGENTS.md` — project layout and build commands
+- `Directory.Build.props` — analyzer defaults
+- `Directory.Packages.props` — pinned package versions
 - `src/OneMMC/OneMMC.csproj`
 - `src/OneMMC.Core/Infrastructure/Interop/ComActivator.cs`
 - `src/OneMMC.Core/Infrastructure/Interop/IDispatch.cs`

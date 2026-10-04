@@ -4,6 +4,10 @@
 
 OneMMC uses a **Unified Administrator Detection System** to ensure that all features requiring elevated privileges maintain consistent **UI behavior** and **user experience**. This document describes the overall architecture of this system, integration with localization, and the implementation patterns developers should follow when adding features that require administrator privileges.
 
+This document is the authoritative reference for administrator permission handling. Other documents
+(`.github/copilot-instructions.md`, `AGENTS.md`, `.github/CONTRIBUTING.md`, the project READMEs) only
+summarize these patterns and link here.
+
 ---
 
 ## Architecture

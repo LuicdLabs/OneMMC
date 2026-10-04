@@ -33,12 +33,31 @@
     </Page.Resources>
 
     <Grid RowDefinitions="Auto,*">
-        <CommandBar DefaultLabelPosition="Right">
-            <AppBarButton Icon="Refresh" Label="{x:Bind LocalizedStrings.ComExp_RefreshButton}" Click="RefreshButton_Click" />
-        </CommandBar>
+        <Grid Margin="24,18,24,12" ColumnDefinitions="*,Auto">
+            <TextBlock
+                Margin="0,0,16,0"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Center"
+                Foreground="{ThemeResource TextFillColorSecondaryBrush}"
+                Style="{StaticResource CaptionTextBlockStyle}"
+                Text="{x:Bind LocalizedStrings.ComExp_AutoRefresh_Active}"
+                TextTrimming="CharacterEllipsis" />
+
+            <CommandBar
+                Grid.Column="1"
+                Background="Transparent"
+                DefaultLabelPosition="Right">
+                <AppBarButton Icon="Refresh" Label="{x:Bind LocalizedStrings.ComExp_RefreshButton}" Click="RefreshButton_Click" />
+            </CommandBar>
+        </Grid>
 
         <Grid Grid.Row="1" RowDefinitions="*,Auto" Padding="24,8,24,24">
-            <ListView ItemsSource="{x:Bind ViewModel.Transactions, Mode=OneWay}">
+            <!--
+                The bound collection instance never changes: live monitoring merges only the rows that
+                differ, so the list view recycles its containers and keeps selection and scroll
+                position instead of rebuilding on every poll.
+            -->
+            <ListView ItemsSource="{x:Bind ViewModel.Transactions, Mode=OneTime}">
                 <ListView.Header>
                     <Grid ColumnDefinitions="*,2*" Padding="12,8" Background="{ThemeResource CardBackgroundFillColorDefaultBrush}">
                         <TextBlock Text="{x:Bind LocalizedStrings.ComExp_Transaction_Status}" FontWeight="SemiBold" />

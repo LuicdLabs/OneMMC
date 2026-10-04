@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using OneMMC.Models;
@@ -7,17 +6,17 @@ using OneMMC.Models;
 namespace OneMMC.Views.Commons;
 
 /// <summary>
-/// A welcome dialog shown on first launch or when the user opts to be reminded later.
-/// Provides an overview of the application and a way to delay the reminder.
+/// A welcome dialog shown on first launch until the user opts out.
+/// Provides an overview of the application and a do-not-show-again option.
 /// </summary>
 public sealed partial class WelcomeDialog : ContentDialog
 {
     private readonly List<string> _featureStrings;
 
     /// <summary>
-    /// Gets a value indicating whether the user chose to be reminded after 30 days.
+    /// Gets a value indicating whether the user chose to never show this dialog again.
     /// </summary>
-    public bool RemindAfter30Days { get; private set; }
+    public bool DoNotShowAgain { get; private set; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="WelcomeDialog"/> class.
@@ -33,15 +32,14 @@ public sealed partial class WelcomeDialog : ContentDialog
             localized.WelcomeDialog_Feature1 ?? "Built with WinUI 3, featuring native Dark Mode support, high-DPI awareness, smooth motions, and modern Fluent Design UI/UX behaviors",
             localized.WelcomeDialog_Feature2 ?? "Designed following the Windows 11 design principles, with improved visual hierarchy, simplified workflows, and optimized touch/tablet experience",
             localized.WelcomeDialog_Feature3 ?? "Consolidates commonly used administrative tools (Services, Device Manager, Event Viewer, Disk Management, Local Users and Groups, and more) into a unified experience",
-            localized.WelcomeDialog_Feature4 ?? "Built with 100% native Win32 APIs, COM, WMI, and CIM for maximum performance and direct windows integration",
-            localized.WelcomeDialog_Feature5 ?? "Avoids unnecessary abstraction layers to preserve compatibility with existing Windows management infrastructure"
+            localized.WelcomeDialog_Feature4 ?? "Built with 100% native Win32 APIs, COM, WMI, and CIM for maximum performance and direct windows integration"
         ];
 
         FeatureList.ItemsSource = _featureStrings;
 
-        RemindAfter30Days = false;
-        RemindCheckBox.Checked += (_, _) => RemindAfter30Days = true;
-        RemindCheckBox.Unchecked += (_, _) => RemindAfter30Days = false;
+        DoNotShowAgain = false;
+        DoNotShowCheckBox.Checked += (_, _) => DoNotShowAgain = true;
+        DoNotShowCheckBox.Unchecked += (_, _) => DoNotShowAgain = false;
         PrimaryButtonClick += WelcomeDialog_PrimaryButtonClick;
 
         RequestedTheme = App.CurrentTheme;
@@ -52,11 +50,10 @@ public sealed partial class WelcomeDialog : ContentDialog
 
     private void WelcomeDialog_PrimaryButtonClick(ContentDialog sender, ContentDialogButtonClickEventArgs args)
     {
-        if (RemindAfter30Days)
+        if (DoNotShowAgain)
         {
             var settings = AppSettings.Load();
             settings.WelcomeDialogHidden = true;
-            settings.WelcomeDialogDismissedDate = DateTime.Now.ToString("yyyy-MM-dd");
             settings.Save();
         }
     }

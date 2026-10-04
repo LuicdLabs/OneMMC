@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -132,7 +133,7 @@ public class PrintManagementService
             int size = PrinterNativeMethods.DocumentProperties(ownerWindowHandle, printerHandle, printerName, IntPtr.Zero, IntPtr.Zero, 0);
             if (size < 0)
             {
-                throw CreateWin32Exception("Unable to query printer default settings.");
+                throw CreateWin32Exception(L(PrintMgmtKeys.ErrorQueryDefaults));
             }
 
             devMode = Marshal.AllocHGlobal(size);
@@ -145,7 +146,7 @@ public class PrintManagementService
                     IntPtr.Zero,
                     PrinterConstants.DM_OUT_BUFFER) < 0)
             {
-                throw CreateWin32Exception("Unable to load current printer default settings.");
+                throw CreateWin32Exception(L(PrintMgmtKeys.ErrorLoadDefaults));
             }
 
             int result = PrinterNativeMethods.DocumentProperties(
@@ -167,7 +168,7 @@ public class PrintManagementService
 
             if (!PrinterNativeMethods.SetPrinter(printerHandle, 8, printerInfoBuffer, 0))
             {
-                throw CreateWin32Exception("Unable to save printer default settings.");
+                throw CreateWin32Exception(L(PrintMgmtKeys.ErrorSaveDefaults));
             }
 
             _logger.LogInformation("Updated printing defaults for printer {PrinterName}", printerName);
@@ -226,7 +227,7 @@ public class PrintManagementService
                 printerHandle = OpenPrinterHandle(printerName, PrinterConstants.PRINTER_ALL_ACCESS);
                 if (!PrinterNativeMethods.DeletePrinter(printerHandle))
                 {
-                    throw CreateWin32Exception("Unable to delete printer.");
+                    throw CreateWin32Exception(L(PrintMgmtKeys.ErrorDeletePrinter));
                 }
 
                 _logger.LogInformation("Deleted printer {PrinterName}", printerName);
@@ -270,7 +271,7 @@ public class PrintManagementService
 
                 if (!PrinterNativeMethods.SetPrinter(printerHandle, 2, buffer, 0))
                 {
-                    throw CreateWin32Exception("Unable to rename printer.");
+                    throw CreateWin32Exception(L(PrintMgmtKeys.ErrorRenamePrinter));
                 }
 
                 _logger.LogInformation("Renamed printer {OldPrinterName} to {NewPrinterName}", currentName, newName);
@@ -308,8 +309,8 @@ public class PrintManagementService
             if (!result)
             {
                 throw CreateWin32Exception(enabled
-                    ? "Unable to add the current-user printer connection."
-                    : "Unable to remove the current-user printer connection.");
+                    ? L(PrintMgmtKeys.ErrorAddUserConnection)
+                    : L(PrintMgmtKeys.ErrorRemoveUserConnection));
             }
 
             _logger.LogInformation(
@@ -365,11 +366,11 @@ public class PrintManagementService
             {
                 if (hr == HrAccessDenied) // E_ACCESSDENIED
                 {
-                    throw new InvalidOperationException(LocalizationProvider.Current.GetString("PrintManagement", "PrintMgmt_ErrorDriverInBox"));
+                    throw new InvalidOperationException(L(PrintMgmtKeys.ErrorDriverInBox));
                 }
                 if (hr == HrDriverPackageInUseLegacy || hr == HrDriverPackageInUse)
                 {
-                    throw new InvalidOperationException(LocalizationProvider.Current.GetString("PrintManagement", "PrintMgmt_ErrorDriverInUse"));
+                    throw new InvalidOperationException(L(PrintMgmtKeys.ErrorDriverInUse));
                 }
                 Marshal.ThrowExceptionForHR(hr);
             }
@@ -394,7 +395,7 @@ public class PrintManagementService
                     0,
                     0))
             {
-                throw CreateWin32Exception("Unable to delete printer driver.");
+                throw CreateWin32Exception(L(PrintMgmtKeys.ErrorDeleteDriver));
             }
 
             _logger.LogInformation("Deleted printer driver {DriverName}", driver.Name);
@@ -452,8 +453,8 @@ public class PrintManagementService
                 if (!PrinterNativeMethods.SetPrinter(printerHandle, 0, IntPtr.Zero, command))
                 {
                     throw CreateWin32Exception(command == PrinterConstants.PRINTER_CONTROL_PAUSE
-                        ? "Unable to pause printer."
-                        : "Unable to resume printer.");
+                        ? L(PrintMgmtKeys.ErrorPausePrinter)
+                        : L(PrintMgmtKeys.ErrorResumePrinter));
                 }
 
                 _logger.LogInformation(successMessage, printerName);
@@ -485,8 +486,8 @@ public class PrintManagementService
         if (!PrinterNativeMethods.OpenPrinter(printerName, out IntPtr printerHandle, ref defaults))
         {
             throw CreateWin32Exception(printerName is null
-                ? "Unable to open the print server."
-                : $"Unable to open printer '{printerName}'.");
+                ? L(PrintMgmtKeys.ErrorOpenPrintServer)
+                : string.Format(CultureInfo.CurrentCulture, L(PrintMgmtKeys.ErrorOpenPrinterFormat), printerName));
         }
 
         return printerHandle;
@@ -511,12 +512,12 @@ public class PrintManagementService
         int lastError = Marshal.GetLastWin32Error();
         if (requiredBytes > PrinterConstants.MAX_BUFFER_SIZE)
         {
-            throw new InvalidOperationException("Invalid printer information buffer size returned by the spooler.");
+            throw new InvalidOperationException(L(PrintMgmtKeys.ErrorInvalidInfoBuffer));
         }
 
         if (requiredBytes == 0 && lastError != 0 && lastError != ErrorInsufficientBuffer)
         {
-            throw CreateWin32Exception("Unable to query printer information size.");
+            throw CreateWin32Exception(L(PrintMgmtKeys.ErrorQueryInfoSize));
         }
 
         uint bufferSize = requiredBytes > 0 ? requiredBytes : DefaultPrinterInfoBufferSize;
@@ -539,7 +540,7 @@ public class PrintManagementService
 
             if (lastError != ErrorInsufficientBuffer)
             {
-                throw CreateWin32Exception("Unable to query printer information.");
+                throw CreateWin32Exception(L(PrintMgmtKeys.ErrorQueryInfo));
             }
 
             bufferSize = bytesNeeded > bufferSize
@@ -547,7 +548,7 @@ public class PrintManagementService
                 : checked(bufferSize * 2);
         }
 
-        throw new InvalidOperationException("Invalid printer information buffer size returned by the spooler.");
+        throw new InvalidOperationException(L(PrintMgmtKeys.ErrorInvalidInfoBuffer));
     }
 
     private void UpdateDriverIsolationRegistry(string driverName, string isolationMode)
@@ -649,7 +650,7 @@ public class PrintManagementService
 
             if (result != 0)
             {
-                throw new Win32Exception((int)result, "Unable to update print driver isolation groups.");
+                throw new Win32Exception((int)result, L(PrintMgmtKeys.ErrorUpdateIsolationGroups));
             }
         }
         finally
@@ -728,6 +729,8 @@ public class PrintManagementService
         _logger.LogError("Could not resolve driver store INF path for driver {DriverName}", driverName);
         return null;
     }
+
+    private static string L(string key) => LocalizationProvider.Current.GetString(ResourceFileNames.PrintManagement, key);
 
     private static Win32Exception CreateWin32Exception(string message)
     {

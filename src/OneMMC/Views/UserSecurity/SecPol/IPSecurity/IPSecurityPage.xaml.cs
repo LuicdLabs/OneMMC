@@ -87,19 +87,11 @@ public sealed partial class IPSecurityPage : Page
         await DeleteSelectedItemAsync();
     }
 
-    private async void AssignPolicyButton_Click(object sender, RoutedEventArgs e)
+    private async void ToggleAssignPolicyButton_Click(object sender, RoutedEventArgs e)
     {
         if (ViewModel.SelectedPolicy?.Policy is { } policy)
         {
-            await ViewModel.AssignPolicyAsync(policy.Name, isAssigned: true);
-        }
-    }
-
-    private async void UnassignPolicyButton_Click(object sender, RoutedEventArgs e)
-    {
-        if (ViewModel.SelectedPolicy?.Policy is { } policy)
-        {
-            await ViewModel.AssignPolicyAsync(policy.Name, isAssigned: false);
+            await ViewModel.AssignPolicyAsync(policy.Name, isAssigned: !policy.IsAssigned);
         }
     }
 
@@ -200,7 +192,7 @@ public sealed partial class IPSecurityPage : Page
             : Format(LocalizedStrings.IPSec_Dialog_EditPolicy_TitleFormat, policy!.Name);
 
         if (await ShowEditorAsync(title, editor, () => editor.TryBuildResult(out result))
-            != WindowDialogResult.Primary
+            != ContentDialogResult.Primary
             || result is null)
         {
             return;
@@ -216,45 +208,50 @@ public sealed partial class IPSecurityPage : Page
         }
     }
 
-    private Task<WindowDialogResult> ShowEditorAsync(
+    /// <remarks>
+    /// The policy editor opens no further dialogs, so it is hosted in a <see cref="ContentDialog"/>.
+    /// Only the two manager surfaces need a real window, because they open editors on top of
+    /// themselves and WinUI allows one ContentDialog per XAML root.
+    /// </remarks>
+    private Task<ContentDialogResult> ShowEditorAsync(
         string title,
         UserControl editor,
         Func<bool> validate)
     {
-        var modal = new ModalDialogWindow(new ModalDialogOptions
+        var dialog = new ContentDialog
         {
             Title = title,
             Content = editor,
-            OwnerXamlRoot = XamlRoot,
+            Style = Application.Current.Resources["DefaultContentDialogStyle"] as Style,
+            XamlRoot = this.XamlRoot,
             RequestedTheme = App.CurrentTheme,
             PrimaryButtonText = LocalizedStrings.Common_SaveButton,
             CloseButtonText = LocalizedStrings.Common_CancelButton,
-            DefaultButton = WindowDialogResult.Primary,
-            IsPrimaryButtonLeading = true,
-            Width = EditorDialogWidth,
-            Height = EditorDialogHeight,
-            OnPrimaryButtonClick = validate
-        });
+            DefaultButton = ContentDialogButton.Primary
+        };
+        dialog.Resources["ContentDialogMaxWidth"] = (double)EditorDialogWidth;
+        dialog.Resources["ContentDialogMaxHeight"] = (double)EditorDialogHeight;
+        dialog.PrimaryButtonClick += (_, args) => args.Cancel = !validate();
 
-        return modal.ShowDialogAsync();
+        return dialog.ShowAsync().AsTask();
     }
 
     private async Task<bool> ShowDeleteConfirmationAsync(string message)
     {
-        var modal = new ModalDialogWindow(new ModalDialogOptions
+        var dialog = new ContentDialog
         {
             Title = LocalizedStrings.IPSec_DeleteConfirm_Title,
             Content = message,
-            OwnerXamlRoot = XamlRoot,
+            Style = Application.Current.Resources["DefaultContentDialogStyle"] as Style,
+            XamlRoot = this.XamlRoot,
             RequestedTheme = App.CurrentTheme,
             PrimaryButtonText = LocalizedStrings.Common_DeleteButton,
-            CloseButtonText = LocalizedStrings.Common_CancelButton,
-            DefaultButton = WindowDialogResult.None,
-            Width = 560,
-            Height = 320
-        });
+            CloseButtonText = LocalizedStrings.Common_CancelButton
+        };
+        dialog.Resources["ContentDialogMaxWidth"] = 480.0;
+        dialog.Resources["ContentDialogMaxHeight"] = 320.0;
 
-        return await modal.ShowDialogAsync() == WindowDialogResult.Primary;
+        return await dialog.ShowAsync() == ContentDialogResult.Primary;
     }
 
     private static string Format(string format, string value)

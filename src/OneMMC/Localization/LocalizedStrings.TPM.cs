@@ -25,6 +25,7 @@ namespace OneMMC.Localization
         public string TPM_RefreshStatusDescription => GetResource(ResourceFileNames.TPM, "TPM_RefreshStatusDescription");
         public string TPM_ClearTPMHeader => GetResource(ResourceFileNames.TPM, "TPM_ClearTPMHeader");
         public string TPM_ClearTPMDescription => GetResource(ResourceFileNames.TPM, "TPM_ClearTPMDescription");
+        public string TPM_ClearTPMDisabledDescription => GetResource(ResourceFileNames.TPM, "TPM_ClearTPMDisabledDescription");
         public string TPM_AboutHeader => GetResource(ResourceFileNames.TPM, "TPM_AboutHeader");
         public string TPM_WhatIsTPMHeader => GetResource(ResourceFileNames.TPM, "TPM_WhatIsTPMHeader");
         public string TPM_WhatIsTPMDescription => GetResource(ResourceFileNames.TPM, "TPM_WhatIsTPMDescription");
@@ -49,5 +50,11 @@ namespace OneMMC.Localization
         public string TPM_ClearTPM_NeedsParameters => GetResource(ResourceFileNames.TPM, "TPM_ClearTPM_NeedsParameters");
         public string TPM_ClearTPM_InvokeFailed => GetResource(ResourceFileNames.TPM, "TPM_ClearTPM_InvokeFailed");
         public string TPM_VersionFormat => GetResource(ResourceFileNames.TPM, "TPM_VersionFormat");
+        public string TPM_NotAvailable => GetResource(ResourceFileNames.TPM, "TPM_NotAvailable");
+        public string TPM_NotAvailableTitle => GetResource(ResourceFileNames.TPM, "TPM_NotAvailableTitle");
+        public string TPM_NotAvailableMessage => GetResource(ResourceFileNames.TPM, "TPM_NotAvailableMessage");
+        public string TPM_UnavailableValue => GetResource(ResourceFileNames.TPM, "TPM_UnavailableValue");
+        public string TPM_AccessDenied => GetResource(ResourceFileNames.TPM, "TPM_AccessDenied");
+        public string TPM_AccessDeniedTitle => GetResource(ResourceFileNames.TPM, "TPM_AccessDeniedTitle");
     }
 }

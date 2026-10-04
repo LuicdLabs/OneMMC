@@ -258,4 +258,52 @@
   <data name="RSoP_SourceLocalPolicy" xml:space="preserve">
     <value>Local Policy</value>
   </data>
+  <data name="Policy_Error_ServiceNotInitialized" xml:space="preserve">
+    <value>Policy service not initialized</value>
+  </data>
+  <data name="Policy_Error_InitServicesFailed" xml:space="preserve">
+    <value>Failed to initialize policy services</value>
+  </data>
+  <data name="Policy_Error_LoadPoliciesFormat" xml:space="preserve">
+    <value>Failed to load policies: {0}</value>
+  </data>
+  <data name="Policy_Error_SavePolicyFormat" xml:space="preserve">
+    <value>Failed to save policy: {0}</value>
+  </data>
+  <data name="Policy_Status_LoadingAdmx" xml:space="preserve">
+    <value>Loading ADMX files...</value>
+  </data>
+  <data name="Policy_Status_Error" xml:space="preserve">
+    <value>Error</value>
+  </data>
+  <data name="Policy_Status_Ready" xml:space="preserve">
+    <value>Ready</value>
+  </data>
+  <data name="Policy_Error_ServiceDisposed" xml:space="preserve">
+    <value>Service has been disposed</value>
+  </data>
+  <data name="Policy_Error_InitializeFormat" xml:space="preserve">
+    <value>Failed to initialize: {0}</value>
+  </data>
+  <data name="Policy_Error_SetStateFormat" xml:space="preserve">
+    <value>Failed to set policy state: {0}</value>
+  </data>
+  <data name="Policy_Error_SavePolFileFormat" xml:space="preserve">
+    <value>Failed to save POL file: {0}</value>
+  </data>
+  <data name="Policy_Error_SaveFailedFormat" xml:space="preserve">
+    <value>Save failed: {0}</value>
+  </data>
+  <data name="Policy_Error_ReloadFailedFormat" xml:space="preserve">
+    <value>Reload failed: {0}</value>
+  </data>
+  <data name="Policy_Error_InitPolServiceFormat" xml:space="preserve">
+    <value>Failed to initialize POL file policy service: {0}</value>
+  </data>
+  <data name="Policy_Error_OpenRegistryKeyFormat" xml:space="preserve">
+    <value>Failed to open registry key: {0}</value>
+  </data>
+  <data name="Policy_Error_InitRegistryServiceFormat" xml:space="preserve">
+    <value>Failed to initialize registry policy service: {0}</value>
+  </data>
 </root>

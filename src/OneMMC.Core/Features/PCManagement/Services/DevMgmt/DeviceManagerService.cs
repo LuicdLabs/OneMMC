@@ -68,14 +68,16 @@ namespace OneMMC.Core.Features.PCManagement.Services.DevMgmt
                         var className = device["PNPClass"]?.ToString() ?? "Unknown";
                         var classGuid = device["ClassGuid"]?.ToString() ?? "";
 
-                        if (!categories.ContainsKey(className))
+                        if (!categories.TryGetValue(className, out var category))
                         {
-                            categories[className] = new DeviceCategory
+                            category = new DeviceCategory
                             {
                                 Name = className,
+                                DisplayName = DeviceCategoryDisplayNames.GetDisplayName(className),
                                 ClassGuid = classGuid,
                                 Devices = new List<DeviceInfo>()
                             };
+                            categories[className] = category;
                         }
 
                         var deviceInfo = new DeviceInfo
@@ -88,6 +90,7 @@ namespace OneMMC.Core.Features.PCManagement.Services.DevMgmt
                             PnpDeviceId = device["PNPDeviceID"]?.ToString() ?? "",
                             ConfigManagerErrorCode = Convert.ToUInt32(device["ConfigManagerErrorCode"] ?? 0),
                             ClassName = className,
+                            ClassDisplayName = category.DisplayName,
                             ClassGuid = classGuid
                         };
 
@@ -105,7 +108,7 @@ namespace OneMMC.Core.Features.PCManagement.Services.DevMgmt
                 _logger.LogDebug($"Error getting device categories: {ex.Message}");
             }
 
-            return categories.Values.OrderBy(c => c.Name).ToList();
+            return categories.Values.OrderBy(c => c.DisplayName, StringComparer.CurrentCultureIgnoreCase).ToList();
         }
 
         /// <summary>
@@ -626,6 +629,18 @@ namespace OneMMC.Core.Features.PCManagement.Services.DevMgmt
     public class DeviceCategory
     {
         public string Name { get; set; } = string.Empty;
+
+        private string _displayName = string.Empty;
+
+        /// <summary>
+        /// Localized Device Manager-style name. Falls back to <see cref="Name"/> when unset.
+        /// </summary>
+        public string DisplayName
+        {
+            get => string.IsNullOrEmpty(_displayName) ? Name : _displayName;
+            set => _displayName = value ?? string.Empty;
+        }
+
         public string ClassGuid { get; set; } = string.Empty;
         public List<DeviceInfo> Devices { get; set; } = new();
         public int DeviceCount => Devices?.Count ?? 0;
@@ -641,6 +656,7 @@ namespace OneMMC.Core.Features.PCManagement.Services.DevMgmt
         public string Status { get; set; } = string.Empty;
         public string PnpDeviceId { get; set; } = string.Empty;
         public string ClassName { get; set; } = string.Empty;
+        public string ClassDisplayName { get; set; } = string.Empty;
         public string ClassGuid { get; set; } = string.Empty;
         public bool IsEnabled { get; set; }
         public bool HasProblem { get; set; }

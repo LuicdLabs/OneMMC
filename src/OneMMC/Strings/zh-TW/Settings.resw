@@ -121,19 +121,19 @@
     <value>裝置管理員</value>
   </data>
   <data name="SettingItem_DeviceManager_Subtitle" xml:space="preserve">
-    <value>印表機和其他驅動程式、硬體屬性</value>
+    <value>檢視硬體裝置並更新驅動程式</value>
   </data>
   <data name="SettingItem_DiskManagement_Title" xml:space="preserve">
     <value>磁碟管理</value>
   </data>
   <data name="SettingItem_DiskManagement_Subtitle" xml:space="preserve">
-    <value>管理磁碟分割區和磁碟機</value>
+    <value>格式化、調整大小並整理磁碟與磁碟區</value>
   </data>
   <data name="SettingItem_Services_Title" xml:space="preserve">
     <value>服務</value>
   </data>
   <data name="SettingItem_Services_Subtitle" xml:space="preserve">
-    <value>管理系統服務啟動和停止</value>
+    <value>啟動、停止並設定背景服務</value>
   </data>
   <data name="SettingItem_EventViewer_Title" xml:space="preserve">
     <value>事件檢視器</value>
@@ -151,76 +151,76 @@
     <value>本機使用者和群組</value>
   </data>
   <data name="SettingItem_LocalUsersGroups_Subtitle" xml:space="preserve">
-    <value>管理本機使用者帳戶和群組</value>
+    <value>建立使用者帳戶並管理群組成員</value>
   </data>
   <data name="SettingItem_SharedFolders_Title" xml:space="preserve">
     <value>共用資料夾</value>
   </data>
   <data name="SettingItem_SharedFolders_Subtitle" xml:space="preserve">
-    <value>管理共用網路資料夾</value>
+    <value>共用資料夾並控制誰可以存取</value>
   </data>
   <data name="SettingItem_TaskScheduler_Title" xml:space="preserve">
     <value>工作排程器</value>
   </data>
   <data name="SettingItem_TaskScheduler_Subtitle" xml:space="preserve">
-    <value>排程自動化工作</value>
+    <value>讓應用程式與指令碼自動定時執行</value>
   </data>
   <data name="SettingItem_LocalCertificates_Title" xml:space="preserve">
     <value>本機憑證</value>
   </data>
   <data name="SettingItem_LocalCertificates_Subtitle" xml:space="preserve">
-    <value>管理本機電腦憑證</value>
+    <value>識別並保護這部電腦的憑證</value>
   </data>
   <data name="SettingItem_CurrentUserCertificates_Title" xml:space="preserve">
     <value>目前使用者憑證</value>
   </data>
   <data name="SettingItem_CurrentUserCertificates_Subtitle" xml:space="preserve">
-    <value>管理目前使用者憑證</value>
+    <value>識別您的身分、用於登入與簽署的憑證</value>
   </data>
   <data name="SettingItem_GroupPolicyEditor_Title" xml:space="preserve">
     <value>群組原則</value>
   </data>
   <data name="SettingItem_GroupPolicyEditor_Subtitle" xml:space="preserve">
-    <value>管理群組原則設定</value>
+    <value>透過原則控制 Windows 與應用程式行為</value>
   </data>
   <data name="SettingItem_ResultantSetOfPolicy_Title" xml:space="preserve">
     <value>原則結果集合</value>
   </data>
   <data name="SettingItem_ResultantSetOfPolicy_Subtitle" xml:space="preserve">
-    <value>檢視原則結果集合</value>
+    <value>查看套用到您與這部電腦的原則</value>
   </data>
   <data name="SettingItem_HyperVManager_Subtitle" xml:space="preserve">
-    <value>管理虛擬機器</value>
+    <value>執行與管理虛擬機器</value>
   </data>
   <data name="SettingItem_ComponentServices_Title" xml:space="preserve">
     <value>元件服務</value>
   </data>
   <data name="SettingItem_ComponentServices_Subtitle" xml:space="preserve">
-    <value>管理元件服務</value>
+    <value>設定 COM 應用程式與分散式服務</value>
   </data>
   <data name="SettingItem_WindowsFirewall_Title" xml:space="preserve">
     <value>進階防火牆設定</value>
   </data>
   <data name="SettingItem_WindowsFirewall_Subtitle" xml:space="preserve">
-    <value>管理進階防火牆設定</value>
+    <value>為應用程式與網路流量設定防火牆規則</value>
   </data>
   <data name="SettingItem_TPMManager_Title" xml:space="preserve">
     <value>TPM 管理</value>
   </data>
   <data name="SettingItem_TPMManager_Subtitle" xml:space="preserve">
-    <value>管理 TPM 設定</value>
+    <value>查看安全性晶片狀態與加密選項</value>
   </data>
   <data name="SettingItem_LocalSecurityPolicy_Title" xml:space="preserve">
     <value>本機安全性原則</value>
   </data>
   <data name="SettingItem_LocalSecurityPolicy_Subtitle" xml:space="preserve">
-    <value>管理本機安全性原則</value>
+    <value>設定密碼、鎖定與登入規則</value>
   </data>
   <data name="SettingItem_AuthorizationManager_Title" xml:space="preserve">
     <value>授權管理員</value>
   </data>
   <data name="SettingItem_AuthorizationManager_Subtitle" xml:space="preserve">
-    <value>管理授權設定</value>
+    <value>定義應用程式角色與存取權限</value>
   </data>
   <data name="SettingItem_Theme_Title" xml:space="preserve">
     <value>主題</value>

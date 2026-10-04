@@ -234,21 +234,11 @@ namespace OneMMC
 
         /// <summary>
         /// Gets a value indicating whether the welcome dialog should be shown.
+        /// Once the user opts out via "Do not show again", the dialog is never shown again.
         /// </summary>
         public static bool ShouldShowWelcomeDialog(AppSettings settings)
         {
-            if (!settings.WelcomeDialogHidden)
-            {
-                return true;
-            }
-
-            if (!string.IsNullOrEmpty(settings.WelcomeDialogDismissedDate) &&
-                DateTime.TryParse(settings.WelcomeDialogDismissedDate, out var dismissedDate))
-            {
-                return (DateTime.Now - dismissedDate).TotalDays >= 30;
-            }
-
-            return false;
+            return !settings.WelcomeDialogHidden;
         }
 
         private string GetSavedTheme()

@@ -33,15 +33,6 @@ public sealed partial class IPSecurityFilterEditorControl : UserControl
     }
 
     /// <summary>
-    /// Initializes a filter editor from a store definition.
-    /// </summary>
-    /// <param name="filter">The filter to edit.</param>
-    public IPSecurityFilterEditorControl(IPSecurityFilterDefinition filter)
-        : this(IPSecurityEditorValidation.ToFilterOptions(filter))
-    {
-    }
-
-    /// <summary>
     /// Initializes a filter editor from command options.
     /// </summary>
     /// <param name="filter">The filter values to edit.</param>
@@ -57,7 +48,7 @@ public sealed partial class IPSecurityFilterEditorControl : UserControl
         DestinationAddressTextBox.Text = filter.DestinationAddress;
         DestinationMaskTextBox.Text = filter.DestinationMask ?? string.Empty;
         ProtocolComboBox.Text = filter.Protocol ?? "ANY";
-        MirroredCheckBox.IsChecked = filter.IsMirrored ?? true;
+        MirroredToggleSwitch.IsOn = filter.IsMirrored ?? true;
         SourcePortNumberBox.Value = filter.SourcePort ?? 0;
         DestinationPortNumberBox.Value = filter.DestinationPort ?? 0;
     }
@@ -76,7 +67,7 @@ public sealed partial class IPSecurityFilterEditorControl : UserControl
             DestinationAddress = DestinationAddressTextBox.Text,
             Description = IPSecurityEditorValidation.OptionalText(DescriptionTextBox.Text),
             Protocol = IPSecurityEditorValidation.OptionalText(ProtocolComboBox.Text),
-            IsMirrored = MirroredCheckBox.IsChecked == true,
+            IsMirrored = MirroredToggleSwitch.IsOn,
             SourceMask = IPSecurityEditorValidation.OptionalText(SourceMaskTextBox.Text),
             DestinationMask = IPSecurityEditorValidation.OptionalText(DestinationMaskTextBox.Text),
             SourcePort = IPSecurityEditorValidation.GetOptionalPort(SourcePortNumberBox),
@@ -85,7 +76,7 @@ public sealed partial class IPSecurityFilterEditorControl : UserControl
 
         IPSecurityFilterCommandOptions candidate = options;
         bool isValid = IPSecurityEditorValidation.TryValidate(
-            () => _ = IPSecurityStaticPolicyCommandBuilder.BuildAddFilter(candidate),
+            () => _ = IPSecurityCommandBuilder.BuildAddFilter(candidate),
             ValidationInfoBar,
             LocalizedStrings.IPSec_Editor_ValidationInvalid);
         if (!isValid)

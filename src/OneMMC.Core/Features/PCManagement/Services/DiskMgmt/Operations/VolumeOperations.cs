@@ -9,6 +9,7 @@ using System.Threading;
 using OneMMC.Core.Features.PCManagement.Services.DiskMgmt.Common;
 using OneMMC.Core.Features.PCManagement.Models.DiskMgmt;
 using OneMMC.Core.Infrastructure.Wmi;
+using OneMMC.Core.Localization;
 using WmiLight;
 using Win32PInvoke = Windows.Win32.PInvoke;
 
@@ -62,10 +63,10 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
 
                 if (!formatResult.Success)
                     return OperationResult.Partial(
-                        $"Partition created, but formatting failed: {formatResult.Message}",
+                        DiskMgmtText.Format(DiskMgmtKeys.ErrFormatAfterCreateFailedFormat, formatResult.Message),
                         formatResult.ErrorCode);
 
-                return OperationResult.Ok($"Successfully created {fileSystem} volume.");
+                return OperationResult.Ok(DiskMgmtText.Format(DiskMgmtKeys.OkVolumeCreatedFormat, fileSystem));
             }, nameof(CreateSimpleVolume), diskIndex: diskIndex);
         }
 
@@ -91,9 +92,9 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
                 deleteOutParams?.Dispose();
 
                 return returnValue == DiskManagementConstants.WMI_SUCCESS
-                    ? OperationResult.Ok("Partition deleted successfully.")
+                    ? OperationResult.Ok(DiskMgmtText.Get(DiskMgmtKeys.OkPartitionDeleted))
                     : OperationResult.Fail(
-                        $"Deletion failed. Error code: {returnValue} - {ErrorMessages.GetMsftErrorMessage(returnValue)}",
+                        DiskMgmtText.Format(DiskMgmtKeys.ErrDeletionCodeFormat, returnValue, ErrorMessages.GetMsftErrorMessage(returnValue)),
                         returnValue);
             }, nameof(DeleteVolume), diskIndex, partitionIndex);
         }
@@ -109,7 +110,7 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
         {
             var validation = ValidateDriveLetter(driveLetter);
             if (!validation.IsValid)
-                return OperationResult.Fail(validation.ErrorMessage ?? "Invalid drive letter");
+                return OperationResult.Fail(validation.ErrorMessage ?? DiskMgmtText.Get(DiskMgmtKeys.ErrInvalidDriveLetter));
 
             var normalizedLetter = NormalizeDriveLetter(driveLetter);
 
@@ -125,7 +126,7 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
                 using var volume = GetVolumeByDriveLetter(connection, normalizedLetter);
 
                 if (volume == null)
-                    return OperationResult.Fail($"Volume {normalizedLetter}: not found.");
+                    return OperationResult.Fail(DiskMgmtText.Format(DiskMgmtKeys.ErrVolumeNotFoundFormat, normalizedLetter));
 
                 return FormatVolumeObject(volume, fileSystem, label, quickFormat);
             }, nameof(FormatVolume), driveLetter: normalizedLetter);
@@ -138,7 +139,7 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
         {
             var validation = ValidateDriveLetter(driveLetter);
             if (!validation.IsValid)
-                return OperationResult.Fail(validation.ErrorMessage ?? "Invalid drive letter");
+                return OperationResult.Fail(validation.ErrorMessage ?? DiskMgmtText.Get(DiskMgmtKeys.ErrInvalidDriveLetter));
 
             var normalizedLetter = NormalizeDriveLetter(driveLetter);
 
@@ -148,7 +149,7 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
                 using var partition = GetPartitionByDriveLetter(connection, normalizedLetter);
 
                 if (partition == null)
-                    return OperationResult.Fail($"Volume {normalizedLetter}: not found.");
+                    return OperationResult.Fail(DiskMgmtText.Format(DiskMgmtKeys.ErrVolumeNotFoundFormat, normalizedLetter));
 
                 if (IsSpecialPartitionType(partition, out var reason))
                     return OperationResult.Fail(reason ?? ErrorMessages.SpecialPartitionOperation);
@@ -164,7 +165,7 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
         {
             var validation = ValidateDriveLetter(driveLetter);
             if (!validation.IsValid)
-                return OperationResult.Fail(validation.ErrorMessage ?? "Invalid drive letter");
+                return OperationResult.Fail(validation.ErrorMessage ?? DiskMgmtText.Get(DiskMgmtKeys.ErrInvalidDriveLetter));
 
             if (sizeInMB == 0)
                 return OperationResult.Fail(ErrorMessages.SizeRequired);
@@ -177,7 +178,7 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
                 using var partition = GetPartitionByDriveLetter(connection, normalizedLetter);
 
                 if (partition == null)
-                    return OperationResult.Fail($"Volume {normalizedLetter}: not found.");
+                    return OperationResult.Fail(DiskMgmtText.Format(DiskMgmtKeys.ErrVolumeNotFoundFormat, normalizedLetter));
 
                 if (IsSpecialPartitionType(partition, out var reason))
                     return OperationResult.Fail(reason ?? ErrorMessages.SpecialPartitionOperation);
@@ -193,7 +194,7 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
         {
             var validation = ValidateDriveLetter(driveLetter);
             if (!validation.IsValid)
-                return new QueryResult<ulong>(false, 0, validation.ErrorMessage ?? "Invalid drive letter");
+                return new QueryResult<ulong>(false, 0, validation.ErrorMessage ?? DiskMgmtText.Get(DiskMgmtKeys.ErrInvalidDriveLetter));
 
             var normalizedLetter = NormalizeDriveLetter(driveLetter);
 
@@ -203,7 +204,7 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
                 using var partition = GetPartitionByDriveLetter(connection, normalizedLetter);
 
                 if (partition == null)
-                    return new QueryResult<ulong>(false, 0, $"Volume {normalizedLetter}: not found.");
+                    return new QueryResult<ulong>(false, 0, DiskMgmtText.Format(DiskMgmtKeys.ErrVolumeNotFoundFormat, normalizedLetter));
 
                 if (IsSpecialPartitionType(partition, out var reason))
                     return new QueryResult<ulong>(false, 0, reason ?? ErrorMessages.SpecialPartitionOperation);
@@ -216,10 +217,10 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
 
                 // BUG-FIX: prevent underflow when SizeMin > currentSize
                 if (sizeResult.SizeMin >= currentSize)
-                    return new QueryResult<ulong>(true, 0, "No shrinkable space available.");
+                    return new QueryResult<ulong>(true, 0, DiskMgmtText.Get(DiskMgmtKeys.QueryNoShrinkable));
 
                 var shrinkableMB = (currentSize - sizeResult.SizeMin) / DiskManagementConstants.BYTES_PER_MB;
-                return new QueryResult<ulong>(true, shrinkableMB, $"Shrinkable space: {shrinkableMB} MB");
+                return new QueryResult<ulong>(true, shrinkableMB, DiskMgmtText.Format(DiskMgmtKeys.QueryShrinkableFormat, shrinkableMB));
             }, nameof(QueryShrinkableSpace), driveLetter: normalizedLetter);
         }
 
@@ -230,7 +231,7 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
         {
             var validation = ValidateDriveLetter(driveLetter);
             if (!validation.IsValid)
-                return new QueryResult<ulong>(false, 0, validation.ErrorMessage ?? "Invalid drive letter");
+                return new QueryResult<ulong>(false, 0, validation.ErrorMessage ?? DiskMgmtText.Get(DiskMgmtKeys.ErrInvalidDriveLetter));
 
             var normalizedLetter = NormalizeDriveLetter(driveLetter);
 
@@ -240,7 +241,7 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
                 using var partition = GetPartitionByDriveLetter(connection, normalizedLetter);
 
                 if (partition == null)
-                    return new QueryResult<ulong>(false, 0, $"Volume {normalizedLetter}: not found.");
+                    return new QueryResult<ulong>(false, 0, DiskMgmtText.Format(DiskMgmtKeys.ErrVolumeNotFoundFormat, normalizedLetter));
 
                 if (IsSpecialPartitionType(partition, out var reason))
                     return new QueryResult<ulong>(false, 0, reason ?? ErrorMessages.SpecialPartitionOperation);
@@ -248,15 +249,15 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
                 var sizeResult = GetPartitionSupportedSize(partition);
                 if (!sizeResult.Success)
                     return new QueryResult<ulong>(true, 0,
-                        "Unable to query extendable space. No unallocated space may be available.");
+                        DiskMgmtText.Get(DiskMgmtKeys.ErrQueryExtendable));
 
                 var currentSize = partition.GetPropertySafe<ulong>("Size");
 
                 if (sizeResult.SizeMax <= currentSize)
-                    return new QueryResult<ulong>(true, 0, "No unallocated space available for extension.");
+                    return new QueryResult<ulong>(true, 0, DiskMgmtText.Get(DiskMgmtKeys.MsgNoExtendSpace));
 
                 var extendableMB = (sizeResult.SizeMax - currentSize) / DiskManagementConstants.BYTES_PER_MB;
-                return new QueryResult<ulong>(true, extendableMB, $"Extendable space: {extendableMB} MB");
+                return new QueryResult<ulong>(true, extendableMB, DiskMgmtText.Format(DiskMgmtKeys.QueryExtendableFormat, extendableMB));
             }, nameof(QueryExtendableSpace), driveLetter: normalizedLetter);
         }
 
@@ -284,10 +285,10 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
 
                 // BUG-FIX: prevent underflow
                 if (sizeResult.SizeMin >= currentSize)
-                    return new QueryResult<ulong>(true, 0, "No shrinkable space available.");
+                    return new QueryResult<ulong>(true, 0, DiskMgmtText.Get(DiskMgmtKeys.QueryNoShrinkable));
 
                 var shrinkableMB = (currentSize - sizeResult.SizeMin) / DiskManagementConstants.BYTES_PER_MB;
-                return new QueryResult<ulong>(true, shrinkableMB, $"Shrinkable space: {shrinkableMB} MB");
+                return new QueryResult<ulong>(true, shrinkableMB, DiskMgmtText.Format(DiskMgmtKeys.QueryShrinkableFormat, shrinkableMB));
             }, nameof(QueryShrinkableSpaceByIndex), diskIndex, partitionIndex);
         }
 
@@ -310,15 +311,15 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
                 var sizeResult = GetPartitionSupportedSize(partition);
                 if (!sizeResult.Success)
                     return new QueryResult<ulong>(true, 0,
-                        "Unable to query extendable space. No unallocated space may be available.");
+                        DiskMgmtText.Get(DiskMgmtKeys.ErrQueryExtendable));
 
                 var currentSize = partition.GetPropertySafe<ulong>("Size");
 
                 if (sizeResult.SizeMax <= currentSize)
-                    return new QueryResult<ulong>(true, 0, "No unallocated space available for extension.");
+                    return new QueryResult<ulong>(true, 0, DiskMgmtText.Get(DiskMgmtKeys.MsgNoExtendSpace));
 
                 var extendableMB = (sizeResult.SizeMax - currentSize) / DiskManagementConstants.BYTES_PER_MB;
-                return new QueryResult<ulong>(true, extendableMB, $"Extendable space: {extendableMB} MB");
+                return new QueryResult<ulong>(true, extendableMB, DiskMgmtText.Format(DiskMgmtKeys.QueryExtendableFormat, extendableMB));
             }, nameof(QueryExtendableSpaceByIndex), diskIndex, partitionIndex);
         }
 
@@ -351,8 +352,8 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
                 setAttributesOutParams?.Dispose();
 
                 return returnValue == DiskManagementConstants.WMI_SUCCESS
-                    ? OperationResult.Ok("Partition marked as active.")
-                    : OperationResult.Fail($"Operation failed. Error code: {returnValue}", returnValue);
+                    ? OperationResult.Ok(DiskMgmtText.Get(DiskMgmtKeys.OkMarkedActive))
+                    : OperationResult.Fail(DiskMgmtText.Format(DiskMgmtKeys.ErrErrorCodeOnlyFormat, returnValue), returnValue);
             }, nameof(MarkPartitionActive), diskIndex, partitionIndex);
         }
 
@@ -367,11 +368,11 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
         {
             var currentValidation = ValidateDriveLetter(currentDriveLetter);
             if (!currentValidation.IsValid)
-                return OperationResult.Fail(currentValidation.ErrorMessage ?? "Invalid current drive letter");
+                return OperationResult.Fail(currentValidation.ErrorMessage ?? DiskMgmtText.Get(DiskMgmtKeys.ErrInvalidCurrentDriveLetter));
 
             var newValidation = ValidateDriveLetter(newDriveLetter);
             if (!newValidation.IsValid)
-                return OperationResult.Fail(newValidation.ErrorMessage ?? "Invalid new drive letter");
+                return OperationResult.Fail(newValidation.ErrorMessage ?? DiskMgmtText.Get(DiskMgmtKeys.ErrInvalidNewDriveLetter));
 
             var currentNormalized = NormalizeDriveLetter(currentDriveLetter);
             var newNormalized = NormalizeDriveLetter(newDriveLetter);
@@ -380,7 +381,7 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
                 return OperationResult.Fail(ErrorMessages.DriveLetterSame);
 
             if (IsDriveLetterInUse(newNormalized))
-                return OperationResult.Fail($"{ErrorMessages.DriveLetterInUse}: {newNormalized}:");
+                return OperationResult.Fail(DiskMgmtText.Format(DiskMgmtKeys.ErrDriveLetterInUseFormat, newNormalized));
 
             return ExecuteWmiOperation(() =>
             {
@@ -389,7 +390,7 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
                 {
                     var lastErr = Marshal.GetLastWin32Error();
                     return OperationResult.Fail(
-                        $"Unable to get volume information for {currentNormalized}:. Win32 Error: {lastErr}");
+                        DiskMgmtText.Format(DiskMgmtKeys.ErrVolumeInfoForWin32Format, currentNormalized, lastErr));
                 }
 
                 string volumeGuid = new string(volumeName).TrimEnd('\0');
@@ -398,7 +399,7 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
                 {
                     var lastErr = Marshal.GetLastWin32Error();
                     return OperationResult.Fail(
-                        $"Unable to remove old drive letter. Win32 Error: {lastErr}");
+                        DiskMgmtText.Format(DiskMgmtKeys.ErrRemoveOldLetterWin32Format, lastErr));
                 }
 
                 if (!Win32PInvoke.SetVolumeMountPoint(newNormalized + ":\\", volumeGuid))
@@ -415,17 +416,15 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
                                 $"Rollback Win32 Error: {rollbackError}"));
 
                         return OperationResult.Fail(
-                            $"Unable to set new drive letter (Win32 Error: {setError}). " +
-                            $"WARNING: Rollback also failed (Win32 Error: {rollbackError}). " +
-                            $"Volume GUID: {volumeGuid} ??manual intervention required.");
+                            DiskMgmtText.Format(DiskMgmtKeys.ErrSetNewLetterRollbackFailedFormat, setError, rollbackError, volumeGuid));
                     }
 
                     return OperationResult.Fail(
-                        $"Unable to set new drive letter. Win32 Error: {setError}. Original drive letter restored.");
+                        DiskMgmtText.Format(DiskMgmtKeys.ErrSetNewLetterRestoredFormat, setError));
                 }
 
                 return OperationResult.Ok(
-                    $"Drive letter changed from {currentNormalized}: to {newNormalized}:.");
+                    DiskMgmtText.Format(DiskMgmtKeys.OkLetterChangedFormat, currentNormalized, newNormalized));
             }, nameof(ChangeDriveLetter), driveLetter: currentNormalized);
         }
 
@@ -436,12 +435,12 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
         {
             var validation = ValidateDriveLetter(driveLetter);
             if (!validation.IsValid)
-                return OperationResult.Fail(validation.ErrorMessage ?? "Invalid drive letter");
+                return OperationResult.Fail(validation.ErrorMessage ?? DiskMgmtText.Get(DiskMgmtKeys.ErrInvalidDriveLetter));
 
             var normalizedLetter = NormalizeDriveLetter(driveLetter);
 
             if (IsDriveLetterInUse(normalizedLetter))
-                return OperationResult.Fail($"{ErrorMessages.DriveLetterInUse}: {normalizedLetter}:");
+                return OperationResult.Fail(DiskMgmtText.Format(DiskMgmtKeys.ErrDriveLetterInUseFormat, normalizedLetter));
 
             return ExecuteWmiOperation(() =>
             {
@@ -461,9 +460,9 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
                 addAccessPathOutParams?.Dispose();
 
                 return returnValue == DiskManagementConstants.WMI_SUCCESS
-                    ? OperationResult.Ok($"Drive letter {normalizedLetter}: assigned successfully.")
+                    ? OperationResult.Ok(DiskMgmtText.Format(DiskMgmtKeys.OkLetterAssignedFormat, normalizedLetter))
                     : OperationResult.Fail(
-                        $"Assignment failed. Error code: {returnValue} - {ErrorMessages.GetMsftErrorMessage(returnValue)}",
+                        DiskMgmtText.Format(DiskMgmtKeys.ErrAssignmentCodeFormat, returnValue, ErrorMessages.GetMsftErrorMessage(returnValue)),
                         returnValue);
             }, nameof(AssignDriveLetter), diskIndex, partitionIndex, normalizedLetter);
         }
@@ -475,7 +474,7 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
         {
             var validation = ValidateDriveLetter(driveLetter);
             if (!validation.IsValid)
-                return OperationResult.Fail(validation.ErrorMessage ?? "Invalid drive letter");
+                return OperationResult.Fail(validation.ErrorMessage ?? DiskMgmtText.Get(DiskMgmtKeys.ErrInvalidDriveLetter));
 
             var normalizedLetter = NormalizeDriveLetter(driveLetter);
 
@@ -492,7 +491,7 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
                 using var partition = GetPartitionByDriveLetter(connection, normalizedLetter);
 
                 if (partition == null)
-                    return OperationResult.Fail($"Volume {normalizedLetter}: not found.");
+                    return OperationResult.Fail(DiskMgmtText.Format(DiskMgmtKeys.ErrVolumeNotFoundFormat, normalizedLetter));
 
                 if (IsSpecialPartitionType(partition, out var reason))
                     return OperationResult.Fail(reason ?? ErrorMessages.SpecialPartitionOperation);
@@ -519,7 +518,7 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
                     return OperationResult.Fail(ErrorMessages.NoAccessPath);
 
                 if (DiskManagementService.IsSystemDriveLetter($"{currentLetter}:"))
-                    return OperationResult.Fail("Removing system drive letter is strictly prohibited!");
+                    return OperationResult.Fail(DiskMgmtText.Get(DiskMgmtKeys.ErrSystemLetterRemovalProhibited));
 
                 if (IsSpecialPartitionType(partition, out var reason))
                     return OperationResult.Fail(reason ?? ErrorMessages.SpecialPartitionOperation);
@@ -535,23 +534,23 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
         {
             var validation = ValidateDriveLetter(driveLetter);
             if (!validation.IsValid)
-                return OperationResult.Fail(validation.ErrorMessage ?? "Invalid drive letter");
+                return OperationResult.Fail(validation.ErrorMessage ?? DiskMgmtText.Get(DiskMgmtKeys.ErrInvalidDriveLetter));
 
             if (string.IsNullOrWhiteSpace(folderPath))
-                return OperationResult.Fail("Folder path cannot be empty.");
+                return OperationResult.Fail(DiskMgmtText.Get(DiskMgmtKeys.ErrFolderPathEmpty));
 
             var normalizedLetter = NormalizeDriveLetter(driveLetter);
             folderPath = folderPath.Trim().TrimEnd('\\');
 
             if (!Directory.Exists(folderPath))
-                return OperationResult.Fail($"{ErrorMessages.FolderNotExist}: {folderPath}");
+                return OperationResult.Fail(DiskMgmtText.Format(DiskMgmtKeys.ErrValueWithDetailFormat, ErrorMessages.FolderNotExist, folderPath));
 
             // Mount point requires an empty folder
             try
             {
                 if (Directory.EnumerateFileSystemEntries(folderPath).Any())
                     return OperationResult.Fail(
-                        $"Folder must be empty to be used as a mount point: {folderPath}");
+                        DiskMgmtText.Format(DiskMgmtKeys.ErrFolderNotEmptyFormat, folderPath));
             }
             catch (UnauthorizedAccessException)
             {
@@ -565,7 +564,7 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
                 {
                     var lastErr = Marshal.GetLastWin32Error();
                     return OperationResult.Fail(
-                        $"Unable to get volume information for {normalizedLetter}:. Win32 Error: {lastErr}");
+                        DiskMgmtText.Format(DiskMgmtKeys.ErrVolumeInfoForWin32Format, normalizedLetter, lastErr));
                 }
 
                 string volumeGuid = new string(volumeName).TrimEnd('\0');
@@ -574,10 +573,10 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
                 {
                     var lastErr = Marshal.GetLastWin32Error();
                     return OperationResult.Fail(
-                        $"Unable to mount volume to folder. Win32 Error: {lastErr}");
+                        DiskMgmtText.Format(DiskMgmtKeys.ErrMountWin32Format, lastErr));
                 }
 
-                return OperationResult.Ok($"Volume successfully mounted to {folderPath}.");
+                return OperationResult.Ok(DiskMgmtText.Format(DiskMgmtKeys.OkMountedFormat, folderPath));
             }, nameof(MountVolumeToFolder), driveLetter: normalizedLetter);
         }
 
@@ -804,7 +803,7 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
                 {
                     if (returnValue != DiskManagementConstants.WMI_SUCCESS)
                         return new CreatePartitionResult(false,
-                            $"Failed to create partition. Error code: {returnValue} - {ErrorMessages.GetMsftErrorMessage(returnValue)}");
+                            DiskMgmtText.Format(DiskMgmtKeys.ErrCreatePartitionCodeFormat, returnValue, ErrorMessages.GetMsftErrorMessage(returnValue)));
 
                     // Extract DiskNumber and PartitionNumber from embedded object
                     if (outParams?["CreatedPartition"] is WmiObject createdPartition)
@@ -815,19 +814,19 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
                             var partNum = Convert.ToUInt32(createdPartition["PartitionNumber"]);
 
                             return new CreatePartitionResult(true,
-                                "Partition created successfully.",
+                                DiskMgmtText.Get(DiskMgmtKeys.OkPartitionCreated),
                                 diskNum,
                                 partNum);
                         }
                     }
 
                     return new CreatePartitionResult(true,
-                        "Partition created, but unable to get reference for formatting. Please format manually.");
+                        DiskMgmtText.Get(DiskMgmtKeys.ErrPartitionNoReference));
                 }
             }
             catch (WmiException wex)
             {
-                return new CreatePartitionResult(false, $"Failed to create partition: {wex.Message}");
+                return new CreatePartitionResult(false, DiskMgmtText.Format(DiskMgmtKeys.ErrCreatePartitionFailedFormat, wex.Message));
             }
         }
 
@@ -844,7 +843,7 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
         {
             if (!diskNumber.HasValue || !partitionNumber.HasValue)
                 return OperationResult.Fail(
-                    "Unable to locate partition for formatting ??missing disk/partition number.");
+                    DiskMgmtText.Get(DiskMgmtKeys.ErrLocatePartitionForFormat));
 
             try
             {
@@ -878,7 +877,7 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
             }
             catch (Exception ex)
             {
-                return OperationResult.Fail($"Error occurred during formatting: {ex.Message}");
+                return OperationResult.Fail(DiskMgmtText.Format(DiskMgmtKeys.ErrFormattingErrorFormat, ex.Message));
             }
         }
 
@@ -900,7 +899,7 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
                     $"WHERE DiskNumber = {diskNumber} AND PartitionNumber = {partitionNumber}").FirstOrDefault();
 
                 if (partition == null)
-                    return OperationResult.Fail("Unable to find partition for formatting.");
+                    return OperationResult.Fail(DiskMgmtText.Get(DiskMgmtKeys.ErrFindPartitionForFormat));
 
                 using (partition)
                 {
@@ -917,11 +916,11 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
                     }
                 }
 
-                return OperationResult.Fail("Unable to find corresponding volume for formatting.");
+                return OperationResult.Fail(DiskMgmtText.Get(DiskMgmtKeys.ErrFindVolumeForFormat));
             }
             catch (Exception ex)
             {
-                return OperationResult.Fail($"Fallback format failed: {ex.Message}");
+                return OperationResult.Fail(DiskMgmtText.Format(DiskMgmtKeys.ErrFallbackFormatFailedFormat, ex.Message));
             }
         }
 
@@ -946,14 +945,14 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
                 formatOutParams?.Dispose();
 
                 return returnValue == DiskManagementConstants.WMI_SUCCESS
-                    ? OperationResult.Ok("Formatting successful.")
+                    ? OperationResult.Ok(DiskMgmtText.Get(DiskMgmtKeys.OkFormatted))
                     : OperationResult.Fail(
-                        $"Formatting failed. Error code: {returnValue} - {ErrorMessages.GetMsftErrorMessage(returnValue)}",
+                        DiskMgmtText.Format(DiskMgmtKeys.ErrFormattingCodeFormat, returnValue, ErrorMessages.GetMsftErrorMessage(returnValue)),
                         returnValue);
             }
             catch (WmiException wex)
             {
-                return OperationResult.Fail($"Formatting failed: {wex.Message}");
+                return OperationResult.Fail(DiskMgmtText.Format(DiskMgmtKeys.ErrFormattingFailedFormat, wex.Message));
             }
         }
 
@@ -972,8 +971,7 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
                         targetSize = currentSize + (sizeInMB * DiskManagementConstants.BYTES_PER_MB);
                         if (targetSize > sizeResult.SizeMax)
                             return OperationResult.Fail(
-                                $"Requested extension size exceeds available space. " +
-                                $"Maximum extendable to: {FormatSize(sizeResult.SizeMax)}");
+                                DiskMgmtText.Format(DiskMgmtKeys.ErrExtendExceedsFormat, FormatSize(sizeResult.SizeMax)));
                     }
                     else
                     {
@@ -988,7 +986,7 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
                     // Fallback: when GetSupportedSize is unavailable, only explicit sizes allowed
                     if (sizeInMB == 0)
                         return OperationResult.Fail(
-                            "Unable to determine maximum extendable size. Please specify an explicit size in MB.");
+                            DiskMgmtText.Get(DiskMgmtKeys.ErrExtendMaxUnknown));
 
                     targetSize = currentSize + (sizeInMB * DiskManagementConstants.BYTES_PER_MB);
                     LogDebug(nameof(ResizePartitionExtend),
@@ -996,11 +994,11 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
                 }
 
                 return ResizePartition(partition, targetSize,
-                    $"Volume extended successfully. New size: {FormatSize(targetSize)}");
+                    DiskMgmtText.Format(DiskMgmtKeys.OkExtendedFormat, FormatSize(targetSize)));
             }
             catch (WmiException wex)
             {
-                return OperationResult.Fail($"Extension failed: {wex.Message}");
+                return OperationResult.Fail(DiskMgmtText.Format(DiskMgmtKeys.ErrExtensionFailedFormat, wex.Message));
             }
         }
 
@@ -1014,7 +1012,7 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
                 // Prevent ulong underflow when shrinkBytes > currentSize
                 if (shrinkBytes >= currentSize)
                     return OperationResult.Fail(
-                        $"Requested shrink size ({sizeInMB} MB) exceeds current partition size ({currentSize / DiskManagementConstants.BYTES_PER_MB} MB).");
+                        DiskMgmtText.Format(DiskMgmtKeys.ErrShrinkExceedsPartitionFormat, sizeInMB, currentSize / DiskManagementConstants.BYTES_PER_MB));
 
                 var targetSize = currentSize - shrinkBytes;
 
@@ -1023,7 +1021,7 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
                 {
                     if (targetSize < sizeResult.SizeMin)
                         return OperationResult.Fail(
-                            $"Shrink size exceeds shrinkable space. Minimum size: {FormatSize(sizeResult.SizeMin)}");
+                            DiskMgmtText.Format(DiskMgmtKeys.ErrShrinkExceedsShrinkableFormat, FormatSize(sizeResult.SizeMin)));
                 }
                 else
                 {
@@ -1034,17 +1032,17 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
                         var estimatedMin = EstimateMinPartitionSize(driveLetter);
                         if (estimatedMin > 0 && targetSize < estimatedMin)
                             return OperationResult.Fail(
-                                $"Shrink may exceed safe limits. Estimated minimum partition size: {FormatSize(estimatedMin)}.");
+                                DiskMgmtText.Format(DiskMgmtKeys.ErrShrinkUnsafeFormat, FormatSize(estimatedMin)));
                     }
                     LogDebug(nameof(ResizePartitionShrink),
                         $"GetSupportedSize unavailable, attempting resize to {FormatSize(targetSize)} based on estimation.");
                 }
 
-                return ResizePartition(partition, targetSize, $"Volume shrunk successfully by {sizeInMB} MB.");
+                return ResizePartition(partition, targetSize, DiskMgmtText.Format(DiskMgmtKeys.OkShrunkFormat, sizeInMB));
             }
             catch (WmiException wex)
             {
-                return OperationResult.Fail($"Shrink failed: {wex.Message}");
+                return OperationResult.Fail(DiskMgmtText.Format(DiskMgmtKeys.ErrShrinkFailedFormat, wex.Message));
             }
         }
 
@@ -1060,7 +1058,7 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
             return returnValue == DiskManagementConstants.WMI_SUCCESS
                 ? OperationResult.Ok(successMessage)
                 : OperationResult.Fail(
-                    $"Resize failed. Error code: {returnValue} - {ErrorMessages.GetMsftErrorMessage(returnValue)}",
+                    DiskMgmtText.Format(DiskMgmtKeys.ErrResizeCodeFormat, returnValue, ErrorMessages.GetMsftErrorMessage(returnValue)),
                     returnValue);
         }
 
@@ -1079,21 +1077,21 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
                             return (false, 0, 0, ErrorMessages.PartitionNotSupportResize, returnValue);
 
                         return (false, 0, 0,
-                            $"Unable to query partition size limits. Error code: {returnValue} - {ErrorMessages.GetMsftErrorMessage(returnValue)}",
+                            DiskMgmtText.Format(DiskMgmtKeys.ErrSizeLimitsCodeFormat, returnValue, ErrorMessages.GetMsftErrorMessage(returnValue)),
                             returnValue);
                     }
 
                     var sizeMin = Convert.ToUInt64(outParams?["SizeMin"] ?? 0UL);
                     var sizeMax = Convert.ToUInt64(outParams?["SizeMax"] ?? 0UL);
 
-                    return (true, sizeMin, sizeMax, "Success", null);
+                    return (true, sizeMin, sizeMax, DiskMgmtText.Get(DiskMgmtKeys.QuerySuccess), null);
                 }
             }
             catch (WmiException ex)
             {
                 LogDebug(nameof(GetPartitionSupportedSize),
                     $"GetSupportedSize failed: 0x{ex.HResult:X8} - {ex.Message}");
-                return (false, 0, 0, $"Unable to query partition size limits: {ex.Message}", null);
+                return (false, 0, 0, DiskMgmtText.Format(DiskMgmtKeys.ErrSizeLimitsFormat, ex.Message), null);
             }
         }
 
@@ -1110,7 +1108,7 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
                 removeOutParams?.Dispose();
 
                 if (returnValue == DiskManagementConstants.WMI_SUCCESS)
-                    return OperationResult.Ok($"Drive letter {driveLetter}: removed successfully.");
+                    return OperationResult.Ok(DiskMgmtText.Format(DiskMgmtKeys.OkLetterRemovedFormat, driveLetter));
 
                 LogDebug(nameof(RemoveDriveLetterFromPartition),
                     $"RemoveAccessPath returned {returnValue}, falling back to DeleteVolumeMountPoint.");
@@ -1128,14 +1126,14 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
                 {
                     var lastErr = Marshal.GetLastWin32Error();
                     return OperationResult.Fail(
-                        $"Removal failed. Win32 Error: {lastErr}");
+                        DiskMgmtText.Format(DiskMgmtKeys.ErrRemovalWin32Format, lastErr));
                 }
 
-                return OperationResult.Ok($"Drive letter {driveLetter}: removed successfully.");
+                return OperationResult.Ok(DiskMgmtText.Format(DiskMgmtKeys.OkLetterRemovedFormat, driveLetter));
             }
             catch (Exception ex)
             {
-                return OperationResult.Fail($"Removal failed: {ex.Message}");
+                return OperationResult.Fail(DiskMgmtText.Format(DiskMgmtKeys.ErrRemovalFailedFormat, ex.Message));
             }
         }
 
@@ -1181,6 +1179,22 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
                 }
             }
 
+            // Basic Data GUIDs can still contain OEM recovery images. Reuse the full
+            // partition safety check so direct service calls cannot bypass the UI guard.
+            var diskNumber = partition.GetPropertySafe<uint>("DiskNumber");
+            var partitionNumber = partition.GetPropertySafe<uint>("PartitionNumber");
+            if (partitionNumber > 0)
+            {
+                var safetyMessage = _service.ValidatePartitionOperationSafety(
+                    diskNumber,
+                    partitionNumber - 1);
+                if (!string.IsNullOrEmpty(safetyMessage))
+                {
+                    reason = safetyMessage;
+                    return true;
+                }
+            }
+
             // Additional check: MBR system partition (non-boot)
             var isBoot = partition.GetPropertySafe<bool>("IsBoot");
             var isSystem = partition.GetPropertySafe<bool>("IsSystem");
@@ -1201,7 +1215,7 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
             var normalized = NormalizeDriveLetter(driveLetter);
 
             if (normalized.Length != 1 || normalized[0] < 'A' || normalized[0] > 'Z')
-                return (false, "Drive letter must be a single letter from A to Z.");
+                return (false, DiskMgmtText.Get(DiskMgmtKeys.ErrDriveLetterRange));
 
             return (true, null);
         }
@@ -1254,12 +1268,12 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
                                    / DiskManagementConstants.BYTES_PER_MB;
 
                 return new QueryResult<ulong>(true, shrinkableMB,
-                    $"Estimated shrinkable space: {shrinkableMB} MB (actual may be less due to unmovable files)");
+                    DiskMgmtText.Format(DiskMgmtKeys.QueryEstimatedShrinkableFormat, shrinkableMB));
             }
             catch (Exception ex)
             {
                 LogError(nameof(EstimateShrinkableSpace), ex);
-                return new QueryResult<ulong>(false, 0, "Unable to estimate shrinkable space.");
+                return new QueryResult<ulong>(false, 0, DiskMgmtText.Get(DiskMgmtKeys.ErrEstimateShrink));
             }
         }
 
@@ -1323,7 +1337,7 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
                 DiagnosticLogger.LogOperationError(operationName, wex,
                     diskIndex, partitionIndex, driveLetter,
                     $"WMI Error Code: 0x{wex.HResult:X8}");
-                return OperationResult.Fail($"{operationName} failed: {wex.Message}");
+                return OperationResult.Fail(DiskMgmtText.Format(DiskMgmtKeys.ErrOperationFailedFormat, operationName, wex.Message));
             }
             catch (COMException comEx)
             {
@@ -1331,7 +1345,7 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
                     diskIndex, partitionIndex, driveLetter,
                     $"COM HRESULT: 0x{comEx.HResult:X8}");
                 return OperationResult.Fail(
-                    $"{operationName} failed with COM error: {comEx.Message} (0x{comEx.HResult:X8})");
+                    DiskMgmtText.Format(DiskMgmtKeys.ErrOperationComFailedFormat, operationName, $"{comEx.Message} (0x{comEx.HResult:X8})"));
             }
             catch (UnauthorizedAccessException uaEx)
             {
@@ -1343,7 +1357,7 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
             {
                 DiagnosticLogger.LogOperationError(operationName, ex,
                     diskIndex, partitionIndex, driveLetter);
-                return OperationResult.Fail($"Error during {operationName}: {ex.Message}");
+                return OperationResult.Fail(DiskMgmtText.Format(DiskMgmtKeys.ErrErrorDuringFormat, operationName, ex.Message));
             }
         }
 
@@ -1379,7 +1393,7 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
                 DiagnosticLogger.LogOperationError(operationName, wex,
                     diskIndex, partitionIndex, driveLetter,
                     $"WMI Error Code: 0x{wex.HResult:X8}");
-                return new QueryResult<T>(false, default(T)!, $"{operationName} failed: {wex.Message}");
+                return new QueryResult<T>(false, default(T)!, DiskMgmtText.Format(DiskMgmtKeys.ErrOperationFailedFormat, operationName, wex.Message));
             }
             catch (COMException comEx)
             {
@@ -1387,7 +1401,7 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
                     diskIndex, partitionIndex, driveLetter,
                     $"COM HRESULT: 0x{comEx.HResult:X8}");
                 return new QueryResult<T>(false, default(T)!,
-                    $"{operationName} failed with COM error: {comEx.Message}");
+                    DiskMgmtText.Format(DiskMgmtKeys.ErrOperationComFailedFormat, operationName, comEx.Message));
             }
             catch (UnauthorizedAccessException uaEx)
             {
@@ -1399,7 +1413,7 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
             {
                 DiagnosticLogger.LogOperationError(operationName, ex,
                     diskIndex, partitionIndex, driveLetter);
-                return new QueryResult<T>(false, default(T)!, $"Error during {operationName}: {ex.Message}");
+                return new QueryResult<T>(false, default(T)!, DiskMgmtText.Format(DiskMgmtKeys.ErrErrorDuringFormat, operationName, ex.Message));
             }
         }
 

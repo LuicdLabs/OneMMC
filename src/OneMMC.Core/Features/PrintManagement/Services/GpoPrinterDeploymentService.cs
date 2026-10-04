@@ -9,6 +9,7 @@ using OneMMC.Core.Infrastructure.Interop.Adsi;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using OneMMC.Core.Features.PrintManagement.Models;
+using OneMMC.Core.Localization;
 
 namespace OneMMC.Core.Features.PrintManagement.Services;
 
@@ -18,6 +19,8 @@ namespace OneMMC.Core.Features.PrintManagement.Services;
 public sealed class GpoPrinterDeploymentService
 {
     private readonly ILogger<GpoPrinterDeploymentService> _logger;
+
+    private static string L(string key) => LocalizationProvider.Current.GetString(ResourceFileNames.PrintManagement, key);
 
     public GpoPrinterDeploymentService()
         : this(NullLogger<GpoPrinterDeploymentService>.Instance)
@@ -43,7 +46,7 @@ public sealed class GpoPrinterDeploymentService
             string? printerName = GetPrinterName(connectionPath);
             if (string.IsNullOrWhiteSpace(serverName) || string.IsNullOrWhiteSpace(printerName))
             {
-                throw new ArgumentException("Invalid printer connection path.", nameof(connectionPath));
+                throw new ArgumentException(L(PrintMgmtKeys.ErrorInvalidConnectionPath), nameof(connectionPath));
             }
 
             var results = new List<GpoPrinterDeploymentEntry>();
@@ -159,7 +162,7 @@ public sealed class GpoPrinterDeploymentService
 
             if (string.IsNullOrWhiteSpace(serverName) || string.IsNullOrWhiteSpace(printerName))
             {
-                throw new ArgumentException("Invalid printer connection path.", nameof(connectionPath));
+                throw new ArgumentException(L(PrintMgmtKeys.ErrorInvalidConnectionPath), nameof(connectionPath));
             }
 
             using var gpoEntry = Adsi.BindObject(gpoPath);
@@ -204,18 +207,18 @@ public sealed class GpoPrinterDeploymentService
             string dn = Adsi.GetDefaultNamingContext();
             if (string.IsNullOrWhiteSpace(dn))
             {
-                throw new InvalidOperationException("Unable to resolve the Active Directory domain.");
+                throw new InvalidOperationException(L(PrintMgmtKeys.ErrorResolveDomain));
             }
 
             return dn;
         }
         catch (COMException ex) when (Adsi.IsDirectoryUnavailable(ex.ErrorCode))
         {
-            throw new InvalidOperationException("Unable to connect to Active Directory.", ex);
+            throw new InvalidOperationException(L(PrintMgmtKeys.ErrorConnectDirectory), ex);
         }
         catch (COMException ex)
         {
-            throw new InvalidOperationException("Active Directory domain not found.", ex);
+            throw new InvalidOperationException(L(PrintMgmtKeys.ErrorDomainNotFound), ex);
         }
     }
 

@@ -558,4 +558,837 @@
   <data name="DiskMgmt_Yes" xml:space="preserve">
     <value>Yes</value>
   </data>
+  <data name="DiskMgmt_OemRecoveryPartition" xml:space="preserve">
+    <value>OEM Recovery Partition</value>
+  </data>
+  <data name="DiskMgmt_OemRecoveryWarning" xml:space="preserve">
+    <value>OEM Recovery Partition - This partition contains manufacturer recovery resources; do not modify it.</value>
+  </data>
+  <data name="DiskMgmt_CannotDeleteOemRecoveryPartition" xml:space="preserve">
+    <value>Cannot delete OEM Recovery Partition. This partition is used by the manufacturer for system recovery.</value>
+  </data>
+  <data name="DiskMgmt_ErrorTitle" xml:space="preserve">
+    <value>Error</value>
+  </data>
+  <data name="DiskMgmt_Result_VhdCreateFailed" xml:space="preserve">
+    <value>VHD Creation Failed</value>
+  </data>
+  <data name="DiskMgmt_Result_VhdAttachFailed" xml:space="preserve">
+    <value>VHD Attach Failed</value>
+  </data>
+  <data name="DiskMgmt_Result_VhdDetachFailed" xml:space="preserve">
+    <value>Detach VHD Failed</value>
+  </data>
+  <data name="DiskMgmt_Result_EjectFailed" xml:space="preserve">
+    <value>Eject Failed</value>
+  </data>
+  <data name="DiskMgmt_Result_AssignDriveLetterFailed" xml:space="preserve">
+    <value>Assign Drive Letter Failed</value>
+  </data>
+  <data name="DiskMgmt_Result_ChangeDriveLetterFailed" xml:space="preserve">
+    <value>Change Drive Letter Failed</value>
+  </data>
+  <data name="DiskMgmt_Result_FormatFailed" xml:space="preserve">
+    <value>Format Volume Failed</value>
+  </data>
+  <data name="DiskMgmt_Result_InitializeFailed" xml:space="preserve">
+    <value>Initialize Disk Failed</value>
+  </data>
+  <data name="DiskMgmt_Result_CreateVolumeFailed" xml:space="preserve">
+    <value>Create Volume Failed</value>
+  </data>
+  <data name="DiskMgmt_Result_SetOnlineFailed" xml:space="preserve">
+    <value>Set Online Failed</value>
+  </data>
+  <data name="DiskMgmt_Result_SetOfflineFailed" xml:space="preserve">
+    <value>Set Offline Failed</value>
+  </data>
+  <data name="DiskMgmt_Result_SetReadOnlyFailed" xml:space="preserve">
+    <value>Set Read-Only Failed</value>
+  </data>
+  <data name="DiskMgmt_Result_ClearReadOnlyFailed" xml:space="preserve">
+    <value>Clear Read-Only Failed</value>
+  </data>
+  <data name="DiskMgmt_Result_CleanFailed" xml:space="preserve">
+    <value>Clean Disk Failed</value>
+  </data>
+  <data name="DiskMgmt_Result_DeleteVolumeFailed" xml:space="preserve">
+    <value>Delete Volume Failed</value>
+  </data>
+  <data name="DiskMgmt_Result_ExtendFailed" xml:space="preserve">
+    <value>Extend Volume Failed</value>
+  </data>
+  <data name="DiskMgmt_Result_ShrinkFailed" xml:space="preserve">
+    <value>Shrink Volume Failed</value>
+  </data>
+  <data name="DiskMgmt_Result_RemoveDriveLetterFailed" xml:space="preserve">
+    <value>Remove Drive Letter Failed</value>
+  </data>
+  <data name="DiskMgmt_Result_MountFailed" xml:space="preserve">
+    <value>Mount to Folder Failed</value>
+  </data>
+  <data name="DiskMgmt_Result_MarkActiveFailed" xml:space="preserve">
+    <value>Mark Active Failed</value>
+  </data>
+  <data name="DiskMgmt_Result_QueryFailed" xml:space="preserve">
+    <value>Query Failed</value>
+  </data>
+  <data name="DiskMgmt_Result_NoSpaceAvailable" xml:space="preserve">
+    <value>No Space Available</value>
+  </data>
+  <data name="DiskMgmt_Result_OperationNotSupported" xml:space="preserve">
+    <value>Operation Not Supported</value>
+  </data>
+  <data name="DiskMgmt_Msg_CannotFormatWithoutLetter" xml:space="preserve">
+    <value>Cannot format a partition without a drive letter.</value>
+  </data>
+  <data name="DiskMgmt_Msg_InvalidCdrom" xml:space="preserve">
+    <value>Invalid CD-ROM drive.</value>
+  </data>
+  <data name="DiskMgmt_Msg_ResizeNotSupported" xml:space="preserve">
+    <value>This partition type (System/Reserved/Recovery) does not support resizing operations.</value>
+  </data>
+  <data name="DiskMgmt_Msg_NoExtendSpace" xml:space="preserve">
+    <value>No unallocated space available for extension.</value>
+  </data>
+  <data name="DiskMgmt_Msg_ExtendNeedsLetter" xml:space="preserve">
+    <value>Extending partitions without drive letters is not yet supported. Please assign a drive letter first.</value>
+  </data>
+  <data name="DiskMgmt_Msg_NoShrinkSpace" xml:space="preserve">
+    <value>No shrinkable space available. This may be due to unmovable files.</value>
+  </data>
+  <data name="DiskMgmt_Msg_ShrinkSizeZero" xml:space="preserve">
+    <value>Shrink size must be greater than 0.</value>
+  </data>
+  <data name="DiskMgmt_Msg_ShrinkNeedsLetter" xml:space="preserve">
+    <value>Shrinking partitions without drive letters is not yet supported. Please assign a drive letter first.</value>
+  </data>
+  <data name="DiskMgmt_Msg_NoDriveLetter" xml:space="preserve">
+    <value>This partition does not have a drive letter.</value>
+  </data>
+  <data name="DiskMgmt_Msg_CannotMountWithoutLetter" xml:space="preserve">
+    <value>Cannot mount a partition without a drive letter.</value>
+  </data>
+  <data name="DiskMgmt_FileFilter_Vhd" xml:space="preserve">
+    <value>Virtual Hard Disk</value>
+  </data>
+  <data name="DiskMgmt_FileFilter_Vhdx" xml:space="preserve">
+    <value>Virtual Hard Disk (*.vhdx)</value>
+  </data>
+  <data name="DiskMgmt_FileFilter_VhdLegacy" xml:space="preserve">
+    <value>Virtual Hard Disk (*.vhd)</value>
+  </data>
+  <data name="DiskMgmt_SelectVhdToDetach" xml:space="preserve">
+    <value>Select Virtual Hard Disk to Detach</value>
+  </data>
+  <data name="DiskMgmt_SelectVhd" xml:space="preserve">
+    <value>Select Virtual Hard Disk</value>
+  </data>
+  <data name="DiskMgmt_SelectPlaceholder" xml:space="preserve">
+    <value>Select</value>
+  </data>
+  <data name="DiskMgmt_Alloc512" xml:space="preserve">
+    <value>512 bytes</value>
+  </data>
+  <data name="DiskMgmt_Alloc1024" xml:space="preserve">
+    <value>1024 bytes</value>
+  </data>
+  <data name="DiskMgmt_Alloc2048" xml:space="preserve">
+    <value>2048 bytes</value>
+  </data>
+  <data name="DiskMgmt_Alloc4096" xml:space="preserve">
+    <value>4096 bytes</value>
+  </data>
+  <data name="DiskMgmt_Alloc8192" xml:space="preserve">
+    <value>8192 bytes</value>
+  </data>
+  <data name="DiskMgmt_DiskInfoFormat" xml:space="preserve">
+    <value>Disk {0} - {1}</value>
+  </data>
+  <data name="DiskMgmt_MaxSizeFormat" xml:space="preserve">
+    <value>Maximum size: {0} MB (Minimum: {1} MB)</value>
+  </data>
+  <data name="DiskMgmt_NoShrinkSpaceShort" xml:space="preserve">
+    <value>0 MB (No shrinkable space available)</value>
+  </data>
+  <data name="DiskMgmt_DriveCountSingular" xml:space="preserve">
+    <value>{0} drive</value>
+  </data>
+  <data name="DiskMgmt_DriveCountPlural" xml:space="preserve">
+    <value>{0} drives</value>
+  </data>
+  <data name="DiskMgmt_Status_Loading" xml:space="preserve">
+    <value>Loading disk information...</value>
+  </data>
+  <data name="DiskMgmt_Status_LoadedFormat" xml:space="preserve">
+    <value>Loaded {0} disk(s), {1} partition(s), {2} CD/DVD drive(s)</value>
+  </data>
+  <data name="DiskMgmt_Status_StoragePoolsSuffixFormat" xml:space="preserve">
+    <value>, {0} storage pool(s)</value>
+  </data>
+  <data name="DiskMgmt_Status_LoadErrorFormat" xml:space="preserve">
+    <value>Error loading disks: {0}</value>
+  </data>
+  <data name="DiskMgmt_Status_Refreshing" xml:space="preserve">
+    <value>Refreshing...</value>
+  </data>
+  <data name="DiskMgmt_Status_RefreshErrorFormat" xml:space="preserve">
+    <value>Error refreshing: {0}</value>
+  </data>
+  <data name="DiskMgmt_Status_FailedFormat" xml:space="preserve">
+    <value>Failed: {0}</value>
+  </data>
+  <data name="DiskMgmt_Status_ErrorFormat" xml:space="preserve">
+    <value>Error: {0}</value>
+  </data>
+  <data name="DiskMgmt_Status_CreatingVhd" xml:space="preserve">
+    <value>Creating virtual hard disk...</value>
+  </data>
+  <data name="DiskMgmt_Status_CreateVhdErrorFormat" xml:space="preserve">
+    <value>Error creating VHD: {0}</value>
+  </data>
+  <data name="DiskMgmt_Status_AttachingVhd" xml:space="preserve">
+    <value>Attaching virtual hard disk...</value>
+  </data>
+  <data name="DiskMgmt_Status_AttachVhdErrorFormat" xml:space="preserve">
+    <value>Error attaching VHD: {0}</value>
+  </data>
+  <data name="DiskMgmt_Status_DetachingVhd" xml:space="preserve">
+    <value>Detaching virtual hard disk...</value>
+  </data>
+  <data name="DiskMgmt_Status_DetachVhdErrorFormat" xml:space="preserve">
+    <value>Error detaching VHD: {0}</value>
+  </data>
+  <data name="DiskMgmt_Status_EjectingMedia" xml:space="preserve">
+    <value>Ejecting media...</value>
+  </data>
+  <data name="DiskMgmt_Status_EjectErrorFormat" xml:space="preserve">
+    <value>Error ejecting media: {0}</value>
+  </data>
+  <data name="DiskMgmt_Status_LoadingMedia" xml:space="preserve">
+    <value>Loading media...</value>
+  </data>
+  <data name="DiskMgmt_Status_LoadMediaErrorFormat" xml:space="preserve">
+    <value>Error loading media: {0}</value>
+  </data>
+  <data name="DiskMgmt_Status_ChangingDriveLetter" xml:space="preserve">
+    <value>Changing drive letter...</value>
+  </data>
+  <data name="DiskMgmt_Status_ChangeDriveLetterErrorFormat" xml:space="preserve">
+    <value>Error changing drive letter: {0}</value>
+  </data>
+  <data name="DiskMgmt_Status_RemovingDriveLetter" xml:space="preserve">
+    <value>Removing drive letter...</value>
+  </data>
+  <data name="DiskMgmt_Status_RemoveDriveLetterErrorFormat" xml:space="preserve">
+    <value>Error removing drive letter: {0}</value>
+  </data>
+  <data name="DiskMgmt_Status_AssigningDriveLetter" xml:space="preserve">
+    <value>Assigning drive letter...</value>
+  </data>
+  <data name="DiskMgmt_Status_AssignDriveLetterErrorFormat" xml:space="preserve">
+    <value>Error assigning drive letter: {0}</value>
+  </data>
+  <data name="DiskMgmt_Status_ManageDriveLetterErrorFormat" xml:space="preserve">
+    <value>Error managing drive letter: {0}</value>
+  </data>
+  <data name="DiskMgmt_Status_ConsoleOpened" xml:space="preserve">
+    <value>Disk Management console opened</value>
+  </data>
+  <data name="DiskMgmt_Status_OpenConsoleErrorFormat" xml:space="preserve">
+    <value>Error opening Disk Management: {0}</value>
+  </data>
+  <data name="DiskMgmt_Status_BringingOnline" xml:space="preserve">
+    <value>Bringing disk online...</value>
+  </data>
+  <data name="DiskMgmt_Status_TakingOffline" xml:space="preserve">
+    <value>Taking disk offline...</value>
+  </data>
+  <data name="DiskMgmt_Status_Formatting" xml:space="preserve">
+    <value>Formatting volume...</value>
+  </data>
+  <data name="DiskMgmt_Status_FormatErrorFormat" xml:space="preserve">
+    <value>Error formatting volume: {0}</value>
+  </data>
+  <data name="DiskMgmt_Status_InitializingFormat" xml:space="preserve">
+    <value>Initializing disk {0}...</value>
+  </data>
+  <data name="DiskMgmt_Status_InitializeErrorFormat" xml:space="preserve">
+    <value>Error initializing disk: {0}</value>
+  </data>
+  <data name="DiskMgmt_Status_CreatingVolume" xml:space="preserve">
+    <value>Creating volume...</value>
+  </data>
+  <data name="DiskMgmt_Status_CreateVolumeErrorFormat" xml:space="preserve">
+    <value>Error creating volume: {0}</value>
+  </data>
+  <data name="DiskMgmt_Status_DeletingVolume" xml:space="preserve">
+    <value>Deleting volume...</value>
+  </data>
+  <data name="DiskMgmt_Status_DeleteVolumeErrorFormat" xml:space="preserve">
+    <value>Error deleting volume: {0}</value>
+  </data>
+  <data name="DiskMgmt_Status_Extending" xml:space="preserve">
+    <value>Extending volume...</value>
+  </data>
+  <data name="DiskMgmt_Status_ExtendErrorFormat" xml:space="preserve">
+    <value>Error extending volume: {0}</value>
+  </data>
+  <data name="DiskMgmt_Status_Shrinking" xml:space="preserve">
+    <value>Shrinking volume...</value>
+  </data>
+  <data name="DiskMgmt_Status_ShrinkErrorFormat" xml:space="preserve">
+    <value>Error shrinking volume: {0}</value>
+  </data>
+  <data name="DiskMgmt_Status_MarkingActive" xml:space="preserve">
+    <value>Marking partition as active...</value>
+  </data>
+  <data name="DiskMgmt_Status_MarkActiveErrorFormat" xml:space="preserve">
+    <value>Error marking partition as active: {0}</value>
+  </data>
+  <data name="DiskMgmt_Status_Mounting" xml:space="preserve">
+    <value>Mounting volume to folder...</value>
+  </data>
+  <data name="DiskMgmt_Status_MountErrorFormat" xml:space="preserve">
+    <value>Error mounting volume: {0}</value>
+  </data>
+  <data name="DiskMgmt_Status_Cleaning" xml:space="preserve">
+    <value>Cleaning disk...</value>
+  </data>
+  <data name="DiskMgmt_Status_CleanErrorFormat" xml:space="preserve">
+    <value>Error cleaning disk: {0}</value>
+  </data>
+  <data name="DiskMgmt_Status_SettingReadOnly" xml:space="preserve">
+    <value>Setting disk as read-only...</value>
+  </data>
+  <data name="DiskMgmt_Status_ClearingReadOnly" xml:space="preserve">
+    <value>Clearing read-only attribute...</value>
+  </data>
+  <data name="DiskMgmt_Err_DriveLetterEmpty" xml:space="preserve">
+    <value>Drive letter cannot be empty.</value>
+  </data>
+  <data name="DiskMgmt_Err_SizeRequired" xml:space="preserve">
+    <value>Size must be greater than 0.</value>
+  </data>
+  <data name="DiskMgmt_Err_DiskNotFound" xml:space="preserve">
+    <value>Specified disk not found.</value>
+  </data>
+  <data name="DiskMgmt_Err_PartitionNotFound" xml:space="preserve">
+    <value>Specified partition not found.</value>
+  </data>
+  <data name="DiskMgmt_Err_VolumeNotFound" xml:space="preserve">
+    <value>Volume not found.</value>
+  </data>
+  <data name="DiskMgmt_Err_DriveLetterInUse" xml:space="preserve">
+    <value>Drive letter is already in use.</value>
+  </data>
+  <data name="DiskMgmt_Err_DriveLetterSame" xml:space="preserve">
+    <value>New and old drive letters are the same.</value>
+  </data>
+  <data name="DiskMgmt_Err_FolderNotExist" xml:space="preserve">
+    <value>Folder does not exist.</value>
+  </data>
+  <data name="DiskMgmt_Err_DriveNotReady" xml:space="preserve">
+    <value>Drive is not ready.</value>
+  </data>
+  <data name="DiskMgmt_Err_NoExtensionSpace" xml:space="preserve">
+    <value>No available space for extension.</value>
+  </data>
+  <data name="DiskMgmt_Err_NoAccessPath" xml:space="preserve">
+    <value>This partition does not have a drive letter assigned.</value>
+  </data>
+  <data name="DiskMgmt_Err_SystemDriveFormat" xml:space="preserve">
+    <value>Formatting system drive is strictly prohibited! Drive '{0}' contains the Windows operating system. Formatting it will make the system unbootable.</value>
+  </data>
+  <data name="DiskMgmt_Err_SystemDriveLetterRemoval" xml:space="preserve">
+    <value>Removing system drive letter is strictly prohibited! Drive '{0}' contains the Windows operating system. Removing it will cause system malfunction.</value>
+  </data>
+  <data name="DiskMgmt_Err_SystemDiskClean" xml:space="preserve">
+    <value>Strictly forbidden to clean system disk! This disk contains the Windows operating system, cleaning will make the system unbootable.</value>
+  </data>
+  <data name="DiskMgmt_Err_CriticalPartitionsOnDisk" xml:space="preserve">
+    <value>This disk contains critical system partitions (EFI, Recovery partition), cleaning may cause system boot failure.</value>
+  </data>
+  <data name="DiskMgmt_Err_CannotDeleteSystemPartition" xml:space="preserve">
+    <value>Cannot perform this operation on system partition. Drive "{0}" contains the Windows operating system.</value>
+  </data>
+  <data name="DiskMgmt_Err_CannotDeleteEfiPartition" xml:space="preserve">
+    <value>Cannot delete EFI System Partition. This partition is required for boot.</value>
+  </data>
+  <data name="DiskMgmt_Err_CannotDeleteRecoveryPartition" xml:space="preserve">
+    <value>Cannot delete Recovery Partition. This partition is used for system recovery.</value>
+  </data>
+  <data name="DiskMgmt_Err_CannotDeleteMsrPartition" xml:space="preserve">
+    <value>Cannot delete Microsoft Reserved Partition. This partition is required for system operation.</value>
+  </data>
+  <data name="DiskMgmt_Err_CriticalSystemPartition" xml:space="preserve">
+    <value>Cannot perform this operation on this critical system partition.</value>
+  </data>
+  <data name="DiskMgmt_Err_SpecialPartitionOperation" xml:space="preserve">
+    <value>This partition type (System/Reserved/Recovery) does not support this operation.</value>
+  </data>
+  <data name="DiskMgmt_Err_PartitionNotSupportResize" xml:space="preserve">
+    <value>This partition does not support resizing. It may be a system, recovery, or special partition type.</value>
+  </data>
+  <data name="DiskMgmt_Err_MbrOnly" xml:space="preserve">
+    <value>Only MBR disks support marking active partition. GPT disks use EFI system partition for boot.</value>
+  </data>
+  <data name="DiskMgmt_Err_DiskMustBeCleanedBeforeConversion" xml:space="preserve">
+    <value>Disk must be cleaned of all partitions before conversion. Please use 'Clean Disk' function first.</value>
+  </data>
+  <data name="DiskMgmt_Err_DiskAlreadyGpt" xml:space="preserve">
+    <value>Disk is already GPT format.</value>
+  </data>
+  <data name="DiskMgmt_Err_DiskAlreadyMbr" xml:space="preserve">
+    <value>Disk is already MBR format.</value>
+  </data>
+  <data name="DiskMgmt_Err_DiskAlreadyDynamic" xml:space="preserve">
+    <value>Disk is already a dynamic disk.</value>
+  </data>
+  <data name="DiskMgmt_Err_DiskAlreadyBasic" xml:space="preserve">
+    <value>Disk is already a basic disk.</value>
+  </data>
+  <data name="DiskMgmt_Err_VhdPathEmpty" xml:space="preserve">
+    <value>VHD path cannot be empty.</value>
+  </data>
+  <data name="DiskMgmt_Err_VhdFileNotFound" xml:space="preserve">
+    <value>VHD file not found.</value>
+  </data>
+  <data name="DiskMgmt_Err_VhdFileAlreadyExists" xml:space="preserve">
+    <value>VHD file already exists.</value>
+  </data>
+  <data name="DiskMgmt_Err_VhdFileInUse" xml:space="preserve">
+    <value>File is being used by another process.</value>
+  </data>
+  <data name="DiskMgmt_Err_DynamicDiskDeprecated" xml:space="preserve">
+    <value>Dynamic disk conversion feature is not available in this version.
+
+Tips:
+• Please use Windows Disk Management console (diskmgmt.msc) for conversion
+• Microsoft has marked dynamic disks as deprecated technology
+• Consider using Storage Spaces as an alternative solution</value>
+  </data>
+  <data name="DiskMgmt_Err_DynamicDiskSystemWarning" xml:space="preserve">
+    <value>Not recommended to convert system disk to dynamic disk. This operation may cause system boot failure or prevent system upgrades.</value>
+  </data>
+  <data name="DiskMgmt_Err_InvalidDriveLetter" xml:space="preserve">
+    <value>Invalid drive letter</value>
+  </data>
+  <data name="DiskMgmt_Err_InvalidCurrentDriveLetter" xml:space="preserve">
+    <value>Invalid current drive letter</value>
+  </data>
+  <data name="DiskMgmt_Err_InvalidNewDriveLetter" xml:space="preserve">
+    <value>Invalid new drive letter</value>
+  </data>
+  <data name="DiskMgmt_Err_DriveLetterRange" xml:space="preserve">
+    <value>Drive letter must be a single letter from A to Z.</value>
+  </data>
+  <data name="DiskMgmt_Err_DriveLetterSameAsCurrent" xml:space="preserve">
+    <value>New drive letter is the same as current.</value>
+  </data>
+  <data name="DiskMgmt_Err_DriveLetterInUseFormat" xml:space="preserve">
+    <value>Drive letter {0}: is already in use.</value>
+  </data>
+  <data name="DiskMgmt_Err_VolumeInfoWin32Format" xml:space="preserve">
+    <value>Unable to get volume information. Win32 Error: {0}</value>
+  </data>
+  <data name="DiskMgmt_Err_VolumeInfoForWin32Format" xml:space="preserve">
+    <value>Unable to get volume information for {0}:. Win32 Error: {1}</value>
+  </data>
+  <data name="DiskMgmt_Err_RemoveOldLetterWin32Format" xml:space="preserve">
+    <value>Unable to remove old drive letter. Win32 Error: {0}</value>
+  </data>
+  <data name="DiskMgmt_Err_SetNewLetterWin32Format" xml:space="preserve">
+    <value>Unable to set new drive letter. Win32 Error: {0}</value>
+  </data>
+  <data name="DiskMgmt_Err_SetNewLetterRestoredFormat" xml:space="preserve">
+    <value>Unable to set new drive letter. Win32 Error: {0}. Original drive letter restored.</value>
+  </data>
+  <data name="DiskMgmt_Err_SetNewLetterRollbackFailedFormat" xml:space="preserve">
+    <value>Unable to set new drive letter (Win32 Error: {0}). WARNING: Rollback also failed (Win32 Error: {1}). Volume GUID: {2} - manual intervention required.</value>
+  </data>
+  <data name="DiskMgmt_Err_AssignLetterWin32Format" xml:space="preserve">
+    <value>Unable to assign drive letter. Win32 Error: {0}</value>
+  </data>
+  <data name="DiskMgmt_Err_RemovalWin32Format" xml:space="preserve">
+    <value>Removal failed. Win32 Error: {0}</value>
+  </data>
+  <data name="DiskMgmt_Err_RemovalFailedFormat" xml:space="preserve">
+    <value>Removal failed: {0}</value>
+  </data>
+  <data name="DiskMgmt_Err_OpenDeviceWin32Format" xml:space="preserve">
+    <value>Failed to open device: Win32 Error {0}</value>
+  </data>
+  <data name="DiskMgmt_Err_ActionWin32Format" xml:space="preserve">
+    <value>{0} failed: Win32 Error {1}</value>
+  </data>
+  <data name="DiskMgmt_Err_OperationFailedFormat" xml:space="preserve">
+    <value>{0} failed: {1}</value>
+  </data>
+  <data name="DiskMgmt_Err_OperationComFailedFormat" xml:space="preserve">
+    <value>{0} failed with COM error: {1}</value>
+  </data>
+  <data name="DiskMgmt_Err_ErrorDuringFormat" xml:space="preserve">
+    <value>Error during {0}: {1}</value>
+  </data>
+  <data name="DiskMgmt_Err_FailedFormat" xml:space="preserve">
+    <value>Failed: {0}</value>
+  </data>
+  <data name="DiskMgmt_Err_ErrorCodeFormat" xml:space="preserve">
+    <value>Operation failed. Error code: {0} - {1}</value>
+  </data>
+  <data name="DiskMgmt_Err_ErrorCodeOnlyFormat" xml:space="preserve">
+    <value>Operation failed. Error code: {0}</value>
+  </data>
+  <data name="DiskMgmt_Err_InitializeCodeFormat" xml:space="preserve">
+    <value>Initialization failed. Error code: {0} - {1}</value>
+  </data>
+  <data name="DiskMgmt_Err_CleanCodeFormat" xml:space="preserve">
+    <value>Clean failed. Error code: {0} - {1}</value>
+  </data>
+  <data name="DiskMgmt_Err_DeletionCodeFormat" xml:space="preserve">
+    <value>Deletion failed. Error code: {0} - {1}</value>
+  </data>
+  <data name="DiskMgmt_Err_AssignmentCodeFormat" xml:space="preserve">
+    <value>Assignment failed. Error code: {0} - {1}</value>
+  </data>
+  <data name="DiskMgmt_Err_FormattingCodeFormat" xml:space="preserve">
+    <value>Formatting failed. Error code: {0} - {1}</value>
+  </data>
+  <data name="DiskMgmt_Err_ResizeCodeFormat" xml:space="preserve">
+    <value>Resize failed. Error code: {0} - {1}</value>
+  </data>
+  <data name="DiskMgmt_Err_CreatePartitionCodeFormat" xml:space="preserve">
+    <value>Failed to create partition. Error code: {0} - {1}</value>
+  </data>
+  <data name="DiskMgmt_Err_SizeLimitsCodeFormat" xml:space="preserve">
+    <value>Unable to query partition size limits. Error code: {0} - {1}</value>
+  </data>
+  <data name="DiskMgmt_Err_SizeLimitsFormat" xml:space="preserve">
+    <value>Unable to query partition size limits: {0}</value>
+  </data>
+  <data name="DiskMgmt_Err_PathEmpty" xml:space="preserve">
+    <value>Path cannot be empty.</value>
+  </data>
+  <data name="DiskMgmt_Err_SizeAtLeast1Mb" xml:space="preserve">
+    <value>Size must be at least 1 MB.</value>
+  </data>
+  <data name="DiskMgmt_Err_FileAlreadyExists" xml:space="preserve">
+    <value>File already exists.</value>
+  </data>
+  <data name="DiskMgmt_Err_FileNotFoundFormat" xml:space="preserve">
+    <value>File not found: {0}</value>
+  </data>
+  <data name="DiskMgmt_Err_VolumeNotFoundFormat" xml:space="preserve">
+    <value>Volume {0}: not found.</value>
+  </data>
+  <data name="DiskMgmt_Err_ValueWithDetailFormat" xml:space="preserve">
+    <value>{0}: {1}</value>
+  </data>
+  <data name="DiskMgmt_Err_SystemLetterRemovalProhibited" xml:space="preserve">
+    <value>Removing system drive letter is strictly prohibited!</value>
+  </data>
+  <data name="DiskMgmt_Err_FolderPathEmpty" xml:space="preserve">
+    <value>Folder path cannot be empty.</value>
+  </data>
+  <data name="DiskMgmt_Err_FolderNotEmptyFormat" xml:space="preserve">
+    <value>Folder must be empty to be used as a mount point: {0}</value>
+  </data>
+  <data name="DiskMgmt_Err_MountWin32Format" xml:space="preserve">
+    <value>Unable to mount volume to folder. Win32 Error: {0}</value>
+  </data>
+  <data name="DiskMgmt_Err_FormatAfterCreateFailedFormat" xml:space="preserve">
+    <value>Partition created, but formatting failed: {0}</value>
+  </data>
+  <data name="DiskMgmt_Err_CreatePartitionFailedFormat" xml:space="preserve">
+    <value>Failed to create partition: {0}</value>
+  </data>
+  <data name="DiskMgmt_Err_PartitionNoReference" xml:space="preserve">
+    <value>Partition created, but unable to get reference for formatting. Please format manually.</value>
+  </data>
+  <data name="DiskMgmt_Err_LocatePartitionForFormat" xml:space="preserve">
+    <value>Unable to locate partition for formatting - missing disk/partition number.</value>
+  </data>
+  <data name="DiskMgmt_Err_FormattingErrorFormat" xml:space="preserve">
+    <value>Error occurred during formatting: {0}</value>
+  </data>
+  <data name="DiskMgmt_Err_FindPartitionForFormat" xml:space="preserve">
+    <value>Unable to find partition for formatting.</value>
+  </data>
+  <data name="DiskMgmt_Err_FindVolumeForFormat" xml:space="preserve">
+    <value>Unable to find corresponding volume for formatting.</value>
+  </data>
+  <data name="DiskMgmt_Err_FallbackFormatFailedFormat" xml:space="preserve">
+    <value>Fallback format failed: {0}</value>
+  </data>
+  <data name="DiskMgmt_Err_FormattingFailedFormat" xml:space="preserve">
+    <value>Formatting failed: {0}</value>
+  </data>
+  <data name="DiskMgmt_Err_ExtendExceedsFormat" xml:space="preserve">
+    <value>Requested extension size exceeds available space. Maximum extendable to: {0}</value>
+  </data>
+  <data name="DiskMgmt_Err_ExtendMaxUnknown" xml:space="preserve">
+    <value>Unable to determine maximum extendable size. Please specify an explicit size in MB.</value>
+  </data>
+  <data name="DiskMgmt_Err_ExtensionFailedFormat" xml:space="preserve">
+    <value>Extension failed: {0}</value>
+  </data>
+  <data name="DiskMgmt_Err_ShrinkExceedsPartitionFormat" xml:space="preserve">
+    <value>Requested shrink size ({0} MB) exceeds current partition size ({1} MB).</value>
+  </data>
+  <data name="DiskMgmt_Err_ShrinkExceedsShrinkableFormat" xml:space="preserve">
+    <value>Shrink size exceeds shrinkable space. Minimum size: {0}</value>
+  </data>
+  <data name="DiskMgmt_Err_ShrinkUnsafeFormat" xml:space="preserve">
+    <value>Shrink may exceed safe limits. Estimated minimum partition size: {0}.</value>
+  </data>
+  <data name="DiskMgmt_Err_ShrinkFailedFormat" xml:space="preserve">
+    <value>Shrink failed: {0}</value>
+  </data>
+  <data name="DiskMgmt_Err_EstimateShrink" xml:space="preserve">
+    <value>Unable to estimate shrinkable space.</value>
+  </data>
+  <data name="DiskMgmt_Err_QueryExtendable" xml:space="preserve">
+    <value>Unable to query extendable space. No unallocated space may be available.</value>
+  </data>
+  <data name="DiskMgmt_Err_SystemDiskOperation" xml:space="preserve">
+    <value>Cannot perform this operation on system disk. This disk contains the Windows operating system.</value>
+  </data>
+  <data name="DiskMgmt_Err_CriticalPartitionsWarning" xml:space="preserve">
+    <value>This disk contains critical system partitions (EFI, Recovery partition). Operation may cause system boot failure.</value>
+  </data>
+  <data name="DiskMgmt_Err_SystemPartitionOperationFormat" xml:space="preserve">
+    <value>Cannot perform this operation on system partition. Drive "{0}" contains the Windows operating system.</value>
+  </data>
+  <data name="DiskMgmt_Ok_LetterChangedFormat" xml:space="preserve">
+    <value>Drive letter changed from {0}: to {1}:.</value>
+  </data>
+  <data name="DiskMgmt_Ok_LetterRemovedFormat" xml:space="preserve">
+    <value>Drive letter {0}: removed successfully.</value>
+  </data>
+  <data name="DiskMgmt_Ok_LetterAssignedFormat" xml:space="preserve">
+    <value>Drive letter {0}: assigned successfully.</value>
+  </data>
+  <data name="DiskMgmt_Ok_InitializedFormat" xml:space="preserve">
+    <value>Disk successfully initialized as {0} format.</value>
+  </data>
+  <data name="DiskMgmt_Ok_Online" xml:space="preserve">
+    <value>Disk is now online.</value>
+  </data>
+  <data name="DiskMgmt_Ok_Offline" xml:space="preserve">
+    <value>Disk is now offline.</value>
+  </data>
+  <data name="DiskMgmt_Ok_ReadOnly" xml:space="preserve">
+    <value>Disk set to read-only.</value>
+  </data>
+  <data name="DiskMgmt_Ok_ReadWrite" xml:space="preserve">
+    <value>Disk set to read-write.</value>
+  </data>
+  <data name="DiskMgmt_Ok_Cleaned" xml:space="preserve">
+    <value>Disk cleaned, all partitions removed.</value>
+  </data>
+  <data name="DiskMgmt_Ok_VhdCreated" xml:space="preserve">
+    <value>Virtual hard disk created successfully.</value>
+  </data>
+  <data name="DiskMgmt_Ok_VhdAttached" xml:space="preserve">
+    <value>Virtual hard disk attached successfully.</value>
+  </data>
+  <data name="DiskMgmt_Ok_VhdDetached" xml:space="preserve">
+    <value>Virtual hard disk detached successfully.</value>
+  </data>
+  <data name="DiskMgmt_Ok_VolumeCreatedFormat" xml:space="preserve">
+    <value>Successfully created {0} volume.</value>
+  </data>
+  <data name="DiskMgmt_Ok_PartitionDeleted" xml:space="preserve">
+    <value>Partition deleted successfully.</value>
+  </data>
+  <data name="DiskMgmt_Ok_PartitionCreated" xml:space="preserve">
+    <value>Partition created successfully.</value>
+  </data>
+  <data name="DiskMgmt_Ok_MarkedActive" xml:space="preserve">
+    <value>Partition marked as active.</value>
+  </data>
+  <data name="DiskMgmt_Ok_MountedFormat" xml:space="preserve">
+    <value>Volume successfully mounted to {0}.</value>
+  </data>
+  <data name="DiskMgmt_Ok_Formatted" xml:space="preserve">
+    <value>Formatting successful.</value>
+  </data>
+  <data name="DiskMgmt_Ok_ExtendedFormat" xml:space="preserve">
+    <value>Volume extended successfully. New size: {0}</value>
+  </data>
+  <data name="DiskMgmt_Ok_ShrunkFormat" xml:space="preserve">
+    <value>Volume shrunk successfully by {0} MB.</value>
+  </data>
+  <data name="DiskMgmt_Query_NoShrinkable" xml:space="preserve">
+    <value>No shrinkable space available.</value>
+  </data>
+  <data name="DiskMgmt_Query_ShrinkableFormat" xml:space="preserve">
+    <value>Shrinkable space: {0} MB</value>
+  </data>
+  <data name="DiskMgmt_Query_ExtendableFormat" xml:space="preserve">
+    <value>Extendable space: {0} MB</value>
+  </data>
+  <data name="DiskMgmt_Query_EstimatedShrinkableFormat" xml:space="preserve">
+    <value>Estimated shrinkable space: {0} MB (actual may be less due to unmovable files)</value>
+  </data>
+  <data name="DiskMgmt_Query_Success" xml:space="preserve">
+    <value>Success</value>
+  </data>
+  <data name="DiskMgmt_Msft_1" xml:space="preserve">
+    <value>Unsupported operation</value>
+  </data>
+  <data name="DiskMgmt_Msft_2" xml:space="preserve">
+    <value>Unspecified error</value>
+  </data>
+  <data name="DiskMgmt_Msft_3" xml:space="preserve">
+    <value>Timeout</value>
+  </data>
+  <data name="DiskMgmt_Msft_4" xml:space="preserve">
+    <value>Operation failed</value>
+  </data>
+  <data name="DiskMgmt_Msft_5" xml:space="preserve">
+    <value>Invalid parameter</value>
+  </data>
+  <data name="DiskMgmt_Msft_40002" xml:space="preserve">
+    <value>Insufficient resources</value>
+  </data>
+  <data name="DiskMgmt_Msft_40003" xml:space="preserve">
+    <value>Object not found</value>
+  </data>
+  <data name="DiskMgmt_Msft_40004" xml:space="preserve">
+    <value>Method not supported (The operation is not supported on this object or in this configuration)</value>
+  </data>
+  <data name="DiskMgmt_Msft_41000" xml:space="preserve">
+    <value>Disk not initialized</value>
+  </data>
+  <data name="DiskMgmt_Msft_41001" xml:space="preserve">
+    <value>Disk not ready</value>
+  </data>
+  <data name="DiskMgmt_Msft_41002" xml:space="preserve">
+    <value>Disk in use</value>
+  </data>
+  <data name="DiskMgmt_Msft_41003" xml:space="preserve">
+    <value>Volume in use</value>
+  </data>
+  <data name="DiskMgmt_Msft_41010" xml:space="preserve">
+    <value>The specified partition type isn't valid</value>
+  </data>
+  <data name="DiskMgmt_Msft_41011" xml:space="preserve">
+    <value>Only the first 2 TB are usable on MBR disks</value>
+  </data>
+  <data name="DiskMgmt_Msft_41012" xml:space="preserve">
+    <value>The specified offset isn't valid</value>
+  </data>
+  <data name="DiskMgmt_Msft_41013" xml:space="preserve">
+    <value>Can't convert the style of a disk with data or other known partitions on it</value>
+  </data>
+  <data name="DiskMgmt_Msft_41014" xml:space="preserve">
+    <value>The disk isn't large enough to support a GPT partition style</value>
+  </data>
+  <data name="DiskMgmt_Msft_41015" xml:space="preserve">
+    <value>There is no media in the device</value>
+  </data>
+  <data name="DiskMgmt_Msft_41017" xml:space="preserve">
+    <value>The specified partition layout is invalid</value>
+  </data>
+  <data name="DiskMgmt_Msft_42002" xml:space="preserve">
+    <value>The requested access path is already in use</value>
+  </data>
+  <data name="DiskMgmt_Msft_42004" xml:space="preserve">
+    <value>Cannot assign access paths to hidden partitions</value>
+  </data>
+  <data name="DiskMgmt_Msft_42007" xml:space="preserve">
+    <value>The access path isn't valid</value>
+  </data>
+  <data name="DiskMgmt_Msft_42008" xml:space="preserve">
+    <value>Cannot delete system or boot partition</value>
+  </data>
+  <data name="DiskMgmt_Msft_UnknownFormat" xml:space="preserve">
+    <value>Error code {0}</value>
+  </data>
+  <data name="DiskMgmt_Vhd_2" xml:space="preserve">
+    <value>File not found</value>
+  </data>
+  <data name="DiskMgmt_Vhd_3" xml:space="preserve">
+    <value>Path not found</value>
+  </data>
+  <data name="DiskMgmt_Vhd_32" xml:space="preserve">
+    <value>File is being used by another process</value>
+  </data>
+  <data name="DiskMgmt_Vhd_87" xml:space="preserve">
+    <value>Invalid parameter</value>
+  </data>
+  <data name="DiskMgmt_Vhd_183" xml:space="preserve">
+    <value>File already exists</value>
+  </data>
+  <data name="DiskMgmt_Vhd_UnknownFormat" xml:space="preserve">
+    <value>Error code: {0}</value>
+  </data>
+  <data name="DiskMgmt_PartName_Efi" xml:space="preserve">
+    <value>EFI System Partition</value>
+  </data>
+  <data name="DiskMgmt_PartName_Recovery" xml:space="preserve">
+    <value>Recovery Partition</value>
+  </data>
+  <data name="DiskMgmt_PartName_Msr" xml:space="preserve">
+    <value>Microsoft Reserved Partition</value>
+  </data>
+  <data name="DiskMgmt_Warn_Efi" xml:space="preserve">
+    <value>EFI System Partition - This partition is required for boot, do not modify</value>
+  </data>
+  <data name="DiskMgmt_Warn_Msr" xml:space="preserve">
+    <value>Microsoft Reserved Partition - This partition is required for system operation</value>
+  </data>
+  <data name="DiskMgmt_Warn_BiosBoot" xml:space="preserve">
+    <value>BIOS Boot Partition - This partition is required for boot</value>
+  </data>
+  <data name="DiskMgmt_Warn_Recovery" xml:space="preserve">
+    <value>Recovery Partition - This partition is used for system recovery, do not modify</value>
+  </data>
+  <data name="DiskMgmt_Warn_SystemDriveFormat" xml:space="preserve">
+    <value>System Drive ({0}) - Contains Windows operating system</value>
+  </data>
+  <data name="DiskMgmt_Warn_BootSystem" xml:space="preserve">
+    <value>Boot/System Partition - Contains boot files</value>
+  </data>
+  <data name="DiskMgmt_PartType_System" xml:space="preserve">
+    <value>System</value>
+  </data>
+  <data name="DiskMgmt_PartType_Reserved" xml:space="preserve">
+    <value>Reserved</value>
+  </data>
+  <data name="DiskMgmt_PartType_Basic" xml:space="preserve">
+    <value>Basic</value>
+  </data>
+  <data name="DiskMgmt_PartType_Recovery" xml:space="preserve">
+    <value>Recovery</value>
+  </data>
+  <data name="DiskMgmt_PartType_LdmMetadata" xml:space="preserve">
+    <value>LDM Metadata</value>
+  </data>
+  <data name="DiskMgmt_PartType_LdmData" xml:space="preserve">
+    <value>LDM Data</value>
+  </data>
+  <data name="DiskMgmt_PartType_BiosBoot" xml:space="preserve">
+    <value>BIOS Boot</value>
+  </data>
+  <data name="DiskMgmt_PartType_LinuxReserved" xml:space="preserve">
+    <value>Linux Reserved</value>
+  </data>
+  <data name="DiskMgmt_DiskType_UsbDrive" xml:space="preserve">
+    <value>USB Drive</value>
+  </data>
+  <data name="DiskMgmt_CdromDriveFormat" xml:space="preserve">
+    <value>CD-ROM Drive ({0})</value>
+  </data>
+  <data name="DiskMgmt_Ok_CdromEjected" xml:space="preserve">
+    <value>CD-ROM ejected successfully.</value>
+  </data>
+  <data name="DiskMgmt_Ok_CdromLoaded" xml:space="preserve">
+    <value>CD-ROM loaded successfully.</value>
+  </data>
+  <data name="DiskMgmt_Action_Load" xml:space="preserve">
+    <value>Load</value>
+  </data>
 </root>

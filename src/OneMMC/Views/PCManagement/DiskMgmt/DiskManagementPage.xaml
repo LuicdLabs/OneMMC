@@ -39,7 +39,7 @@
                         VerticalAlignment="Center"
                         Foreground="{ThemeResource TextFillColorSecondaryBrush}"
                         Text="{x:Bind PartitionStyle}" />
-                    <Button Style="{StaticResource SubtleButtonStyle}" ToolTipService.ToolTip="More options">
+                    <Button Style="{StaticResource SubtleButtonStyle}" ToolTipService.ToolTip="{x:Bind localization:LocalizedStrings.Instance.Common_MoreOptionsTooltip}">
                         <FontIcon FontSize="14" Glyph="&#xE712;" />
                         <Button.Flyout>
                             <MenuFlyout>

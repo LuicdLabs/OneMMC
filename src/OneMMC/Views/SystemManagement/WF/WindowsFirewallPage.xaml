@@ -21,7 +21,7 @@
 
         <!--  CommandBar  -->
         <CommandBar Grid.Row="0" DefaultLabelPosition="Right">
-            <AppBarButton Click="RefreshButton_Click" Icon="Refresh" Label="Refresh" />
+            <AppBarButton Click="RefreshButton_Click" Icon="Refresh" Label="{x:Bind LocalizedStrings.Common_Refresh}" />
             <AppBarButton Icon="More">
                 <AppBarButton.Flyout>
                     <MenuFlyout>

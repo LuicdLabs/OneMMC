@@ -76,5 +76,12 @@ namespace OneMMC.Localization
         // Legal Document Dialog
         public string Common_Close => GetResource(ResourceFileNames.Common, "Common_Close");
         public string LegalDocument_LoadError => GetResource(ResourceFileNames.Common, "LegalDocument_LoadError");
+
+        // File dialog filter labels
+        public string Common_FileFilter_AllFiles => GetResource(ResourceFileNames.Common, "Common_FileFilter_AllFiles");
+        public string Common_FileFilter_XmlFiles => GetResource(ResourceFileNames.Common, "Common_FileFilter_XmlFiles");
+        public string Common_FileFilter_Programs => GetResource(ResourceFileNames.Common, "Common_FileFilter_Programs");
+        public string Common_FileFilter_VbScript => GetResource(ResourceFileNames.Common, "Common_FileFilter_VbScript");
+        public string Common_FileFilter_JScript => GetResource(ResourceFileNames.Common, "Common_FileFilter_JScript");
     }
 }

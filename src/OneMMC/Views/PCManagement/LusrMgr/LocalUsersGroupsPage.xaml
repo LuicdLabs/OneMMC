@@ -37,7 +37,7 @@
                 <muxc:SettingsExpander
                     HorizontalAlignment="Stretch"
                     Header="{x:Bind LocalizedStrings.LusrMgr_Users}"
-                    IsExpanded="False"
+                    IsExpanded="True"
                     ItemsSource="{x:Bind ViewModel.Users, Mode=OneWay}">
                     <muxc:SettingsExpander.HeaderIcon>
                         <FontIcon FontSize="16" Glyph="&#xE77B;" />

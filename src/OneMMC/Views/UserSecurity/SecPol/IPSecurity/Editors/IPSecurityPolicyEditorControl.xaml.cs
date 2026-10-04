@@ -1,7 +1,6 @@
 ﻿using OneMMC.Core.Features.UserSecurity.Models.SecPol.IPSecurity;
 using OneMMC.Core.Features.UserSecurity.Services.SecPol.IPSecurity;
 using OneMMC.Localization;
-using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 
 namespace OneMMC.Views.UserSecurity.SecPol.IPSecurity.Editors;
@@ -41,9 +40,9 @@ public sealed partial class IPSecurityPolicyEditorControl : UserControl
         InitializeComponent();
         NameTextBox.Text = policy?.Name ?? string.Empty;
         DescriptionTextBox.Text = policy?.Description ?? string.Empty;
-        AssignedCheckBox.IsChecked = policy?.IsAssigned ?? false;
-        DefaultResponseRuleCheckBox.IsChecked = policy?.IsDefaultResponseRuleActive ?? false;
-        MasterPfsCheckBox.IsChecked = policy?.UseMasterPerfectForwardSecrecy ?? false;
+        AssignedToggleSwitch.IsOn = policy?.IsAssigned ?? false;
+        DefaultResponseRuleToggleSwitch.IsOn = policy?.IsDefaultResponseRuleActive ?? false;
+        MasterPfsToggleSwitch.IsOn = policy?.UseMasterPerfectForwardSecrecy ?? false;
         QuickModeSessionsNumberBox.Value = policy?.QuickModeSessionsPerMainMode > 0
             ? policy.QuickModeSessionsPerMainMode
             : DefaultQuickModeSessions;
@@ -70,12 +69,12 @@ public sealed partial class IPSecurityPolicyEditorControl : UserControl
             Name = _mode == IPSecurityEditorMode.Create ? currentName : _originalName,
             NewName = IPSecurityEditorValidation.RenamedValue(_mode, _originalName, currentName),
             Description = DescriptionTextBox.Text,
-            UseMasterPerfectForwardSecrecy = MasterPfsCheckBox.IsChecked == true,
+            UseMasterPerfectForwardSecrecy = MasterPfsToggleSwitch.IsOn,
             QuickModeSessionsPerMainMode = IPSecurityEditorValidation.GetInteger(QuickModeSessionsNumberBox),
             MainModeLifetimeMinutes = IPSecurityEditorValidation.GetInteger(MainModeLifetimeNumberBox),
-            IsDefaultResponseRuleActive = DefaultResponseRuleCheckBox.IsChecked == true,
+            IsDefaultResponseRuleActive = DefaultResponseRuleToggleSwitch.IsOn,
             PollingIntervalMinutes = IPSecurityEditorValidation.GetInteger(PollingIntervalNumberBox),
-            IsAssigned = AssignedCheckBox.IsChecked == true,
+            IsAssigned = AssignedToggleSwitch.IsOn,
             MainModeSecurityMethods = MainModeMethodsEditor.GetMethods()
         };
 
@@ -85,11 +84,11 @@ public sealed partial class IPSecurityPolicyEditorControl : UserControl
             {
                 if (_mode == IPSecurityEditorMode.Create)
                 {
-                    _ = IPSecurityStaticPolicyCommandBuilder.BuildAddPolicy(candidate);
+                    _ = IPSecurityCommandBuilder.BuildAddPolicy(candidate);
                 }
                 else
                 {
-                    _ = IPSecurityStaticPolicyCommandBuilder.BuildSetPolicy(candidate);
+                    _ = IPSecurityCommandBuilder.BuildSetPolicy(candidate);
                 }
             },
             ValidationInfoBar,
@@ -103,14 +102,14 @@ public sealed partial class IPSecurityPolicyEditorControl : UserControl
         return isValid;
     }
 
-    private void MasterPfsCheckBox_Click(object sender, RoutedEventArgs e)
+    private void MasterPfsToggleSwitch_Toggled(object sender, object e)
     {
         UpdateMasterPfsState();
     }
 
     private void UpdateMasterPfsState()
     {
-        bool masterPfsEnabled = MasterPfsCheckBox.IsChecked == true;
+        bool masterPfsEnabled = MasterPfsToggleSwitch.IsOn;
         if (masterPfsEnabled)
         {
             QuickModeSessionsNumberBox.Value = DefaultQuickModeSessions;

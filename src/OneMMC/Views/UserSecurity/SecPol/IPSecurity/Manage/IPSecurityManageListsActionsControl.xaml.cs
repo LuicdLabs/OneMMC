@@ -7,7 +7,6 @@ using OneMMC.Views.UserSecurity.SecPol.IPSecurity.Editors;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
-
 namespace OneMMC.Views.UserSecurity.SecPol.IPSecurity.Manage;
 
 /// <summary>
@@ -92,6 +91,23 @@ public sealed partial class IPSecurityManageListsActionsControl : UserControl
         SectionSelectorBar.SelectedItem = FilterListsTab;
         ItemsListView.ItemsSource = FilterListItems;
         UpdateCommandState();
+        FilterListItems.CollectionChanged += (_, _) => UpdateEmptyState();
+        FilterActionItems.CollectionChanged += (_, _) => UpdateEmptyState();
+        UpdateEmptyState();
+    }
+
+    /// <summary>
+    /// Shows or hides the empty state for whichever collection the SelectorBar has in view, and
+    /// keeps its message in step with the selected tab.
+    /// </summary>
+    private void UpdateEmptyState()
+    {
+        bool isLists = IsFilterListsTab;
+        int count = isLists ? FilterListItems.Count : FilterActionItems.Count;
+        EmptyItemsText.Text = isLists
+            ? LocalizedStrings.IPSec_Empty_FilterLists
+            : LocalizedStrings.IPSec_Empty_FilterActions;
+        EmptyItemsText.Visibility = count == 0 ? Visibility.Visible : Visibility.Collapsed;
     }
 
     /// <summary>
@@ -124,6 +140,7 @@ public sealed partial class IPSecurityManageListsActionsControl : UserControl
     {
         ItemsListView.ItemsSource = IsFilterListsTab ? FilterListItems : FilterActionItems;
         UpdateCommandState();
+        UpdateEmptyState();
     }
 
     private async void AddButton_Click(object sender, RoutedEventArgs e)
@@ -286,7 +303,7 @@ public sealed partial class IPSecurityManageListsActionsControl : UserControl
         string primaryButtonText)
     {
         IPSecurityFilterListEditorResult? result = null;
-        return await ShowEditorAsync(title, editor, primaryButtonText, () => editor.TryBuildResult(out result)) == WindowDialogResult.Primary
+        return await ShowWindowEditorAsync(title, editor, primaryButtonText, () => editor.TryBuildResult(out result)) == WindowDialogResult.Primary
             ? result
             : null;
     }
@@ -297,12 +314,20 @@ public sealed partial class IPSecurityManageListsActionsControl : UserControl
         string primaryButtonText)
     {
         IPSecurityFilterActionCommandOptions? options = null;
-        return await ShowEditorAsync(title, editor, primaryButtonText, () => editor.TryBuildResult(out options)) == WindowDialogResult.Primary
+        return await ShowInlineEditorAsync(title, editor, primaryButtonText, () => editor.TryBuildResult(out options)) == ContentDialogResult.Primary
             ? options
             : null;
     }
 
-    private Task<WindowDialogResult> ShowEditorAsync(
+    /// <summary>
+    /// Hosts an editor that opens a further dialog of its own in a real window.
+    /// </summary>
+    /// <remarks>
+    /// The filter-list editor adds and edits individual filters, and WinUI allows one
+    /// <c>ContentDialog</c> per XAML root. Giving the editor its own window gives it its own root,
+    /// which is what lets the filter dialog be an ordinary ContentDialog.
+    /// </remarks>
+    private Task<WindowDialogResult> ShowWindowEditorAsync(
         string title,
         UserControl editor,
         string primaryButtonText,
@@ -326,22 +351,47 @@ public sealed partial class IPSecurityManageListsActionsControl : UserControl
         return modalWindow.ShowDialogAsync();
     }
 
+    /// <summary>Hosts a leaf editor, which needs nothing more than a ContentDialog.</summary>
+    private Task<ContentDialogResult> ShowInlineEditorAsync(
+        string title,
+        UserControl editor,
+        string primaryButtonText,
+        Func<bool> validate)
+    {
+        var dialog = new ContentDialog
+        {
+            Title = title,
+            Content = editor,
+            Style = Application.Current.Resources["DefaultContentDialogStyle"] as Style,
+            XamlRoot = this.XamlRoot,
+            RequestedTheme = App.CurrentTheme,
+            PrimaryButtonText = primaryButtonText,
+            CloseButtonText = LocalizedStrings.Common_CancelButton,
+            DefaultButton = ContentDialogButton.Primary
+        };
+        dialog.Resources["ContentDialogMaxWidth"] = (double)EditorDialogWidth;
+        dialog.Resources["ContentDialogMaxHeight"] = (double)EditorDialogHeight;
+        dialog.PrimaryButtonClick += (_, args) => args.Cancel = !validate();
+
+        return dialog.ShowAsync().AsTask();
+    }
+
     private async Task<bool> ConfirmDeleteAsync(string message)
     {
-        var confirmationWindow = new ModalDialogWindow(new ModalDialogOptions
+        var dialog = new ContentDialog
         {
             Title = LocalizedStrings.IPSec_DeleteConfirm_Title,
             Content = message,
-            OwnerXamlRoot = XamlRoot,
+            Style = Application.Current.Resources["DefaultContentDialogStyle"] as Style,
+            XamlRoot = this.XamlRoot,
             RequestedTheme = App.CurrentTheme,
             PrimaryButtonText = LocalizedStrings.Common_DeleteButton,
-            CloseButtonText = LocalizedStrings.Common_CancelButton,
-            DefaultButton = WindowDialogResult.None,
-            Width = ConfirmationDialogWidth,
-            Height = ConfirmationDialogHeight
-        });
+            CloseButtonText = LocalizedStrings.Common_CancelButton
+        };
+        dialog.Resources["ContentDialogMaxWidth"] = (double)ConfirmationDialogWidth;
+        dialog.Resources["ContentDialogMaxHeight"] = (double)ConfirmationDialogHeight;
 
-        return await confirmationWindow.ShowDialogAsync() == WindowDialogResult.Primary;
+        return await dialog.ShowAsync() == ContentDialogResult.Primary;
     }
 
     private async Task<bool> RunMutationAsync(Func<Task<bool>> mutation)

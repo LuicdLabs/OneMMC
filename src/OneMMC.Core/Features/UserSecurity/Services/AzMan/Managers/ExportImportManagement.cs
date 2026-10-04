@@ -139,7 +139,7 @@ internal sealed class ExportImportManagement
                 }
                 catch (COMException ex)
                 {
-                    throw new AzManException($"Failed to export store: {GetComErrorMessage(ex)}", ex);
+                    throw new AzManException(OneMMC.Core.Localization.LocalizationProvider.Current.GetFormattedString(OneMMC.Core.Localization.ResourceFileNames.AzMan, OneMMC.Core.Localization.AzManKeys.ErrExportStoreFormat, GetComErrorMessage(ex)), ex);
                 }
             }
         });
@@ -198,7 +198,7 @@ internal sealed class ExportImportManagement
                 }
                 catch (COMException ex)
                 {
-                    throw new AzManException($"Failed to export application: {GetComErrorMessage(ex)}", ex);
+                    throw new AzManException(OneMMC.Core.Localization.LocalizationProvider.Current.GetFormattedString(OneMMC.Core.Localization.ResourceFileNames.AzMan, OneMMC.Core.Localization.AzManKeys.ErrExportApplicationFormat, GetComErrorMessage(ex)), ex);
                 }
             }
         });
@@ -223,7 +223,7 @@ internal sealed class ExportImportManagement
 
                     if (!File.Exists(importPath))
                     {
-                        throw new FileNotFoundException($"Import file not found: {importPath}");
+                        throw new FileNotFoundException(OneMMC.Core.Localization.LocalizationProvider.Current.GetFormattedString(OneMMC.Core.Localization.ResourceFileNames.AzMan, OneMMC.Core.Localization.AzManKeys.ErrImportFileNotFoundFormat, importPath));
                     }
 
                     string sourceUrl = $"msxml://{importPath}";
@@ -250,7 +250,7 @@ internal sealed class ExportImportManagement
                         {
                             if (apps.Count == 0)
                             {
-                                throw new InvalidOperationException("No applications found in import file.");
+                                throw new InvalidOperationException(OneMMC.Core.Localization.LocalizationProvider.Current.GetString(OneMMC.Core.Localization.ResourceFileNames.AzMan, OneMMC.Core.Localization.AzManKeys.ErrNoApplicationsInImport));
                             }
 
                             IAzApplication sourceApp = apps[0];
@@ -273,7 +273,7 @@ internal sealed class ExportImportManagement
                             }
                             if (exists)
                             {
-                                throw new InvalidOperationException($"Application '{targetName}' already exists in target store.");
+                                throw new InvalidOperationException(OneMMC.Core.Localization.LocalizationProvider.Current.GetFormattedString(OneMMC.Core.Localization.ResourceFileNames.AzMan, OneMMC.Core.Localization.AzManKeys.ErrApplicationExistsFormat, targetName));
                             }
 
                             // Copy application to target store
@@ -297,7 +297,7 @@ internal sealed class ExportImportManagement
                 }
                 catch (COMException ex)
                 {
-                    throw new AzManException($"Failed to import application: {GetComErrorMessage(ex)}", ex);
+                    throw new AzManException(OneMMC.Core.Localization.LocalizationProvider.Current.GetFormattedString(OneMMC.Core.Localization.ResourceFileNames.AzMan, OneMMC.Core.Localization.AzManKeys.ErrImportApplicationFormat, GetComErrorMessage(ex)), ex);
                 }
             }
         });

@@ -5,6 +5,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:editors="using:OneMMC.Views.UserSecurity.SecPol.IPSecurity.Editors">
 
+    <!--  Simple form; the negotiation options appear only when the action negotiates.  -->
     <ScrollViewer
         HorizontalScrollBarVisibility="Disabled"
         VerticalScrollBarVisibility="Auto">
@@ -17,38 +18,46 @@
 
             <TextBox
                 x:Name="NameTextBox"
+                AutomationProperties.Name="{x:Bind LocalizedStrings.IPSec_Column_Name}"
                 Header="{x:Bind LocalizedStrings.IPSec_Column_Name}" />
             <TextBox
                 x:Name="DescriptionTextBox"
                 AcceptsReturn="True"
+                AutomationProperties.Name="{x:Bind LocalizedStrings.IPSec_Column_Description}"
                 Header="{x:Bind LocalizedStrings.IPSec_Column_Description}"
                 MaxHeight="100"
                 TextWrapping="Wrap" />
 
             <ComboBox
                 x:Name="ActionComboBox"
+                AutomationProperties.Name="{x:Bind LocalizedStrings.IPSec_Editor_FilterAction}"
                 Header="{x:Bind LocalizedStrings.IPSec_Editor_FilterAction}"
                 SelectionChanged="ActionComboBox_SelectionChanged">
-                <ComboBoxItem
-                    Content="{x:Bind LocalizedStrings.IPSec_FilterAction_Permit}"
-                    Tag="Permit" />
-                <ComboBoxItem
-                    Content="{x:Bind LocalizedStrings.IPSec_FilterAction_Block}"
-                    Tag="Block" />
-                <ComboBoxItem
-                    Content="{x:Bind LocalizedStrings.IPSec_FilterAction_Negotiate}"
-                    Tag="Negotiate" />
+                <ComboBoxItem Content="{x:Bind LocalizedStrings.IPSec_FilterAction_Permit}" Tag="Permit" />
+                <ComboBoxItem Content="{x:Bind LocalizedStrings.IPSec_FilterAction_Block}" Tag="Block" />
+                <ComboBoxItem Content="{x:Bind LocalizedStrings.IPSec_FilterAction_Negotiate}" Tag="Negotiate" />
             </ComboBox>
 
-            <CheckBox
-                x:Name="QuickModePfsCheckBox"
-                Content="{x:Bind LocalizedStrings.IPSec_Editor_QuickModePfs}" />
-            <CheckBox
-                x:Name="AcceptUnsecuredInboundCheckBox"
-                Content="{x:Bind LocalizedStrings.IPSec_Editor_AcceptUnsecuredInbound}" />
-            <CheckBox
-                x:Name="AllowUnsecuredFallbackCheckBox"
-                Content="{x:Bind LocalizedStrings.IPSec_Editor_AllowUnsecuredFallback}" />
+            <StackPanel x:Name="NegotiationPanel" Spacing="8">
+                <ToggleSwitch
+                    x:Name="QuickModePfsToggleSwitch"
+                    AutomationProperties.Name="{x:Bind LocalizedStrings.IPSec_Editor_QuickModePfs}"
+                    Header="{x:Bind LocalizedStrings.IPSec_Editor_QuickModePfs}"
+                    OffContent="{x:Bind LocalizedStrings.IPSec_Value_No}"
+                    OnContent="{x:Bind LocalizedStrings.IPSec_Value_Yes}" />
+                <ToggleSwitch
+                    x:Name="AcceptUnsecuredInboundToggleSwitch"
+                    AutomationProperties.Name="{x:Bind LocalizedStrings.IPSec_Editor_AcceptUnsecuredInbound}"
+                    Header="{x:Bind LocalizedStrings.IPSec_Editor_AcceptUnsecuredInbound}"
+                    OffContent="{x:Bind LocalizedStrings.IPSec_Value_No}"
+                    OnContent="{x:Bind LocalizedStrings.IPSec_Value_Yes}" />
+                <ToggleSwitch
+                    x:Name="AllowUnsecuredFallbackToggleSwitch"
+                    AutomationProperties.Name="{x:Bind LocalizedStrings.IPSec_Editor_AllowUnsecuredFallback}"
+                    Header="{x:Bind LocalizedStrings.IPSec_Editor_AllowUnsecuredFallback}"
+                    OffContent="{x:Bind LocalizedStrings.IPSec_Value_No}"
+                    OnContent="{x:Bind LocalizedStrings.IPSec_Value_Yes}" />
+            </StackPanel>
 
             <editors:IPSecuritySecurityMethodsEditorControl
                 x:Name="QuickModeMethodsEditor"

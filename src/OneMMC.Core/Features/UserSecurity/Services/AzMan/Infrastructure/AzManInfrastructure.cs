@@ -47,7 +47,7 @@ internal sealed class AzManInfrastructure
 
         if (storeInfo is not { } openedStore || _service.GetAuthStore(storePath) is null)
         {
-            throw new InvalidOperationException($"Store '{storePath}' is not open. Please open the store first.");
+            throw new InvalidOperationException(OneMMC.Core.Localization.LocalizationProvider.Current.GetFormattedString(OneMMC.Core.Localization.ResourceFileNames.AzMan, OneMMC.Core.Localization.AzManKeys.ErrStoreNotOpenFormat, storePath));
         }
 
         // If XML store file is missing, automatically close the store
@@ -57,7 +57,7 @@ internal sealed class AzManInfrastructure
             if (!File.Exists(xmlPath))
             {
                 CloseStoreInternal(openedStore.StorePath);
-                throw new InvalidOperationException($"Store file not found: {xmlPath}. The store has been closed.");
+                throw new InvalidOperationException(OneMMC.Core.Localization.LocalizationProvider.Current.GetFormattedString(OneMMC.Core.Localization.ResourceFileNames.AzMan, OneMMC.Core.Localization.AzManKeys.ErrStoreFileNotFoundFormat, xmlPath));
             }
         }
     }

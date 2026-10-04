@@ -3,8 +3,9 @@
 ## Overview
 
 `AppSdkFileDialogService` is the DI-backed implementation of `IFileDialogService`.
-It lives in Core and wraps Windows App SDK 2.3.1 storage pickers from
-`Microsoft.Windows.Storage.Pickers`.
+It lives in Core and wraps the Windows App SDK storage pickers from
+`Microsoft.Windows.Storage.Pickers`. The SDK version is pinned in
+`Directory.Packages.props`.
 
 The service accepts Win32-style filter strings such as
 `"Text Files\0*.txt\0All Files\0*.*\0"` and converts them to picker extension
@@ -22,7 +23,7 @@ Windows App SDK picker APIs are extension-based.
 
 ## Windows App SDK Picker Behavior
 
-This service targets the Windows App SDK 2.3.1 `Microsoft.Windows.Storage.Pickers` APIs:
+This service targets the `Microsoft.Windows.Storage.Pickers` APIs:
 
 - `FileOpenPicker.FileTypeChoices` is used for grouped open filters with labels.
 - `FileOpenPicker.Title`, `FileSavePicker.Title`, and `FolderPicker.Title` are used for dialog titles.
@@ -127,4 +128,4 @@ and return `null` or an empty list. Callers handle cancellation and failures the
 same way by checking the returned value.
 
 No new `Debug.WriteLine`, `Console.WriteLine`, or `Trace.WriteLine` diagnostics
-should be added to this service.
+should be added to this service. See [`doc/Logging.md`](Logging.md).

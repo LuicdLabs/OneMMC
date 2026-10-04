@@ -2,7 +2,6 @@
 using System.Globalization;
 using OneMMC.Core.Features.UserSecurity.Models.SecPol.IPSecurity;
 using OneMMC.Core.Features.UserSecurity.Services.SecPol.IPSecurity;
-using OneMMC.Helpers;
 using OneMMC.Localization;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -27,6 +26,15 @@ public sealed partial class IPSecurityFilterListEditorControl : UserControl
 
     /// <summary>Gets the editable in-memory filter items.</summary>
     internal ObservableCollection<IPSecurityFilterEditorItem> FilterItems { get; } = [];
+
+    /// <summary>
+    /// Shows or hides the list's empty state. Driven from code-behind rather than a binding so the
+    /// filter collection stays a plain <see cref="ObservableCollection{T}"/> with no wrapper.
+    /// </summary>
+    private void UpdateEmptyState()
+    {
+        EmptyFiltersText.Visibility = FilterItems.Count == 0 ? Visibility.Visible : Visibility.Collapsed;
+    }
 
     /// <summary>
     /// Initializes a filter-list editor.
@@ -56,6 +64,9 @@ public sealed partial class IPSecurityFilterListEditorControl : UserControl
         {
             FilterItems.Add(CreateFilterItem(filter));
         }
+
+        FilterItems.CollectionChanged += (_, _) => UpdateEmptyState();
+        UpdateEmptyState();
     }
 
     /// <summary>
@@ -82,16 +93,16 @@ public sealed partial class IPSecurityFilterListEditorControl : UserControl
             {
                 if (_mode == IPSecurityEditorMode.Create)
                 {
-                    _ = IPSecurityStaticPolicyCommandBuilder.BuildAddFilterList(options);
+                    _ = IPSecurityCommandBuilder.BuildAddFilterList(options);
                 }
                 else
                 {
-                    _ = IPSecurityStaticPolicyCommandBuilder.BuildSetFilterList(options);
+                    _ = IPSecurityCommandBuilder.BuildSetFilterList(options);
                 }
 
                 foreach (IPSecurityFilterCommandOptions filter in filters)
                 {
-                    _ = IPSecurityStaticPolicyCommandBuilder.BuildAddFilter(filter);
+                    _ = IPSecurityCommandBuilder.BuildAddFilter(filter);
                 }
             },
             ValidationInfoBar,
@@ -101,7 +112,6 @@ public sealed partial class IPSecurityFilterListEditorControl : UserControl
             ? new IPSecurityFilterListEditorResult
             {
                 Options = options,
-                OriginalFilters = _originalFilters,
                 Filters = filters
             }
             : null;
@@ -153,23 +163,25 @@ public sealed partial class IPSecurityFilterListEditorControl : UserControl
         IPSecurityFilterEditorControl editor,
         string title)
     {
+        // A ContentDialog on this editor's own XAML root: the filter editor is a leaf, and this
+        // editor is itself hosted in a window precisely so this dialog can be an inline one.
         IPSecurityFilterCommandOptions? result = null;
-        var modalWindow = new ModalDialogWindow(new ModalDialogOptions
+        var dialog = new ContentDialog
         {
             Title = title,
             Content = editor,
-            OwnerXamlRoot = XamlRoot,
+            Style = Application.Current.Resources["DefaultContentDialogStyle"] as Style,
+            XamlRoot = this.XamlRoot,
             RequestedTheme = App.CurrentTheme,
             PrimaryButtonText = LocalizedStrings.Common_OKButton,
             CloseButtonText = LocalizedStrings.Common_CancelButton,
-            DefaultButton = WindowDialogResult.Primary,
-            IsPrimaryButtonLeading = true,
-            Width = FilterDialogWidth,
-            Height = FilterDialogHeight,
-            OnPrimaryButtonClick = () => editor.TryBuildResult(out result)
-        });
+            DefaultButton = ContentDialogButton.Primary
+        };
+        dialog.Resources["ContentDialogMaxWidth"] = (double)FilterDialogWidth;
+        dialog.Resources["ContentDialogMaxHeight"] = (double)FilterDialogHeight;
+        dialog.PrimaryButtonClick += (_, args) => args.Cancel = !editor.TryBuildResult(out result);
 
-        return await modalWindow.ShowDialogAsync() == WindowDialogResult.Primary ? result : null;
+        return await dialog.ShowAsync() == ContentDialogResult.Primary ? result : null;
     }
 
     private IPSecurityFilterEditorItem CreateFilterItem(IPSecurityFilterCommandOptions filter)

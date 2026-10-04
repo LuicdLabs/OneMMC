@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
-namespace OneMMC.Core.Features.UserSecurity.Models.NetworkListManager;
+namespace OneMMC.Core.Features.UserSecurity.Models.SecPol.NetworkListManager;
 
 /// <summary>
 /// Identifies the node shape used by Network List Manager Policies.

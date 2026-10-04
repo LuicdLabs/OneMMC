@@ -41,7 +41,7 @@ public static class TaskScheduleDescriptions
     /// <summary>A one-line description of when the trigger fires.</summary>
     public static string TriggerSummary(TriggerModel trigger) => trigger switch
     {
-        LogonTriggerModel l => LF(TaskSchdKeys.TriggerSummaryAtLogon, string.IsNullOrEmpty(l.UserId) ? "any user" : l.UserId),
+        LogonTriggerModel l => LF(TaskSchdKeys.TriggerSummaryAtLogon, string.IsNullOrEmpty(l.UserId) ? L(TaskSchdKeys.TriggerSummaryAnyUser) : l.UserId),
         BootTriggerModel => L(TaskSchdKeys.TriggerSummaryAtStartup),
         DailyTriggerModel d => LF(TaskSchdKeys.TriggerSummaryDailyFormat, FormatTime(d.StartBoundary), d.DaysInterval),
         WeeklyTriggerModel w => LF(TaskSchdKeys.TriggerSummaryWeeklyFormat, FormatTime(w.StartBoundary), w.WeeksInterval, DescribeDays(w.DaysOfWeek)),

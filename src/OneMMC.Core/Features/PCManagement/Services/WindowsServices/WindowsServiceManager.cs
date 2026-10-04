@@ -282,10 +282,10 @@ namespace OneMMC.Core.Features.PCManagement.Services.WindowsServices
                 }
 
                 using var hSCManager = Win32PInvoke.OpenSCManager(null, null, SC_MANAGER_ALL_ACCESS);
-                if (hSCManager.IsInvalid) throw new Exception("Failed to open SC Manager.");
+                if (hSCManager.IsInvalid) throw new Exception(OneMMC.Core.Localization.LocalizationProvider.Current.GetString(OneMMC.Core.Localization.ResourceFileNames.Services, OneMMC.Core.Localization.ServicesKeys.ErrOpenScManager));
 
                 using var hService = Win32PInvoke.OpenService(hSCManager, serviceName, SERVICE_CHANGE_CONFIG);
-                if (hService.IsInvalid) throw new Exception("Failed to open service.");
+                if (hService.IsInvalid) throw new Exception(OneMMC.Core.Localization.LocalizationProvider.Current.GetString(OneMMC.Core.Localization.ResourceFileNames.Services, OneMMC.Core.Localization.ServicesKeys.ErrOpenService));
 
                 if (!Win32PInvoke.ChangeServiceConfig(
                     hService,
@@ -299,7 +299,7 @@ namespace OneMMC.Core.Features.PCManagement.Services.WindowsServices
                     null,
                     null))
                 {
-                    throw new Exception($"Failed to set startup type. Error: {Marshal.GetLastWin32Error()}");
+                    throw new Exception(OneMMC.Core.Localization.LocalizationProvider.Current.GetFormattedString(OneMMC.Core.Localization.ResourceFileNames.Services, OneMMC.Core.Localization.ServicesKeys.ErrSetStartupTypeFormat, Marshal.GetLastWin32Error()));
                 }
 
                 if (startType == SERVICE_AUTO_START)
@@ -316,7 +316,7 @@ namespace OneMMC.Core.Features.PCManagement.Services.WindowsServices
                             SERVICE_CONFIG.SERVICE_CONFIG_DELAYED_AUTO_START_INFO,
                             &delayedInfo))
                         {
-                            throw new Exception($"Failed to set delayed auto-start. Error: {Marshal.GetLastWin32Error()}");
+                            throw new Exception(OneMMC.Core.Localization.LocalizationProvider.Current.GetFormattedString(OneMMC.Core.Localization.ResourceFileNames.Services, OneMMC.Core.Localization.ServicesKeys.ErrSetDelayedAutoStartFormat, Marshal.GetLastWin32Error()));
                         }
                     }
                 }
@@ -360,10 +360,10 @@ namespace OneMMC.Core.Features.PCManagement.Services.WindowsServices
                  }
 
                  using var hSCManager = Win32PInvoke.OpenSCManager(null, null, SC_MANAGER_CONNECT);
-                 if (hSCManager.IsInvalid) throw new Exception("Failed to open SC Manager.");
+                 if (hSCManager.IsInvalid) throw new Exception(OneMMC.Core.Localization.LocalizationProvider.Current.GetString(OneMMC.Core.Localization.ResourceFileNames.Services, OneMMC.Core.Localization.ServicesKeys.ErrOpenScManager));
 
                  using var hService = Win32PInvoke.OpenService(hSCManager, serviceName, SERVICE_ALL_ACCESS);
-                 if (hService.IsInvalid) throw new Exception("Failed to open service.");
+                 if (hService.IsInvalid) throw new Exception(OneMMC.Core.Localization.LocalizationProvider.Current.GetString(OneMMC.Core.Localization.ResourceFileNames.Services, OneMMC.Core.Localization.ServicesKeys.ErrOpenService));
 
                  int count = 3;
                  int actionSize = Marshal.SizeOf<SC_ACTION>();
@@ -397,7 +397,7 @@ namespace OneMMC.Core.Features.PCManagement.Services.WindowsServices
                              SERVICE_CONFIG.SERVICE_CONFIG_FAILURE_ACTIONS,
                              &failureActions))
                          {
-                             throw new Exception($"Failed to set recovery options. Error: {Marshal.GetLastWin32Error()}");
+                             throw new Exception(OneMMC.Core.Localization.LocalizationProvider.Current.GetFormattedString(OneMMC.Core.Localization.ResourceFileNames.Services, OneMMC.Core.Localization.ServicesKeys.ErrSetRecoveryFormat, Marshal.GetLastWin32Error()));
                          }
                      }
                  }
@@ -423,14 +423,14 @@ namespace OneMMC.Core.Features.PCManagement.Services.WindowsServices
                 TOKEN_ACCESS_MASK.TOKEN_ADJUST_PRIVILEGES | TOKEN_ACCESS_MASK.TOKEN_QUERY,
                 out var tokenHandle))
             {
-                throw new Exception($"Failed to open process token. Error: {Marshal.GetLastWin32Error()}");
+                throw new Exception(OneMMC.Core.Localization.LocalizationProvider.Current.GetFormattedString(OneMMC.Core.Localization.ResourceFileNames.Services, OneMMC.Core.Localization.ServicesKeys.ErrOpenProcessTokenFormat, Marshal.GetLastWin32Error()));
             }
 
             using (tokenHandle)
             {
                 if (!Win32PInvoke.LookupPrivilegeValue(null, privilegeName, out LUID luid))
                 {
-                    throw new Exception($"Failed to lookup privilege {privilegeName}. Error: {Marshal.GetLastWin32Error()}");
+                    throw new Exception(OneMMC.Core.Localization.LocalizationProvider.Current.GetFormattedString(OneMMC.Core.Localization.ResourceFileNames.Services, OneMMC.Core.Localization.ServicesKeys.ErrLookupPrivilegeFormat, privilegeName, Marshal.GetLastWin32Error()));
                 }
 
                 unsafe
@@ -445,13 +445,13 @@ namespace OneMMC.Core.Features.PCManagement.Services.WindowsServices
 
                     if (!Win32PInvoke.AdjustTokenPrivileges(tokenHandle, false, &privileges, Span<byte>.Empty))
                     {
-                        throw new Exception($"Failed to enable privilege {privilegeName}. Error: {Marshal.GetLastWin32Error()}");
+                        throw new Exception(OneMMC.Core.Localization.LocalizationProvider.Current.GetFormattedString(OneMMC.Core.Localization.ResourceFileNames.Services, OneMMC.Core.Localization.ServicesKeys.ErrEnablePrivilegeFormat, privilegeName, Marshal.GetLastWin32Error()));
                     }
 
                     int error = Marshal.GetLastWin32Error();
                     if (error != 0)
                     {
-                        throw new Exception($"Failed to enable privilege {privilegeName}. Error: {error}");
+                        throw new Exception(OneMMC.Core.Localization.LocalizationProvider.Current.GetFormattedString(OneMMC.Core.Localization.ResourceFileNames.Services, OneMMC.Core.Localization.ServicesKeys.ErrEnablePrivilegeFormat, privilegeName, error));
                     }
                 }
             }
@@ -462,10 +462,10 @@ namespace OneMMC.Core.Features.PCManagement.Services.WindowsServices
              return await Task.Run(() =>
              {
                  using var hSCManager = Win32PInvoke.OpenSCManager(null, null, SC_MANAGER_CONNECT);
-                 if (hSCManager.IsInvalid) throw new Exception("Failed to open SC Manager.");
+                 if (hSCManager.IsInvalid) throw new Exception(OneMMC.Core.Localization.LocalizationProvider.Current.GetString(OneMMC.Core.Localization.ResourceFileNames.Services, OneMMC.Core.Localization.ServicesKeys.ErrOpenScManager));
 
                  using var hService = Win32PInvoke.OpenService(hSCManager, serviceName, SERVICE_QUERY_CONFIG);
-                 if (hService.IsInvalid) throw new Exception("Failed to open service.");
+                 if (hService.IsInvalid) throw new Exception(OneMMC.Core.Localization.LocalizationProvider.Current.GetString(OneMMC.Core.Localization.ResourceFileNames.Services, OneMMC.Core.Localization.ServicesKeys.ErrOpenService));
 
                  uint bytesNeeded = 0;
                  Win32PInvoke.QueryServiceConfig2W(
@@ -486,7 +486,7 @@ namespace OneMMC.Core.Features.PCManagement.Services.WindowsServices
                          buffer,
                          out bytesNeeded))
                      {
-                         throw new Exception($"Failed to query service config. Error: {Marshal.GetLastWin32Error()}");
+                         throw new Exception(OneMMC.Core.Localization.LocalizationProvider.Current.GetFormattedString(OneMMC.Core.Localization.ResourceFileNames.Services, OneMMC.Core.Localization.ServicesKeys.ErrQueryConfigFormat, Marshal.GetLastWin32Error()));
                      }
 
                      fixed (byte* bufferPtr = buffer)

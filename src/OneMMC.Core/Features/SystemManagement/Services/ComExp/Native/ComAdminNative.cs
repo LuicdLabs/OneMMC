@@ -55,6 +55,17 @@ internal partial interface ICatalogCollection : IDispatch
 
     /// <summary>Loads this collection's objects from the catalog. (slot 12)</summary>
     void Populate();
+
+    /// <summary>Saves pending changes. Unused (read-only); vtable placeholder (slot 13).</summary>
+    int SaveChanges();
+
+    /// <summary>
+    /// Gets a related (child) collection, e.g. "Components" of an application item. (slot 14)
+    /// </summary>
+    /// <param name="bstrCollName">Child collection name.</param>
+    /// <param name="varObjectKey">Parent key (e.g. the application ID) as a BSTR variant.</param>
+    /// <param name="ppCatalogCollection">The child collection.</param>
+    void GetCollection([MarshalAs(UnmanagedType.BStr)] string bstrCollName, Variant varObjectKey, [MarshalUsing(typeof(UniqueComInterfaceMarshaller<ICatalogCollection>))] out ICatalogCollection ppCatalogCollection);
 }
 
 /// <summary>A single COM+ catalog object; OneMMC reads its named property values via <see cref="get_Value"/>.</summary>

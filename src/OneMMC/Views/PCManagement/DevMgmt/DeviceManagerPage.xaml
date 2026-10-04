@@ -105,7 +105,7 @@
                     <ListView.ItemTemplate>
                         <DataTemplate x:DataType="coreServices:DeviceCategory">
                             <controls:SettingsExpander
-                                Header="{x:Bind Name}"
+                                Header="{x:Bind DisplayName}"
                                 IsExpanded="False"
                                 ItemsSource="{x:Bind Devices}">
                                 <controls:SettingsExpander.Description>
