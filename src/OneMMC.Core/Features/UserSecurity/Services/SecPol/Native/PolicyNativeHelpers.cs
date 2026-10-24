@@ -23,7 +23,11 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
             _logger = logger ?? NullLogger.Instance;
         }
 
-        private const string SupportedEncryptionTypesKey = "SupportedEncryptionTypes";
+        /// <summary>
+        /// Registry value name of the Kerberos encryption-types policy, matched on the
+        /// value name because a definition's key is its full registry path.
+        /// </summary>
+        private const string SupportedEncryptionTypesValueName = "SupportedEncryptionTypes";
         private const long KerberosLowFlagsMask = 0x1F; // 1|2|4|8|16
         private const long KerberosLegacyFutureBit = 0x20;
         private const long KerberosFutureMask = 0x7FFFFFE0;
@@ -330,6 +334,37 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
             return RegSetValueEx(keyHandle, valueName, 0, REG_MULTI_SZ, data, data.Length);
         }
 
+        /// <summary>
+        /// Writes a text policy, keeping the registry type the value already has.
+        /// Windows describes a few policies with a type that does not match what ships
+        /// in the registry, and silently rewriting REG_MULTI_SZ data as REG_SZ (or the
+        /// reverse) would change how the component that reads it behaves. The declared
+        /// type in <paramref name="declaredType"/> is used only to create a new value.
+        /// </summary>
+        private static int WriteRegistryText(IntPtr keyHandle, SecurityPolicyDefinition definition, string text, int declaredType)
+        {
+            int targetType = declaredType;
+
+            if (TryReadRegistryValue(keyHandle, definition.RegistryValueName, out RegistryValueBuffer existing, out _))
+            {
+                using (existing)
+                {
+                    if (existing.RegistryType is REG_SZ or REG_MULTI_SZ)
+                        targetType = existing.RegistryType;
+                }
+
+                if (targetType != declaredType)
+                {
+                    _logger.LogDebug(
+                        $"[PolicyNativeHelpers] Keeping existing registry type {targetType} for '{definition.RegistryValueName}' (declared {declaredType})");
+                }
+            }
+
+            return targetType == REG_MULTI_SZ
+                ? WriteRegistryMultiString(keyHandle, definition.RegistryValueName, text)
+                : WriteRegistryString(keyHandle, definition.RegistryValueName, text);
+        }
+
         internal static string ReadMultiString(IntPtr ptr, int size)
         {
             var parts = new List<string>();
@@ -415,7 +450,7 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
                             break;
                     }
 
-                    if (definition.Key.Equals(SupportedEncryptionTypesKey, StringComparison.OrdinalIgnoreCase))
+                    if (definition.RegistryValueName.Equals(SupportedEncryptionTypesValueName, StringComparison.OrdinalIgnoreCase))
                     {
                         long normalized = NormalizeKerberosEncryptionTypes(value.NumericValue);
                         if (normalized != value.NumericValue)
@@ -447,9 +482,15 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
                 return;
             }
 
-            using var keyScope = OpenRegistryKeyOrThrow(value.Definition.RegistryKeyPath, KEY_WRITE, "writing");
+            // Read access is requested alongside write access so that a text policy can
+            // keep the registry type its value already has. A key that grants write but
+            // not read still has to be writable, so fall back to write-only access.
+            using RegistryKeyScope keyScope =
+                TryOpenRegistryKey(value.Definition.RegistryKeyPath, KEY_READ | KEY_WRITE, out RegistryKeyScope readWriteScope, out _)
+                    ? readWriteScope
+                    : OpenRegistryKeyOrThrow(value.Definition.RegistryKeyPath, KEY_WRITE, "writing");
 
-            if (value.Definition.Key.Equals(SupportedEncryptionTypesKey, StringComparison.OrdinalIgnoreCase))
+            if (value.Definition.RegistryValueName.Equals(SupportedEncryptionTypesValueName, StringComparison.OrdinalIgnoreCase))
             {
                 value.NumericValue = NormalizeKerberosEncryptionTypes(value.NumericValue);
             }
@@ -466,7 +507,7 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
                 }
                 case SecurityPolicyType.String:
                 {
-                    result = WriteRegistryString(keyScope.Handle, value.Definition.RegistryValueName, value.StringValue ?? string.Empty);
+                    result = WriteRegistryText(keyScope.Handle, value.Definition, value.StringValue ?? string.Empty, REG_SZ);
                     break;
                 }
                 case SecurityPolicyType.Dropdown:
@@ -488,7 +529,7 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
                 }
                 case SecurityPolicyType.MultiString:
                 {
-                    result = WriteRegistryMultiString(keyScope.Handle, value.Definition.RegistryValueName, value.StringValue ?? string.Empty);
+                    result = WriteRegistryText(keyScope.Handle, value.Definition, value.StringValue ?? string.Empty, REG_MULTI_SZ);
                     break;
                 }
                 default:
@@ -548,6 +589,78 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
 
                 _logger.LogDebug($"[PolicyNativeHelpers] Deleted registry value '{definition.Key}' (set to Not Defined)");
             }
+        }
+
+        #endregion
+
+        #region User Rights Enumeration
+
+        /// <summary>
+        /// Enumerates the privilege and logon-right constants the Security Configuration
+        /// Engine knows about, in its own order. The engine's table is the authority for
+        /// which user rights exist on this build of Windows.
+        /// </summary>
+        internal static IEnumerable<string> EnumeratePrivilegeConstants()
+        {
+            // No privilege constant approaches this length; the engine fails the call
+            // rather than truncating if the buffer is too small.
+            const int bufferLength = 256;
+
+            for (int index = 0; ; index++)
+            {
+                char[] buffer = new char[bufferLength];
+                int length = bufferLength;
+                int status = SceLookupPrivRightName(index, buffer, ref length);
+                if (status != SCESTATUS_SUCCESS)
+                    break;
+
+                int end = Array.IndexOf(buffer, '\0');
+                string constant = new string(buffer, 0, end >= 0 ? end : buffer.Length).Trim();
+                if (constant.Length == 0)
+                    break;
+
+                yield return constant;
+            }
+        }
+
+        /// <summary>
+        /// Item strings for the logon rights, which <c>LookupPrivilegeDisplayName</c>
+        /// cannot resolve because they are account rights rather than privileges.
+        /// The snap-in carries the same fallback.
+        /// </summary>
+        private static readonly Dictionary<string, int> LogonRightItemIds = new(StringComparer.OrdinalIgnoreCase)
+        {
+            ["SeNetworkLogonRight"] = 233,
+            ["SeInteractiveLogonRight"] = 234,
+            ["SeBatchLogonRight"] = 286,
+            ["SeServiceLogonRight"] = 287,
+            ["SeDenyInteractiveLogonRight"] = 407,
+            ["SeDenyNetworkLogonRight"] = 408,
+            ["SeDenyServiceLogonRight"] = 409,
+            ["SeDenyBatchLogonRight"] = 410,
+            ["SeDenyRemoteInteractiveLogonRight"] = 57449,
+            ["SeRemoteInteractiveLogonRight"] = 57450
+        };
+
+        /// <summary>
+        /// Resolves the localized name of a privilege or logon right, falling back to the
+        /// constant itself if Windows offers no name for it.
+        /// </summary>
+        internal static string ResolveUserRightDisplayName(string privilegeConstant)
+        {
+            string? displayName = SecurityPolicyResourceLoader.Instance.ResolvePrivilegeDisplayName(privilegeConstant);
+            if (!string.IsNullOrEmpty(displayName))
+                return displayName;
+
+            if (LogonRightItemIds.TryGetValue(privilegeConstant, out int itemId))
+            {
+                PolicyItemText itemText = SecurityPolicyResourceLoader.Instance.LoadItemText(itemId);
+                if (itemText.HasName)
+                    return itemText.Name;
+            }
+
+            _logger.LogDebug($"[PolicyNativeHelpers] No display name for user right '{privilegeConstant}'");
+            return privilegeConstant;
         }
 
         #endregion

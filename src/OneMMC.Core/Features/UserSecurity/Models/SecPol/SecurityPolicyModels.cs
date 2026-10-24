@@ -70,6 +70,13 @@ namespace OneMMC.Core.Features.UserSecurity.Models.SecPol
         /// <summary>Parsed dynamically from %SystemRoot%\inf\sceregvl.inf.</summary>
         SceRegVl,
 
+        /// <summary>
+        /// Read from the Security Configuration Engine's registry-value catalog under
+        /// HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SeCEdit\Reg Values,
+        /// which is the source secpol.msc itself uses.
+        /// </summary>
+        SceRegValues,
+
         /// <summary>Discovered at runtime via system API enumeration.</summary>
         Dynamic
     }
@@ -145,17 +152,21 @@ namespace OneMMC.Core.Features.UserSecurity.Models.SecPol
         public bool AllowNotDefined { get; set; }
 
         /// <summary>
-        /// Resource ID in wsecedit.dll for the full Explain text (localized).
-        /// If set to a positive value, the explain text will be loaded from the DLL at runtime.
+        /// Item string ID in wsecedit.dll for the policies that are not registry values
+        /// (password, lockout and audit policy, and the account options). The snap-in
+        /// stores the display name on the first line and the numeric unit on the second,
+        /// and both are loaded from there at runtime. Zero when the policy's name comes
+        /// from elsewhere, such as the registry catalog or a privilege constant.
         /// </summary>
-        public int ExplainResourceId { get; set; }
+        public int ItemId { get; set; }
 
         /// <summary>
-        /// Resource ID in wsecedit.dll for the localized display name.
-        /// If set, the display name will be loaded from the DLL at runtime,
-        /// falling back to <see cref="DisplayName"/> if the resource is unavailable.
+        /// The indirect string reference the system published for this policy's display
+        /// name, such as <c>@wsecedit.dll,-59001</c>. Carried through from the registry
+        /// catalog so the same name can be resolved in another language when pairing the
+        /// policy with its explain text.
         /// </summary>
-        public int DisplayNameResourceId { get; set; }
+        public string DisplayNameReference { get; set; } = string.Empty;
 
         /// <summary>
         /// Indicates where this definition was sourced from.
@@ -218,9 +229,10 @@ namespace OneMMC.Core.Features.UserSecurity.Models.SecPol
 
         private string FormatNumericValue()
         {
+            // The unit text comes from the Windows policy metadata, already localized.
             string unit = Definition.Unit;
             if (!string.IsNullOrEmpty(unit))
-                return $"{NumericValue} {LocalizeUnit(unit)}";
+                return $"{NumericValue} {unit}";
             return NumericValue.ToString();
         }
 
@@ -247,284 +259,7 @@ namespace OneMMC.Core.Features.UserSecurity.Models.SecPol
                     return option.DisplayName;
             }
 
-            if (TryFormatKnownDropdownFallback(out string knownDisplay))
-                return knownDisplay;
-
             return NumericValue.ToString();
-        }
-
-        private bool TryFormatKnownDropdownFallback(out string display)
-        {
-            display = string.Empty;
-
-            switch (Definition.Key)
-            {
-                case "ScRemoveOption":
-                    display = NumericValue switch
-                    {
-                        0 => Localized(SecPolKeys.DropdownScRemoveOptionNone, "No Action"),
-                        1 => Localized(SecPolKeys.DropdownScRemoveOptionLock, "Lock Workstation"),
-                        2 => Localized(SecPolKeys.DropdownScRemoveOptionLogoff, "Force Logoff"),
-                        3 => Localized(SecPolKeys.DropdownScRemoveOptionDisconnect, "Disconnect if a Remote Desktop Services session"),
-                        _ => string.Empty
-                    };
-                    return !string.IsNullOrEmpty(display);
-
-                case "ConsentPromptBehaviorAdmin":
-                    display = NumericValue switch
-                    {
-                        0 => Localized(SecPolKeys.DropdownConsentAdmin0, "Elevate without prompting"),
-                        1 => Localized(SecPolKeys.DropdownConsentAdmin1, "Prompt for credentials on the secure desktop"),
-                        2 => Localized(SecPolKeys.DropdownConsentAdmin2, "Prompt for consent on the secure desktop"),
-                        3 => Localized(SecPolKeys.DropdownConsentAdmin3, "Prompt for credentials"),
-                        4 => Localized(SecPolKeys.DropdownConsentAdmin4, "Prompt for consent"),
-                        5 => Localized(SecPolKeys.DropdownConsentAdmin5, "Prompt for consent for non-Windows binaries"),
-                        _ => string.Empty
-                    };
-                    return !string.IsNullOrEmpty(display);
-
-                case "ConsentPromptBehaviorUser":
-                    display = NumericValue switch
-                    {
-                        0 => Localized(SecPolKeys.DropdownConsentUser0, "Automatically deny elevation requests"),
-                        1 => Localized(SecPolKeys.DropdownConsentUser1, "Prompt for credentials on the secure desktop"),
-                        3 => Localized(SecPolKeys.DropdownConsentUser3, "Prompt for credentials"),
-                        _ => string.Empty
-                    };
-                    return !string.IsNullOrEmpty(display);
-
-                case "ForceGuest":
-                    display = NumericValue switch
-                    {
-                        0 => Localized(SecPolKeys.DropdownForceGuest0, "Classic - Local users authenticate as themselves"),
-                        1 => Localized(SecPolKeys.DropdownForceGuest1, "Guest only - Local users authenticate as Guest"),
-                        _ => string.Empty
-                    };
-                    return !string.IsNullOrEmpty(display);
-
-                case "LDAPClientIntegrity":
-                    display = NumericValue switch
-                    {
-                        0 => Localized(SecPolKeys.DropdownLdapClientIntegrity0, "None"),
-                        1 => Localized(SecPolKeys.DropdownLdapClientIntegrity1, "Negotiate signing"),
-                        2 => Localized(SecPolKeys.DropdownLdapClientIntegrity2, "Require signing"),
-                        _ => string.Empty
-                    };
-                    return !string.IsNullOrEmpty(display);
-
-                case "LmCompatibilityLevel":
-                    display = NumericValue switch
-                    {
-                        0 => Localized(SecPolKeys.DropdownLmCompatibilityLevel0, "Send LM & NTLM responses"),
-                        1 => Localized(SecPolKeys.DropdownLmCompatibilityLevel1, "Send LM & NTLM - use NTLMv2 session security if negotiated"),
-                        2 => Localized(SecPolKeys.DropdownLmCompatibilityLevel2, "Send NTLM response only"),
-                        3 => Localized(SecPolKeys.DropdownLmCompatibilityLevel3, "Send NTLMv2 response only"),
-                        4 => Localized(SecPolKeys.DropdownLmCompatibilityLevel4, "Send NTLMv2 response only. Refuse LM"),
-                        5 => Localized(SecPolKeys.DropdownLmCompatibilityLevel5, "Send NTLMv2 response only. Refuse LM & NTLM"),
-                        _ => string.Empty
-                    };
-                    return !string.IsNullOrEmpty(display);
-
-                case "AllocateDASD":
-                    display = NumericValue switch
-                    {
-                        0 => Localized(SecPolKeys.DropdownAllocateDASD0, "Administrators"),
-                        1 => Localized(SecPolKeys.DropdownAllocateDASD1, "Administrators and Power Users"),
-                        2 => Localized(SecPolKeys.DropdownAllocateDASD2, "Administrators and Interactive Users"),
-                        _ => string.Empty
-                    };
-                    return !string.IsNullOrEmpty(display);
-
-                case "TypeOfAdminApprovalMode":
-                    display = NumericValue switch
-                    {
-                        1 => Localized(SecPolKeys.DropdownTypeOfAdminApprovalMode1, "Admin Approval Mode"),
-                        2 => Localized(SecPolKeys.DropdownTypeOfAdminApprovalMode2, "Admin Approval Mode with enhanced privilege protection"),
-                        _ => string.Empty
-                    };
-                    return !string.IsNullOrEmpty(display);
-
-                case "BlockMicrosoftAccounts":
-                    display = NumericValue switch
-                    {
-                        0 => Localized(SecPolKeys.DropdownBlockMicrosoftAccounts0, "This policy is disabled"),
-                        1 => Localized(SecPolKeys.DropdownBlockMicrosoftAccounts1, "Users can't add Microsoft accounts"),
-                        3 => Localized(SecPolKeys.DropdownBlockMicrosoftAccounts3, "Users can't add or log on with Microsoft accounts"),
-                        _ => string.Empty
-                    };
-                    return !string.IsNullOrEmpty(display);
-
-                case "DontDisplayLockedUserId":
-                    display = NumericValue switch
-                    {
-                        1 => Localized(SecPolKeys.DropdownDontDisplayLockedUserId1, "User display name, domain and user names"),
-                        2 => Localized(SecPolKeys.DropdownDontDisplayLockedUserId2, "User display name only"),
-                        3 => Localized(SecPolKeys.DropdownDontDisplayLockedUserId3, "Do not display user information"),
-                        _ => string.Empty
-                    };
-                    return !string.IsNullOrEmpty(display);
-
-                case "LDAPClientConfidentiality":
-                    display = NumericValue switch
-                    {
-                        0 => Localized(SecPolKeys.DropdownLdapClientConfidentiality0, "None"),
-                        1 => Localized(SecPolKeys.DropdownLdapClientConfidentiality1, "Negotiate encryption"),
-                        2 => Localized(SecPolKeys.DropdownLdapClientConfidentiality2, "Require encryption"),
-                        _ => string.Empty
-                    };
-                    return !string.IsNullOrEmpty(display);
-
-                case "ConsentPromptBehaviorAdminAP":
-                    display = NumericValue switch
-                    {
-                        1 => Localized(SecPolKeys.DropdownConsentAdminAP1, "Prompt for credentials on the secure desktop"),
-                        2 => Localized(SecPolKeys.DropdownConsentAdminAP2, "Prompt for consent on the secure desktop"),
-                        _ => string.Empty
-                    };
-                    return !string.IsNullOrEmpty(display);
-
-                case "ForceKeyProtection":
-                    display = NumericValue switch
-                    {
-                        0 => Localized(SecPolKeys.DropdownForceKeyProtection0, "User input is not required when new keys are stored and used"),
-                        1 => Localized(SecPolKeys.DropdownForceKeyProtection1, "User is prompted when the key is first used"),
-                        2 => Localized(SecPolKeys.DropdownForceKeyProtection2, "User must enter a password each time they use a key"),
-                        _ => string.Empty
-                    };
-                    return !string.IsNullOrEmpty(display);
-
-                case "LDAPServerIntegrity":
-                    display = NumericValue switch
-                    {
-                        1 => Localized(SecPolKeys.DropdownLdapServerIntegrity1, "None"),
-                        2 => Localized(SecPolKeys.DropdownLdapServerIntegrity2, "Require signing"),
-                        _ => string.Empty
-                    };
-                    return !string.IsNullOrEmpty(display);
-
-                case "LDAPServerIntegrityEnforced":
-                    display = NumericValue switch
-                    {
-                        0 => Localized(SecPolKeys.DropdownLdapServerIntegrityEnforced0, "Disabled"),
-                        1 => Localized(SecPolKeys.DropdownLdapServerIntegrityEnforced1, "Enabled (compatibility mode)"),
-                        2 => Localized(SecPolKeys.DropdownLdapServerIntegrityEnforced2, "Enabled"),
-                        _ => string.Empty
-                    };
-                    return !string.IsNullOrEmpty(display);
-
-                case "LDAPEnforceChannelBinding":
-                    display = NumericValue switch
-                    {
-                        0 => Localized(SecPolKeys.DropdownLdapEnforceChannelBinding0, "Never"),
-                        1 => Localized(SecPolKeys.DropdownLdapEnforceChannelBinding1, "When supported"),
-                        2 => Localized(SecPolKeys.DropdownLdapEnforceChannelBinding2, "Always"),
-                        _ => string.Empty
-                    };
-                    return !string.IsNullOrEmpty(display);
-
-                case "SPNTargetNameValidationLevel":
-                    display = NumericValue switch
-                    {
-                        0 => Localized(SecPolKeys.DropdownSPNTargetNameValidation0, "Off"),
-                        1 => Localized(SecPolKeys.DropdownSPNTargetNameValidation1, "Accept if provided by client"),
-                        2 => Localized(SecPolKeys.DropdownSPNTargetNameValidation2, "Required from client"),
-                        _ => string.Empty
-                    };
-                    return !string.IsNullOrEmpty(display);
-
-                case "S4U2SelfFlags":
-                    display = NumericValue switch
-                    {
-                        0 => Localized(SecPolKeys.DropdownS4U2SelfFlags0, "Default"),
-                        1 => Localized(SecPolKeys.DropdownS4U2SelfFlags1, "Enabled"),
-                        2 => Localized(SecPolKeys.DropdownS4U2SelfFlags2, "Disabled"),
-                        _ => string.Empty
-                    };
-                    return !string.IsNullOrEmpty(display);
-
-                case "RestrictSendingNTLMTraffic":
-                    display = NumericValue switch
-                    {
-                        0 => Localized(SecPolKeys.DropdownRestrictSendingNTLM0, "Allow all"),
-                        1 => Localized(SecPolKeys.DropdownRestrictSendingNTLM1, "Deny all domain accounts"),
-                        2 => Localized(SecPolKeys.DropdownRestrictSendingNTLM2, "Deny all accounts"),
-                        _ => string.Empty
-                    };
-                    return !string.IsNullOrEmpty(display);
-
-                case "RestrictNTLMInDomain":
-                    display = NumericValue switch
-                    {
-                        0 => Localized(SecPolKeys.DropdownRestrictNTLMInDomain0, "Disable"),
-                        1 => Localized(SecPolKeys.DropdownRestrictNTLMInDomain1, "Deny for domain accounts to domain servers"),
-                        3 => Localized(SecPolKeys.DropdownRestrictNTLMInDomain3, "Deny for domain accounts"),
-                        5 => Localized(SecPolKeys.DropdownRestrictNTLMInDomain5, "Deny for domain servers"),
-                        7 => Localized(SecPolKeys.DropdownRestrictNTLMInDomain7, "Deny all"),
-                        _ => string.Empty
-                    };
-                    return !string.IsNullOrEmpty(display);
-
-                case "RestrictReceivingNTLMTraffic":
-                    display = NumericValue switch
-                    {
-                        0 => Localized(SecPolKeys.DropdownRestrictReceivingNTLM0, "Allow all"),
-                        1 => Localized(SecPolKeys.DropdownRestrictReceivingNTLM1, "Deny all domain accounts"),
-                        2 => Localized(SecPolKeys.DropdownRestrictReceivingNTLM2, "Deny all accounts"),
-                        _ => string.Empty
-                    };
-                    return !string.IsNullOrEmpty(display);
-
-                case "AuditNTLMInDomain":
-                    display = NumericValue switch
-                    {
-                        0 => Localized(SecPolKeys.DropdownAuditNTLMInDomain0, "Disable"),
-                        1 => Localized(SecPolKeys.DropdownAuditNTLMInDomain1, "Enable for domain accounts to domain servers"),
-                        3 => Localized(SecPolKeys.DropdownAuditNTLMInDomain3, "Enable for domain accounts"),
-                        5 => Localized(SecPolKeys.DropdownAuditNTLMInDomain5, "Enable for domain servers"),
-                        7 => Localized(SecPolKeys.DropdownAuditNTLMInDomain7, "Enable all"),
-                        _ => string.Empty
-                    };
-                    return !string.IsNullOrEmpty(display);
-
-                case "AuditReceivingNTLMTraffic":
-                    display = NumericValue switch
-                    {
-                        0 => Localized(SecPolKeys.DropdownAuditReceivingNTLM0, "Disable"),
-                        1 => Localized(SecPolKeys.DropdownAuditReceivingNTLM1, "Enable for domain accounts"),
-                        2 => Localized(SecPolKeys.DropdownAuditReceivingNTLM2, "Enable for all accounts"),
-                        _ => string.Empty
-                    };
-                    return !string.IsNullOrEmpty(display);
-
-                default:
-                    return false;
-            }
-        }
-
-        private static string LocalizeUnit(string unit)
-        {
-            if (unit.Equals("days", StringComparison.OrdinalIgnoreCase))
-                return Localized(SecPolKeys.UnitDays, "days");
-
-            if (unit.Equals("minutes", StringComparison.OrdinalIgnoreCase))
-                return Localized(SecPolKeys.UnitMinutes, "minutes");
-
-            if (unit.Equals("seconds", StringComparison.OrdinalIgnoreCase))
-                return Localized(SecPolKeys.UnitSeconds, "seconds");
-
-            if (unit.Equals("logons", StringComparison.OrdinalIgnoreCase))
-                return Localized(SecPolKeys.UnitLogons, "logons");
-
-            if (unit.Equals("characters", StringComparison.OrdinalIgnoreCase))
-                return Localized(SecPolKeys.UnitCharacters, "characters");
-
-            if (unit.Equals("passwords remembered", StringComparison.OrdinalIgnoreCase))
-                return Localized(SecPolKeys.UnitPasswordsRemembered, "passwords remembered");
-
-            if (unit.Equals("invalid logon attempts", StringComparison.OrdinalIgnoreCase))
-                return Localized(SecPolKeys.UnitInvalidLogonAttempts, "invalid logon attempts");
-
-            return unit;
         }
 
         private static string Localized(string key, string fallback)

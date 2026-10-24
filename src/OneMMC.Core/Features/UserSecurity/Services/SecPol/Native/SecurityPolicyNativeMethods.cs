@@ -340,6 +340,22 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
         [LibraryImport("advapi32.dll", SetLastError = true)]
         internal static partial int RegCloseKey(IntPtr hKey);
 
+        /// <summary>
+        /// Enumerates the subkeys of an open key. Used to read the Security Configuration
+        /// Engine's registry-value catalog under
+        /// <c>HKLM\SOFTWARE\Microsoft\Windows NT\CurrentVersion\SeCEdit\Reg Values</c>.
+        /// </summary>
+        [LibraryImport("advapi32.dll", EntryPoint = "RegEnumKeyExW", StringMarshalling = StringMarshalling.Utf16, SetLastError = true)]
+        internal static partial int RegEnumKeyEx(
+            IntPtr hKey,
+            int index,
+            Span<char> name,
+            ref int nameLength,
+            IntPtr reserved,
+            Span<char> className,
+            IntPtr classLength,
+            IntPtr lastWriteTime);
+
         [LibraryImport("advapi32.dll", EntryPoint = "RegDeleteValueW", StringMarshalling = StringMarshalling.Utf16, SetLastError = true)]
         internal static partial int RegDeleteValue(IntPtr hKey, string valueName);
 
@@ -368,6 +384,8 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
         internal const int ERROR_SUCCESS = 0;
         internal const int ERROR_FILE_NOT_FOUND = 2;
         internal const int ERROR_ACCESS_DENIED = 5;
+        internal const int ERROR_MORE_DATA = 234;
+        internal const int ERROR_NO_MORE_ITEMS = 259;
         internal const int ERROR_NOT_ALL_ASSIGNED = 1300;
 
         #endregion
@@ -555,7 +573,29 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
         [return: MarshalAs(UnmanagedType.Bool)]
         internal static partial bool FreeLibrary(IntPtr hModule);
 
+        /// <summary>Reads the calling thread's UI language.</summary>
+        [LibraryImport("kernel32.dll")]
+        internal static partial ushort GetThreadUILanguage();
+
+        /// <summary>
+        /// Sets the calling thread's UI language, which selects the language Win32
+        /// returns text in. Used to read a privilege's name in a fixed language so it can
+        /// be paired with its explain text; the previous value is always restored.
+        /// </summary>
+        [LibraryImport("kernel32.dll")]
+        internal static partial ushort SetThreadUILanguage(ushort langId);
+
+        /// <summary>LANGID for en-US, the language the policy pairing is keyed on.</summary>
+        internal const ushort LANG_EN_US = 0x0409;
+
         internal const uint LOAD_LIBRARY_AS_DATAFILE = 0x00000002; // LOAD_LIBRARY_AS_DATAFILE
+
+        /// <summary>
+        /// Maps the module for resource access only. Combined with
+        /// <see cref="LOAD_LIBRARY_AS_DATAFILE"/> this lets the loader apply MUI
+        /// redirection, so a neutral system DLL still yields localized strings.
+        /// </summary>
+        internal const uint LOAD_LIBRARY_AS_IMAGE_RESOURCE = 0x00000020;
 
         /// <summary>
         /// Resolves an indirect string such as <c>@wsecedit.dll,-59001</c> to its
@@ -567,6 +607,24 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
             Span<char> pszOutBuf,
             uint cchOutBuf,
             IntPtr ppvReserved);
+
+        #endregion
+
+        #region Security Configuration Engine (scecli.dll)
+
+        /// <summary>
+        /// Returns the privilege/logon-right constant at <paramref name="privilegeIndex"/>
+        /// from the Security Configuration Engine's own table, which is the enumeration
+        /// <c>secpol.msc</c> uses to build the User Rights Assignment list. Indices are
+        /// dense starting at zero; a non-zero return marks the end of the table.
+        /// </summary>
+        [LibraryImport("scecli.dll", EntryPoint = "SceLookupPrivRightName", StringMarshalling = StringMarshalling.Utf16, SetLastError = true)]
+        internal static partial int SceLookupPrivRightName(
+            int privilegeIndex,
+            Span<char> buffer,
+            ref int bufferLength);
+
+        internal const int SCESTATUS_SUCCESS = 0;
 
         #endregion
 

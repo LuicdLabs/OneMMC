@@ -27,6 +27,9 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
             PolicyNativeHelpers.ConfigureLogger(loggerFactory.CreateLogger("SecPol.PolicyNativeHelpers"));
             SecurityPolicyResourceLoader.Instance.SetLogger(loggerFactory.CreateLogger<SecurityPolicyResourceLoader>());
             SceRegVlParser.Instance.SetLogger(loggerFactory.CreateLogger<SceRegVlParser>());
+            SecurityOptionsCatalog.ConfigureLogger(loggerFactory.CreateLogger("SecPol.SecurityOptionsCatalog"));
+            SecurityPolicyExplainIndex.ConfigureLogger(loggerFactory.CreateLogger("SecPol.SecurityPolicyExplainIndex"));
+            SecurityPolicyDefinitions.ConfigureLogger(loggerFactory.CreateLogger("SecPol.SecurityPolicyDefinitions"));
 
             var passwordProvider = new PasswordPolicyProvider(loggerFactory.CreateLogger<PasswordPolicyProvider>());
             var lockoutProvider = new AccountLockoutPolicyProvider(loggerFactory.CreateLogger<AccountLockoutPolicyProvider>());

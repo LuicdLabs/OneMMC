@@ -1,7 +1,6 @@
 ﻿using OneMMC.Core.Features.UserSecurity.Models.SecPol;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Win32;
 
 namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
 {
@@ -130,51 +129,4 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
         }
     }
 
-    /// <summary>
-    /// Handles the "User Account Control: Behavior of the elevation prompt for
-    /// administrators running with administrator protection" policy.
-    /// This policy maps to <c>ConsentPromptBehaviorEnhancedAdmin</c> and has a
-    /// narrower valid option set than <c>ConsentPromptBehaviorAdmin</c>.
-    /// Implemented as a special handler to avoid enrichment-map key collisions.
-    /// </summary>
-    internal sealed class ConsentPromptBehaviorAdminAPHandler : ISpecialPolicyHandler
-    {
-        public string Key => "ConsentPromptBehaviorAdminAP";
-
-        private const string KeyPath = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System";
-        private const string ValueName = "ConsentPromptBehaviorEnhancedAdmin";
-
-        public void Read(SecurityPolicyValue value)
-        {
-            using var key = Registry.LocalMachine.OpenSubKey(KeyPath);
-            var raw = key?.GetValue(ValueName);
-            if (raw is int intVal)
-            {
-                value.NumericValue = intVal;
-                value.IsDefined = true;
-            }
-            else
-            {
-                value.IsDefined = false;
-            }
-            SpecialPolicyHandlersLogging.Logger.LogDebug("[ConsentPromptBehaviorAdminAPHandler] Read: {Value}, defined={IsDefined}", value.NumericValue, value.IsDefined);
-        }
-
-        public void Write(SecurityPolicyValue value)
-        {
-            using var key = Registry.LocalMachine.OpenSubKey(KeyPath, writable: true);
-            if (key != null)
-            {
-                key.SetValue(ValueName, (int)value.NumericValue, RegistryValueKind.DWord);
-                SpecialPolicyHandlersLogging.Logger.LogDebug("[ConsentPromptBehaviorAdminAPHandler] Wrote {Value}", value.NumericValue);
-            }
-            else
-            {
-                SpecialPolicyHandlersLogging.Logger.LogDebug("[ConsentPromptBehaviorAdminAPHandler] Failed to open registry key for writing");
-            }
-        }
-    }
 }
-
-
-
