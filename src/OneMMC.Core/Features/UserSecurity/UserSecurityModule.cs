@@ -39,6 +39,7 @@ internal static class UserSecurityModule
         services.AddTransient<PublicKeyPoliciesViewModel>();
         services.AddTransient<SoftwareRestrictionPolicyService>();
         services.AddTransient<SoftwareRestrictionViewModel>();
+        services.AddSingleton<SecurityPolicyEngineWriter>();
         services.AddSingleton<SecurityPolicyService>();
         services.AddSingleton<SystemAuditPolicyService>();
         services.AddTransient<SystemAuditAclEditorService>();

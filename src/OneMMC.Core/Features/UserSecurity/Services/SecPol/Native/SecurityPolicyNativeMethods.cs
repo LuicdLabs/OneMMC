@@ -687,7 +687,67 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
             Span<char> buffer,
             ref int bufferLength);
 
+        /// <summary>
+        /// Opens a security profile. With <see cref="SCE_INF_FORMAT"/> the engine parses a security
+        /// template file into its own profile structure, so the application never lays it out.
+        /// </summary>
+        [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+        [LibraryImport("scecli.dll", EntryPoint = "SceOpenProfile", StringMarshalling = StringMarshalling.Utf16)]
+        internal static partial int SceOpenProfile(string profileName, int format, out IntPtr profileHandle);
+
+        /// <summary>Closes a profile opened by <see cref="SceOpenProfile"/>; takes the handle by reference.</summary>
+        [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+        [LibraryImport("scecli.dll", EntryPoint = "SceCloseProfile")]
+        internal static partial int SceCloseProfile(ref IntPtr profileHandle);
+
+        /// <summary>
+        /// Reads a profile's settings for the given areas into an engine-allocated
+        /// <c>SCE_PROFILE_INFO</c>, released with <see cref="SceFreeProfileMemory"/>. A template handle
+        /// requires <see cref="SCE_PROFILE_TEMPLATE"/>; a NULL handle with type 300 reads the local policy.
+        /// </summary>
+        [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+        [LibraryImport("scecli.dll", EntryPoint = "SceGetSecurityProfileInfo")]
+        internal static partial int SceGetSecurityProfileInfo(IntPtr profileHandle, int profileType, uint area, out IntPtr profileInfo, out IntPtr errorLog);
+
+        /// <summary>
+        /// Updates a profile. With a NULL handle and <see cref="SCE_UPDATE_LOCAL_POLICY"/> this merges the
+        /// profile's configured settings into the machine's local security policy and applies them —
+        /// the call secpol.msc makes when a Local Policies setting is saved. In that mode the area may
+        /// only contain <see cref="AREA_SECURITY_POLICY"/> and <see cref="AREA_PRIVILEGES"/>.
+        /// </summary>
+        [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+        [LibraryImport("scecli.dll", EntryPoint = "SceUpdateSecurityProfile")]
+        internal static partial int SceUpdateSecurityProfile(IntPtr profileHandle, uint area, IntPtr profileInfo, uint mode);
+
+        /// <summary>Releases a profile returned by <see cref="SceGetSecurityProfileInfo"/>.</summary>
+        [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+        [LibraryImport("scecli.dll", EntryPoint = "SceFreeProfileMemory")]
+        internal static partial int SceFreeProfileMemory(IntPtr profileInfo);
+
         internal const int SCESTATUS_SUCCESS = 0;
+        internal const int SCESTATUS_ACCESS_DENIED = 9;
+
+        /// <summary>Profile format: a security template (.inf) file.</summary>
+        internal const int SCE_INF_FORMAT = 1;
+
+        /// <summary>Profile type for reading a security template opened with <see cref="SCE_INF_FORMAT"/>.</summary>
+        internal const int SCE_PROFILE_TEMPLATE = 302;
+
+        /// <summary>
+        /// Type tag the local-policy update requires on the profile it is given. A profile parsed from a
+        /// template carries the template tag (0x133) and is rejected with SCESTATUS_OTHER_ERROR; the
+        /// local-policy table itself is returned with this tag. Both tag the same structure.
+        /// </summary>
+        internal const int SCE_PROFILE_TAG_ENGINE = 0x132;
+
+        /// <summary><see cref="SceUpdateSecurityProfile"/> mode: merge into the local security policy.</summary>
+        internal const uint SCE_UPDATE_LOCAL_POLICY = 4;
+
+        /// <summary>Area carrying [System Access], [Event Audit] and [Registry Values].</summary>
+        internal const uint AREA_SECURITY_POLICY = 0x1;
+
+        /// <summary>Area carrying [Privilege Rights].</summary>
+        internal const uint AREA_PRIVILEGES = 0x8;
 
         #endregion
 

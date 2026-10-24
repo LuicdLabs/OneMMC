@@ -840,6 +840,31 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
             return IntPtr.Zero;
         }
 
+        /// <summary>
+        /// Resolves an account name to its string SID (<c>S-1-5-...</c>). This is the form the Security
+        /// Configuration Engine's template stores user-right holders in, prefixed with <c>*</c>.
+        /// Returns null when the name cannot be resolved, so the caller can keep the name verbatim —
+        /// the engine accepts either.
+        /// </summary>
+        internal static string? ResolveAccountSidString(string accountName)
+        {
+            if (string.IsNullOrWhiteSpace(accountName))
+                return null;
+
+            IntPtr sid = LookupAccountSidByName(accountName);
+            if (sid == IntPtr.Zero)
+                return null;
+
+            try
+            {
+                return ConvertSidToStringSid(sid, out string stringSid) ? stringSid : null;
+            }
+            finally
+            {
+                Marshal.FreeHGlobal(sid);
+            }
+        }
+
         #endregion
 
         #region SAM Domain Password Properties

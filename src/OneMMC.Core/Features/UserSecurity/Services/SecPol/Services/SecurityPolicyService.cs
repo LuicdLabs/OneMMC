@@ -19,10 +19,15 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
 
         private readonly Dictionary<SecurityPolicyCategory, IPolicyProvider> _providers;
         private readonly ILogger<SecurityPolicyService> _logger;
+        private readonly SecurityPolicyEngineWriter _engineWriter;
 
-        public SecurityPolicyService(ILogger<SecurityPolicyService> logger, ILoggerFactory loggerFactory)
+        public SecurityPolicyService(
+            ILogger<SecurityPolicyService> logger,
+            ILoggerFactory loggerFactory,
+            SecurityPolicyEngineWriter engineWriter)
         {
             _logger = logger;
+            _engineWriter = engineWriter;
 
             PolicyNativeHelpers.ConfigureLogger(loggerFactory.CreateLogger("SecPol.PolicyNativeHelpers"));
             SecurityPolicyResourceLoader.Instance.SetLogger(loggerFactory.CreateLogger<SecurityPolicyResourceLoader>());
@@ -101,6 +106,12 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
         public void WritePolicy(SecurityPolicyValue value)
         {
             _logger.LogDebug("[SecurityPolicyService] WritePolicy: key={PolicyKey}, type={PolicyType}", value.Definition.Key, value.Definition.PolicyType);
+
+            // Write through the Security Configuration Engine's local-policy update, as secpol.msc
+            // does, so the engine applies the change and records it in the local policy database.
+            // The direct provider write remains for anything the engine cannot express.
+            if (_engineWriter.TryWrite(value))
+                return;
 
             if (!_providers.TryGetValue(value.Definition.Category, out var provider))
                 throw new NotSupportedException($"Category {value.Definition.Category} is not supported for writing.");
