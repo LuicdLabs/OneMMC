@@ -663,6 +663,14 @@ Default on Server editions: Success.</value>
   <data name="NetworkListManager_IconConfigured" xml:space="preserve">
     <value>Configured</value>
   </data>
+  <data name="NetworkListManager_NewNetwork_Name" xml:space="preserve">
+    <value>New Network</value>
+    <comment>Name of a network policy whose network no longer exists on this computer.</comment>
+  </data>
+  <data name="NetworkListManager_NewNetwork_NumberedNameFormat" xml:space="preserve">
+    <value>New Network {0}</value>
+    <comment>{0} = sequence number (2, 3, …) of a network policy whose network no longer exists.</comment>
+  </data>
   <data name="NetworkListManager_NetworkNameDialog_Title" xml:space="preserve">
     <value>Network Name</value>
   </data>
@@ -1075,10 +1083,10 @@ Default on Server editions: Success.</value>
     <value>Raw certificate data</value>
   </data>
   <data name="SRP_Deprecation_Title" xml:space="preserve">
-    <value>Software Restriction Policies are deprecated</value>
+    <value>Software Restriction Policies are deprecated but still enforced</value>
   </data>
   <data name="SRP_Deprecation_Message" xml:space="preserve">
-    <value>Starting with Windows 11 22H2, client editions of Windows no longer enforce Software Restriction Policies. Rules saved here take effect only on Windows Server or older Windows versions. Consider AppLocker or App Control for Business instead.</value>
+    <value>Software Restriction Policies have been deprecated since Windows 10 version 1803, but Windows still enforces the rules saved here. A Disallowed default security level blocks every program that no rule allows. For new deployments, consider App Control for Business or AppLocker.</value>
   </data>
   <data name="SRP_Status_SignInHint" xml:space="preserve">
     <value>Changes apply at the next sign-in. For sessions that are already running, run "gpupdate /force" or sign out and back in.</value>

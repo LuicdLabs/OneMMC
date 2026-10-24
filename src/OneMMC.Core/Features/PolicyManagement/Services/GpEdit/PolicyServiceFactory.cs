@@ -1,6 +1,5 @@
 ﻿using System;
 using OneMMC.Core.Features.PolicyManagement.Services.GpEdit.Manager;
-using OneMMC.Core.Features.PolicyManagement.Services.GpEdit.Sources;
 using OneMMC.Core.Infrastructure.PolicyStorage;
 using OneMMC.Core.Features.PolicyManagement.Services.GpEdit.Utilities;
 using Microsoft.Extensions.Logging;

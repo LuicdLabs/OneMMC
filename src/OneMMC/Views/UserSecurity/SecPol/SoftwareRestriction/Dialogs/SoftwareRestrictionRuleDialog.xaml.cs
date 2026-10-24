@@ -136,6 +136,9 @@ public sealed partial class SoftwareRestrictionRuleDialog : ContentDialog
                 break;
             case SoftwareRestrictionRuleKind.NetworkZone:
                 ZoneValuePanel.Visibility = Visibility.Visible;
+
+                // SAFER_URLZONE_IDENTIFICATION has no description field, so secpol.msc offers none.
+                DescriptionPanel.Visibility = Visibility.Collapsed;
                 break;
             case SoftwareRestrictionRuleKind.Certificate:
                 FileValuePanel.Visibility = Visibility.Visible;

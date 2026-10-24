@@ -637,6 +637,14 @@
   <data name="NetworkListManager_IconConfigured" xml:space="preserve">
     <value>已設定</value>
   </data>
+  <data name="NetworkListManager_NewNetwork_Name" xml:space="preserve">
+    <value>新網路</value>
+    <comment>Name of a network policy whose network no longer exists on this computer.</comment>
+  </data>
+  <data name="NetworkListManager_NewNetwork_NumberedNameFormat" xml:space="preserve">
+    <value>新網路 {0}</value>
+    <comment>{0} = sequence number (2, 3, …) of a network policy whose network no longer exists.</comment>
+  </data>
   <data name="NetworkListManager_NetworkNameDialog_Title" xml:space="preserve">
     <value>網路名稱</value>
   </data>
@@ -1049,10 +1057,10 @@
     <value>原始憑證資料</value>
   </data>
   <data name="SRP_Deprecation_Title" xml:space="preserve">
-    <value>軟體限制原則已淘汰</value>
+    <value>軟體限制原則已淘汰，但仍會強制執行</value>
   </data>
   <data name="SRP_Deprecation_Message" xml:space="preserve">
-    <value>自 Windows 11 22H2 起，Windows 用戶端版本已不再強制執行軟體限制原則。此處儲存的規則僅會在 Windows Server 或較舊的 Windows 版本上生效。建議改用 AppLocker 或商務用應用程式控制。</value>
+    <value>軟體限制原則自 Windows 10 版本 1803 起已淘汰，但 Windows 仍會強制執行此處儲存的規則。若預設安全性層級設為「不允許」，所有未被規則允許的程式都會遭到封鎖。新的部署建議改用商務用應用程式控制或 AppLocker。</value>
   </data>
   <data name="SRP_Status_SignInHint" xml:space="preserve">
     <value>變更會在下次登入時生效。若要套用至目前執行中的工作階段，請執行 "gpupdate /force" 或登出後重新登入。</value>

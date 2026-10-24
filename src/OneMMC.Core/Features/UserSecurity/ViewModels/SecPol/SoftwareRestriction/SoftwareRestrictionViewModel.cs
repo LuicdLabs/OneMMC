@@ -120,12 +120,6 @@ public sealed partial class SoftwareRestrictionViewModel : ObservableObject
     public string StatusDetail => GetString(SoftwareRestrictionKeys.StatusSignInHint);
 
     /// <summary>
-    /// Gets a value indicating whether this system no longer enforces SRP at run time
-    /// (deprecated feature; Windows 11 22H2+ client editions).
-    /// </summary>
-    public bool ShowsDeprecationWarning => SoftwareRestrictionPolicyService.IsEnforcementUnavailableOnThisSystem;
-
-    /// <summary>
     /// Gets a value indicating whether SRP has been initialized.
     /// </summary>
     public bool IsConfigured => PolicyState.IsConfigured;
@@ -473,7 +467,10 @@ public sealed partial class SoftwareRestrictionViewModel : ObservableObject
             await Task.Run(operation);
             StatusTitle = GetString(statusResourceKey);
             await RunLoadAsync();
-            HasStatus = true;
+
+            // Saving already forces a Group Policy refresh, so the sign-in / gpupdate hint is only
+            // needed when that refresh could not be started.
+            HasStatus = _policyService.LastSaveNeedsRefresh;
             return true;
         }
         catch (Exception ex)

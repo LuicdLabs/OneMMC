@@ -798,6 +798,8 @@ public static class NetworkListManagerKeys
     public const string ConfigureButton = "NetworkListManager_ConfigureButton";
     public const string ChangeIconButton = "NetworkListManager_ChangeIconButton";
     public const string IconConfigured = "NetworkListManager_IconConfigured";
+    public const string NewNetworkName = "NetworkListManager_NewNetwork_Name";
+    public const string NewNetworkNumberedNameFormat = "NetworkListManager_NewNetwork_NumberedNameFormat";
     public const string NetworkNameDialogTitle = "NetworkListManager_NetworkNameDialog_Title";
     public const string NetworkNameDialogDescription = "NetworkListManager_NetworkNameDialog_Description";
     public const string NetworkNameDialogGroupTitle = "NetworkListManager_NetworkNameDialog_GroupTitle";

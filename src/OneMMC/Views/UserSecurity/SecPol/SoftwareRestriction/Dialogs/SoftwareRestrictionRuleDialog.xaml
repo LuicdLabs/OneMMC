@@ -62,7 +62,7 @@
             <ComboBox x:Name="SecurityLevelComboBox" MinWidth="260" />
         </StackPanel>
 
-        <StackPanel Spacing="8">
+        <StackPanel x:Name="DescriptionPanel" Spacing="8">
             <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Text="{x:Bind LocalizedStrings.SRP_Field_Description}" />
             <TextBox x:Name="DescriptionTextBox" />
         </StackPanel>

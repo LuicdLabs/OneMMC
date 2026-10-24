@@ -45,9 +45,9 @@
                 x:Name="DeprecationInfoBar"
                 Title="{x:Bind LocalizedStrings.SRP_Deprecation_Title}"
                 IsClosable="True"
-                IsOpen="{x:Bind ViewModel.ShowsDeprecationWarning}"
+                IsOpen="True"
                 Message="{x:Bind LocalizedStrings.SRP_Deprecation_Message}"
-                Severity="Warning" />
+                Severity="Informational" />
             <InfoBar
                 x:Name="ErrorInfoBar"
                 Title="{x:Bind LocalizedStrings.Common_ErrorTitle}"

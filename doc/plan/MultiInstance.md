@@ -61,9 +61,11 @@ certificate stores, AzMan, the COM+ catalog, printers).
 Most services follow a **load snapshot → edit → write back** flow with no version check, because with
 one window there is no concurrent writer inside OneMMC:
 
-- `LocalPolicyFileStore.SaveSnapshot` rewrites the whole `Registry.pol` and bumps the `gpt.ini`
-  version. Two windows that each load, edit a different policy, and save produce a *lost update*: the
-  second save discards the first edit.
+- The Group Policy editor's `PolFilePolicyService` rewrites the whole `Registry.pol` from the snapshot
+  it loaded. Two windows that each load, edit a different policy, and save produce a *lost update*: the
+  second save discards the first edit. (The Security Settings editors — Software Restriction, Public
+  Key and Network List Manager policies — reopen the local GPO through `IGroupPolicyObject` for every
+  save, so each write starts from the current `Registry.pol`; their pages still show stale values.)
 - The Group Policy and Security Policy editors keep parsed state for the page's lifetime. A second
   window never learns about the first window's commit, so it shows — and can re-save — stale values.
 - Disk Management performs destructive operations. Two views disagreeing about the disk layout is a

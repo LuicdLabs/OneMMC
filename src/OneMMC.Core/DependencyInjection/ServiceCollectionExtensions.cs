@@ -30,7 +30,7 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<AclEditorService>();
         services.AddSingleton<CertificateAuthorityPickerService>();
         services.AddSingleton<IconPickerService>();
-        services.AddSingleton<LocalPolicyFileStore>();
+        services.AddSingleton<LocalGroupPolicyObjectFactory>();
 
         services.AddCertificates();
         services.AddPCManagement();

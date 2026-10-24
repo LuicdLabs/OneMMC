@@ -1,13 +1,12 @@
 using System;
 using System.Runtime.InteropServices;
-using OneMMC.Core.Features.PolicyManagement.Services.GpEdit.Native;
 using OneMMC.Core.Infrastructure.Interop;
-using OneMMC.Core.Infrastructure.PolicyStorage;
 using Microsoft.Win32;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Win32PInvoke = Windows.Win32.PInvoke;
 
-namespace OneMMC.Core.Features.PolicyManagement.Services.GpEdit.Sources
+namespace OneMMC.Core.Infrastructure.PolicyStorage
 {
     /// <summary>
     /// Wrapper class for IGroupPolicyObject COM interface.
@@ -16,6 +15,9 @@ namespace OneMMC.Core.Features.PolicyManagement.Services.GpEdit.Sources
     /// </summary>
     public partial class GroupPolicyObjectWrapper : IDisposable
     {
+        // RP_FORCE: refresh even when no policy changes are detected.
+        private const uint RefreshPolicyForce = 1;
+
         private static ILogger _logger = NullLogger.Instance;
         private IGroupPolicyObject? _gpo;
         private bool _disposed;
@@ -44,7 +46,7 @@ namespace OneMMC.Core.Features.PolicyManagement.Services.GpEdit.Sources
             {
                 wrapper._gpo = ComActivator.CreateInstance<IGroupPolicyObject>(GroupPolicyObjectClsid.GroupPolicyObject);
                 wrapper.CaptureOwningApartment();
-                uint flags = forEditing ? (uint)GpoOpenFlags.Editing : (uint)GpoOpenFlags.LoadRegistry;
+                uint flags = (uint)(forEditing ? GpoOpenFlags.LoadRegistry : GpoOpenFlags.LoadRegistry | GpoOpenFlags.ReadOnly);
                 int hr = wrapper._gpo.OpenLocalMachineGPO(flags);
                 
                 if (hr != 0)
@@ -83,7 +85,7 @@ namespace OneMMC.Core.Features.PolicyManagement.Services.GpEdit.Sources
             {
                 wrapper._gpo = ComActivator.CreateInstance<IGroupPolicyObject>(GroupPolicyObjectClsid.GroupPolicyObject);
                 wrapper.CaptureOwningApartment();
-                uint flags = forEditing ? (uint)GpoOpenFlags.Editing : (uint)GpoOpenFlags.LoadRegistry;
+                uint flags = (uint)(forEditing ? GpoOpenFlags.LoadRegistry : GpoOpenFlags.LoadRegistry | GpoOpenFlags.ReadOnly);
                 int hr = wrapper._gpo.OpenRemoteMachineGPO(computerName, flags);
                 
                 if (hr != 0)
@@ -201,6 +203,28 @@ namespace OneMMC.Core.Features.PolicyManagement.Services.GpEdit.Sources
         /// <returns>True if save succeeded, false otherwise.</returns>
         public bool Save(bool isUser, bool addExtension = true)
         {
+            // Use the Registry Extension GUID which handles Administrative Templates
+            if (!Save(isUser, addExtension, GroupPolicyGuids.RegistryExtensionGuid, GroupPolicyGuids.MmcSnapInGuid))
+            {
+                return false;
+            }
+
+            RefreshPolicy(isUser);
+            return true;
+        }
+
+        /// <summary>
+        /// Saves the GPO section and registers the given client-side extension / snap-in pair in gpt.ini.
+        /// Unlike <see cref="Save(bool, bool)"/> this does not trigger a policy refresh, so callers that
+        /// register several extensions can save each one and refresh once with <see cref="RefreshPolicy"/>.
+        /// </summary>
+        /// <param name="isUser">True if saving user policy, false for machine policy.</param>
+        /// <param name="addExtension">True if adding new policy settings (typical case).</param>
+        /// <param name="extensionGuid">The client-side extension that processes the changed settings.</param>
+        /// <param name="snapInGuid">The tool (snap-in) GUID recorded alongside the extension.</param>
+        /// <returns>True if save succeeded, false otherwise.</returns>
+        public bool Save(bool isUser, bool addExtension, Guid extensionGuid, Guid snapInGuid)
+        {
             if (_gpo == null)
             {
                 _logger.LogDebug("[GPO] Cannot save: GPO not open");
@@ -209,27 +233,17 @@ namespace OneMMC.Core.Features.PolicyManagement.Services.GpEdit.Sources
 
             try
             {
-                // Use the Registry Extension GUID which handles Administrative Templates
-                Guid extensionGuid = GroupPolicyGuids.RegistryExtensionGuid;
-                Guid snapInGuid = GroupPolicyGuids.MmcSnapInGuid;
-
-                // Save the GPO
                 // bMachine: True for machine section, false for user section
                 // bAdd: True if adding/enabling the extension, false if removing
                 int hr = _gpo.Save(!isUser, addExtension, extensionGuid, snapInGuid);
-                
+
                 if (hr != 0)
                 {
                     _logger.LogDebug($"[GPO] Save failed with HRESULT: 0x{hr:X8}");
                     return false;
                 }
 
-                _logger.LogDebug($"[GPO] Successfully saved {(isUser ? "user" : "machine")} policy");
-                
-                // Force a policy refresh to apply changes immediately
-                PInvoke.RefreshPolicyEx(!isUser, PInvoke.RP_FORCE);
-                _logger.LogDebug($"[GPO] Invoked RefreshPolicyEx for {(isUser ? "user" : "machine")} policy");
-                
+                _logger.LogDebug($"[GPO] Successfully saved {(isUser ? "user" : "machine")} policy for extension {extensionGuid:B}");
                 return true;
             }
             catch (Exception ex)
@@ -237,6 +251,18 @@ namespace OneMMC.Core.Features.PolicyManagement.Services.GpEdit.Sources
                 _logger.LogDebug($"[GPO] Exception saving GPO: {ex.Message}");
                 return false;
             }
+        }
+
+        /// <summary>
+        /// Forces a Group Policy refresh so saved changes are applied immediately.
+        /// </summary>
+        /// <param name="isUser">True to refresh user policy, false for machine policy.</param>
+        /// <returns>True if the refresh was started; false if Windows rejected it.</returns>
+        public static bool RefreshPolicy(bool isUser)
+        {
+            bool refreshed = Win32PInvoke.RefreshPolicyEx(!isUser, RefreshPolicyForce);
+            _logger.LogDebug($"[GPO] RefreshPolicyEx for {(isUser ? "user" : "machine")} policy returned {refreshed}");
+            return refreshed;
         }
 
         /// <summary>
@@ -318,8 +344,9 @@ namespace OneMMC.Core.Features.PolicyManagement.Services.GpEdit.Sources
                 ComActivator.Release(gpo);
                 return true;
             }
-            catch
+            catch (Exception ex)
             {
+                _logger.LogDebug($"[GPO] GroupPolicyObject is not available: {ex.Message}");
                 return false;
             }
         }

@@ -113,7 +113,7 @@ feature must **never** reference types from another feature — share only throu
 |---|---|---|
 | **PCManagement** | Device Manager (`DevMgmt`), Disk Management (`DiskMgmt`), Event Viewer, Shared Folders (`FsMgmt`), Local Users & Groups (`LusrMgr`), Performance Monitor (`PerfMon`), Task Scheduler (`TaskSchd`), Windows Services | SetupAPI, VirtDisk, WmiLight, PDH, Task Scheduler COM, `ServiceController` |
 | **PolicyManagement** | Group Policy Editor (`GpEdit`), Resultant Set of Policy (`RSoP`) | `IGroupPolicyObject` COM, `Registry.pol` |
-| **UserSecurity** | Authorization Manager (`AzMan`), Local Security Policy (`SecPol`), Network List Manager | AzRoles COM, LSA/NetAPI32, ADSI |
+| **UserSecurity** | Authorization Manager (`AzMan`), Local Security Policy (`SecPol`), Network List Manager | AzRoles COM, LSA/NetAPI32, ADSI, `IGroupPolicyObject` + SAFER API (Software Restriction Policies), CryptoAPI Group Policy certificate stores (Public Key Policies), Network List Manager COM (Network List Manager Policies) |
 | **SystemManagement** | Component Services / COM+ (`ComExp`), Windows Firewall (`WF`), TPM | COM+ Admin COM, marshal-free `IWbemServices`, HNetCfg |
 | **Certificates** | Certificate stores (CertMgr / CertLM) | CryptoAPI / CertEnroll |
 | **PrintManagement** | Printers & print queues | Winspool / print WMI |
@@ -295,7 +295,13 @@ documented shared contract. Current shared areas:
 - `Infrastructure/WindowsCapabilities` — `AppSdkFileDialogService`, `AclEditorService`,
   `DirectoryObjectPickerService`, `CertificateAuthorityPickerService`, `IconPickerService`
 - `Infrastructure/PolicyStorage` — raw `Registry.pol` snapshot types, registry-backed policy
-  proxy, and local policy-file persistence used outside `PolicyManagement`
+  proxy, and the shared `IGroupPolicyObject` interop (`GroupPolicyObjectWrapper`,
+  `LocalGroupPolicyObjectFactory`, `MachinePolicySession`). The GroupPolicyObject class is
+  apartment-threaded with no proxy/stub, so it must be opened, used and released on an STA thread
+  (activation from MTA fails with `E_NOINTERFACE`);
+  `LocalGroupPolicyObjectFactory.RunMachinePolicySession` does that for features that edit the
+  machine section's registry buffer, and `MachinePolicySession.Commit` saves it with the
+  client-side extension / snap-in pairs secpol.msc passes to `PolicyChanged`
 - `Infrastructure/Interop` — `ComActivator`, the `IDispatch` dual-interface base, `Variant`
   helpers, and the ADSI layer
 - `Infrastructure/Wmi` — WmiLight disposal/property/date-conversion helpers

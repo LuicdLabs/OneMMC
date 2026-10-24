@@ -45,6 +45,11 @@ CertDeleteCTLFromStore
 CertDuplicateCertificateContext
 CertDuplicateCRLContext
 CertDuplicateCTLContext
+CertOpenStore
+CertCloseStore
+CertControlStore
+CertGetCertificateContextProperty
+CERT_SYSTEM_STORE_RELOCATE_PARA
 ConvertSidToStringSid
 ConvertStringSidToSid
 CopySid
@@ -173,3 +178,9 @@ SHChangeNotify
 CryptUIDlgSelectCertificateFromStore
 SHLoadIndirectString
 ShowScrollBar
+SaferCreateLevel
+SaferCloseLevel
+SaferGetLevelInformation
+SaferSetLevelInformation
+SaferGetPolicyInformation
+SaferSetPolicyInformation
