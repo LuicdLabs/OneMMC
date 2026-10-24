@@ -144,12 +144,16 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
                     PolicyType = policyType,
                     RegistryKeyPath = registryKeyPath,
                     RegistryValueName = registryValueName,
+                    RegistryValueType = valueType,
                     DropdownOptions = dropdownOptions,
                     Unit = ResolveDisplayName(ReadString(entryScope.Handle, DisplayUnitName)) ?? string.Empty,
 
-                    // A registry policy is configured only while its value exists, so
-                    // every entry can be returned to Not Defined by deleting it.
-                    AllowNotDefined = true,
+                    // Local Security Policy never deletes a registry policy: the snap-in's
+                    // local-policy editors force the value to be configured, so an option
+                    // shown as Not Defined becomes defined once edited and cannot be
+                    // returned to Not Defined. Offering deletion here would let a hardening
+                    // value be removed silently, reverting the system to its default.
+                    AllowNotDefined = false,
                     DataSource = PolicyDataSource.SceRegValues
                 };
 
@@ -263,7 +267,7 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
             {
                 char[] buffer = new char[maxKeyNameLength];
                 int length = buffer.Length;
-                int result = RegEnumKeyEx(keyHandle, index, buffer, ref length, IntPtr.Zero, [], IntPtr.Zero, IntPtr.Zero);
+                int result = RegEnumKeyEx(keyHandle, index, buffer, ref length, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero);
 
                 if (result == ERROR_NO_MORE_ITEMS)
                     break;
@@ -286,10 +290,13 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
 
             using (buffer)
             {
-                if (buffer.RegistryType == REG_DWORD)
-                    return Marshal.ReadInt32(buffer.Pointer);
+                if (PolicyNativeHelpers.TryReadRegistryDword(buffer, out uint dword))
+                    return unchecked((int)dword);
 
-                string? text = Marshal.PtrToStringUni(buffer.Pointer);
+                if (buffer.RegistryType != REG_SZ)
+                    return null;
+
+                string text = PolicyNativeHelpers.ReadRegistryString(buffer);
                 return int.TryParse(text, NumberStyles.Integer, CultureInfo.InvariantCulture, out int parsed) ? parsed : null;
             }
         }
@@ -301,7 +308,10 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
 
             using (buffer)
             {
-                string? value = Marshal.PtrToStringUni(buffer.Pointer);
+                if (buffer.RegistryType is not (REG_SZ or REG_EXPAND_SZ))
+                    return null;
+
+                string value = PolicyNativeHelpers.ReadRegistryString(buffer);
                 return string.IsNullOrWhiteSpace(value) ? null : value;
             }
         }

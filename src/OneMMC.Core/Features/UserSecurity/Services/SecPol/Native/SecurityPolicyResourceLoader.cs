@@ -255,7 +255,10 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
 
             try
             {
-                if (TryParseResourceReference(input, out string moduleName, out int resourceId))
+                // Only the two security modules are opened and cached here; a reference
+                // to any other module named in the registry goes through the shell.
+                if (TryParseResourceReference(input, out string moduleName, out int resourceId) &&
+                    IsOwnedModule(moduleName))
                 {
                     string? value = Instance.LoadString(moduleName, resourceId);
                     if (!string.IsNullOrEmpty(value))
@@ -415,8 +418,18 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
 
         #region Module loading
 
+        private static bool IsOwnedModule(string moduleName)
+            => string.Equals(moduleName, SnapInModuleName, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(moduleName, EngineModuleName, StringComparison.OrdinalIgnoreCase);
+
         private IntPtr GetModule(string moduleName, bool invariant)
         {
+            if (!IsOwnedModule(moduleName))
+            {
+                _logger.LogDebug("[SecurityPolicyResourceLoader] Refusing to load unexpected module {ModuleName}", moduleName);
+                return IntPtr.Zero;
+            }
+
             string cacheKey = invariant ? $"{InvariantCultureName}\\{moduleName}" : moduleName;
 
             lock (_lock)

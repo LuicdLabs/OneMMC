@@ -169,6 +169,23 @@ namespace OneMMC.Core.Features.UserSecurity.Models.SecPol
         public string DisplayNameReference { get; set; } = string.Empty;
 
         /// <summary>
+        /// The registry type Windows declares for this policy's value (REG_SZ,
+        /// REG_BINARY, REG_DWORD or REG_MULTI_SZ), or zero when unknown. The component
+        /// that consumes a policy reads it as this type, so a value is written back the
+        /// same way: <c>CachedLogonsCount</c> is a REG_SZ number and
+        /// <c>FullPrivilegeAuditing</c> a REG_BINARY byte, not REG_DWORDs.
+        /// </summary>
+        public int RegistryValueType { get; set; }
+
+        /// <summary>
+        /// The display name in the invariant (en-US) language when it can only be
+        /// obtained by switching the thread's UI language, as for privilege names. It is
+        /// resolved while the catalog is built, off the UI thread, and used solely to
+        /// pair the policy with its explain text.
+        /// </summary>
+        internal string InvariantDisplayName { get; set; } = string.Empty;
+
+        /// <summary>
         /// Indicates where this definition was sourced from.
         /// Definitions from <see cref="PolicyDataSource.SceRegVl"/> track OS-updated policies;
         /// <see cref="PolicyDataSource.Hardcoded"/> definitions serve as fallbacks.

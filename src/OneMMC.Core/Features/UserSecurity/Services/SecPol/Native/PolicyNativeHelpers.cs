@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Text;
 using OneMMC.Core.Features.UserSecurity.Models.SecPol;
@@ -292,13 +293,28 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
             throw new InvalidOperationException($"Failed to open registry key '{keyPath}' for {operation}: error {result}");
         }
 
+        /// <summary>
+        /// Reads a registry value of any size. The buffer grows to the size the registry
+        /// reports, so long values such as a logon banner or a path list are not lost to
+        /// <c>ERROR_MORE_DATA</c>. The value may change between attempts, so a few retries
+        /// are allowed before giving up.
+        /// </summary>
         internal static bool TryReadRegistryValue(IntPtr keyHandle, string valueName, out RegistryValueBuffer valueBuffer, out int result)
         {
             const int initialSize = 4096;
+            const int maxAttempts = 4;
+
             int dataSize = initialSize;
             IntPtr dataPtr = Marshal.AllocHGlobal(dataSize);
 
             result = RegQueryValueEx(keyHandle, valueName, IntPtr.Zero, out int regType, dataPtr, ref dataSize);
+            for (int attempt = 1; result == ERROR_MORE_DATA && attempt < maxAttempts; attempt++)
+            {
+                Marshal.FreeHGlobal(dataPtr);
+                dataPtr = Marshal.AllocHGlobal(Math.Max(dataSize, sizeof(char)));
+                result = RegQueryValueEx(keyHandle, valueName, IntPtr.Zero, out regType, dataPtr, ref dataSize);
+            }
+
             if (result != ERROR_SUCCESS)
             {
                 Marshal.FreeHGlobal(dataPtr);
@@ -338,11 +354,14 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
         /// Writes a text policy, keeping the registry type the value already has.
         /// Windows describes a few policies with a type that does not match what ships
         /// in the registry, and silently rewriting REG_MULTI_SZ data as REG_SZ (or the
-        /// reverse) would change how the component that reads it behaves. The declared
-        /// type in <paramref name="declaredType"/> is used only to create a new value.
+        /// reverse) would change how the component that reads it behaves. A new value
+        /// takes the type Windows declares, or <paramref name="defaultType"/> if none.
         /// </summary>
-        private static int WriteRegistryText(IntPtr keyHandle, SecurityPolicyDefinition definition, string text, int declaredType)
+        private static int WriteRegistryText(IntPtr keyHandle, SecurityPolicyDefinition definition, string text, int defaultType)
         {
+            int declaredType = definition.RegistryValueType is REG_SZ or REG_MULTI_SZ
+                ? definition.RegistryValueType
+                : defaultType;
             int targetType = declaredType;
 
             if (TryReadRegistryValue(keyHandle, definition.RegistryValueName, out RegistryValueBuffer existing, out _))
@@ -365,18 +384,84 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
                 : WriteRegistryString(keyHandle, definition.RegistryValueName, text);
         }
 
+        /// <summary>
+        /// Writes a numeric, Boolean or choice policy in the registry type Windows declares
+        /// for it. Most are REG_DWORD, but a few are not, and their consumers ignore a value
+        /// of the wrong type: Winlogon reads <c>CachedLogonsCount</c> and
+        /// <c>AllocateDASD</c> as REG_SZ numbers, and the LSA reads
+        /// <c>FullPrivilegeAuditing</c> as a REG_BINARY byte.
+        /// </summary>
+        private static int WriteRegistryNumber(IntPtr keyHandle, SecurityPolicyDefinition definition, long number)
+        {
+            switch (definition.RegistryValueType)
+            {
+                case REG_SZ:
+                    return WriteRegistryString(keyHandle, definition.RegistryValueName, number.ToString(CultureInfo.InvariantCulture));
+
+                case REG_BINARY:
+                {
+                    byte[] data = number is >= 0 and <= byte.MaxValue
+                        ? [(byte)number]
+                        : BitConverter.GetBytes(unchecked((uint)number));
+                    return RegSetValueEx(keyHandle, definition.RegistryValueName, 0, REG_BINARY, data, data.Length);
+                }
+
+                default:
+                    return WriteRegistryDword(keyHandle, definition.RegistryValueName, unchecked((int)number));
+            }
+        }
+
+        /// <summary>
+        /// Reads REG_SZ data within the bounds the registry returned. Registry strings are
+        /// not guaranteed to be null-terminated, so the data size, not a terminator, limits
+        /// the read.
+        /// </summary>
+        internal static string ReadRegistryString(RegistryValueBuffer buffer)
+        {
+            int length = buffer.Size / sizeof(char);
+            if (length <= 0)
+                return string.Empty;
+
+            string raw = Marshal.PtrToStringUni(buffer.Pointer, length);
+            int end = raw.IndexOf('\0');
+            return end >= 0 ? raw.Substring(0, end) : raw;
+        }
+
+        /// <summary>
+        /// Reads a REG_DWORD as an unsigned value, so flags with the high bit set are not
+        /// turned negative. Returns false for any other type or a short value.
+        /// </summary>
+        internal static bool TryReadRegistryDword(RegistryValueBuffer buffer, out uint value)
+        {
+            if (buffer.RegistryType == REG_DWORD && buffer.Size >= sizeof(uint))
+            {
+                value = unchecked((uint)Marshal.ReadInt32(buffer.Pointer));
+                return true;
+            }
+
+            value = 0;
+            return false;
+        }
+
+        /// <summary>
+        /// Reads REG_MULTI_SZ data within the bounds the registry returned, as lines
+        /// separated by <c>\n</c>. Reading stops at the empty string that ends the list.
+        /// </summary>
         internal static string ReadMultiString(IntPtr ptr, int size)
         {
+            int length = size / sizeof(char);
+            if (length <= 0)
+                return string.Empty;
+
             var parts = new List<string>();
-            int offset = 0;
-            while (offset < size - 1)
+            foreach (string part in Marshal.PtrToStringUni(ptr, length).Split('\0'))
             {
-                string part = Marshal.PtrToStringUni(ptr + offset) ?? string.Empty;
-                if (string.IsNullOrEmpty(part))
+                if (part.Length == 0)
                     break;
+
                 parts.Add(part);
-                offset += (part.Length + 1) * 2;
             }
+
             return string.Join("\n", parts);
         }
 
@@ -425,14 +510,15 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
                     switch (valueBuffer.RegistryType)
                     {
                         case REG_DWORD:
-                            value.NumericValue = Marshal.ReadInt32(valueBuffer.Pointer);
+                            if (TryReadRegistryDword(valueBuffer, out uint dword))
+                                value.NumericValue = dword;
                             break;
                         case REG_SZ:
-                            string strValue = Marshal.PtrToStringUni(valueBuffer.Pointer) ?? string.Empty;
+                            string strValue = ReadRegistryString(valueBuffer);
                             value.StringValue = strValue;
                             if (definition.PolicyType is SecurityPolicyType.Numeric or SecurityPolicyType.Boolean or SecurityPolicyType.Dropdown or SecurityPolicyType.BitmaskFlags)
                             {
-                                if (long.TryParse(strValue, out long parsed))
+                                if (long.TryParse(strValue, NumberStyles.Integer, CultureInfo.InvariantCulture, out long parsed))
                                     value.NumericValue = parsed;
                             }
                             break;
@@ -502,7 +588,7 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
                 case SecurityPolicyType.Boolean:
                 case SecurityPolicyType.BitmaskFlags:
                 {
-                    result = WriteRegistryDword(keyScope.Handle, value.Definition.RegistryValueName, (int)value.NumericValue);
+                    result = WriteRegistryNumber(keyScope.Handle, value.Definition, value.NumericValue);
                     break;
                 }
                 case SecurityPolicyType.String:
@@ -523,8 +609,8 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
                     }
 
                     result = isStringDropdown
-                        ? WriteRegistryString(keyScope.Handle, value.Definition.RegistryValueName, value.StringValue ?? value.NumericValue.ToString())
-                        : WriteRegistryDword(keyScope.Handle, value.Definition.RegistryValueName, (int)value.NumericValue);
+                        ? WriteRegistryString(keyScope.Handle, value.Definition.RegistryValueName, value.StringValue ?? value.NumericValue.ToString(CultureInfo.InvariantCulture))
+                        : WriteRegistryNumber(keyScope.Handle, value.Definition, value.NumericValue);
                     break;
                 }
                 case SecurityPolicyType.MultiString:
@@ -606,7 +692,11 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
             // rather than truncating if the buffer is too small.
             const int bufferLength = 256;
 
-            for (int index = 0; ; index++)
+            // The engine's table holds a few dozen rights; the bound only guards against
+            // a table that never reports its end.
+            const int maxPrivileges = 256;
+
+            for (int index = 0; index < maxPrivileges; index++)
             {
                 char[] buffer = new char[bufferLength];
                 int length = bufferLength;
@@ -661,6 +751,28 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
 
             _logger.LogDebug($"[PolicyNativeHelpers] No display name for user right '{privilegeConstant}'");
             return privilegeConstant;
+        }
+
+        /// <summary>
+        /// Resolves the en-US name of a privilege or logon right, used only to pair it with
+        /// its explain text. Returns an empty string when no such name is available.
+        /// Privilege names are read by switching the calling thread's UI language, so call
+        /// this while building the catalog, never on the UI thread.
+        /// </summary>
+        internal static string ResolveInvariantUserRightDisplayName(string privilegeConstant)
+        {
+            string? displayName = SecurityPolicyResourceLoader.Instance.ResolveInvariantPrivilegeDisplayName(privilegeConstant);
+            if (!string.IsNullOrEmpty(displayName))
+                return displayName;
+
+            if (LogonRightItemIds.TryGetValue(privilegeConstant, out int itemId))
+            {
+                PolicyItemText itemText = SecurityPolicyResourceLoader.Instance.LoadInvariantItemText(itemId);
+                if (itemText.HasName)
+                    return itemText.Name;
+            }
+
+            return string.Empty;
         }
 
         #endregion

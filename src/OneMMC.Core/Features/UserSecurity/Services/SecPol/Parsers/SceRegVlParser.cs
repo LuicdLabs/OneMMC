@@ -288,9 +288,7 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
                 RegistryKeyPath = registryKeyPath,
                 RegistryValueName = registryValueName,
                 DropdownOptions = dropdownOptions,
-
-                // A registry policy is configured only while its value exists.
-                AllowNotDefined = true,
+                RegistryValueType = regType,
                 DataSource = PolicyDataSource.SceRegVl
             };
 

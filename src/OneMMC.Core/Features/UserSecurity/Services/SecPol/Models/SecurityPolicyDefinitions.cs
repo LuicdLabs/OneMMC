@@ -217,6 +217,7 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
                 {
                     Key = privilegeConstant,
                     DisplayName = PolicyNativeHelpers.ResolveUserRightDisplayName(privilegeConstant),
+                    InvariantDisplayName = PolicyNativeHelpers.ResolveInvariantUserRightDisplayName(privilegeConstant),
                     Category = SecurityPolicyCategory.UserRightsAssignment,
                     PolicyType = SecurityPolicyType.UserRightsAssignment,
                     PrivilegeConstant = privilegeConstant,
@@ -325,14 +326,15 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
         }
 
         /// <summary>
-        /// Marks a definition as stored in the registry rather than in the SAM, and
-        /// therefore able to return to the Not Defined state.
+        /// Marks a definition as a REG_DWORD stored in the registry rather than in the SAM.
+        /// Like every registry policy in Local Security Policy, it cannot be returned to
+        /// Not Defined once set.
         /// </summary>
         private static SecurityPolicyDefinition Registry(SecurityPolicyDefinition definition, string keyPath, string valueName)
         {
             definition.RegistryKeyPath = keyPath;
             definition.RegistryValueName = valueName;
-            definition.AllowNotDefined = true;
+            definition.RegistryValueType = SecurityPolicyNativeMethods.REG_DWORD;
             return definition;
         }
 

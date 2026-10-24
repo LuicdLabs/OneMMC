@@ -100,8 +100,8 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
         /// <summary>
         /// Resolves the policy's name in the invariant language, which is the key the
         /// pairing is made on. Item strings and the registry catalog both expose a
-        /// resource that can be re-read in another language; a name Windows produced some
-        /// other way, such as a privilege display name, has no invariant form.
+        /// resource that can be re-read in another language; privilege names are carried
+        /// on the definition instead.
         /// </summary>
         private static string? GetInvariantDisplayName(SecurityPolicyDefinition definition)
         {
@@ -122,12 +122,11 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
                     return name.Trim();
             }
 
-            if (!string.IsNullOrEmpty(definition.PrivilegeConstant))
-            {
-                string? name = loader.ResolveInvariantPrivilegeDisplayName(definition.PrivilegeConstant);
-                if (!string.IsNullOrWhiteSpace(name))
-                    return name.Trim();
-            }
+            // Privilege names have no resource reference; their invariant form was resolved
+            // when the catalog was built, because doing so switches the thread's UI
+            // language and this lookup runs on the UI thread.
+            if (!string.IsNullOrWhiteSpace(definition.InvariantDisplayName))
+                return definition.InvariantDisplayName.Trim();
 
             return null;
         }
