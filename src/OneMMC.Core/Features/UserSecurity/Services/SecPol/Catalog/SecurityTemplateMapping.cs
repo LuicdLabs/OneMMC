@@ -57,6 +57,20 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
             ["LSAAnonymousNameLookup"] = "LSAAnonymousNameLookup"
         };
 
+        /// <summary>
+        /// The engine's value for "never" (a password that never expires, a lockout that lasts until an
+        /// administrator unlocks the account). The application, like secpol.msc, shows it as 0; the engine
+        /// rejects 0 for these keys with SCESTATUS_INVALID_PARAMETER.
+        /// </summary>
+        internal const long ForeverValue = -1;
+
+        /// <summary>The <c>[System Access]</c> keys whose 0 in the application is the engine's <see cref="ForeverValue"/>.</summary>
+        internal static readonly HashSet<string> ForeverKeys = new(StringComparer.OrdinalIgnoreCase)
+        {
+            "MaximumPasswordAge",
+            "LockoutDuration"
+        };
+
         /// <summary>The <c>[System Access]</c> key for the account-rename options, whose value is a quoted name.</summary>
         private static readonly Dictionary<string, string> SystemAccessNameKeys = new(StringComparer.OrdinalIgnoreCase)
         {
@@ -129,7 +143,10 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
             // the engine applies them through the SAM and LSA, not as registry values.
             if (SystemAccessKeys.TryGetValue(definition.Key, out string? systemAccessKey))
             {
-                edit = Scalar(SecurityTemplateSections.SystemAccess, systemAccessKey, value, Number(value.NumericValue));
+                long number = value.NumericValue;
+                if (number == 0 && ForeverKeys.Contains(systemAccessKey))
+                    number = ForeverValue;
+                edit = Scalar(SecurityTemplateSections.SystemAccess, systemAccessKey, value, Number(number));
                 return true;
             }
 
