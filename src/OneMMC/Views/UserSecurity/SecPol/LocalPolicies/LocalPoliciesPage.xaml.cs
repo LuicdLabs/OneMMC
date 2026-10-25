@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
-using System.IO;
-using System.Text;
 using OneMMC.Core.Features.UserSecurity.Models.SecPol;
 using OneMMC.Core.Features.UserSecurity.ViewModels.SecPol;
 using OneMMC.Helpers;
@@ -105,26 +102,10 @@ public sealed partial class LocalPoliciesPage : Page
         _logger.LogDebug("[LocalPoliciesPage] Export clicked");
         if (ViewModel.CurrentPolicies.Count == 0) return;
 
-        var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindowInstance);
-        var path = await App.GetRequiredService<OneMMC.Core.Abstractions.Services.IFileDialogService>().SaveFileAsync(
-            hwnd,
-            $"{LocalizedStrings.SecPol_ExportFilter}\0*.txt\0",
-            LocalizedStrings.SecPol_ExportButton,
-            null,
-            "txt",
-            ViewModel.SelectedCategory?.DisplayName);
-
-        if (string.IsNullOrEmpty(path)) return;
-
-        var sb = new StringBuilder();
-        sb.AppendLine($"{LocalizedStrings.SecPol_Header_Policy}\t{LocalizedStrings.SecPol_Header_SecuritySetting}");
-        sb.AppendLine(new string('-', 80));
-        foreach (var policy in ViewModel.CurrentPolicies)
-        {
-            sb.AppendLine($"{policy.Definition.DisplayName}\t{policy.DisplaySetting}");
-        }
-        File.WriteAllText(path, sb.ToString(), Encoding.UTF8);
-        _logger.LogInformation("[LocalPoliciesPage] Exported {PolicyCount} policies to {ExportPath}", ViewModel.CurrentPolicies.Count, path);
+        await SecurityPolicyExport.ExportPoliciesAsync(
+            ViewModel.SelectedCategory?.DisplayName,
+            ViewModel.CurrentPolicies,
+            _logger);
     }
 
     private async System.Threading.Tasks.Task OpenEditorDialogAsync(SecurityPolicyValue policy)

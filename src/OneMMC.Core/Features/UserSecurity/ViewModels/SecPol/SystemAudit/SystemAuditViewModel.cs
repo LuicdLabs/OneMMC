@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.Input;
 using OneMMC.Core.Features.UserSecurity.Models.SecPol.SystemAudit;
 using OneMMC.Core.Features.UserSecurity.Services.SecPol.SystemAudit;
 using OneMMC.Core.Infrastructure.Admin;
+using OneMMC.Core.Infrastructure.Collections;
 using OneMMC.Core.Localization;
 using Microsoft.Extensions.Logging;
 
@@ -18,6 +19,8 @@ public sealed partial class SystemAuditViewModel : ObservableObject
     private readonly ILogger<SystemAuditViewModel> _logger;
     private readonly SystemAuditPolicyService _systemAuditPolicyService;
     private List<AuditSubcategoryValue> _allSubcategories = [];
+    private int _loadVersion;
+    private bool _isStopped;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SystemAuditViewModel"/> class.
@@ -96,17 +99,32 @@ public sealed partial class SystemAuditViewModel : ObservableObject
 
     partial void OnSelectedCategoryChanged(AuditCategoryItem? value)
     {
+        // Drop the previous category's rows at once instead of leaving them on screen until the new
+        // read finishes.
+        _allSubcategories.Clear();
+        ApplyFilter();
+        SelectedSubcategory = null;
+
         if (value is not null)
         {
             LoadSubcategoriesCommand.Execute(null);
         }
     }
 
-    /// <summary>
-    /// Reloads the current category.
-    /// </summary>
+    /// <summary>Reloads the current category.</summary>
     [RelayCommand]
     private async Task RefreshAsync() => await LoadSubcategoriesAsync();
+
+    /// <summary>
+    /// Stops publishing results from pending loads after the owning page unloads.
+    /// The synchronous native read finishes normally.
+    /// </summary>
+    public void StopLoading()
+    {
+        _isStopped = true;
+        ++_loadVersion;
+        IsLoading = false;
+    }
 
     /// <summary>
     /// Loads audit items for the selected category.
@@ -114,10 +132,12 @@ public sealed partial class SystemAuditViewModel : ObservableObject
     [RelayCommand]
     private async Task LoadSubcategoriesAsync()
     {
-        if (SelectedCategory is null)
+        AuditCategoryItem? category = SelectedCategory;
+        if (_isStopped || category is null)
             return;
 
         Guid? selectedGuid = SelectedSubcategory?.SubcategoryGuid;
+        int version = ++_loadVersion;
 
         IsLoading = true;
         HasError = false;
@@ -127,7 +147,10 @@ public sealed partial class SystemAuditViewModel : ObservableObject
         try
         {
             IReadOnlyList<AuditSubcategoryValue> items = await Task.Run(() =>
-                _systemAuditPolicyService.GetSubcategories(SelectedCategory));
+                _systemAuditPolicyService.GetSubcategories(category));
+            if (version != _loadVersion || SelectedCategory != category)
+                return;
+
             _allSubcategories = items.ToList();
             ApplyFilter();
 
@@ -138,13 +161,16 @@ public sealed partial class SystemAuditViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "[SystemAuditViewModel] Failed to load subcategories for {Category}", SelectedCategory.DisplayName);
-            HasError = true;
-            ErrorMessage = ex.Message;
+            _logger.LogError(ex, "[SystemAuditViewModel] Failed to load subcategories for {Category}", category.DisplayName);
+            if (version != _loadVersion || SelectedCategory != category)
+                return;
+
+            ReportError(ex);
         }
         finally
         {
-            IsLoading = false;
+            if (version == _loadVersion)
+                IsLoading = false;
         }
     }
 
@@ -173,18 +199,7 @@ public sealed partial class SystemAuditViewModel : ObservableObject
         catch (Exception ex)
         {
             _logger.LogError(ex, "[SystemAuditViewModel] Failed to save {Subcategory}", subcategory.DisplayName);
-
-            if (_adminService.IsPermissionError(ex))
-            {
-                ErrorMessage = LocalizationProvider.Current.GetString(ResourceFileNames.Common, CommonKeys.AccessDenied_Generic);
-                AdminPermissionRequired?.Invoke(this, EventArgs.Empty);
-            }
-            else
-            {
-                ErrorMessage = ex.Message;
-            }
-
-            HasError = true;
+            ReportError(ex);
             return false;
         }
     }
@@ -208,19 +223,29 @@ public sealed partial class SystemAuditViewModel : ObservableObject
         }
     }
 
+    private void ReportError(Exception ex)
+    {
+        if (_adminService.IsPermissionError(ex))
+        {
+            ErrorMessage = LocalizationProvider.Current.GetString(ResourceFileNames.Common, CommonKeys.AccessDenied_Generic);
+            AdminPermissionRequired?.Invoke(this, EventArgs.Empty);
+        }
+        else
+        {
+            ErrorMessage = ex.Message;
+        }
+
+        HasError = true;
+    }
+
     private void ApplyFilter()
     {
-        CurrentSubcategories.Clear();
-
         IEnumerable<AuditSubcategoryValue> items = string.IsNullOrWhiteSpace(FilterText)
             ? _allSubcategories
             : _allSubcategories.Where(item =>
                 !string.IsNullOrWhiteSpace(item.DisplayName) &&
                 item.DisplayName.Contains(FilterText, StringComparison.CurrentCultureIgnoreCase));
 
-        foreach (AuditSubcategoryValue item in items)
-        {
-            CurrentSubcategories.Add(item);
-        }
+        CurrentSubcategories.ReplaceAll(items);
     }
 }

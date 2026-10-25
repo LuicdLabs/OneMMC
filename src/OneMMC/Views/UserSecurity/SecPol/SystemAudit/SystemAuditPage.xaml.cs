@@ -1,6 +1,4 @@
 ﻿using System;
-using System.IO;
-using System.Text;
 using OneMMC.Core.Abstractions.Services;
 using OneMMC.Core.Features.UserSecurity.Models.SecPol.SystemAudit;
 using OneMMC.Core.Features.UserSecurity.ViewModels.SecPol.SystemAudit;
@@ -34,6 +32,7 @@ public sealed partial class SystemAuditPage : Page
 
         this.Unloaded += (_, _) =>
         {
+            ViewModel.StopLoading();
             ViewModel.AdminPermissionRequired -= OnAdminPermissionRequired;
             DataContext = null;
             Loaded -= OnPageLoaded;
@@ -96,32 +95,24 @@ public sealed partial class SystemAuditPage : Page
         _logger.LogDebug("[SystemAuditPage] Export clicked");
         if (ViewModel.CurrentSubcategories.Count == 0) return;
 
-        var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(App.MainWindowInstance);
-        var path = await App.GetRequiredService<OneMMC.Core.Abstractions.Services.IFileDialogService>().SaveFileAsync(
-            hwnd,
-            $"{LocalizedStrings.SecPol_ExportFilter}\0*.txt\0",
-            LocalizedStrings.SecPol_ExportButton,
-            null,
-            "txt",
-            ViewModel.SelectedCategory?.DisplayName);
-
-        if (string.IsNullOrEmpty(path)) return;
-
-        var sb = new StringBuilder();
-        sb.AppendLine($"{LocalizedStrings.SecPol_Header_Policy}\t{LocalizedStrings.SecPol_Header_SecuritySetting}");
-        sb.AppendLine(new string('-', 80));
-        foreach (var subcategory in ViewModel.CurrentSubcategories)
-        {
-            sb.AppendLine($"{subcategory.DisplayName}\t{subcategory.DisplaySetting}");
-        }
-        File.WriteAllText(path, sb.ToString(), Encoding.UTF8);
-        _logger.LogInformation("[SystemAuditPage] Exported {SubcategoryCount} subcategories to {ExportPath}", ViewModel.CurrentSubcategories.Count, path);
+        await SecurityPolicyExport.ExportAuditSubcategoriesAsync(
+            ViewModel.SelectedCategory?.DisplayName,
+            ViewModel.CurrentSubcategories,
+            _logger);
     }
 
     private async System.Threading.Tasks.Task OpenPropertiesDialogAsync()
     {
         if (ViewModel.SelectedSubcategory is null)
             return;
+
+        // Refuse before the dialog opens so a non-elevated user cannot make edits that are then discarded.
+        var adminService = App.GetRequiredService<IAdminService>();
+        if (!adminService.IsRunningAsAdmin)
+        {
+            await AdminDialogHelper.ShowAdminRequiredDialogAsync(XamlRoot);
+            return;
+        }
 
         var dialog = new SystemAuditPropertiesDialog
         {
@@ -135,13 +126,6 @@ public sealed partial class SystemAuditPage : Page
 
         if (!dialog.WasAccepted || dialog.EditedSubcategory is null)
             return;
-
-        var adminService = App.GetRequiredService<IAdminService>();
-        if (!adminService.IsRunningAsAdmin)
-        {
-            await AdminDialogHelper.ShowAdminRequiredDialogAsync(XamlRoot);
-            return;
-        }
 
         _logger.LogDebug(
             "[SystemAuditPage] Saving audit subcategory: {SubcategoryDisplayName}",
