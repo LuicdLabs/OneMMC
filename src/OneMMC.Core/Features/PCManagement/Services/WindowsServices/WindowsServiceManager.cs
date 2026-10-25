@@ -468,11 +468,16 @@ namespace OneMMC.Core.Features.PCManagement.Services.WindowsServices
                  if (hService.IsInvalid) throw new Exception(OneMMC.Core.Localization.LocalizationProvider.Current.GetString(OneMMC.Core.Localization.ResourceFileNames.Services, OneMMC.Core.Localization.ServicesKeys.ErrOpenService));
 
                  uint bytesNeeded = 0;
-                 Win32PInvoke.QueryServiceConfig2W(
-                     hService,
-                     SERVICE_CONFIG.SERVICE_CONFIG_FAILURE_ACTIONS,
-                     Span<byte>.Empty,
-                     out bytesNeeded);
+                 unsafe
+                 {
+                     // Size probe: null buffer so the service manager reports the required size.
+                     Win32PInvoke.QueryServiceConfig2W(
+                         hService,
+                         SERVICE_CONFIG.SERVICE_CONFIG_FAILURE_ACTIONS,
+                         default,
+                         0,
+                         out bytesNeeded);
+                 }
 
                  if (bytesNeeded == 0) return ("none", "none", "none", 0.0);
 
@@ -480,17 +485,18 @@ namespace OneMMC.Core.Features.PCManagement.Services.WindowsServices
 
                  unsafe
                  {
-                     if (!Win32PInvoke.QueryServiceConfig2W(
-                         hService,
-                         SERVICE_CONFIG.SERVICE_CONFIG_FAILURE_ACTIONS,
-                         buffer,
-                         out bytesNeeded))
-                     {
-                         throw new Exception(OneMMC.Core.Localization.LocalizationProvider.Current.GetFormattedString(OneMMC.Core.Localization.ResourceFileNames.Services, OneMMC.Core.Localization.ServicesKeys.ErrQueryConfigFormat, Marshal.GetLastWin32Error()));
-                     }
-
                      fixed (byte* bufferPtr = buffer)
                      {
+                         if (!Win32PInvoke.QueryServiceConfig2W(
+                             hService,
+                             SERVICE_CONFIG.SERVICE_CONFIG_FAILURE_ACTIONS,
+                             bufferPtr,
+                             (uint)buffer.Length,
+                             out bytesNeeded))
+                         {
+                             throw new Exception(OneMMC.Core.Localization.LocalizationProvider.Current.GetFormattedString(OneMMC.Core.Localization.ResourceFileNames.Services, OneMMC.Core.Localization.ServicesKeys.ErrQueryConfigFormat, Marshal.GetLastWin32Error()));
+                         }
+
                          var failureActions = Marshal.PtrToStructure<SERVICE_FAILURE_ACTIONS>((IntPtr)bufferPtr);
 
                          string first = "none";

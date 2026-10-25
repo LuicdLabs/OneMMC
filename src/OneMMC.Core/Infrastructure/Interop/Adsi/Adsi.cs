@@ -40,7 +40,10 @@ internal static unsafe class Adsi
     {
         Guid iid = IID_IADs;
         void* pObject = null;
-        Win32PInvoke.ADsOpenObject(adsPath, null, null, ADS_AUTHENTICATION_ENUM.ADS_SECURE_AUTHENTICATION, in iid, ref pObject).ThrowOnFailure();
+        fixed (char* pPath = adsPath)
+        {
+            Win32PInvoke.ADsOpenObject(pPath, default, default, ADS_AUTHENTICATION_ENUM.ADS_SECURE_AUTHENTICATION, &iid, &pObject).ThrowOnFailure();
+        }
         return new AdsiObject((IADs*)pObject);
     }
 
@@ -52,7 +55,10 @@ internal static unsafe class Adsi
     {
         Guid iid = IID_IDirectorySearch;
         void* pSearch = null;
-        Win32PInvoke.ADsOpenObject(adsPath, null, null, ADS_AUTHENTICATION_ENUM.ADS_SECURE_AUTHENTICATION, in iid, ref pSearch).ThrowOnFailure();
+        fixed (char* pPath = adsPath)
+        {
+            Win32PInvoke.ADsOpenObject(pPath, default, default, ADS_AUTHENTICATION_ENUM.ADS_SECURE_AUTHENTICATION, &iid, &pSearch).ThrowOnFailure();
+        }
         return new AdsiSearcher((IDirectorySearch*)pSearch);
     }
 
