@@ -237,6 +237,9 @@ Default on Server editions: Success.</value>
   <data name="SecPol_Value_NotDefined" xml:space="preserve">
     <value>Not Defined</value>
   </data>
+  <data name="SecPol_Value_NotApplicable" xml:space="preserve">
+    <value>Not Applicable</value>
+  </data>
   <data name="SecPol_Value_Enabled" xml:space="preserve">
     <value>Enabled</value>
   </data>
@@ -1949,5 +1952,11 @@ Do you want to install this certificate?</value>
   </data>
   <data name="IPSec_Rule_DefaultResponse" xml:space="preserve">
     <value>Default response</value>
+  </data>
+  <data name="SecPol_Error_InvalidPolicyValue" xml:space="preserve">
+    <value>Policy '{0}' contains invalid or unsupported data.</value>
+  </data>
+  <data name="SecPol_Error_TemplateStringCharacters" xml:space="preserve">
+    <value>This policy value cannot contain line breaks or null characters.</value>
   </data>
 </root>

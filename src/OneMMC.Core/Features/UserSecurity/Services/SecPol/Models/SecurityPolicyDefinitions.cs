@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Win32;
 using OneMMC.Core.Features.UserSecurity.Models.SecPol;
 
 namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
@@ -59,20 +60,6 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
         private const int ItemRenameGuestAccount = 67;
         private const int ItemForceLogoffWhenHourExpire = 63;
         private const int ItemLsaAnonymousNameLookup = 57458;
-
-        #endregion
-
-        #region Audit categories (POLICY_AUDIT_EVENT_TYPE order)
-
-        private const int AuditSystem = 0;
-        private const int AuditLogon = 1;
-        private const int AuditObjectAccess = 2;
-        private const int AuditPrivilegeUse = 3;
-        private const int AuditProcessTracking = 4;
-        private const int AuditPolicyChange = 5;
-        private const int AuditAccountManagement = 6;
-        private const int AuditDirectoryServiceAccess = 7;
-        private const int AuditAccountLogon = 8;
 
         #endregion
 
@@ -138,18 +125,10 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
         /// </summary>
         private static long GetMinPasswordLengthMaximum()
         {
-            var relaxLimits = new SecurityPolicyDefinition
-            {
-                Key = "RelaxMinPasswordLength",
-                PolicyType = SecurityPolicyType.Boolean,
-                RegistryKeyPath = SamKeyPath,
-                RegistryValueName = "RelaxMinimumPasswordLengthLimits"
-            };
-
             try
             {
-                SecurityPolicyValue value = PolicyNativeHelpers.ReadRegistryValue(relaxLimits);
-                return value.IsDefined && value.NumericValue != 0
+                using RegistryKey? sam = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(SamKeyPath);
+                return sam?.GetValue("RelaxMinimumPasswordLengthLimits") is int relax && relax != 0
                     ? RelaxedMinPasswordLength
                     : StandardMinPasswordLength;
             }
@@ -186,15 +165,15 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
         {
             return
             [
-                Audit("AuditAccountLogon", ItemAuditAccountLogon, AuditAccountLogon),
-                Audit("AuditAccountManagement", ItemAuditAccountManagement, AuditAccountManagement),
-                Audit("AuditDirectoryServiceAccess", ItemAuditDirectoryServiceAccess, AuditDirectoryServiceAccess),
-                Audit("AuditLogonEvents", ItemAuditLogonEvents, AuditLogon),
-                Audit("AuditObjectAccess", ItemAuditObjectAccess, AuditObjectAccess),
-                Audit("AuditPolicyChange", ItemAuditPolicyChange, AuditPolicyChange),
-                Audit("AuditPrivilegeUse", ItemAuditPrivilegeUse, AuditPrivilegeUse),
-                Audit("AuditProcessTracking", ItemAuditProcessTracking, AuditProcessTracking),
-                Audit("AuditSystemEvents", ItemAuditSystemEvents, AuditSystem)
+                Audit("AuditAccountLogon", ItemAuditAccountLogon),
+                Audit("AuditAccountManagement", ItemAuditAccountManagement),
+                Audit("AuditDirectoryServiceAccess", ItemAuditDirectoryServiceAccess),
+                Audit("AuditLogonEvents", ItemAuditLogonEvents),
+                Audit("AuditObjectAccess", ItemAuditObjectAccess),
+                Audit("AuditPolicyChange", ItemAuditPolicyChange),
+                Audit("AuditPrivilegeUse", ItemAuditPrivilegeUse),
+                Audit("AuditProcessTracking", ItemAuditProcessTracking),
+                Audit("AuditSystemEvents", ItemAuditSystemEvents)
             ];
         }
 
@@ -234,11 +213,9 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
         #region Account options (non-registry Security Options)
 
         /// <summary>
-        /// Returns the Security Options that the registry catalog does not describe.
-        /// The account options live in the SAM and are served by an
-        /// <see cref="ISpecialPolicyHandler"/>; anonymous SID/Name translation is an LSA
-        /// setting the engine exposes through its profile rather than through the
-        /// catalog, so its registry location is named here.
+        /// Returns the Security Options that the registry catalog does not describe:
+        /// the account options and anonymous SID/Name translation, which the engine
+        /// carries in <c>[System Access]</c> rather than as registry values.
         /// </summary>
         internal static List<SecurityPolicyDefinition> GetAccountOptionDefinitions()
         {
@@ -249,36 +226,8 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
                 Text("RenameAdministratorAccount", SecurityPolicyCategory.SecurityOptions, ItemRenameAdministratorAccount),
                 Text("RenameGuestAccount", SecurityPolicyCategory.SecurityOptions, ItemRenameGuestAccount),
                 Boolean("ForceLogoffWhenHourExpire", SecurityPolicyCategory.SecurityOptions, ItemForceLogoffWhenHourExpire),
-                Registry(
-                    Boolean("LSAAnonymousNameLookup", SecurityPolicyCategory.SecurityOptions, ItemLsaAnonymousNameLookup),
-                    @"SYSTEM\CurrentControlSet\Control\Lsa",
-                    "TurnOffAnonymousBlock")
+                Boolean("LSAAnonymousNameLookup", SecurityPolicyCategory.SecurityOptions, ItemLsaAnonymousNameLookup)
             ];
-        }
-
-        #endregion
-
-        #region Get All Definitions By Category
-
-        /// <summary>
-        /// Gets the policy definitions for a category.
-        /// </summary>
-        /// <remarks>
-        /// For <see cref="SecurityPolicyCategory.SecurityOptions"/> this returns only the
-        /// account options; the full merged set comes from
-        /// <see cref="SecurityPolicyService"/>, which adds the registry catalog.
-        /// </remarks>
-        public static List<SecurityPolicyDefinition> GetDefinitionsForCategory(SecurityPolicyCategory category)
-        {
-            return category switch
-            {
-                SecurityPolicyCategory.PasswordPolicy => GetPasswordPolicyDefinitions(),
-                SecurityPolicyCategory.AccountLockoutPolicy => GetAccountLockoutPolicyDefinitions(),
-                SecurityPolicyCategory.AuditPolicy => GetAuditPolicyDefinitions(),
-                SecurityPolicyCategory.UserRightsAssignment => GetUserRightsAssignmentDefinitions(),
-                SecurityPolicyCategory.SecurityOptions => GetAccountOptionDefinitions(),
-                _ => []
-            };
         }
 
         #endregion
@@ -318,12 +267,8 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
         private static SecurityPolicyDefinition Text(string key, SecurityPolicyCategory category, int itemId)
             => Create(key, category, SecurityPolicyType.String, itemId);
 
-        private static SecurityPolicyDefinition Audit(string key, int itemId, int auditEventIndex)
-        {
-            SecurityPolicyDefinition definition = Create(key, SecurityPolicyCategory.AuditPolicy, SecurityPolicyType.Audit, itemId);
-            definition.AuditEventIndex = auditEventIndex;
-            return definition;
-        }
+        private static SecurityPolicyDefinition Audit(string key, int itemId)
+            => Create(key, SecurityPolicyCategory.AuditPolicy, SecurityPolicyType.Audit, itemId);
 
         /// <summary>
         /// Marks a definition as a REG_DWORD stored in the registry rather than in the SAM.

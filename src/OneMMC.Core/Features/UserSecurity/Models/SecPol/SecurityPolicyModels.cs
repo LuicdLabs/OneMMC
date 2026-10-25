@@ -138,16 +138,6 @@ namespace OneMMC.Core.Features.UserSecurity.Models.SecPol
         /// </summary>
         public string PrivilegeConstant { get; set; } = string.Empty;
 
-        /// <summary>
-        /// The audit category GUID (for AuditPolicy policies).
-        /// </summary>
-        public Guid AuditCategoryGuid { get; set; } = Guid.Empty;
-
-        /// <summary>
-        /// The audit subcategory index within the category (for basic audit policy mapping).
-        /// </summary>
-        public int AuditEventIndex { get; set; } = -1;
-
         /// <summary>Whether undefined/not-configured is a valid state for this policy.</summary>
         public bool AllowNotDefined { get; set; }
 
@@ -213,13 +203,24 @@ namespace OneMMC.Core.Features.UserSecurity.Models.SecPol
         /// <summary>Whether the value is defined/configured on the system.</summary>
         public bool IsDefined { get; set; }
 
+        /// <summary>
+        /// Whether the setting does not apply in the current configuration, as the lockout duration,
+        /// reset window and administrator lockout do while no lockout threshold is set. Such a value is
+        /// not defined and is shown as Not Applicable, as secpol.msc shows it.
+        /// </summary>
+        public bool IsNotApplicable { get; set; }
+
         /// <summary>Gets a formatted display string for the current value.</summary>
         public string DisplaySetting
         {
             get
             {
                 if (!IsDefined)
-                    return Localized(SecPolKeys.ValueNotDefined, "Not Defined");
+                {
+                    return IsNotApplicable
+                        ? Localized(SecPolKeys.ValueNotApplicable, "Not Applicable")
+                        : Localized(SecPolKeys.ValueNotDefined, "Not Defined");
+                }
 
                 return Definition.PolicyType switch
                 {
@@ -274,9 +275,13 @@ namespace OneMMC.Core.Features.UserSecurity.Models.SecPol
                     return option.DisplayName;
                 if (option.Value is int iv && iv == NumericValue)
                     return option.DisplayName;
+                if (option.Value is string text && text.Equals(StringValue, StringComparison.Ordinal))
+                    return option.DisplayName;
             }
 
-            return NumericValue.ToString();
+            return Definition.DropdownOptions.Any(option => option.Value is string)
+                ? StringValue
+                : NumericValue.ToString();
         }
 
         private static string Localized(string key, string fallback)
@@ -305,18 +310,6 @@ namespace OneMMC.Core.Features.UserSecurity.Models.SecPol
             var selected = new List<string>();
             long remaining = NumericValue;
 
-            // Compute the "known" bitmask (OR of all defined flag values)
-            // to support catch-all flags like "Future encryption types".
-            long knownMask = 0;
-            foreach (var option in Definition.DropdownOptions)
-            {
-                long flagValue;
-                if (option.Value is long lv) flagValue = lv;
-                else if (option.Value is int iv) flagValue = iv;
-                else if (!long.TryParse(option.Value?.ToString(), out flagValue)) continue;
-                knownMask |= flagValue;
-            }
-
             foreach (var option in Definition.DropdownOptions)
             {
                 long flagValue;
@@ -332,15 +325,6 @@ namespace OneMMC.Core.Features.UserSecurity.Models.SecPol
                     selected.Add(option.DisplayName);
                     remaining &= ~flagValue;
 
-                    // If this flag is a catch-all (i.e., its value is beyond
-                    // all other defined flags), absorb all remaining non-known bits.
-                    // This handles the case where secpol.msc sets additional
-                    // higher bits for "Future encryption types".
-                    long otherFlagsMask = knownMask & ~flagValue;
-                    if (flagValue > 0 && (flagValue & otherFlagsMask) == 0 && flagValue > otherFlagsMask)
-                    {
-                        remaining &= otherFlagsMask;
-                    }
                 }
             }
 

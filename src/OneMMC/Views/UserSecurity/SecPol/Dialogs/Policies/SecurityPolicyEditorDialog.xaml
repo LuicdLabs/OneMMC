@@ -65,6 +65,12 @@
                         Unchecked="DefinePolicyCheckBox_Changed"
                         Visibility="Collapsed" />
 
+                    <TextBlock
+                        x:Name="NotApplicableText"
+                        Text="{x:Bind LocalizedStrings.SecPol_Value_NotApplicable}"
+                        TextWrapping="Wrap"
+                        Visibility="Collapsed" />
+
                     <!--  Editor Container (enabled/disabled based on DefinePolicyCheckBox)  -->
                     <StackPanel x:Name="EditorContainer" Spacing="12">
 

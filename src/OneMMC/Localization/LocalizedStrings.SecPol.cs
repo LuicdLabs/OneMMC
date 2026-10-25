@@ -42,6 +42,8 @@ namespace OneMMC.Localization
         public string SecPol_SystemAudit_GlobalRegistrySacl => GetResource(ResourceFileNames.SecPol, "SecPol_SystemAudit_GlobalRegistrySacl");
         public string SecPol_AssignedAccounts => GetResource(ResourceFileNames.SecPol, "SecPol_AssignedAccounts");
         public string SecPol_NotDefined => GetResource(ResourceFileNames.SecPol, "SecPol_NotDefined");
+        /// <summary>Gets the label for a policy that does not apply to the current configuration.</summary>
+        public string SecPol_Value_NotApplicable => GetResource(ResourceFileNames.SecPol, SecPolKeys.ValueNotApplicable);
         public string SecPol_AddAccount_Title => GetResource(ResourceFileNames.SecPol, "SecPol_AddAccount_Title");
         public string SecPol_AddAccount_Placeholder => GetResource(ResourceFileNames.SecPol, "SecPol_AddAccount_Placeholder");
         public string SecPol_Error_EnterValidNumber => GetResource(ResourceFileNames.SecPol, "SecPol_Error_EnterValidNumber");

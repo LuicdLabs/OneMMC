@@ -48,6 +48,9 @@ namespace OneMMC.Views
 
             _policyValue = ClonePolicyValue(policyValue);
             PolicyTitleText.Text = _policyValue.Definition.DisplayName;
+            NotApplicableText.Visibility = _policyValue.IsNotApplicable ? Visibility.Visible : Visibility.Collapsed;
+            EditorContainer.Visibility = _policyValue.IsNotApplicable ? Visibility.Collapsed : Visibility.Visible;
+            IsPrimaryButtonEnabled = !_policyValue.IsNotApplicable;
 
             var explainText = SecurityPolicyResourceLoader.Instance.GetExplainText(_policyValue.Definition);
             ExplainText.Text = explainText;
@@ -64,18 +67,16 @@ namespace OneMMC.Views
 
             // Set up "Define this policy" checkbox for AllowNotDefined policies
             _allowNotDefined = _policyValue.Definition.AllowNotDefined;
-            if (_allowNotDefined)
+            if (_allowNotDefined && !_policyValue.IsNotApplicable)
             {
                 DefinePolicyCheckBox.Visibility = Visibility.Visible;
                 DefinePolicyCheckBox.IsChecked = _policyValue.IsDefined;
                 EditorContainer.Opacity = _policyValue.IsDefined ? 1.0 : 0.4;
-                SetEditorContainerEnabled(_policyValue.IsDefined);
             }
             else
             {
                 DefinePolicyCheckBox.Visibility = Visibility.Collapsed;
                 EditorContainer.Opacity = 1.0;
-                SetEditorContainerEnabled(true);
             }
 
             // Show the appropriate editor
@@ -132,6 +133,9 @@ namespace OneMMC.Views
                     _activeEditorType = SecurityPolicyType.BitmaskFlags;
                     break;
             }
+
+            // Flag checkboxes are created above, so include them when setting the editability.
+            SetEditorContainerEnabled(!_policyValue.IsNotApplicable && (!_allowNotDefined || _policyValue.IsDefined));
         }
 
         #region Editor Configuration
@@ -230,6 +234,18 @@ namespace OneMMC.Views
                     selectedIndex = i;
             }
 
+            if (selectedIndex < 0 && _policyValue.IsDefined)
+            {
+                // Preserve a value the current Windows catalog does not offer unless the user chooses another.
+                bool isTextValue = _policyValue.Definition.DropdownOptions.Any(option => option.Value is string);
+                DropdownValueCombo.Items.Add(new ComboBoxItem
+                {
+                    Content = isTextValue ? _policyValue.StringValue : _policyValue.NumericValue.ToString(),
+                    Tag = isTextValue ? (object)_policyValue.StringValue : _policyValue.NumericValue
+                });
+                selectedIndex = DropdownValueCombo.Items.Count - 1;
+            }
+
             DropdownValueCombo.SelectedIndex = selectedIndex >= 0 ? selectedIndex : 0;
 
             OneMMC.Services.Logging.UiLogger.LogDebug($"[SecurityPolicyEditorDialog] Dropdown editor: {_policyValue.Definition.DropdownOptions.Count} options, selectedIndex={selectedIndex}");
@@ -240,6 +256,7 @@ namespace OneMMC.Views
             BitmaskFlagsEditor.Visibility = Visibility.Visible;
             BitmaskFlagsLabel.Text = _policyValue!.Definition.DisplayName;
             BitmaskFlagsOptionsPanel.Children.Clear();
+            long remaining = _policyValue.NumericValue;
 
             foreach (var option in _policyValue.Definition.DropdownOptions)
             {
@@ -251,11 +268,26 @@ namespace OneMMC.Views
                 else if (!long.TryParse(option.Value?.ToString(), out flagValue))
                     continue;
 
+                bool isChecked = flagValue != 0 && (_policyValue.NumericValue & flagValue) == flagValue;
+                if (isChecked)
+                    remaining &= ~flagValue;
+
                 BitmaskFlagsOptionsPanel.Children.Add(new CheckBox
                 {
                     Content = option.DisplayName,
                     Tag = flagValue,
-                    IsChecked = flagValue != 0 && (_policyValue.NumericValue & flagValue) == flagValue
+                    IsChecked = isChecked
+                });
+            }
+
+            if (remaining != 0)
+            {
+                // Keep unknown or partially selected flags visible and selected for a lossless round trip.
+                BitmaskFlagsOptionsPanel.Children.Add(new CheckBox
+                {
+                    Content = $"0x{remaining:X}",
+                    Tag = remaining,
+                    IsChecked = true
                 });
             }
 
@@ -280,7 +312,7 @@ namespace OneMMC.Views
 
         private void DefinePolicyCheckBox_Changed(object sender, RoutedEventArgs e)
         {
-            bool isDefined = DefinePolicyCheckBox.IsChecked == true;
+            bool isDefined = _policyValue?.IsNotApplicable != true && DefinePolicyCheckBox.IsChecked == true;
             EditorContainer.Opacity = isDefined ? 1.0 : 0.4;
             SetEditorContainerEnabled(isDefined);
 
@@ -301,6 +333,11 @@ namespace OneMMC.Views
             AccountsList.IsEnabled = enabled;
             AddAccountButton.IsEnabled = enabled;
             RemoveAccountButton.IsEnabled = enabled;
+            foreach (var child in BitmaskFlagsOptionsPanel.Children)
+            {
+                if (child is CheckBox checkbox)
+                    checkbox.IsEnabled = enabled;
+            }
         }
 
         private void NumericValueBox_ValueChanged(NumberBox sender, NumberBoxValueChangedEventArgs args)
@@ -342,7 +379,7 @@ namespace OneMMC.Views
         {
             OneMMC.Services.Logging.UiLogger.LogDebug("[SecurityPolicyEditorDialog] OK clicked, collecting values");
 
-            if (_policyValue == null)
+            if (_policyValue is null || _policyValue.IsNotApplicable)
             {
                 args.Cancel = true;
                 return;
@@ -405,7 +442,7 @@ namespace OneMMC.Views
         private void CollectNumericValue()
         {
             double rawValue = NumericValueBox.Value;
-            if (double.IsNaN(rawValue))
+            if (!double.IsFinite(rawValue) || Math.Truncate(rawValue) != rawValue)
             {
                 throw new ArgumentException(LocalizedStrings.SecPol_Error_EnterValidNumber);
             }
@@ -480,6 +517,7 @@ namespace OneMMC.Views
                 NumericValue = source.NumericValue,
                 StringValue = source.StringValue,
                 IsDefined = source.IsDefined,
+                IsNotApplicable = source.IsNotApplicable,
                 AccountList = new System.Collections.Generic.List<string>(source.AccountList)
             };
         }

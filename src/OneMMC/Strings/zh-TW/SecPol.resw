@@ -169,6 +169,9 @@
   <data name="SecPol_Value_NotDefined" xml:space="preserve">
     <value>尚未定義</value>
   </data>
+  <data name="SecPol_Value_NotApplicable" xml:space="preserve">
+    <value>不適用</value>
+  </data>
   <data name="SecPol_Value_Enabled" xml:space="preserve">
     <value>已啟用</value>
   </data>
@@ -1898,5 +1901,11 @@
   </data>
   <data name="IPSec_Rule_DefaultResponse" xml:space="preserve">
     <value>預設回應</value>
+  </data>
+  <data name="SecPol_Error_InvalidPolicyValue" xml:space="preserve">
+    <value>原則「{0}」包含無效或不支援的資料。</value>
+  </data>
+  <data name="SecPol_Error_TemplateStringCharacters" xml:space="preserve">
+    <value>原則值不能包含換行或 Null 字元。</value>
   </data>
 </root>

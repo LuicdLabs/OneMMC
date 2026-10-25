@@ -80,6 +80,11 @@ public static class CertificateKeys
 public static class SecPolKeys
 {
     public const string ValueNotDefined = "SecPol_Value_NotDefined";
+    public const string ValueNotApplicable = "SecPol_Value_NotApplicable";
+    /// <summary>Invalid or unsupported data read from a security policy.</summary>
+    public const string ErrorInvalidPolicyValue = "SecPol_Error_InvalidPolicyValue";
+    /// <summary>Characters that cannot be encoded in a single INF string.</summary>
+    public const string ErrorTemplateStringCharacters = "SecPol_Error_TemplateStringCharacters";
     public const string ValueEnabled = "SecPol_Value_Enabled";
     public const string ValueDisabled = "SecPol_Value_Disabled";
     public const string ValueEmpty = "SecPol_Value_Empty";

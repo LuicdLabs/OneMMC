@@ -6,28 +6,25 @@ using Microsoft.Extensions.Logging;
 namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
 {
     /// <summary>
-    /// Orchestrates security policy reading and writing by delegating to
-    /// category-specific <see cref="IPolicyProvider"/> implementations.
-    /// <para>
-    /// This is a thin façade that preserves the existing public API while internally
-    /// using the Strategy pattern to decouple category-specific native API mechanics.
-    /// </para>
+    /// Reads and writes the Account and Local policies. Definitions come from the system's own policy
+    /// metadata (<see cref="SecurityPolicyDefinitions"/> and the registry catalog); values are read and
+    /// written through the Security Configuration Engine by <see cref="SecurityPolicyEngine"/>, as
+    /// secpol.msc does.
     /// </summary>
     public sealed class SecurityPolicyService
     {
-        #region Provider Registry
-
-        private readonly Dictionary<SecurityPolicyCategory, IPolicyProvider> _providers;
         private readonly ILogger<SecurityPolicyService> _logger;
-        private readonly SecurityPolicyEngineWriter _engineWriter;
+        private readonly SecurityPolicyEngine _engine;
+        private readonly Lazy<List<SecurityPolicyDefinition>> _securityOptions;
 
+        /// <summary>Initializes the policy catalog and the shared engine.</summary>
         public SecurityPolicyService(
             ILogger<SecurityPolicyService> logger,
             ILoggerFactory loggerFactory,
-            SecurityPolicyEngineWriter engineWriter)
+            SecurityPolicyEngine engine)
         {
             _logger = logger;
-            _engineWriter = engineWriter;
+            _engine = engine;
 
             PolicyNativeHelpers.ConfigureLogger(loggerFactory.CreateLogger("SecPol.PolicyNativeHelpers"));
             SecurityPolicyResourceLoader.Instance.SetLogger(loggerFactory.CreateLogger<SecurityPolicyResourceLoader>());
@@ -36,114 +33,70 @@ namespace OneMMC.Core.Features.UserSecurity.Services.SecPol
             SecurityPolicyExplainIndex.ConfigureLogger(loggerFactory.CreateLogger("SecPol.SecurityPolicyExplainIndex"));
             SecurityPolicyDefinitions.ConfigureLogger(loggerFactory.CreateLogger("SecPol.SecurityPolicyDefinitions"));
 
-            var passwordProvider = new PasswordPolicyProvider(loggerFactory.CreateLogger<PasswordPolicyProvider>());
-            var lockoutProvider = new AccountLockoutPolicyProvider(loggerFactory.CreateLogger<AccountLockoutPolicyProvider>());
-            var auditProvider = new AuditPolicyProvider(loggerFactory.CreateLogger<AuditPolicyProvider>());
-            var userRightsProvider = new UserRightsPolicyProvider(loggerFactory.CreateLogger<UserRightsPolicyProvider>());
-            var securityOptionsProvider = new SecurityOptionsPolicyProvider(loggerFactory.CreateLogger<SecurityOptionsPolicyProvider>());
-
-            _providers = new Dictionary<SecurityPolicyCategory, IPolicyProvider>
-            {
-                [SecurityPolicyCategory.PasswordPolicy] = passwordProvider,
-                [SecurityPolicyCategory.AccountLockoutPolicy] = lockoutProvider,
-                [SecurityPolicyCategory.AuditPolicy] = auditProvider,
-                [SecurityPolicyCategory.UserRightsAssignment] = userRightsProvider,
-                [SecurityPolicyCategory.SecurityOptions] = securityOptionsProvider
-            };
-
-            _logger.LogInformation("[SecurityPolicyService] Initialized with {ProviderCount} providers", _providers.Count);
+            _securityOptions = new Lazy<List<SecurityPolicyDefinition>>(BuildSecurityOptionDefinitions);
         }
 
-        #endregion
-
-        #region Public API
-
         /// <summary>
-        /// Reads all policy values for the given category from the system.
-        /// Definitions are obtained from the category's provider — for SecurityOptions,
-        /// they are dynamically parsed from sceregvl.inf.
+        /// Reads a category's account/LSA settings with one engine read and its registry payloads directly.
         /// </summary>
+        /// <exception cref="UnauthorizedAccessException">The caller cannot read the local security policy.</exception>
+        /// <exception cref="InvalidOperationException">The engine failed to read the settings.</exception>
         public List<SecurityPolicyValue> ReadPolicies(SecurityPolicyCategory category)
         {
-            _logger.LogDebug("[SecurityPolicyService] ReadPolicies: category={Category}", category);
+            IReadOnlyList<SecurityPolicyDefinition> definitions = GetDefinitions(category);
+            var results = new List<SecurityPolicyValue>(definitions.Count);
 
-            if (!_providers.TryGetValue(category, out var provider))
-            {
-                _logger.LogWarning("[SecurityPolicyService] No provider registered for category: {Category}", category);
-                return new List<SecurityPolicyValue>();
-            }
+            if (definitions.Count == 0)
+                return results;
 
-            var definitions = provider.GetDefinitions();
-            var results = new List<SecurityPolicyValue>();
+            SecurityTemplate template = _engine.Read(category);
 
-            foreach (var definition in definitions)
-            {
-                try
-                {
-                    var value = provider.ReadPolicy(definition);
-                    results.Add(value);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "[SecurityPolicyService] Error reading policy {PolicyKey}", definition.Key);
-                    results.Add(new SecurityPolicyValue
-                    {
-                        Definition = definition,
-                        IsDefined = false,
-                        StringValue = $"Error: {ex.Message}"
-                    });
-                }
-            }
+            foreach (SecurityPolicyDefinition definition in definitions)
+                results.Add(SecurityTemplateMapping.ReadValue(definition, template));
 
             _logger.LogInformation("[SecurityPolicyService] ReadPolicies: read {PolicyCount} policies for {Category}", results.Count, category);
             return results;
         }
 
-        /// <summary>
-        /// Writes a single policy value to the system.
-        /// The appropriate provider is selected based on the definition's category.
-        /// </summary>
+        /// <summary>Writes a single policy value to the local security policy.</summary>
         public void WritePolicy(SecurityPolicyValue value)
         {
+            ArgumentNullException.ThrowIfNull(value);
             _logger.LogDebug("[SecurityPolicyService] WritePolicy: key={PolicyKey}, type={PolicyType}", value.Definition.Key, value.Definition.PolicyType);
-
-            // Write through the Security Configuration Engine's local-policy update, as secpol.msc
-            // does, so the engine applies the change and records it in the local policy database.
-            // The direct provider write remains for anything the engine cannot express.
-            if (_engineWriter.TryWrite(value))
-                return;
-
-            if (!_providers.TryGetValue(value.Definition.Category, out var provider))
-                throw new NotSupportedException($"Category {value.Definition.Category} is not supported for writing.");
-
-            provider.WritePolicy(value);
+            _engine.Write(value);
         }
+
+        private IReadOnlyList<SecurityPolicyDefinition> GetDefinitions(SecurityPolicyCategory category) => category switch
+        {
+            SecurityPolicyCategory.PasswordPolicy => SecurityPolicyDefinitions.GetPasswordPolicyDefinitions(),
+            SecurityPolicyCategory.AccountLockoutPolicy => SecurityPolicyDefinitions.GetAccountLockoutPolicyDefinitions(),
+            SecurityPolicyCategory.AuditPolicy => SecurityPolicyDefinitions.GetAuditPolicyDefinitions(),
+            SecurityPolicyCategory.UserRightsAssignment => SecurityPolicyDefinitions.GetUserRightsAssignmentDefinitions(),
+            SecurityPolicyCategory.SecurityOptions => _securityOptions.Value,
+            _ => Array.Empty<SecurityPolicyDefinition>()
+        };
 
         /// <summary>
-        /// Gets the provider for a specific category.
-        /// Useful for accessing provider-specific functionality (e.g., cache invalidation).
+        /// Assembles Security Options from the system itself: every registry policy from the Security
+        /// Configuration Engine's registry catalog (the source secpol.msc uses), falling back to parsing
+        /// <c>sceregvl.inf</c>, from which the engine builds that catalog, only if the key is unavailable;
+        /// then the account options that are not registry values.
         /// </summary>
-        public IPolicyProvider? GetProvider(SecurityPolicyCategory category)
+        private List<SecurityPolicyDefinition> BuildSecurityOptionDefinitions()
         {
-            _providers.TryGetValue(category, out var provider);
-            return provider;
+            List<SecurityPolicyDefinition> definitions = SecurityOptionsCatalog.GetDefinitions();
+
+            if (definitions.Count == 0)
+            {
+                IReadOnlyList<SecurityPolicyDefinition> parsed = SceRegVlParser.Instance.GetDefinitions();
+                _logger.LogDebug("[SecurityPolicyService] Registry catalog unavailable; using {Count} definitions from sceregvl.inf", parsed.Count);
+                definitions = [.. parsed];
+            }
+
+            definitions.AddRange(SecurityPolicyDefinitions.GetAccountOptionDefinitions());
+
+            _logger.LogDebug("[SecurityPolicyService] Catalog contains {Count} Security Options", definitions.Count);
+            return definitions;
         }
-
-        /// <summary>
-        /// Gets the definitions for a specific category from the registered provider.
-        /// For SecurityOptions, this returns dynamically-parsed definitions from sceregvl.inf.
-        /// </summary>
-        public IReadOnlyList<SecurityPolicyDefinition> GetDefinitions(SecurityPolicyCategory category)
-        {
-            if (!_providers.TryGetValue(category, out var provider))
-                return Array.Empty<SecurityPolicyDefinition>();
-
-            return provider.GetDefinitions();
-        }
-
-        #endregion
     }
 }
-
-
-
