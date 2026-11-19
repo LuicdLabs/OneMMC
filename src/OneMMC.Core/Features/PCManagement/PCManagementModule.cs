@@ -22,6 +22,7 @@ internal static class PCManagementModule
 {
     internal static IServiceCollection AddPCManagement(this IServiceCollection services)
     {
+        services.AddTransient<DeviceCategoryIconService>();
         services.AddTransient<DeviceManagerService>();
         services.AddTransient<DiskManagementService>();
         services.AddTransient<EventViewerService>();

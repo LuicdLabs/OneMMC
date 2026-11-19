@@ -29,6 +29,8 @@ SetupDiDestroyDeviceInfoList
 SetupDiGetDeviceRegistryProperty
 SetupDiSetClassInstallParams
 SetupDiCallClassInstaller
+SetupDiLoadClassIcon
+DestroyIcon
 SP_DEVINFO_DATA
 SP_PROPCHANGE_PARAMS
 SP_REMOVEDEVICE_PARAMS
@@ -184,3 +186,5 @@ SaferGetLevelInformation
 SaferSetLevelInformation
 SaferGetPolicyInformation
 SaferSetPolicyInformation
+CM_Get_DevNode_Status
+SetupDiGetClassDescription

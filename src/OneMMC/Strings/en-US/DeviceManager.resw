@@ -197,9 +197,6 @@
     <value>Compatible ID</value>
   </data>
   
-  <data name="DeviceManager_HiddenDevices" xml:space="preserve">
-    <value>Hidden devices</value>
-  </data>
   <data name="DeviceManager_ConfirmDisableDeviceTitle" xml:space="preserve">
     <value>Disable Device</value>
   </data>

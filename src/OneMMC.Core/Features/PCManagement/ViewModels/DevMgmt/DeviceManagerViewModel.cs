@@ -121,30 +121,10 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.DevMgmt
 
             try
             {
-                var categories = await Task.Run(() =>
-                {
-                    var cats = _deviceManagerService.GetDeviceCategories();
-                    
-                    // If showing hidden devices, add them
-                    if (ShowHiddenDevices)
-                    {
-                        var hiddenDevices = _deviceManagerService.GetHiddenDevices();
-                        if (hiddenDevices.Any())
-                        {
-                            var hiddenName = L.GetString(ResourceFileNames.DeviceManager, DeviceManagerKeys.HiddenDevices);
-                            var hiddenCategory = new DeviceCategory
-                            {
-                                Name = hiddenName,
-                                DisplayName = hiddenName,
-                                ClassGuid = "",
-                                Devices = hiddenDevices
-                            };
-                            cats.Insert(0, hiddenCategory);
-                        }
-                    }
-
-                    return cats;
-                });
+                // Like Device Manager, hidden and non-present devices go into their own classes rather
+                // than a separate group.
+                bool showHidden = ShowHiddenDevices;
+                var categories = await Task.Run(() => _deviceManagerService.GetDeviceCategories(showHidden));
 
                 // Keep the unfiltered result so filtering never has to re-query, and so it always filters
                 // the full set rather than the previous filter's output.
@@ -363,6 +343,7 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.DevMgmt
                         Name = category.Name,
                         DisplayName = category.DisplayName,
                         ClassGuid = category.ClassGuid,
+                        IconPng = category.IconPng,
                         Devices = filteredDevices
                     });
                 }

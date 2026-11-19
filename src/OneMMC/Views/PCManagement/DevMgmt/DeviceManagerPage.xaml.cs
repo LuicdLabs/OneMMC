@@ -121,6 +121,23 @@ namespace OneMMC.Views
     }
 
     // Value Converters
+
+    /// <summary>
+    /// Dims the icon of a non-present device, as Device Manager does under "Show hidden devices".
+    /// </summary>
+    public partial class PresenceToOpacityConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, string language)
+        {
+            return value is false ? 0.4 : 1.0;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, string language)
+        {
+            throw new NotSupportedException();
+        }
+    }
+
     public partial class BoolToGlyphConverter : IValueConverter
     {
         public string TrueValue { get; set; } = string.Empty;

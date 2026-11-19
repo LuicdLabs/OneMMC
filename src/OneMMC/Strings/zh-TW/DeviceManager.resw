@@ -197,9 +197,6 @@
     <value>相容 ID</value>
   </data>
   
-  <data name="DeviceManager_HiddenDevices" xml:space="preserve">
-    <value>隱藏的裝置</value>
-  </data>
   <data name="DeviceManager_ConfirmDisableDeviceTitle" xml:space="preserve">
     <value>停用裝置</value>
   </data>

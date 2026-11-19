@@ -699,7 +699,6 @@ public static class NetworkListManagerKeys
 /// </summary>
 public static class DeviceManagerKeys
 {
-    public const string HiddenDevices = "DeviceManager_HiddenDevices";
     public const string DeviceCountPrefix = "DeviceManager_DeviceCountPrefix";
     public const string DeviceCountSuffix = "DeviceManager_DeviceCountSuffix";
 

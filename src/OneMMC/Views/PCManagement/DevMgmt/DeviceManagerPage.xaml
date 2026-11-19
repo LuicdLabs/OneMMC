@@ -4,6 +4,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="using:CommunityToolkit.WinUI.Controls"
+    xmlns:converters="using:OneMMC.Converters"
     xmlns:coreServices="using:OneMMC.Core.Features.PCManagement.Services.DevMgmt"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="using:OneMMC.Views"
@@ -20,6 +21,8 @@
         <local:InverseBoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
         <local:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter_Normal" />
         <local:DeviceCountFormatter x:Key="DeviceCountFormatter" />
+        <local:PresenceToOpacityConverter x:Key="PresenceToOpacityConverter" />
+        <converters:DeviceCategoryIconConverter x:Key="DeviceCategoryIconConverter" />
     </Page.Resources>
 
     <Grid>
@@ -106,6 +109,7 @@
                         <DataTemplate x:DataType="coreServices:DeviceCategory">
                             <controls:SettingsExpander
                                 Header="{x:Bind DisplayName}"
+                                HeaderIcon="{x:Bind IconPng, Converter={StaticResource DeviceCategoryIconConverter}}"
                                 IsExpanded="False"
                                 ItemsSource="{x:Bind Devices}">
                                 <controls:SettingsExpander.Description>
@@ -124,7 +128,8 @@
                                             <controls:SettingsCard.HeaderIcon>
                                                 <FontIcon
                                                     Glyph="{x:Bind HasProblem, Converter={StaticResource DeviceStatusGlyphConverter}}"
-                                                    Foreground="{x:Bind HasProblem, Converter={StaticResource DeviceStatusColorConverter}}" />
+                                                    Foreground="{x:Bind HasProblem, Converter={StaticResource DeviceStatusColorConverter}}"
+                                                    Opacity="{x:Bind IsPresent, Converter={StaticResource PresenceToOpacityConverter}}" />
                                             </controls:SettingsCard.HeaderIcon>
                                         </controls:SettingsCard>
                                     </DataTemplate>

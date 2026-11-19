@@ -19,11 +19,20 @@ namespace OneMMC.Core.Features.PCManagement.Services.DevMgmt
     {
         private readonly ILogger<DeviceManagerService> _logger;
         private readonly IAdminService _adminService;
+        private readonly DeviceCategoryIconService _categoryIconService;
 
-        public DeviceManagerService(ILogger<DeviceManagerService> logger, IAdminService adminService)
+        /// <summary>
+        /// Initializes device management with administrator checks and optional category icons.
+        /// </summary>
+        /// <param name="logger">The diagnostic logger.</param>
+        /// <param name="adminService">The administrator permission service.</param>
+        /// <param name="categoryIconService">The Windows category icon loader.</param>
+        public DeviceManagerService(ILogger<DeviceManagerService> logger, IAdminService adminService,
+            DeviceCategoryIconService categoryIconService)
         {
             _logger = logger;
             _adminService = adminService;
+            _categoryIconService = categoryIconService;
         }
 
         // Native device enumeration/installation runs through CsWin32-generated SETUPAPI.dll interop
@@ -31,6 +40,8 @@ namespace OneMMC.Core.Features.PCManagement.Services.DevMgmt
         // SetupDiGetClassDevs is wrapped in a SafeHandle that calls SetupDiDestroyDeviceInfoList on
         // dispose, so no handwritten [DllImport] remains here.
         private const int CR_SUCCESS = 0;
+        private const int CR_NO_SUCH_DEVINST = 13;
+        private const uint DN_NO_SHOW_IN_DM = 0x40000000;
 
         /// <summary>
         /// Sets the full class-install parameter block for a device (SP_PROPCHANGE_PARAMS /
@@ -46,11 +57,17 @@ namespace OneMMC.Core.Features.PCManagement.Services.DevMgmt
         }
 
         /// <summary>
-        /// Get all device categories
+        /// Gets device categories the way Device Manager lists them.
         /// </summary>
-        public List<DeviceCategory> GetDeviceCategories()
+        /// <param name="includeHidden">
+        /// True to match Device Manager's "Show hidden devices": include devices flagged not to show,
+        /// classes marked NoDisplayClass, and non-present (previously installed) devices.
+        /// </param>
+        public List<DeviceCategory> GetDeviceCategories(bool includeHidden = false)
         {
             var categories = new Dictionary<string, DeviceCategory>();
+            SetupDeviceScan scan = ScanSetupDevices(includeHidden);
+            var noDisplayClasses = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
 
             try
             {
@@ -67,23 +84,20 @@ namespace OneMMC.Core.Features.PCManagement.Services.DevMgmt
                     {
                         var className = device["PNPClass"]?.ToString() ?? "Unknown";
                         var classGuid = device["ClassGuid"]?.ToString() ?? "";
+                        var deviceId = device["DeviceID"]?.ToString() ?? "";
 
-                        if (!categories.TryGetValue(className, out var category))
+                        if (!includeHidden &&
+                            (scan.NoShowDeviceIds.Contains(deviceId) || IsNoDisplayClass(classGuid, noDisplayClasses)))
                         {
-                            category = new DeviceCategory
-                            {
-                                Name = className,
-                                DisplayName = DeviceCategoryDisplayNames.GetDisplayName(className),
-                                ClassGuid = classGuid,
-                                Devices = new List<DeviceInfo>()
-                            };
-                            categories[className] = category;
+                            continue;
                         }
+
+                        DeviceCategory category = GetOrAddCategory(categories, className, classGuid);
 
                         var deviceInfo = new DeviceInfo
                         {
                             Name = device["Caption"]?.ToString() ?? "Unknown Device",
-                            DeviceId = device["DeviceID"]?.ToString() ?? "",
+                            DeviceId = deviceId,
                             Description = device["Description"]?.ToString() ?? "",
                             Manufacturer = device["Manufacturer"]?.ToString() ?? "",
                             Status = device["Status"]?.ToString() ?? "Unknown",
@@ -99,7 +113,7 @@ namespace OneMMC.Core.Features.PCManagement.Services.DevMgmt
                         deviceInfo.HasProblem = deviceInfo.ConfigManagerErrorCode != 0;
                         deviceInfo.StatusDescription = GetDeviceStatusDescription(deviceInfo.ConfigManagerErrorCode);
 
-                        categories[className].Devices.Add(deviceInfo);
+                        category.Devices.Add(deviceInfo);
                     }
                 }
             }
@@ -108,7 +122,208 @@ namespace OneMMC.Core.Features.PCManagement.Services.DevMgmt
                 _logger.LogDebug($"Error getting device categories: {ex.Message}");
             }
 
+            // Win32_PnPEntity only reports present devices; non-present ones come from the SetupAPI scan.
+            foreach (DeviceInfo phantom in scan.PhantomDevices)
+            {
+                DeviceCategory category = GetOrAddCategory(categories, phantom.ClassName, phantom.ClassGuid);
+                phantom.ClassDisplayName = category.DisplayName;
+                phantom.StatusDescription = GetDeviceStatusDescription(phantom.ConfigManagerErrorCode);
+                category.Devices.Add(phantom);
+            }
+
+            foreach (DeviceCategory category in categories.Values)
+            {
+                category.Devices.Sort((a, b) => StringComparer.CurrentCultureIgnoreCase.Compare(a.Name, b.Name));
+            }
+
             return categories.Values.OrderBy(c => c.DisplayName, StringComparer.CurrentCultureIgnoreCase).ToList();
+        }
+
+        private DeviceCategory GetOrAddCategory(Dictionary<string, DeviceCategory> categories, string className, string classGuid)
+        {
+            if (!categories.TryGetValue(className, out var category))
+            {
+                string displayName = DeviceCategoryDisplayNames.GetDisplayName(className);
+                if (displayName == className)
+                {
+                    // Classes without a bundled translation use the OS-localized class name,
+                    // which is what Device Manager shows.
+                    displayName = FirstNonEmpty(GetClassDescription(classGuid), className);
+                }
+
+                category = new DeviceCategory
+                {
+                    Name = className,
+                    DisplayName = displayName,
+                    ClassGuid = classGuid,
+                    IconPng = _categoryIconService.GetIconPng(classGuid),
+                    Devices = new List<DeviceInfo>()
+                };
+                categories[className] = category;
+            }
+
+            return category;
+        }
+
+        private static unsafe string GetClassDescription(string classGuid)
+        {
+            if (!Guid.TryParse(classGuid, out Guid guid))
+            {
+                return string.Empty;
+            }
+
+            Span<char> buffer = stackalloc char[256];
+            fixed (char* text = buffer)
+            {
+                uint required = 0;
+                return Win32PInvoke.SetupDiGetClassDescription(&guid, text, (uint)buffer.Length, &required)
+                    ? new string(text).Trim()
+                    : string.Empty;
+            }
+        }
+
+        /// <summary>
+        /// Returns whether a setup class asks Device Manager to hide it unless hidden devices are shown.
+        /// </summary>
+        private static bool IsNoDisplayClass(string classGuid, Dictionary<string, bool> cache)
+        {
+            if (string.IsNullOrEmpty(classGuid))
+            {
+                return false;
+            }
+
+            if (!cache.TryGetValue(classGuid, out bool noDisplay))
+            {
+                try
+                {
+                    using var key = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(
+                        $@"SYSTEM\CurrentControlSet\Control\Class\{classGuid}");
+                    noDisplay = key?.GetValue("NoDisplayClass") is not null;
+                }
+                catch (Exception)
+                {
+                    noDisplay = false;
+                }
+
+                cache[classGuid] = noDisplay;
+            }
+
+            return noDisplay;
+        }
+
+        private sealed record SetupDeviceScan(HashSet<string> NoShowDeviceIds, List<DeviceInfo> PhantomDevices);
+
+        /// <summary>
+        /// Walks every device SetupAPI knows about, present or not, to find the devices Device Manager
+        /// hides by default: present devnodes flagged DN_NO_SHOW_IN_DM and non-present (phantom) devices.
+        /// </summary>
+        private SetupDeviceScan ScanSetupDevices(bool collectPhantoms)
+        {
+            var noShow = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var phantoms = new List<DeviceInfo>();
+
+            try
+            {
+                // Omitting DIGCF_PRESENT includes phantom devnodes, which CM_Get_DevNode_Status then
+                // reports as CR_NO_SUCH_DEVINST.
+                using var deviceInfoSet = Win32PInvoke.SetupDiGetClassDevs(
+                    ClassGuid: null,
+                    Enumerator: null,
+                    hwndParent: default,
+                    Flags: SETUP_DI_GET_CLASS_DEVS_FLAGS.DIGCF_ALLCLASSES);
+
+                if (deviceInfoSet.IsInvalid)
+                {
+                    _logger.LogDebug($"Failed to get device info set for hidden device scan. Error: {Marshal.GetLastWin32Error()}");
+                    return new SetupDeviceScan(noShow, phantoms);
+                }
+
+                var deviceInfoData = new SP_DEVINFO_DATA
+                {
+                    cbSize = (uint)Marshal.SizeOf<SP_DEVINFO_DATA>(),
+                };
+
+                for (uint index = 0; Win32PInvoke.SetupDiEnumDeviceInfo(deviceInfoSet, index, ref deviceInfoData); index++)
+                {
+                    string instanceId = GetPnpDeviceId(deviceInfoData.DevInst);
+                    if (string.IsNullOrEmpty(instanceId))
+                    {
+                        continue;
+                    }
+
+                    var result = Win32PInvoke.CM_Get_DevNode_Status(out var status, out _, deviceInfoData.DevInst, 0);
+                    if ((int)result == CR_SUCCESS)
+                    {
+                        if (((uint)status & DN_NO_SHOW_IN_DM) != 0)
+                        {
+                            noShow.Add(instanceId);
+                        }
+
+                        continue;
+                    }
+
+                    if ((int)result != CR_NO_SUCH_DEVINST || !collectPhantoms)
+                    {
+                        continue;
+                    }
+
+                    string description = ReadRegistryString(deviceInfoSet, deviceInfoData, SETUP_DI_REGISTRY_PROPERTY.SPDRP_DEVICEDESC);
+                    string friendlyName = ReadRegistryString(deviceInfoSet, deviceInfoData, SETUP_DI_REGISTRY_PROPERTY.SPDRP_FRIENDLYNAME);
+                    string className = ReadRegistryString(deviceInfoSet, deviceInfoData, SETUP_DI_REGISTRY_PROPERTY.SPDRP_CLASS);
+
+                    phantoms.Add(new DeviceInfo
+                    {
+                        Name = FirstNonEmpty(friendlyName, description, instanceId),
+                        DeviceId = instanceId,
+                        PnpDeviceId = instanceId,
+                        Description = description,
+                        Manufacturer = ReadRegistryString(deviceInfoSet, deviceInfoData, SETUP_DI_REGISTRY_PROPERTY.SPDRP_MFG),
+                        Status = "Unknown",
+                        ClassName = string.IsNullOrEmpty(className) ? "Unknown" : className,
+                        ClassGuid = ReadRegistryString(deviceInfoSet, deviceInfoData, SETUP_DI_REGISTRY_PROPERTY.SPDRP_CLASSGUID),
+                        // Device Manager reports non-present devices as "not connected" (code 45)
+                        // without a problem overlay; the dimmed icon marks them instead.
+                        ConfigManagerErrorCode = 45,
+                        IsEnabled = true,
+                        IsPresent = false,
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogDebug($"Error scanning hidden devices: {ex.Message}");
+            }
+
+            return new SetupDeviceScan(noShow, phantoms);
+        }
+
+        private static string FirstNonEmpty(params string[] values)
+        {
+            return values.FirstOrDefault(v => !string.IsNullOrEmpty(v)) ?? string.Empty;
+        }
+
+        private static string ReadRegistryString(SafeHandle deviceInfoSet, in SP_DEVINFO_DATA deviceInfoData,
+            SETUP_DI_REGISTRY_PROPERTY property)
+        {
+            return string.Join('\n', ReadRegistryStrings(deviceInfoSet, deviceInfoData, property));
+        }
+
+        /// <summary>
+        /// Reads a REG_SZ or REG_MULTI_SZ device registry property.
+        /// </summary>
+        private static List<string> ReadRegistryStrings(SafeHandle deviceInfoSet, in SP_DEVINFO_DATA deviceInfoData,
+            SETUP_DI_REGISTRY_PROPERTY property)
+        {
+            Span<byte> buffer = stackalloc byte[4096];
+            if (!Win32PInvoke.SetupDiGetDeviceRegistryProperty(deviceInfoSet, in deviceInfoData, property, out _, buffer, out uint required))
+            {
+                return [];
+            }
+
+            int length = (int)Math.Min(required, (uint)buffer.Length) & ~1;
+            return Encoding.Unicode.GetString(buffer[..length])
+                .Split('\0', StringSplitOptions.RemoveEmptyEntries)
+                .ToList();
         }
 
         /// <summary>
@@ -150,6 +365,12 @@ namespace OneMMC.Core.Features.PCManagement.Services.DevMgmt
                     }
                 }
 
+                // Win32_PnPEntity has no row for non-present devices shown via "Show hidden devices".
+                if (string.IsNullOrEmpty(properties.PnpDeviceId))
+                {
+                    ReadNonPresentDeviceProperties(deviceId, properties);
+                }
+
                 // Get driver information
                 properties.DriverInfo = GetDeviceDriverInfo(deviceId);
 
@@ -161,6 +382,53 @@ namespace OneMMC.Core.Features.PCManagement.Services.DevMgmt
             }
 
             return properties;
+        }
+
+        /// <summary>
+        /// Fills properties for a device that SetupAPI knows but WMI does not report (a non-present device).
+        /// </summary>
+        private void ReadNonPresentDeviceProperties(string deviceId, DeviceProperties properties)
+        {
+            using var deviceInfoSet = Win32PInvoke.SetupDiGetClassDevs(
+                ClassGuid: null,
+                Enumerator: null,
+                hwndParent: default,
+                Flags: SETUP_DI_GET_CLASS_DEVS_FLAGS.DIGCF_ALLCLASSES);
+
+            if (deviceInfoSet.IsInvalid)
+            {
+                return;
+            }
+
+            var deviceInfoData = new SP_DEVINFO_DATA
+            {
+                cbSize = (uint)Marshal.SizeOf<SP_DEVINFO_DATA>(),
+            };
+
+            for (uint index = 0; Win32PInvoke.SetupDiEnumDeviceInfo(deviceInfoSet, index, ref deviceInfoData); index++)
+            {
+                if (!GetPnpDeviceId(deviceInfoData.DevInst).Equals(deviceId, StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                string description = ReadRegistryString(deviceInfoSet, deviceInfoData, SETUP_DI_REGISTRY_PROPERTY.SPDRP_DEVICEDESC);
+                properties.Name = FirstNonEmpty(
+                    ReadRegistryString(deviceInfoSet, deviceInfoData, SETUP_DI_REGISTRY_PROPERTY.SPDRP_FRIENDLYNAME),
+                    description,
+                    deviceId);
+                properties.Description = description;
+                properties.Manufacturer = ReadRegistryString(deviceInfoSet, deviceInfoData, SETUP_DI_REGISTRY_PROPERTY.SPDRP_MFG);
+                properties.Status = "Unknown";
+                properties.PnpDeviceId = deviceId;
+                properties.Service = ReadRegistryString(deviceInfoSet, deviceInfoData, SETUP_DI_REGISTRY_PROPERTY.SPDRP_SERVICE);
+                properties.ClassName = ReadRegistryString(deviceInfoSet, deviceInfoData, SETUP_DI_REGISTRY_PROPERTY.SPDRP_CLASS);
+                properties.ClassGuid = ReadRegistryString(deviceInfoSet, deviceInfoData, SETUP_DI_REGISTRY_PROPERTY.SPDRP_CLASSGUID);
+                properties.HardwareIds = ReadRegistryStrings(deviceInfoSet, deviceInfoData, SETUP_DI_REGISTRY_PROPERTY.SPDRP_HARDWAREID);
+                properties.CompatibleIds = ReadRegistryStrings(deviceInfoSet, deviceInfoData, SETUP_DI_REGISTRY_PROPERTY.SPDRP_COMPATIBLEIDS);
+                properties.ConfigManagerErrorCode = 45;
+                return;
+            }
         }
 
         /// <summary>
@@ -350,7 +618,9 @@ namespace OneMMC.Core.Features.PCManagement.Services.DevMgmt
                     ClassGuid: null,
                     Enumerator: null,
                     hwndParent: default,
-                    Flags: SETUP_DI_GET_CLASS_DEVS_FLAGS.DIGCF_PRESENT | SETUP_DI_GET_CLASS_DEVS_FLAGS.DIGCF_ALLCLASSES);
+                    // No DIGCF_PRESENT: non-present devices listed via "Show hidden devices" can be
+                    // uninstalled too, as in Device Manager.
+                    Flags: SETUP_DI_GET_CLASS_DEVS_FLAGS.DIGCF_ALLCLASSES);
 
                 if (deviceInfoSet.IsInvalid)
                 {
@@ -583,50 +853,14 @@ namespace OneMMC.Core.Features.PCManagement.Services.DevMgmt
             
             return L.GetString(ResourceFileNames.DeviceManager, resourceKey);
         }
-
-        /// <summary>
-        /// Get hidden devices
-        /// </summary>
-        public List<DeviceInfo> GetHiddenDevices()
-        {
-            var devices = new List<DeviceInfo>();
-
-            try
-            {
-                using (var connection = new WmiConnection())
-                {
-                    foreach (WmiObject device in connection.CreateQuery(
-                        "SELECT * FROM Win32_PnPEntity WHERE ConfigManagerErrorCode = 22").DisposeItems())
-                    {
-                        var deviceInfo = new DeviceInfo
-                        {
-                            Name = device["Caption"]?.ToString() ?? "Unknown Device",
-                            DeviceId = device["DeviceID"]?.ToString() ?? "",
-                            Description = device["Description"]?.ToString() ?? "",
-                            Manufacturer = device["Manufacturer"]?.ToString() ?? "",
-                            Status = "Disabled",
-                            IsEnabled = false,
-                            HasProblem = true,
-                            ConfigManagerErrorCode = 22,
-                            StatusDescription = "DeviceManager_StatusDisabled"
-                        };
-
-                        devices.Add(deviceInfo);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogDebug($"Error getting hidden devices: {ex.Message}");
-            }
-
-            return devices;
-        }
     }
 
     #region Data Models
 
-    public class DeviceCategory
+    /// <summary>
+    /// Groups devices by their PnP class for the device manager list.
+    /// </summary>
+    public partial class DeviceCategory
     {
         public string Name { get; set; } = string.Empty;
 
@@ -642,6 +876,12 @@ namespace OneMMC.Core.Features.PCManagement.Services.DevMgmt
         }
 
         public string ClassGuid { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Gets or sets the optional Windows category icon as PNG bytes.
+        /// </summary>
+        public byte[]? IconPng { get; set; }
+
         public List<DeviceInfo> Devices { get; set; } = new();
         public int DeviceCount => Devices?.Count ?? 0;
         public bool IsExpanded { get; set; }
@@ -660,6 +900,13 @@ namespace OneMMC.Core.Features.PCManagement.Services.DevMgmt
         public string ClassGuid { get; set; } = string.Empty;
         public bool IsEnabled { get; set; }
         public bool HasProblem { get; set; }
+
+        /// <summary>
+        /// Gets or sets whether the device is currently connected; false for devices shown only via
+        /// "Show hidden devices" because they were installed but are no longer present.
+        /// </summary>
+        public bool IsPresent { get; set; } = true;
+
         public uint ConfigManagerErrorCode { get; set; }
         public string StatusDescription { get; set; } = string.Empty;
     }

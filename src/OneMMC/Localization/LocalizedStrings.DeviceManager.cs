@@ -36,7 +36,6 @@ namespace OneMMC.Localization
         public string DeviceManager_HardwareID => GetResource(ResourceFileNames.DeviceManager, "DeviceManager_HardwareID");
         public string DeviceManager_CompatibleID => GetResource(ResourceFileNames.DeviceManager, "DeviceManager_CompatibleID");
         
-        public string DeviceManager_HiddenDevices => GetResource(ResourceFileNames.DeviceManager, "DeviceManager_HiddenDevices");
         public string DeviceManager_ConfirmDisableDeviceTitle => GetResource(ResourceFileNames.DeviceManager, "DeviceManager_ConfirmDisableDeviceTitle");
         public string DeviceManager_ConfirmDisableDeviceContent => GetResource(ResourceFileNames.DeviceManager, "DeviceManager_ConfirmDisableDeviceContent");
         public string DeviceManager_DisableButton => GetResource(ResourceFileNames.DeviceManager, "DeviceManager_DisableButton");
