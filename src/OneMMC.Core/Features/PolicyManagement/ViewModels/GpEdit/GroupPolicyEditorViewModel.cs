@@ -323,6 +323,27 @@ namespace OneMMC.Core.Features.PolicyManagement.ViewModels.GpEdit
             }
         }
 
+        /// <summary>
+        /// Re-reads the policy source before the editor dialog opens, so the dialog shows the stored values,
+        /// including changes made by other tools. A read failure is only logged here; the save reloads
+        /// again and fails if the source is still unreadable.
+        /// </summary>
+        /// <param name="isComputerContext">True for Computer Configuration, false for User Configuration.</param>
+        public void RefreshPolicySource(bool isComputerContext)
+        {
+            var service = isComputerContext ? _computerPolicyService : _userPolicyService;
+            if (service is null) return;
+
+            try
+            {
+                service.Reload();
+            }
+            catch (Exception ex)
+            {
+                LogDebug($"[GPO] Could not refresh the policy source before editing: {ex.Message}");
+            }
+        }
+
         public void SetPolicyState(PolicyManagerPolicy policy, bool isComputerContext, PolicyState state, Dictionary<string, object> options)
         {
             var service = isComputerContext ? _computerPolicyService : _userPolicyService;
@@ -336,6 +357,13 @@ namespace OneMMC.Core.Features.PolicyManagement.ViewModels.GpEdit
             try
             {
                 LogDebug($"[GPO] Setting policy state: {policy.DisplayName} -> {state}");
+
+                // Start from the stored Registry.pol, not the copy loaded when the page opened: otherwise
+                // saving rewrites the whole file from that copy and discards every change made since by
+                // gpedit.msc, secpol.msc, LGPO, the Security Settings editors, or another OneMMC process.
+                // Reload throws if the file cannot be read, and nothing is written. As in gpedit.msc, the
+                // last writer wins for this policy itself.
+                service.Reload();
 
                 if (!service.SetPolicyState(policy, state, options))
                 {
@@ -353,8 +381,15 @@ namespace OneMMC.Core.Features.PolicyManagement.ViewModels.GpEdit
                 }
 
                 var saveStatus = service.Save();
-                LogPolicyAction("Save", policy, state);
                 LogDebug($"[GPO] Save status: {saveStatus}");
+                if (service.LastError is { } saveError)
+                {
+                    LogPolicyAction("Save-Fail", policy, state);
+                    LastErrorMessage = saveError;
+                    throw new InvalidOperationException(saveError);
+                }
+
+                LogPolicyAction("Save", policy, state);
 
                 // Trigger policy refresh if on Pro/Enterprise
                 if (_hasGpoInfrastructure)

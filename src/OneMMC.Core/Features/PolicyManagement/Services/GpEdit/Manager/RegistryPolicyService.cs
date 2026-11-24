@@ -137,6 +137,7 @@ namespace OneMMC.Core.Features.PolicyManagement.Services.GpEdit.Manager
         public string Save()
         {
             EnsureInitialized();
+            LastError = null;
 
             try
             {
@@ -168,7 +169,7 @@ namespace OneMMC.Core.Features.PolicyManagement.Services.GpEdit.Manager
 
         public void Reload()
         {
-            if (_disposed) return;
+            ObjectDisposedException.ThrowIf(_disposed, this);
 
             // For registry-based access, we just need to ensure the key is still valid
             // The RegistryPolicyProxy reads directly from the registry each time

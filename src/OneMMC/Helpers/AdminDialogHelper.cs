@@ -1,4 +1,5 @@
 ﻿using System;
+using Microsoft.Extensions.Logging;
 using OneMMC.Localization;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
@@ -50,44 +51,37 @@ namespace OneMMC.Helpers
             }
         }
 
-        /// <summary> 
-        /// Attempts to restart the application with administrator privileges. 
-        /// Returns <c>true</c> if the restart request was successfully initiated; 
-        /// returns <c>false</c> if elevation was denied or the operation failed. 
-        /// </summary> 
-        /// <returns><c>true</c> if the application attempted to restart as administrator; 
-        /// otherwise, <c>false</c>.</returns>
+        /// <summary>
+        /// Attempts to restart the application with administrator privileges.
+        /// </summary>
+        /// <remarks>
+        /// Callers must resolve unsaved edits first: once the elevated process starts, this window closes.
+        /// </remarks>
+        /// <returns><c>true</c> if the elevated process was started and this window is closing;
+        /// <c>false</c> if elevation was declined or failed and this window keeps running.</returns>
         public static bool RunasAdmin()
         {
+            var adminService = App.GetRequiredService<IAdminService>();
+
+            // Release the single-window key first; otherwise the elevated process would redirect back to
+            // this exiting process and no window would remain. Re-claim it if the restart did not happen.
+            bool restarted = false;
+            Program.ReleaseInstanceKey();
             try
             {
-                var adminService = App.GetRequiredService<IAdminService>();
-
-                // Release the single-window key first; otherwise the elevated process would redirect back to
-                // this exiting process and no window would remain. Re-claim it if the restart did not happen.
-                bool restarted = false;
-                void OnRestartRequested() => restarted = true;
-                adminService.RestartRequested += OnRestartRequested;
-                Program.ReleaseInstanceKey();
-                try
-                {
-                    adminService.RestartAsAdmin();
-                }
-                finally
-                {
-                    adminService.RestartRequested -= OnRestartRequested;
-                    if (!restarted)
-                    {
-                        Program.ReclaimInstanceKey();
-                    }
-                }
-
-                return true;
+                restarted = adminService.RestartAsAdmin();
             }
-            catch (System.Runtime.InteropServices.COMException ex) when (ex.HResult == unchecked((int)0x80000019))
+            finally
             {
-                return false;
+                if (!restarted && !Program.ReclaimInstanceKey())
+                {
+                    App.GetRequiredService<ILoggerFactory>()
+                        .CreateLogger(typeof(AdminDialogHelper).FullName!)
+                        .LogWarning("Another OneMMC process registered the single-window key while elevation was pending; later launches will activate that process.");
+                }
             }
+
+            return restarted;
         }
 
         /// <summary>

@@ -132,7 +132,12 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
             return false;
         }
 
-        public OperationResult CleanDisk(uint diskIndex)
+        /// <param name="diskIndex">The disk number.</param>
+        /// <param name="expectedUniqueId">
+        /// The disk's <c>UniqueId</c> as displayed, or null to skip the check. Clean erases the whole disk,
+        /// so it must not run against a different disk that has taken this number since the last refresh.
+        /// </param>
+        public OperationResult CleanDisk(uint diskIndex, string? expectedUniqueId = null)
         {
             if (_service.IsSystemDisk(diskIndex))
                 return OperationResult.Fail(ErrorMessages.SystemDiskClean);
@@ -147,6 +152,9 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
 
                 if (disk == null)
                     return OperationResult.Fail(ErrorMessages.DiskNotFound);
+
+                if (!DiskIdentityCheck.DiskMatches(disk, expectedUniqueId))
+                    return OperationResult.Fail(ErrorMessages.LayoutChanged);
 
                 using WmiMethod clearMethod = disk.GetMethod("Clear");
                 using WmiMethodParameters inParams = clearMethod.CreateInParameters();

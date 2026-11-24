@@ -752,16 +752,33 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.DiskMgmt
         }
 
         /// <summary>
+        /// Returns the <c>UniqueId</c> of the disk shown as <paramref name="diskIndex"/> in the last refresh,
+        /// or null when it is unknown. Destructive operations pass it down so they act only on that disk.
+        /// </summary>
+        private string? GetDisplayedDiskUniqueId(uint diskIndex)
+        {
+            var uniqueId = PhysicalDisks.FirstOrDefault(d => d.Index == diskIndex)?.UniqueId;
+            return string.IsNullOrEmpty(uniqueId) ? null : uniqueId;
+        }
+
+        /// <summary>
         /// Delete a volume
         /// </summary>
-        public async Task<(bool Success, string Message)> DeleteVolumeAsync(uint diskIndex, uint partitionIndex)
+        /// <param name="diskIndex">The disk number.</param>
+        /// <param name="partitionIndex">The zero-based partition index.</param>
+        /// <param name="expectedOffset">
+        /// The starting offset of the partition the user chose, so the operation is refused when the
+        /// partition numbering changed after the view was refreshed; null skips that check.
+        /// </param>
+        public async Task<(bool Success, string Message)> DeleteVolumeAsync(uint diskIndex, uint partitionIndex, ulong? expectedOffset = null)
         {
             IsLoading = true;
             StatusMessage = T.Get(DiskMgmtKeys.StatusDeletingVolume);
 
             try
             {
-                var result = await Task.Run(() => _diskService.DeleteVolume(diskIndex, partitionIndex));
+                var expectedDiskUniqueId = GetDisplayedDiskUniqueId(diskIndex);
+                var result = await Task.Run(() => _diskService.DeleteVolume(diskIndex, partitionIndex, expectedDiskUniqueId, expectedOffset));
                 
                 if (result.Success)
                 {
@@ -956,14 +973,18 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.DiskMgmt
         /// <summary>
         /// Mark partition as active
         /// </summary>
-        public async Task<(bool Success, string Message)> MarkPartitionActiveAsync(uint diskIndex, uint partitionIndex)
+        /// <param name="diskIndex">The disk number.</param>
+        /// <param name="partitionIndex">The zero-based partition index.</param>
+        /// <param name="expectedOffset">The starting offset of the partition the user chose; null skips that check.</param>
+        public async Task<(bool Success, string Message)> MarkPartitionActiveAsync(uint diskIndex, uint partitionIndex, ulong? expectedOffset = null)
         {
             IsLoading = true;
             StatusMessage = T.Get(DiskMgmtKeys.StatusMarkingActive);
 
             try
             {
-                var result = await Task.Run(() => _diskService.MarkPartitionActive(diskIndex, partitionIndex));
+                var expectedDiskUniqueId = GetDisplayedDiskUniqueId(diskIndex);
+                var result = await Task.Run(() => _diskService.MarkPartitionActive(diskIndex, partitionIndex, expectedDiskUniqueId, expectedOffset));
                 
                 if (result.Success)
                 {
@@ -1166,6 +1187,11 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.DiskMgmt
         /// <summary>
         /// Clean disk
         /// </summary>
+        /// <param name="diskIndex">The disk number.</param>
+        /// <remarks>
+        /// The operation is refused when the disk now at <paramref name="diskIndex"/> is not the one shown
+        /// in the view (for example after a USB disk was added or removed).
+        /// </remarks>
         public async Task<(bool Success, string Message)> CleanDiskAsync(uint diskIndex)
         {
             IsLoading = true;
@@ -1173,7 +1199,8 @@ namespace OneMMC.Core.Features.PCManagement.ViewModels.DiskMgmt
 
             try
             {
-                var result = await Task.Run(() => _diskService.CleanDisk(diskIndex));
+                var expectedDiskUniqueId = GetDisplayedDiskUniqueId(diskIndex);
+                var result = await Task.Run(() => _diskService.CleanDisk(diskIndex, expectedDiskUniqueId));
                 
                 if (result.Success)
                 {

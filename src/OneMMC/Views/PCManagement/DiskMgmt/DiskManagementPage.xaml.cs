@@ -664,6 +664,13 @@ public sealed partial class DiskManagementPage : Page
 
     #region Volume Operations - Extended
 
+    /// <summary>
+    /// The displayed partition's starting offset, passed to destructive operations so they are refused if
+    /// the partition numbering changed since the last refresh; null when the offset is unknown.
+    /// </summary>
+    private static ulong? GetExpectedOffset(PartitionInfo partition) =>
+        partition.StartingOffset > 0 ? partition.StartingOffset : null;
+
     private async void DeleteVolumeButton_Click(object sender, RoutedEventArgs e)
     {
         if (!await EnsureAdminAsync()) return;
@@ -678,7 +685,7 @@ public sealed partial class DiskManagementPage : Page
         if (result == ContentDialogResult.Primary && dialog.IsConfirmed)
         {
             var deleteResult = await ViewModel.DeleteVolumeAsync(
-                partition.DiskIndex, partition.Index);
+                partition.DiskIndex, partition.Index, GetExpectedOffset(partition));
             
             await ShowResultDialogAsync(
                 deleteResult.Success ? LocalizedStrings.Common_SuccessTitle : LocalizedStrings.DiskMgmt_Result_DeleteVolumeFailed,
@@ -922,7 +929,7 @@ public sealed partial class DiskManagementPage : Page
         var dialogResult = await dialog.ShowAsync();
         if (dialogResult == ContentDialogResult.Primary)
         {
-            var result = await ViewModel.MarkPartitionActiveAsync(partition.DiskIndex, partition.Index);
+            var result = await ViewModel.MarkPartitionActiveAsync(partition.DiskIndex, partition.Index, GetExpectedOffset(partition));
             await ShowResultDialogAsync(
                 result.Success ? LocalizedStrings.Common_SuccessTitle : LocalizedStrings.DiskMgmt_Result_MarkActiveFailed,
                 result.Message

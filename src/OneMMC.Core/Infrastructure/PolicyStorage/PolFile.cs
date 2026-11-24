@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using Microsoft.Win32;
+using OneMMC.Core.Infrastructure.IO;
 
 namespace OneMMC.Core.Infrastructure.PolicyStorage
 {
@@ -67,17 +68,18 @@ namespace OneMMC.Core.Infrastructure.PolicyStorage
         /// Saves the POL file to disk.
         /// </summary>
         /// <param name="filePath">Path to save the file to.</param>
+        /// <remarks>
+        /// The file is replaced atomically, so a failed or interrupted save leaves the previous
+        /// <c>Registry.pol</c> intact instead of a truncated one.
+        /// </remarks>
         public void Save(string filePath)
         {
-            var directory = Path.GetDirectoryName(filePath);
-            if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+            AtomicFile.Write(filePath, stream =>
             {
-                Directory.CreateDirectory(directory);
-            }
-
-            using var stream = new FileStream(filePath, FileMode.Create);
-            using var writer = new BinaryWriter(stream, Encoding.Unicode);
-            Save(writer);
+                using var writer = new BinaryWriter(stream, Encoding.Unicode, leaveOpen: true);
+                Save(writer);
+                writer.Flush();
+            });
         }
 
         /// <summary>

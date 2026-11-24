@@ -1011,6 +1011,7 @@ public static class DiskMgmtKeys
     public const string ErrErrorCodeOnlyFormat = "DiskMgmt_Err_ErrorCodeOnlyFormat";
     public const string ErrInitializeCodeFormat = "DiskMgmt_Err_InitializeCodeFormat";
     public const string ErrCleanCodeFormat = "DiskMgmt_Err_CleanCodeFormat";
+    public const string ErrLayoutChanged = "DiskMgmt_Err_LayoutChanged";
     public const string ErrDeletionCodeFormat = "DiskMgmt_Err_DeletionCodeFormat";
     public const string ErrAssignmentCodeFormat = "DiskMgmt_Err_AssignmentCodeFormat";
     public const string ErrFormattingCodeFormat = "DiskMgmt_Err_FormattingCodeFormat";

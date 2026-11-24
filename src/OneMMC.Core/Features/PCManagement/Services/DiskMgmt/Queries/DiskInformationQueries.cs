@@ -72,6 +72,7 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
                             diskInfo.HealthStatus = msftInfo.HealthStatus;
                             diskInfo.IsOffline = msftInfo.IsOffline;
                             diskInfo.IsReadOnly = msftInfo.IsReadOnly;
+                            diskInfo.UniqueId = msftInfo.UniqueId;
                         }
                         else
                         {
@@ -197,6 +198,7 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
             public string HealthStatus { get; set; } = "Unknown";
             public bool IsOffline { get; set; }
             public bool IsReadOnly { get; set; }
+            public string UniqueId { get; set; } = string.Empty;
         }
 
         private Dictionary<uint, MsftDiskData> GetMsftDiskInfo()
@@ -222,7 +224,8 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
                                 PartitionStyle = partStyle switch { 1 => "MBR", 2 => "GPT", _ => "RAW" },
                                 HealthStatus = health switch { 0 => "Healthy", 1 => "Warning", 2 => "Unhealthy", _ => "Unknown" },
                                 IsOffline = disk.GetPropertySafe<bool>("IsOffline"),
-                                IsReadOnly = disk.GetPropertySafe<bool>("IsReadOnly")
+                                IsReadOnly = disk.GetPropertySafe<bool>("IsReadOnly"),
+                                UniqueId = disk.GetPropertySafe<string>("UniqueId") ?? string.Empty
                             };
                         }
                         catch (Exception ex)

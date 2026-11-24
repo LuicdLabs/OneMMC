@@ -132,10 +132,14 @@ namespace OneMMC
                 RunAsAdminItem.Visibility = Visibility.Collapsed;
             }
 
-            _adminService.RestartRequested += () =>
+            // Close the window rather than calling Application.Exit, so the normal shutdown path runs
+            // (window placement is saved, services are disposed). Unsaved edits were already resolved by
+            // the caller. Deferred so RunasAdmin finishes before the service provider is disposed.
+            _adminService.RestartRequested += () => DispatcherQueue.TryEnqueue(() =>
             {
-                Application.Current.Exit();
-            };
+                _forceClose = true;
+                Close();
+            });
 
             OverlappedPresenter presenter = OverlappedPresenter.Create();
             // PreferredMinimum* take physical pixels; scale the 100%-DIP design minimums by the
@@ -341,7 +345,13 @@ namespace OneMMC
             {
                 if (tag == "RunAsAdmin")
                 {
-                    AdminDialogHelper.RunasAdmin();
+                    // The window closes once the elevated process starts, so resolve unsaved edits first.
+                    // No navigation follows, so the page's own guard stays armed in case UAC is declined.
+                    if (await EnsureSafeToLeaveCurrentPageAsync(suppressPageGuard: false))
+                    {
+                        AdminDialogHelper.RunasAdmin();
+                    }
+
                     return;
                 }
 
@@ -369,7 +379,10 @@ namespace OneMMC
         /// Asks the current page (when it guards unsaved edits) to resolve them before the shell mutates
         /// navigation state. Returns <see langword="true"/> when navigation may proceed.
         /// </summary>
-        private async Task<bool> EnsureSafeToLeaveCurrentPageAsync()
+        /// <param name="suppressPageGuard">
+        /// True when the caller navigates away next, so the page's own <c>OnNavigatingFrom</c> prompt is skipped.
+        /// </param>
+        private async Task<bool> EnsureSafeToLeaveCurrentPageAsync(bool suppressPageGuard = true)
         {
             if (contentFrame?.Content is IUnsavedChangesGuard guard && guard.HasUnsavedChanges)
             {
@@ -378,8 +391,10 @@ namespace OneMMC
                     return false;
                 }
 
-                // The shell drives the navigation next, so suppress the page's own OnNavigatingFrom prompt.
-                guard.SuppressNextNavigationGuard();
+                if (suppressPageGuard)
+                {
+                    guard.SuppressNextNavigationGuard();
+                }
             }
 
             return true;

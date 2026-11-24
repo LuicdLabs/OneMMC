@@ -124,33 +124,30 @@ namespace OneMMC.Core.Features.PolicyManagement.Services.GpEdit.Manager
         public string Save()
         {
             EnsureInitialized();
+            LastError = null;
 
             try
             {
-                // Save the POL file
+                var hasGroupPolicyInfrastructure = SystemInfo.HasGroupPolicyInfrastructure();
+
+                // Without the Group Policy service the registry is updated by diffing against the previous
+                // file, so it has to be read before the save replaces it.
+                var previous = hasGroupPolicyInfrastructure ? null : TryLoadPrevious();
+
                 _polFile!.Save(_polFilePath);
                 LogDebug($"Saved POL file to: {_polFilePath}");
 
-                // Update gpt.ini version
-                if (!string.IsNullOrEmpty(_gptIniPath))
-                {
-                    UpdateGptIni();
-                    LogDebug($"Updated gpt.ini at: {_gptIniPath}");
-                }
+                UpdateGptIni();
 
-                // Trigger policy refresh if infrastructure exists
-                if (SystemInfo.HasGroupPolicyInfrastructure())
+                if (hasGroupPolicyInfrastructure)
                 {
                     PInvoke.RefreshPolicyEx(!IsUserPolicy, PInvoke.RP_FORCE);
                     LogDebug($"Triggered policy refresh for {(IsUserPolicy ? "User" : "Machine")} policy");
                     return "saved and refreshed via Group Policy infrastructure";
                 }
-                else
-                {
-                    // Apply directly to registry for Home editions
-                    ApplyToRegistry();
-                    return "applied to Registry (no Group Policy service)";
-                }
+
+                ApplyToRegistry(previous);
+                return "applied to Registry (no Group Policy service)";
             }
             catch (Exception ex)
             {
@@ -162,7 +159,7 @@ namespace OneMMC.Core.Features.PolicyManagement.Services.GpEdit.Manager
 
         public void Reload()
         {
-            if (_disposed) return;
+            ObjectDisposedException.ThrowIf(_disposed, this);
 
             try
             {
@@ -173,6 +170,7 @@ namespace OneMMC.Core.Features.PolicyManagement.Services.GpEdit.Manager
             {
                 LastError = LocalizationProvider.Current.GetFormattedString(ResourceFileNames.Policy, PolicyKeys.ErrorReloadFailedFormat, ex.Message);
                 LogDebug($"[ERROR] Reload failed: {ex.Message}");
+                throw;
             }
         }
 
@@ -250,7 +248,26 @@ namespace OneMMC.Core.Features.PolicyManagement.Services.GpEdit.Manager
             }
         }
 
-        private void ApplyToRegistry()
+        private PolFile? TryLoadPrevious()
+        {
+            if (!File.Exists(_polFilePath))
+            {
+                return null;
+            }
+
+            try
+            {
+                return PolFile.Load(_polFilePath);
+            }
+            catch (Exception ex)
+            {
+                // Without a readable previous file every entry is applied as new, which is still correct.
+                LogDebug($"Could not read the previous POL file for diffing: {ex.Message}");
+                return null;
+            }
+        }
+
+        private void ApplyToRegistry(PolFile? previous)
         {
             var targetHive = IsUserPolicy
                 ? Microsoft.Win32.RegistryHive.CurrentUser
@@ -258,21 +275,7 @@ namespace OneMMC.Core.Features.PolicyManagement.Services.GpEdit.Manager
 
             var targetProxy = RegistryPolicyProxy.EncapsulateKey(targetHive);
 
-            // Load the previous version to calculate diff
-            PolFile? oldPol = null;
-            if (File.Exists(_polFilePath))
-            {
-                try
-                {
-                    oldPol = PolFile.Load(_polFilePath);
-                }
-                catch
-                {
-                    // Ignore errors loading old file
-                }
-            }
-
-            _polFile!.ApplyDifference(oldPol, targetProxy);
+            _polFile!.ApplyDifference(previous, targetProxy);
 
             // Flush registry changes
             using var key = Microsoft.Win32.RegistryKey.OpenBaseKey(targetHive, Microsoft.Win32.RegistryView.Default);
@@ -288,77 +291,15 @@ namespace OneMMC.Core.Features.PolicyManagement.Services.GpEdit.Manager
         {
             if (string.IsNullOrEmpty(_gptIniPath)) return;
 
-            const string machExtensionsLine = "gPCMachineExtensionNames=[{35378EAC-683F-11D2-A89A-00C04FBBCFA2}{D02B1F72-3407-48AE-BA88-E8213C6761F1}]";
-            const string userExtensionsLine = "gPCUserExtensionNames=[{35378EAC-683F-11D2-A89A-00C04FBBCFA2}{D02B1F73-3407-48AE-BA88-E8213C6761F1}]";
-
             try
             {
-                var gptDir = Path.GetDirectoryName(_gptIniPath);
-                if (!string.IsNullOrEmpty(gptDir) && !Directory.Exists(gptDir))
-                {
-                    Directory.CreateDirectory(gptDir);
-                }
-
-                if (File.Exists(_gptIniPath))
-                {
-                    UpdateExistingGptIni(machExtensionsLine, userExtensionsLine);
-                }
-                else
-                {
-                    CreateNewGptIni(machExtensionsLine, userExtensionsLine);
-                }
+                GptIniFile.IncrementVersion(_gptIniPath, IsUserPolicy);
+                LogDebug($"Updated gpt.ini at: {_gptIniPath}");
             }
             catch (Exception ex)
             {
                 LogDebug($"Failed to update gpt.ini: {ex.Message}");
             }
-        }
-
-        private void UpdateExistingGptIni(string machExtensionsLine, string userExtensionsLine)
-        {
-            var lines = File.ReadAllLines(_gptIniPath);
-            using var writer = new StreamWriter(_gptIniPath, false);
-
-            bool seenMachExts = false, seenUserExts = false, seenVersion = false;
-
-            foreach (var line in lines)
-            {
-                if (line.StartsWith("Version", StringComparison.OrdinalIgnoreCase))
-                {
-                    var parts = line.Split('=');
-                    if (parts.Length == 2 && int.TryParse(parts[1], out int curVersion))
-                    {
-                        curVersion += IsUserPolicy ? 0x10000 : 1;
-                        writer.WriteLine($"Version={curVersion}");
-                    }
-                    else
-                    {
-                        writer.WriteLine("Version=" + 0x10001);
-                    }
-                    seenVersion = true;
-                }
-                else
-                {
-                    writer.WriteLine(line);
-                    if (line.StartsWith("gPCMachineExtensionNames=", StringComparison.OrdinalIgnoreCase))
-                        seenMachExts = true;
-                    if (line.StartsWith("gPCUserExtensionNames=", StringComparison.OrdinalIgnoreCase))
-                        seenUserExts = true;
-                }
-            }
-
-            if (!seenVersion) writer.WriteLine("Version=" + 0x10001);
-            if (!seenMachExts) writer.WriteLine(machExtensionsLine);
-            if (!seenUserExts) writer.WriteLine(userExtensionsLine);
-        }
-
-        private void CreateNewGptIni(string machExtensionsLine, string userExtensionsLine)
-        {
-            using var writer = new StreamWriter(_gptIniPath);
-            writer.WriteLine("[General]");
-            writer.WriteLine(machExtensionsLine);
-            writer.WriteLine(userExtensionsLine);
-            writer.WriteLine("Version=" + 0x10001);
         }
 
         private void EnsureInitialized()

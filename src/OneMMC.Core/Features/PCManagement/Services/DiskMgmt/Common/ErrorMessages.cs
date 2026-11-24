@@ -29,6 +29,7 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt.Common
         public static string SizeRequired => L(DiskMgmtKeys.ErrSizeRequired);
         public static string DiskNotFound => L(DiskMgmtKeys.ErrDiskNotFound);
         public static string PartitionNotFound => L(DiskMgmtKeys.ErrPartitionNotFound);
+        public static string LayoutChanged => L(DiskMgmtKeys.ErrLayoutChanged);
         public static string VolumeNotFound => L(DiskMgmtKeys.ErrVolumeNotFound);
         public static string DriveLetterInUse => L(DiskMgmtKeys.ErrDriveLetterInUse);
         public static string DriveLetterSame => L(DiskMgmtKeys.ErrDriveLetterSame);

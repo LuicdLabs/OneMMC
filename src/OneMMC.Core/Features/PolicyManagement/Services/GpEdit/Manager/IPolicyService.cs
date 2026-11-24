@@ -63,11 +63,20 @@ namespace OneMMC.Core.Features.PolicyManagement.Services.GpEdit.Manager
         /// Saves any pending changes to the policy source.
         /// </summary>
         /// <returns>A human-readable description of what was saved.</returns>
+        /// <remarks>
+        /// Clears <see cref="LastError"/> first; a non-null <see cref="LastError"/> afterwards means part of
+        /// the save failed.
+        /// </remarks>
         string Save();
 
         /// <summary>
-        /// Reloads the policy source to reflect external changes.
+        /// Re-reads the policy source so the next write starts from the current stored content, including
+        /// changes made by other tools.
         /// </summary>
+        /// <exception cref="Exception">
+        /// The source could not be read. The previously loaded content is kept, and callers must not write
+        /// on top of it.
+        /// </exception>
         void Reload();
     }
 }

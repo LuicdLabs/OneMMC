@@ -73,7 +73,11 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
         /// <summary>
         /// Delete volume ??Using MSFT_Partition.DeleteObject()
         /// </summary>
-        public OperationResult DeleteVolume(uint diskIndex, uint partitionIndex)
+        /// <param name="diskIndex">The disk number.</param>
+        /// <param name="partitionIndex">The zero-based partition index (PartitionNumber - 1).</param>
+        /// <param name="expectedDiskUniqueId">The disk's <c>UniqueId</c> as displayed, or null to skip the check.</param>
+        /// <param name="expectedOffset">The partition's starting offset as displayed, or null to skip the check.</param>
+        public OperationResult DeleteVolume(uint diskIndex, uint partitionIndex, string? expectedDiskUniqueId = null, ulong? expectedOffset = null)
         {
             var safetyCheck = _service.ValidatePartitionOperationSafety(diskIndex, partitionIndex);
             if (safetyCheck != null)
@@ -86,6 +90,9 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
 
                 if (partition == null)
                     return OperationResult.Fail(ErrorMessages.PartitionNotFound);
+
+                if (!IsExpectedTarget(connection, diskIndex, expectedDiskUniqueId, partition, expectedOffset))
+                    return OperationResult.Fail(ErrorMessages.LayoutChanged);
 
                 using WmiMethod deleteMethod = partition.GetMethod("DeleteObject");
                 var returnValue = partition.ExecuteMethod<uint>(deleteMethod, out WmiMethodParameters deleteOutParams);
@@ -326,7 +333,11 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
         /// <summary>
         /// Mark partition as active (MBR only)
         /// </summary>
-        public OperationResult MarkPartitionActive(uint diskIndex, uint partitionIndex)
+        /// <param name="diskIndex">The disk number.</param>
+        /// <param name="partitionIndex">The zero-based partition index (PartitionNumber - 1).</param>
+        /// <param name="expectedDiskUniqueId">The disk's <c>UniqueId</c> as displayed, or null to skip the check.</param>
+        /// <param name="expectedOffset">The partition's starting offset as displayed, or null to skip the check.</param>
+        public OperationResult MarkPartitionActive(uint diskIndex, uint partitionIndex, string? expectedDiskUniqueId = null, ulong? expectedOffset = null)
         {
             return ExecuteWmiOperation(() =>
             {
@@ -343,6 +354,10 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
                 using var partition = GetPartition(connection, diskIndex, partitionIndex);
                 if (partition == null)
                     return OperationResult.Fail(ErrorMessages.PartitionNotFound);
+
+                if (!DiskIdentityCheck.DiskMatches(disk, expectedDiskUniqueId)
+                    || !DiskIdentityCheck.PartitionMatches(partition, expectedOffset))
+                    return OperationResult.Fail(ErrorMessages.LayoutChanged);
 
                 using WmiMethod setAttributesMethod = partition.GetMethod("SetAttributes");
                 using WmiMethodParameters inParams = setAttributesMethod.CreateInParameters();
@@ -693,6 +708,22 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
         private WmiObject? GetDisk(WmiConnection connection, uint diskIndex)
         {
             return connection.CreateQuery($"SELECT * FROM MSFT_Disk WHERE Number = {diskIndex}").FirstOrDefault();
+        }
+
+        /// <summary>
+        /// Checks, immediately before a destructive call, that disk <paramref name="diskIndex"/> and
+        /// <paramref name="partition"/> are still the disk and partition the user chose. See <see cref="DiskIdentityCheck"/>.
+        /// </summary>
+        private bool IsExpectedTarget(WmiConnection connection, uint diskIndex, string? expectedDiskUniqueId, WmiObject partition, ulong? expectedOffset)
+        {
+            if (!DiskIdentityCheck.PartitionMatches(partition, expectedOffset))
+                return false;
+
+            if (string.IsNullOrEmpty(expectedDiskUniqueId))
+                return true;
+
+            using var disk = GetDisk(connection, diskIndex);
+            return disk is not null && DiskIdentityCheck.DiskMatches(disk, expectedDiskUniqueId);
         }
 
         private WmiObject? GetPartition(WmiConnection connection, uint diskIndex, uint partitionIndex)

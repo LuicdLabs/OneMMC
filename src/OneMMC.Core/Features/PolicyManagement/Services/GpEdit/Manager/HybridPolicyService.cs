@@ -65,8 +65,9 @@ namespace OneMMC.Core.Features.PolicyManagement.Services.GpEdit.Manager
                 _rootKey = RegistryKey.OpenBaseKey(hive, RegistryView.Default);
                 _registrySource = RegistryPolicyProxy.EncapsulateKey(_rootKey);
 
-                // Initialize POL file
-                LoadOrCreatePolFile();
+                // Initialize POL file. Reads come from the registry, so an unreadable file does not block the
+                // editor; writes reload strictly first (see Reload) and fail instead of replacing it.
+                LoadOrCreatePolFile(strict: false);
 
                 // Test write access
                 IsWritable = TestWriteAccess();
@@ -142,6 +143,7 @@ namespace OneMMC.Core.Features.PolicyManagement.Services.GpEdit.Manager
         public string Save()
         {
             EnsureInitialized();
+            LastError = null;
 
             var results = new List<string>();
 
@@ -226,21 +228,26 @@ namespace OneMMC.Core.Features.PolicyManagement.Services.GpEdit.Manager
 
         public void Reload()
         {
-            if (_disposed) return;
+            ObjectDisposedException.ThrowIf(_disposed, this);
 
             try
             {
-                LoadOrCreatePolFile();
+                LoadOrCreatePolFile(strict: true);
                 LogDebug("Reloaded POL file");
             }
             catch (Exception ex)
             {
                 LastError = LocalizationProvider.Current.GetFormattedString(ResourceFileNames.Policy, PolicyKeys.ErrorReloadFailedFormat, ex.Message);
                 LogDebug($"[ERROR] Reload failed: {ex.Message}");
+                throw;
             }
         }
 
-        private void LoadOrCreatePolFile()
+        /// <param name="strict">
+        /// When true, a POL file that exists but cannot be read is an error. When false it is replaced by an
+        /// empty buffer, which is only safe for reading: saving that buffer would erase every policy in the file.
+        /// </param>
+        private void LoadOrCreatePolFile(bool strict)
         {
             if (File.Exists(_polFilePath))
             {
@@ -249,9 +256,9 @@ namespace OneMMC.Core.Features.PolicyManagement.Services.GpEdit.Manager
                     _polFile = PolFile.Load(_polFilePath);
                     LogDebug($"Loaded existing POL file: {_polFilePath}");
                 }
-                catch (Exception ex)
+                catch (Exception ex) when (!strict)
                 {
-                    LogDebug($"Failed to load POL file, creating new: {ex.Message}");
+                    LogDebug($"Failed to load POL file, using an empty buffer until the next reload: {ex.Message}");
                     _polFile = new PolFile();
                 }
             }
@@ -319,62 +326,7 @@ namespace OneMMC.Core.Features.PolicyManagement.Services.GpEdit.Manager
             return registryWritable && polWritable;
         }
 
-        private void UpdateGptIni()
-        {
-            const string machExtensionsLine = "gPCMachineExtensionNames=[{35378EAC-683F-11D2-A89A-00C04FBBCFA2}{D02B1F72-3407-48AE-BA88-E8213C6761F1}]";
-            const string userExtensionsLine = "gPCUserExtensionNames=[{35378EAC-683F-11D2-A89A-00C04FBBCFA2}{D02B1F73-3407-48AE-BA88-E8213C6761F1}]";
-
-            var gptDir = Path.GetDirectoryName(_gptIniPath);
-            if (!string.IsNullOrEmpty(gptDir) && !Directory.Exists(gptDir))
-            {
-                Directory.CreateDirectory(gptDir);
-            }
-
-            if (File.Exists(_gptIniPath))
-            {
-                var lines = File.ReadAllLines(_gptIniPath).ToList();
-                bool seenMachExts = false, seenUserExts = false, seenVersion = false;
-
-                using var writer = new StreamWriter(_gptIniPath, false);
-                foreach (var line in lines)
-                {
-                    if (line.StartsWith("Version", StringComparison.OrdinalIgnoreCase))
-                    {
-                        var parts = line.Split('=');
-                        if (parts.Length == 2 && int.TryParse(parts[1], out int curVersion))
-                        {
-                            curVersion += IsUserPolicy ? 0x10000 : 1;
-                            writer.WriteLine($"Version={curVersion}");
-                        }
-                        else
-                        {
-                            writer.WriteLine("Version=" + 0x10001);
-                        }
-                        seenVersion = true;
-                    }
-                    else
-                    {
-                        writer.WriteLine(line);
-                        if (line.StartsWith("gPCMachineExtensionNames=", StringComparison.OrdinalIgnoreCase))
-                            seenMachExts = true;
-                        if (line.StartsWith("gPCUserExtensionNames=", StringComparison.OrdinalIgnoreCase))
-                            seenUserExts = true;
-                    }
-                }
-
-                if (!seenVersion) writer.WriteLine("Version=" + 0x10001);
-                if (!seenMachExts) writer.WriteLine(machExtensionsLine);
-                if (!seenUserExts) writer.WriteLine(userExtensionsLine);
-            }
-            else
-            {
-                using var writer = new StreamWriter(_gptIniPath);
-                writer.WriteLine("[General]");
-                writer.WriteLine(machExtensionsLine);
-                writer.WriteLine(userExtensionsLine);
-                writer.WriteLine("Version=" + 0x10001);
-            }
-        }
+        private void UpdateGptIni() => GptIniFile.IncrementVersion(_gptIniPath, IsUserPolicy);
 
         private void EnsureInitialized()
         {

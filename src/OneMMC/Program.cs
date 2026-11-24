@@ -49,7 +49,11 @@ public static class Program
     /// <summary>
     /// Re-claims the instance key after a replacement process was not started.
     /// </summary>
-    internal static void ReclaimInstanceKey() => AppInstance.FindOrRegisterForKey(InstanceKey);
+    /// <returns>
+    /// <see langword="false"/> when another process registered the key in the meantime (a launch that
+    /// happened while it was released). That process then receives later launches instead of this one.
+    /// </returns>
+    internal static bool ReclaimInstanceKey() => AppInstance.FindOrRegisterForKey(InstanceKey).IsCurrent;
 
     /// <returns><see langword="true"/> when the launch was handed to the running instance.</returns>
     private static bool TryRedirectToRunningInstance()

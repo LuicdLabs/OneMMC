@@ -204,12 +204,19 @@ namespace OneMMC.Views.PolicyManagement.GpEdit
                     return;
                 }
 
-                var currentOptions = ViewModel.GetPolicyOptions(ViewModel.SelectedPolicy.Policy, ViewModel.SelectedNode.IsComputerConfiguration);
+                var item = ViewModel.SelectedPolicy;
+                var policy = item.Policy;
+                var isComputer = ViewModel.SelectedNode.IsComputerConfiguration;
+
+                // Re-read the stored policy so the dialog shows changes made by other tools.
+                ViewModel.RefreshPolicySource(isComputer);
+                var currentState = ViewModel.GetPolicyState(policy, isComputer);
+                var currentOptions = ViewModel.GetPolicyOptions(policy, isComputer);
                 var dialog = new PolicyEditorDialog(
-                    ViewModel.SelectedPolicy.Policy,
-                    ViewModel.SelectedPolicy.State,
+                    policy,
+                    currentState,
                     currentOptions,
-                    ViewModel.SelectedNode.IsComputerConfiguration
+                    isComputer
                 );
                 dialog.XamlRoot = this.XamlRoot;
                 dialog.RequestedTheme = App.CurrentTheme;
@@ -221,11 +228,10 @@ namespace OneMMC.Views.PolicyManagement.GpEdit
                 {
                     try
                     {
-                        // Save policy
-                        ViewModel.SavePolicy(ViewModel.SelectedPolicy, dialog.ResultState, dialog.ResultOptions);
+                        ViewModel.SavePolicy(item, dialog.ResultState, dialog.ResultOptions);
                         
                         // Save policy display name for later use
-                        string policyDisplayName = ViewModel.SelectedPolicy.Policy.DisplayName;
+                        string policyDisplayName = policy.DisplayName;
                         
                         // Force refresh UI state
                         if (ViewModel.SelectedNode?.Category != null)

@@ -73,7 +73,7 @@ public class AdminService : IAdminService
     }
 
     /// <inheritdoc />
-    public void RestartAsAdmin()
+    public bool RestartAsAdmin()
     {
         try
         {
@@ -81,7 +81,7 @@ public class AdminService : IAdminService
             if (startInfo is null)
             {
                 _logger.LogError("Cannot restart as admin: unable to resolve launch target.");
-                return;
+                return false;
             }
 
             _logger.LogInformation(
@@ -90,14 +90,17 @@ public class AdminService : IAdminService
 
             Process.Start(startInfo);
             RestartRequested?.Invoke();
+            return true;
         }
         catch (Win32Exception ex) when (ex.NativeErrorCode == 1223) // ERROR_CANCELLED - user declined UAC
         {
             _logger.LogInformation("User cancelled the UAC elevation prompt.");
+            return false;
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to restart application as administrator.");
+            return false;
         }
     }
 

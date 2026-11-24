@@ -1046,6 +1046,9 @@ Tips:
   <data name="DiskMgmt_Err_CleanCodeFormat" xml:space="preserve">
     <value>Clean failed. Error code: {0} - {1}</value>
   </data>
+  <data name="DiskMgmt_Err_LayoutChanged" xml:space="preserve">
+    <value>The disk layout changed after it was displayed, so the operation was not performed. Refresh the view and try again.</value>
+  </data>
   <data name="DiskMgmt_Err_DeletionCodeFormat" xml:space="preserve">
     <value>Deletion failed. Error code: {0} - {1}</value>
   </data>

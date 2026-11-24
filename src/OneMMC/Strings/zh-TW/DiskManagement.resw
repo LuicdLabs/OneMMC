@@ -1046,6 +1046,9 @@
   <data name="DiskMgmt_Err_CleanCodeFormat" xml:space="preserve">
     <value>清理失敗。錯誤碼: {0} - {1}</value>
   </data>
+  <data name="DiskMgmt_Err_LayoutChanged" xml:space="preserve">
+    <value>磁碟配置在顯示之後已變更，因此未執行此作業。請重新整理檢視後再試一次。</value>
+  </data>
   <data name="DiskMgmt_Err_DeletionCodeFormat" xml:space="preserve">
     <value>刪除失敗。錯誤碼: {0} - {1}</value>
   </data>

@@ -72,7 +72,7 @@ summarize these patterns and link here.
 |---|---|
 | `IsRunningAsAdmin` | `bool` — Checks `WindowsPrincipal.IsInRole(WindowsBuiltInRole.Administrator)` once and caches the result |
 | `IsPermissionError(Exception ex)` | Checks exception types (`UnauthorizedAccessException`, `Win32Exception` error code 5) and error message patterns ("Access denied", "Insufficient priv", etc.), recursively analyzing InnerException |
-| `RestartAsAdmin()` | Starts a new process with `Verb = "runas"`, then raises the `RestartRequested` (`Action?`) event so the UI can exit the current process |
+| `RestartAsAdmin()` | Starts a new process with `Verb = "runas"`, then raises the `RestartRequested` (`Action?`) event, on which `MainWindow` closes itself (the normal close path, not `Application.Exit`). Returns `bool`: `false` when the user declined UAC or the launch failed, and the current process keeps running |
 
 ---
 
@@ -84,7 +84,7 @@ summarize these patterns and link here.
 | Method | Purpose |
 |---|---|
 | `ShowAdminRequiredDialogAsync(XamlRoot)` | **Info-only** dialog (OK only). Used when operation cannot continue |
-| `RunasAdmin()` | Restarts the application elevated by calling `IAdminService.RestartAsAdmin()`. Synchronous; returns `bool` (`true` if the restart was initiated) |
+| `RunasAdmin()` | Restarts the application elevated by calling `IAdminService.RestartAsAdmin()`, releasing and re-claiming the single-window instance key around it (`doc/plan/MultiInstance.md`). Synchronous; returns `bool` (`true` if the elevated process started and this window is closing). Callers resolve unsaved edits first |
 | `ConfigureAdminInfoBar(InfoBar, string?)` | Configures `InfoBar` with standard "Administrator Required" warning style |
 
 All methods use `Common_AdminRequired_*` localization string keys.

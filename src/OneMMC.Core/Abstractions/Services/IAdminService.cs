@@ -27,11 +27,15 @@ public interface IAdminService
     /// After the elevated process is started, <see cref="RestartRequested"/> is raised so the
     /// UI layer can shut down the current process.
     /// </summary>
-    void RestartAsAdmin();
+    /// <returns>
+    /// <c>true</c> when the elevated process was started; <c>false</c> when the user declined the UAC
+    /// prompt or the launch failed, in which case the current process must keep running.
+    /// </returns>
+    bool RestartAsAdmin();
 
     /// <summary>
     /// Raised after <see cref="RestartAsAdmin"/> successfully starts an elevated process.
-    /// The UI layer should subscribe to this event and call <c>Application.Current.Exit()</c>.
+    /// The UI layer should subscribe to this event and close its window, which ends the process.
     /// </summary>
     event Action? RestartRequested;
 }

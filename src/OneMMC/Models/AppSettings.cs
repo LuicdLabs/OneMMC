@@ -2,6 +2,7 @@
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using OneMMC.Core.Infrastructure.IO;
 
 namespace OneMMC.Models;
 
@@ -72,28 +73,40 @@ public class AppSettings
 
     /// <summary>
     /// Loads settings from the persistent Settings.json file.
-    /// If the file does not exist, returns default settings.
+    /// If the file does not exist or cannot be read or parsed, returns default settings.
     /// </summary>
+    /// <remarks>
+    /// Settings are loaded during startup, so a damaged file (for example one left empty by a crash or a
+    /// full disk) must not stop the application from starting. The next <see cref="Save"/> replaces it.
+    /// </remarks>
     public static AppSettings Load()
     {
-        AppSettings? settings = null;
-        if (File.Exists(SettingsFilePath))
+        try
         {
-            string json = File.ReadAllText(SettingsFilePath);
-            settings = JsonSerializer.Deserialize(json, AppSettingsJsonContext.Default.AppSettings);
+            if (File.Exists(SettingsFilePath))
+            {
+                string json = File.ReadAllText(SettingsFilePath);
+                return JsonSerializer.Deserialize(json, AppSettingsJsonContext.Default.AppSettings) ?? new AppSettings();
+            }
+        }
+        catch (Exception ex) when (ex is JsonException or IOException or UnauthorizedAccessException)
+        {
         }
 
-        return settings ?? new AppSettings();
+        return new AppSettings();
     }
 
     /// <summary>
     /// Saves the current settings to the persistent settings.json file.
     /// </summary>
+    /// <remarks>
+    /// The file is replaced atomically, so a crash during the write cannot leave a truncated file. The
+    /// elevated restart and the process it replaces can both write this file.
+    /// </remarks>
     public void Save()
     {
-        Directory.CreateDirectory(SettingsDirectory);
         string json = JsonSerializer.Serialize(this, AppSettingsJsonContext.Default.AppSettings);
-        File.WriteAllText(SettingsFilePath, json);
+        AtomicFile.WriteAllText(SettingsFilePath, json);
     }
 }
 

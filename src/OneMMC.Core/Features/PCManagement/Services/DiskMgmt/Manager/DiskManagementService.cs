@@ -154,9 +154,9 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
             return _diskOperations.IsDiskReadOnly(diskIndex);
         }
 
-        public OperationResult CleanDisk(uint diskIndex)
+        public OperationResult CleanDisk(uint diskIndex, string? expectedUniqueId = null)
         {
-            return _diskOperations.CleanDisk(diskIndex);
+            return _diskOperations.CleanDisk(diskIndex, expectedUniqueId);
         }
 
         public bool DiskNeedsInitialization(uint diskIndex)
@@ -241,9 +241,9 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
             return _volumeOperations.CreateSimpleVolume(diskIndex, sizeInMB, driveLetter, fileSystem, label, quickFormat, offset);
         }
 
-        public OperationResult DeleteVolume(uint diskIndex, uint partitionIndex)
+        public OperationResult DeleteVolume(uint diskIndex, uint partitionIndex, string? expectedDiskUniqueId = null, ulong? expectedOffset = null)
         {
-            return _volumeOperations.DeleteVolume(diskIndex, partitionIndex);
+            return _volumeOperations.DeleteVolume(diskIndex, partitionIndex, expectedDiskUniqueId, expectedOffset);
         }
 
         public OperationResult FormatVolume(
@@ -285,9 +285,9 @@ namespace OneMMC.Core.Features.PCManagement.Services.DiskMgmt
             return _volumeOperations.QueryExtendableSpaceByIndex(diskIndex, partitionIndex);
         }
 
-        public OperationResult MarkPartitionActive(uint diskIndex, uint partitionIndex)
+        public OperationResult MarkPartitionActive(uint diskIndex, uint partitionIndex, string? expectedDiskUniqueId = null, ulong? expectedOffset = null)
         {
-            return _volumeOperations.MarkPartitionActive(diskIndex, partitionIndex);
+            return _volumeOperations.MarkPartitionActive(diskIndex, partitionIndex, expectedDiskUniqueId, expectedOffset);
         }
 
         public OperationResult ChangeDriveLetter(string currentDriveLetter, string newDriveLetter)

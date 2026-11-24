@@ -71,6 +71,14 @@ namespace OneMMC.Core.Features.PCManagement.Models.DiskMgmt
         public uint TracksPerCylinder { get; set; }
         public uint SectorsPerTrack { get; set; }
         public string PNPDeviceID { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Gets or sets <c>MSFT_Disk.UniqueId</c>. Unlike <see cref="Index"/>, which Windows can reassign
+        /// when disks are added or removed, it identifies the same disk across refreshes; destructive
+        /// operations check it so they never act on a different disk that now has this number.
+        /// Empty when the Storage Management provider did not report the disk.
+        /// </summary>
+        public string UniqueId { get; set; } = string.Empty;
         public bool IsVirtualDisk { get; set; }
         public bool IsOffline { get; set; }
         public bool IsReadOnly { get; set; }
