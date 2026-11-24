@@ -207,6 +207,9 @@ public sealed class ModalDialogWindow : Window
     // Root XAML element that holds the content area and the button row.
     private readonly FrameworkElement _dialogRoot;
 
+    // System TitleBar control (drag region); assigned in BuildDialogRoot().
+    private TitleBar _titleBar = null!;
+
     // Button references kept so FocusDefaultButton() can target the correct control.
     private readonly Button? _primaryButton;
     private readonly Button? _secondaryButton;
@@ -246,6 +249,8 @@ public sealed class ModalDialogWindow : Window
 
         (_dialogRoot, _primaryButton, _secondaryButton, _closeButton) = BuildDialogRoot();
         Content = _dialogRoot;
+        ExtendsContentIntoTitleBar = true;
+        SetTitleBar(_titleBar);
         _isMicaBackdropEnabled = TryConfigureSystemBackdrop();
 
         // Cache the delegate so the same instance can be unsubscribed later.
@@ -306,20 +311,29 @@ public sealed class ModalDialogWindow : Window
     private (FrameworkElement root, Button? primary, Button? secondary, Button? close) BuildDialogRoot()
     {
         var grid = new Grid();
-        grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
 
+        // Row 0: WinUI TitleBar control. The DWM-drawn caption is opaque, so the content is
+        // extended into the title bar area to let the Mica backdrop show through it.
+        grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+        _titleBar = new TitleBar { Title = _options.Title };
+        grid.Children.Add(_titleBar);
+
+        // Row 1: content area.
+        grid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
         var contentBorder = new Border
         {
             Padding = new Thickness(20),
             Child = CreateContentPresenter()
         };
+        Grid.SetRow(contentBorder, 1);
         grid.Children.Add(contentBorder);
 
+        // Row 2: button row (optional).
         var (buttonRow, primary, secondary, close) = BuildButtonRow();
         if (buttonRow is not null)
         {
             grid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-            Grid.SetRow(buttonRow, 1);
+            Grid.SetRow(buttonRow, 2);
             grid.Children.Add(buttonRow);
         }
 
@@ -346,7 +360,9 @@ public sealed class ModalDialogWindow : Window
             var obj => new TextBlock { Text = obj.ToString(), TextWrapping = TextWrapping.Wrap }
         };
 
-        if (content is ScrollViewer or UserControl)
+        // Everything except an existing ScrollViewer gets a vertical scroll host, so content
+        // taller than the window (small screens, high DPI) stays reachable instead of clipped.
+        if (content is ScrollViewer)
         {
             return content;
         }
