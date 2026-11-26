@@ -270,7 +270,7 @@ public sealed unsafe class CertificateStoreService
             var handle = (HCERTSTORE)store.StoreHandle;
 
             IReadOnlyList<CertificateSection> sections =
-            [
+            (CertificateSection[])[
                 new CertificateSection(
                     CertificateEntryKind.Certificate,
                     _sectionCertificates,
@@ -298,7 +298,7 @@ public sealed unsafe class CertificateStoreService
                 storeLocation,
                 storeName,
                 GetStoreDisplayName(storeName),
-                [
+                (CertificateSection[])[
                     new CertificateSection(CertificateEntryKind.Certificate, _sectionCertificates, _emptyCertificates, []),
                     new CertificateSection(CertificateEntryKind.CertificateRevocationList, _sectionCrls, _emptyCrls, []),
                     new CertificateSection(CertificateEntryKind.CertificateTrustList, _sectionCtls, _emptyCtls, [])

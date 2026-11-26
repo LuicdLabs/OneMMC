@@ -78,14 +78,14 @@ public sealed partial class TaskPropertiesPage : Page, IUnsavedChangesGuard
     private void PopulateDurationChoices()
     {
         TaskDurationText.Fill(IdleStartComboBox,
-        [
+        (string[])[
             TaskDurationText.Minutes(1), TaskDurationText.Minutes(5), TaskDurationText.Minutes(10),
             TaskDurationText.Minutes(15), TaskDurationText.Minutes(30), TaskDurationText.Hours(1),
         ]);
         IdleStartComboBox.Text = TaskDurationText.Minutes(10);
 
         TaskDurationText.Fill(IdleWaitComboBox,
-        [
+        (string[])[
             TaskDurationText.DoNotWait, TaskDurationText.Minutes(1), TaskDurationText.Minutes(5),
             TaskDurationText.Minutes(10), TaskDurationText.Minutes(15), TaskDurationText.Minutes(30),
             TaskDurationText.Hours(1), TaskDurationText.Hours(2),
@@ -93,7 +93,7 @@ public sealed partial class TaskPropertiesPage : Page, IUnsavedChangesGuard
         IdleWaitComboBox.Text = TaskDurationText.Hours(1);
 
         TaskDurationText.Fill(RestartIntervalComboBox,
-        [
+        (string[])[
             TaskDurationText.Minutes(1), TaskDurationText.Minutes(5), TaskDurationText.Minutes(10),
             TaskDurationText.Minutes(15), TaskDurationText.Minutes(30), TaskDurationText.Hours(1),
             TaskDurationText.Hours(2),
@@ -101,7 +101,7 @@ public sealed partial class TaskPropertiesPage : Page, IUnsavedChangesGuard
         RestartIntervalComboBox.Text = TaskDurationText.Minutes(1);
 
         TaskDurationText.Fill(StopIfRunsLongerComboBox,
-        [
+        (string[])[
             TaskDurationText.Hours(1), TaskDurationText.Hours(2), TaskDurationText.Hours(4),
             TaskDurationText.Hours(8), TaskDurationText.Hours(12), TaskDurationText.Days(1),
             TaskDurationText.Days(3),
@@ -109,7 +109,7 @@ public sealed partial class TaskPropertiesPage : Page, IUnsavedChangesGuard
         StopIfRunsLongerComboBox.Text = TaskDurationText.Days(3);
 
         TaskDurationText.Fill(DeleteAfterComboBox,
-        [
+        (string[])[
             TaskDurationText.Immediately, TaskDurationText.Days(30), TaskDurationText.Days(90),
             TaskDurationText.Days(180), TaskDurationText.Days(365),
         ]);

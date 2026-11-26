@@ -52,7 +52,7 @@ public sealed class IPSecurityPolicyService
             Summary = rulesSummary,
             Policy = policy,
             Details =
-            [
+            (IPSecurityPolicyDetailItem[])[
                 CreateDetail(IPSecurityPolicyKeys.DetailRowKind, GetString(IPSecurityPolicyKeys.RowKindPolicy)),
                 CreateDetail(IPSecurityPolicyKeys.DetailName, policy.Name),
                 CreateDetail(IPSecurityPolicyKeys.DetailDescription, policy.Description),
@@ -84,7 +84,7 @@ public sealed class IPSecurityPolicyService
             Summary = FormatFilters(filterList.Filters),
             FilterList = filterList,
             Details =
-            [
+            (IPSecurityPolicyDetailItem[])[
                 CreateDetail(IPSecurityPolicyKeys.DetailRowKind, GetString(IPSecurityPolicyKeys.RowKindFilterList)),
                 CreateDetail(IPSecurityPolicyKeys.DetailName, filterList.Name),
                 CreateDetail(IPSecurityPolicyKeys.DetailDescription, filterList.Description),
@@ -111,7 +111,7 @@ public sealed class IPSecurityPolicyService
             Summary = string.Join(Environment.NewLine, filterAction.QuickModeSecurityMethods),
             FilterAction = filterAction,
             Details =
-            [
+            (IPSecurityPolicyDetailItem[])[
                 CreateDetail(IPSecurityPolicyKeys.DetailRowKind, GetString(IPSecurityPolicyKeys.RowKindFilterAction)),
                 CreateDetail(IPSecurityPolicyKeys.DetailName, filterAction.Name),
                 CreateDetail(IPSecurityPolicyKeys.DetailDescription, filterAction.Description),

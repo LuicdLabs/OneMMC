@@ -241,14 +241,14 @@ public sealed class SystemAuditAclEditorService
         return resourceType switch
         {
             SystemAuditResourceType.Registry =>
-            [
+            (AclEditorAccessEntry[])[
                 CreateAccessEntry(KeyAllAccess, SecPolKeys.SystemAuditAclFullControl),
                 CreateAccessEntry(KeyRead, SecPolKeys.SystemAuditAclRead),
                 CreateAccessEntry(KeyWrite, SecPolKeys.SystemAuditAclWrite),
                 CreateAccessEntry(DeleteAccess, SecPolKeys.SystemAuditAclDelete)
             ],
             _ =>
-            [
+            (AclEditorAccessEntry[])[
                 CreateAccessEntry(FileAllAccess, SecPolKeys.SystemAuditAclFullControl),
                 CreateAccessEntry(FileGenericRead | FileGenericExecute, SecPolKeys.SystemAuditAclReadAndExecute),
                 CreateAccessEntry(FileGenericRead, SecPolKeys.SystemAuditAclRead),
@@ -263,13 +263,13 @@ public sealed class SystemAuditAclEditorService
         return resourceType switch
         {
             SystemAuditResourceType.Registry =>
-            [
+            (AclEditorInheritType[])[
                 CreateInheritEntry(0, SecPolKeys.SystemAuditAclThisKeyOnly),
                 CreateInheritEntry(AclEditorAceFlags.ContainerInherit, SecPolKeys.SystemAuditAclThisKeyAndSubkeys),
                 CreateInheritEntry(AclEditorAceFlags.ContainerInherit | AclEditorAceFlags.InheritOnly, SecPolKeys.SystemAuditAclSubkeysOnly)
             ],
             _ =>
-            [
+            (AclEditorInheritType[])[
                 CreateInheritEntry(0, SecPolKeys.SystemAuditAclThisFolderOnly),
                 CreateInheritEntry(AclEditorAceFlags.ContainerInherit | AclEditorAceFlags.ObjectInherit, SecPolKeys.SystemAuditAclThisFolderSubfoldersFiles),
                 CreateInheritEntry(AclEditorAceFlags.ContainerInherit, SecPolKeys.SystemAuditAclThisFolderAndSubfolders),

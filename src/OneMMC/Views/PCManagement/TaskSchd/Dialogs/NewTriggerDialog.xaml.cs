@@ -128,12 +128,12 @@ public sealed partial class NewTriggerDialog : ContentDialog
     private void PopulateDurationChoices()
     {
         TaskDurationText.Fill(DelayCombo,
-        [
+        (string[])[
             TaskDurationText.Minutes(15), TaskDurationText.Minutes(30), TaskDurationText.Hours(1),
             TaskDurationText.Hours(12), TaskDurationText.Days(1),
         ]);
         TaskDurationText.Fill(RepeatEveryCombo,
-        [
+        (string[])[
             TaskDurationText.Minutes(5), TaskDurationText.Minutes(10), TaskDurationText.Minutes(15),
             TaskDurationText.Minutes(30), TaskDurationText.Hours(1),
         ]);
@@ -141,14 +141,14 @@ public sealed partial class NewTriggerDialog : ContentDialog
 
         // Indefinitely maps to an empty Repetition.Duration.
         TaskDurationText.Fill(DurationCombo,
-        [
+        (string[])[
             TaskDurationText.Minutes(15), TaskDurationText.Minutes(30), TaskDurationText.Hours(1),
             TaskDurationText.Hours(12), TaskDurationText.Days(1), TaskDurationText.Indefinitely,
         ]);
         DurationCombo.Text = TaskDurationText.Days(1);
 
         TaskDurationText.Fill(StopIfLongerCombo,
-        [
+        (string[])[
             TaskDurationText.Minutes(30), TaskDurationText.Hours(1), TaskDurationText.Hours(2),
             TaskDurationText.Hours(4), TaskDurationText.Hours(8), TaskDurationText.Hours(12),
             TaskDurationText.Days(1), TaskDurationText.Days(3),
@@ -363,7 +363,7 @@ public sealed partial class NewTriggerDialog : ContentDialog
         criteria.Selections.Add(new ChannelSelection
         {
             Channel = log,
-            Providers = string.IsNullOrEmpty(source) ? [] : [source],
+            Providers = string.IsNullOrEmpty(source) ? [] : (string[])[source],
         });
         return EventXPathBuilder.BuildQueryList(criteria);
     }

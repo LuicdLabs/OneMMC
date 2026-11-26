@@ -28,7 +28,7 @@ public static class EventSourceChannelResolver
     {
         if (string.IsNullOrWhiteSpace(providerName))
         {
-            return [DefaultChannel];
+            return (string[])[DefaultChannel];
         }
 
         var manifestChannels = TryGetManifestChannels(providerName);
@@ -38,7 +38,7 @@ public static class EventSourceChannelResolver
         }
 
         var classicLog = TryFindClassicSourceLog(providerName);
-        return classicLog is not null ? [classicLog] : [DefaultChannel];
+        return classicLog is not null ? (string[])[classicLog] : (string[])[DefaultChannel];
     }
 
     private static IReadOnlyList<string> TryGetManifestChannels(string providerName)
@@ -48,6 +48,7 @@ public static class EventSourceChannelResolver
             using var metadata = new ProviderMetadata(providerName);
             return metadata.LogLinks
                 .Select(link => link.LogName)
+                .OfType<string>()
                 .Where(name => !string.IsNullOrWhiteSpace(name))
                 .Distinct(StringComparer.OrdinalIgnoreCase)
                 .ToList();

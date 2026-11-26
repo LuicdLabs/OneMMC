@@ -413,13 +413,13 @@ public static class SharedFolderSecurityDescriptor
         {
             SharePermissionPreset.AdministratorsFullOthersRead =>
                 CreateSddl(
-                [
+                (SharePermissionEntry[])[
                     CreateEntry(BuiltinAdministratorsSid, ShareAccessRight.FullControl),
                     CreateEntry(EveryoneSid, ShareAccessRight.Read)
                 ]),
             SharePermissionPreset.AdministratorsFullOthersNone =>
-                CreateSddl([CreateEntry(BuiltinAdministratorsSid, ShareAccessRight.FullControl)]),
-            _ => CreateSddl([CreateEntry(EveryoneSid, ShareAccessRight.Read)])
+                CreateSddl((SharePermissionEntry[])[CreateEntry(BuiltinAdministratorsSid, ShareAccessRight.FullControl)]),
+            _ => CreateSddl((SharePermissionEntry[])[CreateEntry(EveryoneSid, ShareAccessRight.Read)])
         };
     }
 

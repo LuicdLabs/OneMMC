@@ -33,20 +33,20 @@ public class WindowsFirewallProfileService
     private const ushort AuthMethodPreSharedKey = 2;
 
     private static readonly IReadOnlyList<MainModeProposalDefinition> DefaultMainModeProposals =
-    [
+    (MainModeProposalDefinition[])[
         new(65001, 3, 2),
         new(6, 3, 2)
     ];
 
     private static readonly IReadOnlyList<MainModeProposalDefinition> AdvancedMainModeProposals =
-    [
+    (MainModeProposalDefinition[])[
         new(65003, 65001, 14),
         new(65002, 65001, 14),
         new(65001, 3, 2)
     ];
 
     private static readonly IReadOnlyList<QuickModeProposalDefinition> AdvancedQuickModeProposals =
-    [
+    (QuickModeProposalDefinition[])[
         new(2, null, 65001, 65003, 60, 100000),
         new(1, 65001, null, null, 60, 100000),
         new(2, null, 3, 65001, 60, 100000)

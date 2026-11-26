@@ -606,7 +606,7 @@ public sealed partial class SharePermissionsDialog : UserControl
         const uint subfoldersOnly = AclEditorAceFlags.ContainerInherit;
 
         return
-        [
+        (AclEditorAccessEntry[])[
             CreateFileSystemAccessEntry(FileAllAccess, FsMgmtKeys.PermissionFullControl, folderAndFiles),
             CreateFileSystemAccessEntry((uint)FileSystemRights.Modify, FsMgmtKeys.PermissionModify, folderAndFiles),
             CreateFileSystemAccessEntry(FileGenericRead | FileGenericExecute, FsMgmtKeys.PermissionReadExecute, folderAndFiles),
@@ -620,7 +620,7 @@ public sealed partial class SharePermissionsDialog : UserControl
     private static IEnumerable<AclEditorAccessEntry> CreateShareAccessEntries()
     {
         return
-        [
+        (AclEditorAccessEntry[])[
             CreateFileSystemAccessEntry(SharedFolderSecurityDescriptor.ShareFullControl, FsMgmtKeys.PermissionFullControl),
             CreateFileSystemAccessEntry(SharedFolderSecurityDescriptor.ShareChange, FsMgmtKeys.PermissionChange),
             CreateFileSystemAccessEntry(SharedFolderSecurityDescriptor.ShareRead, FsMgmtKeys.PermissionRead)
@@ -630,7 +630,7 @@ public sealed partial class SharePermissionsDialog : UserControl
     private static IEnumerable<AclEditorInheritType> CreateFileSystemInheritEntries()
     {
         return
-        [
+        (AclEditorInheritType[])[
             CreateFileSystemInheritEntry(0, FsMgmtKeys.PermissionThisFolderOnly),
             CreateFileSystemInheritEntry(
                 AclEditorAceFlags.ContainerInherit | AclEditorAceFlags.ObjectInherit,

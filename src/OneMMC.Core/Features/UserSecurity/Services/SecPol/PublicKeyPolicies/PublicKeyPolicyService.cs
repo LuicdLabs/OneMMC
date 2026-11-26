@@ -186,7 +186,7 @@ public sealed class PublicKeyPolicyService
         EfsPolicySettings efsSettings = LoadEfsPolicySettings(root);
 
         return
-        [
+        (PublicKeyPolicyNode[])[
             LoadRecoveryAgentNode(
                 root,
                 PublicKeyPolicyNodeKind.EncryptingFileSystem,
@@ -728,7 +728,7 @@ public sealed class PublicKeyPolicyService
         uint? enableDisallowedAutoUpdate = ReadDword(root, AuthRootPath, EnableDisallowedCertAutoUpdateValueName);
 
         return
-        [
+        (PublicKeyPolicyRow[])[
             new PublicKeyPolicyRow
             {
                 Kind = PublicKeyPolicyRowKind.Setting,
@@ -786,7 +786,7 @@ public sealed class PublicKeyPolicyService
     private static IReadOnlyList<PublicKeyPolicyRow> LoadAutoEnrollmentRows(CertificateAutoEnrollmentSettings settings)
     {
         return
-        [
+        (PublicKeyPolicyRow[])[
             new PublicKeyPolicyRow
             {
                 Kind = PublicKeyPolicyRowKind.Setting,

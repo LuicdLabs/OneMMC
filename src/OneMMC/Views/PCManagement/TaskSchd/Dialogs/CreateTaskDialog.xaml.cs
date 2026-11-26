@@ -157,7 +157,7 @@ public sealed partial class CreateTaskDialog : ContentDialog
         criteria.Selections.Add(new ChannelSelection
         {
             Channel = log,
-            Providers = string.IsNullOrEmpty(source) ? [] : [source],
+            Providers = string.IsNullOrEmpty(source) ? [] : (string[])[source],
         });
         return EventXPathBuilder.BuildQueryList(criteria);
     }

@@ -158,7 +158,7 @@ public sealed class SystemAuditPolicyService
         SystemAuditPolicyPersistence.SystemAuditCsvDocument document = _policyPersistence.LoadForRead();
 
         return
-        [
+        (AuditSubcategoryValue[])[
             CreateGlobalObjectAccessValue(
                 document,
                 GlobalObjectAccessFileSystemGuid,
