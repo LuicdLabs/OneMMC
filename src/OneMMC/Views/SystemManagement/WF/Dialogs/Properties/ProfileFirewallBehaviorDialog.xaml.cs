@@ -26,6 +26,25 @@ public sealed partial class ProfileFirewallBehaviorDialog : ContentDialog
         Title = string.Format(System.Globalization.CultureInfo.CurrentCulture, LocalizedStrings.WF_ProfileFirewallBehavior_TitleFormat, profileName);
         NotificationComboBox.SelectedIndex = profile.NotificationsDisabled ? 1 : 0;
         UnicastResponseComboBox.SelectedIndex = profile.UnicastResponsesToMulticastBroadcastDisabled ? 1 : 0;
+        ShowPolicyValue(ApplyLocalFirewallRulesComboBox, profile.AllowLocalPolicyMerge);
+        ShowPolicyValue(ApplyLocalConnectionSecurityRulesComboBox, profile.AllowLocalIPsecPolicyMerge);
+        RuleMergingPolicyNoteTextBlock.Visibility =
+            profile.AllowLocalPolicyMerge is not null || profile.AllowLocalIPsecPolicyMerge is not null
+                ? Visibility.Visible
+                : Visibility.Collapsed;
+    }
+
+    /// <summary>Shows a Group Policy value in a disabled combo box; not set means the default (Yes).</summary>
+    private void ShowPolicyValue(ComboBox comboBox, bool? policyValue)
+    {
+        string text = policyValue switch
+        {
+            null => LocalizedStrings.WF_Common_YesDefault,
+            true => LocalizedStrings.WF_Common_Yes,
+            false => LocalizedStrings.WF_Common_No
+        };
+        comboBox.Items.Add(new ComboBoxItem { Content = text });
+        comboBox.SelectedIndex = 0;
     }
 
     private void OnThemeChanged(ElementTheme theme)

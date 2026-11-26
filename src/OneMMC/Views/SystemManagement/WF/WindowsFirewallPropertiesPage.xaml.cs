@@ -59,7 +59,7 @@ public sealed partial class WindowsFirewallPropertiesPage : Page
 
         FirewallProfileModel profile = _profiles[profileType];
         List<NetworkConnectionItem> connections = BuildNetworkConnectionList(profile);
-        var dialog = new ProtectedNetworkConnectionsDialog(profileType.ToString(), connections);
+        var dialog = new ProtectedNetworkConnectionsDialog(GetProfileDisplayName(profileType), connections);
         if (await ShowContentDialogAsync(dialog) == ContentDialogResult.Primary)
         {
             profile.ProtectedNetworkConnections.Clear();
@@ -84,7 +84,7 @@ public sealed partial class WindowsFirewallPropertiesPage : Page
         }
 
         FirewallProfileModel profile = CloneProfile(_profiles[profileType]);
-        var dialog = new ProfileFirewallBehaviorDialog(profileType.ToString(), profile);
+        var dialog = new ProfileFirewallBehaviorDialog(GetProfileDisplayName(profileType), profile);
         if (await ShowContentDialogAsync(dialog) == ContentDialogResult.Primary)
         {
             _profiles[profileType].NotificationsDisabled = profile.NotificationsDisabled;
@@ -108,7 +108,7 @@ public sealed partial class WindowsFirewallPropertiesPage : Page
             LogSuccessfulConnections = _profiles[profileType].LoggingSettings.LogSuccessfulConnections
         };
 
-        var dialog = new ProfileLoggingSettingsDialog(profileType.ToString(), workingCopy);
+        var dialog = new ProfileLoggingSettingsDialog(GetProfileDisplayName(profileType), workingCopy);
         if (await ShowContentDialogAsync(dialog) == ContentDialogResult.Primary)
         {
             _profiles[profileType].LoggingSettings = workingCopy;
@@ -377,6 +377,15 @@ public sealed partial class WindowsFirewallPropertiesPage : Page
         }
     }
 
+    private string GetProfileDisplayName(FirewallProfileType profileType)
+        => profileType switch
+        {
+            FirewallProfileType.Domain => LocalizedStrings.WF_Profile_Domain,
+            FirewallProfileType.Private => LocalizedStrings.WF_Profile_Private,
+            FirewallProfileType.Public => LocalizedStrings.WF_Profile_Public,
+            _ => profileType.ToString()
+        };
+
     private static bool TryParseProfile(string? profileName, out FirewallProfileType profileType)
         => Enum.TryParse(profileName, ignoreCase: true, out profileType);
 
@@ -404,6 +413,8 @@ public sealed partial class WindowsFirewallPropertiesPage : Page
             NotificationsDisabled = profile.NotificationsDisabled,
             UnicastResponsesToMulticastBroadcastDisabled = profile.UnicastResponsesToMulticastBroadcastDisabled,
             PolicyModifyState = profile.PolicyModifyState,
+            AllowLocalPolicyMerge = profile.AllowLocalPolicyMerge,
+            AllowLocalIPsecPolicyMerge = profile.AllowLocalIPsecPolicyMerge,
             LoggingSettings = new FirewallLoggingSettings
             {
                 FileName = profile.LoggingSettings.FileName,

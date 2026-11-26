@@ -20,7 +20,7 @@
         VerticalScrollBarVisibility="Auto"
         VerticalScrollMode="Enabled">
         <StackPanel
-            MinWidth="500"
+            MinWidth="480"
             MinHeight="520"
             Spacing="14">
             <TextBlock Text="{x:Bind local:LocalizedStrings.Instance.WF_CustomizeIpsecDefaults_IPsecWillUseTheseSettingsToEstablishSecuredConnectionsWhenThereAre}" TextWrapping="Wrap" />

@@ -54,6 +54,18 @@ public sealed class FirewallProfileModel
 
     public FirewallPolicyModifyState PolicyModifyState { get; set; } = FirewallPolicyModifyState.Ok;
 
+    /// <summary>
+    /// Rule merging ("Apply local firewall rules") as set by Group Policy; <see langword="null"/> when no
+    /// policy sets it (local rules apply). Only a GPO can configure it, so it is read-only here.
+    /// </summary>
+    public bool? AllowLocalPolicyMerge { get; set; }
+
+    /// <summary>
+    /// Rule merging ("Apply local connection security rules") as set by Group Policy;
+    /// <see langword="null"/> when no policy sets it.
+    /// </summary>
+    public bool? AllowLocalIPsecPolicyMerge { get; set; }
+
     public ObservableCollection<NetworkConnectionItem> ProtectedNetworkConnections { get; } = [];
 
     public FirewallLoggingSettings LoggingSettings { get; set; } = new();

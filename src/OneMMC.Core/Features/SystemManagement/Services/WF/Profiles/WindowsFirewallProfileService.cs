@@ -95,6 +95,8 @@ public class WindowsFirewallProfileService
                 NotificationsDisabled = FirewallCom.ToBool(policy.get_NotificationsDisabled(profileMask)),
                 UnicastResponsesToMulticastBroadcastDisabled = FirewallCom.ToBool(policy.get_UnicastResponsesToMulticastBroadcastDisabled(profileMask)),
                 PolicyModifyState = (FirewallPolicyModifyState)policy.get_LocalPolicyModifyState(),
+                AllowLocalPolicyMerge = ReadGroupPolicyBool(profileType, "AllowLocalPolicyMerge"),
+                AllowLocalIPsecPolicyMerge = ReadGroupPolicyBool(profileType, "AllowLocalIPsecPolicyMerge"),
                 LoggingSettings = ReadLoggingSettings(profileType)
             };
 
@@ -109,6 +111,18 @@ public class WindowsFirewallProfileService
         {
             FirewallCom.Release(policy);
         }
+    }
+
+    /// <summary>
+    /// Reads a per-profile DWORD that Group Policy (domain or local GPO) writes under
+    /// HKLM\SOFTWARE\Policies\Microsoft\WindowsFirewall. Returns <see langword="null"/> when no
+    /// policy sets it.
+    /// </summary>
+    private static bool? ReadGroupPolicyBool(FirewallProfileType profileType, string valueName)
+    {
+        string keyPath = $@"SOFTWARE\Policies\Microsoft\WindowsFirewall\{profileType}Profile";
+        using Microsoft.Win32.RegistryKey? key = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(keyPath);
+        return key?.GetValue(valueName) is int value ? value != 0 : null;
     }
 
     public void UpdateProfile(FirewallProfileModel profile)

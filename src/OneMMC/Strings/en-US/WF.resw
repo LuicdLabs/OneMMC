@@ -1524,8 +1524,14 @@
   <data name="WF_ProfileFirewallBehavior_FirewallSettings" xml:space="preserve">
     <value>Firewall settings</value>
   </data>
+  <data name="WF_ProfileFirewallBehavior_ManagedByGroupPolicy" xml:space="preserve">
+    <value>Rule merging is set by Group Policy. To change it, edit the Group Policy object.</value>
+  </data>
   <data name="WF_ProfileFirewallBehavior_RuleMerging" xml:space="preserve">
     <value>Rule merging</value>
+  </data>
+  <data name="WF_ProfileFirewallBehavior_RuleMergingInfo" xml:space="preserve">
+    <value>Rule merging can only be set in a Group Policy object, under Computer Configuration &gt; Windows Settings &gt; Security Settings &gt; Windows Defender Firewall with Advanced Security, in the Local Group Policy Editor (gpedit.msc) or the Group Policy Management Console. Changing it here would have no effect.</value>
   </data>
   <data name="WF_ProfileFirewallBehavior_SpecifySettingsThatControlWindowsDefenderFirewallWithAdvancedSecurityBehavior" xml:space="preserve">
     <value>Specify settings that control Windows Defender Firewall with Advanced Security behavior.</value>

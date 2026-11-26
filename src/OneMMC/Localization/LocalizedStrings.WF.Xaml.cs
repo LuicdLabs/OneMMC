@@ -308,7 +308,9 @@ public partial class LocalizedStrings
     public string WF_ProfileFirewallBehavior_DisplayANotification => GetResource(ResourceFileNames.WF, nameof(WF_ProfileFirewallBehavior_DisplayANotification));
     public string WF_ProfileFirewallBehavior_DisplayNotificationsToTheUserWhenAProgramIsBlockedFromReceiving => GetResource(ResourceFileNames.WF, nameof(WF_ProfileFirewallBehavior_DisplayNotificationsToTheUserWhenAProgramIsBlockedFromReceiving));
     public string WF_ProfileFirewallBehavior_FirewallSettings => GetResource(ResourceFileNames.WF, nameof(WF_ProfileFirewallBehavior_FirewallSettings));
+    public string WF_ProfileFirewallBehavior_ManagedByGroupPolicy => GetResource(ResourceFileNames.WF, nameof(WF_ProfileFirewallBehavior_ManagedByGroupPolicy));
     public string WF_ProfileFirewallBehavior_RuleMerging => GetResource(ResourceFileNames.WF, nameof(WF_ProfileFirewallBehavior_RuleMerging));
+    public string WF_ProfileFirewallBehavior_RuleMergingInfo => GetResource(ResourceFileNames.WF, nameof(WF_ProfileFirewallBehavior_RuleMergingInfo));
     public string WF_ProfileFirewallBehavior_SpecifySettingsThatControlWindowsDefenderFirewallWithAdvancedSecurityBehavior => GetResource(ResourceFileNames.WF, nameof(WF_ProfileFirewallBehavior_SpecifySettingsThatControlWindowsDefenderFirewallWithAdvancedSecurityBehavior));
     public string WF_ProfileFirewallBehavior_UnicastResponse => GetResource(ResourceFileNames.WF, nameof(WF_ProfileFirewallBehavior_UnicastResponse));
     public string WF_ProfileLoggingSettings_DefaultPathForTheLogFileIsSystemrootSystem32LogfilesFirewallPfirewall => GetResource(ResourceFileNames.WF, nameof(WF_ProfileLoggingSettings_DefaultPathForTheLogFileIsSystemrootSystem32LogfilesFirewallPfirewall));

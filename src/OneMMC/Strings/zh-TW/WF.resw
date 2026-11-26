@@ -1524,8 +1524,14 @@
   <data name="WF_ProfileFirewallBehavior_FirewallSettings" xml:space="preserve">
     <value>防火牆設定</value>
   </data>
+  <data name="WF_ProfileFirewallBehavior_ManagedByGroupPolicy" xml:space="preserve">
+    <value>規則合併由群組原則設定。若要變更，請編輯群組原則物件。</value>
+  </data>
   <data name="WF_ProfileFirewallBehavior_RuleMerging" xml:space="preserve">
     <value>規則合併</value>
+  </data>
+  <data name="WF_ProfileFirewallBehavior_RuleMergingInfo" xml:space="preserve">
+    <value>規則合併只能在群組原則物件中設定：在本機群組原則編輯器 (gpedit.msc) 或群組原則管理主控台中，前往 電腦設定 &gt; Windows 設定 &gt; 安全性設定 &gt; 具有進階安全性的 Windows Defender 防火牆。在此處變更不會生效。</value>
   </data>
   <data name="WF_ProfileFirewallBehavior_SpecifySettingsThatControlWindowsDefenderFirewallWithAdvancedSecurityBehavior" xml:space="preserve">
     <value>指定控制進階安全性 Windows Defender 防火牆行為的設定。</value>
@@ -2065,13 +2071,13 @@
     <value>{0} -&gt; {1} | {2}/{3}</value>
   </data>
   <data name="WF_ProfileFirewallBehavior_TitleFormat" xml:space="preserve">
-    <value>自訂 {0} 設定檔的設定</value>
+    <value>自訂{0}設定檔的設定</value>
   </data>
   <data name="WF_ProfileLogging_TitleFormat" xml:space="preserve">
-    <value>自訂 {0} 設定檔的記錄設定</value>
+    <value>自訂{0}設定檔的記錄設定</value>
   </data>
   <data name="WF_ProtectedNetworkConnections_TitleFormat" xml:space="preserve">
-    <value>{0} 設定檔的受保護網路連線</value>
+    <value>{0}設定檔的受保護網路連線</value>
   </data>
   <data name="WF_AdvancedKeyExchange_AddSecurityMethodTitle" xml:space="preserve">
     <value>新增安全性方法</value>

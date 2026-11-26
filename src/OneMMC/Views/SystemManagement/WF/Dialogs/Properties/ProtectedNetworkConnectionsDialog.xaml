@@ -20,7 +20,7 @@
         HorizontalScrollBarVisibility="Disabled"
         VerticalScrollBarVisibility="Auto"
         VerticalScrollMode="Enabled">
-        <StackPanel MinWidth="500" Spacing="12">
+        <StackPanel MinWidth="480" Spacing="12">
             <TextBlock
                 Text="{x:Bind local:LocalizedStrings.Instance.WF_ProtectedNetworkConnections_SelectTheCheckBoxForEachConnectionYouWantWindowsDefenderFirewall}"
                 TextWrapping="Wrap" />
