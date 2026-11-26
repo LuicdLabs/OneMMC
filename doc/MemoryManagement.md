@@ -8,15 +8,21 @@ objects, loaded code, COM state, private commit, and resident pages. These value
 - Managed reachability identifies whether a departed page or service is still owned.
 - Private bytes approximate process-private committed memory. They do not fall merely because a page is no
   longer visible.
-- Working set is the subset currently resident in physical memory. Task Manager primarily makes this number
-  visible, and it can fall without releasing ownership or commit.
+- Working set is the subset currently resident in physical memory. Task Manager's default Memory column is the
+  *private* working set (shared image pages excluded), and it can fall without releasing ownership or commit.
 
-UWP applications participate in OS-managed lifecycle and suspension. A normal WinUI 3 desktop process does not
-receive the same Process Lifetime Manager behavior. OneMMC reproduces the required user-visible effect whenever a
-tracked Frame successfully replaces an existing Page: after the departed visual tree has unloaded, it collects
-unreachable managed wrappers and then calls `EmptyWorkingSet(GetCurrentProcess())`. Collection addresses ownership;
-trimming evicts eligible resident pages. Neither operation guarantees that native allocator commit returns to the
-OS.
+A departed page's native XAML tree is released only after a .NET GC runs the reference tracker walk, and the GC
+does not see native memory, so in a Native AOT app with little managed allocation it rarely runs on its own. Without
+help, native commit climbs with every navigation even though no page stays reachable. Two mechanisms address this:
+
+- **Segment Heap.** `app.manifest` opts the process into `heapType=SegmentHeap`, the heap UWP processes get by
+  default. Desktop processes otherwise use the NT heap, which keeps freed native memory committed as high-water.
+  The Segment Heap returns it to the OS. Requires Windows 10 2004 (19041), the app's minimum.
+- **Post-navigation collection.** Whenever a tracked Frame successfully replaces an existing Page, the departed
+  visual tree is collected once it has unloaded (see below), so native peers are released promptly.
+
+OneMMC does not trim the working set. `EmptyWorkingSet` lowered only the Task Manager figure: it evicts resident
+pages without releasing commit, the pages fault back in as soon as they are used, and it hides real leaks.
 
 Do not compare launch memory with the first visit to a feature page and label the difference a leak. Framework,
 XAML, interop, and feature initialization establish reusable high-water marks. Diagnose repeated late-cycle growth,
@@ -111,17 +117,32 @@ Nested Frames must be registered with `NavigationService.TrackFrame` and their r
 owning page. Event Viewer's `DetailContentFrame` is the current nested Frame case. The shared coordinator coalesces
 requests from every tracked Frame and waits 750 ms so page unload, cancellation, and destination layout can finish.
 
-The worker performs a blocking full compacting collection, waits for pending finalizers, performs a second full
-compacting collection, and then calls the CsWin32-generated `EmptyWorkingSet(GetCurrentProcess())`. It runs away
-from the Frame event handler, so navigation does not synchronously freeze before rendering the destination.
-The first collection finds unreachable page wrappers; waiting permits their finalizers to release native peers; the
-second collection removes objects made unreachable by finalization. The trim then produces the Task Manager Working
-Set reduction that GC alone did not consistently produce.
+The worker performs a blocking full compacting collection, waits for pending finalizers, and performs a second full
+compacting collection. It runs away from the Frame event handler, so navigation does not synchronously freeze
+before rendering the destination. The first collection finds unreachable page wrappers; waiting permits their
+finalizers to release native peers; the second collection removes objects made unreachable by finalization. The
+Segment Heap then returns the released native memory to the OS.
 
-Window minimize and a Frame's initial navigation do not trigger reclamation. Do not add periodic trims,
-`SetProcessWorkingSetSizeEx`, memory-pressure callbacks, or forced working-set timers. Any change to this policy
-requires New, Back, Forward, NavigationView, and Breadcrumb measurements of Working Set, Private Bytes, page
-reachability, and interaction latency.
+Window minimize and a Frame's initial navigation do not trigger reclamation. Do not add `EmptyWorkingSet`,
+`SetProcessWorkingSetSizeEx`, periodic trims, memory-pressure callbacks, or forced working-set timers. Any change to
+this policy, including the heap type, requires New, Back, Forward, NavigationView, and Breadcrumb measurements of
+Task Manager private working set, Private Bytes, page reachability, page faults, and interaction latency.
+
+#### Measurement basis
+
+A synthetic bench mirroring this shell (same Windows App SDK, Native AOT, NavigationView + Frame, nested Frame,
+this coordinator) measured 240 navigations per configuration. Steady state, last third of the run:
+
+| Configuration | Task Manager (median) | Private Bytes (trough) | Page faults |
+|---|---|---|---|
+| NT heap, no reclamation | 440 MB, still rising | 528 MB | 0.17 M |
+| NT heap, GC + `EmptyWorkingSet` (previous policy) | 38 MB, down to 1 MB just after a trim, then back up | 150 MB | 3.04 M |
+| NT heap, GC only | 107 MB, slowly rising | 152 MB | 0.13 M |
+| Segment Heap, GC only (current policy) | 76 MB, flat | 122 MB | 0.48 M |
+
+Navigation latency (p50 ≈ 73 ms, p95 ≈ 190 ms) did not differ between configurations. In every configuration only
+the current page remained reachable after a full GC. The bench pages are synthetic; they do not reproduce this app's
+DI graphs, WMI/COM loads, dialogs, or Breadcrumb navigation.
 
 ### Bound genuinely unbounded caches
 
@@ -134,6 +155,7 @@ single-culture `AdmxBundleProvider` does not need timers, weak layers, or memory
 - [Windows App SDK app lifecycle](https://learn.microsoft.com/windows/apps/develop/launch/app-lifecycle)
 - [UWP app lifecycle](https://learn.microsoft.com/windows/uwp/launch-resume/app-lifecycle)
 - [`EmptyWorkingSet`](https://learn.microsoft.com/windows/win32/api/psapi/nf-psapi-emptyworkingset)
+- [Application manifests: `heapType`](https://learn.microsoft.com/windows/win32/sbscs/application-manifests#heaptype)
 - [Manage memory usage in Windows App SDK desktop apps](https://learn.microsoft.com/windows/apps/develop/launch/reduce-memory-usage)
 - [ItemsRepeater guidance](https://learn.microsoft.com/windows/apps/develop/ui/controls/items-repeater)
 - [.NET dependency injection guidelines](https://learn.microsoft.com/dotnet/core/extensions/dependency-injection/guidelines)

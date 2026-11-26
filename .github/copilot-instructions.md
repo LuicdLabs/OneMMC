@@ -108,7 +108,7 @@ area, and when a rule changes, edit the canonical document instead of restating 
 - Page teardown cancels work and detaches handlers before `PageServiceScope.Attach(page)` disposes the owned DI graph. Attachment is one-shot; never dispose injected singletons.
 - Keep navigation parameters lightweight and register every nested `Frame` with `NavigationService.TrackFrame`.
 - Preserve bound collection identity with `ReplaceAll`; use height-constrained virtualizing controls for growing data. `StableSettingsExpander` is only for fixed, bounded items.
-- Do not change the documented GC/working-set reclamation policy or add speculative memory machinery without measurement.
+- Do not change the documented reclamation policy (post-navigation GC on the Segment Heap, no working-set trimming) or add speculative memory machinery without measurement.
 
 ## Administrator Permission Handling
 - **Unified System**: Always use the unified administrator detection system documented in `doc/AdminDetectionSystem.md`.

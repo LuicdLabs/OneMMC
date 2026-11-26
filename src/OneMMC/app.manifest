@@ -24,6 +24,11 @@
   <application xmlns="urn:schemas-microsoft-com:asm.v3">
     <windowsSettings>
       <dpiAwareness xmlns="http://schemas.microsoft.com/SMI/2016/WindowsSettings">PerMonitorV2</dpiAwareness>
+      <!-- Segment Heap (the heap UWP processes get by default; desktop processes default to the NT heap).
+           It returns freed native memory to the OS, so the XAML/WinRT allocations released after a page
+           leaves stop accumulating as committed high-water memory. Requires Windows 10 2004 (19041),
+           the app's minimum. See doc/MemoryManagement.md. -->
+      <heapType xmlns="http://schemas.microsoft.com/SMI/2020/WindowsSettings">SegmentHeap</heapType>
     </windowsSettings>
   </application>
 </assembly>

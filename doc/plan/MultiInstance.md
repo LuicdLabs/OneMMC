@@ -69,7 +69,7 @@ This keeps a large amount of existing process-wide state correct without migrati
 - the `PerformanceCounterInfo` dispatcher, captured in `App.OnLaunched` before any window exists;
 - static brushes such as those in `LevelToColorConverter` (DependencyObjects with thread affinity);
 - the `SettingsViewModel` singleton and view models that capture `SynchronizationContext.Current`;
-- the process-wide GC/working-set reclamation debounce in `NavigationService`
+- the process-wide post-navigation GC debounce in `NavigationService`
   (`doc/MemoryManagement.md`), which correctly coalesces requests from all windows.
 
 Phase 1 asserts the invariant when a window is registered. A thread per window would turn every item

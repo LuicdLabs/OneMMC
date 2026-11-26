@@ -10,7 +10,6 @@ using OneMMC.Localization;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Media.Animation;
-using Microsoft.Extensions.Logging;
 
 namespace OneMMC.Views;
 
@@ -42,9 +41,7 @@ public sealed partial class EventViewerPage : Page
         Loaded += EventViewerPage_Loaded;
         Unloaded += EventViewerPage_Unloaded;
         _serviceScope.Attach(this);
-        _detailFrameNavigationRegistration = NavigationService.TrackFrame(
-            DetailContentFrame,
-            App.GetRequiredService<ILogger<NavigationService>>());
+        _detailFrameNavigationRegistration = NavigationService.TrackFrame(DetailContentFrame);
     }
 
     // ========================================================================

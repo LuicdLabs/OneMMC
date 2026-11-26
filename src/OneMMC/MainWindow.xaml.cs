@@ -157,9 +157,7 @@ namespace OneMMC
 
             BreadcrumbNavigationService.Init(NavigationViewControl, MainBreadcrumb, contentFrame!);
 
-            _navigationService = new NavigationService(
-                contentFrame!,
-                App.GetRequiredService<ILogger<NavigationService>>());
+            _navigationService = new NavigationService(contentFrame!);
             ViewModel = new MainWindowViewModel(_navigationService);
 
             var appWindow = AppWindow;

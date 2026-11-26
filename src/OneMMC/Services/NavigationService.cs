@@ -1,7 +1,5 @@
-using Microsoft.Extensions.Logging;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
-using Windows.Win32;
 
 namespace OneMMC.Services;
 
@@ -23,14 +21,12 @@ public sealed partial class NavigationService : INavigationService, IDisposable
     /// Initializes navigation for the supplied shell frame.
     /// </summary>
     /// <param name="frame">The frame that hosts shell pages.</param>
-    /// <param name="logger">The logger used for native reclamation failures.</param>
-    public NavigationService(Frame frame, ILogger<NavigationService> logger)
+    public NavigationService(Frame frame)
     {
         ArgumentNullException.ThrowIfNull(frame);
-        ArgumentNullException.ThrowIfNull(logger);
 
         _frame = frame;
-        _frameRegistration = TrackFrame(frame, logger);
+        _frameRegistration = TrackFrame(frame);
         _pageMap = new Dictionary<string, Type>
         {
             { "PCManagement", typeof(Views.PCManagement.PCManagement) },
@@ -65,13 +61,11 @@ public sealed partial class NavigationService : INavigationService, IDisposable
     /// Tracks page replacement on an additional frame, including nested frames owned by a page.
     /// </summary>
     /// <param name="frame">The frame whose departed pages should trigger reclamation.</param>
-    /// <param name="logger">The logger used for native reclamation failures.</param>
     /// <returns>A registration that must be disposed with the frame owner.</returns>
-    public static IDisposable TrackFrame(Frame frame, ILogger<NavigationService> logger)
+    public static IDisposable TrackFrame(Frame frame)
     {
         ArgumentNullException.ThrowIfNull(frame);
-        ArgumentNullException.ThrowIfNull(logger);
-        return new FrameNavigationRegistration(frame, logger);
+        return new FrameNavigationRegistration(frame);
     }
 
     /// <summary>
@@ -94,7 +88,7 @@ public sealed partial class NavigationService : INavigationService, IDisposable
         _frameRegistration.Dispose();
     }
 
-    private static void ScheduleReclamation(ILogger<NavigationService> logger)
+    private static void ScheduleReclamation()
     {
         var reclamationCts = new CancellationTokenSource();
         CancellationTokenSource? previousCts;
@@ -105,27 +99,22 @@ public sealed partial class NavigationService : INavigationService, IDisposable
             s_reclamationCts = reclamationCts;
             previousCts?.Cancel();
         }
-        _ = ReclaimAfterNavigationAsync(reclamationCts, logger);
+        _ = ReclaimAfterNavigationAsync(reclamationCts);
     }
 
-    private static async Task ReclaimAfterNavigationAsync(
-        CancellationTokenSource reclamationCts,
-        ILogger<NavigationService> logger)
+    private static async Task ReclaimAfterNavigationAsync(CancellationTokenSource reclamationCts)
     {
         try
         {
             await Task.Delay(NavigationReclamationDelayMilliseconds, reclamationCts.Token).ConfigureAwait(false);
 
+            // The departed page's native XAML tree is released only after a GC runs the reference
+            // tracker walk, and the GC does not see native memory, so it rarely runs on its own.
+            // The process uses the Segment Heap (app.manifest), which returns the freed native memory
+            // to the OS; no working-set trim is needed. See doc/MemoryManagement.md.
             GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced, blocking: true, compacting: true);
             GC.WaitForPendingFinalizers();
             GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced, blocking: true, compacting: true);
-
-            if (!PInvoke.EmptyWorkingSet(PInvoke.GetCurrentProcess()))
-            {
-                logger.LogWarning(
-                    "Post-navigation working-set trim failed with Win32 error {ErrorCode}.",
-                    System.Runtime.InteropServices.Marshal.GetLastPInvokeError());
-            }
         }
         catch (OperationCanceledException) when (reclamationCts.IsCancellationRequested)
         {
@@ -146,14 +135,12 @@ public sealed partial class NavigationService : INavigationService, IDisposable
 
     private sealed partial class FrameNavigationRegistration : IDisposable
     {
-        private readonly ILogger<NavigationService> _logger;
         private Frame? _frame;
         private bool _reclaimOnNavigated;
 
-        public FrameNavigationRegistration(Frame frame, ILogger<NavigationService> logger)
+        public FrameNavigationRegistration(Frame frame)
         {
             _frame = frame;
-            _logger = logger;
             frame.Navigating += OnNavigating;
             frame.Navigated += OnNavigated;
         }
@@ -183,7 +170,7 @@ public sealed partial class NavigationService : INavigationService, IDisposable
             }
 
             _reclaimOnNavigated = false;
-            ScheduleReclamation(_logger);
+            ScheduleReclamation();
         }
     }
 }
