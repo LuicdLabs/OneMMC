@@ -199,6 +199,12 @@ internal sealed class StoreManagement
                     _logger.LogError(ex, "COM error opening store. ErrorCode=0x{ErrorCode:X8}", ex.ErrorCode);
                     throw new AzManException(OneMMC.Core.Localization.LocalizationProvider.Current.GetFormattedString(OneMMC.Core.Localization.ResourceFileNames.AzMan, OneMMC.Core.Localization.AzManKeys.ErrOpenStoreFormat, GetComErrorMessage(ex)), ex);
                 }
+                catch (UnauthorizedAccessException ex)
+                {
+                    // Expected when the process is not elevated: AzMan needs administrator rights.
+                    _logger.LogWarning("Access denied opening store {StorePath}: {Message}", parameters.Path, ex.Message);
+                    throw new AzManException(OneMMC.Core.Localization.LocalizationProvider.Current.GetFormattedString(OneMMC.Core.Localization.ResourceFileNames.AzMan, OneMMC.Core.Localization.AzManKeys.ErrOpenStoreFormat, ex.Message), ex);
+                }
                 catch (System.IO.FileNotFoundException ex)
                 {
                     _logger.LogWarning(ex, "Store file not found while opening store");

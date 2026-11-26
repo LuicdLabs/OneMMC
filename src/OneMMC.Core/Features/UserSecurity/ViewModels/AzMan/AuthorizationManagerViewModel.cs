@@ -256,7 +256,19 @@ public partial class AuthorizationManagerViewModel : LoadingViewModelBase, IDisp
 {
     private const string StoresFileName = "AzManStores.json";
 
+    // Open failures that mean the store itself is gone, so its persisted entry can be dropped.
+    private const int HResultFileNotFound = unchecked((int)0x80070002);   // ERROR_FILE_NOT_FOUND
+    private const int HResultPathNotFound = unchecked((int)0x80070003);   // ERROR_PATH_NOT_FOUND
+    private const int HResultDsNoSuchObject = unchecked((int)0x80072030); // ERROR_DS_NO_SUCH_OBJECT
+
     private readonly AzManService _azManService;
+
+    /// <summary>
+    /// Persisted stores that could not be opened this session for a reason other than the store
+    /// being gone (for example access denied when not elevated, or an unreachable server). They are
+    /// not shown, but stay in the persistence file so a later session can restore them.
+    /// </summary>
+    private readonly List<StorePersistenceModel> _unrestoredStores = new();
     private readonly ILogger<AuthorizationManagerViewModel> _logger;
     private string _searchText = string.Empty;
     private bool _disposed;
@@ -513,22 +525,23 @@ public partial class AuthorizationManagerViewModel : LoadingViewModelBase, IDisp
                         Stores.Add(store);
                     }
                 }
-                catch (AzManException azEx)
+                catch (Exception ex) when (IsStoreGone(ex))
                 {
-                    // The store could not be opened (e.g. the AD object or XML file was
-                    // deleted outside of this application).  Remove it from the persistence
-                    // file so that the same error is not shown on every subsequent launch.
+                    // The store was deleted outside of this application (XML file or AD object
+                    // no longer exists). Drop it so the same failure is not retried every launch.
                     _logger.LogDebug(
-                        "[AuthorizationManagerViewModel] Cannot restore store {Path}, removing from persistence: {Message}",
-                        savedStore.Path, azEx.Message);
+                        "[AuthorizationManagerViewModel] Store no longer exists, removing from persistence: {Path}: {Message}",
+                        savedStore.Path, ex.Message);
                     removedMissingStores = true;
                 }
                 catch (Exception ex)
                 {
+                    // Any other failure (access denied without elevation, server unreachable, ...)
+                    // may succeed in a later session, so keep the entry rather than forgetting it.
                     _logger.LogDebug(
-                        "[AuthorizationManagerViewModel] Failed to restore store {Path}: {Message}",
+                        "[AuthorizationManagerViewModel] Cannot restore store {Path} this session, keeping it in persistence: {Message}",
                         savedStore.Path, ex.Message);
-                    removedMissingStores = true;
+                    _unrestoredStores.Add(savedStore);
                 }
             }
 
@@ -543,6 +556,28 @@ public partial class AuthorizationManagerViewModel : LoadingViewModelBase, IDisp
         {
             _logger.LogDebug($"[AuthorizationManagerViewModel] Failed to load persisted stores: {ex.Message}");
         }
+    }
+
+    /// <summary>
+    /// Whether an open failure means the store no longer exists, as opposed to a failure that a
+    /// later session may not hit (access denied, network or server errors).
+    /// </summary>
+    private static bool IsStoreGone(Exception ex)
+    {
+        for (Exception? current = ex; current is not null; current = current.InnerException)
+        {
+            if (current is System.IO.FileNotFoundException or System.IO.DirectoryNotFoundException)
+            {
+                return true;
+            }
+
+            if (current.HResult is HResultFileNotFound or HResultPathNotFound or HResultDsNoSuchObject)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /// <summary>
@@ -569,6 +604,17 @@ public partial class AuthorizationManagerViewModel : LoadingViewModelBase, IDisp
                 StoreType = s.StoreType,
                 Name = s.Name
             }).ToList();
+
+            // Keep stores that could not be restored this session, unless the user has since
+            // opened the same store (it is then already in the list above).
+            foreach (var unrestored in _unrestoredStores)
+            {
+                var rawPath = StoreProtocols.ExtractRawPath(unrestored.Path);
+                if (!persistenceList.Any(p => p.Path.Equals(rawPath, StringComparison.OrdinalIgnoreCase)))
+                {
+                    persistenceList.Add(unrestored);
+                }
+            }
 
             string json = System.Text.Json.JsonSerializer.Serialize(persistenceList, AzManStoresJsonContext.Default.ListStorePersistenceModel);
             System.IO.File.WriteAllText(filePath, json);
