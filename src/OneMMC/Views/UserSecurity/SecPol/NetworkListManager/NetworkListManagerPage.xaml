@@ -20,16 +20,31 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <CommandBar Grid.Row="0" DefaultLabelPosition="Right">
-            <AppBarButton
-                Click="RefreshButton_Click"
-                Icon="Refresh"
-                Label="{x:Bind LocalizedStrings.Common_Refresh}" />
-        </CommandBar>
+        <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
+            <AutoSuggestBox
+                x:Name="SearchBox"
+                Grid.Column="0"
+                Width="300"
+                Margin="24,8,12,8"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Center"
+                PlaceholderText="{x:Bind LocalizedStrings.Common_SearchPlaceholder}"
+                QueryIcon="Find"
+                TextChanged="SearchBox_TextChanged" />
+
+            <CommandBar
+                Grid.Column="1"
+                VerticalAlignment="Center"
+                DefaultLabelPosition="Right">
+                <AppBarButton
+                    Click="RefreshButton_Click"
+                    Icon="Refresh"
+                    Label="{x:Bind LocalizedStrings.Common_Refresh}" />
+            </CommandBar>
+        </Grid>
 
         <InfoBar
             x:Name="ErrorInfoBar"
@@ -41,15 +56,7 @@
             Message="{x:Bind ViewModel.ErrorMessage, Mode=OneWay}"
             Severity="Error" />
 
-        <AutoSuggestBox
-            x:Name="SearchBox"
-            Grid.Row="2"
-            Margin="24,0,24,8"
-            PlaceholderText="{x:Bind LocalizedStrings.Common_SearchPlaceholder}"
-            QueryIcon="Find"
-            TextChanged="SearchBox_TextChanged" />
-
-        <Grid Grid.Row="3">
+        <Grid Grid.Row="2">
             <ScrollViewer VerticalScrollBarVisibility="Auto">
                 <ItemsRepeater
                     ItemsSource="{x:Bind ViewModel.Nodes, Mode=OneWay}">
