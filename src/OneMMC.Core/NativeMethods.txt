@@ -70,6 +70,7 @@ EnumPorts
 EnumPrinterDrivers
 EnumPrinters
 FreeLibrary
+GetCurrentPackageFamilyName
 GetCurrentProcess
 GetLengthSid
 GetPrinter

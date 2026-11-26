@@ -4,7 +4,8 @@ using System.Diagnostics;
 using System.Security.Principal;
 using OneMMC.Core.Abstractions.Services;
 using Microsoft.Extensions.Logging;
-using Windows.ApplicationModel;
+using Windows.Win32;
+using Windows.Win32.Foundation;
 
 namespace OneMMC.Core.Infrastructure.Admin;
 
@@ -133,21 +134,35 @@ public class AdminService : IAdminService
 
     private string? TryGetPackagedAppsFolderTarget()
     {
-        try
+        var packageFamilyName = TryGetCurrentPackageFamilyName();
+        if (string.IsNullOrWhiteSpace(packageFamilyName))
         {
-            var packageFamilyName = Package.Current.Id.FamilyName;
-            if (string.IsNullOrWhiteSpace(packageFamilyName))
-            {
-                return null;
-            }
-
-            var appUserModelId = $"{packageFamilyName}!{DefaultPackagedApplicationId}";
-            return $"shell:AppsFolder\\{appUserModelId}";
-        }
-        catch (Exception ex)
-        {
-            _logger.LogDebug(ex, "Application is not running with package identity. Falling back to process path restart.");
+            _logger.LogDebug("Application is not running with package identity. Falling back to process path restart.");
             return null;
         }
+
+        var appUserModelId = $"{packageFamilyName}!{DefaultPackagedApplicationId}";
+        return $"shell:AppsFolder\\{appUserModelId}";
+    }
+
+    /// <summary>
+    /// Returns the current process's package family name, or <see langword="null"/> when the process
+    /// has no package identity. Unlike <c>Windows.ApplicationModel.Package.Current</c>, which throws
+    /// for an unpackaged process, this reports that case as a return code.
+    /// </summary>
+    private static string? TryGetCurrentPackageFamilyName()
+    {
+        // PACKAGE_FAMILY_NAME_MAX_LENGTH is 64 characters, plus the null terminator.
+        Span<char> buffer = stackalloc char[65];
+        uint length = (uint)buffer.Length;
+
+        var result = PInvoke.GetCurrentPackageFamilyName(ref length, buffer);
+        if (result != WIN32_ERROR.ERROR_SUCCESS || length == 0)
+        {
+            return null;
+        }
+
+        // On success, length includes the null terminator.
+        return new string(buffer[..((int)length - 1)]);
     }
 }
