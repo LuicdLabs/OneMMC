@@ -12,6 +12,7 @@ using OneMMC.Core.Features.SystemManagement.Services.WF.ConnectionSecurity;
 using OneMMC.Core.Features.SystemManagement.Services.WF.Monitoring;
 using OneMMC.Core.Features.SystemManagement.Services.WF.Profiles;
 using OneMMC.Core.Features.SystemManagement.Services.WF.Rules;
+using OneMMC.Helpers;
 using OneMMC.Localization;
 using OneMMC.Views.Dialogs.WFProperties;
 using Microsoft.Extensions.Logging;
@@ -139,11 +140,24 @@ public sealed partial class WindowsFirewallPropertiesPage : Page
         try
         {
             FirewallTunnelAuthorizationSettings settings = _firewallProfileService.GetTunnelAuthorizationSettings();
-            if (await ShowTunnelAuthorizationModeDialogAsync(settings) == ContentDialogResult.Primary)
+            var dialog = new IpsecTunnelAuthorizationsDialog(settings);
+            if (await dialog.ShowDialogAsync(XamlRoot) != WindowDialogResult.Primary)
             {
-                _firewallProfileService.UpdateTunnelAuthorizationSettings(settings);
-                LoadIpsecSettings();
+                return;
             }
+
+            // The lists decide the mode: no entries means not configured. An existing transport
+            // (Custom) configuration keeps its mode instead of being rewritten as tunnel.
+            bool hasEntries = settings.AllowedComputers.Count > 0 || settings.DeniedComputers.Count > 0
+                || settings.AllowedUsers.Count > 0 || settings.DeniedUsers.Count > 0;
+            settings.Mode = !hasEntries
+                ? TunnelAuthorizationMode.None
+                : settings.Mode == TunnelAuthorizationMode.Custom
+                    ? TunnelAuthorizationMode.Custom
+                    : TunnelAuthorizationMode.Advanced;
+
+            _firewallProfileService.UpdateTunnelAuthorizationSettings(settings);
+            LoadIpsecSettings();
         }
         catch (Exception ex)
         {
@@ -361,77 +375,6 @@ public sealed partial class WindowsFirewallPropertiesPage : Page
                 PublicLoggingButton.IsEnabled = enabled;
                 break;
         }
-    }
-
-    private async Task<ContentDialogResult> ShowTunnelAuthorizationModeDialogAsync(FirewallTunnelAuthorizationSettings settings)
-    {
-        var noneRadioButton = new RadioButton
-        {
-            Content = LocalizedStrings.WF_Common_None,
-            GroupName = "TunnelAuthorizationMode",
-            IsChecked = settings.Mode == TunnelAuthorizationMode.None
-        };
-
-        var advancedRadioButton = new RadioButton
-        {
-            Content = LocalizedStrings.WF_Tab_Advanced,
-            GroupName = "TunnelAuthorizationMode",
-            IsChecked = settings.Mode != TunnelAuthorizationMode.None
-        };
-
-        var customizeButton = new Button
-        {
-            Content = LocalizedStrings.WF_Button_Customize,
-            MinWidth = 110,
-            HorizontalAlignment = HorizontalAlignment.Left,
-            Visibility = advancedRadioButton.IsChecked == true ? Visibility.Visible : Visibility.Collapsed
-        };
-
-        void UpdateCustomizeButtonVisibility()
-        {
-            customizeButton.Visibility = advancedRadioButton.IsChecked == true
-                ? Visibility.Visible
-                : Visibility.Collapsed;
-        }
-
-        noneRadioButton.Checked += (_, _) => UpdateCustomizeButtonVisibility();
-        advancedRadioButton.Checked += (_, _) => UpdateCustomizeButtonVisibility();
-        customizeButton.Click += async (_, _) =>
-        {
-            advancedRadioButton.IsChecked = true;
-            var authorizationsDialog = new IpsecTunnelAuthorizationsDialog(settings);
-            await authorizationsDialog.ShowDialogAsync(XamlRoot);
-        };
-
-        var content = new StackPanel
-        {
-            Spacing = 12,
-            Children =
-            {
-                noneRadioButton,
-                advancedRadioButton,
-                customizeButton
-            }
-        };
-
-        var dialog = new ContentDialog
-        {
-            Title = LocalizedStrings.WF_Common_IPsecTunnelAuthorization,
-            Content = content,
-            Style = Application.Current.Resources["DefaultContentDialogStyle"] as Style,
-            PrimaryButtonText = LocalizedStrings.Common_OKButton,
-            CloseButtonText = LocalizedStrings.Common_CancelButton
-        };
-
-        ContentDialogResult result = await ShowContentDialogAsync(dialog);
-        if (result == ContentDialogResult.Primary)
-        {
-            settings.Mode = advancedRadioButton.IsChecked == true
-                ? TunnelAuthorizationMode.Advanced
-                : TunnelAuthorizationMode.None;
-        }
-
-        return result;
     }
 
     private static bool TryParseProfile(string? profileName, out FirewallProfileType profileType)
